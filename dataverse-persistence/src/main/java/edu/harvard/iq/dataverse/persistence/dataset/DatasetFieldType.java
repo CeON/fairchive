@@ -110,6 +110,8 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     private int displayOrder;
 
     private String displayFormat;
+    
+    private boolean exportToFile = false;
 
     /** Determines whether an instance of this field type may have multiple values. */
     private boolean allowMultiples;
@@ -183,6 +185,12 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public String getDisplayFormat() {
         return displayFormat;
+    }
+    
+
+    public boolean isExportToFile() {
+        
+        return this.exportToFile;
     }
 
     public int getDisplayOrder() {
@@ -505,6 +513,11 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public void setDisplayFormat(String displayFormat) {
         this.displayFormat = displayFormat;
+    }
+    
+    public void setExportToFile(final boolean exportToFile) {
+        
+        this.exportToFile = exportToFile;
     }
 
     public void setDisplayOrder(int displayOrder) {
