@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import javax.ejb.Singleton;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
+import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import static java.util.stream.Collectors.joining;
@@ -20,6 +21,12 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
 
     public RoleAssignmentRepository() {
         super(RoleAssignment.class);
+    }
+    
+    public RoleAssignmentRepository(final EntityManager em) {
+        
+        super(RoleAssignment.class);
+        super.em = em;
     }
 
     // -------------------- LOGIC --------------------
