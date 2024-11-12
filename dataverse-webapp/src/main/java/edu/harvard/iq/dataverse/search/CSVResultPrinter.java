@@ -28,7 +28,6 @@ public final class CSVResultPrinter {
 
     private final static CSVFormat format = CSVFormat.DEFAULT.builder().build();
 
-    // -------------------------------------------------------------------------
     public CSVResultPrinter(final DatasetRepository datasetRepo,
             final DatasetFieldTypeRepository datasetFieldTypeRepo) {
 
@@ -38,7 +37,6 @@ public final class CSVResultPrinter {
                 .sorted(comparing(DatasetFieldType::getTitle)).collect(toList());
     }
 
-    // -------------------------------------------------------------------------
     public StreamedContent print(final List<SolrSearchResult> results) {
 
         try {
@@ -69,7 +67,6 @@ public final class CSVResultPrinter {
         }
     }
 
-    // -------------------------------------------------------------------------
     private void printHeaders(final CSVPrinter printer) throws IOException {
 
         printer.print("Id");
@@ -80,7 +77,6 @@ public final class CSVResultPrinter {
         }
     }
 
-    // -------------------------------------------------------------------------
     private void printMetadata(final CSVPrinter printer, final SolrSearchResult result)
             throws IOException {
 
@@ -88,26 +84,23 @@ public final class CSVResultPrinter {
                 result.getEntityId());
 
         for (final DatasetFieldType type : this.exportedFields) {
-            printer.print(get(fields, type));
+            printer.print(getFieldValueOfType(fields, type));
         }
     }
 
-    // -------------------------------------------------------------------------
     private List<DatasetField> getAllFieldsOfLatestVersionOf(final Long datasetId) {
 
         return this.datasetRepo.getById(datasetId).getLatestVersion()
                 .getDatasetFieldsAll();
     }
 
-    // -------------------------------------------------------------------------
-    private static String get(final List<DatasetField> fields,
+    private static String getFieldValueOfType(final List<DatasetField> fields,
             final DatasetFieldType type) {
 
         return fields.stream().filter(f -> f.isOfType(type)).findAny()
                 .map(DatasetField::getDisplayValue).orElse(null);
     }
 
-    // -------------------------------------------------------------------------
     private CSVPrinter newPrinter(final OutputStream output) throws IOException {
 
         return new CSVPrinter(new OutputStreamWriter(output, "utf-8"), format);

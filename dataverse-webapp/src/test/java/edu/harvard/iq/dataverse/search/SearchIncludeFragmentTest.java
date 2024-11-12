@@ -56,10 +56,9 @@ public class SearchIncludeFragmentTest {
 
     private DatasetFieldType type1 = new DatasetFieldType();
     private DatasetFieldType type2 = new DatasetFieldType();
-    
-    private  Dataset dataset = new Dataset();
 
-    // -------------------------------------------------------------------------
+    private Dataset dataset = new Dataset();
+
     @BeforeEach
     public void setUp() {
 
@@ -80,7 +79,7 @@ public class SearchIncludeFragmentTest {
         this.type1.setExportToFile(true);
         this.type2.setId(2L);
         this.type2.setTitle("abc");
-        
+
         DatasetVersion dsv = new DatasetVersion();
         DatasetField df = new DatasetField();
         df.setDatasetFieldType(this.type1);
@@ -92,7 +91,6 @@ public class SearchIncludeFragmentTest {
                 .thenReturn(asList(this.type1, this.type2));
     }
 
-    // -------------------------------------------------------------------------
     private SolrQueryResponse responseOf(final SolrSearchResult... results) {
 
         SolrQueryResponse response = new SolrQueryResponse(new SolrQuery());
@@ -103,7 +101,6 @@ public class SearchIncludeFragmentTest {
         return response;
     }
 
-    // -------------------------------------------------------------------------
     @Test
     public void searchresultsSavedToCSV_containIntendedData() throws Exception {
 
@@ -115,7 +112,7 @@ public class SearchIncludeFragmentTest {
         intendedResult.setTitle("title1");
         when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
                 any(), anyInt(), anyInt(), anyBoolean()))
-                .thenReturn(responseOf(intendedResult));   
+                .thenReturn(responseOf(intendedResult));
         when(this.datasetRepo.getById(eq(intendedResult.getEntityId())))
                 .thenReturn(this.dataset);
 
@@ -133,7 +130,6 @@ public class SearchIncludeFragmentTest {
         assertThat(lines.get(1)).isEqualTo("id1,name1,title1,one");
     }
 
-    // -------------------------------------------------------------------------
     @Test
     public void emptyResultsSavedToCSV_generateFileWithColumnNamesOnly()
             throws Exception {

@@ -17,13 +17,11 @@ public class LastSearchValue implements Serializable {
 
     private List<SolrSearchResult> searchResultsList = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
     public List<SolrSearchResult> getSearchResultsList() {
 
         return this.searchResultsList;
     }
 
-    // -------------------------------------------------------------------------
     public void setSearchResultsList(List<SolrSearchResult> searchResultsList) {
 
         this.searchResultsList = searchResultsList;

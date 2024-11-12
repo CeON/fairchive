@@ -24,55 +24,6 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 @Named("ExportSearchResultsPage")
 public class DashboardExportSearchResultsPage implements Serializable {
 
-    // -------------------------------------------------------------------------
-    public static class Metadata {
-
-        private final Long id;
-        private final String title;
-        private final String description;
-        private boolean exportable;
-
-        // ---------------------------------------------------------------------
-        private Metadata(final DatasetFieldType fieldType) {
-
-            this.id = fieldType.getId();
-            this.title = fieldType.getTitle();
-            this.description = fieldType.getDescription();
-            this.exportable = fieldType.isExportToFile();
-        }
-
-        // ---------------------------------------------------------------------
-        public boolean isExportable() {
-
-            return this.exportable;
-        }
-
-        // ---------------------------------------------------------------------
-        public void setExportable(final boolean exportable) {
-
-            this.exportable = exportable;
-        }
-
-        // ---------------------------------------------------------------------
-        public Long getId() {
-
-            return this.id;
-        }
-
-        // ---------------------------------------------------------------------
-        public String getTitle() {
-
-            return this.title;
-        }
-
-        // ---------------------------------------------------------------------
-        public String getDescription() {
-
-            return this.description;
-        }
-    }
-
-    // -------------------------------------------------------------------------
     private final DataverseSession session;
     private final PermissionsWrapper permissionsWrapper;
     private final DataverseDao dataverseDao;
@@ -81,7 +32,6 @@ public class DashboardExportSearchResultsPage implements Serializable {
 
     private List<Metadata> metadataTypes;
 
-    // -------------------------------------------------------------------------
     @Inject
     public DashboardExportSearchResultsPage(final DataverseSession session,
             final PermissionsWrapper permissionsWrapper,
@@ -95,13 +45,11 @@ public class DashboardExportSearchResultsPage implements Serializable {
         this.datasetFiledTypeRepo = datasetFiledTypeRepo;
     }
 
-    // -------------------------------------------------------------------------
     public List<Metadata> getMetadataTypes() {
 
         return this.metadataTypes;
     }
 
-    // -------------------------------------------------------------------------
     public String init() {
 
         if (canEdit()) {
@@ -112,7 +60,6 @@ public class DashboardExportSearchResultsPage implements Serializable {
         }
     }
 
-    // -------------------------------------------------------------------------
     private void initMetadataTypes() {
 
         this.metadataTypes = this.datasetFiledTypeRepo.findAll().stream()
@@ -120,14 +67,12 @@ public class DashboardExportSearchResultsPage implements Serializable {
                 .collect(toList());
     }
 
-    // -------------------------------------------------------------------------
     private boolean canEdit() {
 
         return !this.systemConfig.isReadonlyMode()
                 && this.session.getUser().isSuperuser();
     }
 
-    // -------------------------------------------------------------------------
     public String save() {
 
         for (final DatasetFieldType fieldType : this.datasetFiledTypeRepo.findAll()) {
@@ -138,18 +83,56 @@ public class DashboardExportSearchResultsPage implements Serializable {
         return EMPTY;
     }
 
-    // -------------------------------------------------------------------------
     private boolean isExportedToFile(final Long id) {
 
         return this.metadataTypes.stream().filter(mt -> mt.getId().equals(id))
                 .findFirst().map(Metadata::isExportable).orElse(FALSE);
     }
 
-    // -------------------------------------------------------------------------
     public String cancel() {
 
         return "/dashboard.xhtml?faces-redirect=true&dataverseId="
                 + this.dataverseDao.findRootDataverse().getId();
     }
-    // -------------------------------------------------------------------------
+
+    public static class Metadata {
+
+        private final Long id;
+        private final String title;
+        private final String description;
+        private boolean exportable;
+
+        private Metadata(final DatasetFieldType fieldType) {
+
+            this.id = fieldType.getId();
+            this.title = fieldType.getTitle();
+            this.description = fieldType.getDescription();
+            this.exportable = fieldType.isExportToFile();
+        }
+
+        public boolean isExportable() {
+
+            return this.exportable;
+        }
+
+        public void setExportable(final boolean exportable) {
+
+            this.exportable = exportable;
+        }
+
+        public Long getId() {
+
+            return this.id;
+        }
+
+        public String getTitle() {
+
+            return this.title;
+        }
+
+        public String getDescription() {
+
+            return this.description;
+        }
+    }
 }

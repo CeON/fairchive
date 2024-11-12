@@ -71,6 +71,9 @@ public class SearchIncludeFragment {
     public static final String ASCENDING = SortOrder.asc.toString();
     public static final String DESCENDING = SortOrder.desc.toString();
 
+    
+    // Some of the fields are package scoped to so that they can be mocked manually in test. 
+    // refactor this class to use constructor injection in the future.
     @EJB
     SearchServiceBean searchService;
     @EJB
@@ -467,8 +470,7 @@ public class SearchIncludeFragment {
 
         if (SortOrder.asc.toString().equals(sortOrderSupplied)) {
             this.sortOrder = SortOrder.asc;
-        }
-        if (SortOrder.desc.toString().equals(sortOrderSupplied)) {
+        } else if (SortOrder.desc.toString().equals(sortOrderSupplied)) {
             this.sortOrder = SortOrder.desc;
         }
     }
