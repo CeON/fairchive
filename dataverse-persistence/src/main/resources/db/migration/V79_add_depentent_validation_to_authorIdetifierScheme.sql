@@ -1,0 +1,2 @@
+update datasetfieldtype set validation = '[{"name":"standard_input"}, {"name":"required_dependant","parameters":{"context":["DATASET"], "dependantField": "authorIdentifier"}}]'
+where id  = 11 and name = 'authorIdentifierScheme';

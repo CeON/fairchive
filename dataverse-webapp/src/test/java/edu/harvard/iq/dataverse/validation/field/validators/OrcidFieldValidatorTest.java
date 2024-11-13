@@ -75,9 +75,9 @@ public class OrcidFieldValidatorTest {
         FieldValidationResult result = validator.validateValue(isni, identifier, params, Collections.emptyMap());
 
         // then
-        assertThat(result.isOk()).isTrue();
-        assertThat(result.getField()).isNull();
-        assertThat(result.getMessage()).isEmpty();
+        assertThat(result.isOk()).isFalse();
+        assertThat(result.getField()).isEqualTo(identifier);
+        assertThat(result.getMessage()).isNotBlank();
         verify(orcidValidator, never()).validate(isni);
     }
 

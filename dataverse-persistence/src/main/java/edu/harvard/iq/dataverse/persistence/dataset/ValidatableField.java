@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import io.vavr.control.Option;
-
 import java.util.List;
 
 public interface ValidatableField {
@@ -25,12 +24,33 @@ public interface ValidatableField {
     String getValidationMessage();
 
     default String getSingleValue() {
+        
         List<String> values = getValidatableValues();
         return values != null && !values.isEmpty() ? values.get(0) : null;
     }
 
     default boolean hasNonUniqueValue() {
+        
         List<String> validatableValues = getValidatableValues();
         return validatableValues != null && validatableValues.size() > 1;
+    }
+    
+    default Option<? extends ValidatableField> getFirstSiblingOfType(
+            final String typeName) {
+        
+        return getParent().flatMap(f -> f.getFirstChildOf(typeName));
+    }
+
+    default Option<? extends ValidatableField> getFirstChildOf(
+            final String typeName) {
+
+        return Option.ofOptional(getChildren().stream()
+                .filter(child -> child.isOfType(typeName))
+                .findFirst());
+    }
+    
+    default boolean isOfType(final String typeName) {
+        
+        return getDatasetFieldType().isOfType(typeName);
     }
 }
