@@ -226,6 +226,16 @@
             </p>
 
             <h2>#{bundle['dataverse.results.header']}</h2>
+            
+            <h:form>
+                <p:commandButton id="downloadLink" 
+                                 value="#{bundle['dataverse.results.btn.saveToFile']}" 
+                                 ajax="false"
+                                 actionListener="#{SearchIncludeFragment.prepareSearchResults}">
+                    <p:fileDownload value="#{SearchIncludeFragment.searchResultsFile}" />
+                 </p:commandButton>
+            </h:form>
+ 
 
             <!-- Message for zero results -->
             <div id="emptyResults" class="emptyResults bg-warning" jsf:rendered="#{(empty SearchIncludeFragment.searchResultsList) and (!SearchIncludeFragment.wasSolrErrorEncountered())}">

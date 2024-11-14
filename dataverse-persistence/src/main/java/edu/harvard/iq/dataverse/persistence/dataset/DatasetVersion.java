@@ -205,6 +205,18 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     public List<DatasetField> getDatasetFieldsOptional() {
         return datasetFieldsOptional;
     }
+    
+    public List<DatasetField> getDatasetFieldsAll() {
+
+        if (getDatasetFieldsOptional().isEmpty()) {
+            return getDatasetFields();
+        } else {
+            final List<DatasetField> result = new ArrayList<DatasetField>(
+                    getDatasetFields());
+            result.addAll(getDatasetFieldsOptional());
+            return result;
+        }
+    }
 
     public Date getArchiveTime() {
         return archiveTime;

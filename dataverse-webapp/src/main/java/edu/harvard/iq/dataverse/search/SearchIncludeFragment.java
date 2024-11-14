@@ -1,37 +1,9 @@
 package edu.harvard.iq.dataverse.search;
 
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
-import edu.harvard.iq.dataverse.DvObjectServiceBean;
-import edu.harvard.iq.dataverse.PermissionServiceBean;
-import edu.harvard.iq.dataverse.SolrSearchResultsService;
-import edu.harvard.iq.dataverse.ThumbnailServiceWrapper;
-import edu.harvard.iq.dataverse.WidgetWrapper;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.group.AuthenticatedUsers;
-import edu.harvard.iq.dataverse.persistence.user.Permission;
-import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
-import edu.harvard.iq.dataverse.search.query.SearchForTypes;
-import edu.harvard.iq.dataverse.search.query.SearchObjectType;
-import edu.harvard.iq.dataverse.search.query.filter.SpecialFilter;
-import edu.harvard.iq.dataverse.search.query.filter.SpecialFilterService;
-import edu.harvard.iq.dataverse.search.response.DvObjectCounts;
-import edu.harvard.iq.dataverse.search.response.FacetCategory;
-import edu.harvard.iq.dataverse.search.response.FilterQuery;
-import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
-import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.Param;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.startsWith;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -46,7 +18,42 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.StringUtils;
+import org.omnifaces.cdi.Param;
+import org.primefaces.model.StreamedContent;
+
+import edu.harvard.iq.dataverse.DatasetDao;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
+import edu.harvard.iq.dataverse.DvObjectServiceBean;
+import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.SolrSearchResultsService;
+import edu.harvard.iq.dataverse.ThumbnailServiceWrapper;
+import edu.harvard.iq.dataverse.WidgetWrapper;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.group.AuthenticatedUsers;
+import edu.harvard.iq.dataverse.persistence.user.Permission;
+import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
+import edu.harvard.iq.dataverse.search.query.SearchForTypes;
+import edu.harvard.iq.dataverse.search.query.SearchObjectType;
+import edu.harvard.iq.dataverse.search.query.filter.SpecialFilter;
+import edu.harvard.iq.dataverse.search.query.filter.SpecialFilterService;
+import edu.harvard.iq.dataverse.search.response.DvObjectCounts;
+import edu.harvard.iq.dataverse.search.response.FacetCategory;
+import edu.harvard.iq.dataverse.search.response.FilterQuery;
+import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
+import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 
 @RequestScoped
 @Named("SearchIncludeFragment")
@@ -64,6 +71,9 @@ public class SearchIncludeFragment {
     public static final String ASCENDING = SortOrder.asc.toString();
     public static final String DESCENDING = SortOrder.desc.toString();
 
+    
+    // Some of the fields are package scoped to so that they can be mocked manually in test. 
+    // refactor this class to use constructor injection in the future.
     @EJB
     SearchServiceBean searchService;
     @EJB
@@ -77,15 +87,21 @@ public class SearchIncludeFragment {
     @Inject
     WidgetWrapper widgetWrapper;
     @Inject
-    private DataverseRequestServiceBean dataverseRequestService;
+    DataverseRequestServiceBean dataverseRequestService;
     @Inject
     private PermissionServiceBean permissionService;
     @Inject
-    private SolrSearchResultsService solrSearchResultsService;
+    SolrSearchResultsService solrSearchResultsService;
     @Inject
-    private HttpServletRequest request;
+    HttpServletRequest request;
     @Inject
     private SpecialFilterService specialFilterService;
+    @Inject
+    LastSearchValue lastSearchValue;
+    @Inject
+    DatasetRepository datasetRepo;
+    @Inject
+    DatasetFieldTypeRepository datasetFieldTypeRepo;
 
     @Inject @Param(name = "q")
     private String query;
@@ -120,9 +136,19 @@ public class SearchIncludeFragment {
     private String errorFromSolr;
     private SearchException searchException;
     private boolean solrErrorEncountered = false;
+    
+    private StreamedContent searchResultsFile;
 
     // -------------------- GETTERS --------------------
 
+    public LastSearchValue getLastSearchValue() {
+        return lastSearchValue;
+    }
+
+    public void setLastSearchValue(LastSearchValue lastSearchValue) {
+        this.lastSearchValue = lastSearchValue;
+    }
+    
     public String getQuery() {
         return query;
     }
@@ -407,16 +433,30 @@ public class SearchIncludeFragment {
         Map<SearchObjectType, List<SolrSearchResult>> results = searchResultsList.stream()
                 .collect(Collectors.groupingBy(SolrSearchResult::getType));
         solrSearchResultsService.populateDataverseSearchCard(
-                results.getOrDefault(SearchObjectType.DATAVERSES, Collections.emptyList()));
+                results.getOrDefault(SearchObjectType.DATAVERSES, emptyList()));
         solrSearchResultsService.populateDatasetSearchCard(
-                results.getOrDefault(SearchObjectType.DATASETS, Collections.emptyList()));
+                results.getOrDefault(SearchObjectType.DATASETS, emptyList()));
         solrSearchResultsService.populateDatafileSearchCard(
-                results.getOrDefault(SearchObjectType.FILES, Collections.emptyList()));
+                results.getOrDefault(SearchObjectType.FILES, emptyList()));
 
         setDisplayCardValues(dataversePath);
+        
+        this.lastSearchValue.setSearchResultsList(searchResultsList);
     }
+    
+    public StreamedContent getSearchResultsFile() {
 
+        return new CSVResultPrinter(this.datasetRepo, this.datasetFieldTypeRepo)
+                .print(getLastSearchValue().getSearchResultsList());
+    }
+    
+    public String prepareSearchResults()  {
+    
+        return "rearchResultFile";
+    }
+    
     public String getSortOrder() {
+        
         return sortOrder != null ? sortOrder.toString() : null;
     }
 
@@ -426,14 +466,12 @@ public class SearchIncludeFragment {
      * method we could write a converter:
      * http://stackoverflow.com/questions/8609378/jsf-2-0-view-parameters-to-pass-objects
      */
-    public void setSortOrder(String sortOrderSupplied) {
-        if (sortOrderSupplied != null) {
-            if (sortOrderSupplied.equals(SortOrder.asc.toString())) {
-                this.sortOrder = SortOrder.asc;
-            }
-            if (sortOrderSupplied.equals(SortOrder.desc.toString())) {
-                this.sortOrder = SortOrder.desc;
-            }
+    public void setSortOrder(final String sortOrderSupplied) {
+
+        if (SortOrder.asc.toString().equals(sortOrderSupplied)) {
+            this.sortOrder = SortOrder.asc;
+        } else if (SortOrder.desc.toString().equals(sortOrderSupplied)) {
+            this.sortOrder = SortOrder.desc;
         }
     }
 
@@ -458,6 +496,7 @@ public class SearchIncludeFragment {
     }
 
     public String searchWithSelectedTypesRedirect() throws UnsupportedEncodingException {
+        
         StringBuilder searchUrlBuilder = new StringBuilder()
                 .append("dataverse.xhtml?alias=").append(dataverseAlias)
                 .append("&q=").append((query == null) ? "" : query)
@@ -651,7 +690,7 @@ public class SearchIncludeFragment {
                     Long objectId = result.getParentIdAsLong();
                     if (treePathMap.containsKey(objectId)) {
                         String objectPath = treePathMap.get(objectId);
-                        if (!StringUtils.startsWith(objectPath, dataversePath)) {
+                        if (!startsWith(objectPath, dataversePath)) {
                             result.setIsInTree(false);
                         }
                     }
