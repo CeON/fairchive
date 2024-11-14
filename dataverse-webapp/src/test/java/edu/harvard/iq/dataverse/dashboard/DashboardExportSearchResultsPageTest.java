@@ -44,10 +44,8 @@ public class DashboardExportSearchResultsPageTest {
     private DatasetFieldType type1 = new DatasetFieldType();
     private DatasetFieldType type2 = new DatasetFieldType();
 
-    // -------------------------------------------------------------------------
     @BeforeEach
     public void setUp() {
-
         AuthenticatedUser user = new AuthenticatedUser();
         user.setSuperuser(true);
         when(this.session.getUser()).thenReturn(user);
@@ -61,10 +59,8 @@ public class DashboardExportSearchResultsPageTest {
                 .thenReturn(asList(this.type1, this.type2));
     }
 
-    // -------------------------------------------------------------------------
     @Test
     public void selectionAndSavingWorks() throws Exception {
-
         this.page.init();
 
         assertThat(this.page.getMetadataTypes().size()).isEqualTo(2);
@@ -83,6 +79,5 @@ public class DashboardExportSearchResultsPageTest {
         verify(this.datasetFiledTypeRepo).save(this.type2);
         assertThat(this.type1.isExportToFile()).isFalse();
         assertThat(this.type2.isExportToFile()).isTrue();
-
     }
 }

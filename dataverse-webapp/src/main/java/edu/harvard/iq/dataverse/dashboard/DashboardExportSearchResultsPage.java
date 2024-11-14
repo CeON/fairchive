@@ -37,7 +37,6 @@ public class DashboardExportSearchResultsPage implements Serializable {
             final PermissionsWrapper permissionsWrapper,
             final DataverseDao dataverseDao, final SystemConfig systemConfig,
             final DatasetFieldTypeRepository datasetFiledTypeRepo) {
-
         this.session = session;
         this.permissionsWrapper = permissionsWrapper;
         this.dataverseDao = dataverseDao;
@@ -46,12 +45,10 @@ public class DashboardExportSearchResultsPage implements Serializable {
     }
 
     public List<Metadata> getMetadataTypes() {
-
         return this.metadataTypes;
     }
 
     public String init() {
-
         if (canEdit()) {
             initMetadataTypes();
             return EMPTY;
@@ -61,36 +58,30 @@ public class DashboardExportSearchResultsPage implements Serializable {
     }
 
     private void initMetadataTypes() {
-
         this.metadataTypes = this.datasetFiledTypeRepo.findAll().stream()
                 .map(Metadata::new).sorted(comparing(Metadata::getTitle))
                 .collect(toList());
     }
 
     private boolean canEdit() {
-
         return !this.systemConfig.isReadonlyMode()
                 && this.session.getUser().isSuperuser();
     }
 
     public String save() {
-
         for (final DatasetFieldType fieldType : this.datasetFiledTypeRepo.findAll()) {
             fieldType.setExportToFile(isExportedToFile(fieldType.getId()));
             this.datasetFiledTypeRepo.save(fieldType);
         }
-
         return EMPTY;
     }
 
     private boolean isExportedToFile(final Long id) {
-
         return this.metadataTypes.stream().filter(mt -> mt.getId().equals(id))
                 .findFirst().map(Metadata::isExportable).orElse(FALSE);
     }
 
     public String cancel() {
-
         return "/dashboard.xhtml?faces-redirect=true&dataverseId="
                 + this.dataverseDao.findRootDataverse().getId();
     }
@@ -103,7 +94,6 @@ public class DashboardExportSearchResultsPage implements Serializable {
         private boolean exportable;
 
         private Metadata(final DatasetFieldType fieldType) {
-
             this.id = fieldType.getId();
             this.title = fieldType.getTitle();
             this.description = fieldType.getDescription();
@@ -111,27 +101,22 @@ public class DashboardExportSearchResultsPage implements Serializable {
         }
 
         public boolean isExportable() {
-
             return this.exportable;
         }
 
         public void setExportable(final boolean exportable) {
-
             this.exportable = exportable;
         }
 
         public Long getId() {
-
             return this.id;
         }
 
         public String getTitle() {
-
             return this.title;
         }
 
         public String getDescription() {
-
             return this.description;
         }
     }

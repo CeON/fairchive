@@ -30,7 +30,6 @@ public final class CSVResultPrinter {
 
     public CSVResultPrinter(final DatasetRepository datasetRepo,
             final DatasetFieldTypeRepository datasetFieldTypeRepo) {
-
         this.datasetRepo = datasetRepo;
         this.exportedFields = datasetFieldTypeRepo.findAll().stream()
                 .filter(DatasetFieldType::isExportToFile)
@@ -38,7 +37,6 @@ public final class CSVResultPrinter {
     }
 
     public StreamedContent print(final List<SolrSearchResult> results) {
-
         try {
             final ByteArrayOutputStream content = new ByteArrayOutputStream(4000);
 
@@ -68,7 +66,6 @@ public final class CSVResultPrinter {
     }
 
     private void printHeaders(final CSVPrinter printer) throws IOException {
-
         printer.print("Id");
         printer.print("Name");
         printer.print("Title");
@@ -79,7 +76,6 @@ public final class CSVResultPrinter {
 
     private void printMetadata(final CSVPrinter printer, final SolrSearchResult result)
             throws IOException {
-
         final List<DatasetField> fields = getAllFieldsOfLatestVersionOf(
                 result.getEntityId());
 
@@ -89,20 +85,17 @@ public final class CSVResultPrinter {
     }
 
     private List<DatasetField> getAllFieldsOfLatestVersionOf(final Long datasetId) {
-
         return this.datasetRepo.getById(datasetId).getLatestVersion()
                 .getDatasetFieldsAll();
     }
 
     private static String getFieldValueOfType(final List<DatasetField> fields,
             final DatasetFieldType type) {
-
         return fields.stream().filter(f -> f.isOfType(type)).findAny()
                 .map(DatasetField::getDisplayValue).orElse(null);
     }
 
     private CSVPrinter newPrinter(final OutputStream output) throws IOException {
-
         return new CSVPrinter(new OutputStreamWriter(output, "utf-8"), format);
     }
 }
