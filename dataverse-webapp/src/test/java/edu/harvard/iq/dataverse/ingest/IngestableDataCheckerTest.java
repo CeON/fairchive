@@ -22,14 +22,14 @@ public class IngestableDataCheckerTest {
         return buffer;
     }
 
-    private AbstractStringAssert<?> assertThatADATA(final String content)
+    private AbstractStringAssert<?> assertThatADATAFormat(final String content)
             throws Exception {
         ByteBuffer buff = createBufferContaining(content);
 
         return assertThat(this.instance.testDTAformat(buff));
     }
 
-    private AbstractStringAssert<?> assertThatSAV(final String content)
+    private AbstractStringAssert<?> assertThatSAVFormat(final String content)
             throws Exception {
         ByteBuffer buff = createBufferContaining(content);
 
@@ -37,25 +37,25 @@ public class IngestableDataCheckerTest {
     }
 
     @Test
-    public void testingADATA_returnsMimeType_forProperContent() throws Exception {
-        assertThatADATA("l   ").isEqualTo("application/x-stata");
-        assertThatADATA(STATA_13_HEADER).isEqualTo("application/x-stata-13");
+    public void testADATAformat_returnsMimeType_forProperContent() throws Exception {
+        assertThatADATAFormat("l   ").isEqualTo("application/x-stata");
+        assertThatADATAFormat(STATA_13_HEADER).isEqualTo("application/x-stata-13");
     }
 
     @Test
-    public void testingADATA_returnsNull_forBrokenContent() throws Exception {
-        assertThatADATA("").isNull();
-        assertThatADATA("hello-non-stata-file-how-are-you").isNull();
+    public void testADATAformat_returnsNull_forBrokenContent() throws Exception {
+        assertThatADATAFormat("").isNull();
+        assertThatADATAFormat("hello-non-stata-file-how-are-you").isNull();
     }
 
     @Test
-    public void testingSAV_returnsMimeType_forProperContent() throws Exception {
-        assertThatSAV("$FL2").isEqualTo("application/x-spss-sav");
+    public void testingSAVformat_returnsMimeType_forProperContent() throws Exception {
+        assertThatSAVFormat("$FL2").isEqualTo("application/x-spss-sav");
     }
 
     @Test
-    public void testingSAV_returnsNull_forBrokenContent() throws Exception {
-        assertThatSAV("").isNull();
-        assertThatSAV("i-am-not-a-x-spss-sav-file").isNull();
+    public void testingSAVformat_returnsNull_forBrokenContent() throws Exception {
+        assertThatSAVFormat("").isNull();
+        assertThatSAVFormat("i-am-not-a-x-spss-sav-file").isNull();
     }
 }
