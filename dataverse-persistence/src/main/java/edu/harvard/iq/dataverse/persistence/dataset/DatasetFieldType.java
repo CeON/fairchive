@@ -194,7 +194,6 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     }
     
     public boolean isOfType(final String typeName) {
-        
         return this.name.equals(typeName);
     }
 
