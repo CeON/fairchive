@@ -22,7 +22,7 @@ public class IngestableDataCheckerTest {
         return buffer;
     }
 
-    private AbstractStringAssert<?> assertThatADATAFormat(final String content)
+    private AbstractStringAssert<?> assertThatDTAFormat(final String content)
             throws Exception {
         ByteBuffer buff = createBufferContaining(content);
 
@@ -38,23 +38,23 @@ public class IngestableDataCheckerTest {
 
     @Test
     public void testADATAformat_returnsMimeType_forProperContent() throws Exception {
-        assertThatADATAFormat("l   ").isEqualTo("application/x-stata");
-        assertThatADATAFormat(STATA_13_HEADER).isEqualTo("application/x-stata-13");
+        assertThatDTAFormat("l   ").isEqualTo("application/x-stata");
+        assertThatDTAFormat(STATA_13_HEADER).isEqualTo("application/x-stata-13");
     }
 
     @Test
     public void testADATAformat_returnsNull_forBrokenContent() throws Exception {
-        assertThatADATAFormat("").isNull();
-        assertThatADATAFormat("hello-non-stata-file-how-are-you").isNull();
+        assertThatDTAFormat("").isNull();
+        assertThatDTAFormat("hello-non-stata-file-how-are-you").isNull();
     }
 
     @Test
-    public void testingSAVformat_returnsMimeType_forProperContent() throws Exception {
+    public void testSAVformat_returnsMimeType_forProperContent() throws Exception {
         assertThatSAVFormat("$FL2").isEqualTo("application/x-spss-sav");
     }
 
     @Test
-    public void testingSAVformat_returnsNull_forBrokenContent() throws Exception {
+    public void testSAVformat_returnsNull_forBrokenContent() throws Exception {
         assertThatSAVFormat("").isNull();
         assertThatSAVFormat("i-am-not-a-x-spss-sav-file").isNull();
     }
