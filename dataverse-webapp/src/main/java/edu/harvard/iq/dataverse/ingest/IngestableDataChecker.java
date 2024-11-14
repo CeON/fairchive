@@ -20,9 +20,10 @@
 package edu.harvard.iq.dataverse.ingest;
 
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
+import static org.apache.commons.lang.builder.ToStringStyle.MULTI_LINE_STYLE;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -44,8 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
  * This is a virtually unchanged DVN v2-3 implementation by
@@ -134,7 +135,7 @@ public class IngestableDataChecker implements java.io.Serializable {
     /**
      * test this byte buffer against SPSS-SAV spec
      */
-    public String testSAVformat(MappedByteBuffer buff) {
+    public String testSAVformat(ByteBuffer buff) {
         String result = null;
         buff.rewind();
         boolean DEBUG = false;
@@ -176,7 +177,7 @@ public class IngestableDataChecker implements java.io.Serializable {
     /**
      * test this byte buffer against STATA DTA spec
      */
-    public String testDTAformat(MappedByteBuffer buff) {
+    public String testDTAformat(ByteBuffer buff) {
         String result = null;
         buff.rewind();
         boolean DEBUG = false;
@@ -294,7 +295,7 @@ public class IngestableDataChecker implements java.io.Serializable {
     /**
      * test this byte buffer against SAS Transport(XPT) spec
      */
-    public String testXPTformat(MappedByteBuffer buff) {
+    public String testXPTformat(ByteBuffer buff) {
         String result = null;
         buff.rewind();
         boolean DEBUG = false;
@@ -341,7 +342,7 @@ public class IngestableDataChecker implements java.io.Serializable {
     /**
      * test this byte buffer against SPSS Portable (POR) spec
      */
-    public String testPORformat(MappedByteBuffer buff) {
+    public String testPORformat(ByteBuffer buff) {
         String result = null;
         buff.rewind();
         boolean DEBUG = false;
@@ -506,7 +507,7 @@ public class IngestableDataChecker implements java.io.Serializable {
     /**
      * test this byte buffer against R data file
      */
-    public String testRDAformat(MappedByteBuffer buff) {
+    public String testRDAformat(ByteBuffer buff) {
         String result = null;
         buff.rewind();
 
@@ -590,18 +591,18 @@ public class IngestableDataChecker implements java.io.Serializable {
     public String detectTabularDataFormat(File fh) {
         boolean DEBUG = false;
         String readableFormatType = null;
-        FileChannel srcChannel = null;
-        FileInputStream inp = null;
-        try {
+        
+        
+        try (final FileInputStream inp = new FileInputStream(fh)) {
+            
             int buffer_size = this.getBufferSize(fh);
             dbgLog.fine("buffer_size: " + buffer_size);
 
             // set-up a FileChannel instance for a given file object
-            inp = new FileInputStream(fh);
-            srcChannel = inp.getChannel();
+            final FileChannel srcChannel = inp.getChannel();
 
             // create a read-only MappedByteBuffer
-            MappedByteBuffer buff = srcChannel.map(FileChannel.MapMode.READ_ONLY, 0, buffer_size);
+            MappedByteBuffer buff = srcChannel.map(READ_ONLY, 0, buffer_size);
 
             //this.printHexDump(buff, "hex dump of the byte-buffer");
 
@@ -661,10 +662,7 @@ public class IngestableDataChecker implements java.io.Serializable {
         } catch (IOException ie) {
             dbgLog.fine("other io exception detected");
             ie.printStackTrace();
-        } finally {
-            IOUtils.closeQuietly(srcChannel);
-            IOUtils.closeQuietly(inp);
-        }
+        } 
         return readableFormatType;
     }
 
@@ -709,7 +707,7 @@ public class IngestableDataChecker implements java.io.Serializable {
         return BUFFER_SIZE;
     }
 
-    private int getGzipBufferSize(MappedByteBuffer buff) {
+    private int getGzipBufferSize(ByteBuffer buff) {
         int GZIP_BUFFER_SIZE = 120;
         /*
         note:
@@ -729,7 +727,7 @@ public class IngestableDataChecker implements java.io.Serializable {
     /**
      * dump the data buffer in HEX
      */
-    public void printHexDump(MappedByteBuffer buff, String hdr) {
+    public void printHexDump(ByteBuffer buff, String hdr) {
         int counter = 0;
         if (hdr != null) {
             out.println(hdr);
@@ -751,7 +749,6 @@ public class IngestableDataChecker implements java.io.Serializable {
 
     @Override
     public String toString() {
-        return ToStringBuilder.reflectionToString(this,
-                                                  ToStringStyle.MULTI_LINE_STYLE);
+        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
     }
 }
