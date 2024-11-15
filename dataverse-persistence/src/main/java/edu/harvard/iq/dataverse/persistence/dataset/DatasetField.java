@@ -101,6 +101,11 @@ public class DatasetField implements Serializable, ValidatableField {
     public DatasetFieldType getDatasetFieldType() {
         return datasetFieldType;
     }
+    
+    public boolean isOfType(final DatasetFieldType type) {
+        
+        return getDatasetFieldType().equals(type);
+    }
 
     public DatasetVersion getDatasetVersion() {
         return datasetVersion;

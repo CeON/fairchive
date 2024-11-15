@@ -7,6 +7,8 @@ import edu.harvard.iq.dataverse.search.SolrField;
 import edu.harvard.iq.dataverse.search.query.SearchObjectType;
 import edu.harvard.iq.dataverse.search.query.SearchPublicationStatus;
 
+import static edu.harvard.iq.dataverse.search.query.SearchObjectType.DATASETS;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -179,6 +181,11 @@ public class SolrSearchResult {
 
     public SearchObjectType getType() {
         return type;
+    }
+    
+    public boolean isDataset() {
+        
+        return getType().equals(DATASETS);
     }
 
     public String getHtmlUrl() {
