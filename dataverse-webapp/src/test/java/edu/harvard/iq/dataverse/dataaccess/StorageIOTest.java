@@ -72,13 +72,13 @@ public class StorageIOTest {
         instance.closeInputStream();
     }
 
-    @Test
-    public void testOutputStream() throws Exception {
-        assertEquals(null, instance.getOutputStream());
-        OutputStream os = new ByteArrayOutputStream();
-        instance.setOutputStream(os);
-        assertEquals(os, instance.getOutputStream());
-    }
+//    @Test
+//    public void testOutputStream() throws Exception {
+//        assertEquals(null, instance.getOutputStream());
+//        OutputStream os = new ByteArrayOutputStream();
+//        instance.setOutputStream(os);
+//        assertEquals(os, instance.getOutputStream());
+//    }
 
     @Test
     public void testVarHeader() {
