@@ -966,12 +966,7 @@ public class DatasetFilesTab implements Serializable {
         }
 
         if (printBannerMessage) {
-            // must have been a bulk file update or delete:
-            if (bulkFileDeleteInProgress) {
-                JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.bulkFileDeleteSuccess"));
-            } else {
-                JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.bulkFileUpdateSuccess"));
-            }
+            printBannerMessage();
         }
         bulkFileDeleteInProgress = false;
 
@@ -979,8 +974,17 @@ public class DatasetFilesTab implements Serializable {
 
         return returnToDraftVersion();
     }
+    
+    protected void printBannerMessage() {
+        // must have been a bulk file update or delete:
+        if (bulkFileDeleteInProgress) {
+            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.bulkFileDeleteSuccess"));
+        } else {
+            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.bulkFileUpdateSuccess"));
+        }
+    }
 
-    private void populateDatasetUpdateFailureMessage() {
+    protected void populateDatasetUpdateFailureMessage() {
         // that must have been a bulk file update or delete:
         if (bulkFileDeleteInProgress) {
             JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.message.bulkFileDeleteFailure"));

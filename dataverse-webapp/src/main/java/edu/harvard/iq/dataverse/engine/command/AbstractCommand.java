@@ -4,6 +4,7 @@ import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.User;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +17,7 @@ import static edu.harvard.iq.dataverse.engine.command.CommandHelper.CH;
  * @param <R> The result type of the command.
  * @author michael
  */
-public abstract class AbstractCommand<R> implements Command<R> {
+public abstract class AbstractCommand<R> implements Command<R>, Serializable {
 
     private final Map<String, DvObject> affectedDvObjects;
     private final DataverseRequest request;

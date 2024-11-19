@@ -342,6 +342,8 @@ public class Dataset extends DvObjectContainer {
         dsv.setVersionState(DatasetVersion.VersionState.DRAFT);
         dsv.setFileMetadatas(new ArrayList<>());
         dsv.setDataset(this);
+        dsv.setCreateTime(new Date());
+        dsv.setLastUpdateTime(dsv.getCreateTime());
         DatasetVersion latestVersion;
 
         // if the latest version has values get them copied over
