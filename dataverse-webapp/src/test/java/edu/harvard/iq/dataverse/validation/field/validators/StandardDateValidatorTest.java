@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.Collections;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,6 +45,34 @@ class StandardDateValidatorTest {
 
         // when
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
+
+        // then
+        assertThat(result.isOk()).isEqualTo(expectedResult);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "1999, true",
+            "0966, true",
+            "10000, false",
+            "1999-01, false",
+            "2004-10-27, false",
+            "-1999, true",
+            "-0999, true",
+            "199, false",
+            "abcd, false",
+            "2020, true",
+    })
+    void validateYearOnly(String value, boolean expectedResult) {
+        // given
+        DatasetField datasetField = new DatasetField();
+        datasetField.setDatasetFieldType(new DatasetFieldType());
+        datasetField.setValue(value);
+
+        Map<String, Object> params = Collections.singletonMap("restrictToYearOnly", true);
+
+        // when
+        FieldValidationResult result = validator.validate(datasetField, params, Collections.emptyMap());
 
         // then
         assertThat(result.isOk()).isEqualTo(expectedResult);
