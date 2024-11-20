@@ -65,6 +65,10 @@ $ # restart the whole environment
 $ ./dev restart
 $ # restart glassfish service
 $ ./dev restart glassfish
+$ # show service logs
+$ ./dev logs glassfish
+$ # show solr logs
+$ ./dev logs solr
 $ # stop the environment
 $ ./dev stop
 $ # show environment help
@@ -80,8 +84,6 @@ $ # list all the deployed applications
 $ ./dev glassfish apps
 $ # re-deploy dataverse (uses the war located in dataverse-dist/target/dist)
 $ ./dev glassfish redeploy
-$ # show dev environment commands 
-$ ./dev help
 $ # show glassfish commands 
 $ ./dev glassfish help
 ```
