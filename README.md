@@ -57,7 +57,18 @@ The recommended development environment is based on docker. The first time the d
 $ ./dev install
 ```
 
-This will create all the required docker images and containers and run the dataverse installer. Once installed it can be started:
+This will create all the required docker images and containers and run the dataverse installer. Installed services and their ports:
+
+* smtp, UI: 8025 smtp: 1025
+* postgres: 5432
+* solr: 8983
+* keycloak: 7070 (admin dns: local.admin.keycloak non-admin: local.keycloak)
+* glassfish:
+  * 8080: Dataverse
+  * 4848: Admin console
+  * 9009: Debug
+
+Once installed the environment can be started and used as follows:
 
 ```bash
 $ ./dev start
@@ -87,6 +98,8 @@ $ ./dev glassfish redeploy
 $ # show glassfish commands 
 $ ./dev glassfish help
 ```
+
+Glassfish is started in debug mode by default. You can connect to it with the IDE with: `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9009`
 
 # Running integration tests
 
