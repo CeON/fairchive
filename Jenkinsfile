@@ -8,7 +8,7 @@ RELEASE_BRANCH_PREFIX="release/"
 pipeline {
     agent {
         dockerfile {
-            dir 'conf/docker/jenkins-build-dockercli-image'
+            dir 'conf/jenkins-build-dockercli-image'
             additionalBuildArgs '-t drodb-dockercli'
         }
     }
@@ -39,7 +39,7 @@ pipeline {
         stage('Prepare') {
             agent {
                 dockerfile {
-                    dir 'conf/docker/jenkins-build-image'
+                    dir 'conf/jenkins-build-image'
                     additionalBuildArgs '-t drodb-build'
                     reuseNode true
                 }

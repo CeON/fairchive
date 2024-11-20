@@ -1,0 +1,220 @@
+#!/bin/bash
+
+set -e
+export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+(
+  cd ${DATAVERSE_SOURCE_DIR}
+  export BUILD_VERSION="dv-1.0"
+
+  if [ -z "$DATAVERSE_VERSION" ]; then
+    export DATAVERSE_VERSION=$(./mvnw build-helper:parse-version help:evaluate -Dexpression=project.version -q -DforceStdout)
+  fi
+
+  if [ -z "$DATAVERSE_APPLICATION_NAME" ]; then
+    export DATAVERSE_APPLICATION_NAME="dataverse-webapp-${DATAVERSE_VERSION}"
+  fi
+
+  if [ -z "$DATAVERSE_WAR_CONTAINER_PATH" ]; then
+    export DATAVERSE_WAR_CONTAINER_PATH=/dataverse/dataverse-dist/target/dist/${DATAVERSE_APPLICATION_NAME}.war
+  fi
+
+  cd ${DATAVERSE_SOURCE_DIR}/conf
+  export COMPOSE_CMD="docker compose -f dev.yml"
+
+  usage() {
+      echo "Usage: $(basename $0) [command]"
+      echo "Commands: "
+      echo " install                  Start and run the service installation"
+      echo " destroy                  Destroy all the containers and volumes"
+      echo " start                    Start all the services"
+      echo " stop                     Stop the environment"
+      echo " restart <service>        Restart the container of the given service"
+      echo " logs <service>           Show container logs for the given service"
+      echo " console <service>        Open a bash console inside the service container"
+      echo " glassfish <command>      Run a command on the glassfish container"
+      echo " -h|help"
+      echo " -v|version]"
+      echo
+      echo "Services:"
+      echo " postgres"
+      echo " solr"
+      echo " glassfish"
+      echo " smtp"
+      echo " keycloak"
+      exit
+  }
+
+  usage_glassfish() {
+      echo "Usage: $(basename $0) glassfish  [command] [-h|--help]"
+      echo "Commands:"
+      echo "  start                        Start glassfish"
+      echo "  stop                         Stop glassfish"
+      echo "  undeploy                     Undeploy dataverse WAR"
+      echo "  deploy                       Deploy the dataverse WAR"
+      echo "  redeploy                     Undeploy and deploy the dataverse WAR"
+      echo "  apps                         Show the currently deployed applications"
+      echo "  logging                      Show the currently set logging levels"
+      echo "  set-logging <logger>=<level> Set the logging level for the provided logger (eg. org.apache.activemq=INFO)"
+      echo "  asadmin <cmd>                Run glassfish asadmin command"
+      echo " -h|help"
+      exit
+  }
+
+  version() {
+    echo "BUILD_VERSION: ${BUILD_VERSION}"
+    echo "DATAVERSE_SOURCE_DIR: ${DATAVERSE_SOURCE_DIR}"
+    echo "DATAVERSE_VERSION: ${DATAVERSE_VERSION}"
+    echo "DATAVERSE_APPLICATION_NAME: ${DATAVERSE_APPLICATION_NAME}"
+    echo "DATAVERSE_WAR_CONTAINER_PATH: ${DATAVERSE_WAR_CONTAINER_PATH}"
+    echo "COMPOSE_CMD: ${COMPOSE_CMD}"
+  }
+
+  install() {
+    echo "* Installing dev environment."
+    ${COMPOSE_CMD} up -d
+    ${COMPOSE_CMD} exec -T glassfish /dataverse/conf/glassfish/run-install.sh
+    echo "* Stopping the environment"
+    ${COMPOSE_CMD} stop
+  }
+
+  asadmin() {
+    ${COMPOSE_CMD} exec -T glassfish /usr/local/glassfish4/bin/asadmin "$@"
+  }
+
+  glassfish() {
+    if [ $# -eq 0 ]; then
+      usage_glassfish
+      exit
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+      key="$1"
+      case $key in
+        start)
+          shift
+          asadmin start-domain --debug
+          exit
+          ;;
+        stop)
+          shift
+          asadmin stop-domain
+          exit
+          ;;
+        undeploy)
+          shift
+          asadmin undeploy ${DATAVERSE_APPLICATION_NAME}
+          exit
+          ;;
+        deploy)
+          shift
+          asadmin deploy ${DATAVERSE_WAR_CONTAINER_PATH}
+          exit
+          ;;
+        redeploy)
+          shift
+          asadmin undeploy ${DATAVERSE_APPLICATION_NAME}
+          asadmin deploy ${DATAVERSE_WAR_CONTAINER_PATH}
+          exit
+          ;;
+        apps)
+          shift
+          asadmin list-applications
+          exit
+          ;;
+        logging)
+          shift
+          asadmin list-log-levels
+          exit
+          ;;
+        set-logging)
+          shift
+          asadmin set-log-levels "$@"
+          exit
+          ;;
+        asadmin)
+          shift
+          asadmin "$@"
+          exit
+          ;;
+        -h|--help)
+          usage_glassfish
+          exit
+          ;;
+        *)
+          usage_glassfish
+          exit
+          ;;
+      esac
+    done
+  }
+
+
+  if [ $# -eq 0 ]; then
+    usage
+    exit
+  fi
+
+
+  while [[ $# -gt 0 ]]
+  do
+    key="$1"
+    case $key in
+      install)
+        shift
+        install
+        exit
+        ;;
+      destroy)
+        shift
+        ${COMPOSE_CMD} down --volumes
+        exit
+        ;;
+      start)
+        shift
+        ${COMPOSE_CMD} up -d
+        exit
+        ;;
+      stop)
+        shift
+        ${COMPOSE_CMD} stop
+        exit
+        ;;
+      restart)
+        shift
+        ${COMPOSE_CMD} restart "$@"
+        exit
+        ;;
+      logs)
+        shift
+        ${COMPOSE_CMD} logs -f "$@"
+        exit
+        ;;
+      console)
+        shift
+        ${COMPOSE_CMD} exec "$@" /bin/bash
+        exit
+        ;;
+      glassfish)
+        shift
+        glassfish "$@"
+        exit
+        ;;
+      -h|--help)
+        usage
+        exit
+        ;;
+      -v|version)
+        version
+        exit
+        ;;
+      *)
+        usage
+        exit
+        ;;
+    esac
+  done
+
+)
+

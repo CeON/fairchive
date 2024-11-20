@@ -35,12 +35,56 @@ Dataverse is a trademark of President and Fellows of Harvard College and is regi
 [Dataverse Community Meeting]: https://dataverse.org/events
 [open source]: LICENSE.md
 
-# Deployment
+# Building
+
+Build dataverse with running all the tests (unit and integration tests):
+
 ```bash
-/usr/local/glassfish4/bin/asadmin list-applications
-/usr/local/glassfish4/bin/asadmin undeploy dataverse-webapp-1.0.0-SNAPSHOT
-/usr/local/glassfish4/bin/asadmin deploy /dataverse/dataverse-webapp/target/dataverse-webapp-1.0.0-SNAPSHOT.war
- ```
+$ ./mvnw clean install
+```
+
+Build dataverse without running tests:
+
+```bash
+$ ./mvnw clean install -DskipTests -Ddocker.skip
+```
+
+# Development environment
+
+The recommended development environment is based on docker. The first time the dev environment needs to be installed with:
+
+```bash
+$ ./dev install
+```
+
+This will create all the required docker images and containers and run the dataverse installer. Once installed it can be started:
+
+```bash
+$ ./dev start
+$ # restart the whole environment
+$ ./dev restart
+$ # restart glassfish service
+$ ./dev restart glassfish
+$ # stop the environment
+$ ./dev stop
+$ # show environment help
+$ ./dev help
+```
+
+To operate with the glassfish application server:
+
+```bash
+$ # start the glassfish server
+$ ./dev glassfish start
+$ # list all the deployed applications
+$ ./dev glassfish apps
+$ # re-deploy dataverse (uses the war located in dataverse-dist/target/dist)
+$ ./dev glassfish redeploy
+$ # show dev environment commands 
+$ ./dev help
+$ # show glassfish commands 
+$ ./dev glassfish help
+```
 
 # Running integration tests
 
