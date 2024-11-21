@@ -763,7 +763,7 @@ public class DatasetFilesTab implements Serializable {
 
         dsv.getFileMetadatas().stream()
                 .filter(fileMetadata -> containsDataFile(fetchedFileMetadata, fileMetadata.getDataFile().getId()))
-                .forEach(fileMetadata -> fileMetadata.setTermsOfUse(termsOfUse));
+                .forEach(fileMetadata -> fileMetadata.setTermsOfUse(termsOfUse.createCopy()));
     }
 
     private boolean containsDataFile(List<FileMetadata> fileMetadatas, Long dataFileId) {

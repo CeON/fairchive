@@ -162,9 +162,13 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
         return form;
     }
     
+    private static TermsOfUseForm licenseCC0Form() {
+        final TermsOfUseForm form = new TermsOfUseForm();
+        form.setTypeWithLicenseId(LICENSE_BASED.name().concat(":1"));
+        return form;
+    }
+    
     private List<FileMetadata> fileMatadatasOfLatestVersion() {
-        
-       // return this.dataset.getLatestVersion().getFileMetadatas();
         
         return this.datasetRepo.getById(52L).getLatestVersion().getFileMetadatas();
     }
@@ -318,6 +322,53 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
         assertApacheLicenseStateOf(files.get(0));
         assertApacheLicenseStateOf(files.get(1));
         assertApacheLicenseStateOf(files.get(2));
+    }
+    
+    @Test
+    public void bulkUpdateLicenseOfAllFiles_thenSingleUpdate_forReleasedDatasetVersion_works() {
+        publishDatasetUnderTest();
+        List<FileMetadata> files = fileMatadatasOfLatestVersion();
+        assertThat(files.size()).isEqualTo(3);
+        assertNotForDistributionStateOf(files.get(0));
+        assertCC0LicenseStateOf(files.get(1));
+        assertCC0LicenseStateOf(files.get(2));
+        // select all files
+        this.filesTab.getFileMetadatasSearch().load(0, 10, emptyMap(),  emptyMap());
+        this.filesTab.selectAllFiles();
+        // trigger license change for selected file
+        this.filesTab.saveTermsOfUse(licenseApacheForm());
+
+        assertThatUpdateSucceded();
+        
+        files = this.dataset.getLatestVersion().getFileMetadatas();
+        assertThat(files.size()).isEqualTo(3);
+        assertApacheLicenseStateOf(files.get(0));
+        assertApacheLicenseStateOf(files.get(1));
+        assertApacheLicenseStateOf(files.get(2));
+        
+        files = fileMatadatasOfLatestVersion();
+        assertThat(files.size()).isEqualTo(3);
+        assertApacheLicenseStateOf(files.get(0));
+        assertApacheLicenseStateOf(files.get(1));
+        assertApacheLicenseStateOf(files.get(2));
+        
+        this.filesTab.updateFailed = false;
+        this.filesTab.bannerMessagePrinted = false;
+        // select single file
+        FileMetadata fileMeta = files.get(0);
+
+        this.filesTab.onRowSelectByCheckbox(
+                new SelectEvent<FileMetadata>(this.ui, this.behavior, fileMeta));
+        // trigger license change for selected file
+        this.filesTab.saveTermsOfUse(licenseCC0Form());
+
+        assertThatUpdateSucceded();
+        
+        fileMeta = this.dataset.getLatestVersion().getFileMetadatas().get(0);
+        assertCC0LicenseStateOf(fileMeta);
+        
+        fileMeta = fileMatadatasOfLatestVersion().get(0);
+        assertCC0LicenseStateOf(fileMeta);
     }
 
     @SuppressWarnings("serial")
