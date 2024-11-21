@@ -10,6 +10,8 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadataRepository;
 import edu.harvard.iq.dataverse.provenance.UpdatesEntry;
 import io.vavr.control.Option;
+
+import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,10 +20,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 import static io.vavr.collection.HashMap.of;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
@@ -211,7 +215,7 @@ class FileMetadataServiceTest {
     @Test
     public void findFileMetadata() {
         //given
-        long fileMetadataId = 1;
+        Long fileMetadataId = 1L;
         FileMetadata fileMetadata = new FileMetadata();
         fileMetadata.setId(1L);
 
@@ -219,7 +223,8 @@ class FileMetadataServiceTest {
         Mockito.when(fileMetadataRepository.findFileMetadata(Mockito.anyList()))
                .thenReturn(Lists.newArrayList(fileMetadata));
 
-        List<FileMetadata> foundData = fileMetadataService.findFileMetadata(fileMetadataId);
+        
+        List<FileMetadata> foundData = fileMetadataService.findFileMetadata(singletonList(fileMetadataId));
 
         //then
         assertEquals(1, foundData.size());

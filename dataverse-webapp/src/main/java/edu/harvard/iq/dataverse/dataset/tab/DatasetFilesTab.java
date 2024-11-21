@@ -9,13 +9,11 @@ import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
-import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datacapturemodule.ScriptRequestResponse;
 import edu.harvard.iq.dataverse.datafile.file.FileMetadataService;
 import edu.harvard.iq.dataverse.datafile.file.dto.LazyFileMetadataModel;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadHelper;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadRequestHelper;
-import edu.harvard.iq.dataverse.datafile.page.RequestedDownloadType;
 import edu.harvard.iq.dataverse.dataset.EmbargoAccessService;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
@@ -29,7 +27,6 @@ import edu.harvard.iq.dataverse.license.TermsOfUseFormMapper;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
@@ -38,11 +35,9 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.PrimefacesUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
@@ -76,11 +71,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter.DEFAULT_THUMBNAIL_SIZE;
+import static edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil.rsyncSupportEnabled;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.CONFIGURE;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EXPLORE;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.DcmUpload;
+import static edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder.asc;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UploadMethods;
+import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
+import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashErrorMessage;
+import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashSuccessMessage;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("datasetFilesTab")
 public class DatasetFilesTab implements Serializable {
@@ -115,7 +125,6 @@ public class DatasetFilesTab implements Serializable {
     private DataverseRequestServiceBean dvRequestService;
     private DatasetFilesTabFacade datasetFilesTabFacade;
 
-    private RequestedDownloadType requestedDownloadType;
     private GuestbookResponseDialog guestbookResponseDialog;
     private ConfirmEmailServiceBean confirmEmailService;
     private DatasetFieldValidationService fieldValidationService;
@@ -129,9 +138,7 @@ public class DatasetFilesTab implements Serializable {
      * the user clicks page 2 in the UI, this will be 1.
      */
     private int filePaginatorPage;
-    private int rowsPerPage;
-
-    private List<FileMetadata> selectedFileMetadataForView = new ArrayList<>();
+    private int rowsPerPage = 10;
 
     private HashSet<Long> selectedFileIds = new HashSet<>();
 
@@ -194,7 +201,7 @@ public class DatasetFilesTab implements Serializable {
                            GuestbookResponseServiceBean guestbookResponseService, EmbargoAccessService embargoAccess,
                            SettingsServiceBean settingsService, EjbDataverseEngine commandEngine,
                            ExternalToolServiceBean externalToolService, TermsOfUseFormMapper termsOfUseFormMapper,
-                           FileDownloadRequestHelper fileDownloadRequestHelper, RequestedDownloadType requestedDownloadType,
+                           FileDownloadRequestHelper fileDownloadRequestHelper,
                            GuestbookResponseDialog guestbookResponseDialog, ImageThumbConverter imageThumbConverter,
                            FileMetadataService fileMetadataService, DatasetFilesTabFacade datasetFilesTabFacade,
                            ConfirmEmailServiceBean confirmEmailService, DatasetFieldValidationService fieldValidationService) {
@@ -211,7 +218,6 @@ public class DatasetFilesTab implements Serializable {
         this.commandEngine = commandEngine;
         this.externalToolService = externalToolService;
         this.termsOfUseFormMapper = termsOfUseFormMapper;
-        this.requestedDownloadType = requestedDownloadType;
         this.guestbookResponseDialog = guestbookResponseDialog;
         this.fileMetadataService = fileMetadataService;
         this.imageThumbConverter = imageThumbConverter;
@@ -223,12 +229,11 @@ public class DatasetFilesTab implements Serializable {
     public void init(DatasetVersion workingVersion) {
         this.dataset = workingVersion.getDataset();
         this.workingVersion = workingVersion;
-        rowsPerPage = 10;
-        fileMetadatasSearch = new LazyFileMetadataModel(fileMetadataService, workingVersion.getId());
+        this.fileMetadatasSearch = new LazyFileMetadataModel(this.fileMetadataService, workingVersion.getId());
 
         logger.fine("Checking if rsync support is enabled.");
         Dataset tempDataset = datasetFilesTabFacade.retrieveDataset(this.dataset.getId());
-        if (DataCaptureModuleUtil.rsyncSupportEnabled(settingsService.getValueForKey(SettingsServiceBean.Key.UploadMethods))
+        if (rsyncSupportEnabled(settingsService.getValueForKey(UploadMethods))
                 && tempDataset.getFiles().isEmpty()) { //only check for rsync if no files exist
             try {
                 ScriptRequestResponse scriptRequestResponse = commandEngine.submit(new RequestRsyncScriptCommand(dvRequestService
@@ -243,21 +248,16 @@ public class DatasetFilesTab implements Serializable {
                 logger.warning("Problem getting rsync script: " + ex.getLocalizedMessage());
             }
         }
+        
+        this.hasTabular = tempDataset.hasTabularData();
 
-        for (DataFile f : tempDataset.getFiles()) {
-            if (f.isTabularData()) {
-                hasTabular = true;
-                break;
-            }
-        }
-
-        if (tempDataset.isLockedFor(DatasetLock.Reason.DcmUpload)) {
+        if (tempDataset.isLockedFor(DcmUpload)) {
             lockedDueToDcmUpload = false;
         }
 
-        configureTools = externalToolService.findByType(ExternalTool.Type.CONFIGURE);
-        exploreTools = externalToolService.findByType(ExternalTool.Type.EXPLORE);
-        previewTools = externalToolService.findByType(ExternalTool.Type.PREVIEW);
+        configureTools = externalToolService.findByType(CONFIGURE);
+        exploreTools = externalToolService.findByType(EXPLORE);
+        previewTools = externalToolService.findByType(PREVIEW);
 
         guestbookResponseDialog.initForDatasetVersion(workingVersion);
 
@@ -348,7 +348,7 @@ public class DatasetFilesTab implements Serializable {
 
     public void fileListingPaginatorListener(PageEvent event) {
         filePaginatorPage = event.getPage();
-        if (StringUtils.isNotEmpty(fileLabelSearchTerm)) {
+        if (isNotEmpty(fileLabelSearchTerm)) {
             updateFileSearch();
         }
     }
@@ -404,7 +404,7 @@ public class DatasetFilesTab implements Serializable {
         }
 
         String thumbnailAsBase64 = imageThumbConverter.getImageThumbnailAsBase64(fileMetadata.getDataFile(),
-                ImageThumbConverter.DEFAULT_THUMBNAIL_SIZE);
+                DEFAULT_THUMBNAIL_SIZE);
 
         if (!StringUtil.isEmpty(thumbnailAsBase64)) {
             datafileThumbnailsMap.put(dataFileId, thumbnailAsBase64);
@@ -419,11 +419,7 @@ public class DatasetFilesTab implements Serializable {
         FacesContext ctx = FacesContext.getCurrentInstance();
         HttpServletResponse response = (HttpServletResponse) ctx.getExternalContext().getResponse();
         response.setContentType("application/download");
-
-        String contentDispositionString;
-
-        contentDispositionString = "attachment;filename=" + rsyncScriptFilename;
-        response.setHeader("Content-Disposition", contentDispositionString);
+        response.setHeader("Content-Disposition", "attachment;filename=".concat(rsyncScriptFilename));
 
         try {
             ServletOutputStream out = response.getOutputStream();
@@ -437,10 +433,9 @@ public class DatasetFilesTab implements Serializable {
         }
 
         // If the script has been successfully downloaded, lock the dataset:
-        String lockInfoMessage = "script downloaded";
-        DatasetLock lock = datasetFilesTabFacade.addDatasetLock(dataset.getId(), DatasetLock.Reason.DcmUpload,
+        DatasetLock lock = datasetFilesTabFacade.addDatasetLock(dataset.getId(), DcmUpload,
                 session.getUser() != null ? ((AuthenticatedUser) session.getUser()).getId() : null,
-                lockInfoMessage);
+                        "script downloaded");
         if (lock != null) {
             dataset.addLock(lock);
         } else {
@@ -467,15 +462,15 @@ public class DatasetFilesTab implements Serializable {
     }
 
     public List<ExternalTool> getConfigureToolsForDataFile(Long fileId) {
-        return getCachedToolsForDataFile(fileId, ExternalTool.Type.CONFIGURE);
+        return getCachedToolsForDataFile(fileId, CONFIGURE);
     }
 
     public List<ExternalTool> getExploreToolsForDataFile(Long fileId) {
-        return getCachedToolsForDataFile(fileId, ExternalTool.Type.EXPLORE);
+        return getCachedToolsForDataFile(fileId, EXPLORE);
     }
 
     public List<ExternalTool> getPreviewToolsForDataFile(Long fileId) {
-        return getCachedToolsForDataFile(fileId, ExternalTool.Type.PREVIEW);
+        return getCachedToolsForDataFile(fileId, PREVIEW);
     }
 
     public boolean shouldAllowRestrictedFileRequest() {
@@ -538,7 +533,7 @@ public class DatasetFilesTab implements Serializable {
             PrimefacesUtil.showDialog(SELECT_FILES_FOR_DOWNLAOD_DIALOG);
             return;
         }
-        List<FileMetadata> fetchedFileMetadata = fileMetadataService.findFileMetadata(selectedFileIds.toArray(new Long[0]));
+        List<FileMetadata> fetchedFileMetadata = fileMetadataService.findFileMetadata(selectedFileIds);
 
         for (FileMetadata fmd : fetchedFileMetadata) {
             if (this.fileDownloadHelper.canUserDownloadFile(fmd)) {
@@ -601,10 +596,11 @@ public class DatasetFilesTab implements Serializable {
         // be shown to them by an onclick javascript method attached to the
         // filemetadata edit button on the page.
         // -- L.A. 4.2.1
-        if (selectedFileIds.isEmpty()) {
-            return "";
-        }
-        return "/editdatafiles.xhtml?selectedFileIds=" + joinDataFileIdsFromFileMetadata() + "&datasetId=" + dataset.getId() + "&faces-redirect=true";
+        return selectedFileIds.isEmpty() 
+            ? "" 
+            :"/editdatafiles.xhtml?&faces-redirect=true&selectedFileIds="
+                    + joinDataFileIdsFromFileMetadata() + "&datasetId="
+                    + dataset.getId();
     }
 
 
@@ -656,7 +652,7 @@ public class DatasetFilesTab implements Serializable {
             updateTermsOfUseForVersion(newDraft, termsOfUse, fetchedFileMetadata);
             save(newDraft);
         } else {
-            List<FileMetadata> fetchedFileMetadata = fileMetadataService.findFileMetadata(selectedFileIds.toArray(new Long[0]));
+            List<FileMetadata> fetchedFileMetadata = fileMetadataService.findFileMetadata(selectedFileIds);
             DatasetVersion updatedVersion = datasetFilesTabFacade.updateTermsOfUse(workingVersion.getId(), termsOfUse, fetchedFileMetadata);
             save(updatedVersion);
         }
@@ -712,19 +708,17 @@ public class DatasetFilesTab implements Serializable {
     }
 
     public String getEmbargoDateForDisplay() {
-        SimpleDateFormat format = new SimpleDateFormat(settingsService.getValueForKey(SettingsServiceBean.Key.DefaultDateFormat));
+        SimpleDateFormat format = new SimpleDateFormat(settingsService.getValueForKey(DefaultDateFormat));
         return format.format(dataset.getEmbargoDate().getOrNull());
     }
 
-    public void onRowSelectByCheckbox(SelectEvent event) {
-        FileMetadata selectedFile = (FileMetadata) event.getObject();
-        selectedFileIds.add(selectedFile.getId());
+    public void onRowSelectByCheckbox(final SelectEvent<FileMetadata> event) {
+        selectedFileIds.add(event.getObject().getId());
         setSelectAllFiles(false);
     }
 
-    public void onRowUnSelectByCheckbox(UnselectEvent event) {
-        FileMetadata unselectedFile = (FileMetadata) event.getObject();
-        selectedFileIds.remove(unselectedFile.getId());
+    public void onRowUnSelectByCheckbox(final UnselectEvent<FileMetadata> event) {
+        selectedFileIds.remove(event.getObject().getId());
         setSelectAllFiles(false);
     }
 
@@ -744,12 +738,14 @@ public class DatasetFilesTab implements Serializable {
 
         return selectedFileIds.isEmpty()
                 ? new ArrayList<>()
-                : fileMetadataService.findFileMetadata(selectedFileIds.toArray(new Long[0]));
+                : fileMetadataService.findFileMetadata(selectedFileIds);
     }
 
     public int getFileSize() {
-        fileSize = fileSize == null ? datasetFilesTabFacade.fileSize(workingVersion.getId()) : fileSize;
-        return fileSize;
+        if (this.fileSize == null) {
+            fileSize = datasetFilesTabFacade.fileSize(workingVersion.getId());
+        }
+        return this.fileSize;
     }
 
     public int getFileRows(int defaultValue) {
@@ -767,9 +763,7 @@ public class DatasetFilesTab implements Serializable {
     }
 
     private boolean containsDataFile(List<FileMetadata> fileMetadatas, Long dataFileId) {
-        return fileMetadatas.stream()
-                .map(fileMetadata -> fileMetadata.getDataFile().getId())
-                .anyMatch(fileId -> fileId.equals(dataFileId));
+        return fileMetadatas.stream().anyMatch(fm -> fm.containsDataFileWithId(dataFileId));
     }
 
     private boolean containsFileId(Long id) {
@@ -784,25 +778,14 @@ public class DatasetFilesTab implements Serializable {
     private void addSuccessMessage() {
         String successMessage = BundleUtil.getStringFromBundle("file.assignedTabFileTags.success");
         logger.fine(successMessage);
-        JsfHelper.addFlashSuccessMessage(successMessage);
-    }
-
-    private void setTagsForTabularData(Collection<String> selectedDataFileTags, FileMetadata fmd) {
-        fmd.getDataFile().getTags().clear();
-
-        selectedDataFileTags.forEach(selectedTag -> {
-            DataFileTag tag = new DataFileTag();
-            tag.setTypeByLabel(selectedTag);
-            tag.setDataFile(fmd.getDataFile());
-            fmd.getDataFile().addTag(tag);
-        });
+        addFlashSuccessMessage(successMessage);
     }
 
     private Tuple2<List<FileMetadata>, List<Long>> selectFileMetadatasForDisplayWithPaging(String searchTerm) {
 
         List<Long> searchResultsIdList = datafileService
                 .findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(workingVersion.getId(), searchTerm,
-                        new FileSortFieldAndOrder("", SortOrder.asc))
+                        new FileSortFieldAndOrder("", asc))
                 .stream()
                 .map(Integer::longValue)
                 .collect(toList());
@@ -860,17 +843,17 @@ public class DatasetFilesTab implements Serializable {
     }
 
     private List<FileMetadata> fetchSelectedFilesForVersion(DatasetVersion version) {
-        List<DataFile> selectedDataFiles = selectedFileIds.isEmpty() ? new ArrayList<>() :
+        List<DataFile> selectedDataFiles = selectedFileIds.isEmpty() ? emptyList() :
                 datafileService.findDataFilesByFileMetadataIds(selectedFileIds);
 
         return version.getFileMetadatas().stream()
                             .filter(fileMetadata -> selectedDataFiles.contains(fileMetadata.getDataFile()))
-                            .collect(Collectors.toList());
+                            .collect(toList());
     }
 
     private DatasetVersion fetchEditDatasetVersion() {
-        Dataset fetchedDataset = datasetFilesTabFacade.retrieveDataset(dataset.getId());
-        return fetchedDataset.getEditVersion();
+        return this.datasetFilesTabFacade.retrieveDataset(this.dataset.getId())
+                .getEditVersion();
     }
 
     private boolean bulkUpdateCheckVersion() {
@@ -916,12 +899,10 @@ public class DatasetFilesTab implements Serializable {
         List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(updatedVersion);
         Set<ConstraintViolation<FileMetadata>> constraintViolations = updatedVersion.validateFileMetadata();
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.validationError"), "");
+            addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.validationError"), "");
             return "";
         }
 
-        // Use the Create or Update command to save the dataset:
-        UpdateDatasetVersionCommand cmd;
         Map<Long, String> deleteStorageLocations = null;
 
         try {
@@ -929,7 +910,8 @@ public class DatasetFilesTab implements Serializable {
                 deleteStorageLocations = datafileService.getPhysicalFilesToDelete(filesToBeDeleted);
             }
 
-            cmd = new UpdateDatasetVersionCommand(updatedVersion.getDataset(), dvRequestService.getDataverseRequest(), filesToBeDeleted);
+            // Use the Create or Update command to save the dataset:
+            UpdateDatasetVersionCommand cmd = new UpdateDatasetVersionCommand(updatedVersion.getDataset(), dvRequestService.getDataverseRequest(), filesToBeDeleted);
             cmd.setValidateLenient(true);
 
             Dataset submittedDataset = commandEngine.submit(cmd);
@@ -976,26 +958,23 @@ public class DatasetFilesTab implements Serializable {
     }
     
     protected void printBannerMessage() {
-        // must have been a bulk file update or delete:
-        if (bulkFileDeleteInProgress) {
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.bulkFileDeleteSuccess"));
-        } else {
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.bulkFileUpdateSuccess"));
-        }
+        final String msgKey = this.bulkFileDeleteInProgress
+                ? "dataset.message.bulkFileDeleteSuccess"
+                : "dataset.message.bulkFileUpdateSuccess";
+        addFlashSuccessMessage(getStringFromBundle(msgKey));
     }
 
     protected void populateDatasetUpdateFailureMessage() {
-        // that must have been a bulk file update or delete:
-        if (bulkFileDeleteInProgress) {
-            JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.message.bulkFileDeleteFailure"));
-        } else {
-            JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.message.filesFailure"));
-        }
-        bulkFileDeleteInProgress = false;
+        final String msgKey = this.bulkFileDeleteInProgress
+                ? "dataset.message.bulkFileDeleteFailure"
+                : "dataset.message.filesFailure";
+        addFlashErrorMessage(getStringFromBundle(msgKey));
+        this.bulkFileDeleteInProgress = false;
     }
 
     private String returnToDraftVersion() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&version=DRAFT" + "&faces-redirect=true";
+        return "/dataset.xhtml?faces-redirect=true&version=DRAFT&persistentId="
+                .concat(this.dataset.getGlobalId().asString());
     }
 
     // -------------------- SETTERS --------------------

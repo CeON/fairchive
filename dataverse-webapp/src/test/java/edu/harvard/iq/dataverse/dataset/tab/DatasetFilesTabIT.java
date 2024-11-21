@@ -40,7 +40,6 @@ import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.datafile.file.FileMetadataService;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadHelper;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadRequestHelper;
-import edu.harvard.iq.dataverse.datafile.page.RequestedDownloadType;
 import edu.harvard.iq.dataverse.dataset.EmbargoAccessService;
 import edu.harvard.iq.dataverse.dataverse.DataverseService;
 import edu.harvard.iq.dataverse.engine.command.impl.PublishDatasetCommand;
@@ -99,8 +98,6 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
     @Mock
     FileDownloadRequestHelper fileDownloadRequestHelper;
     @Mock
-    RequestedDownloadType requestedDownloadType;
-    @Mock
     GuestbookResponseDialog guestbookResponseDialog;
     @Inject
     ImageThumbConverter imageThumbConverter;
@@ -142,7 +139,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                 guestbookResponseService, embargoAccess,
                 settingsService, commandEngine,
                 externalToolService, termsOfUseFormMapper,
-                fileDownloadRequestHelper, requestedDownloadType,
+                fileDownloadRequestHelper, 
                 guestbookResponseDialog, imageThumbConverter,
                 fileMetadataService, datasetFilesTabFacade,
                 confirmEmailService, fieldValidationService);
@@ -390,7 +387,6 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                 ExternalToolServiceBean externalToolService,
                 TermsOfUseFormMapper termsOfUseFormMapper,
                 FileDownloadRequestHelper fileDownloadRequestHelper,
-                RequestedDownloadType requestedDownloadType,
                 GuestbookResponseDialog guestbookResponseDialog,
                 ImageThumbConverter imageThumbConverter,
                 FileMetadataService fileMetadataService,
@@ -403,7 +399,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                     embargoAccess,
                     settingsService, commandEngine, externalToolService,
                     termsOfUseFormMapper,
-                    fileDownloadRequestHelper, requestedDownloadType,
+                    fileDownloadRequestHelper, 
                     guestbookResponseDialog,
                     imageThumbConverter, fileMetadataService, datasetFilesTabFacade,
                     confirmEmailService, fieldValidationService);

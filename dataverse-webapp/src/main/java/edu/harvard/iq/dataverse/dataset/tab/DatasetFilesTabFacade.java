@@ -43,7 +43,7 @@ public class DatasetFilesTabFacade {
                                                      .orElseThrow(() -> new IllegalStateException("Provided dataset version id couldn't be found id: " + datasetVersionId));
 
         return dsv.getFileMetadatas().stream()
-                      .anyMatch(fm -> fileDownloadHelper.canUserDownloadFile(fm));
+                      .anyMatch(this.fileDownloadHelper::canUserDownloadFile);
     }
 
     public boolean isVersionContainsNonDownloadableFiles(Long datasetVersionId) {

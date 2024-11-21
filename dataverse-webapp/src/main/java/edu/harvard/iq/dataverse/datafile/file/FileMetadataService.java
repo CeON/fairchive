@@ -13,7 +13,6 @@ import io.vavr.control.Option;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -95,9 +94,8 @@ public class FileMetadataService {
         return fileMetadataRepository.findRestrictedFileMetadata(filteredFileIds);
     }
 
-    public List<FileMetadata> findFileMetadata(Long...fileMetadataId) {
-        List<Long> fileIds = Arrays.asList(fileMetadataId);
-        return fileIds.isEmpty() ? new ArrayList<>() : fileMetadataRepository.findFileMetadata(fileIds);
+    public List<FileMetadata> findFileMetadata(Collection<Long> fileMetadataIds) {
+        return fileMetadataIds.isEmpty() ? new ArrayList<>() : fileMetadataRepository.findFileMetadata(fileMetadataIds);
     }
 
 }
