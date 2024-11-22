@@ -221,6 +221,11 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     public String getIdentifier() {
         return IDENTIFIER_PREFIX + userIdentifier;
     }
+    
+    public boolean isErased() {
+        return this.userIdentifier.startsWith("ERASED");
+    }
+    
 
     @Override
     public AuthenticatedUserDisplayInfo getDisplayInfo() {
