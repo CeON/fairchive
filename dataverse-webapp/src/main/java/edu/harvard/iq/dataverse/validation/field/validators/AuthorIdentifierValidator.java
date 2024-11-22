@@ -1,9 +1,6 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorIdType;
-import static edu.harvard.iq.dataverse.util.StringUtil.isEmpty;
-import static edu.harvard.iq.dataverse.validation.field.FieldValidationResult.invalid;
 import static edu.harvard.iq.dataverse.validation.field.FieldValidationResult.ok;
 
 import java.util.List;
@@ -33,9 +30,7 @@ public abstract class AuthorIdentifierValidator extends MultiValueValidatorBase 
         if (isSelectedIdentifierScheme(field, params)) {
             return validateIdentifier(value, field, params, fieldIndex);
         } else {
-            return isEmpty(value) ? ok()
-                    : invalid(field,
-                            getStringFromBundle("identifier.scheme.required"));
+            return ok();
         }
     }
 
