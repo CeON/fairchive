@@ -118,10 +118,6 @@ public class FileAccessIO<T extends DvObject> extends StorageIO<T> {
                 if (!Files.exists(getDatasetDirectory())) {
                     Files.createDirectories(getDatasetDirectory());
                 }
-//                FileOutputStream fout = openLocalFileAsOutputStream();
-//
-//                this.setOutputStream(fout);
-//                setChannel(fout.getChannel());
             }
 
         } else if (dvObject instanceof Dataset) {

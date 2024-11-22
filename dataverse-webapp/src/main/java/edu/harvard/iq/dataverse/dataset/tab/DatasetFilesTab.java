@@ -598,7 +598,7 @@ public class DatasetFilesTab implements Serializable {
         // -- L.A. 4.2.1
         return selectedFileIds.isEmpty() 
             ? "" 
-            :"/editdatafiles.xhtml?&faces-redirect=true&selectedFileIds="
+            : "/editdatafiles.xhtml?faces-redirect=true&selectedFileIds="
                     + joinDataFileIdsFromFileMetadata() + "&datasetId="
                     + dataset.getId();
     }

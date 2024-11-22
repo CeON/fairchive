@@ -153,76 +153,6 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                 .thenReturn(TRUE);
     }
 
-    private static TermsOfUseForm licenseApacheForm() {
-        final TermsOfUseForm form = new TermsOfUseForm();
-        form.setTypeWithLicenseId(LICENSE_BASED.name().concat(":8"));
-        return form;
-    }
-    
-    private static TermsOfUseForm licenseCC0Form() {
-        final TermsOfUseForm form = new TermsOfUseForm();
-        form.setTypeWithLicenseId(LICENSE_BASED.name().concat(":1"));
-        return form;
-    }
-    
-    private List<FileMetadata> fileMatadatasOfLatestVersion() {
-        
-        return this.datasetRepo.getById(52L).getLatestVersion().getFileMetadatas();
-    }
-
-    private void publishDatasetUnderTest() {
-        final Dataverse owner = this.dataset.getOwner();
-        final Dataverse root = owner.getOwner();
-
-        this.dataverseService.publishDataverse(root);
-        this.dataverseService.publishDataverse(owner);
-
-        dataset.setGlobalIdCreateTime(new Date());
-
-        final PublishDatasetResult result = commandEngine.submit(
-                new PublishDatasetCommand(this.dataset,
-                        dvRequestService.getDataverseRequest(), false));
-
-        assertThat(result.isCompleted()).isTrue();
-        assertThat(root.isReleased()).isTrue();
-        assertThat(owner.isReleased()).isTrue();
-        assertThat(this.dataset.isReleased()).isTrue();
-    }
-
-    private void assertNotForDistributionStateOf(final FileMetadata fileMeta) {
-        FileTermsOfUse terms = fileMeta.getTermsOfUse();
-        assertThat(terms.getLicense()).isNull();
-        assertThat(terms.getRestrictCustomText()).isNull();
-        assertThat(terms.getRestrictType()).isEqualTo(NOT_FOR_REDISTRIBUTION);
-        assertThat(terms.getTermsOfUseType()).isEqualTo(RESTRICTED);
-        assertThat(terms.isAllRightsReserved()).isFalse();
-    }
-
-    private void assertCC0LicenseStateOf(final FileMetadata fileMeta) {
-        FileTermsOfUse terms = fileMeta.getTermsOfUse();
-        assertThat(terms.getLicense().getId()).isEqualTo(1);
-        assertThat(terms.getLicense().getName()).isEqualTo(CCO_LICENSE_NAME);
-        assertThat(terms.getRestrictCustomText()).isNull();
-        assertThat(terms.getRestrictType()).isNull();
-        assertThat(terms.getTermsOfUseType()).isEqualTo(LICENSE_BASED);
-        assertThat(terms.isAllRightsReserved()).isFalse();
-    }
-
-    private void assertApacheLicenseStateOf(final FileMetadata fileMeta) {
-        FileTermsOfUse terms = fileMeta.getTermsOfUse();
-        assertThat(terms.getLicense().getId()).isEqualTo(8);
-        assertThat(terms.getLicense().getName()).isEqualTo("Apache Software License 2.0");
-        assertThat(terms.getRestrictCustomText()).isNull();
-        assertThat(terms.getRestrictType()).isNull();
-        assertThat(terms.getTermsOfUseType()).isEqualTo(LICENSE_BASED);
-        assertThat(terms.isAllRightsReserved()).isFalse();
-    }
-
-    private void assertThatUpdateSucceded() {
-        assertThat(this.filesTab.updateFailed).isFalse();
-        assertThat(this.filesTab.bannerMessagePrinted).isTrue();
-    }
-
     @Test
     public void updateLicenseOfSigneFile_forUnreleasedDatasetVersion_works() {
         // select single file
@@ -366,6 +296,76 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
         
         fileMeta = fileMatadatasOfLatestVersion().get(0);
         assertCC0LicenseStateOf(fileMeta);
+    }
+    
+    private static TermsOfUseForm licenseApacheForm() {
+        final TermsOfUseForm form = new TermsOfUseForm();
+        form.setTypeWithLicenseId(LICENSE_BASED.name().concat(":8"));
+        return form;
+    }
+    
+    private static TermsOfUseForm licenseCC0Form() {
+        final TermsOfUseForm form = new TermsOfUseForm();
+        form.setTypeWithLicenseId(LICENSE_BASED.name().concat(":1"));
+        return form;
+    }
+    
+    private List<FileMetadata> fileMatadatasOfLatestVersion() {
+        
+        return this.datasetRepo.getById(52L).getLatestVersion().getFileMetadatas();
+    }
+
+    private void publishDatasetUnderTest() {
+        final Dataverse owner = this.dataset.getOwner();
+        final Dataverse root = owner.getOwner();
+
+        this.dataverseService.publishDataverse(root);
+        this.dataverseService.publishDataverse(owner);
+
+        dataset.setGlobalIdCreateTime(new Date());
+
+        final PublishDatasetResult result = commandEngine.submit(
+                new PublishDatasetCommand(this.dataset,
+                        dvRequestService.getDataverseRequest(), false));
+
+        assertThat(result.isCompleted()).isTrue();
+        assertThat(root.isReleased()).isTrue();
+        assertThat(owner.isReleased()).isTrue();
+        assertThat(this.dataset.isReleased()).isTrue();
+    }
+
+    private void assertNotForDistributionStateOf(final FileMetadata fileMeta) {
+        FileTermsOfUse terms = fileMeta.getTermsOfUse();
+        assertThat(terms.getLicense()).isNull();
+        assertThat(terms.getRestrictCustomText()).isNull();
+        assertThat(terms.getRestrictType()).isEqualTo(NOT_FOR_REDISTRIBUTION);
+        assertThat(terms.getTermsOfUseType()).isEqualTo(RESTRICTED);
+        assertThat(terms.isAllRightsReserved()).isFalse();
+    }
+
+    private void assertCC0LicenseStateOf(final FileMetadata fileMeta) {
+        FileTermsOfUse terms = fileMeta.getTermsOfUse();
+        assertThat(terms.getLicense().getId()).isEqualTo(1);
+        assertThat(terms.getLicense().getName()).isEqualTo(CCO_LICENSE_NAME);
+        assertThat(terms.getRestrictCustomText()).isNull();
+        assertThat(terms.getRestrictType()).isNull();
+        assertThat(terms.getTermsOfUseType()).isEqualTo(LICENSE_BASED);
+        assertThat(terms.isAllRightsReserved()).isFalse();
+    }
+
+    private void assertApacheLicenseStateOf(final FileMetadata fileMeta) {
+        FileTermsOfUse terms = fileMeta.getTermsOfUse();
+        assertThat(terms.getLicense().getId()).isEqualTo(8);
+        assertThat(terms.getLicense().getName()).isEqualTo("Apache Software License 2.0");
+        assertThat(terms.getRestrictCustomText()).isNull();
+        assertThat(terms.getRestrictType()).isNull();
+        assertThat(terms.getTermsOfUseType()).isEqualTo(LICENSE_BASED);
+        assertThat(terms.isAllRightsReserved()).isFalse();
+    }
+
+    private void assertThatUpdateSucceded() {
+        assertThat(this.filesTab.updateFailed).isFalse();
+        assertThat(this.filesTab.bannerMessagePrinted).isTrue();
     }
 
     @SuppressWarnings("serial")
