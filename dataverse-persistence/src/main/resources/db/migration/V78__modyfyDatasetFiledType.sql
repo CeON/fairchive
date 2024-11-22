@@ -1,0 +1,1 @@
+alter table datasetfieldtype add column exportToFile boolean not null default false;

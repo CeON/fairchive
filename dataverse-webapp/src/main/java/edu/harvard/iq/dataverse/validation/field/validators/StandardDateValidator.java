@@ -24,7 +24,10 @@ public class StandardDateValidator extends MultiValueValidatorBase {
     private static final String YYYY_MM_FORMAT = "yyyy-MM";
     private static final String YYYY_FORMAT = "yyyy";
 
-    private static final List<DateTimeFormatter> PARSERS = Initializer.initializeParsers();
+    private static final List<DateTimeFormatter> ALL_PARSERS = Initializer.initializeAllParsers();
+    private static final DateTimeFormatter YEAR_ONLY_PARSER = Initializer.initializeYearOnlyParsers();
+
+    private static final String RESTRICT_TO_YEAR_ONLY_KEY = "restrictToYearOnly";
 
     @Override
     public String getName() {
@@ -36,7 +39,18 @@ public class StandardDateValidator extends MultiValueValidatorBase {
                                                Map<String, ? extends List<? extends ValidatableField>> fieldIndex) {
         value = value.startsWith("-") ? value.substring(1) : value;
 
-        for (DateTimeFormatter parser : PARSERS) {
+        Object yearOnlyRestriction = params.getOrDefault(RESTRICT_TO_YEAR_ONLY_KEY, false);
+
+        boolean restrictToYearOnly = Boolean.parseBoolean(yearOnlyRestriction.toString());
+        if (restrictToYearOnly) {
+            return validateOnlyYear(value, field);
+        } else {
+            return validateAllDateFormats(value, field);
+        }
+    }
+
+    private FieldValidationResult validateAllDateFormats(String value, ValidatableField field) {
+        for (DateTimeFormatter parser : ALL_PARSERS) {
             if (isValidDate(value, parser)) {
                 return FieldValidationResult.ok();
             }
@@ -45,14 +59,24 @@ public class StandardDateValidator extends MultiValueValidatorBase {
                 field.getDatasetFieldType().getDisplayName(), YYYY_MM_DD_FORMAT, YYYY_MM_FORMAT, YYYY_FORMAT));
     }
 
+    private FieldValidationResult validateOnlyYear(String value, ValidatableField field) {
+        if (isValidDate(value, YEAR_ONLY_PARSER)) {
+            return FieldValidationResult.ok();
+        }
+        return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isNotValidYear",
+                field.getDatasetFieldType().getDisplayName(), YYYY_FORMAT));
+    }
+
     // -------------------- LOGIC --------------------
 
     private boolean isValidDate(String value, DateTimeFormatter parser) {
         try {
             TemporalAccessor parsed = parser.parse(value);
-            int year = parsed.get(ChronoField.YEAR_OF_ERA);
-            if (year > 9999) {
-                return false;
+            if (parsed.isSupported(ChronoField.YEAR_OF_ERA)) {
+                int year = parsed.get(ChronoField.YEAR_OF_ERA);
+                if (year > 9999) {
+                    return false;
+                }
             }
         } catch (DateTimeException dte) {
             return false;
@@ -63,7 +87,7 @@ public class StandardDateValidator extends MultiValueValidatorBase {
     // -------------------- INNER CLASSES --------------------
 
     private static class Initializer {
-        static List<DateTimeFormatter> initializeParsers() {
+        static List<DateTimeFormatter> initializeAllParsers() {
             return Stream.of(YYYY_MM_DD_FORMAT, YYYY_MM_FORMAT, YYYY_FORMAT)
                     .map(p -> new DateTimeFormatterBuilder()
                             .appendPattern(p)
@@ -75,6 +99,14 @@ public class StandardDateValidator extends MultiValueValidatorBase {
                             .toFormatter()
                             .withResolverStyle(ResolverStyle.STRICT))
                     .collect(Collectors.toList());
+        }
+
+        static DateTimeFormatter initializeYearOnlyParsers() {
+            return new DateTimeFormatterBuilder()
+                    .appendPattern(YYYY_FORMAT)
+                    .parseDefaulting(ChronoField.ERA, 1)
+                    .toFormatter()
+                    .withResolverStyle(ResolverStyle.STRICT);
         }
     }
 }
