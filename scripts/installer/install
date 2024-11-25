@@ -52,6 +52,10 @@ my $jq_exec_path = "";
 my $psql_exec_path = "";
 my $cwd;
 my $WARFILE_LOCATION;
+if (exists($ENV{'WARFILE_LOCATION'}))
+{
+    $WARFILE_LOCATION = $ENV{'WARFILE_LOCATION'};
+}
 
 
 my @CONFIG_VARIABLES;

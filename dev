@@ -4,25 +4,16 @@ set -e
 export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 (
-  cd ${DATAVERSE_SOURCE_DIR}
+  cd "${DATAVERSE_SOURCE_DIR}"
+
   export BUILD_VERSION="dv-1.0"
-  export DATAVERSE_WAR_LOCAL_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/container"
-  export DATAVERSE_WAR_CONTAINER_DIR="/dataverse/dataverse-dist/target/container"
-
-  if [ -z "$DATAVERSE_VERSION" ]; then
-    export DATAVERSE_VERSION=$(./mvnw build-helper:parse-version help:evaluate -Dexpression=project.version -q -DforceStdout)
-  fi
-
-  if [ -z "$DATAVERSE_APPLICATION_NAME" ]; then
-    export DATAVERSE_APPLICATION_NAME="dataverse-webapp-${DATAVERSE_VERSION}"
-  fi
-
-  if [ -z "$DATAVERSE_WAR_PATH" ]; then
-    export DATAVERSE_WAR_PATH="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/dist/${DATAVERSE_APPLICATION_NAME}.war"
-  fi
-
-  cd ${DATAVERSE_SOURCE_DIR}/conf
+  export DATAVERSE_CONFIG_FILES=("conf/glassfish/dataverse.properties" "conf/glassfish/default.config")
+  export DATAVERSE_LOCAL_WORKING_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/container"
+  export DATAVERSE_CONTAINER_WORKING_DIR="/dataverse/dataverse-dist/target/container"
+  export DATAVERSE_DIST_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/dist"
   export COMPOSE_CMD="docker compose -f dev.yml"
+
+  cd "${DATAVERSE_SOURCE_DIR}/conf"
 
   usage() {
       echo "Usage: $(basename $0) [command]"
@@ -66,15 +57,30 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
   version() {
     echo "BUILD_VERSION: ${BUILD_VERSION}"
     echo "DATAVERSE_SOURCE_DIR: ${DATAVERSE_SOURCE_DIR}"
-    echo "DATAVERSE_VERSION: ${DATAVERSE_VERSION}"
-    echo "DATAVERSE_APPLICATION_NAME: ${DATAVERSE_APPLICATION_NAME}"
-    echo "DATAVERSE_WAR_PATH: ${DATAVERSE_WAR_PATH}"
+    echo "DATAVERSE_DIST_DIR: ${DATAVERSE_DIST_DIR}"
+    echo "EXTENSION_SOURCE_DIR: ${EXTENSION_SOURCE_DIR}"
+    echo "EXTENSION_DIST_DIR: ${EXTENSION_DIST_DIR}"
     echo "COMPOSE_CMD: ${COMPOSE_CMD}"
   }
 
+
   install() {
-    echo "* Installing dev environment."
+
+    echo "* Starting dev environment services."
     ${COMPOSE_CMD} up -d
+
+    echo "* Configuring dev environment."
+    rm -rf "${DATAVERSE_LOCAL_WORKING_DIR}"
+    mkdir -p "${DATAVERSE_LOCAL_WORKING_DIR}"
+
+    for i in "${!DATAVERSE_CONFIG_FILES[@]}"; do
+      copy_with_fallback "${EXTENSION_SOURCE_DIR}" "${DATAVERSE_SOURCE_DIR}" "${DATAVERSE_CONFIG_FILES[$i]}" "${DATAVERSE_LOCAL_WORKING_DIR}"
+    done
+
+    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "${DATAVERSE_LOCAL_WORKING_DIR}/dataverse.war"
+    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "activemq" "${DATAVERSE_LOCAL_WORKING_DIR}"
+    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "glassfish" "${DATAVERSE_LOCAL_WORKING_DIR}"
+
     ${COMPOSE_CMD} exec -T glassfish /dataverse/conf/glassfish/run-install.sh
     echo "* Stopping the environment"
     ${COMPOSE_CMD} stop
@@ -85,9 +91,9 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
   }
 
   deploy() {
-    mkdir -p ${DATAVERSE_WAR_LOCAL_DIR}
-    cp -u ${DATAVERSE_WAR_PATH} ${DATAVERSE_WAR_LOCAL_DIR}
-    asadmin deploy ${DATAVERSE_WAR_CONTAINER_DIR}/${DATAVERSE_APPLICATION_NAME}.war
+    mkdir -p ${DATAVERSE_LOCAL_WORKING_DIR}
+    cp -u ${DATAVERSE_WAR_PATH} ${DATAVERSE_LOCAL_WORKING_DIR}/dataverse.war
+    asadmin deploy ${DATAVERSE_CONTAINER_WORKING_DIR}/dataverse.war
   }
 
   glassfish() {
@@ -112,7 +118,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
           ;;
         undeploy)
           shift
-          asadmin undeploy ${DATAVERSE_APPLICATION_NAME}
+          asadmin undeploy dataverse
           exit
           ;;
         deploy)
@@ -122,7 +128,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
           ;;
         redeploy)
           shift
-          asadmin undeploy ${DATAVERSE_APPLICATION_NAME}
+          asadmin undeploy dataverse
           deploy
           exit
           ;;
@@ -158,6 +164,39 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     done
   }
 
+
+  copy_with_fallback() {
+    SRC_EXT_DIR="$1"
+    SRC_DV_DIR="$2"
+    SRC_FILE="$3"
+    DEST="$4"
+
+    SRC_EXT="${SRC_EXT_DIR}/${SRC_FILE}"
+    SRC_DV="${SRC_DV_DIR}/${SRC_FILE}"
+
+    copy_if_exists "${SRC_EXT}" "${DEST}" || \
+      copy_if_exists "${SRC_DV}" "${DEST}" || \
+      (echo "Could not copy ${SRC_FILE} from ${SRC_EXT_DIR} or ${SRC_DV_DIR}." && exit 1)
+  }
+
+  copy_if_exists() {
+    SRC="$1"
+    DEST="$2"
+
+    if [[ -d ${SRC} ]]; then
+        cp -ur "${SRC}" "${DEST}"
+        true
+    elif [[ -f ${SRC} ]]; then
+        cp -u "${SRC}" "${DEST}"
+        true
+    elif compgen -G "${SRC}" > /dev/null; then
+      for f in ${SRC}; do
+        copy_if_exists "${f}" "${DEST}"
+      done
+    else
+      false
+    fi
+  }
 
   if [ $# -eq 0 ]; then
     usage

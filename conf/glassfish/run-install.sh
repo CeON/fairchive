@@ -1,13 +1,16 @@
 #!/bin/bash
 
+DATAVERSE_CONTAINER_WORKING_DIR="/dataverse/dataverse-dist/target/container"
+
 echo "* Copying properties"
 mkdir /root/.dataverse
-cp /dataverse/conf/glassfish/dataverse.properties /root/.dataverse/
+cp ${DATAVERSE_CONTAINER_WORKING_DIR}/dataverse.properties /root/.dataverse/
 
 cd /dataverse/scripts/installer
 echo "* Copying default config"
-cp /dataverse/conf/glassfish/default.config ./
+cp ${DATAVERSE_CONTAINER_WORKING_DIR}/default.config ./
 
+export WARFILE_LOCATION="${DATAVERSE_CONTAINER_WORKING_DIR}/dataverse.war"
 echo "* Running the installer"
 echo | ./install -y;
 
