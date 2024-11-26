@@ -7,7 +7,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
 import java.util.List;
 
 @Stateless
@@ -63,16 +62,22 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
 
     // -------------------- PRIVATE --------------------
 
-    private Predicate[] getSearchPredicates(String searchTerm, Root<AuthenticatedUser> root, CriteriaBuilder criteriaBuilder) {
+    private Predicate getSearchPredicates(String searchTerm, Root<AuthenticatedUser> root, CriteriaBuilder criteriaBuilder) {
+        
+        final Predicate notErased = criteriaBuilder.notLike(criteriaBuilder.upper(root.get("userIdentifier")), "ERASED%");
         if (searchTerm.isEmpty()) {
-            return new Predicate[]{};
+            return notErased;
+        } else {
+            searchTerm = searchTerm.toLowerCase().concat("%");
+            return criteriaBuilder.and(
+                criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("userIdentifier")), searchTerm),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("affiliation")), searchTerm),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), searchTerm),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), searchTerm)
+                        ),
+                notErased);
         }
-        List<Predicate> predicates = new ArrayList<>();
-        predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("userIdentifier")), searchTerm.toLowerCase() + "%"));
-        predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("affiliation")), searchTerm.toLowerCase() + "%"));
-        predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), searchTerm.toLowerCase() + "%"));
-        predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), searchTerm.toLowerCase() + "%"));
-        return new Predicate[]{criteriaBuilder.or(predicates.toArray(new Predicate[]{}))};
     }
 
     // -------------------- INNER CLASSES --------------------

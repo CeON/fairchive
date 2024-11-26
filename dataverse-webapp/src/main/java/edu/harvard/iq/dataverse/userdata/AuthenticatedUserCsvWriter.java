@@ -40,9 +40,7 @@ public class AuthenticatedUserCsvWriter {
 
             csvPrinter.printRecord(AuthenticatedUserCSVRecord.getHeaders());
             for(AuthenticatedUser user : authenticatedUsers) {
-                if(! user.isErased()) {
-                    csvPrinter.printRecord(buildRecord(user).getValues());
-                }
+                csvPrinter.printRecord(buildRecord(user).getValues());
             }
         } catch (IOException ioe) {
             logger.error("Couldn't write user data to csv", ioe);

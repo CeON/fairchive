@@ -27,13 +27,8 @@ public class DashboardUserInfoService {
     public List<DashboardUserInfo> createDashboardUsers(UserListResult userListResult) {
         List<DashboardUserInfo> userInfoList = new LinkedList<>();
         for (AuthenticatedUser user : userListResult.getUserList()) {
-            if (!user.isErased()) {
-                userInfoList.add(new DashboardUserInfo(user,
-                        getAuthProviderFriendlyName(user),
-                        hasSelectedConfirmedEmail(user),
-                        getUserNotificationLanguageDisplayName(user,
-                                session.getLocale())));
-            }
+            userInfoList.add(new DashboardUserInfo(user, getAuthProviderFriendlyName(user),
+                    hasSelectedConfirmedEmail(user), getUserNotificationLanguageDisplayName(user, session.getLocale())));
         }
         return userInfoList;
     }
