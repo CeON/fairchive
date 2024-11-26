@@ -1,11 +1,13 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
+import java.io.Serializable;
+
 /**
  * Base class for IP addresses. There are two concrete subclasses - IPv4 adn IPv6.
  *
  * @author michael
  */
-public abstract class IpAddress {
+public abstract class IpAddress implements Serializable {
 
     public static IpAddress valueOf(String s) {
         if (s.contains(".")) {

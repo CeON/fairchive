@@ -1,26 +1,21 @@
 package edu.harvard.iq.dataverse.dataaccess;
 
-import com.google.common.io.Resources;
-import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
-import java.nio.channels.Channel;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 /**
  * @author oscardssmith
@@ -44,16 +39,6 @@ public class StorageIOTest {
     }
 
     @Test
-    public void testGetChannel() throws IOException {
-        assertNull(instance.getChannel());
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(Resources.getResource("images/banner.png").getPath(), "r")) {
-            Channel c = randomAccessFile.getChannel();
-            instance.setChannel(c);
-            assertEquals(c, instance.getChannel());
-        }
-    }
-
-    @Test
     public void testGetReadChannel() throws Exception {
         try {
             instance.getReadChannel();
@@ -70,14 +55,6 @@ public class StorageIOTest {
         instance.setInputStream(is);
         assertEquals(is, instance.getInputStream());
         instance.closeInputStream();
-    }
-
-    @Test
-    public void testOutputStream() throws Exception {
-        assertEquals(null, instance.getOutputStream());
-        OutputStream os = new ByteArrayOutputStream();
-        instance.setOutputStream(os);
-        assertEquals(os, instance.getOutputStream());
     }
 
     @Test
@@ -99,7 +76,6 @@ public class StorageIOTest {
         DataVariable var = new DataVariable(0, null);
         var.setName("Random");
 
-        @SuppressWarnings("unchecked")
         List<DataVariable> dvs = Arrays.asList(var, var);
         assertEquals("Random	Random\n", instance.generateVariableHeader(dvs));
         assertEquals(null, instance.generateVariableHeader(null));

@@ -61,7 +61,7 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
     /**
      * Finds files with provided id's along with cache enabled.
      */
-    public List<FileMetadata> findFileMetadata(List<Long> fileMetadataIds) {
+    public List<FileMetadata> findFileMetadata(Collection<Long> fileMetadataIds) {
         return em.createQuery("SELECT f FROM FileMetadata f WHERE f.id IN :fileMetadatas", FileMetadata.class)
                  .setParameter("fileMetadatas", fileMetadataIds)
                  .setHint("eclipselink.QUERY_RESULTS_CACHE", "TRUE")

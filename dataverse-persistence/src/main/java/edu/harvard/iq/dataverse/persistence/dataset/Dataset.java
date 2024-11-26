@@ -311,6 +311,10 @@ public class Dataset extends DvObjectContainer {
     public boolean hasActiveEmbargo() {
         return getEmbargoDate().isDefined() && Instant.now().isBefore(getEmbargoDate().get().toInstant());
     }
+    
+    public boolean hasTabularData() {
+        return getFiles().stream().anyMatch(DataFile::isTabularData);
+    }
 
     public boolean hasEverBeenPublished() {
         return getVersions().size() > 1 || getLatestVersion().getVersionState() != DatasetVersion.VersionState.DRAFT;
@@ -342,6 +346,8 @@ public class Dataset extends DvObjectContainer {
         dsv.setVersionState(DatasetVersion.VersionState.DRAFT);
         dsv.setFileMetadatas(new ArrayList<>());
         dsv.setDataset(this);
+        dsv.setCreateTime(new Date());
+        dsv.setLastUpdateTime(dsv.getCreateTime());
         DatasetVersion latestVersion;
 
         // if the latest version has values get them copied over

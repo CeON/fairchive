@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Objects;
  *
  * @author michael
  */
-public class DataverseRequest {
+public class DataverseRequest implements Serializable {
 
     private final User user;
     private final IpAddress sourceAddress;
