@@ -200,6 +200,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     public String getName() {
         return name;
     }
+    
+    public boolean isOfType(final String typeName) {
+        return this.name.equals(typeName);
+    }
 
     public String getTitle() {
         return title;
