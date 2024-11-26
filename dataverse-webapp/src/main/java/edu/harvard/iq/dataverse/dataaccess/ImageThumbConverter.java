@@ -87,28 +87,26 @@ public class ImageThumbConverter {
             return false;
         }
 
-        StorageIO<DataFile> storageIO = null;
-        try {
-            storageIO = dataAccess.getStorageIO(file);
+        try(final StorageIO<DataFile> storageIO = dataAccess.getStorageIO(file)) {
             boolean isThumbnailCached = isThumbnailCached(storageIO, size);
             if (isThumbnailCached) {
                 return true;
             }
-        } catch (IOException ioEx) {
+
+            logger.fine("Checking for thumbnail, file type: " + file.getContentType());
+    
+            if (file.getContentType().substring(0, 6).equalsIgnoreCase("image/")) {
+                return generateImageThumbnail(storageIO, size, file.getFilesize());
+            } else if (file.getContentType().equalsIgnoreCase("application/pdf")) {
+                return generatePDFThumbnail(storageIO, size, file.getFilesize());
+            } else if (file.getContentType().equalsIgnoreCase("application/zipped-shapefile") || (file.isTabularData() && file.hasGeospatialTag())) {
+                return generateWorldMapThumbnail(storageIO, size);
+            }
+    
+            return false;
+        } catch (Exception ioEx) {
             return false;
         }
-
-        logger.fine("Checking for thumbnail, file type: " + file.getContentType());
-
-        if (file.getContentType().substring(0, 6).equalsIgnoreCase("image/")) {
-            return generateImageThumbnail(storageIO, size, file.getFilesize());
-        } else if (file.getContentType().equalsIgnoreCase("application/pdf")) {
-            return generatePDFThumbnail(storageIO, size, file.getFilesize());
-        } else if (file.getContentType().equalsIgnoreCase("application/zipped-shapefile") || (file.isTabularData() && file.hasGeospatialTag())) {
-            return generateWorldMapThumbnail(storageIO, size);
-        }
-
-        return false;
     }
 
     // Note that this method works on ALL file types for which thumbnail 
@@ -131,8 +129,7 @@ public class ImageThumbConverter {
         // has been generated cached. 
         InputStream cachedThumbnailInputStream = null;
 
-        try {
-            StorageIO<DataFile> storageIO = dataAccess.getStorageIO(datafile);
+        try (final StorageIO<DataFile> storageIO = dataAccess.getStorageIO(datafile)) {
             storageIO.open();
             cachedThumbnailInputStream = storageIO.getAuxFileAsInputStream(THUMBNAIL_SUFFIX + size);
             if (cachedThumbnailInputStream == null) {
@@ -780,31 +777,4 @@ public class ImageThumbConverter {
 
         return null;
     }
-
-    
-    /*
-       The method below takes a BufferedImage, and makes the specified color
-       transparent. Turns out we don't really need to do this explicitly, since 
-       the original transparency can easily be preserved. 
-    
-    private static Image makeColorTransparent(final BufferedImage im, final Color color) {
-        final ImageFilter filter = new RGBImageFilter() {
-            // the color we are looking for (white)... Alpha bits are set to opaque
-            public int markerRGB = color.getRGB() | 0xFFFFFFFF;
-
-            public final int filterRGB(final int x, final int y, final int rgb) {
-                if ((rgb | 0xFF000000) == markerRGB) {
-                    // Mark the alpha bits as zero - transparent
-                    return 0x00FFFFFF & rgb;
-                } else {
-                    // nothing to do
-                    return rgb;
-                }
-            }
-        };
-
-        final ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
-        return Toolkit.getDefaultToolkit().createImage(ip);
-    }
-     */
 }

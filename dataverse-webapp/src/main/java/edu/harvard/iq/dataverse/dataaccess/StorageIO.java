@@ -30,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
@@ -46,8 +45,7 @@ import java.util.List;
 public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
 
     private InputStream in;
-    private OutputStream out;
-    protected Channel channel;
+    protected ReadableByteChannel channel;
     protected DvObject dvObject;
 
     protected String mimeType;
@@ -175,24 +173,16 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
 
     // getters:
 
-    public Channel getChannel() throws IOException {
-        return channel;
-    }
-
     public ReadableByteChannel getReadChannel() throws IOException {
-        if (!canRead() || channel == null || !(channel instanceof ReadableByteChannel)) {
+        if (!canRead() || channel == null) {
             throw new IOException("No NIO read access in this DataAccessObject.");
         }
 
-        return (ReadableByteChannel) channel;
+        return channel;
     }
 
     public InputStream getInputStream() throws IOException {
         return in;
-    }
-
-    public OutputStream getOutputStream() throws IOException {
-        return out;
     }
 
     public String getMimeType() {
@@ -237,11 +227,7 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
         in = is;
     }
 
-    public void setOutputStream(OutputStream os) {
-        out = os;
-    }
-
-    public void setChannel(Channel c) {
+    public void setReadChannel(ReadableByteChannel c) {
         channel = c;
     }
 
@@ -313,9 +299,6 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
 		}
 		if (this.in != null) {
 			this.in.close();
-		}
-		if (this.out != null) {
-			this.out.close();
 		}
 	}
     
