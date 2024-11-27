@@ -1,0 +1,267 @@
+#!/bin/bash
+
+set -e
+export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+(
+  cd "${DATAVERSE_SOURCE_DIR}"
+
+  export BUILD_VERSION="dv-1.0"
+  export DATAVERSE_CONFIG_FILES=("conf/glassfish/dataverse.properties" "conf/glassfish/default.config")
+  export DATAVERSE_LOCAL_WORKING_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/container"
+  export DATAVERSE_CONTAINER_WORKING_DIR="/dataverse/dataverse-dist/target/container"
+  export DATAVERSE_DIST_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/dist"
+  export COMPOSE_CMD="docker compose -f dev.yml"
+
+  cd "${DATAVERSE_SOURCE_DIR}/conf"
+
+  usage() {
+      echo "Usage: $(basename $0) [command]"
+      echo "Commands: "
+      echo " install                  Start and run the service installation"
+      echo " destroy                  Destroy all the containers and volumes"
+      echo " start                    Start all the services"
+      echo " stop                     Stop the environment"
+      echo " restart <service>        Restart the container of the given service"
+      echo " logs <service>           Show container logs for the given service"
+      echo " console <service>        Open a bash console inside the service container"
+      echo " glassfish <command>      Run a command on the glassfish container"
+      echo " -h|help"
+      echo " -v|version]"
+      echo
+      echo "Services:"
+      echo " postgres"
+      echo " solr"
+      echo " glassfish"
+      echo " smtp"
+      echo " keycloak"
+      exit
+  }
+
+  usage_glassfish() {
+      echo "Usage: $(basename $0) glassfish  [command] [-h|--help]"
+      echo "Commands:"
+      echo "  start                        Start glassfish"
+      echo "  stop                         Stop glassfish"
+      echo "  undeploy                     Undeploy dataverse WAR"
+      echo "  deploy                       Deploy the dataverse WAR"
+      echo "  redeploy                     Undeploy and deploy the dataverse WAR"
+      echo "  apps                         Show the currently deployed applications"
+      echo "  logging                      Show the currently set logging levels"
+      echo "  set-logging <logger>=<level> Set the logging level for the provided logger (eg. org.apache.activemq=INFO)"
+      echo "  asadmin <cmd>                Run glassfish asadmin command"
+      echo " -h|help"
+      exit
+  }
+
+  version() {
+    echo "BUILD_VERSION: ${BUILD_VERSION}"
+    echo "DATAVERSE_SOURCE_DIR: ${DATAVERSE_SOURCE_DIR}"
+    echo "DATAVERSE_DIST_DIR: ${DATAVERSE_DIST_DIR}"
+    echo "EXTENSION_SOURCE_DIR: ${EXTENSION_SOURCE_DIR}"
+    echo "EXTENSION_DIST_DIR: ${EXTENSION_DIST_DIR}"
+    echo "COMPOSE_CMD: ${COMPOSE_CMD}"
+  }
+
+
+  install() {
+
+    echo "* Starting dev environment services."
+    ${COMPOSE_CMD} up -d
+
+    echo "* Configuring dev environment."
+    rm -rf "${DATAVERSE_LOCAL_WORKING_DIR}"
+    mkdir -p "${DATAVERSE_LOCAL_WORKING_DIR}"
+
+    for i in "${!DATAVERSE_CONFIG_FILES[@]}"; do
+      copy_with_fallback "${EXTENSION_SOURCE_DIR}" "${DATAVERSE_SOURCE_DIR}" "${DATAVERSE_CONFIG_FILES[$i]}" "${DATAVERSE_LOCAL_WORKING_DIR}"
+    done
+
+    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "${DATAVERSE_LOCAL_WORKING_DIR}/dataverse.war"
+    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "activemq" "${DATAVERSE_LOCAL_WORKING_DIR}"
+    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "glassfish" "${DATAVERSE_LOCAL_WORKING_DIR}"
+
+    ${COMPOSE_CMD} exec -T glassfish /dataverse/conf/glassfish/run-install.sh
+    echo "* Stopping the environment"
+    ${COMPOSE_CMD} stop
+  }
+
+  asadmin() {
+    ${COMPOSE_CMD} exec -T glassfish /usr/local/glassfish4/bin/asadmin "$@"
+  }
+
+  deploy() {
+    mkdir -p ${DATAVERSE_LOCAL_WORKING_DIR}
+    cp -u ${DATAVERSE_WAR_PATH} ${DATAVERSE_LOCAL_WORKING_DIR}/dataverse.war
+    asadmin deploy ${DATAVERSE_CONTAINER_WORKING_DIR}/dataverse.war
+  }
+
+  glassfish() {
+    if [ $# -eq 0 ]; then
+      usage_glassfish
+      exit
+    fi
+
+    while [[ $# -gt 0 ]]
+    do
+      key="$1"
+      case $key in
+        start)
+          shift
+          asadmin start-domain --debug
+          exit
+          ;;
+        stop)
+          shift
+          asadmin stop-domain
+          exit
+          ;;
+        undeploy)
+          shift
+          asadmin undeploy dataverse
+          exit
+          ;;
+        deploy)
+          shift
+          deploy
+          exit
+          ;;
+        redeploy)
+          shift
+          asadmin undeploy dataverse
+          deploy
+          exit
+          ;;
+        apps)
+          shift
+          asadmin list-applications
+          exit
+          ;;
+        logging)
+          shift
+          asadmin list-log-levels
+          exit
+          ;;
+        set-logging)
+          shift
+          asadmin set-log-levels "$@"
+          exit
+          ;;
+        asadmin)
+          shift
+          asadmin "$@"
+          exit
+          ;;
+        -h|--help)
+          usage_glassfish
+          exit
+          ;;
+        *)
+          usage_glassfish
+          exit
+          ;;
+      esac
+    done
+  }
+
+
+  copy_with_fallback() {
+    SRC_EXT_DIR="$1"
+    SRC_DV_DIR="$2"
+    SRC_FILE="$3"
+    DEST="$4"
+
+    SRC_EXT="${SRC_EXT_DIR}/${SRC_FILE}"
+    SRC_DV="${SRC_DV_DIR}/${SRC_FILE}"
+
+    copy_if_exists "${SRC_EXT}" "${DEST}" || \
+      copy_if_exists "${SRC_DV}" "${DEST}" || \
+      (echo "Could not copy ${SRC_FILE} from ${SRC_EXT_DIR} or ${SRC_DV_DIR}." && exit 1)
+  }
+
+  copy_if_exists() {
+    SRC="$1"
+    DEST="$2"
+
+    if [[ -d ${SRC} ]]; then
+        cp -ur "${SRC}" "${DEST}"
+        true
+    elif [[ -f ${SRC} ]]; then
+        cp -u "${SRC}" "${DEST}"
+        true
+    elif compgen -G "${SRC}" > /dev/null; then
+      for f in ${SRC}; do
+        copy_if_exists "${f}" "${DEST}"
+      done
+    else
+      false
+    fi
+  }
+
+  if [ $# -eq 0 ]; then
+    usage
+    exit
+  fi
+
+
+  while [[ $# -gt 0 ]]
+  do
+    key="$1"
+    case $key in
+      install)
+        shift
+        install
+        exit
+        ;;
+      destroy)
+        shift
+        ${COMPOSE_CMD} down --volumes
+        exit
+        ;;
+      start)
+        shift
+        ${COMPOSE_CMD} up -d
+        exit
+        ;;
+      stop)
+        shift
+        ${COMPOSE_CMD} stop
+        exit
+        ;;
+      restart)
+        shift
+        ${COMPOSE_CMD} restart "$@"
+        exit
+        ;;
+      logs)
+        shift
+        ${COMPOSE_CMD} logs -f "$@"
+        exit
+        ;;
+      console)
+        shift
+        ${COMPOSE_CMD} exec "$@" /bin/bash
+        exit
+        ;;
+      glassfish)
+        shift
+        glassfish "$@"
+        exit
+        ;;
+      -h|--help)
+        usage
+        exit
+        ;;
+      -v|version)
+        version
+        exit
+        ;;
+      *)
+        usage
+        exit
+        ;;
+    esac
+  done
+
+)
+

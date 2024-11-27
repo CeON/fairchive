@@ -35,12 +35,71 @@ Dataverse is a trademark of President and Fellows of Harvard College and is regi
 [Dataverse Community Meeting]: https://dataverse.org/events
 [open source]: LICENSE.md
 
-# Deployment
+# Building
+
+Build dataverse with running all the tests (unit and integration tests):
+
 ```bash
-/usr/local/glassfish4/bin/asadmin list-applications
-/usr/local/glassfish4/bin/asadmin undeploy dataverse-webapp-1.0.0-SNAPSHOT
-/usr/local/glassfish4/bin/asadmin deploy /dataverse/dataverse-webapp/target/dataverse-webapp-1.0.0-SNAPSHOT.war
- ```
+$ ./mvnw clean install
+```
+
+Build dataverse without running tests:
+
+```bash
+$ ./mvnw clean install -DskipTests -Ddocker.skip
+```
+
+# Development environment
+
+The recommended development environment is based on docker. The first time the dev environment needs to be installed with:
+
+```bash
+$ ./dev install
+```
+
+This will create all the required docker images and containers and run the dataverse installer. Installed services and their ports:
+
+* smtp, UI: 8025 smtp: 1025
+* postgres: 5432
+* solr: 8983
+* keycloak: 7070 (admin dns: local.admin.keycloak non-admin: local.keycloak)
+* glassfish:
+  * 8080: Dataverse
+  * 4848: Admin console
+  * 9009: Debug
+
+Once installed the environment can be started and used as follows:
+
+```bash
+$ ./dev start
+$ # restart the whole environment
+$ ./dev restart
+$ # restart glassfish service
+$ ./dev restart glassfish
+$ # show service logs
+$ ./dev logs glassfish
+$ # show solr logs
+$ ./dev logs solr
+$ # stop the environment
+$ ./dev stop
+$ # show environment help
+$ ./dev help
+```
+
+To operate with the glassfish application server:
+
+```bash
+$ # start the glassfish server
+$ ./dev glassfish start
+$ # list all the deployed applications
+$ ./dev glassfish apps
+$ # re-deploy dataverse (uses the war located in dataverse-dist/target/dist)
+$ ./dev glassfish redeploy
+$ # show glassfish commands 
+$ ./dev glassfish help
+```
+
+Glassfish is started in debug mode by default. You can connect to it with the IDE with: `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9009`
 
 # Running integration tests
 

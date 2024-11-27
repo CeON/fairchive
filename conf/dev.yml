@@ -1,0 +1,87 @@
+
+services:
+
+  smtp:
+    image: "mailhog/mailhog:v1.0.1"
+    container_name: "dataverse-dev-smtp"
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8025" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: "postgres:12-alpine"
+    container_name: "dataverse-dev-postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data:rw"
+    environment:
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=dataverse"
+    healthcheck:
+      test: [ "CMD", "pg_isready",  "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  solr:
+    build: "./solr/7.3.1"
+    image: "solr:${BUILD_VERSION}"
+    container_name: "dataverse-dev-solr"
+    ports:
+      - "8983:8983"
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8983/solr/collection1/admin/ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  keycloak:
+    hostname: "local.keycloak"
+    image: "quay.io/keycloak/keycloak:24.0.2"
+    container_name: "dataverse-dev-keycloak"
+    ports:
+      - "7070:7070"
+    environment:
+      - "KEYCLOAK_ADMIN=admin"
+      - "KEYCLOAK_ADMIN_PASSWORD=admin"
+      - "KC_HOSTNAME=local.keycloak"
+      - "KC_HOSTNAME_ADMIN=local.admin.keycloak"
+    command: ["start-dev", "--http-port=7070"]
+
+  glassfish:
+    build: "./glassfish"
+    image: "glassfish:${BUILD_VERSION}"
+    container_name: "dataverse-dev-glassfish"
+    ports:
+      - "8080:8080"
+      - "4848:4848"
+      - "9009:9009"
+      - "8686:8686"
+      - "8786:8786"
+      - "1099:1099"
+    volumes:
+      - "${DATAVERSE_SOURCE_DIR}:/dataverse:rw"
+      - "gl-domain-data:/usr/local/glassfish4/glassfish/domains/domain1:rw"
+      - "gl-server-data:/srv/glassfish:rw"
+      - "gl-home:/root:rw"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      solr:
+        condition: service_healthy
+      smtp:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  gl-domain-data:
+  gl-server-data:
+  gl-home:
