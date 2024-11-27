@@ -12,9 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -39,7 +39,7 @@ public class OrcidFieldValidatorTest {
         when(orcidValidator.validate(orcid)).thenReturn(FieldValidationResult.ok());
 
         // when
-        FieldValidationResult result = validator.validateValue(orcid, identifier, params, Collections.emptyMap());
+        FieldValidationResult result = validator.validateValue(orcid, identifier, params, emptyMap());
 
         // then
         assertThat(result.isOk()).isTrue();
@@ -57,7 +57,7 @@ public class OrcidFieldValidatorTest {
         when(orcidValidator.validate(orcid)).thenReturn(FieldValidationResult.invalid("INVALID_ORCID"));
 
         // when
-        FieldValidationResult result = validator.validateValue(orcid, identifierField, params, Collections.emptyMap());
+        FieldValidationResult result = validator.validateValue(orcid, identifierField, params, emptyMap());
 
         // then
         assertThat(result.isOk()).isFalse();
@@ -72,7 +72,7 @@ public class OrcidFieldValidatorTest {
         Map<String, Object> params = ImmutableMap.of("authorIdentifierScheme", "ORCID");
 
         // when
-        FieldValidationResult result = validator.validateValue(isni, identifier, params, Collections.emptyMap());
+        FieldValidationResult result = validator.validateValue(isni, identifier, params, emptyMap());
 
         // then
         assertThat(result.isOk()).isTrue();

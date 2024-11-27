@@ -20,6 +20,8 @@ import java.util.logging.Logger;
 import static edu.harvard.iq.dataverse.workflow.execution.WorkflowContext.TriggerType.PrePublishDataset;
 import static java.util.stream.Collectors.joining;
 
+import java.io.Serializable;
+
 /**
  * Kick-off a dataset publication process. The process may complete immediately,
  * but may also result in a workflow being started and pending on some external
@@ -42,7 +44,7 @@ public class PublishDatasetCommand extends AbstractPublishDatasetCommand<Publish
      * in scenarios like import or migration.
      */
     final boolean datasetExternallyReleased;
-
+    
     public PublishDatasetCommand(Dataset datasetIn, DataverseRequest aRequest, boolean minor) {
         this(datasetIn, aRequest, minor, false);
     }

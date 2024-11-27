@@ -168,23 +168,18 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
             throw new IOException("Cannot get InputStream for S3 Object" + key);
         }
 
-        setChannel(Channels.newChannel(super.getInputStream()));
+        setReadChannel(Channels.newChannel(super.getInputStream()));
 
         return super.getInputStream();
     }
 
-    @Override
-    public Channel getChannel() throws IOException {
-        if (super.getChannel() == null) {
-            getInputStream();
-        }
-        return channel;
-    }
 
     @Override
     public ReadableByteChannel getReadChannel() throws IOException {
         //Make sure StorageIO.channel variable exists
-        getChannel();
+        if (super.getReadChannel() == null) {
+            getInputStream();
+        }
         return super.getReadChannel();
     }
 
@@ -491,11 +486,6 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
             throw new IOException("Cannot get S3 object " + key + " (" + sce.getMessage() + ")");
         }
         return objectMetadata.getContentLength();
-    }
-
-    @Override
-    public OutputStream getOutputStream() throws UnsupportedDataAccessOperationException {
-        throw new UnsupportedDataAccessOperationException("S3AccessIO: there are no output Streams associated with S3 objects.");
     }
 
     @Override

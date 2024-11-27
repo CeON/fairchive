@@ -20,9 +20,9 @@
 package edu.harvard.iq.dataverse.ingest;
 
 
+import static java.lang.Math.min;
 import static java.lang.System.err;
 import static java.lang.System.out;
-import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
 import static org.apache.commons.lang.builder.ToStringStyle.MULTI_LINE_STYLE;
 
 import java.io.ByteArrayInputStream;
@@ -34,8 +34,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -112,9 +110,6 @@ public class IngestableDataChecker implements java.io.Serializable {
         ptn = Pattern.compile(rdargx);
 
         for (Method m : IngestableDataChecker.class.getDeclaredMethods()) {
-            //String mname = m.getName();
-            // if (mname.startsWith("test")) && (mname.endsWith("format")){
-
             Matcher mtr = p.matcher(m.getName());
             if (mtr.matches()) {
                 testMethods.put(mtr.group(1), m);
@@ -594,26 +589,16 @@ public class IngestableDataChecker implements java.io.Serializable {
         
         
         try (final FileInputStream inp = new FileInputStream(fh)) {
-            
-            int buffer_size = this.getBufferSize(fh);
-            dbgLog.fine("buffer_size: " + buffer_size);
 
-            // set-up a FileChannel instance for a given file object
-            final FileChannel srcChannel = inp.getChannel();
+            final byte[] bytes = new byte[min((int)fh.length(), DEFAULT_BUFFER_SIZE)];
+            inp.read(bytes);
+            ByteBuffer buff = ByteBuffer.wrap(bytes);
 
-            // create a read-only MappedByteBuffer
-            MappedByteBuffer buff = srcChannel.map(READ_ONLY, 0, buffer_size);
-
-            //this.printHexDump(buff, "hex dump of the byte-buffer");
-
-            //for (String fmt : defaultFormatSet){
-            buff.rewind();
             dbgLog.fine("before the for loop");
             for (String fmt : TABULAR_DATA_FORMAT_SET) {
 
                 // get a test method
                 Method mthd = testMethods.get(fmt);
-                //dbgLog.info("mthd: " + mthd.getName());
 
                 try {
                     // invoke this method
@@ -689,22 +674,6 @@ public class IngestableDataChecker implements java.io.Serializable {
         }
 
         return result;
-    }
-
-    /**
-     * adjust the size of the buffer according to the size of
-     * the file if necessary; otherwise, use the default size
-     */
-    private int getBufferSize(File fh) {
-        boolean DEBUG = false;
-        int BUFFER_SIZE = DEFAULT_BUFFER_SIZE;
-        if (fh.length() < DEFAULT_BUFFER_SIZE) {
-            BUFFER_SIZE = (int) fh.length();
-            if (DEBUG) {
-                out.println("non-default buffer_size: new size=" + BUFFER_SIZE);
-            }
-        }
-        return BUFFER_SIZE;
     }
 
     private int getGzipBufferSize(ByteBuffer buff) {

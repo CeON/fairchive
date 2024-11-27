@@ -34,7 +34,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import io.vavr.control.Try;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +57,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
+import static org.apache.commons.io.IOUtils.toByteArray;
 
 
 /**
@@ -507,8 +508,12 @@ public class FileUtil implements java.io.Serializable {
     }
 
     public static byte[] getFileFromResources(String path) {
-        return Try.of(() -> Files.readAllBytes(Paths.get(FileUtil.class.getResource(path).getPath())))
-                .getOrElseThrow(throwable -> new RuntimeException("Unable to get file from resources", throwable));
+        
+        try(final InputStream in = FileUtil.class.getResourceAsStream(path)) {
+            return toByteArray(in);
+        } catch (final IOException e) {
+            throw new RuntimeException("Unable to get file from resources", e);
+        }
     }
 
     // -------------------- INNER CLASSES --------------------

@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
-import edu.harvard.iq.dataverse.common.DateUtil;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.TermsOfUseForm;
@@ -437,7 +436,11 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     public void setTermsOfUseForm(TermsOfUseForm termsOfUseForm) {
         this.termsOfUseForm = termsOfUseForm;
     }
-
+    
+    public boolean containsDataFileWithId(final Long id) {
+        return getDataFile().getId().equals(id);
+    }
+    
     @Override
     public int hashCode() {
         int hash = 0;

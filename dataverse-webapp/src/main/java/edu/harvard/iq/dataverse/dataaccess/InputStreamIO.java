@@ -9,7 +9,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.channels.Channel;
 import java.nio.channels.Channels;
 import java.nio.file.Path;
@@ -26,7 +25,7 @@ public class InputStreamIO extends StorageIO<DataFile> {
         super();
         this.setIsLocalFile(false);
         this.setInputStream(inputStream);
-        setChannel(Channels.newChannel(inputStream));
+        setReadChannel(Channels.newChannel(inputStream));
         this.size = size;
         this.fileName = fileName;
         this.mimeType = mimeType;
@@ -137,11 +136,6 @@ public class InputStreamIO extends StorageIO<DataFile> {
     @Override
     public boolean exists() throws IOException {
         throw new UnsupportedDataAccessOperationException("InputStreamIO: this method is not supported in this DataAccess driver.");
-    }
-
-    @Override
-    public OutputStream getOutputStream() throws IOException {
-        throw new UnsupportedDataAccessOperationException("InputStreamIO: there is no output stream associated with this object.");
     }
 
     @Override
