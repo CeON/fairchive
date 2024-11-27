@@ -38,7 +38,7 @@ import java.util.Objects;
  */
 @NamedQueries({
         @NamedQuery(name = "AuthenticatedUser.findAll",
-                query = "select au from AuthenticatedUser au"),
+                query = "select au from AuthenticatedUser au where au.userIdentifier not like 'ERASED%'"),
         @NamedQuery(name = "AuthenticatedUser.findSuperUsers",
                 query = "SELECT au FROM AuthenticatedUser au WHERE au.superuser = TRUE"),
         @NamedQuery(name = "AuthenticatedUser.findByIdentifier",
@@ -221,6 +221,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     public String getIdentifier() {
         return IDENTIFIER_PREFIX + userIdentifier;
     }
+    
 
     @Override
     public AuthenticatedUserDisplayInfo getDisplayInfo() {
