@@ -1,5 +1,18 @@
 package edu.harvard.iq.dataverse.dataset;
 
+import java.io.InputStream;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetPage;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
@@ -27,20 +40,9 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.provenance.ProvPopupFragmentBean;
+import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.search.index.SolrIndexServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
-import java.io.InputStream;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Stateless
 public class DatasetService {
@@ -58,6 +60,7 @@ public class DatasetService {
     private SettingsServiceBean settingsService;
     private ProvPopupFragmentBean provPopupFragmentBean;
     private SolrIndexServiceBean solrIndexService;
+    private IndexServiceBean indexService;
 
 
     // -------------------- CONSTRUCTORS --------------------
@@ -71,7 +74,7 @@ public class DatasetService {
                           DatasetDao datasetDao, DataverseSession session, DataverseRequestServiceBean dvRequestService,
                           IngestServiceBean ingestService, SettingsServiceBean settingsService,
                           ProvPopupFragmentBean provPopupFragmentBean, PermissionServiceBean permissionService,
-                          SolrIndexServiceBean solrIndexService) {
+                          SolrIndexServiceBean solrIndexService, IndexServiceBean indexService) {
         this.commandEngine = commandEngine;
         this.userNotificationService = userNotificationService;
         this.datasetDao = datasetDao;
@@ -81,6 +84,7 @@ public class DatasetService {
         this.settingsService = settingsService;
         this.provPopupFragmentBean = provPopupFragmentBean;
         this.solrIndexService = solrIndexService;
+        this.indexService = indexService;        
     }
 
 
@@ -235,6 +239,7 @@ public class DatasetService {
         dataset.setEmbargoDate(embargoDate);
         dataset.setLastChangeForExporterTime(Date.from(Instant.now(Clock.systemDefaultZone())));
         dataset = datasetDao.mergeAndFlush(dataset);
+        this.indexService.indexDataset(dataset, false);
 
         solrIndexService.indexPermissionsForDatasetWithDataFiles(dataset);
 
