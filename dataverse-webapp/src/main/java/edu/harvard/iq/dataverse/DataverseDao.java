@@ -27,6 +27,10 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+
+import static java.lang.Math.max;
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -37,6 +41,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * @author gdurand
@@ -95,6 +100,18 @@ public class DataverseDao implements java.io.Serializable {
     public List<Dataverse> findAll() {
         return em.createNamedQuery("Dataverse.findAll").getResultList();
     }
+    
+    /**
+     * @return Dataverses that should be reindexed either because they have
+     * never been indexed or their index time is before their modification time.
+     */
+    public List<Dataverse> findStaleOrMissingDataverses() {
+        return findAll()
+                .stream()
+                .filter(Dataverse::isNotRoot)
+                .filter(Dataverse::isStale)
+                .collect(toList());
+    }
 
     /**
      * @param numPartitions The number of partitions you intend to split the
@@ -109,10 +126,7 @@ public class DataverseDao implements java.io.Serializable {
      * Otherwise, a subset of dataverses.
      */
     public List<Dataverse> findAllOrSubset(long numPartitions, long partitionId, boolean skipIndexed) {
-        if (numPartitions < 1) {
-            long saneNumPartitions = 1;
-            numPartitions = saneNumPartitions;
-        }
+        numPartitions = max(numPartitions, 1); 
         String skipClause = skipIndexed ? "AND o.indexTime is null " : "";
         TypedQuery<Dataverse> typedQuery = em.createQuery("SELECT OBJECT(o) FROM Dataverse AS o WHERE MOD( o.id, :numPartitions) = :partitionId " +
                                                                   skipClause +
@@ -123,15 +137,16 @@ public class DataverseDao implements java.io.Serializable {
     }
 
     public List<Long> findDataverseIdsForIndexing(boolean skipIndexed) {
-        if (skipIndexed) {
-            return em.createQuery("SELECT o.id FROM Dataverse o WHERE o.indexTime IS null ORDER BY o.id", Long.class).getResultList();
-        }
-        return em.createQuery("SELECT o.id FROM Dataverse o ORDER BY o.id", Long.class).getResultList();
+        final String query = skipIndexed 
+                ? "SELECT o.id FROM Dataverse o WHERE o.indexTime IS null ORDER BY o.id"
+                : "SELECT o.id FROM Dataverse o ORDER BY o.id";
+        return em.createQuery(query, Long.class).getResultList();
 
     }
 
     public List<Dataverse> findByOwnerId(Long ownerId) {
-        return em.createNamedQuery("Dataverse.findByOwnerId").setParameter("ownerId", ownerId).getResultList();
+        return em.createNamedQuery("Dataverse.findByOwnerId", Dataverse.class)
+                .setParameter("ownerId", ownerId).getResultList();
     }
 
     public List<Long> findIdsByOwnerId(Long ownerId) {
@@ -348,16 +363,12 @@ public class DataverseDao implements java.io.Serializable {
         // get list of Dataverse children
         List<Long> dataverseChildren = findIdsByOwnerId(dvId);
 
-        if (dataverseChildren == null) {
-            return dataverseChildren;
-        } else {
-            List<Long> newChildren = new ArrayList<>();
-            for (Long childDvId : dataverseChildren) {
-                newChildren.addAll(findAllDataverseDataverseChildren(childDvId));
-            }
-            dataverseChildren.addAll(newChildren);
-            return dataverseChildren;
+        List<Long> newChildren = new ArrayList<>();
+        for (Long childDvId : dataverseChildren) {
+            newChildren.addAll(findAllDataverseDataverseChildren(childDvId));
         }
+        dataverseChildren.addAll(newChildren);
+        return dataverseChildren;
     }
 
     // function to recursively find ids of all children of a dataverse that are

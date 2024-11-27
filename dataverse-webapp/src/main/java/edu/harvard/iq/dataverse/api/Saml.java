@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.api;
 import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
 import edu.harvard.iq.dataverse.api.dto.SamlIdentityProviderDTO;
 import edu.harvard.iq.dataverse.authorization.providers.saml.SamlIdpManagementService;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import io.vavr.control.Either;
 
 import javax.inject.Inject;
@@ -22,7 +21,6 @@ import java.util.Optional;
 
 @Path("saml")
 public class Saml extends AbstractApiBean {
-    private static final String SUPERUSER_REQUIRED_WARNING = "Only superuser is allowed to access the endpoint!";
 
     private SamlIdpManagementService idpManagementSerivce;
 

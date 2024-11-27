@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.FinalizeDatasetPublicationCommand;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
+import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
@@ -34,6 +35,10 @@ import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
+
+import static java.lang.Math.max;
+import static java.util.stream.Collectors.toList;
+
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -50,6 +55,7 @@ import java.util.logging.Logger;
  */
 
 
+@SuppressWarnings("serial")
 @Stateless
 public class DatasetDao implements java.io.Serializable {
 
@@ -90,6 +96,10 @@ public class DatasetDao implements java.io.Serializable {
     public List<Dataset> findAll() {
         return em.createQuery("select object(o) from Dataset as o order by o.id", Dataset.class).getResultList();
     }
+    
+    public List<Dataset> findStaleOrMissingDatasets() {
+        return findAll().stream().filter(DvObject::isStale).collect(toList());
+    }
 
     public List<Dataset> findNotIndexedAfterEmbargo() {
         TypedQuery<Dataset> typedQuery = em.createQuery("select d from Dataset d, DvObject o where d.id = o.id and d.embargoDate < :actualTimestamp and d.embargoDate > o.indexTime", Dataset.class);
@@ -115,10 +125,7 @@ public class DatasetDao implements java.io.Serializable {
      * @see DataverseDao#findAllOrSubset(long, long, boolean)
      */
     public List<Long> findAllOrSubset(long numPartitions, long partitionId, boolean skipIndexed) {
-        if (numPartitions < 1) {
-            long saneNumPartitions = 1;
-            numPartitions = saneNumPartitions;
-        }
+        numPartitions = max(numPartitions, 1);
         String skipClause = skipIndexed ? "AND o.indexTime is null " : "";
         TypedQuery<Long> typedQuery = em.createQuery("SELECT o.id FROM Dataset o WHERE MOD( o.id, :numPartitions) = :partitionId " +
                                                              skipClause +
@@ -216,9 +223,8 @@ public class DatasetDao implements java.io.Serializable {
             return !persistentIdSvc.alreadyExists(dataset);
         } catch (Exception e) {
             //we can live with failure - means identifier not found remotely
+            return true;
         }
-
-        return true;
     }
 
     public boolean isIdentifierLocallyUnique(Dataset dataset) {

@@ -28,15 +28,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.io.StringReader;
 import java.util.HashMap;
-import java.util.logging.Logger;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
 @Path("files")
 public class Prov extends AbstractApiBean {
-
-    private static final Logger logger = Logger.getLogger(Prov.class.getCanonicalName());
 
     ProvInvestigator provUtil = ProvInvestigator.getInstance();
 

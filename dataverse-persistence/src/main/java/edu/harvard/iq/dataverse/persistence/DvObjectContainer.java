@@ -18,7 +18,7 @@ public abstract class DvObjectContainer extends DvObject {
 
     @Override
     public Dataverse getOwner() {
-        return super.getOwner() != null ? (Dataverse) super.getOwner() : null;
+        return (Dataverse) super.getOwner();
     }
 
     public abstract boolean isPermissionRoot();
