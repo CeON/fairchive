@@ -339,11 +339,7 @@ public class Dataset extends DvObjectContainer {
     }
     
     public Dataverse getRoot() {
-        Dataverse owner = getOwner();
-        while (owner.isNotRoot()) {
-            owner = owner.getOwner();
-        }
-        return owner;
+        return getOwner().getRoot();
     }
 
     public void setVersions(List<DatasetVersion> versions) {

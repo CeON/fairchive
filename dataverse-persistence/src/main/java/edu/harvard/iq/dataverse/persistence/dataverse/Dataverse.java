@@ -763,6 +763,10 @@ public class Dataverse extends DvObjectContainer {
         }
         return owners;
     }
+    
+    public Dataverse getRoot() {
+        return isRoot() ? this : getOwner().getRoot();
+    }
 
     @Override
     public boolean equals(Object object) {
