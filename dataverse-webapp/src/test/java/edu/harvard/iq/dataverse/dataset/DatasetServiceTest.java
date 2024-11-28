@@ -13,6 +13,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.search.index.SolrIndexServiceBean;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
@@ -55,6 +56,9 @@ public class DatasetServiceTest {
 
     @Mock
     private DataverseSession session;
+    
+    @Mock
+    private IndexServiceBean indexService;
 
     @Test
     public void changeDatasetThumbnail() {
