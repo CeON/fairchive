@@ -61,6 +61,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * @author skraffmiller
@@ -414,7 +416,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     public String getFriendlyVersionNumber() {
         return isDraft()
                 ? "DRAFT"
-                : versionNumber.toString() + "." + minorVersionNumber.toString();
+                : versionNumber + "." + minorVersionNumber;
     }
 
     public boolean isReleased() {
@@ -668,13 +670,8 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
 
     // TODO: Consider renaming this method since it's also used for getting the "provider" for Schema.org JSON-LD.
     public String getRootDataverseNameForCitation() {
-        Dataverse root = dataset.getOwner();
-        while (root.getOwner() != null) {
-            root = root.getOwner();
-        }
-        String rootDataverseName = root.getName();
-        return StringUtils.isNotBlank(rootDataverseName)
-                ? rootDataverseName : StringUtils.EMPTY;
+        final String rootDataverseName = this.dataset.getRoot().getName();
+        return isNotBlank(rootDataverseName) ? rootDataverseName : EMPTY;
     }
 
     public String getAuthorsStr() {

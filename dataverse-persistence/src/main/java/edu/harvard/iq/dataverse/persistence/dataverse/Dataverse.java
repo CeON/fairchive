@@ -372,6 +372,10 @@ public class Dataverse extends DvObjectContainer {
     public boolean isRoot() {
         return this.getOwner() == null;
     }
+    
+    public boolean isNotRoot() {
+        return this.getOwner() != null;
+    }
 
     public List<Guestbook> getParentGuestbooks() {
         List<Guestbook> retList = new ArrayList<>();
@@ -758,6 +762,10 @@ public class Dataverse extends DvObjectContainer {
             owners.add(getOwner());
         }
         return owners;
+    }
+    
+    public Dataverse getRoot() {
+        return isRoot() ? this : getOwner().getRoot();
     }
 
     @Override

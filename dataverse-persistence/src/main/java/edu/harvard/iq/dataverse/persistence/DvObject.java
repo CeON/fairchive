@@ -208,6 +208,11 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
     public Timestamp getIndexTime() {
         return indexTime;
     }
+    
+    public boolean isIndexed() {
+        
+        return this.indexTime != null;
+    }
 
     /**
      * indexTime is used for comparison with modificationTime so we know if the
@@ -328,6 +333,12 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
 
     public boolean isIdentifierRegistered() {
         return identifierRegistered;
+    }
+    
+    public boolean isStale() {
+        return isIndexed()
+            ? this.indexTime.before(this.modificationTime)
+            : true;
     }
 
     public void setIdentifierRegistered(boolean identifierRegistered) {

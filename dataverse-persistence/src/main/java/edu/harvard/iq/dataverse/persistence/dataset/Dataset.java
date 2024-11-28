@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
@@ -336,6 +337,10 @@ public class Dataset extends DvObjectContainer {
     public List<DatasetVersion> getVersions() {
         return versions;
     }
+    
+    public Dataverse getRoot() {
+        return getOwner().getRoot();
+    }
 
     public void setVersions(List<DatasetVersion> versions) {
         this.versions = versions;
@@ -412,13 +417,12 @@ public class Dataset extends DvObjectContainer {
         return isReleased() && getReleasedVersion() != null;
     }
 
-    public DatasetVersion getReleasedVersion() {
-        for (DatasetVersion version : getVersions()) {
-            if (version.isReleased()) {
-                return version;
-            }
-        }
-        return null;
+    public DatasetVersion getReleasedVersion() { 
+        return getVersions()
+                .stream()
+                .filter(DatasetVersion::isReleased)
+                .findFirst()
+                .orElse(null);
     }
 
     public List<DataFileCategory> getCategories() {

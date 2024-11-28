@@ -15,7 +15,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
-import java.util.logging.Logger;
 
 /**
  * @author Leonid Andreev
@@ -23,7 +22,6 @@ import java.util.logging.Logger;
 
 @Path("admin/metadata")
 public class Metadata extends AbstractApiBean {
-    private static final Logger logger = Logger.getLogger(Metadata.class.getName());
 
     @EJB
     OAISetServiceBean oaiSetService;

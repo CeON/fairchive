@@ -225,23 +225,20 @@ public class IndexServiceBean {
         solrInputDocument.addField(SearchFields.SUBTREE, dataversePaths);
         docs.add(solrInputDocument);
 
-        String status;
         try {
             solrServer.add(docs);
             solrServer.commit();
+            if (!systemConfig.isReadonlyMode()) {
+                dvObjectService.updateContentIndexTime(dataverse);
+            }
+            IndexResponse indexResponse = solrIndexService.indexPermissionsForOneDvObject(dataverse);
+            String msg = "indexed dataverse " + dataverse.getId() + ":" + dataverse.getAlias() + ". Response from permission indexing: " + indexResponse.getMessage();
+            return new AsyncResult<>(msg);
         } catch (SolrServerException | IOException ex) {
-            status = ex.toString();
+            String status = ex.toString();
             logger.info(status);
             return new AsyncResult<>(status);
         }
-
-        if (!systemConfig.isReadonlyMode()) {
-            dvObjectService.updateContentIndexTime(dataverse);
-        }
-        IndexResponse indexResponse = solrIndexService.indexPermissionsForOneDvObject(dataverse);
-        String msg = "indexed dataverse " + dataverse.getId() + ":" + dataverse.getAlias() + ". Response from permission indexing: " + indexResponse.getMessage();
-        return new AsyncResult<>(msg);
-
     }
 
     @TransactionAttribute(REQUIRES_NEW)
@@ -599,18 +596,20 @@ public class IndexServiceBean {
         return groupPerUserPrefix;
     }
 
-    public String delete(Dataverse doomed) {
-        logger.fine("deleting Solr document for dataverse " + doomed.getId());
-        UpdateResponse updateResponse;
+    public String delete(final Dataverse doomed) {
+        logger.fine(() -> "deleting Solr document for dataverse " + doomed.getId());
         try {
-            updateResponse = solrServer.deleteById(solrDocIdentifierDataverse + doomed.getId());
+            final UpdateResponse updateResponse = solrServer
+                    .deleteById(solrDocIdentifierDataverse + doomed.getId());
             solrServer.commit();
+            final String response = "Successfully deleted dataverse " + doomed.getId()
+                    + " from Solr index. updateReponse was: "
+                    + updateResponse.toString();
+            logger.fine(response);
+            return response;
         } catch (SolrServerException | IOException ex) {
             return ex.toString();
         }
-        String response = "Successfully deleted dataverse " + doomed.getId() + " from Solr index. updateReponse was: " + updateResponse.toString();
-        logger.fine(response);
-        return response;
     }
 
     /**
@@ -619,19 +618,20 @@ public class IndexServiceBean {
      * <p>
      * https://github.com/IQSS/dataverse/issues/142
      */
-    public String removeSolrDocFromIndex(String doomed) {
+    public String removeSolrDocFromIndex(final String doomed) {
 
-        logger.fine("deleting Solr document: " + doomed);
-        UpdateResponse updateResponse;
+        logger.fine(() -> "deleting Solr document: " + doomed);
         try {
-            updateResponse = solrServer.deleteById(doomed);
+            final UpdateResponse updateResponse = solrServer.deleteById(doomed);
             solrServer.commit();
+            final String response = "Attempted to delete " + doomed
+                    + " from Solr index. updateReponse was: "
+                    + updateResponse.toString();
+            logger.fine(response);
+            return response;
         } catch (SolrServerException | IOException ex) {
             return ex.toString();
         }
-        String response = "Attempted to delete " + doomed + " from Solr index. updateReponse was: " + updateResponse.toString();
-        logger.fine(response);
-        return response;
     }
 
     public String convertToFriendlyDate(Date dateAsDate) {
@@ -642,22 +642,13 @@ public class IndexServiceBean {
         DateFormat dateFormatter = new SimpleDateFormat("MMM d, yyyy", Locale.US);
         return dateFormatter.format(dateAsDate);
     }
-
+    
     /**
      * @return Dataverses that should be reindexed either because they have
      * never been indexed or their index time is before their modification time.
      */
     public List<Dataverse> findStaleOrMissingDataverses() {
-        List<Dataverse> staleDataverses = new ArrayList<>();
-        for (Dataverse dataverse : dataverseDao.findAll()) {
-            if (dataverse.isRoot()) {
-                continue;
-            }
-            if (stale(dataverse)) {
-                staleDataverses.add(dataverse);
-            }
-        }
-        return staleDataverses;
+        return this.dataverseDao.findStaleOrMissingDataverses();
     }
 
     /**
@@ -665,13 +656,7 @@ public class IndexServiceBean {
      * been indexed or their index time is before their modification time.
      */
     public List<Dataset> findStaleOrMissingDatasets() {
-        List<Dataset> staleDatasets = new ArrayList<>();
-        for (Dataset dataset : datasetDao.findAll()) {
-            if (stale(dataset)) {
-                staleDatasets.add(dataset);
-            }
-        }
-        return staleDatasets;
+        return this.datasetDao.findStaleOrMissingDatasets();
     }
 
     // This is a convenience method for deleting all the SOLR documents
@@ -796,7 +781,6 @@ public class IndexServiceBean {
 
         if (state.equals(IndexableDataset.DatasetState.PUBLISHED)) {
             solrInputDocument.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.PUBLISHED.getSolrValue());
-            SolrInputField field = solrInputDocument.getField(SearchFields.PUBLICATION_STATUS);
         } else if (state.equals(IndexableDataset.DatasetState.WORKING_COPY)) {
             solrInputDocument.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.DRAFT.getSolrValue());
         }
@@ -952,7 +936,6 @@ public class IndexServiceBean {
         long maxSize = (maxFTIndexingSize == 0) ? maxFTIndexingSize : Long.MAX_VALUE;
 
         List<String> filesIndexed = new ArrayList<>();
-        Set<String> licensesIndexed = new HashSet<String>();
         if (datasetVersion != null) {
             List<FileMetadata> fileMetadatas = datasetVersion.getFileMetadatas();
             boolean checkForDuplicateMetadata = false;
@@ -1425,16 +1408,6 @@ public class IndexServiceBean {
             }
         }
         return "Desired state for existence of cards: " + desiredCards + "\n";
-    }
-
-    private boolean stale(DvObject dvObject) {
-        Timestamp indexTime = dvObject.getIndexTime();
-        Timestamp modificationTime = dvObject.getModificationTime();
-        if (indexTime == null) {
-            return true;
-        } else {
-            return indexTime.before(modificationTime);
-        }
     }
 
     private List<Long> findDvObjectInSolrOnly(String type) throws SearchException {

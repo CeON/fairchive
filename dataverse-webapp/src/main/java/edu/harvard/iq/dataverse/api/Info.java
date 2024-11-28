@@ -5,8 +5,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.license.License;
 import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.json.Json;
@@ -18,8 +16,6 @@ import java.util.stream.Collectors;
 
 @Path("info")
 public class Info extends AbstractApiBean {
-
-    private static final Logger logger = LoggerFactory.getLogger(Info.class);
 
     private SettingsServiceBean settingsService;
     private LicenseRepository licenseRepository;

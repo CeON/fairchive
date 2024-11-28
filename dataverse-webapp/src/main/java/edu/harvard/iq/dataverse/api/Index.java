@@ -184,7 +184,7 @@ public class Index extends AbstractApiBean {
              * @todo How can we expose the String returned from "index all" via
              * the API?
              */
-            Future<JsonObjectBuilder> indexAllFuture = indexAllService.indexAllOrSubsetAsync(numPartitions, partitionIdToProcess, skipIndexed);
+            indexAllService.indexAllOrSubsetAsync(numPartitions, partitionIdToProcess, skipIndexed);
             JsonObject workloadPreview = preview.build().getJsonObject("previewOfPartitionWorkload");
             int dataverseCount = workloadPreview.getInt("dataverseCount");
             int datasetCount = workloadPreview.getInt("datasetCount");
@@ -208,8 +208,6 @@ public class Index extends AbstractApiBean {
                     for (int i = 0; i < 2; i++) {
                         StackTraceElement stacktrace = cause.getStackTrace()[i];
                         if (stacktrace != null) {
-                            String classCanonicalName = stacktrace.getClass().getCanonicalName();
-                            String methodName = stacktrace.getMethodName();
                             int lineNumber = stacktrace.getLineNumber();
                             String error = "at " + stacktrace.getClassName() + "." + stacktrace.getMethodName() + "(" + stacktrace.getFileName() + ":" + lineNumber + ") ";
                             sb.append(error);
@@ -246,7 +244,7 @@ public class Index extends AbstractApiBean {
                     /**
                      * @todo Can we display the result of indexing to the user?
                      */
-                    Future<String> indexDataverseFuture = indexService.indexDataverse(dataverse);
+                    indexService.indexDataverse(dataverse);
                     return ok("starting reindex of dataverse " + id);
                 } else {
                     String response = indexService.removeSolrDocFromIndex(IndexServiceBean.solrDocIdentifierDataverse + id);
@@ -256,7 +254,7 @@ public class Index extends AbstractApiBean {
                 Dataset dataset = datasetDao.find(id);
                 if (dataset != null) {
                     boolean doNormalSolrDocCleanUp = true;
-                    Future<String> indexDatasetFuture = indexService.indexDataset(dataset, doNormalSolrDocCleanUp);
+                    indexService.indexDataset(dataset, doNormalSolrDocCleanUp);
                     return ok("starting reindex of dataset " + id);
                 } else {
                     /**
@@ -273,7 +271,7 @@ public class Index extends AbstractApiBean {
                  * @todo How can we display the result to the user?
                  */
                 boolean doNormalSolrDocCleanUp = true;
-                Future<String> indexDatasetFuture = indexService.indexDataset(datasetThatOwnsTheFile, doNormalSolrDocCleanUp);
+                indexService.indexDataset(datasetThatOwnsTheFile, doNormalSolrDocCleanUp);
                 return ok("started reindexing " + type + "/" + id);
             } else {
                 return error(Status.BAD_REQUEST, "illegal type: " + type);
@@ -296,8 +294,6 @@ public class Index extends AbstractApiBean {
                     for (int i = 0; i < 2; i++) {
                         StackTraceElement stacktrace = cause.getStackTrace()[i];
                         if (stacktrace != null) {
-                            String classCanonicalName = stacktrace.getClass().getCanonicalName();
-                            String methodName = stacktrace.getMethodName();
                             int lineNumber = stacktrace.getLineNumber();
                             String error = "at " + stacktrace.getClassName() + "." + stacktrace.getMethodName() + "(" + stacktrace.getFileName() + ":" + lineNumber + ") ";
                             sb.append(error);
@@ -323,11 +319,11 @@ public class Index extends AbstractApiBean {
         }
         if (dataset != null) {
             boolean doNormalSolrDocCleanUp = true;
-            Future<String> indexDatasetFuture = indexService.indexDataset(dataset, doNormalSolrDocCleanUp);
+            indexService.indexDataset(dataset, doNormalSolrDocCleanUp);
             JsonObjectBuilder data = Json.createObjectBuilder();
             data.add("message", "Reindexed dataset " + persistentId);
             data.add("id", dataset.getId());
-            data.add("persistentId", dataset.getGlobalIdString());
+            data.add("persistentId", dataset.getGlobalId().asString());
             JsonArrayBuilder versions = Json.createArrayBuilder();
             for (DatasetVersion version : dataset.getVersions()) {
                 JsonObjectBuilder versionObject = Json.createObjectBuilder();
@@ -487,7 +483,6 @@ public class Index extends AbstractApiBean {
         Object searchFieldsObject = new SearchFields();
         Field[] staticSearchFields = searchFieldsObject.getClass().getDeclaredFields();
         for (Field fieldObject : staticSearchFields) {
-            String name = fieldObject.getName();
             String staticSearchField = null;
             try {
                 staticSearchField = (String) fieldObject.get(searchFieldsObject);

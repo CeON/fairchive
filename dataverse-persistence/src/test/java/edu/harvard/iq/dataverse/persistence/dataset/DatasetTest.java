@@ -1,22 +1,26 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.persistence.MocksFactory;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import com.google.common.collect.Lists;
+
+import edu.harvard.iq.dataverse.persistence.MocksFactory;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 
 /**
@@ -114,6 +118,28 @@ public class DatasetTest {
         sut.removeLock(dlInReview);
         assertFalse(sut.isLocked());
 
+    }
+    
+    @Test
+    public void testGetRoot() {
+        
+        Dataverse root = new Dataverse();
+        Dataverse child = new Dataverse();
+        child.setOwner(root);
+        Dataset grandChild = new Dataset();
+        grandChild.setOwner(child);
+        
+        assertThat(root.getOwner()).isNull();
+        assertThat(root.isRoot()).isTrue();
+        assertThat(root.isNotRoot()).isFalse();
+        
+        assertThat(child.getOwner()).isSameAs(root);
+        assertThat(child.isRoot()).isFalse();
+        assertThat(child.isNotRoot()).isTrue();       
+        assertThat(child.getRoot()).isSameAs(root);
+        
+        assertThat(grandChild.getOwner()).isSameAs(child);
+        assertThat(grandChild.getRoot()).isSameAs(root);
     }
 
     // -------------------- PRIVATE --------------------
