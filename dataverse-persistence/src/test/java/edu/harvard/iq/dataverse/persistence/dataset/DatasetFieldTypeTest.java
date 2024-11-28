@@ -15,7 +15,6 @@ public class DatasetFieldTypeTest {
 
     @Test
     public void testIsSanitizeHtml() {
-        System.out.println("isSanitizeHtml");
         DatasetFieldType instance = new DatasetFieldType();
         instance.setFieldType(FieldType.TEXT);
         Boolean result = instance.isSanitizeHtml();
@@ -39,7 +38,6 @@ public class DatasetFieldTypeTest {
 
     @Test
     public void testIsEscapeOutputText() {
-        System.out.println("testIsEscapeOutputText");
         DatasetFieldType instance = new DatasetFieldType();
         instance.setFieldType(FieldType.TEXT);
         Boolean result = instance.isEscapeOutputText();
@@ -128,4 +126,28 @@ public class DatasetFieldTypeTest {
         // then
         assertThat(separableOnGui).isEqualTo(shouldBeSeparable);
     }
+    
+    @Test
+    public void test_isHasRequiredChildren() {
+        DatasetFieldType fieldType = new DatasetFieldType("type1", FieldType.TEXT, false);
+        
+        assertThat(fieldType.getChildDatasetFieldTypes().size()).isEqualTo(0);
+        assertThat(fieldType.isHasRequiredChildren()).isFalse();
+        
+        fieldType.getChildDatasetFieldTypes().add(new DatasetFieldType());
+        
+        assertThat(fieldType.getChildDatasetFieldTypes().size()).isEqualTo(1);
+        assertThat(fieldType.isHasRequiredChildren()).isFalse();
+        
+        fieldType.getChildDatasetFieldTypes().get(0).setRequired(true);
+        
+        assertThat(fieldType.getChildDatasetFieldTypes().size()).isEqualTo(1);
+        assertThat(fieldType.isHasRequiredChildren()).isTrue();
+        
+        fieldType.getChildDatasetFieldTypes().add(new DatasetFieldType());
+        
+        assertThat(fieldType.getChildDatasetFieldTypes().size()).isEqualTo(2);
+        assertThat(fieldType.isHasRequiredChildren()).isTrue();
+    }
+    
 }

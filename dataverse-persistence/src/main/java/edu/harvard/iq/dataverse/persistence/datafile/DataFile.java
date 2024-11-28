@@ -185,6 +185,14 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     // -------------------- GETTERS --------------------
+    @Override
+    public String getAuthorString() {
+        return this.getOwner().getLatestVersion().getAuthorsStr();
+    }
+    @Override
+    public String getTargetUrl() {
+        return TARGET_URL;
+    }
 
     public List<GuestbookResponse> getGuestbookResponses() {
         return guestbookResponses;

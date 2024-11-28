@@ -1,22 +1,34 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.config.JsonMapConverter;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
-import org.apache.commons.lang3.StringUtils;
+import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.NONE;
+import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXT;
+import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXTBOX;
+import static java.util.Collections.emptyMap;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
 
 import javax.faces.model.SelectItem;
 import javax.faces.model.SelectItemGroup;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.ManyToOne;
@@ -26,18 +38,14 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
+
+import org.apache.commons.lang3.StringUtils;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.config.JsonMapConverter;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 
 /**
  * Defines the meaning and constraints of a metadata field and its values.
@@ -62,7 +70,7 @@ import java.util.TreeMap;
 public class DatasetFieldType implements Serializable, Comparable<DatasetFieldType>, JpaEntity<Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     /** The internal, DDI-like name, no spaces, etc. */
@@ -80,7 +88,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     /** Metatype of the field. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private FieldType fieldType;
+    private FieldType fieldType = NONE;
 
     /** Whether the value must be taken from a controlled vocabulary. */
     private boolean allowControlledVocabulary;
@@ -124,7 +132,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     private boolean displayOnCreate;
 
     /** The {@code MetadataBlock} this field type belongs to. */
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne(cascade = MERGE)
     private MetadataBlock metadataBlock;
 
     /** A formal URI for the field used in json-ld exports */
@@ -133,20 +141,20 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     /** The list of controlled vocabulary terms that may be used as values for
      * fields of this field type. */
-    @OneToMany(mappedBy = "datasetFieldType", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "datasetFieldType", cascade = {REMOVE, MERGE, PERSIST})
     @OrderBy("displayOrder ASC")
     private Collection<ControlledVocabularyValue> controlledVocabularyValues;
 
     /** Collection of field types that are children of this field type.
      * A field type may consist of one or more child field types, but only one parent. */
-    @OneToMany(mappedBy = "parentDatasetFieldType", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "parentDatasetFieldType", cascade = {REMOVE, MERGE, PERSIST})
     @OrderBy("displayOrder ASC")
     private List<DatasetFieldType> childDatasetFieldTypes = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne(cascade = MERGE)
     private DatasetFieldType parentDatasetFieldType;
 
-    @OneToMany(mappedBy = "datasetField", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "datasetField", cascade = {REMOVE, MERGE, PERSIST})
     private List<DatasetFieldDefaultValue> datasetFieldDefaultValues;
 
     /** Determines whether fields of this field type are always required. A
@@ -160,7 +168,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     @Column(name="metadata", nullable = false)
     @Convert(converter = JsonMapConverter.class)
-    private Map<String, Object> metadata = Collections.emptyMap();
+    private Map<String, Object> metadata = emptyMap();
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -304,16 +312,17 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     // -------------------- LOGIC --------------------
 
     public Boolean isSanitizeHtml() {
-        return FieldType.URL.equals(this.fieldType) || FieldType.TEXTBOX.equals(this.fieldType);
+        return this.fieldType.sanitizeHtml();
     }
 
     public Boolean isEscapeOutputText() {
-        if (FieldType.URL.equals(this.fieldType) || FieldType.TEXTBOX.equals(this.fieldType)) {
+        if (this.fieldType.sanitizeHtml()) {
             return false;
+        } else {
+            return !(TEXT.equals(this.fieldType)
+                    && this.displayFormat != null
+                    && this.displayFormat.contains("<a"));
         }
-        return !(FieldType.TEXT.equals(this.fieldType)
-                && this.displayFormat != null
-                && this.displayFormat.contains("<a"));
     }
 
     public boolean isControlledVocabulary() {
@@ -398,16 +407,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     }
 
     public boolean isHasRequiredChildren() {
-        if (this.childDatasetFieldTypes.isEmpty()) {
-            return false;
-        } else {
-            for (DatasetFieldType childFieldType : this.childDatasetFieldTypes) {
-                if (childFieldType.isRequired()) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return this.childDatasetFieldTypes.stream().anyMatch(DatasetFieldType::isRequired);
     }
 
     public boolean isHasParent() {
@@ -476,8 +476,8 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
                 && (isCompound()
                         ? childDatasetFieldTypes.stream()
                             .map(DatasetFieldType::getFieldType)
-                            .anyMatch(FieldType.TEXTBOX::equals)
-                        : fieldType.equals(FieldType.TEXTBOX));
+                            .anyMatch(TEXTBOX::equals)
+                        : fieldType.equals(TEXTBOX));
     }
 
     public Object getMetadata(String key) {

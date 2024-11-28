@@ -192,6 +192,18 @@ public class Dataverse extends DvObjectContainer {
                 return "";
         }
     }
+    @Override
+    public String getAuthorString() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    public String getTargetUrl() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+    @Override
+    public Dataverse getDataverseContext() {
+        return this;
+    }
 
     public String getIndexableCategoryName() {
         return getCategoryNameForIndex();
@@ -368,14 +380,6 @@ public class Dataverse extends DvObjectContainer {
         return harvestingClient != null;
     }
     */
-
-    public boolean isRoot() {
-        return this.getOwner() == null;
-    }
-    
-    public boolean isNotRoot() {
-        return this.getOwner() != null;
-    }
 
     public List<Guestbook> getParentGuestbooks() {
         List<Guestbook> retList = new ArrayList<>();

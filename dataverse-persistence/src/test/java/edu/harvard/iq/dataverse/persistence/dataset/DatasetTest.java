@@ -132,14 +132,17 @@ public class DatasetTest {
         assertThat(root.getOwner()).isNull();
         assertThat(root.isRoot()).isTrue();
         assertThat(root.isNotRoot()).isFalse();
+        assertThat(root.getDataverseContext()).isSameAs(root);
         
         assertThat(child.getOwner()).isSameAs(root);
         assertThat(child.isRoot()).isFalse();
         assertThat(child.isNotRoot()).isTrue();       
         assertThat(child.getRoot()).isSameAs(root);
+        assertThat(child.getDataverseContext()).isSameAs(child);
         
         assertThat(grandChild.getOwner()).isSameAs(child);
         assertThat(grandChild.getRoot()).isSameAs(root);
+        assertThat(grandChild.getDataverseContext()).isSameAs(child);
     }
 
     // -------------------- PRIVATE --------------------
