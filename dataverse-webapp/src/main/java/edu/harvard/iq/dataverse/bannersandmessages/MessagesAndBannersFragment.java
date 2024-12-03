@@ -12,16 +12,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Responsible for displaying messages and banners across the dataverse.
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("MessagesAndBannersFragment")
 public class MessagesAndBannersFragment implements java.io.Serializable {
-
-    private static final Logger logger = Logger.getLogger(MessagesAndBannersFragment.class.getCanonicalName());
 
     @EJB
     private DataverseTextMessageServiceBean textMessageService;
@@ -34,17 +32,19 @@ public class MessagesAndBannersFragment implements java.io.Serializable {
 
 
     public List<String> textMessages(Long dataverseId) {
-        return textMessageService.getTextMessagesForDataverse(dataverseId, dataverseSession.getLocaleCode());
+        return textMessageService.getTextMessagesForDataverse(dataverseId, 
+                dataverseSession.getLocaleCode());
     }
 
     public List<ImageWithLinkDto> banners(Long dataverseId) {
-        return bannerDAO.getBannersForDataverse(dataverseId, dataverseSession.getLocaleCode());
+        return bannerDAO.getBannersForDataverse(dataverseId, 
+                dataverseSession.getLocaleCode());
     }
 
     public void redirect(String link) throws IOException {
 
         if (!link.startsWith("http")) {
-            link = "http://" + link;
+            link = "http://".concat(link);
         }
         FacesContext.getCurrentInstance().getExternalContext().redirect(link);
     }

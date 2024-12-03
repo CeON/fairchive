@@ -119,7 +119,8 @@ public class DataverseTextMessageServiceBean implements java.io.Serializable {
     public List<DataverseTextMessage> fetchAllTextMessagesForDataverse(long dataverseId) {
         return em.createQuery("select dtm FROM DataverseTextMessage as dtm " +
                                       "join fetch DataverseLocalizedMessage " +
-                                      "where dtm.dataverse.id = :dataverseid")
+                                      "where dtm.dataverse.id = :dataverseid",
+                                      DataverseTextMessage.class)
                 .setParameter("dataverseid", dataverseId)
                 .getResultList();
     }
@@ -136,7 +137,8 @@ public class DataverseTextMessageServiceBean implements java.io.Serializable {
     public List<DataverseTextMessage> fetchTextMessagesForDataverseWithPaging(long dataverseId, int firstResult, int maxResult) {
         return em.createQuery("select dtm FROM DataverseTextMessage as dtm " +
                                       "join fetch DataverseLocalizedMessage  " +
-                                      "where dtm.dataverse.id = :dataverseid order by dtm.id DESC ")
+                                      "where dtm.dataverse.id = :dataverseid order by dtm.id DESC ",
+                                      DataverseTextMessage.class)
                 .setParameter("dataverseid", dataverseId)
                 .setFirstResult(firstResult)
                 .setMaxResults(maxResult)
