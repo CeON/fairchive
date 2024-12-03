@@ -266,6 +266,15 @@ public class Dataset extends DvObjectContainer {
         this.guestbook = guestbook;
     }
 
+    @Override
+    public String getAuthorString() {
+        return getLatestVersion().getAuthorsStr();
+    }
+    @Override
+    public String getTargetUrl() {
+        return TARGET_URL;
+    }
+    
     /**
      * Time of last changes that could affect exporters results, but are not related to specific dataset version.
      * Example: Guestbook assigning and embargo date change can happen after dataset

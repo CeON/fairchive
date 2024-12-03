@@ -6,24 +6,29 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
+
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.InheritanceType.JOINED;
+import static javax.persistence.TemporalType.TIMESTAMP;
+
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -63,7 +68,7 @@ import java.util.Set;
 // dataverse, dataset and datafile. The ids from the main table will be reused
 // in the child tables. (i.e., the id sequences will be "sparse" in the 3 
 // child tables). Tested, appears to be working properly. -- L.A. Nov. 4 2014
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = JOINED)
 @DiscriminatorColumn(name = "dtype")
 @Table(indexes = {@Index(columnList = "dtype")
         , @Index(columnList = "owner_id")
@@ -113,7 +118,7 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
     };
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -157,15 +162,18 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
     private String protocol;
     private String authority;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     private Date globalIdCreateTime;
 
     private String identifier;
 
     private boolean identifierRegistered;
 
-    @OneToMany(mappedBy = "dvObject", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "dvObject", cascade = ALL, orphanRemoval = true)
     private Set<AlternativePersistentIdentifier> alternativePersistentIndentifiers;
+    
+    @OneToMany(mappedBy = "definitionPoint", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
+    private List<RoleAssignment> roleAssignments;
 
     public Set<AlternativePersistentIdentifier> getAlternativePersistentIndentifiers() {
         return alternativePersistentIndentifiers;
@@ -340,6 +348,14 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
             ? this.indexTime.before(this.modificationTime)
             : true;
     }
+    
+    public boolean isRoot() {
+        return this.getOwner() == null;
+    }
+    
+    public boolean isNotRoot() {
+        return this.getOwner() != null;
+    }
 
     public void setIdentifierRegistered(boolean identifierRegistered) {
         this.identifierRegistered = identifierRegistered;
@@ -431,52 +447,25 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
     }
 
     public Dataverse getDataverseContext() {
-        if (this instanceof Dataverse) {
-            return (Dataverse) this;
-        } else if (this.getOwner() != null) {
-            return this.getOwner().getDataverseContext();
-        }
-
-        return null;
+        return getOwner().getDataverseContext();
     }
 
-    public String getAuthorString() {
-        if (this instanceof Dataverse) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-        if (this instanceof Dataset) {
-            Dataset dataset = (Dataset) this;
-            return dataset.getLatestVersion().getAuthorsStr();
-        }
-        if (this instanceof DataFile) {
-            Dataset dataset = (Dataset) this.getOwner();
-            return dataset.getLatestVersion().getAuthorsStr();
-        }
-        throw new UnsupportedOperationException("Not supported yet. New DVObject Instance?");
-    }
+    public abstract String getAuthorString();
 
-    public String getTargetUrl() {
-        if (this instanceof Dataverse) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-        if (this instanceof Dataset) {
-            return Dataset.TARGET_URL;
-        }
-        if (this instanceof DataFile) {
-            return DataFile.TARGET_URL;
-        }
-        throw new UnsupportedOperationException("Not supported yet. New DVObject Instance?");
-
-    }
+    public abstract String getTargetUrl();
 
     public String getYearPublishedCreated() {
+        return new SimpleDateFormat("yyyy").format(getPublishedCreated());
+    }
+    
+    private Date getPublishedCreated() {
         //if published get the year if draft get when created
         if (this.isReleased()) {
-            return new SimpleDateFormat("yyyy").format(this.getPublicationDate());
+            return getPublicationDate();
         } else if (this.getCreateDate() != null) {
-            return new SimpleDateFormat("yyyy").format(this.getCreateDate());
+            return this.getCreateDate();
         } else {
-            return new SimpleDateFormat("yyyy").format(new Date());
+            return new Date();
         }
     }
 
@@ -493,10 +482,6 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
      * @return {@code true} iff {@code other} is {@code this} or below {@code this} in the containment hierarchy.
      */
     public abstract boolean isAncestorOf(DvObject other);
-
-    @OneToMany(mappedBy = "definitionPoint", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
-    private List<RoleAssignment> roleAssignments;
-
     
     public List<RoleAssignment> getRoleAssignments() {
         return roleAssignments;
