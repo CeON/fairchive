@@ -20,7 +20,7 @@
     </o:form>
 
     <!-- Dialog Contact Form -->
-    <p:dialog id="contactDialog" header="#{sendFeedbackDialog.getFormHeader()}" widgetVar="contactForm" modal="true" >
+    <p:dialog id="contactDialog" header="#{sendFeedbackDialog.getFormHeader()}" widgetVar="contactForm" modal="true" width="700">
         <p:fragment>
             <h:form id="emailForm" class="form-horizontal">
                 <p:focus context="emailForm" rendered="#{facesContext.validationFailed}" />
