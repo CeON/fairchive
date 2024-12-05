@@ -85,10 +85,6 @@ public class BundleUtil {
 
     // -------------------- PRIVATE --------------------
 
-    private static String getStringFromPropertyFile(String bundleKey, String bundleName) throws MissingResourceException {
-        return getStringFromPropertyFile(bundleKey, bundleName, getCurrentLocale());
-    }
-
     /**
      * Gets display name for specified bundle key. If it is external bundle,
      * method tries to access external directory (jvm property - dataverse.lang.directory)

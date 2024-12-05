@@ -8,6 +8,7 @@ import java.util.EnumSet;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class BitSet implements Serializable {
 
     private long store = 0l;
@@ -49,7 +50,7 @@ public class BitSet implements Serializable {
             return emptySet();
         }
         BitSet retVal = new BitSet();
-        for (Enum e : es) {
+        for (Enum<?> e : es) {
             retVal.set(e.ordinal());
         }
         return retVal;
