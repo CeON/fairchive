@@ -567,6 +567,9 @@
                                 <p class="text-block">
                                     <h:outputText value="#{result.citationHtml != null ? result.citationHtml : result.citation}" escape="false"/>
                                 </p>
+                                <ui:include src="pluggable/search-include-footer-fragment.xhtml">
+                                    <ui:param name="result" value="#{result}" />
+                                </ui:include>
                             </div>
 
                             <h:outputText value="#{Strings:abbreviate(result.descriptionNoSnippet, descriptionAbbreviationThreshold)}" rendered="#{result.descriptionSnippets.size() eq 0}"/>
