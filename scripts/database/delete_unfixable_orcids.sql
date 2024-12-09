@@ -4,8 +4,8 @@ DO $$
 DECLARE
     ids numeric[];
 BEGIN
-	-- find indetifiers of all dataset fields with supposed ORCID values 
-	-- that don't match ORCIS format
+    -- find indetifiers of all dataset fields with supposed ORCID values 
+    -- that don't match ORCIS format
     SELECT ARRAY(select id
         from datasetfield 
          where 
@@ -21,10 +21,9 @@ BEGIN
                 id in (select datasetfield_id 
                     from datasetfield_controlledvocabularyvalue 
                     where  
-                    controlledvocabularyvalues_id in (select id  
-                                                        from controlledvocabularyvalue 
-                                                        where
-                                                        strvalue = 'ORCID'))) 
+                    controlledvocabularyvalues_id in (select controlledvocabularyvalue.id   
+                                                      from controlledvocabularyvalue join datasetfieldtype ON controlledvocabularyvalue.datasetfieldtype_id = datasetfieldtype.id
+                                                      where controlledvocabularyvalue.strvalue = 'ORCID' and datasetfieldtype.name = 'authorIdentifierScheme'))) 
         and fieldvalue !~ '^(\d{4}-){3}\d{3}[\dX]$'
         and fieldvalue is not null)
     INTO ids;
@@ -50,4 +49,4 @@ BEGIN
                                                       from datasetfieldtype 
                                                       where
                                                       name = 'authorIdentifierScheme'));
-END $$;
+END $$;;
