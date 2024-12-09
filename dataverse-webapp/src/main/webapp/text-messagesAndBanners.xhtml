@@ -19,18 +19,18 @@
             </ui:repeat>
 
             <ui:repeat value="#{banners}" var="banner">
-                <div class="p-col">
-                    <h:commandLink style="display: block;"
+                <div style="display: flex;align-content: center;">
+                  <h:commandLink style="text-align: center; display: block; margin: auto;  padding: 10px; "
                                    target="_blank" 
                                    disabled="#{banner.link == null}" 
                                    action="#{MessagesAndBannersFragment.redirect(banner.link)}">
-                         <p:graphicImage style="display: block ;margin-left: auto; margin-right: auto; padding: 2px;"
+                         <p:graphicImage 
                                         stream="false"
                                         value="#{banner.image}"
                                         alt="#{bundle['header.banner.alt']} #{banner.link != null ? bundle['opensInNewTab'] : ''}"
                                         title="#{bundle['header.banner.alt']} #{banner.link != null ? bundle['opensInNewTab'] : ''}"
                         />
-                    </h:commandLink>
+                 </h:commandLink> 
                 </div>
             </ui:repeat>
         </div>
