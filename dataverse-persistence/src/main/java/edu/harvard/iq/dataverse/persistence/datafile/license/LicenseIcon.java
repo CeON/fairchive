@@ -1,5 +1,9 @@
 package edu.harvard.iq.dataverse.persistence.datafile.license;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,7 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import java.io.Serializable;
 
 /**
  * Entity class representing icon (image) of the license.
@@ -52,6 +55,10 @@ public class LicenseIcon implements Serializable {
      */
     public byte[] getContent() {
         return content;
+    }
+    
+    public InputStream getContentAsStream() {
+        return new ByteArrayInputStream(this.content);
     }
 
     /**

@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.datafile.license;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import java.io.Serializable;
+import java.util.Optional;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,7 +11,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import java.io.Serializable;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * Entity describing on what terms
@@ -105,6 +107,10 @@ public class FileTermsOfUse implements Serializable, JpaEntity<Long> {
             return TermsOfUseType.RESTRICTED;
         }
         return TermsOfUseType.TERMS_UNKNOWN;
+    }
+    
+    public Optional<LicenseIcon> getIcon() {
+        return Optional.ofNullable(this.license).map(License::getIcon);
     }
 
     public FileTermsOfUse createCopy() {

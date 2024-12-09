@@ -1329,22 +1329,15 @@ public class DatasetPage implements Serializable {
         return isDsvMinorUpdate.get();
     }
 
-    public boolean isLicenseIconAvailable(FileTermsOfUse termsOfUse) {
-        if (termsOfUse.getTermsOfUseType() != FileTermsOfUse.TermsOfUseType.LICENSE_BASED) {
-            return false;
-        }
-        return termsOfUse.getLicense().getIcon() != null;
-    }
-
     public Optional<StreamedContent> getLicenseIconContent(FileTermsOfUse termsOfUse) {
-        if (!isLicenseIconAvailable(termsOfUse)) {
-            return Optional.empty();
-        }
-        LicenseIcon licenseIcon = termsOfUse.getLicense().getIcon();
-        return Optional.of(DefaultStreamedContent.builder()
-                .contentType(licenseIcon.getContentType())
-                .stream(() -> new ByteArrayInputStream(licenseIcon.getContent()))
-                .build());
+        return termsOfUse.getIcon().map(this::toStreamedContent);
+    }
+    
+    private DefaultStreamedContent toStreamedContent(final LicenseIcon icon) {
+        return DefaultStreamedContent.builder()
+                .contentType(icon.getContentType())
+                .stream(icon::getContentAsStream)
+                .build();
     }
 
     // -------------------- PRIVATE ---------------------
