@@ -98,6 +98,7 @@ import java.util.stream.Stream;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DatasetPage")
 public class DatasetPage implements Serializable {
@@ -599,7 +600,6 @@ public class DatasetPage implements Serializable {
             contributorMessageToCurator = StringUtils.EMPTY;
             fileTermDiffsWithLatestReleased = Lists.newArrayList();
 
-            setExistReleasedVersion(resetExistRealeaseVersion());
             //moving setVersionTabList to tab change event
             //setVersionTabList(resetVersionTabList());
             //setReleasedVersionTabList(resetReleasedVersionTabList());
@@ -931,12 +931,12 @@ public class DatasetPage implements Serializable {
         if (workingVersion.isDeaccessioned() && dataset.getReleasedVersion() != null) {
             workingVersion = dataset.getReleasedVersion();
         }
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId().asString() + "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
     }
 
     private String returnToDatasetOnly() {
         dataset = datasetPageFacade.retrieveDataset(dataset.getId());
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&faces-redirect=true";
+        return "/dataset.xhtml?faces-redirect=true&persistentId=".concat(dataset.getGlobalId().asString());
     }
 
     public void refreshAllLocks() {
@@ -1031,25 +1031,8 @@ public class DatasetPage implements Serializable {
     }
 
 
-    private boolean existReleasedVersion;
-
     public boolean isExistReleasedVersion() {
-        return existReleasedVersion;
-    }
-
-    public void setExistReleasedVersion(boolean existReleasedVersion) {
-        this.existReleasedVersion = existReleasedVersion;
-    }
-
-    private boolean resetExistRealeaseVersion() {
-
-        for (DatasetVersion version : dataset.getVersions()) {
-            if (version.isReleased() || version.isArchived()) {
-                return true;
-            }
-        }
-        return false;
-
+        return this.dataset.wasReleased();
     }
 
 
@@ -1131,6 +1114,11 @@ public class DatasetPage implements Serializable {
      */
     public String getDescription() {
         return workingVersion.getDescriptionPlainText();
+    }
+    
+    public String getDescriptionUpTo(final int length) {
+        final String desc = getDescription();
+        return desc.length() > length ? desc.substring(0, length - 3).concat("...") : desc;
     }
 
     /**
