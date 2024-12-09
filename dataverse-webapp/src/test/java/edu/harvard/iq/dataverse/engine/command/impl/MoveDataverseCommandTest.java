@@ -122,7 +122,7 @@ public class MoveDataverseCommandTest {
         datasetC.setGuestbook(gbA);
         datasetCC.setGuestbook(gbA);
 
-        List<Guestbook> noneGb = new ArrayList();
+        List<Guestbook> noneGb = new ArrayList<>();
         root.setGuestbooks(noneGb);
         childA.setGuestbooks(noneGb);
         grandchildAA.setGuestbooks(noneGb);

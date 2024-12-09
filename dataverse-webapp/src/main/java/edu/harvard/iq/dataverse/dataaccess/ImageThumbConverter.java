@@ -642,9 +642,9 @@ public class ImageThumbConverter {
          thumbImage = makeColorTransparent(bufferedImageForTransparency, new Color(color));
          */
         ImageWriter writer = null;
-        Iterator iter = ImageIO.getImageWritersByFormatName("png");
+        Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("png");
         if (iter.hasNext()) {
-            writer = (ImageWriter) iter.next();
+            writer =  iter.next();
         } else {
             throw new IOException("Failed to locatie ImageWriter plugin for image type PNG");
         }

@@ -112,9 +112,6 @@ public class Files extends AbstractApiBean {
                 // -------------------------------------
                 if ((jsonObj.has("forceReplace")) && (!jsonObj.get("forceReplace").isJsonNull())) {
                     forceReplace = jsonObj.get("forceReplace").getAsBoolean();
-                    if (forceReplace == null) {
-                        forceReplace = false;
-                    }
                 }
                 try {
                     // (2b) Load up optional params via JSON

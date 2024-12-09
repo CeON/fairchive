@@ -247,13 +247,9 @@ public class DataverseTimerServiceBean implements Serializable {
 
         int i = 0;
 
-        for (Iterator it = timerService.getTimers().iterator(); it.hasNext(); ) {
-
-            Timer timer = (Timer) it.next();
-
+        for(final Timer timer : timerService.getTimers()) {
             logger.info("Removing timer " + i + ";");
             timer.cancel();
-
             i++;
         }
         logger.info("Done!");
@@ -269,9 +265,7 @@ public class DataverseTimerServiceBean implements Serializable {
         logger.log(Level.INFO, "Removing existing harvest timers..");
 
         int i = 1;
-        for (Iterator it = timerService.getTimers().iterator(); it.hasNext(); ) {
-
-            Timer timer = (Timer) it.next();
+        for(final Timer timer : timerService.getTimers()) {
             logger.log(Level.INFO, "HarvesterService: checking timer " + i);
 
             if (timer.getInfo() instanceof HarvestTimerInfo) {

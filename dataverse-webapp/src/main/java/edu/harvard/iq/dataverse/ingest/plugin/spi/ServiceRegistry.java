@@ -508,8 +508,8 @@ public class ServiceRegistry {
         if (reg == null) {
             throw new IllegalArgumentException("category unknown!");
         }
-        Iterator iter = getServiceProviders(category, useOrdering);
-        return new FilterIterator(iter, filter);
+        Iterator<T> iter = getServiceProviders(category, useOrdering);
+        return new FilterIterator<T>(iter, filter);
     }
 
     /**
@@ -531,7 +531,7 @@ public class ServiceRegistry {
         if (providerClass == null) {
             throw new IllegalArgumentException("providerClass == null!");
         }
-        for (Class c : categoryMap.keySet()) {
+        for (Class<?> c : categoryMap.keySet()) {
             if (c.isAssignableFrom(providerClass)) {
                 SubRegistry reg = categoryMap.get(c);
                 T provider = reg.getServiceProviderByClass(providerClass);
@@ -652,11 +652,7 @@ public class ServiceRegistry {
      * categories.
      */
     public void deregisterAll() {
-        Iterator iter = categoryMap.values().iterator();
-        while (iter.hasNext()) {
-            SubRegistry reg = (SubRegistry) iter.next();
-            reg.clear();
-        }
+        this.categoryMap.values().forEach(SubRegistry::clear);
     }
 
     /**
@@ -762,7 +758,7 @@ class SubRegistry {
     }
 
     public void clear() {
-        Iterator iter = map.values().iterator();
+        Iterator<Object> iter = map.values().iterator();
         while (iter.hasNext()) {
             Object provider = iter.next();
             iter.remove();

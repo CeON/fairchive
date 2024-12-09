@@ -141,19 +141,19 @@ public class MoveDatasetCommandTest {
         gbResp.setGuestbook(gbA);
         gbResp.setDataset(movedResponses);
 
-        List<Guestbook> includeA = new ArrayList();
+        List<Guestbook> includeA = new ArrayList<>();
         includeA.add(gbA);
         includeA.add(gbB);
 
         grandchildAA.setGuestbooks(includeA);
 
-        List<Guestbook> notIncludeA = new ArrayList();
+        List<Guestbook> notIncludeA = new ArrayList<>();
         notIncludeA.add(gbC);
         notIncludeA.add(gbB);
 
         childB.setGuestbooks(notIncludeA);
 
-        List<Guestbook> none = new ArrayList();
+        List<Guestbook> none = new ArrayList<>();
         root.setGuestbooks(none);
         grandchildBB.setGuestbooks(none);
         grandchildBB.setGuestbookRoot(false);

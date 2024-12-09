@@ -171,10 +171,6 @@ public class ShibServiceBean {
             logger.info(ex.toString());
             return null;
         }
-        if (url == null) {
-            logger.info("url object was null after parsing " + discoFeedUrl);
-            return null;
-        }
         HttpURLConnection discoFeedRequest = null;
         try {
             discoFeedRequest = (HttpURLConnection) url.openConnection();

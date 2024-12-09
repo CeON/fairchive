@@ -1,13 +1,10 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -18,6 +15,13 @@ import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +41,7 @@ public class MetadataBlock implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -72,7 +76,7 @@ public class MetadataBlock implements Serializable {
         this.namespaceUri = namespaceUri;
     }
 
-    @OneToMany(mappedBy = "metadataBlock", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "metadataBlock", cascade = {REMOVE, MERGE, PERSIST})
     @OrderBy("displayOrder")
     private List<DatasetFieldType> datasetFieldTypes;
 
@@ -85,12 +89,8 @@ public class MetadataBlock implements Serializable {
     }
 
     public boolean isDisplayOnCreate() {
-        for (DatasetFieldType dsfType : datasetFieldTypes) {
-            if (dsfType.isDisplayOnCreate()) {
-                return true;
-            }
-        }
-        return false;
+        return this.datasetFieldTypes.stream()
+                .anyMatch(DatasetFieldType::isDisplayOnCreate);
     }
 
     public String getDisplayName() {
@@ -107,7 +107,8 @@ public class MetadataBlock implements Serializable {
     }
 
     @OneToOne
-    @JoinColumn(name = "owner_id", unique = false, nullable = true, insertable = true, updatable = true)
+    @JoinColumn(name = "owner_id", unique = false, nullable = true, 
+                insertable = true, updatable = true)
     private Dataverse owner;
 
     public Dataverse getOwner() {
@@ -188,7 +189,7 @@ public class MetadataBlock implements Serializable {
     }
 
     public String getLocaleDisplayName() {
-        String localeDisplayName =  BundleUtil.getStringFromNonDefaultBundle("metadatablock.displayName", getName());
+        String localeDisplayName =  getStringFromNonDefaultBundle("metadatablock.displayName", getName());
         return localeDisplayName.isEmpty() ? displayName : localeDisplayName;
     }
 }
