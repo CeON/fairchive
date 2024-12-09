@@ -54,7 +54,6 @@ import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.ArchiverUtil;
-import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Either;
@@ -75,7 +74,9 @@ import javax.faces.event.ActionEvent;
 import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.io.ByteArrayInputStream;
+
+import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -1207,23 +1208,17 @@ public class DatasetPage implements Serializable {
     public Optional<FileTermsOfUse> getTermsOfUseOfFirstFile() {
         return datasetPageFacade.getTermsOfUseOfFirstFile(workingVersion.getId());
     }
-
-    public StreamedContent getOtherTermsIcon(FileTermsOfUse.TermsOfUseType termsOfUseType) {
-        if(termsOfUseType.equals(FileTermsOfUse.TermsOfUseType.RESTRICTED)) {
-            return DefaultStreamedContent.builder()
-                    .stream(() -> new ByteArrayInputStream(FileUtil.getFileFromResources(
-                            "/images/restrictedaccess.png")))
-                    .build();
-        }
-
-        if(termsOfUseType.equals(FileTermsOfUse.TermsOfUseType.ALL_RIGHTS_RESERVED)) {
-            return DefaultStreamedContent.builder()
-                    .stream(() -> new ByteArrayInputStream(FileUtil.getFileFromResources(
-                            "/images/allrightsreserved.png")))
-                    .build();
-        }
-
-        return null;
+    
+    public StreamedContent getAllRightsReservedIcon() {
+        return DefaultStreamedContent.builder()
+                .stream(() -> getResourceAsStream("/images/allrightsreserved.png"))
+                .build();
+    }
+    
+    public StreamedContent getRestrictedIcon() {
+        return DefaultStreamedContent.builder()
+                .stream(() -> getResourceAsStream("/images/restrictedaccess.png"))
+                .build();
     }
 
     public void setReturnToAuthorReason(String returnToAuthorReason) {
