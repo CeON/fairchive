@@ -54,7 +54,6 @@ import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.ArchiverUtil;
-import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Either;
@@ -75,7 +74,9 @@ import javax.faces.event.ActionEvent;
 import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.io.ByteArrayInputStream;
+
+import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -98,6 +99,7 @@ import java.util.stream.Stream;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DatasetPage")
 public class DatasetPage implements Serializable {
@@ -599,7 +601,6 @@ public class DatasetPage implements Serializable {
             contributorMessageToCurator = StringUtils.EMPTY;
             fileTermDiffsWithLatestReleased = Lists.newArrayList();
 
-            setExistReleasedVersion(resetExistRealeaseVersion());
             //moving setVersionTabList to tab change event
             //setVersionTabList(resetVersionTabList());
             //setReleasedVersionTabList(resetReleasedVersionTabList());
@@ -931,12 +932,12 @@ public class DatasetPage implements Serializable {
         if (workingVersion.isDeaccessioned() && dataset.getReleasedVersion() != null) {
             workingVersion = dataset.getReleasedVersion();
         }
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId().asString() + "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
     }
 
     private String returnToDatasetOnly() {
         dataset = datasetPageFacade.retrieveDataset(dataset.getId());
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&faces-redirect=true";
+        return "/dataset.xhtml?faces-redirect=true&persistentId=".concat(dataset.getGlobalId().asString());
     }
 
     public void refreshAllLocks() {
@@ -1031,25 +1032,8 @@ public class DatasetPage implements Serializable {
     }
 
 
-    private boolean existReleasedVersion;
-
     public boolean isExistReleasedVersion() {
-        return existReleasedVersion;
-    }
-
-    public void setExistReleasedVersion(boolean existReleasedVersion) {
-        this.existReleasedVersion = existReleasedVersion;
-    }
-
-    private boolean resetExistRealeaseVersion() {
-
-        for (DatasetVersion version : dataset.getVersions()) {
-            if (version.isReleased() || version.isArchived()) {
-                return true;
-            }
-        }
-        return false;
-
+        return this.dataset.wasReleased();
     }
 
 
@@ -1131,6 +1115,11 @@ public class DatasetPage implements Serializable {
      */
     public String getDescription() {
         return workingVersion.getDescriptionPlainText();
+    }
+    
+    public String getDescriptionUpTo(final int length) {
+        final String desc = getDescription();
+        return desc.length() > length ? desc.substring(0, length - 3).concat("...") : desc;
     }
 
     /**
@@ -1219,23 +1208,17 @@ public class DatasetPage implements Serializable {
     public Optional<FileTermsOfUse> getTermsOfUseOfFirstFile() {
         return datasetPageFacade.getTermsOfUseOfFirstFile(workingVersion.getId());
     }
-
-    public StreamedContent getOtherTermsIcon(FileTermsOfUse.TermsOfUseType termsOfUseType) {
-        if(termsOfUseType.equals(FileTermsOfUse.TermsOfUseType.RESTRICTED)) {
-            return DefaultStreamedContent.builder()
-                    .stream(() -> new ByteArrayInputStream(FileUtil.getFileFromResources(
-                            "/images/restrictedaccess.png")))
-                    .build();
-        }
-
-        if(termsOfUseType.equals(FileTermsOfUse.TermsOfUseType.ALL_RIGHTS_RESERVED)) {
-            return DefaultStreamedContent.builder()
-                    .stream(() -> new ByteArrayInputStream(FileUtil.getFileFromResources(
-                            "/images/allrightsreserved.png")))
-                    .build();
-        }
-
-        return null;
+    
+    public StreamedContent getAllRightsReservedIcon() {
+        return DefaultStreamedContent.builder()
+                .stream(() -> getResourceAsStream("/images/allrightsreserved.png"))
+                .build();
+    }
+    
+    public StreamedContent getRestrictedIcon() {
+        return DefaultStreamedContent.builder()
+                .stream(() -> getResourceAsStream("/images/restrictedaccess.png"))
+                .build();
     }
 
     public void setReturnToAuthorReason(String returnToAuthorReason) {
@@ -1341,22 +1324,15 @@ public class DatasetPage implements Serializable {
         return isDsvMinorUpdate.get();
     }
 
-    public boolean isLicenseIconAvailable(FileTermsOfUse termsOfUse) {
-        if (termsOfUse.getTermsOfUseType() != FileTermsOfUse.TermsOfUseType.LICENSE_BASED) {
-            return false;
-        }
-        return termsOfUse.getLicense().getIcon() != null;
-    }
-
     public Optional<StreamedContent> getLicenseIconContent(FileTermsOfUse termsOfUse) {
-        if (!isLicenseIconAvailable(termsOfUse)) {
-            return Optional.empty();
-        }
-        LicenseIcon licenseIcon = termsOfUse.getLicense().getIcon();
-        return Optional.of(DefaultStreamedContent.builder()
-                .contentType(licenseIcon.getContentType())
-                .stream(() -> new ByteArrayInputStream(licenseIcon.getContent()))
-                .build());
+        return termsOfUse.getIcon().map(this::toStreamedContent);
+    }
+    
+    private DefaultStreamedContent toStreamedContent(final LicenseIcon icon) {
+        return DefaultStreamedContent.builder()
+                .contentType(icon.getContentType())
+                .stream(icon::getContentAsStream)
+                .build();
     }
 
     // -------------------- PRIVATE ---------------------

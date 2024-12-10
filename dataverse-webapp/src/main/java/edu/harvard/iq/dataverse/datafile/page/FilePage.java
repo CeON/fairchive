@@ -26,7 +26,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.FileVersionDifference;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseIcon;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
@@ -60,6 +59,7 @@ import java.util.logging.Logger;
  * @author skraffmi
  */
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("FilePage")
 public class FilePage implements java.io.Serializable {
@@ -352,20 +352,15 @@ public class FilePage implements java.io.Serializable {
         return thumbnailAvailable;
     }
 
-    public boolean isLicenseIconAvailable(FileTermsOfUse termsOfUse) {
-        return termsOfUse.getTermsOfUseType() == TermsOfUseType.LICENSE_BASED
-                && termsOfUse.getLicense().getIcon() != null;
-    }
-
     public Optional<StreamedContent> getLicenseIconContent(FileTermsOfUse termsOfUse) {
-        if (!isLicenseIconAvailable(termsOfUse)) {
-            return Optional.empty();
-        }
-        LicenseIcon licenseIcon = termsOfUse.getLicense().getIcon();
-        return Optional.of(DefaultStreamedContent.builder()
-                           .contentType(licenseIcon.getContentType())
-                           .stream(() -> new ByteArrayInputStream(licenseIcon.getContent()))
-                           .build());
+        return termsOfUse.getIcon().map(this::toStreamedContent);
+    }
+    
+    private DefaultStreamedContent toStreamedContent(final LicenseIcon icon) {
+        return DefaultStreamedContent.builder()
+                .contentType(icon.getContentType())
+                .stream(icon::getContentAsStream)
+                .build();
     }
 
     public StreamedContent getOtherTermsIconContent(FileTermsOfUse.TermsOfUseType termsOfUseType) {

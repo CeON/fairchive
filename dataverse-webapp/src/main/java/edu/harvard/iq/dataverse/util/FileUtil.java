@@ -515,6 +515,11 @@ public class FileUtil implements java.io.Serializable {
             throw new RuntimeException("Unable to get file from resources", e);
         }
     }
+    
+    public static InputStream getResourceAsStream(String path) {
+        
+        return FileUtil.class.getResourceAsStream(path);
+    }
 
     // -------------------- INNER CLASSES --------------------
 

@@ -347,6 +347,12 @@ public class Dataset extends DvObjectContainer {
         return versions;
     }
     
+    public boolean wasReleased() {
+        return this.versions.stream().anyMatch(DatasetVersion::wasReleased);
+    }
+    
+    
+    
     public Dataverse getRoot() {
         return getOwner().getRoot();
     }
