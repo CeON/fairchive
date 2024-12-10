@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
+import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.config.LocaleConverter;
 import edu.harvard.iq.dataverse.persistence.config.ValidateEmail;
@@ -193,6 +194,16 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     @Override
     public boolean isSuperuser() {
         return superuser;
+    }
+    
+    @Override
+    public boolean isAnonymized() {
+        return false;
+    }
+    
+    @Override
+    public boolean isAffiliatedWith(final DvObject object) {
+        return object.getReleaseUser().equals(this);
     }
 
     public AuthenticatedUserLookup getAuthenticatedUserLookup() {

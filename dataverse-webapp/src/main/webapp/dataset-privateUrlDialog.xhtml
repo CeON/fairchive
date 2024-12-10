@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:jsf="http://xmlns.jcp.org/jsf" xmlns:o="http://omnifaces.org/ui"
+	xmlns:dv="http://dataverse.org/facelets"
+	xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:body>
+	<!-- editing dialog -->
+	<p:dialog id="#{dialog.getName()}" styleClass="smallPopUp"
+		header="#{dialog.getHeaderText()}" widgetVar="#{dialog.getName()}"
+		modal="true">
+
+		<p class="help-block">
+			<h:outputFormat
+				value="#{dialog.getTipText()}"
+				escape="false">
+				<f:param value="#{dialog.getHelpUrl()}" />
+			</h:outputFormat>
+		</p>
+		<p:fragment id="#{dialog.getPanelName()}">
+			<div>
+				<p jsf:rendered="#{dialog.displayUrlAbsentMessage()}"
+					class="no-margin-bottom, highlight">
+					#{bundle['dataset.privateurl.absent']}</p>
+				<p  jsf:rendered="#{dialog.displayPublishedWarning()}"
+				    class="text-warning">
+                    <span class="glyphicon glyphicon-warning-sign" />
+                    #{bundle['dataset.anonymized.privateurl.warning']}
+                </p>
+				<div jsf:rendered="#{dialog.displayUrl()}" class="highlight"
+					onclick="if (event.target) {
+                                            selectText(event.target);
+                                        } else {
+                                            selectText(this);
+                                        }">
+					<p jsf:rendered="#{dialog.displaySuccessMessage()}"
+						class="text-success highlightBold">
+						<span class="glyphicon glyphicon glyphicon-ok" />
+						#{bundle['dataset.privateurl.createdSuccess']}
+					</p>
+					<p class="no-margin-bottom">#{dialog.getUrl()}</p>
+				</div>
+			</div>
+			<div class="button-block">
+				<p:commandButton rendered="#{dialog.displayGenerateButton()}"
+					value="#{bundle['dataset.privateurl.createPrivateUrl']}"
+					action="#{dialog.generateUrl()}"
+					update="#{dialog.getPanelName()}, staticMessagesPanel, :messagePanel" />
+				<p:commandButton rendered="#{dialog.displayDisableButton()}"
+					value="#{bundle['dataset.privateurl.disablePrivateUrl']}"
+					action="#{dialog.disableUrl()}"
+					onclick="PF('#{dialog.getName()}').hide();PF('#{dialog.getConfirmationName()}').show()"
+					update="#{dialog.getPanelName()}, staticMessagesPanel" />
+				<p:commandButton styleClass="btn btn-default"
+					value="#{bundle.close}" onclick="PF('#{dialog.getName()}').hide();"
+					update="#{dialog.getPanelName()}, staticMessagesPanel" />
+			</div>
+		</p:fragment>
+	</p:dialog>
+
+	<!-- confirmation dialog -->
+	<p:dialog styleClass="smallPopUp"
+		header="#{bundle['dataset.privateurl.anonymized.header']}"
+		widgetVar="#{dialog.getConfirmationName()}" modal="true"
+		closable="false">
+		<p class="text-warning">
+			<span class="glyphicon glyphicon-warning-sign" />
+			#{bundle['dataset.privateurl.disableConfirmationText']}
+		</p>
+		<div class="button-block">
+			<p:commandButton
+				value="#{bundle['dataset.privateurl.disablePrivateUrlConfirm']}"
+				action="#{dialog.disableUrl()}"
+				update="#{dialog.getPanelName()} staticMessagesPanel, :messagePanel"
+				onclick="PF('#{dialog.getConfirmationName()}').hide();" />
+			<p:commandButton value="#{bundle.cancel}"
+				onclick="PF('#{dialog.getConfirmationName()}').hide();PF('#{dialog.getName()}').show();"
+				type="button" />
+		</div>
+	</p:dialog>
+</h:body>
+</html>

@@ -141,6 +141,9 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -1030,12 +1033,7 @@ public class Datasets extends AbstractApiBean {
     @GET
     @Path("{id}/privateUrl")
     public Response getPrivateUrlData(@PathParam("id") String idSupplied) {
-        return response(req -> {
-            PrivateUrl privateUrl = execCommand(new GetPrivateUrlCommand(req, findDatasetOrDie(idSupplied)));
-            return privateUrl != null
-                    ? ok(new PrivateUrlDTO.Converter().convert(privateUrl))
-                    : error(Response.Status.NOT_FOUND, "Private URL not found.");
-        });
+        return getAnonymizedPrivateUrlData(idSupplied, false);
     }
 
     @POST
@@ -1043,19 +1041,56 @@ public class Datasets extends AbstractApiBean {
     @Path("{id}/privateUrl")
     public Response createPrivateUrl(@PathParam("id") String idSupplied) {
         return response(req -> ok(
-                new PrivateUrlDTO.Converter().convert(
-                        execCommand(new CreatePrivateUrlCommand(req, findDatasetOrDie(idSupplied))))));
+                toDTO(execCommand(new CreatePrivateUrlCommand(req, findDatasetOrDie(idSupplied), false)))));
     }
 
     @DELETE
     @ApiWriteOperation
     @Path("{id}/privateUrl")
     public Response deletePrivateUrl(@PathParam("id") String idSupplied) {
+        return deleteAnonymizedPrivateUrl(idSupplied, false);
+    }
+   
+    private PrivateUrlDTO toDTO(final PrivateUrl url) {
+        return new PrivateUrlDTO.Converter().convert(url);
+    }
+    
+    @GET
+    @Path("{id}/anonymizedPrivateUrl")
+    public Response getAnonymizedPrivateUrlData(@PathParam("id") String idSupplied) {
+        return getAnonymizedPrivateUrlData(idSupplied, true);
+    }
+    
+    private Response getAnonymizedPrivateUrlData(final String idSupplied, final boolean anonymized) {
+        return response(req -> {
+            PrivateUrl privateUrl = execCommand(new GetPrivateUrlCommand(req, findDatasetOrDie(idSupplied), anonymized));
+            return privateUrl != null
+                    ? ok(toDTO(privateUrl))
+                    : error(NOT_FOUND, "Private URL not found.");
+        });
+    }
+
+    @POST
+    @ApiWriteOperation
+    @Path("{id}/anonymizedPrivateUrl")
+    public Response createAnonymizedPrivateUrl(@PathParam("id") String idSupplied) {
+        return response(req -> ok(
+                toDTO(execCommand(new CreatePrivateUrlCommand(req, findDatasetOrDie(idSupplied), true)))));
+    }
+
+    @DELETE
+    @ApiWriteOperation
+    @Path("{id}/anonymizedPrivateUrl")
+    public Response deleteAnonymizedPrivateUrl(@PathParam("id") String idSupplied) {
+        return deleteAnonymizedPrivateUrl(idSupplied, true);
+    }
+    
+    private Response deleteAnonymizedPrivateUrl(final String idSupplied, final boolean anonymized) {
         return response(req -> {
             Dataset dataset = findDatasetOrDie(idSupplied);
-            PrivateUrl privateUrl = execCommand(new GetPrivateUrlCommand(req, dataset));
+            PrivateUrl privateUrl = execCommand(new GetPrivateUrlCommand(req, dataset, anonymized));
             if (privateUrl != null) {
-                execCommand(new DeletePrivateUrlCommand(req, dataset));
+                execCommand(new DeletePrivateUrlCommand(req, dataset, false));
                 return ok("Private URL deleted.");
             } else {
                 return notFound("No Private URL to delete.");

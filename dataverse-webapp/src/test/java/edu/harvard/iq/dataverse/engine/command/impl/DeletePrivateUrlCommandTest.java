@@ -33,7 +33,7 @@ public class DeletePrivateUrlCommandTest {
             public PrivateUrlServiceBean privateUrl() {
                 return new PrivateUrlServiceBean() {
                     @Override
-                    public PrivateUrl getPrivateUrlFromDatasetId(long datasetId) {
+                    public PrivateUrl getPrivateUrlFromDatasetId(long datasetId, boolean anonymized) {
                         if (datasetId == noPrivateUrlToDelete) {
                             return null;
                         } else if (datasetId == hasPrivateUrlToDelete) {
@@ -76,7 +76,7 @@ public class DeletePrivateUrlCommandTest {
         String expected = "Can't delete Private URL. Dataset is null.";
         String actual = null;
         try {
-            testEngine.submit(new DeletePrivateUrlCommand(null, dataset));
+            testEngine.submit(new DeletePrivateUrlCommand(null, dataset, false));
         } catch (CommandException ex) {
             actual = ex.getMessage();
         }

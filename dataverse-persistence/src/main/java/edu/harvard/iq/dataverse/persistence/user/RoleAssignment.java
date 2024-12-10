@@ -1,13 +1,13 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.CascadeType;
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -16,7 +16,9 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import java.util.Objects;
+
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * A role of a user in a Dataverse. A User may have many roles in a given Dataverse.
@@ -25,6 +27,7 @@ import java.util.Objects;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(
         uniqueConstraints = @UniqueConstraint(columnNames = {"assigneeIdentifier", "role_id", "definitionPoint_id"})
@@ -34,7 +37,7 @@ import java.util.Objects;
 )
 @NamedQueries({
         @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier_DefinitionPointId",
-                query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId"),
+                query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId AND r.anonymized = :anonymized"),
         @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier_DefinitionPointId_RoleId",
                 query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId and r.role.id=:roleId"),
         @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier",
@@ -50,31 +53,40 @@ import java.util.Objects;
 })
 public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String assigneeIdentifier;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne(cascade = {MERGE})
     @JoinColumn(nullable = false)
     private DataverseRole role;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne(cascade = {MERGE})
     @JoinColumn(nullable = false)
     private DvObject definitionPoint;
 
     @Column(nullable = true)
     private String privateUrlToken;
+    
+    private boolean anonymized;
 
     public RoleAssignment() {
     }
 
-    public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee, DvObject aDefinitionPoint, String privateUrlToken) {
+    public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee,
+            DvObject aDefinitionPoint, String privateUrlToken) {
+        this(aRole, anAssignee, aDefinitionPoint, privateUrlToken, false);
+    }
+    
+    public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee,
+            DvObject aDefinitionPoint, String privateUrlToken, boolean anonymized) {
         role = aRole;
         assigneeIdentifier = anAssignee.getIdentifier();
         definitionPoint = aDefinitionPoint;
         this.privateUrlToken = privateUrlToken;
+        this.anonymized = anonymized;
     }
 
     public Long getId() {
@@ -111,6 +123,14 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
 
     public String getPrivateUrlToken() {
         return privateUrlToken;
+    }
+
+    public boolean isAnonymized() {
+        return this.anonymized;
+    }
+
+    public void setAnonymized(final boolean anonymized) {
+        this.anonymized = anonymized;
     }
 
     @Override

@@ -33,6 +33,7 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
     private final RoleAssignee grantee;
     private final DvObject defPoint;
     private final String privateUrlToken;
+    private final boolean anonymized;
 
     /**
      * @param anAssignee      The user being granted the role
@@ -42,18 +43,23 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
      * @param privateUrlToken An optional token used by the Private Url feature.
      */
     public AssignRoleCommand(RoleAssignee anAssignee, DataverseRole aRole, DvObject assignmentPoint, DataverseRequest aRequest, String privateUrlToken) {
+        this(anAssignee, aRole, assignmentPoint, aRequest, privateUrlToken, false);
+    }
+    
+    public AssignRoleCommand(RoleAssignee anAssignee, DataverseRole aRole, DvObject assignmentPoint, DataverseRequest aRequest, String privateUrlToken, boolean anonymized) {
         // for data file check permission on owning dataset
         super(aRequest, assignmentPoint instanceof DataFile ? assignmentPoint.getOwner() : assignmentPoint);
         role = aRole;
         grantee = anAssignee;
         defPoint = assignmentPoint;
         this.privateUrlToken = privateUrlToken;
+        this.anonymized = anonymized;
     }
 
     @Override
     public RoleAssignment execute(CommandContext ctxt) {
         // TODO make sure the role is defined on the dataverse.
-        RoleAssignment roleAssignment = new RoleAssignment(role, grantee, defPoint, privateUrlToken);
+        RoleAssignment roleAssignment = new RoleAssignment(role, grantee, defPoint, privateUrlToken, anonymized);
         return ctxt.roles().save(roleAssignment);
     }
 
