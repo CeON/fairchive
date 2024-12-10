@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
+import edu.harvard.iq.dataverse.persistence.DvObject;
+
 /**
  * Guest user in the system. There's only one, so you get it with the static getter {@link #get()} (singleton pattern).
  *
@@ -33,6 +35,16 @@ public class GuestUser implements User {
 
     @Override
     public boolean isSuperuser() {
+        return false;
+    }
+    
+    @Override
+    public boolean isAnonymized() {
+        return false;
+    }
+    
+    @Override
+    public boolean isAffiliatedWith(final DvObject object) {
         return false;
     }
 

@@ -40,7 +40,7 @@ public class CreatePrivateUrlCommandTest {
                 return new PrivateUrlServiceBean() {
 
                     @Override
-                    public PrivateUrl getPrivateUrlFromDatasetId(long datasetId) {
+                    public PrivateUrl getPrivateUrlFromDatasetId(long datasetId, boolean anonymized) {
                         if (datasetId == privateUrlAlreadyExists) {
                             Dataset dataset = new Dataset();
                             dataset.setId(privateUrlAlreadyExists);
@@ -100,7 +100,7 @@ public class CreatePrivateUrlCommandTest {
         String actual = null;
         PrivateUrl privateUrl = null;
         try {
-            privateUrl = testEngine.submit(new CreatePrivateUrlCommand(null, dataset));
+            privateUrl = testEngine.submit(new CreatePrivateUrlCommand(null, dataset, false));
         } catch (CommandException ex) {
             actual = ex.getMessage();
         }
@@ -115,7 +115,7 @@ public class CreatePrivateUrlCommandTest {
         String actual = null;
         PrivateUrl privateUrl = null;
         try {
-            privateUrl = testEngine.submit(new CreatePrivateUrlCommand(null, dataset));
+            privateUrl = testEngine.submit(new CreatePrivateUrlCommand(null, dataset, false));
         } catch (CommandException ex) {
             actual = ex.getMessage();
         }
@@ -135,7 +135,7 @@ public class CreatePrivateUrlCommandTest {
         dataset.setId(latestVersionIsNotDraft);
 
         // when
-        PrivateUrl privateUrl = testEngine.submit(new CreatePrivateUrlCommand(null, dataset));
+        PrivateUrl privateUrl = testEngine.submit(new CreatePrivateUrlCommand(null, dataset, false));
 
         // then
         assertNotNull(privateUrl);
@@ -155,7 +155,7 @@ public class CreatePrivateUrlCommandTest {
     public void testCreatePrivateUrlSuccessfully_onDraft()  {
         dataset = new Dataset();
         dataset.setId(createDatasetLong);
-        PrivateUrl privateUrl = testEngine.submit(new CreatePrivateUrlCommand(null, dataset));
+        PrivateUrl privateUrl = testEngine.submit(new CreatePrivateUrlCommand(null, dataset, false));
         assertNotNull(privateUrl);
         assertNotNull(privateUrl.getDataset());
         assertNotNull(privateUrl.getRoleAssignment());

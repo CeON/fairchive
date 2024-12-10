@@ -1,18 +1,20 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 
 import javax.ejb.Singleton;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.Query;
+
+import static java.util.stream.Collectors.joining;
+
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Singleton
 public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment> {
-    private static final Logger logger = LoggerFactory.getLogger(RoleAssignmentRepository.class);
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -69,9 +71,54 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
         String query = "SELECT id FROM dvobject WHERE dtype = 'Dataverse' " +
                 "and id in (select definitionpoint_id from roleassignment " +
                 "where assigneeidentifier in ("
-                + identifiers.stream().map(i -> "'" + i + "'").collect(Collectors.joining(",")) + "));";
-        logger.info("query: {}", query);
+                + identifiers.stream().map(i -> "'" + i + "'").collect(joining(",")) + "));";
         Query nativeQuery = em.createNativeQuery(query);
         return (List<Integer>) nativeQuery.getResultList();
+    }
+    
+    /**
+     * @return A RoleAssignment or null.
+     * @todo This might be a good place for Optional.
+     */
+    public RoleAssignment getRoleAssignmentFromPrivateUrlToken(
+            final String privateUrlToken) {
+        if (privateUrlToken == null) {
+            return null;
+        } else {
+            try {
+                return this.em
+                        .createNamedQuery("RoleAssignment.listByPrivateUrlToken",
+                                RoleAssignment.class)
+                        .setParameter("privateUrlToken", privateUrlToken)
+                        .getSingleResult();
+            } catch (final NoResultException | NonUniqueResultException ex) {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * @param dataset A non-null dataset;
+     * @return A role assignment for a Private URL, if found, or null.
+     * @todo This might be a good place for Optional.
+     */
+    public RoleAssignment getPrivateUrlRoleAssignmentFromDataset(
+            final Dataset dataset, final boolean anonymized) {
+        if (dataset == null) {
+            return null;
+        } else {
+            try {
+                return this.em.createNamedQuery(
+                        "RoleAssignment.listByAssigneeIdentifier_DefinitionPointId",
+                        RoleAssignment.class)
+                        .setParameter("assigneeIdentifier",
+                                new PrivateUrlUser(dataset.getId()).getIdentifier())
+                        .setParameter("definitionPointId", dataset.getId())
+                        .setParameter("anonymized", anonymized)
+                        .getSingleResult();
+            } catch (final NoResultException | NonUniqueResultException ex) {
+                return null;
+            }
+        }
     }
 }

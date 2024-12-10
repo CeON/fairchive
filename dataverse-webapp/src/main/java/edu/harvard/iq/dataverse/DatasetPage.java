@@ -1,6 +1,47 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
+import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.faces.validator.ValidatorException;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
@@ -53,48 +94,13 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Either;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.model.DefaultStreamedContent;
-import org.primefaces.model.StreamedContent;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
-import javax.faces.validator.ValidatorException;
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author gdurand
@@ -178,7 +184,8 @@ public class DatasetPage implements Serializable {
                        DatasetThumbnailService datasetThumbnailService, DatasetSummaryService datasetSummaryService,
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
                        AuthenticationServiceBean authenticationService, DatasetPageFacade datasetPageFacade,
-                       CitationFactory citationFactory, UningestInfoService uningestInfoService) {
+                       CitationFactory citationFactory, UningestInfoService uningestInfoService,
+                       SettingsWrapper settingsWrapper) {
         this.session = session;
         this.commandEngine = commandEngine;
         this.permissionsWrapper = permissionsWrapper;
@@ -378,9 +385,13 @@ public class DatasetPage implements Serializable {
     public String getDisplayCitation() {
         return displayCitation;
     }
-
-    public void setDisplayCitation(String displayCitation) {
-        this.displayCitation = displayCitation;
+    
+    public boolean displayCitation() {
+        return ! this.session.isViewedFromAnonymizedPrivateUrl(this.dataset);
+    }
+    
+    public boolean displayVersionsTab() {
+        return ! this.session.isViewedFromAnonymizedPrivateUrl(this.dataset);
     }
 
     public Dataset getDataset() {
@@ -609,11 +620,6 @@ public class DatasetPage implements Serializable {
             // populate MapLayerMetadata
             loadMapLayerMetadataLookup();  // A DataFile may have a related MapLayerMetadata object
         }
-        try {
-            privateUrl = commandEngine.submit(new GetPrivateUrlCommand(dvRequestService.getDataverseRequest(), dataset));
-        } catch (CommandException ex) {
-            // No big deal. The user simply doesn't have access to create or delete a Private URL.
-        }
 
         if (session.getUser() instanceof AuthenticatedUser) {
             AuthenticatedUser replyToUser = (AuthenticatedUser) session.getUser();
@@ -622,17 +628,22 @@ public class DatasetPage implements Serializable {
 
         return null;
     }
+    
+    public boolean displayPrivateUrl(final boolean anonymized) {
+        return getPrivateUrl(anonymized) != null && !isViewedFromPrivateUrl();
+    }
+    
+    PrivateUrl getPrivateUrl(final boolean anonymized) {
+        return this.commandEngine.submit(new GetPrivateUrlCommand(
+                this.dvRequestService.getDataverseRequest(), this.dataset, anonymized));
+    }
 
     public void fetchMetricsDownloadCount() {
         datasetDownloadCount = guestbookResponseService.getCountGuestbookResponsesByDatasetId(dataset.getId());
     }
 
     public boolean isViewedFromPrivateUrl() {
-        if (session.getUser() instanceof PrivateUrlUser) {
-            PrivateUrlUser privateUrlUser = (PrivateUrlUser) session.getUser();
-            return dataset != null && dataset.getId().equals(privateUrlUser.getDatasetId());
-        }
-        return false;
+        return this.session.isViewedFromPrivateUrl(this.dataset);
     }
 
     public boolean isDoiReserved() {
@@ -799,37 +810,29 @@ public class DatasetPage implements Serializable {
 
     public String deleteDataset() {
 
-        DestroyDatasetCommand cmd;
-        boolean deleteCommandSuccess = false;
         Map<Long, String> deleteStorageLocations = datafileService.getPhysicalFilesToDelete(dataset);
 
         try {
-            cmd = new DestroyDatasetCommand(dataset, dvRequestService.getDataverseRequest());
+            DestroyDatasetCommand cmd = new DestroyDatasetCommand(dataset, dvRequestService.getDataverseRequest());
             commandEngine.submit(cmd);
-            deleteCommandSuccess = true;
             /* - need to figure out what to do
              Update notification in Delete Dataset Method
              for (UserNotification und : userNotificationService.findByDvObject(dataset.getId())){
              userNotificationService.delete(und);
              } */
+            datafileService.finalizeFileDeletes(deleteStorageLocations);
+            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.deleteSuccess"));
         } catch (CommandException ex) {
             JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.message.deleteFailure"), "");
             logger.severe(ex.getMessage());
         }
 
-        if (deleteCommandSuccess) {
-            datafileService.finalizeFileDeletes(deleteStorageLocations);
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.deleteSuccess"));
-        }
-
-        return "/dataverse.xhtml?alias=" + dataset.getOwner().getAlias() + "&faces-redirect=true";
+        return "/dataverse.xhtml?faces-redirect=true&alias=".concat(dataset.getOwner().getAlias());
     }
 
     public String deleteDatasetVersion() {
-        DeleteDatasetVersionCommand cmd;
         try {
-            cmd = new DeleteDatasetVersionCommand(dvRequestService.getDataverseRequest(), dataset);
-            commandEngine.submit(cmd);
+            commandEngine.submit(new DeleteDatasetVersionCommand(dvRequestService.getDataverseRequest(), dataset));
             JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("datasetVersion.message.deleteSuccess"));
         } catch (CommandException ex) {
             JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.message.deleteFailure"), "");
@@ -888,8 +891,10 @@ public class DatasetPage implements Serializable {
 
     }
 
-    public String getPrivateUrlMessageDetails() {
-        return BundleUtil.getStringFromBundle("dataset.privateurl.infoMessageAuthor.details", getPrivateUrlLink(privateUrl));
+    public String getPrivateUrlMessageDetails(final boolean anonymized) {
+        return getStringFromBundle(
+                "dataset.privateurl.infoMessageAuthor.details",
+                getPrivateUrl(anonymized).getLink());
     }
 
     private String linkingDataverseErrorMessage = "";
@@ -1044,57 +1049,27 @@ public class DatasetPage implements Serializable {
     public Boolean isDatasetPublishPopupCustomTextOnAllVersions() {
         return settingsService.isTrueForKey(SettingsServiceBean.Key.DatasetPublishPopupCustomTextOnAllVersions);
     }
-
-    private PrivateUrl privateUrl;
-
-    public PrivateUrl getPrivateUrl() {
-        return privateUrl;
-    }
-
-    public void setPrivateUrl(PrivateUrl privateUrl) {
-        this.privateUrl = privateUrl;
-    }
-
-    public void initPrivateUrlPopUp() {
-        if (privateUrl != null) {
-            setPrivateUrlJustCreatedToFalse();
+    
+    PrivateUrl createPrivateUrl(final boolean anonymized) {
+        try {
+            return this.commandEngine.submit(new CreatePrivateUrlCommand(
+                    this.dvRequestService.getDataverseRequest(), this.dataset, anonymized));
+        } catch (final CommandException ex) {
+            String msg = getStringFromBundle(
+                    "dataset.privateurl.noPermToCreate",
+                    PrivateUrlUtil.getRequiredPermissions(ex));
+            addErrorMessage(msg);
+            return null;
         }
     }
-
-    private boolean privateUrlWasJustCreated;
-
-    public boolean isPrivateUrlWasJustCreated() {
-        return privateUrlWasJustCreated;
-    }
-
-    public void setPrivateUrlJustCreatedToFalse() {
-        privateUrlWasJustCreated = false;
-    }
-
-    public void createPrivateUrl() {
+    
+    void disablePrivateUrl(final boolean anonymized) {
         try {
-            PrivateUrl createdPrivateUrl = commandEngine.submit(new CreatePrivateUrlCommand(dvRequestService.getDataverseRequest(), dataset));
-            privateUrl = createdPrivateUrl;
-            privateUrlWasJustCreated = true;
-        } catch (CommandException ex) {
-            String msg = BundleUtil.getStringFromBundle("dataset.privateurl.noPermToCreate", PrivateUrlUtil.getRequiredPermissions(ex));
-            logger.info("Unable to create a Private URL for dataset id " + dataset.getId() + ". Message to user: " + msg + " Exception: " + ex);
-            JsfHelper.addErrorMessage(msg);
-        }
-    }
-
-    public void disablePrivateUrl() {
-        try {
-            commandEngine.submit(new DeletePrivateUrlCommand(dvRequestService.getDataverseRequest(), dataset));
-            privateUrl = null;
+            commandEngine.submit(new DeletePrivateUrlCommand(dvRequestService.getDataverseRequest(), dataset, anonymized));
             JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.privateurl.disabledSuccess"));
         } catch (CommandException ex) {
             logger.info("CommandException caught calling DeletePrivateUrlCommand: " + ex);
         }
-    }
-
-    public String getPrivateUrlLink(PrivateUrl privateUrl) {
-        return privateUrl.getLink();
     }
 
 

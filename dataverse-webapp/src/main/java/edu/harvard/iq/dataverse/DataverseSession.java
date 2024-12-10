@@ -1,30 +1,32 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
-import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
-import edu.harvard.iq.dataverse.persistence.user.GuestUser;
-import edu.harvard.iq.dataverse.persistence.user.User;
-import edu.harvard.iq.dataverse.util.SystemConfig;
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.SessionManagement;
 
-import javax.ejb.EJB;
-import javax.enterprise.context.SessionScoped;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
+
+import javax.enterprise.context.SessionScoped;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
+import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.user.GuestUser;
+import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
+import edu.harvard.iq.dataverse.persistence.user.User;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @Named
 @SessionScoped
 public class DataverseSession implements Serializable {
-
-    private static final Logger logger = Logger.getLogger(DataverseSession.class.getCanonicalName());
 
     private ActionLogServiceBean logSvc;
     private SystemConfig systemConfig;
@@ -56,7 +58,6 @@ public class DataverseSession implements Serializable {
         if (user == null) {
             user = GuestUser.get();
         }
-
         return user;
     }
 
@@ -69,38 +70,40 @@ public class DataverseSession implements Serializable {
     }
 
     public String getLocaleCode() {
-        if (localeCode == null) {
-            localeCode = initLocale();
-
-            logger.fine("init: locale set to " + localeCode);
+        if (this.localeCode == null) {
+            this.localeCode = initLocale();
         }
-        return localeCode;
+        return this.localeCode;
     }
 
     public Locale getLocale() {
-        String localeCode = getLocaleCode();
-        return Locale.forLanguageTag(localeCode);
+        return Locale.forLanguageTag(getLocaleCode());
     }
 
     public String getLocaleTitle() {
-        if (localeCode == null) {
-            localeCode = initLocale();
-
-            logger.fine("init: locale set to " + localeCode);
-        }
-        return systemConfig.getConfiguredLocales().get(localeCode);
+        return this.systemConfig.getConfiguredLocales().get(getLocaleCode());
     }
 
     public int getFilesPerPage() {
-        return filesPerPage;
+        return this.filesPerPage;
     }
+
+    public boolean isViewedFromPrivateUrl(final DvObject dataset) {
+        return getUser() instanceof PrivateUrlUser && getUser().isAffiliatedWith(dataset);
+    }
+    
+    public boolean isViewedFromAnonymizedPrivateUrl(final DvObject dataset) {
+        return getUser().isAnonymized() && isViewedFromPrivateUrl(dataset);
+    }
+    
 
     // -------------------- LOGIC --------------------
 
     public String initLocale() {
-        Set<String> dataverseLanguages = systemConfig.getConfiguredLocales().keySet();
-
-        return dataverseLanguages.contains(getBrowserLanguage()) ? getBrowserLanguage() : "en";
+        final Set<String> dataverseLanguages = this.systemConfig
+                .getConfiguredLocales().keySet();
+        final String browserLagunage = getBrowserLanguage();
+        return dataverseLanguages.contains(browserLagunage) ? browserLagunage : "en";
     }
 
     public void updateLocaleInViewRootForReload(String code) {
@@ -109,11 +112,12 @@ public class DataverseSession implements Serializable {
     }
 
     public void updateLocaleInViewRoot() {
-        if (localeCode != null
-                && FacesContext.getCurrentInstance() != null
-                && FacesContext.getCurrentInstance().getViewRoot() != null
-                && !localeCode.equals(FacesContext.getCurrentInstance().getViewRoot().getLocale().getLanguage())) {
-            FacesContext.getCurrentInstance().getViewRoot().setLocale(new Locale(localeCode));
+        final FacesContext context = FacesContext.getCurrentInstance();
+        if (this.localeCode != null
+                && context != null
+                && context.getViewRoot() != null
+                && !this.localeCode.equals(context.getViewRoot().getLocale().getLanguage())) {
+            context.getViewRoot().setLocale(new Locale(this.localeCode));
         }
     }
 
@@ -123,14 +127,15 @@ public class DataverseSession implements Serializable {
      * @return Top browser locale which is taken from 'Accept-Language header'.
      */
     private String getBrowserLanguage() {
-        return FacesContext.getCurrentInstance().getExternalContext().getRequestLocale().getLanguage();
+        return FacesContext.getCurrentInstance().getExternalContext()
+                .getRequestLocale().getLanguage();
     }
 
     // -------------------- SETTERS --------------------
 
     public void setUser(User aUser) {
         logSvc.log(
-                new ActionLogRecord(ActionLogRecord.ActionType.SessionManagement, (aUser == null) ? "logout" : "login")
+                new ActionLogRecord(SessionManagement, (aUser == null) ? "logout" : "login")
                         .setUserIdentifier((aUser != null) ? aUser.getIdentifier() : (user != null ? user.getIdentifier() : "")));
         this.user = aUser;
     }
