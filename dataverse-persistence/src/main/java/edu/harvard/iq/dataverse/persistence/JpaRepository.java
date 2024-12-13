@@ -15,6 +15,8 @@ import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
+import java.util.Collection;
+
 /**
  * Base repository (data access) class for JPA entities.
  * @param <ID> type of entity identifier.
@@ -69,6 +71,10 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
     @Override
     public T save(T entity) {
         return save(entity, false, false);
+    }
+    
+    public void saveAll(final Iterable<T> entities) {
+        entities.forEach(this::save);
     }
 
     public T saveAndFlush(T entity) {

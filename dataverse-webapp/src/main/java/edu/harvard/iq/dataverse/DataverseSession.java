@@ -94,6 +94,10 @@ public class DataverseSession implements Serializable {
     public int getFilesPerPage() {
         return filesPerPage;
     }
+    
+    public boolean canEditDashboard() {
+        return !this.systemConfig.isReadonlyMode() && getUser().isSuperuser();
+    }
 
     // -------------------- LOGIC --------------------
 
