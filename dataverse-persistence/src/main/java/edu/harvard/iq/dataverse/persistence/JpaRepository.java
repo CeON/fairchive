@@ -15,8 +15,6 @@ import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
-import java.util.Collection;
-
 /**
  * Base repository (data access) class for JPA entities.
  * @param <ID> type of entity identifier.

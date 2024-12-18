@@ -94,10 +94,6 @@ public class DataverseSession implements Serializable {
     public int getFilesPerPage() {
         return filesPerPage;
     }
-    
-    public boolean canEditDashboard() {
-        return !this.systemConfig.isReadonlyMode() && getUser().isSuperuser();
-    }
 
     // -------------------- LOGIC --------------------
 
@@ -119,6 +115,10 @@ public class DataverseSession implements Serializable {
                 && !localeCode.equals(FacesContext.getCurrentInstance().getViewRoot().getLocale().getLanguage())) {
             FacesContext.getCurrentInstance().getViewRoot().setLocale(new Locale(localeCode));
         }
+    }
+    
+    public boolean canEditDashboard() {
+        return !this.systemConfig.isReadonlyMode() && getUser().isSuperuser();
     }
 
     // -------------------- PRIVATE --------------------
