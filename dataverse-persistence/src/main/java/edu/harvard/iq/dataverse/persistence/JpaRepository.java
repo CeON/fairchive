@@ -70,6 +70,10 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
     public T save(T entity) {
         return save(entity, false, false);
     }
+    
+    public void saveAll(final Iterable<T> entities) {
+        entities.forEach(this::save);
+    }
 
     public T saveAndFlush(T entity) {
         return save(entity, true, false);

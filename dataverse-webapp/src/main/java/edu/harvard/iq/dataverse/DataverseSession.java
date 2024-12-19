@@ -116,6 +116,10 @@ public class DataverseSession implements Serializable {
             FacesContext.getCurrentInstance().getViewRoot().setLocale(new Locale(localeCode));
         }
     }
+    
+    public boolean canEditDashboard() {
+        return !this.systemConfig.isReadonlyMode() && getUser().isSuperuser();
+    }
 
     // -------------------- PRIVATE --------------------
 
