@@ -6,6 +6,7 @@ import static org.apache.commons.lang.StringUtils.EMPTY;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -37,7 +38,10 @@ public class DashboardExportSearchResultsPage implements Serializable {
         this.navigation = navigation;
         this.dataverseDao = dataverseDao;
         this.datasetFiledTypeRepo = datasetFiledTypeRepo;
-        
+    }
+    
+    @PostConstruct
+    public void init() {
         this.fieldTypes = this.datasetFiledTypeRepo.findAll();
         this.fieldTypes.sort(comparing(DatasetFieldType::getTitle));
     }

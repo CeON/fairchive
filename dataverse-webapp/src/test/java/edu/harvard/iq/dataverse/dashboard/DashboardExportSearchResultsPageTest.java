@@ -11,12 +11,14 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
@@ -25,6 +27,9 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = LENIENT)
 public class DashboardExportSearchResultsPageTest {
+    @InjectMocks
+    private DashboardExportSearchResultsPage page;
+
     @Mock
     private DataverseSession session;
     @Mock
@@ -32,9 +37,9 @@ public class DashboardExportSearchResultsPageTest {
     @Mock
     private DatasetFieldTypeRepository datasetFiledTypeRepo;
     @Mock
+    private PermissionsWrapper permissionsWrapper;
+    @Mock
     private DataverseDao dataverseDao;
-
-    private DashboardExportSearchResultsPage page;
 
     private DatasetFieldType type1 = new DatasetFieldType();
     private DatasetFieldType type2 = new DatasetFieldType();
@@ -52,9 +57,8 @@ public class DashboardExportSearchResultsPageTest {
         this.type2.setTitle("abc");
 
         when(this.datasetFiledTypeRepo.findAll()).thenReturn(types);
-
-        this.page = new DashboardExportSearchResultsPage(this.session, null,
-                this.dataverseDao, this.datasetFiledTypeRepo);
+        
+        this.page.init();
     }
 
     @Test
