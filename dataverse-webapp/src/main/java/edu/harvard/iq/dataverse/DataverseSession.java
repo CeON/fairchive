@@ -120,6 +120,10 @@ public class DataverseSession implements Serializable {
             context.getViewRoot().setLocale(new Locale(this.localeCode));
         }
     }
+    
+    public boolean canEditDashboard() {
+        return !this.systemConfig.isReadonlyMode() && getUser().isSuperuser();
+    }
 
     // -------------------- PRIVATE --------------------
 

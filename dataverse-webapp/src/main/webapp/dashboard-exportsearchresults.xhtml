@@ -19,7 +19,7 @@
 		<f:viewParam name="dataverseId"
 			value="#{dataverseDao.findRootDataverse().id}" />
 		<f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}" />
-		<f:viewAction action="#{ExportSearchResultsPage.init()}" />
+		<f:viewAction action="#{ExportSearchResultsPage.verifyAccess()}" />
 		<f:viewAction
 			action="#{dataverseHeaderFragment.initBreadcrumbs(dataverseDao.findRootDataverse())}" />
 		<f:viewAction
@@ -40,7 +40,7 @@
 						<div class="collapse in">
 							<div class="panel-body">
 								<div class="form-group">
-									<p:dataTable value="#{ExportSearchResultsPage.metadataTypes}" var="mt"  >
+									<p:dataTable value="#{ExportSearchResultsPage.fieldTypes}" var="mt"  >
 										<p:column width="20%" 
 										          headerText="#{bundle['dashboard.card.exportsearchresults.name']}">
     										<h:outputText value="#{mt.title}"/>
@@ -51,7 +51,7 @@
                                         </p:column>
 										<p:column width="10%" 
 										          headerText="#{bundle['dashboard.card.exportsearchresults.exported']}">
-										    <p:selectBooleanCheckbox value="#{mt.exportable}"/>
+										    <p:selectBooleanCheckbox value="#{mt.exportToFile}"/>
 										</p:column>
 									</p:dataTable>
 								</div>
