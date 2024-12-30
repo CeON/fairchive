@@ -49,6 +49,10 @@ public class DatasetFieldsByType {
     public boolean isInclude() {
         return include;
     }
+    
+    public boolean isVisibleThroughAnonymizedUrl() {
+        return this.datasetFieldType.isVisibleThroughAnonymizedUrl();
+    }
 
     // -------------------- LOGIC --------------------
 

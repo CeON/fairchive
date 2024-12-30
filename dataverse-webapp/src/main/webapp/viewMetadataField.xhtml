@@ -10,7 +10,6 @@
                 xmlns:jsf="http://xmlns.jcp.org/jsf">
 
     <!--@elvariable id="fieldsByType" type="edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType"-->
-    <o:importConstants type="edu.harvard.iq.dataverse.persistence.dataset.FieldType"/>
     <div class="col-sm-9 form-control-static">
         <ui:fragment rendered="#{fieldsByType.datasetFieldType.name == 'datasetContact'}">
             <p class="help-block no-margin-top">
@@ -19,13 +18,13 @@
         </ui:fragment>
 
         <ui:repeat var="datasetField" value="#{fieldsByType.datasetFields}" varStatus="fieldsLoop">
-            <div style="#{fieldsLoop.last ? '': 'padding-bottom: 10px;'}" class="datasetfield-value
-            #{datasetField.datasetFieldType.separableOnGui ? 'datasetfield-separable' : ''}">
+            <div style="#{fieldsLoop.last ? '': 'padding-bottom: 10px;'}" 
+                 class="datasetfield-value #{datasetField.datasetFieldType.separableOnGui ? 'datasetfield-separable' : ''}">
                 <ui:repeat var="value" value="#{datasetField.values}" varStatus="valuesLoop">
                         <h:outputText value="#{valuesLoop.first?'':'; '}#{ value }"
                                 escape="false"/>
                 </ui:repeat>
-                <c:set var="isGeospatial" value="#{datasetField.datasetFieldType.fieldType eq FieldType.GEOBOX}"/>
+                <c:set var="isGeospatial" value="#{datasetField.isGeospatial()}"/>
                 <c:set var="currentGsIndex" value="map_#{mdBlockName}_#{fieldIndex}_#{fieldsLoop.index}"/>
                 <script jsf:rendered="#{isGeospatial}">
                         DvJS.Geo.MetadataView.prepare('#{currentGsIndex}');

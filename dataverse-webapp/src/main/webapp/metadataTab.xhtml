@@ -36,5 +36,6 @@
         <ui:param name="globalId" value="#{DatasetMetadataTab.dataset.globalIdString}"/>
         <ui:param name="altPID" value="#{DatasetMetadataTab.getAlternativePersistentIdentifier()}"/>
         <ui:param name="publicationDate" value="#{DatasetMetadataTab.dataset.publicationDateFormattedYYYYMMDD}"/>
+        <ui:param name="isViewedFromAnonymizedPrivateUrl" value="#{DatasetPage.isViewedFromAnonymizedPrivateUrl()}"/>
     </ui:include>
 </ui:composition>
