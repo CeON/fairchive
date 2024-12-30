@@ -77,6 +77,7 @@ import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.ingest.UningestInfoService;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
+import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.MapLayerMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseIcon;
@@ -644,6 +645,10 @@ public class DatasetPage implements Serializable {
 
     public boolean isViewedFromPrivateUrl() {
         return this.session.isViewedFromPrivateUrl(this.dataset);
+    }
+    
+    public boolean isViewedFromAnonymizedPrivateUrl() {
+        return this.session.isViewedFromAnonymizedPrivateUrl(this.dataset);
     }
 
     public boolean isDoiReserved() {
