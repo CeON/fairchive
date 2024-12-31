@@ -6,136 +6,175 @@
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
                 xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
 
-    <!-- Command that will fill and display contact dialog with initial values for contacting with main support team  -->
-    <o:form useRequestURI="true">
+    <!-- Command that will fill and display contact dialog with initial values 
+         for contacting with main support team  -->
+     <o:form useRequestURI="true">
         <p:remoteCommand name="showRepositorySupportContactDialog"
-                actionListener="#{sendFeedbackDialog.initUserInput}"
+                actionListener="#{sendFeedbackDialog.reset(null)}"
                 oncomplete="primeFacesShowModal('contactForm', this)"
-                update=":contactDialog">
-            <f:setPropertyActionListener target="#{sendFeedbackDialog.messageSubject}" value=""/>
-            <f:setPropertyActionListener target="#{sendFeedbackDialog.feedbackTarget}" value="#{null}"/>
-            <f:setPropertyActionListener target="#{sendFeedbackDialog.userMessage}" value=""/>
-            <f:setPropertyActionListener target="#{sendFeedbackDialog.userEmail}" value=""/>
-        </p:remoteCommand>
+                update=":contactDialog"/>
     </o:form>
-
     <!-- Dialog Contact Form -->
-    <p:dialog id="contactDialog" header="#{sendFeedbackDialog.getFormHeader()}" widgetVar="contactForm" modal="true" width="700">
-        <p:fragment>
-            <h:form id="emailForm" class="form-horizontal">
-                <p:focus context="emailForm" rendered="#{facesContext.validationFailed}" />
+    <p:dialog id="contactDialog" 
+              header="#{sendFeedbackDialog.getFormHeader()}" 
+              widgetVar="contactForm" modal="true" width="700">
+        <h:form id="emailForm" class="form-horizontal">
+            <p:focus context="emailForm" rendered="#{facesContext.validationFailed}" />
 
-                <div class="form-group">
-                    <div class="col-sm-12">
-                        <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
-                        <h:outputText value=" #{bundle['common.forms.asterisk.tip']}"/>
-                    </div>
+            <div class="form-group">
+                <div class="col-sm-12">
+                    <span class="glyphicon glyphicon-asterisk text-danger" 
+                          title="#{bundle.requiredField}"/>
+                    <h:outputText value=" #{bundle['common.forms.asterisk.tip']}"/>
                 </div>
+            </div>
 
-                <!-- to: Support -->
+            <!-- to: Support -->
+            <div class="form-group">
+                <div class="col-sm-3 control-label section-title">#{bundle['contact.to']}</div>
+                <div class="col-sm-9">
+                    <p id="messageTo" 
+                       class="form-control-static" 
+                       jsf:rendered="#{sendFeedbackDialog.displayOnlyOneRecipient()}">
+                        #{sendFeedbackDialog.getSystemRecipientLabel()}
+                    </p>
+                    <p:selectOneRadio id="recipientOptions"
+                                      value="#{sendFeedbackDialog.recipientOption}"
+                                      rendered="#{! sendFeedbackDialog.displayOnlyOneRecipient()}"
+                                      layout="pageDirection">
+                        <f:selectItems value="#{sendFeedbackDialog.recipientOptions}" 
+                                       var="recipientOption"
+                                       itemValue="#{recipientOption}" 
+                                       itemLabel="#{sendFeedbackDialog.getRecipientOptionLabel(recipientOption)}" />
+                    </p:selectOneRadio>
+                </div>
+            </div>
+            <ui:fragment rendered="#{sendFeedbackDialog.isLoggedIn()}">
+            <!-- from email (logged in + auto-filled) -->
                 <div class="form-group">
-                    <div class="col-sm-3 control-label section-title">#{bundle['contact.to']}</div>
+                    <div class="col-sm-3 control-label section-title">#{bundle['contact.sender']}</div>
                     <div class="col-sm-9">
-                        <p id="messageTo" class="form-control-static" jsf:rendered="#{sendFeedbackDialog.recipientOptions.size() == 1}">
-                            #{sendFeedbackDialog.getRecipientOptionLabel(sendFeedbackDialog.recipientOption)}
-                        </p>
-                        <p:selectOneRadio id="recipientOptions"
-                                          value="#{sendFeedbackDialog.recipientOption}"
-                                          rendered="#{sendFeedbackDialog.recipientOptions.size() > 1}"
-                                          layout="pageDirection">
-                            <f:selectItems value="#{sendFeedbackDialog.recipientOptions}" var="recipientOption"
-                                           itemValue="#{recipientOption}" itemLabel="#{sendFeedbackDialog.getRecipientOptionLabel(recipientOption)}" />
-                        </p:selectOneRadio>
+                        <p id="userEmailStatic" 
+                        class="form-control-static">#{sendFeedbackDialog.loggedInUserEmail()}</p>
                     </div>
                 </div>
-                <ui:fragment rendered="#{sendFeedbackDialog.isLoggedIn()}">
-                <!-- from email (logged in + auto-filled) -->
-                    <div class="form-group">
-                        <div class="col-sm-3 control-label section-title">#{bundle['contact.sender']}</div>
-                        <div class="col-sm-9">
-                            <p id="userEmailStatic" class="form-control-static">#{sendFeedbackDialog.loggedInUserEmail()}</p>
-                        </div>
-                    </div>
-                </ui:fragment>
-                <ui:fragment rendered="#{!sendFeedbackDialog.isLoggedIn()}">
-                    <!-- sender email (not logged in) -->
-                    <div class="form-group">
-                        <p:outputLabel for="senderEmail" styleClass="col-sm-3 control-label" indicateRequired="false">
-                            #{bundle['contact.sender']} <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
-                        </p:outputLabel>
-                        <div class="col-sm-9">
-                            <p:inputText id="senderEmail"
-                                         styleClass="form-control"
-                                         size="30"
-                                         value="#{sendFeedbackDialog.userEmail}"
-                                         validator="#{sendFeedbackDialog.validateUserEmail}"
-                                         requiredMessage="#{bundle['contact.sender.required']}"
-                                         required="true"
-                            />
-                            <p:message for="senderEmail" styleClass="bg-danger text-danger" display="text"/>
-                        </div>
-                    </div>
-                </ui:fragment>
-                <!-- subject -->
+            </ui:fragment>
+            <ui:fragment rendered="#{!sendFeedbackDialog.isLoggedIn()}">
+                <!-- sender email (not logged in) -->
                 <div class="form-group">
-                    <p:outputLabel for="messageSubject" styleClass="col-sm-3 control-label" indicateRequired="false">
-                        #{bundle['contact.subject']} <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
+                    <p:outputLabel for="senderEmail" 
+                                   styleClass="col-sm-3 control-label" 
+                                   indicateRequired="false">
+                        #{bundle['contact.sender']} 
+                        <span class="glyphicon glyphicon-asterisk text-danger" 
+                              title="#{bundle.requiredField}"/>
                     </p:outputLabel>
                     <div class="col-sm-9">
-                        <p:inputText id="messageSubject" styleClass="form-control" value="#{sendFeedbackDialog.messageSubject}"
-                                     requiredMessage="#{bundle['contact.subject.required']}" required="true"/>
-                        <p:message for="messageSubject" styleClass="bg-danger text-danger" display="text"/>
+                        <p:inputText id="senderEmail"
+                                     styleClass="form-control"
+                                     size="30"
+                                     value="#{sendFeedbackDialog.userEmail}"
+                                     validator="#{sendFeedbackDialog.validateUserEmail}"
+                                     requiredMessage="#{bundle['contact.sender.required']}"
+                                     required="true"
+                        />
+                        <p:message for="senderEmail" styleClass="bg-danger text-danger" display="text"/>
                     </div>
                 </div>
-                <!-- message -->
-                <div class="form-group">
-                    <p:outputLabel for="userMessage" styleClass="col-sm-3 control-label" indicateRequired="false">
-                        #{bundle['contact.msg']} <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
-                    </p:outputLabel>
-                    <div class="col-sm-9">
-                        <p:inputTextarea id="userMessage" styleClass="form-control" value="#{sendFeedbackDialog.userMessage}"
-                            required="true" requiredMessage="#{bundle['contact.msg.required']}" autoResize="false" rows="10"/>
-                        <p:message for="userMessage" styleClass="bg-danger text-danger" display="text" />
-                    </div>
+            </ui:fragment>
+            <!-- subject -->
+            <div class="form-group">
+                <p:outputLabel for="messageSubject" 
+                               styleClass="col-sm-3 control-label" 
+                               indicateRequired="false">
+                    #{bundle['contact.subject']} 
+                    <span class="glyphicon glyphicon-asterisk text-danger" 
+                          title="#{bundle.requiredField}"/>
+                </p:outputLabel>
+                <div class="col-sm-9">
+                    <p:inputText id="messageSubject" 
+                                 styleClass="form-control" 
+                                 value="#{sendFeedbackDialog.messageSubject}"
+                                 requiredMessage="#{bundle['contact.subject.required']}" 
+                                 required="true"/>
+                    <p:message for="messageSubject" styleClass="bg-danger text-danger" display="text"/>
                 </div>
+            </div>
+            <!-- message -->
+            <div class="form-group">
+                <p:outputLabel for="userMessage" 
+                               styleClass="col-sm-3 control-label" 
+                               indicateRequired="false">
+                    #{bundle['contact.msg']} 
+                    <span class="glyphicon glyphicon-asterisk text-danger" 
+                          title="#{bundle.requiredField}"/>
+                </p:outputLabel>
+                <div class="col-sm-9">
+                    <p:inputTextarea id="userMessage" 
+                                    styleClass="form-control" 
+                                    value="#{sendFeedbackDialog.userMessage}"
+                                    required="true" 
+                                    requiredMessage="#{bundle['contact.msg.required']}" 
+                                    autoResize="false" 
+                                    rows="10"/>
+                    <p:message for="userMessage" styleClass="bg-danger text-danger" display="text" />
+                </div>
+            </div>
 
-                <!-- send copy -->
-                <div class="form-group" for="sendCopy" styleClass="col-sm-3 control-label">
-                    <div class="col-sm-3"></div>
-                    <div class="col-sm-9">
-                        <p:selectBooleanCheckbox value="#{sendFeedbackDialog.sendCopy}"
-                                                 itemLabel="#{bundle['contact.copy.checkbox']}"/>
-                    </div>
+            <!-- send copy -->
+            <div class="form-group" for="sendCopy" styleClass="col-sm-3 control-label">
+                <div class="col-sm-3"></div>
+                <div class="col-sm-9">
+                    <p:selectBooleanCheckbox value="#{sendFeedbackDialog.sendCopy}"
+                                             itemLabel="#{bundle['contact.copy.checkbox']}"/>
                 </div>
+            </div>
 
-                <!-- validation -->
-                <div class="form-group">
-                    <div class="col-sm-offset-3 col-sm-9">
-                        <p id="contactQuestionDescription">
-                            <h:outputText styleClass="highlightBold" value="#{bundle['contact.question']}"/> <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
-                        </p>
-                        <span id="contactQuestionEquation">
-                            <h:outputFormat value=" #{sendFeedbackDialog.op1} + #{sendFeedbackDialog.op2} = "/>
-                        </span>
-                        <p:inputText id="messageSum" label="Sum" size="4" value="#{sendFeedbackDialog.userSum}" converterMessage="#{bundle['contact.sum.converterMessage']}"
-                                     required="true" requiredMessage="#{bundle['contact.sum.required']}"
-                                     validatorMessage="#{bundle['contact.sum.invalid']}" validator="#{sendFeedbackDialog.validateUserSum}"
-                                     pt:aria-labelledby="contactQuestionDescription contactQuestionEquation">
-                            <f:convertNumber integerOnly="true" type="number"/>
-                        </p:inputText>
-                        <p:message id="messageSumMessage" for="messageSum" styleClass="bg-danger text-danger inline-message" display="text" />
-                    </div>
+            <!-- validation -->
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <p id="contactQuestionDescription">
+                        <h:outputText styleClass="highlightBold" 
+                                      value="#{bundle['contact.question']}"/> 
+                                      <span class="glyphicon glyphicon-asterisk text-danger" 
+                                            title="#{bundle.requiredField}"/>
+                    </p>
+                    <span id="contactQuestionEquation">
+                        <h:outputFormat value=" #{sendFeedbackDialog.op1} + #{sendFeedbackDialog.op2} = "/>
+                    </span>
+                    <p:inputText id="messageSum" 
+                                 label="Sum" 
+                                 size="4" 
+                                 value="#{sendFeedbackDialog.userSum}" 
+                                 converterMessage="#{bundle['contact.sum.converterMessage']}"
+                                 required="true" 
+                                 requiredMessage="#{bundle['contact.sum.required']}"
+                                 validatorMessage="#{bundle['contact.sum.invalid']}" 
+                                 validator="#{sendFeedbackDialog.validateUserSum}"
+                                 pt:aria-labelledby="contactQuestionDescription contactQuestionEquation">
+                        <f:convertNumber integerOnly="true" type="number"/>
+                    </p:inputText>
+                    <p:message id="messageSumMessage" 
+                               for="messageSum" 
+                               styleClass="bg-danger text-danger inline-message" 
+                               display="text" />
                 </div>
-                <!-- send | cancel buttons -->
-                <div class="button-block">
-                    <p:commandButton styleClass="btn btn-default btn-access" value="#{bundle['contact.send']}"
-                                    update="@form,:messagePanel" oncomplete="if (args &amp;&amp; !args.validationFailed) PF('contactForm').hide();" actionListener="#{sendFeedbackDialog.sendMessage}">
-                    </p:commandButton>
-                    <button type="button" onclick="PF('contactForm').hide()" class="btn btn-default" value="#{bundle.cancel}">
-                        #{bundle.cancel}
-                    </button>
-                </div>
-            </h:form>
-        </p:fragment>
+            </div>
+            <!-- send | cancel buttons -->
+            <div class="button-block">
+                <p:commandButton styleClass="btn btn-default btn-access" 
+                                 value="#{bundle['contact.send']}"
+                                update="@form,:messagePanel" 
+                                oncomplete="if (args &amp;&amp; !args.validationFailed) PF('contactForm').hide();" 
+                                actionListener="#{sendFeedbackDialog.sendMessage}">
+                </p:commandButton>
+                <button type="button" 
+                        onclick="PF('contactForm').hide()" 
+                        class="btn btn-default" 
+                        value="#{bundle.cancel}">
+                    #{bundle.cancel}
+                </button>
+            </div>
+        </h:form>
     </p:dialog>
 </ui:composition>

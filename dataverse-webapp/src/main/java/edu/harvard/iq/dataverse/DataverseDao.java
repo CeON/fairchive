@@ -162,6 +162,10 @@ public class DataverseDao implements java.io.Serializable {
     public Dataverse findRootDataverse() {
         return em.createNamedQuery("Dataverse.findRoot", Dataverse.class).getSingleResult();
     }
+    
+    public String getRootDataverseName() {
+        return findRootDataverse().getName();
+    }
 
     /**
      * A lookup of a dataverse alias should be case insensitive. If "cfa"

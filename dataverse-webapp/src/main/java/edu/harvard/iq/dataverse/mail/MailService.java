@@ -73,7 +73,6 @@ public class MailService implements java.io.Serializable {
 
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
-
     // -------------------- LOGIC --------------------
 
     /**
@@ -191,7 +190,7 @@ public class MailService implements java.io.Serializable {
 
     // -------------------- SETTERS --------------------
 
-    void setMailSender(Mailer mailSender) {
+    protected void setMailSender(Mailer mailSender) {
         this.mailSender = mailSender;
     }
 }

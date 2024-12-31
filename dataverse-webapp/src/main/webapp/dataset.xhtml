@@ -195,13 +195,7 @@
                                     <p:commandLink class="text-button btn-contact bootstrap-button-tooltip"
                                                    title="#{bundle['dataset.email.datasetContactBtn']}"
                                                    update=":contactDialog" oncomplete="primeFacesShowModal('contactForm', this)"
-                                                   actionListener="#{sendFeedbackDialog.initUserInput}">
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.userMessage}" value=""/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.userEmail}" value=""/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.messageSubject}"
-                                                                     value=""/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.feedbackTarget}"
-                                                                     value="#{DatasetPage.dataset}"/>
+                                                   actionListener="#{sendFeedbackDialog.reset(DatasetPage.dataset)}">
                                         <span class="glyphicon glyphicon-envelope" aria-hidden="true"/> #{bundle['contact.contact']}
                                     </p:commandLink>
                                     <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"
@@ -958,15 +952,7 @@
                                     <p:commandLink value="#{installationConfig.supportTeamName}"
                                                    oncomplete="PF('linkDatasetForm').hide();PF('contactForm').show()"
                                                    update=":contactDialog"
-                                                   actionListener="#{sendFeedbackDialog.initUserInput}">
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.messageSubject}"
-                                                                     value=""/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.feedbackTarget}"
-                                                                     value="#{null}"/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.userMessage}"
-                                                                     value=""/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.userEmail}" value=""/>
-                                    </p:commandLink>
+                                                   actionListener="#{sendFeedbackDialog.reset(null)}"/>
                                 </o:param>
                             </h:outputFormat>
                         </p>

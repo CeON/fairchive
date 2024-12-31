@@ -62,17 +62,9 @@
                                                     escape="false">
                                         <o:param>
                                             <p:commandLink value="#{installationConfig.supportTeamName}"
-                                                           oncomplete="primeFacesShowModal('contactForm', this)" update=":contactDialog"
-                                                           actionListener="#{sendFeedbackDialog.initUserInput}">
-                                                <f:setPropertyActionListener
-                                                        target="#{sendFeedbackDialog.messageSubject}" value=""/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.feedbackTarget}"
-                                                                             value="#{null}"/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.userMessage}"
-                                                                             value=""/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.userEmail}"
-                                                                             value=""/>
-                                            </p:commandLink>
+                                                           oncomplete="primeFacesShowModal('contactForm', this)" 
+                                                           update=":contactDialog"
+                                                           actionListener="#{sendFeedbackDialog.reset(null)}"/>
                                         </o:param>
                                     </h:outputFormat>
                                 </p>
@@ -268,17 +260,7 @@
                                                     <p:commandLink value="#{installationConfig.supportTeamName}"
                                                                    oncomplete="primeFacesShowModal('contactForm', this)"
                                                                    update=":contactDialog"
-                                                                   actionListener="#{sendFeedbackDialog.initUserInput}">
-                                                        <f:setPropertyActionListener
-                                                                target="#{sendFeedbackDialog.messageSubject}" value=""/>
-                                                        <f:setPropertyActionListener
-                                                                target="#{sendFeedbackDialog.feedbackTarget}"
-                                                                value="#{null}"/>
-                                                        <f:setPropertyActionListener
-                                                                target="#{sendFeedbackDialog.userMessage}" value=""/>
-                                                        <f:setPropertyActionListener
-                                                                target="#{sendFeedbackDialog.userEmail}" value=""/>
-                                                    </p:commandLink>
+                                                                   actionListener="#{sendFeedbackDialog.reset(null)}"/>
                                                 </o:param>
                                             </h:outputFormat>
                                         </p>
@@ -318,17 +300,7 @@
                                                     <p:commandLink value="#{installationConfig.supportTeamName}"
                                                                    oncomplete="primeFacesShowModal('contactForm', this)"
                                                                    update=":contactDialog"
-                                                                   actionListener="#{sendFeedbackDialog.initUserInput}">
-                                                        <f:setPropertyActionListener
-                                                                target="#{sendFeedbackDialog.messageSubject}" value=""/>
-                                                        <f:setPropertyActionListener
-                                                                target="#{sendFeedbackDialog.feedbackTarget}"
-                                                                value="#{null}"/>
-                                                        <f:setPropertyActionListener
-                                                                target="#{sendFeedbackDialog.userMessage}" value=""/>
-                                                        <f:setPropertyActionListener
-                                                                target="#{sendFeedbackDialog.userEmail}" value=""/>
-                                                    </p:commandLink>
+                                                                   actionListener="#{sendFeedbackDialog.reset(null)}"/>
                                                 </o:param>
                                             </h:outputFormat>
                                         </p>

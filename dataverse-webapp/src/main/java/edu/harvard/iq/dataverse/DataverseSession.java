@@ -1,20 +1,8 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.SessionManagement;
-
-import java.io.Serializable;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.enterprise.context.SessionScoped;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
+import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
-import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
@@ -32,7 +20,7 @@ public class DataverseSession implements Serializable {
     private SystemConfig systemConfig;
 
     /* Note that on logout, variables must be cleared manually in DataverseHeaderFragment*/
-    private User user;
+    private User user = GuestUser.get();
     private boolean statusDismissed = false;
     private String localeCode;
     private int filesPerPage;
@@ -55,10 +43,25 @@ public class DataverseSession implements Serializable {
     // -------------------- GETTERS --------------------
 
     public User getUser() {
-        if (user == null) {
-            user = GuestUser.get();
-        }
-        return user;
+        return this.user;
+    }
+    
+    public boolean isUserLoggedIn() {
+        return this.user.isAuthenticated();
+    }
+    
+    public String getUserEmailAddress() {
+        return this.user.getDisplayInfo().getEmailAddress();
+    }
+    
+    public Locale getUserLocaleOr(final Locale defaultLocale) {
+        return isUserLoggedIn()
+                ?  this.user.getNotificationsLanguage()
+                : defaultLocale;
+    }
+    
+    public String getUserEmailOr(final String defaultEmail) {
+        return isUserLoggedIn() ? getUserEmailAddress() : defaultEmail;
     }
 
     public UUID getSessionId() {
