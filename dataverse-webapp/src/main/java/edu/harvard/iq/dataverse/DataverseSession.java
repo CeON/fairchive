@@ -1,8 +1,20 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;import edu.harvard.iq.dataverse.common.BundleUtil;
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.SessionManagement; 
+
+import java.io.Serializable;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.enterprise.context.SessionScoped;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
@@ -153,7 +165,7 @@ public class DataverseSession implements Serializable {
         logSvc.log(
                 new ActionLogRecord(SessionManagement, (aUser == null) ? "logout" : "login")
                         .setUserIdentifier((aUser != null) ? aUser.getIdentifier() : (user != null ? user.getIdentifier() : "")));
-        this.user = aUser;
+        this.user = aUser != null ? aUser : GuestUser.get();
     }
 
     public void setLocaleCode(String localeCode) {

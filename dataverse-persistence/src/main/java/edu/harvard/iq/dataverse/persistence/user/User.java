@@ -11,13 +11,8 @@ import java.util.Locale;
 public interface User extends RoleAssignee, Serializable {
 
     boolean isAuthenticated();
-
-<<<<<<< .mine
-    boolean isSuperuser();
     
-=======
     boolean isSuperuser(); 
 
->>>>>>> .theirs
     Locale getNotificationsLanguage();
 }

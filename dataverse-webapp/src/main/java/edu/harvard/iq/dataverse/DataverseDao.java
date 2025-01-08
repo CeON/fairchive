@@ -98,7 +98,8 @@ public class DataverseDao implements java.io.Serializable {
     }
 
     public List<Dataverse> findAll() {
-        return em.createNamedQuery("Dataverse.findAll").getResultList();
+        return this.em.createNamedQuery("Dataverse.findAll", Dataverse.class)
+                .getResultList();
     }
     
     /**

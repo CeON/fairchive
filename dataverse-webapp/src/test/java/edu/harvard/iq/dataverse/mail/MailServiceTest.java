@@ -1,13 +1,14 @@
 package edu.harvard.iq.dataverse.mail;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.notification.NotificationObjectType;
-import edu.harvard.iq.dataverse.notification.dto.EmailNotificationDto;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.NotificationType;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import io.vavr.Tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+
+import java.util.Collections;
+import java.util.Locale;
+import java.util.stream.Stream;
+
+import javax.mail.internet.InternetAddress;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,12 +20,14 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.simplejavamail.mailer.Mailer;
 
-import javax.mail.internet.InternetAddress;
-import java.util.Collections;
-import java.util.Locale;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.notification.NotificationObjectType;
+import edu.harvard.iq.dataverse.notification.dto.EmailNotificationDto;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.NotificationType;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import io.vavr.Tuple;
 
 @ExtendWith({MockitoExtension.class})
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -113,7 +116,7 @@ public class MailServiceTest {
     @Test
     public void sendMail() {
         //when
-        boolean emailSent = mailService.sendMail("replay@email.com", "test@email.com", "Nice Subject", "Nice message");
+        boolean emailSent = mailService.sendMail("replay@email.com", "test@email.com", "Nice Subject", "Nice message", Stream.empty());
 
         //then
         Assertions.assertTrue(emailSent);
@@ -125,7 +128,7 @@ public class MailServiceTest {
         makeSmtpThrowException();
 
         //when
-        boolean emailSent = mailService.sendMail("replay@email.com", "test@email.com", "Nice Subject", "Nice message");
+        boolean emailSent = mailService.sendMail("replay@email.com", "test@email.com", "Nice Subject", "Nice message", Stream.empty());
 
         //then
         Assertions.assertFalse(emailSent);
