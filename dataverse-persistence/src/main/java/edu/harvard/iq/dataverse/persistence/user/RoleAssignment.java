@@ -82,15 +82,15 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     
     public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee,
             DvObject aDefinitionPoint, String privateUrlToken, boolean anonymized) {
-        role = aRole;
-        assigneeIdentifier = anAssignee.getIdentifier();
-        definitionPoint = aDefinitionPoint;
+        this.role = aRole;
+        this.assigneeIdentifier = anAssignee.getIdentifier();
+        this.definitionPoint = aDefinitionPoint;
         this.privateUrlToken = privateUrlToken;
         this.anonymized = anonymized;
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(Long id) {
@@ -98,7 +98,7 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     }
 
     public String getAssigneeIdentifier() {
-        return assigneeIdentifier;
+        return this.assigneeIdentifier;
     }
 
     public void setAssigneeIdentifier(String assigneeIdentifier) {
@@ -106,7 +106,7 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     }
 
     public DataverseRole getRole() {
-        return role;
+        return this.role;
     }
 
     public void setRole(DataverseRole role) {
@@ -114,7 +114,7 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     }
 
     public DvObject getDefinitionPoint() {
-        return definitionPoint;
+        return this.definitionPoint;
     }
 
     public void setDefinitionPoint(DvObject definitionPoint) {
@@ -122,7 +122,7 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     }
 
     public String getPrivateUrlToken() {
-        return privateUrlToken;
+        return this.privateUrlToken;
     }
 
     public boolean isAnonymized() {
@@ -135,31 +135,35 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + Objects.hashCode(role);
-        hash = 97 * hash + Objects.hashCode(assigneeIdentifier);
+        int hash =  Boolean.hashCode(this.anonymized);
+        hash = 97 * hash + Objects.hashCode(this.role);
+        hash = 97 * hash + Objects.hashCode(this.assigneeIdentifier);
         return hash;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
+    public boolean equals(final Object obj) {
+        if (obj instanceof RoleAssignment) {
+            final RoleAssignment other = (RoleAssignment) obj;
+
+            return Objects.equals(getRole(), other.getRole())
+                    && Objects.equals(getAssigneeIdentifier(),
+                            other.getAssigneeIdentifier())
+                    && Objects.equals(getDefinitionPoint(),
+                            other.getDefinitionPoint())
+                    && this.anonymized == other.anonymized;
+        } else {
             return false;
         }
-        if (!(obj instanceof RoleAssignment)) {
-            return false;
-        }
-        final RoleAssignment other = (RoleAssignment) obj;
-
-        return (Objects.equals(getRole(), other.getRole())
-                && Objects.equals(getAssigneeIdentifier(), other.getAssigneeIdentifier())
-                && Objects.equals(getDefinitionPoint(), other.getDefinitionPoint()));
-
     }
 
     @Override
     public String toString() {
-        return "RoleAssignment{" + "id=" + id + ", assignee=" + assigneeIdentifier + ", role=" + role + ", definitionPoint=" + definitionPoint + '}';
+        return "RoleAssignment{" 
+                + "id=" + id 
+                + ", assignee=" + assigneeIdentifier
+                + ", role=" + role + ", definitionPoint=" + definitionPoint
+                + ", anonymized=" + this.anonymized + '}';
     }
 
 }

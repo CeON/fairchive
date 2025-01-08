@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -77,7 +76,6 @@ import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.ingest.UningestInfoService;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
-import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.MapLayerMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseIcon;
@@ -90,12 +88,10 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetRelPublication;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -185,8 +181,7 @@ public class DatasetPage implements Serializable {
                        DatasetThumbnailService datasetThumbnailService, DatasetSummaryService datasetSummaryService,
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
                        AuthenticationServiceBean authenticationService, DatasetPageFacade datasetPageFacade,
-                       CitationFactory citationFactory, UningestInfoService uningestInfoService,
-                       SettingsWrapper settingsWrapper) {
+                       CitationFactory citationFactory, UningestInfoService uningestInfoService) {
         this.session = session;
         this.commandEngine = commandEngine;
         this.permissionsWrapper = permissionsWrapper;
