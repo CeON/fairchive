@@ -371,6 +371,14 @@ public class DatasetField implements Serializable, ValidatableField {
     public boolean isEmptyForDisplay() {
         return isEmpty(true);
     }
+    
+    public boolean isGeospatial() {
+        return this.datasetFieldType.isGeospatial();
+    }
+    
+    public boolean isVisibleThroughAnonymizedUrl() {
+        return this.datasetFieldType.isVisibleThroughAnonymizedUrl();
+    }
 
     public DatasetField copy() {
         return DatasetFieldUtil.copyDatasetField(this);

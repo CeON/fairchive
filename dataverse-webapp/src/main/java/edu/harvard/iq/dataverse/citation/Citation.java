@@ -1,12 +1,8 @@
 package edu.harvard.iq.dataverse.citation;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Locale;
 
 public class Citation {
-    private static final Logger logger = LoggerFactory.getLogger(Citation.class);
 
     private CitationData data;
 

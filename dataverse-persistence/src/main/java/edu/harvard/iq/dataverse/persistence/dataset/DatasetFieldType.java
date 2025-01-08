@@ -169,6 +169,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     @Column(name="metadata", nullable = false)
     @Convert(converter = JsonMapConverter.class)
     private Map<String, Object> metadata = emptyMap();
+    private boolean visibleThroughAnonymizedUrl;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -279,6 +280,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public boolean isAdvancedSearchFieldType() {
         return this.advancedSearchFieldType;
+    }
+
+    public boolean isVisibleThroughAnonymizedUrl() {
+        return this.visibleThroughAnonymizedUrl;
     }
 
     public List<DatasetFieldDefaultValue> getDatasetFieldDefaultValues() {
@@ -412,6 +417,11 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public boolean isHasParent() {
         return this.parentDatasetFieldType != null;
+    }
+    
+    
+    public boolean isGeospatial() {
+        return this.fieldType == FieldType.GEOBOX;
     }
 
     @Override
@@ -598,6 +608,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public void setAdvancedSearchFieldType(boolean advancedSearchFieldType) {
         this.advancedSearchFieldType = advancedSearchFieldType;
+    }
+
+    public void setVisibleThroughAnonymizedUrl(final boolean visibleThroughAnonymizedUrl) {
+        this.visibleThroughAnonymizedUrl = visibleThroughAnonymizedUrl;
     }
 
     public void setDatasetFieldDefaultValues(List<DatasetFieldDefaultValue> datasetFieldDefaultValues) {

@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
+
 /**
  * Guest user in the system. There's only one, so you get it with the static getter {@link #get()} (singleton pattern).
  *

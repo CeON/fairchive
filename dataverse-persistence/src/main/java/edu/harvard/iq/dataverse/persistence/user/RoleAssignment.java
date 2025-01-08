@@ -1,13 +1,13 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.CascadeType;
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -16,7 +16,9 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import java.util.Objects;
+
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * A role of a user in a Dataverse. A User may have many roles in a given Dataverse.
@@ -25,6 +27,7 @@ import java.util.Objects;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(
         uniqueConstraints = @UniqueConstraint(columnNames = {"assigneeIdentifier", "role_id", "definitionPoint_id"})
@@ -34,7 +37,7 @@ import java.util.Objects;
 )
 @NamedQueries({
         @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier_DefinitionPointId",
-                query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId"),
+                query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId AND r.anonymized = :anonymized"),
         @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier_DefinitionPointId_RoleId",
                 query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId and r.role.id=:roleId"),
         @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier",
@@ -50,35 +53,44 @@ import java.util.Objects;
 })
 public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String assigneeIdentifier;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne(cascade = {MERGE})
     @JoinColumn(nullable = false)
     private DataverseRole role;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne(cascade = {MERGE})
     @JoinColumn(nullable = false)
     private DvObject definitionPoint;
 
     @Column(nullable = true)
     private String privateUrlToken;
+    
+    private boolean anonymized;
 
     public RoleAssignment() {
     }
 
-    public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee, DvObject aDefinitionPoint, String privateUrlToken) {
-        role = aRole;
-        assigneeIdentifier = anAssignee.getIdentifier();
-        definitionPoint = aDefinitionPoint;
+    public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee,
+            DvObject aDefinitionPoint, String privateUrlToken) {
+        this(aRole, anAssignee, aDefinitionPoint, privateUrlToken, false);
+    }
+    
+    public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee,
+            DvObject aDefinitionPoint, String privateUrlToken, boolean anonymized) {
+        this.role = aRole;
+        this.assigneeIdentifier = anAssignee.getIdentifier();
+        this.definitionPoint = aDefinitionPoint;
         this.privateUrlToken = privateUrlToken;
+        this.anonymized = anonymized;
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(Long id) {
@@ -86,7 +98,7 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     }
 
     public String getAssigneeIdentifier() {
-        return assigneeIdentifier;
+        return this.assigneeIdentifier;
     }
 
     public void setAssigneeIdentifier(String assigneeIdentifier) {
@@ -94,7 +106,7 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     }
 
     public DataverseRole getRole() {
-        return role;
+        return this.role;
     }
 
     public void setRole(DataverseRole role) {
@@ -102,7 +114,7 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     }
 
     public DvObject getDefinitionPoint() {
-        return definitionPoint;
+        return this.definitionPoint;
     }
 
     public void setDefinitionPoint(DvObject definitionPoint) {
@@ -110,36 +122,48 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     }
 
     public String getPrivateUrlToken() {
-        return privateUrlToken;
+        return this.privateUrlToken;
+    }
+
+    public boolean isAnonymized() {
+        return this.anonymized;
+    }
+
+    public void setAnonymized(final boolean anonymized) {
+        this.anonymized = anonymized;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + Objects.hashCode(role);
-        hash = 97 * hash + Objects.hashCode(assigneeIdentifier);
+        int hash =  Boolean.hashCode(this.anonymized);
+        hash = 97 * hash + Objects.hashCode(this.role);
+        hash = 97 * hash + Objects.hashCode(this.assigneeIdentifier);
         return hash;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
+    public boolean equals(final Object obj) {
+        if (obj instanceof RoleAssignment) {
+            final RoleAssignment other = (RoleAssignment) obj;
+
+            return Objects.equals(getRole(), other.getRole())
+                    && Objects.equals(getAssigneeIdentifier(),
+                            other.getAssigneeIdentifier())
+                    && Objects.equals(getDefinitionPoint(),
+                            other.getDefinitionPoint())
+                    && this.anonymized == other.anonymized;
+        } else {
             return false;
         }
-        if (!(obj instanceof RoleAssignment)) {
-            return false;
-        }
-        final RoleAssignment other = (RoleAssignment) obj;
-
-        return (Objects.equals(getRole(), other.getRole())
-                && Objects.equals(getAssigneeIdentifier(), other.getAssigneeIdentifier())
-                && Objects.equals(getDefinitionPoint(), other.getDefinitionPoint()));
-
     }
 
     @Override
     public String toString() {
-        return "RoleAssignment{" + "id=" + id + ", assignee=" + assigneeIdentifier + ", role=" + role + ", definitionPoint=" + definitionPoint + '}';
+        return "RoleAssignment{" 
+                + "id=" + id 
+                + ", assignee=" + assigneeIdentifier
+                + ", role=" + role + ", definitionPoint=" + definitionPoint
+                + ", anonymized=" + this.anonymized + '}';
     }
 
 }

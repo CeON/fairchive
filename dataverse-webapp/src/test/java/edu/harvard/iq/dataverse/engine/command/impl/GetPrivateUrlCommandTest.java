@@ -38,7 +38,7 @@ public class GetPrivateUrlCommandTest {
                 return new PrivateUrlServiceBean() {
 
                     @Override
-                    public PrivateUrl getPrivateUrlFromDatasetId(long datasetId) {
+                    public PrivateUrl getPrivateUrlFromDatasetId(long datasetId, boolean anonynized) {
                         return null;
                     }
 
@@ -55,7 +55,7 @@ public class GetPrivateUrlCommandTest {
     @Test
     public void testDatasetWithoutAnId() throws Exception {
         dataset = new Dataset();
-        PrivateUrl privateUrl = testEngine.submit(new GetPrivateUrlCommand(null, dataset));
+        PrivateUrl privateUrl = testEngine.submit(new GetPrivateUrlCommand(null, dataset, false));
         assertNull(privateUrl);
     }
 
@@ -63,7 +63,7 @@ public class GetPrivateUrlCommandTest {
     public void testDatasetWithAnId() throws Exception {
         dataset = new Dataset();
         dataset.setId(42l);
-        PrivateUrl privateUrl = testEngine.submit(new GetPrivateUrlCommand(null, dataset));
+        PrivateUrl privateUrl = testEngine.submit(new GetPrivateUrlCommand(null, dataset, false));
         assertNull(privateUrl);
     }
 

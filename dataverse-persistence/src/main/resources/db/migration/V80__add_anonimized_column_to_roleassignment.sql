@@ -1,0 +1,26 @@
+alter table roleassignment add column if not exists anonymized boolean not null default false;
+ALTER TABLE roleassignment DROP CONSTRAINT unq_roleassignment_0;
+alter table roleassignment add CONSTRAINT unq_roleassignment_0 UNIQUE (assigneeidentifier, role_id, definitionpoint_id, anonymized);
+
+alter table datasetfieldtype add column visiblethroughanonymizedurl bool default true not null;
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'alternativeURL';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'otherId';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'author';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'datasetContact';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'publication';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'producer';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'productionPlace';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'contributor';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'grantNumber';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'distributor';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'depositor';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'series';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'relatedDataset';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'relatedMaterial';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'otherReferences';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'dataSources';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'originOfSources';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'characteristicOfSources';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'accessToSources';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'dataCollector';
+update datasetfieldtype set visiblethroughanonymizedurl = false where name = 'journalVolumeIssue';

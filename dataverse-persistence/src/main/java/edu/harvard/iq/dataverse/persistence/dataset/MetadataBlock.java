@@ -155,6 +155,11 @@ public class MetadataBlock implements Serializable {
     public String getIdString() {
         return id.toString();
     }
+    
+    public boolean isVisibleThroughAnonymizedUrl() {
+        return this.datasetFieldTypes.stream()
+                .anyMatch(DatasetFieldType::isVisibleThroughAnonymizedUrl);
+    }
 
     @Transient
     private boolean showDatasetFieldTypes;

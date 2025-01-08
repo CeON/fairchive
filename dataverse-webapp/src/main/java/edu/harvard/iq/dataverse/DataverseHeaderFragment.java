@@ -51,6 +51,7 @@ public class DataverseHeaderFragment implements Serializable {
     private List<Breadcrumb> breadcrumbs = new ArrayList<>();
 
     private Long unreadNotificationCount;
+    private DvObject currentDvObject;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -84,6 +85,7 @@ public class DataverseHeaderFragment implements Serializable {
     // -------------------- LOGIC --------------------
 
     public void initBreadcrumbs(DvObject dvObject) {
+        this.currentDvObject = dvObject;
         if (dvObject == null) {
             return;
         }
@@ -98,6 +100,11 @@ public class DataverseHeaderFragment implements Serializable {
     public void initBreadcrumbsForFileMetadata(FileMetadata fmd) {
 
         initBreadcrumbsForFileMetadata(fmd, null);
+    }
+    
+    public boolean displayBreadcrumbs() {
+        return getBreadcrumbs().size() > 1 
+                && ! this.dataverseSession.isViewedFromAnonymizedPrivateUrl(this.currentDvObject);
     }
 
     public void initBreadcrumbsForDataFile(DataFile datafile, String subPage) {

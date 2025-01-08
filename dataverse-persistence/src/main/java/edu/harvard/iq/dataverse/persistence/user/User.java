@@ -11,6 +11,5 @@ public interface User extends RoleAssignee, Serializable {
 
     boolean isAuthenticated();
 
-    boolean isSuperuser();
-
+    boolean isSuperuser(); 
 }

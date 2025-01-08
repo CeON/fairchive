@@ -254,6 +254,4 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
         return false;
 
     } // doesDvObjectClassHavePermissionForObject
-
-
 }

@@ -84,9 +84,18 @@ public class DeleteDatasetVersionCommand extends AbstractVoidCommand {
                  * Contributor who does NOT have ManageDatasetPermissions can
                  * still successfully delete a Private URL.
                  */
-                PrivateUrl privateUrl = ctxt.privateUrl().getPrivateUrlFromDatasetId(doomed.getId());
+                PrivateUrl privateUrl = ctxt.privateUrl().getPrivateUrlFromDatasetId(doomed.getId(), false);
                 if (privateUrl != null) {
                     logger.fine("Deleting Private URL for dataset id " + doomed.getId());
+                    PrivateUrlUser privateUrlUser = new PrivateUrlUser(doomed.getId());
+                    List<RoleAssignment> roleAssignments = ctxt.roles().directRoleAssignments(privateUrlUser, doomed);
+                    for (RoleAssignment roleAssignment : roleAssignments) {
+                        ctxt.roles().revoke(roleAssignment);
+                    }
+                }
+                privateUrl = ctxt.privateUrl().getPrivateUrlFromDatasetId(doomed.getId(), true);
+                if (privateUrl != null) {
+                    logger.fine("Deleting Anonymized Private URL for dataset id " + doomed.getId());
                     PrivateUrlUser privateUrlUser = new PrivateUrlUser(doomed.getId());
                     List<RoleAssignment> roleAssignments = ctxt.roles().directRoleAssignments(privateUrlUser, doomed);
                     for (RoleAssignment roleAssignment : roleAssignments) {
