@@ -44,8 +44,8 @@ public class GuestUser implements User {
     }
     
     @Override
-    public boolean isAffiliatedWith(final DvObject object) {
-        return false;
+    public boolean isAllowedToView(final DvObject object) {
+        return true;
     }
 
     @Override

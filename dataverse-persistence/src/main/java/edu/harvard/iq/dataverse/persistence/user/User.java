@@ -17,5 +17,5 @@ public interface User extends RoleAssignee, Serializable {
     
     boolean isAnonymized();  
     
-    boolean isAffiliatedWith(DvObject object);
+    boolean isAllowedToView(DvObject object);
 }

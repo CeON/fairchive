@@ -202,7 +202,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     }
     
     @Override
-    public boolean isAffiliatedWith(final DvObject object) {
+    public boolean isAllowedToView(final DvObject object) {
         return object.getReleaseUser().equals(this);
     }
 

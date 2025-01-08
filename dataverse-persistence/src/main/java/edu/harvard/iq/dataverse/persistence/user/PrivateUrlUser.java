@@ -66,7 +66,7 @@ public class PrivateUrlUser implements User {
     }
     
     @Override
-    public boolean isAffiliatedWith(final DvObject object) {
+    public boolean isAllowedToView(final DvObject object) {
         return this.datasetId == object.getId();
     }
 

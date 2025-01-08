@@ -383,11 +383,11 @@ public class DatasetPage implements Serializable {
     }
     
     public boolean displayCitation() {
-        return ! this.session.isViewedFromAnonymizedPrivateUrl(this.dataset);
+        return ! isViewedFromAnonymizedPrivateUrl();
     }
     
     public boolean displayVersionsTab() {
-        return ! this.session.isViewedFromAnonymizedPrivateUrl(this.dataset);
+        return ! isViewedFromAnonymizedPrivateUrl();
     }
 
     public Dataset getDataset() {
