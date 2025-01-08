@@ -65,7 +65,6 @@ public class PrivateUrlUser implements User {
         return this.anonymized;
     }
     
-    @Override
     public boolean isAllowedToView(final DvObject object) {
         return this.datasetId == object.getId();
     }

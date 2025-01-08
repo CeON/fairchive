@@ -89,7 +89,11 @@ public class DataverseSession implements Serializable {
     }
 
     public boolean isViewedFromPrivateUrl(final DvObject dataset) {
-        return getUser() instanceof PrivateUrlUser && getUser().isAllowedToView(dataset);
+        if(getUser() instanceof PrivateUrlUser) {
+            return ((PrivateUrlUser)getUser()).isAllowedToView(dataset);
+        } else {
+            return false;
+        }
     }
     
     public boolean isViewedFromAnonymizedPrivateUrl(final DvObject dataset) {
