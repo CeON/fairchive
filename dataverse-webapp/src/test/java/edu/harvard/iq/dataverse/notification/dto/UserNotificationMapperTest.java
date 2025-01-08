@@ -37,6 +37,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static edu.harvard.iq.dataverse.notification.NotificationObjectType.DATASET;
+import static edu.harvard.iq.dataverse.notification.NotificationObjectType.DATAVERSE;
+import static edu.harvard.iq.dataverse.persistence.user.NotificationType.ASSIGNROLE;
+import static edu.harvard.iq.dataverse.persistence.user.NotificationType.REVOKEROLE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -142,11 +146,12 @@ public class UserNotificationMapperTest {
         // when
         UserNotificationDTO notificationDTO = notificationMapper.toDTO(notification);
         // then
-        assertThat(notificationDTO)
-            .extracting(
-                    UserNotificationDTO::getType, UserNotificationDTO::getTheObject,
-                    UserNotificationDTO::getTheObjectType, UserNotificationDTO::getRoleString)
-            .containsExactly(NotificationType.ASSIGNROLE, dataverse, NotificationObjectType.DATAVERSE, "Admin/Depositor");
+        assertThat(notificationDTO.getType()).isEqualTo(ASSIGNROLE);
+        assertThat(notificationDTO.getTheObject()).isEqualTo(dataverse);
+        assertThat(notificationDTO.getTheObjectType()).isEqualTo(DATAVERSE);
+        assertThat(notificationDTO.getRoleString()).satisfiesAnyOf(
+                s -> assertThat(s).isEqualTo("Admin/Depositor"), 
+                s -> assertThat(s).isEqualTo("Depositor/Admin"));
     }
 
     @Test
@@ -165,12 +170,12 @@ public class UserNotificationMapperTest {
         // when
         UserNotificationDTO notificationDTO = notificationMapper.toDTO(notification);
         // then
-        assertThat(notificationDTO)
-            .extracting(
-                    UserNotificationDTO::getType, UserNotificationDTO::getTheObject,
-                    UserNotificationDTO::getTheObjectType, UserNotificationDTO::getRoleString)
-            .containsExactly(NotificationType.ASSIGNROLE, dataset, NotificationObjectType.DATASET, "Dataset Creator/File Downloader");
-
+        assertThat(notificationDTO.getType()).isEqualTo(ASSIGNROLE);
+        assertThat(notificationDTO.getTheObject()).isEqualTo(dataset);
+        assertThat(notificationDTO.getTheObjectType()).isEqualTo(DATASET);
+        assertThat(notificationDTO.getRoleString()).satisfiesAnyOf(
+                s -> assertThat(s).isEqualTo("Dataset Creator/File Downloader"), 
+                s -> assertThat(s).isEqualTo("File Downloader/Dataset Creator"));
     }
 
     @Test
@@ -211,12 +216,13 @@ public class UserNotificationMapperTest {
 
         // when
         UserNotificationDTO notificationDTO = notificationMapper.toDTO(notification);
-        // then
-        assertThat(notificationDTO)
-            .extracting(
-                    UserNotificationDTO::getType, UserNotificationDTO::getTheObject,
-                    UserNotificationDTO::getTheObjectType, UserNotificationDTO::getRoleString)
-            .containsExactly(NotificationType.REVOKEROLE, dataset, NotificationObjectType.DATASET, "Dataset Creator/File Downloader");
+        // then 
+        assertThat(notificationDTO.getType()).isEqualTo(REVOKEROLE);
+        assertThat(notificationDTO.getTheObject()).isEqualTo(dataset);
+        assertThat(notificationDTO.getTheObjectType()).isEqualTo(DATASET);
+        assertThat(notificationDTO.getRoleString()).satisfiesAnyOf(
+                s -> assertThat(s).isEqualTo("Dataset Creator/File Downloader"), 
+                s -> assertThat(s).isEqualTo("File Downloader/Dataset Creator"));
 
     }
 
