@@ -59,8 +59,6 @@ public class PrivateUrlUser implements User {
     public String getIdentifier() {
         return PREFIX + this.datasetId;
     }
-
-    @Override
     public boolean isAnonymized() {
         return this.anonymized;
     }

@@ -36,11 +36,6 @@ public class GuestUser implements User {
     public boolean isSuperuser() {
         return false;
     }
-    
-    @Override
-    public boolean isAnonymized() {
-        return false;
-    }
 
     @Override
     public boolean equals(Object o) {
