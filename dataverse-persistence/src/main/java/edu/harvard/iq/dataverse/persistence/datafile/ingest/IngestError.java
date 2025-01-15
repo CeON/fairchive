@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.datafile.ingest;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 
 import java.util.List;
 
@@ -38,12 +38,10 @@ public enum IngestError {
     GENERAL_TOO_MANY_VARIABLES,
     UNKNOWN_ERROR;
 
-    public static String ERROR_KEY_PREFIX = "ingest.error.";
-
     // -------------------- LOGIC --------------------
 
-    public String getErrorMessage(List<String> arguments) {
-        return BundleUtil.getStringFromBundle(ERROR_KEY_PREFIX + toString(), arguments.toArray());
+    public String getErrorMessage(final List<String> arguments) {
+        return getStringFromBundle("ingest.error.".concat(name()), arguments.toArray());
     }
 
 }

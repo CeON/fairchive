@@ -1,22 +1,24 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.annotations.Expose;
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.datafile.license.TermsOfUseForm;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.persistence.annotations.BatchFetch;
-import org.eclipse.persistence.annotations.BatchFetchType;
-import org.hibernate.validator.constraints.NotBlank;
+import static java.util.stream.Collectors.toList;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static org.eclipse.persistence.annotations.BatchFetchType.JOIN;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -33,16 +35,21 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.Version;
 import javax.validation.constraints.Pattern;
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.persistence.annotations.BatchFetch;
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.datafile.license.TermsOfUseForm;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 
 /**
@@ -76,7 +83,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    @BatchFetch(BatchFetchType.JOIN)
+    @BatchFetch(JOIN)
     private DataFile dataFile;
 
     /**
@@ -89,9 +96,9 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
     private int displayOrder;
 
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToOne(cascade = {MERGE, PERSIST, REMOVE}, orphanRemoval = true)
     @JoinColumn(nullable = false, name = "termsofuse_id")
-    @BatchFetch(BatchFetchType.JOIN)
+    @BatchFetch(JOIN)
     private FileTermsOfUse termsOfUse;
 
     /**
@@ -181,37 +188,18 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
      * @return
      */
     public List<String> getCategoriesByName() {
-        ArrayList<String> ret = new ArrayList<>();
-
-        if (fileCategories.isEmpty()) {
-            return ret;
-        }
-
-        for (DataFileCategory fileCategory : fileCategories) {
-            ret.add(fileCategory.getName());
-        }
-
-        return ret;
+        return this.fileCategories.stream().map(DataFileCategory::getName)
+                .collect(toList());
     }
 
 
     public JsonArrayBuilder getCategoryNamesAsJsonArrayBuilder() {
-
-        JsonArrayBuilder builder = Json.createArrayBuilder();
-
-        if (fileCategories.isEmpty()) {
-            return builder;
-        }
-
-        for (DataFileCategory fileCategory : fileCategories) {
+        final JsonArrayBuilder builder = Json.createArrayBuilder();
+        
+        for (final DataFileCategory fileCategory : this.fileCategories) {
             builder.add(fileCategory.getName());
         }
-
-        //fileCategories.stream()
-        //              .map(x -> builder.add(x.getName()));
-
         return builder;
-
     }
 
 
@@ -242,38 +230,6 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
             }
         }
     }
-
-    /*
-        note that this version only *adds* new categories, but does not
-        remove the ones that has been unchecked!
-    public void setCategoriesByName(List<String> newCategoryNames) {
-        if (newCategoryNames != null) {
-            Collection<String> oldCategoryNames = getCategoriesByName();
-
-
-            for (int i = 0; i < newCategoryNames.size(); i++) {
-                if (!oldCategoryNames.contains(newCategoryNames.get(i))) {
-                    // Dataset.getCategoryByName() will check if such a category
-                    // already exists for the parent dataset; it will be created
-                    // if not. The method will return null if the supplied
-                    // category name is null or empty. -- L.A. 4.0 beta 10
-                    DataFileCategory fileCategory = null;
-                    try {
-                        // Using "try {}" to catch any null pointer exceptions,
-                        // just in case:
-                        fileCategory = this.getDatasetVersion().getDataset().getCategoryByName(newCategoryNames.get(i));
-                    } catch (Exception ex) {
-                        fileCategory = null;
-                    }
-                    if (fileCategory != null) {
-                        this.addCategory(fileCategory);
-                        fileCategory.addFileMetadata(this);
-                    }
-                }
-            }
-        }
-    }
-    */
 
     public void addCategoryByName(String newCategoryName) {
         if (newCategoryName != null && !newCategoryName.isEmpty()) {
@@ -398,6 +354,10 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     public boolean isSelected() {
         return selected;
     }
+    
+    public boolean refersToNewerDatasetVersionThan(final FileMetadata other) {
+        return this.datasetVersion.isNewerThan(other.datasetVersion);
+    }
 
     public void setSelected(boolean selected) {
         this.selected = selected;
@@ -488,12 +448,8 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
         return "edu.harvard.iq.dvn.core.study.FileMetadata[id=" + id + "]";
     }
 
-    public static final Comparator<FileMetadata> compareByDisplayOrder = new Comparator<FileMetadata>() {
-        @Override
-        public int compare(FileMetadata o1, FileMetadata o2) {
-            return o1.getDisplayOrder() - o2.getDisplayOrder();
-        }
-    };
+    public static final Comparator<FileMetadata> compareByDisplayOrder = 
+            (o1, o2) -> o1.getDisplayOrder() - o2.getDisplayOrder();
 
 
     public String toPrettyJSON() {
@@ -510,12 +466,8 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
      * @param prettyPrint
      * @return
      */
-    private String serializeAsJSON(boolean prettyPrint) {
-
-        JsonObject jsonObj = asGsonObject(prettyPrint);
-
-        return jsonObj.toString();
-
+    private String serializeAsJSON(final boolean prettyPrint) {
+        return asGsonObject(prettyPrint).toString();
     }
 
 

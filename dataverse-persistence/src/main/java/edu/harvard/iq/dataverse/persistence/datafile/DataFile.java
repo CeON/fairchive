@@ -1,23 +1,20 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import com.google.gson.annotations.Expose;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.common.FileSizeUtil;
-import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
-import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
-import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import org.eclipse.persistence.annotations.BatchFetch;
-import org.eclipse.persistence.annotations.BatchFetchType;
-import org.hibernate.validator.constraints.NotBlank;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.toList;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static org.eclipse.persistence.annotations.BatchFetchType.JOIN;
 
-import javax.persistence.CascadeType;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -35,12 +32,22 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.Pattern;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+
+import org.eclipse.persistence.annotations.BatchFetch;
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.google.gson.annotations.Expose;
+
+import edu.harvard.iq.dataverse.common.FileSizeUtil;
+import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
+import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
+import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 /**
  * @author gdurand
@@ -127,31 +134,28 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     //    Tabular (formerly "subsettable") data files have DataTable objects
     //    associated with them:
 
-    @OneToOne(mappedBy = "dataFile", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
-    @BatchFetch(BatchFetchType.JOIN)
+    @OneToOne(mappedBy = "dataFile", cascade = {REMOVE, MERGE, PERSIST})
+    @BatchFetch(JOIN)
     private DataTable dataTable;
 
-    @OneToMany(mappedBy = "dataFile", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST},
-            orphanRemoval = true)
+    @OneToMany(mappedBy = "dataFile", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     private List<IngestReport> ingestReports;
 
-    @OneToOne(mappedBy = "dataFile", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
-    @BatchFetch(BatchFetchType.JOIN)
+    @OneToOne(mappedBy = "dataFile", cascade = {REMOVE, MERGE, PERSIST})
+    @BatchFetch(JOIN)
     private IngestRequest ingestRequest;
 
-    @OneToMany(mappedBy = "dataFile", orphanRemoval = true,
-            cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataFile", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     private List<DataFileTag> dataFileTags = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dataFile", orphanRemoval = true,
-            cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataFile", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     private List<FileMetadata> fileMetadatas;
 
-    @OneToMany(mappedBy = "dataFile", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataFile", cascade = {REMOVE, MERGE, PERSIST})
     private List<GuestbookResponse> guestbookResponses;
 
     @OneToOne(mappedBy = "thumbnailFile")
-    @BatchFetch(BatchFetchType.JOIN)
+    @BatchFetch(JOIN)
     private Dataset thumbnailForDataset;
 
     @ManyToMany
@@ -168,7 +172,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
      * the file from being ingested.
      */
     @Transient
-    private Boolean includedInIngest = Boolean.TRUE;
+    private Boolean includedInIngest = TRUE;
 
     private char ingestStatus = INGEST_STATUS_NONE;
 
@@ -275,19 +279,12 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     // -------------------- LOGIC --------------------
 
     public List<String> getTagLabels() {
-        List<DataFileTag> currentDataTags = this.getTags();
-        List<String> tagStrings = new ArrayList<>();
-
-        if (currentDataTags != null && !currentDataTags.isEmpty()) {
-            for (DataFileTag element : currentDataTags) {
-                tagStrings.add(element.getTypeLabel());
-            }
-        }
-        return tagStrings;
+        return this.dataFileTags.stream().map(DataFileTag::getTypeLabel)
+                .collect(toList());
     }
 
-    public void addTag(DataFileTag tag) {
-        dataFileTags.add(tag);
+    public void addTag(final DataFileTag tag) {
+        this.dataFileTags.add(tag);
     }
 
     public IngestReport getIngestReport() {
@@ -355,28 +352,21 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     public FileMetadata getLatestFileMetadata() {
-        FileMetadata fmd = null;
-
-        // for newly added or harvested, just return the one fmd
-        if (fileMetadatas.size() == 1) {
-            return fileMetadatas.get(0);
-        }
-
-        for (FileMetadata fileMetadata : fileMetadatas) {
-            // if it finds a draft, return it
-            if (fileMetadata.getDatasetVersion().getVersionState().equals(VersionState.DRAFT)) {
-                return fileMetadata;
+        if (this.fileMetadatas.isEmpty()) {
+            return null;
+        } else if (this.fileMetadatas.size() == 1) { // for newly added or harvested
+            return this.fileMetadatas.get(0);
+        } else {
+            FileMetadata result = this.fileMetadatas.get(0);
+            for (final FileMetadata fileMetadata : this.fileMetadatas) {
+                if (fileMetadata.getDatasetVersion().isDraft()) {
+                    return fileMetadata;
+                } else if (fileMetadata.refersToNewerDatasetVersionThan(result)) {
+                    result = fileMetadata;
+                }
             }
-
-            // otherwise return the one with the latest version number
-            if (fmd == null
-                    || fileMetadata.getDatasetVersion().getVersionNumber().compareTo(fmd.getDatasetVersion().getVersionNumber()) > 0
-                    || (fileMetadata.getDatasetVersion().getVersionNumber().compareTo(fmd.getDatasetVersion().getVersionNumber()) == 0 &&
-                        fileMetadata.getDatasetVersion().getMinorVersionNumber().compareTo(fmd.getDatasetVersion().getMinorVersionNumber()) > 0)) {
-                fmd = fileMetadata;
-            }
+            return result;
         }
-        return fmd;
     }
 
     public long getFilesize() {
@@ -400,7 +390,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     public String getOriginalChecksumType() {
-        return BundleUtil.getStringFromBundle("file.originalChecksumType", this.checksumType.toString());
+        return getStringFromBundle("file.originalChecksumType", this.checksumType.toString());
     }
 
     // Does the contentType indicate a shapefile?
@@ -473,14 +463,9 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     public boolean isHarvested() {
-        // (storageIdentifier is not nullable - so no need to check for null
-        // pointers below):
-        if (getStorageIdentifier().startsWith("http://") || this.getStorageIdentifier().startsWith("https://")) {
-            return true;
-        }
-
-        Dataset ownerDataset = this.getOwner();
-        return ownerDataset != null && ownerDataset.isHarvested();
+        return getStorageIdentifier().startsWith("http://")
+                || this.getStorageIdentifier().startsWith("https://")
+                || getOwner().isHarvested();
     }
 
     public String getRemoteArchiveURL() {
@@ -489,8 +474,8 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     @Override
     protected String toStringExtras() {
-        FileMetadata fmd = getLatestFileMetadata();
-        return "label:" + (fmd != null ? fmd.getLabel() : "[no metadata]");
+        final FileMetadata fmd = getLatestFileMetadata();
+        return fmd != null ? "label:".concat(fmd.getLabel()) : "label:[no metadata]";
     }
 
     @Override
@@ -512,18 +497,19 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
      * Check if the Geospatial Tag has been assigned to this file
      */
     public boolean hasGeospatialTag() {
-        return this.dataFileTags.stream()
-                .anyMatch(DataFileTag::isGeospatialTag);
+        return this.dataFileTags.stream().anyMatch(DataFileTag::isGeospatialTag);
     }
 
     public String getPublicationDateFormattedYYYYMMDD() {
-        return getPublicationDate() != null
-                ? new SimpleDateFormat("yyyy-MM-dd").format(getPublicationDate()) : null;
+        return getPublicationDate() != null ? format(getPublicationDate()) : null;
     }
 
     public String getCreateDateFormattedYYYYMMDD() {
-        return getCreateDate() != null
-                ? new SimpleDateFormat("yyyy-MM-dd").format(getCreateDate()) : null;
+        return getCreateDate() != null ? format(getCreateDate()) : null;
+    }
+    
+    private static String format(final Timestamp ts) {
+        return new SimpleDateFormat("yyyy-MM-dd").format(ts);
     }
 
     // -------------------- PRIVATE --------------------
@@ -555,8 +541,8 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         this.dataTable = dataTable;
     }
 
-    public void setTags(List<DataFileTag> dataFileTags) {
-        this.dataFileTags = dataFileTags;
+    public void setTags(final List<DataFileTag> dataFileTags) {
+        this.dataFileTags = dataFileTags != null ? dataFileTags : new ArrayList<>();
     }
 
     public void setFileMetadatas(List<FileMetadata> fileMetadatas) {
@@ -649,21 +635,19 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
             this.text = text;
         }
 
-        public static ChecksumType fromString(String text) {
-            if (text != null) {
-                for (ChecksumType checksumType : ChecksumType.values()) {
-                    if (text.equals(checksumType.text)) {
-                        return checksumType;
-                    }
+        public static ChecksumType fromString(final String text) {
+            for (final ChecksumType checksumType : values()) {
+                if (checksumType.text.equals(text)) {
+                    return checksumType;
                 }
             }
-            throw new IllegalArgumentException("ChecksumType must be one of these values: "
-                    + Arrays.asList(ChecksumType.values()) + ".");
+            throw new IllegalArgumentException(
+                    "ChecksumType must be one of these values: " + values() + ".");
         }
 
         @Override
         public String toString() {
-            return text;
+            return this.text;
         }
     }
 }
