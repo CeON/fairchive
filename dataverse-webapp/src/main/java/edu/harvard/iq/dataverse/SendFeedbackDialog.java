@@ -55,14 +55,14 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 @Named
 public class SendFeedbackDialog implements java.io.Serializable {
 
-    private final static long maxAttachmentsSize = 10000000;
+    private final static long MAX_ATTACHMENTS_SIZE_IN_BYTES = 10000000;
 
     private MailService mailService;
     private SettingsServiceBean sessings;
     private DataverseDao dataverseDao;
     private SystemConfig config;
     private DataverseSession session;
-    private UIMessages messages;
+    private UIMessages uiMessages;
 
     private String userEmail = "";
     private String userMessage = "";
@@ -88,13 +88,13 @@ public class SendFeedbackDialog implements java.io.Serializable {
     public SendFeedbackDialog(final MailService mailService,
             final SettingsServiceBean settings,
             final DataverseDao dataverseDao, SystemConfig config,
-            final DataverseSession session, final UIMessages messages) {
+            final DataverseSession session, final UIMessages uiMessages) {
         this.mailService = mailService;
         this.sessings = settings;
         this.dataverseDao = dataverseDao;
         this.config = config;
         this.session = session;
-        this.messages = messages;
+        this.uiMessages = uiMessages;
     }
 
     @PostConstruct
@@ -199,7 +199,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
     }
 
     public String getRecipientOptionLabel(final FeedbackRecipient option) {
-        return getStringFromBundle(option.name(),
+        return getStringFromBundle("contact.".concat(option.name()),
                 this.dataverseDao.findRootDataverse().getName());
     }
 
@@ -260,7 +260,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
 
     private boolean combinedAttachmensSizeBelowThreshold() {
         return this.attachments.stream().mapToLong(UploadedFile::getSize)
-                .sum() < maxAttachmentsSize;
+                .sum() < MAX_ATTACHMENTS_SIZE_IN_BYTES;
     }
 
     public void sendMessage() {
@@ -281,7 +281,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
                     .withInstallationBrandName(installationBrandName)
                     .withSupportTeamName(supportTeamName));
             if (feedbacks.isEmpty()) {
-                this.messages
+                this.uiMessages
                         .addErrorMessage(
                                 getStringFromBundle("contact.send.failure"));
             }
@@ -292,18 +292,18 @@ public class SendFeedbackDialog implements java.io.Serializable {
                         getAttachmentDataSources());
             }
             if (this.sendCopy) {
-                sendCopy(this.rootDataverseName, feedbacks.get(0));
+                sendCopy(feedbacks.get(0));
             }
-            this.messages
+            this.uiMessages
                     .addSuccessMessage(getStringFromBundle("contact.send.success"));
         } else {
             this.attachments.clear();
-            this.messages.addErrorMessage(
+            this.uiMessages.addErrorMessage(
                     getStringFromBundle("contact.attachments.maxSizeExceeded"));
         }
     }
 
-    private void sendCopy(final String rootDataverseName, final Feedback feedback) {
+    private void sendCopy(final Feedback feedback) {
         final Locale locale = this.session.getUserLocaleOr(getCurrentLocale());
         final String content = prepareHeader(locale)
                 + getStringFromBundleWithLocale("contact.copy.message.template",
