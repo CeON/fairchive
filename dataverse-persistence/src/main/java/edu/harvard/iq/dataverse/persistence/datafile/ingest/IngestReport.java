@@ -6,15 +6,22 @@
 
 package edu.harvard.iq.dataverse.persistence.datafile.ingest;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError.UNKNOWN_ERROR;
+import static java.util.Arrays.asList;
+import static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.TemporalType.TIMESTAMP;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -22,14 +29,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 
 /**
  * @author Leonid Andreev
@@ -39,7 +41,7 @@ import java.util.Optional;
 public class IngestReport implements JpaEntity<Long>, Serializable {
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     public Long getId() {
@@ -61,8 +63,9 @@ public class IngestReport implements JpaEntity<Long>, Serializable {
     @JoinColumn(nullable = false)
     private DataFile dataFile;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private IngestError errorKey;
+    private IngestError errorKey = UNKNOWN_ERROR;
 
     @ElementCollection
     @OrderColumn
@@ -72,10 +75,10 @@ public class IngestReport implements JpaEntity<Long>, Serializable {
 
     private int status;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     private Date startTime;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     private Date endTime;
 
     public int getType() {
@@ -106,8 +109,8 @@ public class IngestReport implements JpaEntity<Long>, Serializable {
         return errorKey;
     }
 
-    public void setErrorKey(IngestError errorKey) {
-        this.errorKey = errorKey;
+    public void setErrorKey(final IngestError errorKey) {
+        this.errorKey = errorKey != null ? errorKey : UNKNOWN_ERROR;
     }
 
     public DataFile getDataFile() {
@@ -141,28 +144,26 @@ public class IngestReport implements JpaEntity<Long>, Serializable {
     // -------------------- LOGIC --------------------
 
     public String getIngestReportMessage() {
-
-        return Optional.ofNullable(this.errorKey)
-                       .orElse(IngestError.UNKNOWN_ERROR)
-                       .getErrorMessage(errorArguments);
+        return this.errorKey.getErrorMessage(this.errorArguments);
     }
 
-    public static IngestReport createIngestFailureReport(DataFile dataFile, IngestException ingestException) {
+    public static IngestReport createIngestFailureReport(DataFile dataFile,
+            IngestException ingestException) {
         return createIngestFailureReport(dataFile,
-                                         ingestException.getErrorKey(),
-                                         ingestException.getErrorArguments().toArray(new String[0]));
+                ingestException.getErrorKey(),
+                ingestException.getErrorArguments());
 
     }
 
-    public static IngestReport createIngestFailureReport(DataFile dataFile, IngestError errorKey, String... errorArguments) {
-        List<String> args = Optional.ofNullable(errorArguments).map(Arrays::asList).orElseGet(Collections::emptyList);
-
-        return createIngestFailureReport(dataFile, errorKey, args);
+    public static IngestReport createIngestFailureReport(DataFile dataFile,
+            IngestError errorKey, String... errorArguments) {
+        return createIngestFailureReport(dataFile, errorKey, asList(errorArguments));
     }
 
-    public static IngestReport createIngestFailureReport(DataFile dataFile, IngestError errorKey, List<String> errorArguments) {
+    public static IngestReport createIngestFailureReport(DataFile dataFile,
+            IngestError errorKey, List<String> errorArguments) {
 
-        IngestReport errorReport = new IngestReport();
+        final IngestReport errorReport = new IngestReport();
         errorReport.setFailure();
         errorReport.setErrorKey(errorKey);
         errorReport.setDataFile(dataFile);
@@ -173,9 +174,7 @@ public class IngestReport implements JpaEntity<Long>, Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return this.id != null ? this.id.hashCode() : 0;
     }
 
     @Override

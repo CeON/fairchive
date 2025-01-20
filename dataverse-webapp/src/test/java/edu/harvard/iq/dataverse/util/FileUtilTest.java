@@ -161,9 +161,11 @@ public class FileUtilTest {
         assertFalse(FileUtil.isThumbnailSupported(null));
         // file with no content type:
         DataFile filewNoContentType = new DataFile("");
+        filewNoContentType.setOwner(new Dataset());
         filewNoContentType.setStorageIdentifier("");
         assertFalse(FileUtil.isThumbnailSupported(filewNoContentType));
         DataFile filewBogusContentType = new DataFile("");
+        filewBogusContentType.setOwner(new Dataset());
         filewBogusContentType.setStorageIdentifier("");
         assertFalse(FileUtil.isThumbnailSupported(filewBogusContentType));
     }
