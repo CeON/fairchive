@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.datafile.license;
 
+import static java.util.Objects.hash;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -9,6 +11,7 @@ import java.util.Objects;
  *
  * @author madryk
  */
+@SuppressWarnings("serial")
 public class TermsOfUseForm implements Serializable {
 
     private String typeWithLicenseId;
@@ -62,7 +65,7 @@ public class TermsOfUseForm implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(customRestrictText, restrictType, typeWithLicenseId);
+        return hash(customRestrictText, restrictType, typeWithLicenseId);
     }
 
     @Override
