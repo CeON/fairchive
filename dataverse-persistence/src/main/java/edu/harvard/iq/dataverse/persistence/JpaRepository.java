@@ -13,8 +13,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Optional.ofNullable;
-
 /**
  * Base repository (data access) class for JPA entities.
  * @param <ID> type of entity identifier.
@@ -33,7 +31,7 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public JpaRepository(Class<T> entityClass) {
+    public JpaRepository(final Class<T> entityClass) {
         this.entityClass = entityClass;
     }
 
@@ -41,92 +39,85 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
 
     @Override
     public List<T> findAll() {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<T> query = criteriaBuilder.createQuery(entityClass);
-        return em.createQuery(query).getResultList();
+        final CriteriaBuilder builder = this.em.getCriteriaBuilder();
+        final CriteriaQuery<T> query = builder.createQuery(this.entityClass);
+        return this.em.createQuery(query).getResultList();
     }
 
     @Override
     public Long countAll() {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
-        query.select(criteriaBuilder.count(query.from(entityClass)));
+        final CriteriaBuilder builder = this.em.getCriteriaBuilder();
+        final CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        query.select(builder.count(query.from(this.entityClass)));
         
         return em.createQuery(query).getSingleResult();
     }
 
     @Override
-    public Optional<T> findById(ID id) {
-        return ofNullable(em.find(entityClass, id));
+    public Optional<T> findById(final ID id) {
+        return Optional.ofNullable(this.em.find(this.entityClass, id));
     }
 
     @Override
-    public T getById(ID id) {
+    public T getById(final ID id) {
         return findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(entityClass.getSimpleName() + " with ID " + id + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        this.entityClass.getSimpleName() + " with ID " + id + " not found"));
+    }
+    
+    @Override
+    public T save(final T entity) {
+        if (entity.isNew()) {
+            this.em.persist(entity);
+            this.em.flush();
+            return entity;
+        } else {
+            return this.em.merge(entity);
+        }
+    }
+    
+    public T saveAndFlush(T entity) {     
+        entity = save(entity);
+        this.em.flush();
+        return entity;
     }
 
     @Override
-    public T save(T entity) {
-        return save(entity, false, false);
+    public T saveFlushAndClear(T entity) {
+        entity = saveAndFlush(entity);
+        this.em.clear();
+        return entity;
     }
     
     public void saveAll(final Iterable<T> entities) {
         entities.forEach(this::save);
     }
 
-    public T saveAndFlush(T entity) {
-        return save(entity, true, false);
-    }
-
     @Override
-    public T saveFlushAndClear(T entity) {
-        return save(entity, true, true);
-    }
-
-    private T save(T entity, boolean flush, boolean clear) {
-        T saved;
-        if (entity.isNew()) {
-            em.persist(entity);
-            em.flush();
-            saved = entity;
-        } else {
-            saved  = em.merge(entity);
-            if (flush) {
-                em.flush();
-            }
-        }
-        if (clear) {
-            em.clear();
-        }
-        return saved;
-    }
-
-    @Override
-    public void deleteById(ID id) {
-        delete(em.find(entityClass, id));
+    public void deleteById(final ID id) {
+        delete(this.em.find(this.entityClass, id));
     }
 
     @Override
     public void delete(T entity) {
-        em.remove(entity);
+        this.em.remove(entity);
     }
 
     @Override
     public T refresh(T entity) {
-        em.refresh(entity);
+        this.em.refresh(entity);
         return entity;
     }
 
     public void mergeAndDelete(T entity) {
-        entity = em.merge(entity);
+        entity = this.em.merge(entity);
         delete(entity);
     }
 
-    protected static <T> Optional<T> getSingleResult(TypedQuery<T> query) {
+    protected static <T> Optional<T> getSingleResult(final TypedQuery<T> query) {
         try {
             return Optional.of(query.getSingleResult());
-        } catch (NoResultException e) {
+        } catch (final NoResultException e) {
             return Optional.empty();
         }
     }
