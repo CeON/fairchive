@@ -215,7 +215,7 @@ public class DataverseHeaderFragment implements Serializable {
         if (dataverse == null) {
             return false;
         }
-        if (dataverse.getOwner() == null) {
+        if (dataverse.isRoot()) {
             // We're operating on the root dataverse.
             return settingsService.isTrueForKey(Key.DisableRootDataverseTheme);
         } else {

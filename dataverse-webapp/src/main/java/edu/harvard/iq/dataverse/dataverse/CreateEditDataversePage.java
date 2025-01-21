@@ -327,7 +327,7 @@ public class CreateEditDataversePage implements Serializable {
             return permissionsWrapper.notAuthorized();
         }
 
-        ownerId = dataverse.getOwner() != null ? dataverse.getOwner().getId() : null;
+        ownerId = dataverse.isNotRoot() ? dataverse.getOwner().getId() : null;
         setupForGeneralInfoEdit();
 
         return StringUtils.EMPTY;
@@ -337,7 +337,7 @@ public class CreateEditDataversePage implements Serializable {
         dataverse = new Dataverse();
         dataverse.setOwner(dataverseDao.find(ownerId));
 
-        if (dataverse.getOwner() == null) {
+        if (dataverse.isRoot()) {
             return permissionsWrapper.notFound();
         } else if (!permissionsWrapper.canIssueCreateDataverseCommand(dataverse.getOwner())) {
             return permissionsWrapper.notAuthorized();

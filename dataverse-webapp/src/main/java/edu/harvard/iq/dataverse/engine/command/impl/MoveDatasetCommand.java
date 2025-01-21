@@ -89,7 +89,7 @@ public class MoveDatasetCommand extends AbstractVoidCommand {
             Guestbook gb = moved.getGuestbook();
             List<Guestbook> gbs = destination.getGuestbooks();
             boolean inheritGuestbooksValue = !destination.isGuestbookRoot();
-            if (inheritGuestbooksValue && destination.getOwner() != null) {
+            if (inheritGuestbooksValue && destination.isNotRoot()) {
                 gbs.addAll(destination.getParentGuestbooks());
             }
             if (gbs == null || !gbs.contains(gb)) {

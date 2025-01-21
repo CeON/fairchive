@@ -35,7 +35,7 @@ public class DeleteDataverseCommand extends AbstractVoidCommand {
     @Override
     protected void executeImpl(CommandContext ctxt) {
         // Make sure we don't delete root
-        if (doomed.getOwner() == null) {
+        if (doomed.isRoot()) {
             throw new IllegalCommandException("Cannot delete the root dataverse", this);
         }
 

@@ -145,7 +145,7 @@ public class MoveDataverseCommand extends AbstractVoidCommand {
             List<Template> movedTemplates = moved.getTemplates();
             destinationTemplates = destination.getTemplates();
             boolean inheritTemplateValue = !destination.isTemplateRoot();
-            if (inheritTemplateValue && destination.getOwner() != null) {
+            if (inheritTemplateValue && destination.isNotRoot()) {
                 destinationTemplates.addAll(destination.getParentTemplates());
             }
             // include templates in moved dataverse since they will also be there

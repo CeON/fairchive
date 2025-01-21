@@ -206,7 +206,7 @@ public class MetadataBlockService {
                     .selected(false)
                     .showDatasetFieldTypes(false);
 
-            if (dataverse.getOwner() != null) {
+            if (dataverse.isNotRoot()) {
                 if (dataverse.getOwner().getRootMetadataBlocks().contains(mdb)) {
                     blockOptionsBuilder.selected(true);
                 }

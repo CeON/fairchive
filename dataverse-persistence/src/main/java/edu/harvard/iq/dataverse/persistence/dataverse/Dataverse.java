@@ -40,6 +40,11 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -241,22 +246,22 @@ public class Dataverse extends DvObjectContainer {
     @Enumerated(EnumType.STRING)
     private FeaturedDataversesSorting featuredDataversesSorting;
 
-    @OneToOne(mappedBy = "dataverse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToOne(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     private DataverseTheme dataverseTheme;
 
-    @OneToMany(mappedBy = "dataverse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     @OrderBy("displayOrder")
     @NotEmpty(message = "At least one contact is required.")
     private List<DataverseContact> dataverseContacts = new ArrayList<>();
 
-    @ManyToMany(cascade = {CascadeType.MERGE})
+    @ManyToMany(cascade = {MERGE})
     private List<MetadataBlock> metadataBlocks = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dataverse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     @OrderBy("displayOrder")
     private List<DataverseFacet> dataverseFacets = new ArrayList<>();
 
-    @ManyToMany(cascade = {CascadeType.MERGE})
+    @ManyToMany(cascade = {MERGE})
     @JoinTable(name = "dataverse_citationDatasetFieldTypes",
             joinColumns = @JoinColumn(name = "dataverse_id"),
             inverseJoinColumns = @JoinColumn(name = "citationdatasetfieldtype_id"))
@@ -268,7 +273,7 @@ public class Dataverse extends DvObjectContainer {
             inverseJoinColumns = @JoinColumn(name = "controlledvocabularyvalue_id"))
     private Set<ControlledVocabularyValue> dataverseSubjects;
 
-    @OneToMany(mappedBy = "dataverse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST})
     private List<DataverseFeaturedDataverse> dataverseFeaturedDataverses;
 
     public List<DataverseFeaturedDataverse> getDataverseFeaturedDataverses() {
@@ -279,7 +284,7 @@ public class Dataverse extends DvObjectContainer {
         this.dataverseFeaturedDataverses = dataverseFeaturedDataverses;
     }
 
-    @OneToMany(mappedBy = "featuredDataverse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "featuredDataverse", cascade = {REMOVE, MERGE, PERSIST})
     private List<DataverseFeaturedDataverse> dataverseFeaturingDataverses;
 
     public List<DataverseFeaturedDataverse> getDataverseFeaturingDataverses() {
@@ -290,7 +295,7 @@ public class Dataverse extends DvObjectContainer {
         this.dataverseFeaturingDataverses = dataverseFeaturingDataverses;
     }
 
-    @OneToMany(mappedBy = "dataverse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST})
     private List<DataverseLinkingDataverse> dataverseLinkingDataverses;
 
     public List<DataverseLinkingDataverse> getDataverseLinkingDataverses() {
@@ -301,7 +306,7 @@ public class Dataverse extends DvObjectContainer {
         this.dataverseLinkingDataverses = dataverseLinkingDataverses;
     }
 
-    @OneToMany(mappedBy = "linkingDataverse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "linkingDataverse", cascade = {REMOVE, MERGE, PERSIST})
     private List<DataverseLinkingDataverse> dataverseLinkedDataverses;
 
     public List<DataverseLinkingDataverse> getDataverseLinkedDataverses() {
@@ -312,7 +317,7 @@ public class Dataverse extends DvObjectContainer {
         this.dataverseLinkedDataverses = dataverseLinkedDataverses;
     }
 
-    @OneToMany(mappedBy = "linkingDataverse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "linkingDataverse", cascade = {REMOVE, MERGE, PERSIST})
     private List<DatasetLinkingDataverse> datasetLinkingDataverses;
 
     public List<DatasetLinkingDataverse> getDatasetLinkingDataverses() {
@@ -339,7 +344,7 @@ public class Dataverse extends DvObjectContainer {
     @JoinColumn(nullable = true)
     private Template defaultTemplate;
 
-    @OneToMany(mappedBy = "definitionPoint", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "definitionPoint", cascade = {REMOVE, MERGE, PERSIST})
     private List<SavedSearch> savedSearches;
 
     public List<SavedSearch> getSavedSearches() {
@@ -350,10 +355,10 @@ public class Dataverse extends DvObjectContainer {
         this.savedSearches = savedSearches;
     }
 
-    @OneToMany(mappedBy = "dataverse", cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "dataverse", cascade = {MERGE, REMOVE}, orphanRemoval = true)
     private List<Template> templates = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dataverse", cascade = {CascadeType.MERGE, CascadeType.REMOVE})
+    @OneToMany(mappedBy = "dataverse", cascade = {MERGE, REMOVE})
     private List<Guestbook> guestbooks;
 
     public List<Guestbook> getGuestbooks() {
@@ -365,7 +370,7 @@ public class Dataverse extends DvObjectContainer {
     }
 
 
-    @OneToMany(mappedBy = "dataverse", cascade = {CascadeType.MERGE, CascadeType.REMOVE})
+    @OneToMany(mappedBy = "dataverse", cascade = {MERGE, REMOVE})
     private List<HarvestingClient> harvestingClientConfigs;
 
     public List<HarvestingClient> getHarvestingClientConfigs() {
@@ -375,16 +380,11 @@ public class Dataverse extends DvObjectContainer {
     public void setHarvestingClientConfigs(List<HarvestingClient> harvestingClientConfigs) {
         this.harvestingClientConfigs = harvestingClientConfigs;
     }
-    /*
-    public boolean isHarvested() {
-        return harvestingClient != null;
-    }
-    */
 
     public List<Guestbook> getParentGuestbooks() {
         List<Guestbook> retList = new ArrayList<>();
         Dataverse testDV = this;
-        while (testDV.getOwner() != null) {
+        while (testDV.isNotRoot()) {
             retList.addAll(testDV.getOwner().getGuestbooks());
             if (testDV.getOwner().guestbookRoot) {
                 break;
@@ -400,7 +400,7 @@ public class Dataverse extends DvObjectContainer {
         Dataverse testDV = this;
         List<Guestbook> allGbs = new ArrayList<>();
         if (!this.guestbookRoot) {
-            while (testDV.getOwner() != null) {
+            while (testDV.isNotRoot()) {
 
                 allGbs.addAll(testDV.getOwner().getGuestbooks());
                 if (testDV.getOwner().isGuestbookRoot()) {
@@ -460,14 +460,14 @@ public class Dataverse extends DvObjectContainer {
     public List<Template> getParentTemplates() {
         List<Template> retList = new ArrayList<>();
         Dataverse testDV = this;
-        while (testDV.getOwner() != null) {
+        while (testDV.isNotRoot()) {
 
             if (!testDV.getRootMetadataBlocks().equals(testDV.getOwner().getRootMetadataBlocks())) {
                 break;
             }
             retList.addAll(testDV.getOwner().getTemplates());
 
-            if (testDV.getOwner().templateRoot) {
+            if (testDV.getOwner().isTemplateRoot()) {
                 break;
             }
             testDV = testDV.getOwner();
@@ -495,13 +495,10 @@ public class Dataverse extends DvObjectContainer {
         this.templateRoot = templateRoot;
     }
 
-
     public Dataverse getMetadataBlockRootDataverse() {
-        if (metadataBlockRoot || getOwner() == null) {
-            return this;
-        } else {
-            return getOwner().getMetadataBlockRootDataverse();
-        }
+        return isMetadataBlockRoot() || isRoot()
+                ? this
+                : getOwner().getMetadataBlockRootDataverse();
     }
 
     public List<MetadataBlock> getRootMetadataBlocks() {
@@ -516,23 +513,20 @@ public class Dataverse extends DvObjectContainer {
         return getMetadataBlockRootDataverse().getId();
     }
 
-
     public DataverseTheme getDataverseTheme() {
         return getDataverseTheme(false);
     }
 
-    public DataverseTheme getDataverseTheme(boolean returnActualDB) {
-        if (returnActualDB || themeRoot || getOwner() == null) {
-            return dataverseTheme;
-        } else {
-            return getOwner().getDataverseTheme();
-        }
+    public DataverseTheme getDataverseTheme(final boolean returnActualDB) {
+        return returnActualDB || isThemeRoot() || isRoot()
+                ? this.dataverseTheme
+                : getOwner().getDataverseTheme();
     }
 
     public String getGuestbookRootDataverseName() {
         Dataverse testDV = this;
         String retName = "Parent";
-        while (testDV.getOwner() != null) {
+        while (testDV.isNotRoot()) {
             retName = testDV.getOwner().getDisplayName();
             if (testDV.getOwner().guestbookRoot) {
                 break;
@@ -545,7 +539,7 @@ public class Dataverse extends DvObjectContainer {
     public String getTemplateRootDataverseName() {
         Dataverse testDV = this;
         String retName = "Parent";
-        while (testDV.getOwner() != null) {
+        while (testDV.isNotRoot()) {
             retName = testDV.getOwner().getDisplayName();
             if (testDV.getOwner().templateRoot) {
                 break;
@@ -558,7 +552,7 @@ public class Dataverse extends DvObjectContainer {
     public String getThemeRootDataverseName() {
         Dataverse testDV = this;
         String retName = "Parent";
-        while (testDV.getOwner() != null) {
+        while (testDV.isNotRoot()) {
             retName = testDV.getOwner().getDisplayName();
             if (testDV.getOwner().themeRoot) {
                 break;
@@ -569,17 +563,15 @@ public class Dataverse extends DvObjectContainer {
     }
 
     public String getMetadataParentRootDataverseName() {
-        if (getOwner() == null) {
-            return this.getDisplayName();
-        } else {
-            return getOwner().getMetadataBlockRootDataverse().getDisplayName();
-        }
+        return isRoot()
+                ? getDisplayName()
+                : getOwner().getMetadataBlockRootDataverse().getDisplayName();
     }
 
     public String getFacetRootDataverseName() {
         Dataverse testDV = this;
         String retName = "Parent";
-        while (testDV.getOwner() != null) {
+        while (testDV.isNotRoot()) {
             retName = testDV.getOwner().getDisplayName();
             if (testDV.getOwner().facetRoot) {
                 break;
@@ -589,14 +581,10 @@ public class Dataverse extends DvObjectContainer {
         return retName;
     }
 
-
     public String getLogoOwnerId() {
-
-        if (themeRoot || getOwner() == null) {
-            return this.getId().toString();
-        } else {
-            return getOwner().getId().toString();
-        }
+        return isThemeRoot() || isRoot()
+                ? getId().toString()
+                : getOwner().getId().toString();
     }
 
     public void setDataverseTheme(DataverseTheme dataverseTheme) {
@@ -620,20 +608,16 @@ public class Dataverse extends DvObjectContainer {
         return getDataverseFacets(false);
     }
 
-    public List<DataverseFacet> getDataverseFacets(boolean returnActualDB) {
-        if (returnActualDB || facetRoot || getOwner() == null) {
-            return dataverseFacets;
-        } else {
-            return getOwner().getDataverseFacets();
-        }
+    public List<DataverseFacet> getDataverseFacets(final boolean returnActualDB) {
+        return returnActualDB || isFacetRoot() || isRoot()
+                ? this.dataverseFacets
+                : getOwner().getDataverseFacets();
     }
 
     public Long getFacetRootId() {
-        if (facetRoot || getOwner() == null) {
-            return this.getId();
-        } else {
-            return getOwner().getFacetRootId();
-        }
+        return isFacetRoot() || isRoot()
+                ? getId()
+                : getOwner().getFacetRootId();
     }
 
     public void setDataverseFacets(List<DataverseFacet> dataverseFacets) {
@@ -761,7 +745,7 @@ public class Dataverse extends DvObjectContainer {
 
     public List<Dataverse> getOwners() {
         List<Dataverse> owners = new ArrayList<>();
-        if (getOwner() != null) {
+        if (isNotRoot()) {
             owners.addAll(getOwner().getOwners());
             owners.add(getOwner());
         }

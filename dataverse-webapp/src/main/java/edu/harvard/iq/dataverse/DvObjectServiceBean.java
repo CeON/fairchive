@@ -324,7 +324,7 @@ public class DvObjectServiceBean implements java.io.Serializable {
 
     public String getDataverseHierarchyFor(DvObject dvObject) {
         StringBuilder path = new StringBuilder();
-        if (dvObject.getOwner() != null) {
+        if (dvObject.isNotRoot()) {
             path.append(getDataverseHierarchyFor(dvObject.getOwner()));
         }
         if (dvObject instanceof Dataverse) {
