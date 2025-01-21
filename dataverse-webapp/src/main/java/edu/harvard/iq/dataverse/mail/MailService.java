@@ -5,14 +5,24 @@
  */
 package edu.harvard.iq.dataverse.mail;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.notification.NotificationParameter;
-import edu.harvard.iq.dataverse.notification.dto.EmailNotificationDto;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import io.vavr.Tuple2;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
+import static edu.harvard.iq.dataverse.persistence.user.NotificationType.RETURNEDDS;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Stream;
+
+import javax.activation.DataSource;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.mail.Message;
+import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
+
 import org.apache.commons.lang.StringUtils;
 import org.simplejavamail.email.Email;
 import org.simplejavamail.email.EmailBuilder;
@@ -21,19 +31,14 @@ import org.simplejavamail.email.Recipient;
 import org.simplejavamail.mailer.Mailer;
 import org.simplejavamail.mailer.MailerBuilder;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static edu.harvard.iq.dataverse.persistence.user.NotificationType.RETURNEDDS;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.notification.NotificationParameter;
+import edu.harvard.iq.dataverse.notification.dto.EmailNotificationDto;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
+import io.vavr.Tuple2;
+import io.vavr.control.Option;
+import io.vavr.control.Try;
 
 /**
  * Service responsible for mail sending.
@@ -73,7 +78,6 @@ public class MailService implements java.io.Serializable {
 
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
-
     // -------------------- LOGIC --------------------
 
     /**
@@ -105,9 +109,12 @@ public class MailService implements java.io.Serializable {
         return CompletableFuture.supplyAsync(() -> sendMail(recipientsEmails, replyTo, emailContent), executorService);
     }
 
-    public CompletableFuture<Boolean> sendMailAsync(String replyEmail, String recipientsEmails, String subject, String messageText) {
-        return CompletableFuture.supplyAsync(() -> sendMail(replyEmail, recipientsEmails, subject, messageText),
-                                             executorService);
+    public CompletableFuture<Boolean> sendMailAsync(final String replyEmail,
+            final String recipientsEmails, final String subject,
+            final String messageText, final Stream<DataSource> attachments) {
+        return CompletableFuture.supplyAsync(
+                () -> sendMail(replyEmail, recipientsEmails, subject, messageText,
+                        attachments), this.executorService);
     }
 
     /**
@@ -136,15 +143,18 @@ public class MailService implements java.io.Serializable {
      *
      * @param recipientsEmails - comma separated emails.
      */
-    public boolean sendMail(String replyEmail, String recipientsEmails, String subject, String messageText) {
-        Email email = newMailWithOverseerIfExists()
+    public boolean sendMail(final String replyEmail,
+            final String recipientsEmails, final String subject,
+            final String messageText, final Stream<DataSource> attachments) {
+        final EmailPopulatingBuilder builder = newMailWithOverseerIfExists()
                 .from(getSystemAddress())
-                .withRecipients(mailMessageCreator.createRecipients(recipientsEmails, StringUtils.EMPTY))
+                .withRecipients(this.mailMessageCreator.createRecipients(recipientsEmails, EMPTY))
                 .withSubject(subject)
                 .withReplyTo(replyEmail)
-                .appendText(messageText)
-                .buildEmail();
-        return Try.run(() -> mailSender.sendMail(email))
+                .appendText(messageText);
+        attachments.forEach(attachment -> builder.withAttachment(null, attachment));
+        
+        return Try.run(() -> mailSender.sendMail(builder.buildEmail()))
                 .map(emailSent -> true)
                 .onFailure(Throwable::printStackTrace)
                 .getOrElse(false);
@@ -191,7 +201,7 @@ public class MailService implements java.io.Serializable {
 
     // -------------------- SETTERS --------------------
 
-    void setMailSender(Mailer mailSender) {
+    protected void setMailSender(Mailer mailSender) {
         this.mailSender = mailSender;
     }
 }

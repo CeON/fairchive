@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
+import static java.util.Locale.ENGLISH;
+
+import java.util.Locale;
 
 /**
  * Guest user in the system. There's only one, so you get it with the static getter {@link #get()} (singleton pattern).
@@ -35,6 +38,11 @@ public class GuestUser implements User {
     @Override
     public boolean isSuperuser() {
         return false;
+    }
+    
+    @Override
+    public Locale getNotificationsLanguage() {
+        return ENGLISH;
     }
 
     @Override

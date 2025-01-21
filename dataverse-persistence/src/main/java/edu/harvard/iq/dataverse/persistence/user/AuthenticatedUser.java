@@ -177,7 +177,8 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     public Timestamp getEmailConfirmed() {
         return emailConfirmed;
     }
-
+    
+    @Override
     public Locale getNotificationsLanguage() {
         return notificationsLanguage;
     }

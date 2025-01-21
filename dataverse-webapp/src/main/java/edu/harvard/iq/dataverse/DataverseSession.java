@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.SessionManagement;
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.SessionManagement; 
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -32,7 +32,7 @@ public class DataverseSession implements Serializable {
     private SystemConfig systemConfig;
 
     /* Note that on logout, variables must be cleared manually in DataverseHeaderFragment*/
-    private User user;
+    private User user = GuestUser.get();
     private boolean statusDismissed = false;
     private String localeCode;
     private int filesPerPage;
@@ -55,10 +55,25 @@ public class DataverseSession implements Serializable {
     // -------------------- GETTERS --------------------
 
     public User getUser() {
-        if (user == null) {
-            user = GuestUser.get();
-        }
-        return user;
+        return this.user;
+    }
+    
+    public boolean isUserLoggedIn() {
+        return this.user.isAuthenticated();
+    }
+    
+    public String getUserEmailAddress() {
+        return this.user.getDisplayInfo().getEmailAddress();
+    }
+    
+    public Locale getUserLocaleOr(final Locale defaultLocale) {
+        return isUserLoggedIn()
+                ?  this.user.getNotificationsLanguage()
+                : defaultLocale;
+    }
+    
+    public String getUserEmailOr(final String defaultEmail) {
+        return isUserLoggedIn() ? getUserEmailAddress() : defaultEmail;
     }
 
     public UUID getSessionId() {
@@ -150,7 +165,7 @@ public class DataverseSession implements Serializable {
         logSvc.log(
                 new ActionLogRecord(SessionManagement, (aUser == null) ? "logout" : "login")
                         .setUserIdentifier((aUser != null) ? aUser.getIdentifier() : (user != null ? user.getIdentifier() : "")));
-        this.user = aUser;
+        this.user = aUser != null ? aUser : GuestUser.get();
     }
 
     public void setLocaleCode(String localeCode) {

@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
 import java.io.Serializable;
+import java.util.Locale;
 
 /**
  * A user of the dataverse system. Intuitively a single real person in real
@@ -10,6 +11,8 @@ import java.io.Serializable;
 public interface User extends RoleAssignee, Serializable {
 
     boolean isAuthenticated();
-
+    
     boolean isSuperuser(); 
+
+    Locale getNotificationsLanguage();
 }
