@@ -1,0 +1,18 @@
+#metadataBlock	name	dataverseAlias	displayName blockURI
+	archeoAriadne		Archaeological Metadata
+#datasetField	name	title	description	watermark	fieldType	displayOrder	displayFormat	advancedSearchField	allowControlledVocabulary	allowmultiples	facetable	displayoncreate	required	parent	inputRendererType	inputRendererOptions	metadatablock_id	termURI	validation	metadata	visibleThroughAnonymizedUrl
+	ariadneSubject	ARIADNE Subject Category of the Resource	Fundamental archaeological categories defined byARIADNE.		text	0		TRUE	TRUE	TRUE	TRUE	TRUE	FALSE		VOCABULARY_SELECT	{}	archeoAriadne		[{"name":"standard_input"}]		TRUE
+#controlledVocabulary	DatasetField	Value	identifier	displayOrder
+	ariadneSubject	Site/monument		0
+	ariadneSubject	Fieldwork		1
+	ariadneSubject	Fieldwork report		2
+	ariadneSubject	Fieldwork archive		3
+	ariadneSubject	Scientific analysis		4
+	ariadneSubject	Date		5
+	ariadneSubject	Artefact		6
+	ariadneSubject	Coin		7
+	ariadneSubject	Building survey		8
+	ariadneSubject	Maritime		9
+	ariadneSubject	Inscription		10
+	ariadneSubject	Rock Art		11
+	ariadneSubject	Burial		11

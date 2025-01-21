@@ -36,6 +36,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Integer.parseInt;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -203,21 +209,16 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
     @ApiWriteOperation
     @Consumes("text/tab-separated-values")
     @Path("load")
-    public Response loadDatasetFields(File file) {
+    public Response loadDatasetFields(final String text) {
         ActionLogRecord alr = new ActionLogRecord(ActionLogRecord.ActionType.Admin, "loadDatasetFields");
-        alr.setInfo(file.getName());
-        BufferedReader br = null;
-        String line;
-        String splitBy = "\t";
         int lineNumber = 0;
         HeaderType header = null;
         JsonArrayBuilder responseArr = Json.createArrayBuilder();
         try {
-            br = new BufferedReader(new FileReader("/" + file));
-            while ((line = br.readLine()) != null) {
+            for(final String line : text.split("\\R")) {
                 lineNumber++;
                 logger.info("Processing line number: " + lineNumber);
-                String[] values = line.split(splitBy);
+                String[] values = line.split("\t");
                 if (values[0].startsWith("#")) { // Header row
                     switch (values[0]) {
                         case "#metadataBlock":
@@ -258,10 +259,6 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
-            alr.setActionResult(ActionLogRecord.Result.BadRequest);
-            alr.setInfo(alr.getInfo() + "// file not found");
-            return error(Status.EXPECTATION_FAILED, "File not found");
         } catch (EJBException e) {
             logger.log(Level.WARNING, "Error parsing dataset fields:" + e.getCausedByException(), e);
             alr.setActionResult(ActionLogRecord.Result.InternalError);
@@ -273,13 +270,6 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
             alr.setInfo(alr.getInfo() + "// " + e.getMessage());
             return error(Status.INTERNAL_SERVER_ERROR, e.getMessage());
         } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    logger.log(Level.WARNING, "Error closing the reader while importing Dataset Fields.");
-                }
-            }
             actionLogSvc.log(alr);
         }
 
@@ -316,15 +306,15 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
         dsf.setDescription(values[3]);
         dsf.setWatermark(values[4]);
         dsf.setFieldType(FieldType.valueOf(values[5].toUpperCase()));
-        dsf.setDisplayOrder(Integer.parseInt(values[6]));
+        dsf.setDisplayOrder(parseInt(values[6]));
         dsf.setDisplayFormat(values[7]);
-        dsf.setAdvancedSearchFieldType(Boolean.parseBoolean(values[8]));
-        dsf.setAllowControlledVocabulary(Boolean.parseBoolean(values[9]));
-        dsf.setAllowMultiples(Boolean.parseBoolean(values[10]));
-        dsf.setFacetable(Boolean.parseBoolean(values[11]));
-        dsf.setDisplayOnCreate(Boolean.parseBoolean(values[12]));
-        dsf.setRequired(Boolean.parseBoolean(values[13]));
-        if (!StringUtils.isEmpty(values[14])) {
+        dsf.setAdvancedSearchFieldType(parseBoolean(values[8]));
+        dsf.setAllowControlledVocabulary(parseBoolean(values[9]));
+        dsf.setAllowMultiples(parseBoolean(values[10]));
+        dsf.setFacetable(parseBoolean(values[11]));
+        dsf.setDisplayOnCreate(parseBoolean(values[12]));
+        dsf.setRequired(parseBoolean(values[13]));
+        if (!isEmpty(values[14])) {
             dsf.setParentDatasetFieldType(datasetFieldService.findByName(values[14]));
         } else {
             dsf.setParentDatasetFieldType(null);
@@ -335,13 +325,14 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
         setIfNotEmpty(dsf::setUri, 18, values);
         setIfNotEmpty(dsf::setValidation, 19, values);
         setIfNotEmpty(v -> dsf.setMetadata(jsonMapConverter.convertToEntityAttribute(v)), 20, values);
+        setIfNotEmpty(v -> dsf.setVisibleThroughAnonymizedUrl(parseBoolean(v)), 21, values);
 
         datasetFieldService.save(dsf);
         return dsf.getName();
     }
 
     private void setIfNotEmpty(Consumer<String> setter, int index, String[] values) {
-        if (values != null && values.length > index && StringUtils.isNotBlank(values[index])) {
+        if (values.length > index && isNotBlank(values[index])) {
             setter.accept(values[index]);
         }
     }
