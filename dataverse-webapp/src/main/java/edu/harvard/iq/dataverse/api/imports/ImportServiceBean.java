@@ -168,7 +168,7 @@ public class ImportServiceBean {
             if (existingDs != null) {
                 // If this dataset already exists IN ANOTHER DATAVERSE
                 // we are just going to skip it!
-                if (existingDs.getOwner() != null && !owner.getId().equals(existingDs.getOwner().getId())) {
+                if (existingDs.isNotRoot() && !owner.getId().equals(existingDs.getOwner().getId())) {
                     throw new ImportException("The dataset with the global id " + ds.getGlobalIdString() + " already exists, in the dataverse "
                             + existingDs.getOwner().getAlias() + ", skipping.");
                 }

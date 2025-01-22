@@ -254,7 +254,7 @@ public class DataverseDTO {
             converted.setPermissionRoot(dataverse.isPermissionRoot());
             converted.setDescription(dataverse.getDescription());
             converted.setDataverseType(dataverse.getDataverseType().name());
-            converted.setOwnerId(dataverse.getOwner() != null ? dataverse.getOwner().getId() : null);
+            converted.setOwnerId(dataverse.isNotRoot() ? dataverse.getOwner().getId() : null);
             converted.setCreationDate(dataverse.getCreateDate() != null
                     ? Util.getDateTimeFormat().format(dataverse.getCreateDate()) : null);
             converted.setCreator(dataverse.getCreator() != null
