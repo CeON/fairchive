@@ -180,7 +180,7 @@
                                             <h:outputText styleClass="sr-only" value=" #{facetCategory.displayName}: #{bundle['dataverse.search.filters.remove.screenReaderPostfix']}" />
 
                                             <span class="glyphicon glyphicon-remove"></span>
-                                            <f:param name="q" value="#{SearchIncludeFragment.query}"/>
+                                            <f:param name="q" value="#{lastSearchValuement.query}"/>
                                             <c:forEach items="#{SearchIncludeFragment.filterQueries}" var="clickedFilterQuery" varStatus="status">
                                                 <f:param name="fq#{status.index}" value='#{clickedFilterQuery}' disable="#{clickedFilterQuery == facetLabel.filterQuery}"/>
                                             </c:forEach>
@@ -450,18 +450,18 @@
                     <o:importFunctions type="org.omnifaces.el.functions.Strings" />
                     <ui:param name="descriptionAbbreviationThreshold" value="280"/>
                     <!--CARDS-->
-                    <h:dataTable id="resultsTable" value="#{SearchIncludeFragment.searchResultsList}" var="result"
-                                 rendered="#{!(empty SearchIncludeFragment.searchResultsList)}">
+                    <h:dataTable id="resultsTable" value="#{lastSearchValue.searchResultsList}" var="result"
+                                 rendered="#{!(empty lastSearchValue.searchResultsList)}">
                         <h:column>
                             <!--DATAVERSE CARDS-->
                             <div class="dataverseResult clearfix #{result.unpublishedState ? 'unpublished' : ''}" jsf:rendered="#{result.type eq searchObjectTypeEnum.DATAVERSES}">
                                 <c:set var="dvUrl" value="/dataverse/#{result.dataverseAlias}"/>
                                 <c:set var="dvUrlFinal" value="#{!SearchIncludeFragment.rootDv and !result.isInTree ? dvUrl : widgetWrapper.wrapURL(dvUrl)}" />
-                                <c:set var="dvCardUrlsTarget" value="#{!SearchIncludeFragment.rootDv and !result.isInTree and widgetWrapper.widgetView ? '_blank' : ''}" />
-                                <c:set var="dvIsLinked" value="#{!SearchIncludeFragment.rootDv and !result.isInTree}" />
+                                <c:set var="dvCardUrlsTarget" value="#{!lastSearchValue.rootDv and !result.isInTree and widgetWrapper.widgetView ? '_blank' : ''}" />
+                                <c:set var="dvIsLinked" value="#{!lastSearchValue.rootDv and !result.isInTree}" />
 
                                 <c:set var="dvParentUrl" value="/dataverse/#{result.dataverseParentAlias}"/>
-                                <c:set var="dvParentUrlFinal" value="#{!SearchIncludeFragment.rootDv and !result.isInTree ? dvParentUrl : widgetWrapper.wrapURL(dvParentUrl)}"/>
+                                <c:set var="dvParentUrlFinal" value="#{!lastSearchValue.rootDv and !result.isInTree ? dvParentUrl : widgetWrapper.wrapURL(dvParentUrl)}"/>
 
 
                                 <div class="card-preview-icon-block text-center">
@@ -493,7 +493,7 @@
 
                                     <h:outputText value="#{dv:formatDate(result.releaseOrCreateDate)}" styleClass="text-muted" style="margin-right:.5em;"/>
 
-                                    <h:outputLink value="#{dvParentUrlFinal}" target="#{dvCardUrlsTarget}" rendered="#{result.parent.id != SearchIncludeFragment.dataverse.id}">
+                                    <h:outputLink value="#{dvParentUrlFinal}" target="#{dvCardUrlsTarget}" rendered="#{result.parent.id != lastSearchValue.dataverseId}">
                                         <h:outputText value="#{bundle.dataverse}" styleClass="sr-only" />
                                         <h:outputText value="#{result.parent.name}"/>
                                     </h:outputLink>
@@ -520,12 +520,12 @@
                             </div>
                             <!--DATASET CARDS-->
                             <div class="datasetResult clearfix #{result.unpublishedState ? 'unpublished' : ''}" jsf:rendered="#{result.type eq searchObjectTypeEnum.DATASETS}">
-                                <c:set var="dsUrlFinal" value="#{!SearchIncludeFragment.rootDv and !result.isInTree ? result.datasetUrl : widgetWrapper.wrapURL(result.datasetUrl)}" />
-                                <c:set var="dsCardUrlsTarget" value="#{(!SearchIncludeFragment.rootDv and !result.isInTree and widgetWrapper.widgetView) or result.harvested ? '_blank' : ''}" />
-                                <c:set var="dsIsLinked" value="#{!SearchIncludeFragment.rootDv and !result.isInTree}" />
+                                <c:set var="dsUrlFinal" value="#{!lastSearchValue.rootDv and !result.isInTree ? result.datasetUrl : widgetWrapper.wrapURL(result.datasetUrl)}" />
+                                <c:set var="dsCardUrlsTarget" value="#{(!lastSearchValue.rootDv and !result.isInTree and widgetWrapper.widgetView) or result.harvested ? '_blank' : ''}" />
+                                <c:set var="dsIsLinked" value="#{!lastSearchValue.rootDv and !result.isInTree}" />
 
                                 <c:set var="dsParentUrl" value="/dataverse/#{result.dataverseAlias}"/>
-                                <c:set var="dsParentUrlFinal" value="#{!SearchIncludeFragment.rootDv and !result.isInTree ? dsParentUrl : widgetWrapper.wrapURL(dvParentAlias)}"/>
+                                <c:set var="dsParentUrlFinal" value="#{!lastSearchValue.rootDv and !result.isInTree ? dsParentUrl : widgetWrapper.wrapURL(dvParentAlias)}"/>
 
 
                                 <div class="card-preview-icon-block text-center">
@@ -558,9 +558,9 @@
 
                                     <h:outputText styleClass="text-muted" value="#{dv:formatDate(result.releaseOrCreateDate)}"/>
 
-                                    <h:outputText styleClass="text-muted" value=" - " rendered="#{result.parent.id != SearchIncludeFragment.dataverse.id}"/>
+                                    <h:outputText styleClass="text-muted" value=" - " rendered="#{result.parent.id != lastSearchValue.dataverseId}"/>
 
-                                    <h:outputLink value="#{dsParentUrl}" target="#{dsCardUrlsTarget}" rendered="#{result.parent.id != SearchIncludeFragment.dataverse.id}">
+                                    <h:outputLink value="#{dsParentUrl}" target="#{dsCardUrlsTarget}" rendered="#{result.parent.id != lastSearchValue.dataverseId}">
                                         <h:outputText value="#{bundle.dataverse}" styleClass="sr-only" />
                                         <h:outputText value="#{result.parent.name}"/>
                                     </h:outputLink>
@@ -596,11 +596,11 @@
                             </div>
                             <!--FILE CARDS-->
                             <div class="fileResult clearfix #{result.unpublishedState ? 'unpublished' : ''}" jsf:rendered="#{result.type eq searchObjectTypeEnum.FILES}">
-                                <c:set var="fileUrlFinal" value="#{!SearchIncludeFragment.rootDv and !result.isInTree ? (result.harvested ? result.fileDatasetUrl : result.fileUrl) : widgetWrapper.wrapURL(result.harvested ? result.fileDatasetUrl : result.fileUrl)}" />
-                                <c:set var="fileCardUrlsTarget" value="#{(!SearchIncludeFragment.rootDv and !result.isInTree and widgetWrapper.widgetView) or result.harvested ? '_blank' : ''}" />
-                                <c:set var="fileIsLinked" value="#{!SearchIncludeFragment.rootDv and !result.isInTree}" />
+                                <c:set var="fileUrlFinal" value="#{!lastSearchValue.rootDv and !result.isInTree ? (result.harvested ? result.fileDatasetUrl : result.fileUrl) : widgetWrapper.wrapURL(result.harvested ? result.fileDatasetUrl : result.fileUrl)}" />
+                                <c:set var="fileCardUrlsTarget" value="#{(!lastSearchValue.rootDv and !result.isInTree and widgetWrapper.widgetView) or result.harvested ? '_blank' : ''}" />
+                                <c:set var="fileIsLinked" value="#{!lastSearchValue.rootDv and !result.isInTree}" />
 
-                                <c:set var="fileParentUrlFinal" value="#{!SearchIncludeFragment.rootDv and !result.isInTree ? result.fileDatasetUrl : widgetWrapper.wrapURL(result.fileDatasetUrl)}"/>
+                                <c:set var="fileParentUrlFinal" value="#{!lastSearchValue.rootDv and !result.isInTree ? result.fileDatasetUrl : widgetWrapper.wrapURL(result.fileDatasetUrl)}"/>
 
                                 <div class="card-preview-icon-block text-center">
                                     <a href="#{fileUrlFinal}" target="#{fileCardUrlsTarget}" tabindex="-1"
