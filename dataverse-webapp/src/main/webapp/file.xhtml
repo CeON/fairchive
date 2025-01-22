@@ -54,12 +54,11 @@
                             <div class="button-block pull-right">
                                 <!-- Email/Share Button Group -->
                                 <div class="btn-group" id="datasetButtonBar" role="group" jsf:rendered="#{!widgetWrapper.widgetView}">
-                                    <p:commandLink class="text-button btn-contact bootstrap-button-tooltip" title="#{bundle['dataset.email.datasetContactBtn']}"
-                                                   update=":contactDialog" oncomplete="primeFacesShowModal('contactForm', this)" actionListener="#{sendFeedbackDialog.initUserInput}">
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.userMessage}" value=""/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.userEmail}" value=""/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.messageSubject}" value=""/>
-                                        <f:setPropertyActionListener target="#{sendFeedbackDialog.feedbackTarget}" value="#{FilePage.fileMetadata.dataFile}"/>
+                                    <p:commandLink class="text-button btn-contact bootstrap-button-tooltip"
+                                                   title="#{bundle['dataset.email.datasetContactBtn']}"
+                                                   update=":contactDialog" 
+                                                   oncomplete="primeFacesShowModal('contactForm', this)" 
+                                                   actionListener="#{sendFeedbackDialog.reset(FilePage.fileMetadata.dataFile)}">
                                         <span class="glyphicon glyphicon-envelope" aria-hidden="true"/> #{bundle['contact.contact']}
                                     </p:commandLink>
                                     <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip" rendered="#{!FilePage.fileMetadata.datasetVersion.deaccessioned}"

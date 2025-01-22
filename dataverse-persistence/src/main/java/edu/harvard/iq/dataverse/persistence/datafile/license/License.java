@@ -1,22 +1,25 @@
 package edu.harvard.iq.dataverse.persistence.datafile.license;
 
-import com.google.common.base.Preconditions;
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.unmodifiableList;
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.CascadeType;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * Entity class representing license.
@@ -34,7 +37,7 @@ public class License implements Serializable, JpaEntity<Long> {
     public static final String CCO_LICENSE_NAME = "CC0 Creative Commons Zero 1.0 Waiver";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -43,7 +46,7 @@ public class License implements Serializable, JpaEntity<Long> {
     @Column(nullable = false)
     private String url;
 
-    @OneToOne(mappedBy = "license", cascade = CascadeType.ALL, optional = true)
+    @OneToOne(mappedBy = "license", cascade = ALL, optional = true)
     private LicenseIcon icon;
 
     private boolean active;
@@ -108,7 +111,7 @@ public class License implements Serializable, JpaEntity<Long> {
      * Returns list with locale specific names of license
      */
     public List<LocaleText> getLocalizedNames() {
-        return Collections.unmodifiableList(localizedNames);
+        return unmodifiableList(this.localizedNames);
     }
 
 
@@ -118,31 +121,28 @@ public class License implements Serializable, JpaEntity<Long> {
      * Adds locale specific name of the license.
      */
     public void addLocalizedName(LocaleText localizedName) {
-        Preconditions.checkNotNull(localizedName);
-        Preconditions.checkArgument(!containsNameWithLocale(localizedName.getLocale()));
+        checkNotNull(localizedName);
+        checkArgument(!containsNameWithLocale(localizedName.getLocale()));
 
-        localizedNames.add(localizedName);
+        this.localizedNames.add(localizedName);
     }
 
     /**
      * Returns true if license already have localized name
      * with the given locale.
      */
-    public boolean containsNameWithLocale(Locale locale) {
-        for (LocaleText localeText : localizedNames) {
-            if (localeText.getLocale().equals(locale)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean containsNameWithLocale(final Locale locale) {       
+        return this.localizedNames.stream()
+                .map(LocaleText::getLocale)
+                .anyMatch(locale::equals);
     }
 
     /**
      * Returns localized version of license name
      * if it exists or {@link #getName()} otherwise.
      */
-    public String getLocalizedName(Locale locale) {
-        for (LocaleText localeText : localizedNames) {
+    public String getLocalizedName(final Locale locale) {
+        for (final LocaleText localeText : this.localizedNames) {
             if (localeText.getLocale().equals(locale)) {
                 return localeText.getText();
             }
@@ -155,7 +155,8 @@ public class License implements Serializable, JpaEntity<Long> {
      * @param locales
      */
     public void removeLocalizedNames(List<Locale> locales) {
-        localizedNames.removeIf(localizedName -> locales.contains(localizedName.getLocale()));
+        this.localizedNames.removeIf(
+                localizedName -> locales.contains(localizedName.getLocale()));
     }
 
     //-------------------- SETTERS --------------------

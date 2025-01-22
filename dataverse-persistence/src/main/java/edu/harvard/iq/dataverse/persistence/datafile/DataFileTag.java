@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Leonid Andreev
@@ -93,14 +94,8 @@ public class DataFileTag implements JpaEntity<Long>, Serializable {
         TagLabelToTypes.put("Geospatial", TagType.Geospatial);
     }
 
-    public static List<String> listTags() {
-        List<String> retlist = new ArrayList<>();
-
-        for (TagType t : TagType.values()) {
-            retlist.add(TagTypeToLabels.get(t));
-        }
-
-        return retlist;
+    public static List<String> listTags() {     
+        return new ArrayList<>(TagLabelToTypes.keySet());
     }
 
     @Column(nullable = false)
@@ -147,17 +142,12 @@ public class DataFileTag implements JpaEntity<Long>, Serializable {
      * @return
      */
     public boolean isGeospatialTag() {
-        if (this.type == null) {
-            return false;
-        }
         return this.type == TagType.Geospatial;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return Objects.hashCode(this.id);
     }
 
     @Override

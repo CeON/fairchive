@@ -480,6 +480,12 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
         return !fileMetadatas.isEmpty()
                 && !PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0).getDataFile().getContentType());
     }
+    
+    public boolean isNewerThan(final DatasetVersion other) {
+        return this.versionNumber.compareTo(other.versionNumber) > 0
+            || (this.versionNumber.equals(other.versionNumber) &&
+                this.minorVersionNumber.compareTo(other.minorVersionNumber) > 0);
+    }
 
     public DatasetVersion cloneDatasetVersion() {
         DatasetVersion cloned = new DatasetVersion();

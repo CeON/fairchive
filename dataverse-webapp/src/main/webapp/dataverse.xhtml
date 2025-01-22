@@ -66,13 +66,8 @@
                                 <p:commandLink styleClass="text-button btn-contact bootstrap-button-tooltip"
                                                title="#{bundle['dataverse.contact']}"
                                                update=":contactDialog" oncomplete="primeFacesShowModal('contactForm', this)"
-                                               actionListener="#{sendFeedbackDialog.initUserInput}">
-                                    <f:setPropertyActionListener target="#{sendFeedbackDialog.userMessage}" value=""/>
-                                    <f:setPropertyActionListener target="#{sendFeedbackDialog.userEmail}" value=""/>
-                                    <f:setPropertyActionListener target="#{sendFeedbackDialog.messageSubject}" value=""/>
+                                               actionListener="#{sendFeedbackDialog.reset(DataversePage.dataverse)}">
                                     <f:param name="DO_VALIDATION" value="false"/>
-                                    <f:setPropertyActionListener target="#{sendFeedbackDialog.feedbackTarget}"
-                                                                 value="#{DataversePage.dataverse}"/>
                                     <span class="glyphicon glyphicon-envelope" aria-hidden="true"/> #{bundle['contact.contact']}
                                 </p:commandLink>
                                 <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"

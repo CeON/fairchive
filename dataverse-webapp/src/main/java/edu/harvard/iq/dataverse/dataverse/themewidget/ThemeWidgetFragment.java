@@ -130,7 +130,7 @@ public class ThemeWidgetFragment implements java.io.Serializable {
         }
 
 
-        if (editDv.getOwner() == null) {
+        if (editDv.isRoot()) {
             editDv.setThemeRoot(true);
         }
         if (editDv.getDataverseTheme() == null && editDv.isThemeRoot()) {
@@ -264,7 +264,7 @@ public class ThemeWidgetFragment implements java.io.Serializable {
     }
 
     public boolean isThemeEnabled() {
-        if (editDv.getOwner() == null) { // is root dataverse
+        if (editDv.isRoot()) {
             return !settingsService.isTrueForKey(Key.DisableRootDataverseTheme);
         }
         return true;

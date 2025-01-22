@@ -7,6 +7,9 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import io.vavr.control.Option;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -180,12 +183,8 @@ public class DatasetDTO {
         // -------------------- PRIVATE --------------------
 
         private String getRootDataverseName(Dataset dataset) {
-            Dataverse root = dataset.getOwner();
-            while (root.getOwner() != null) {
-                root = root.getOwner();
-            }
-            String rootDataverseName = root.getName();
-            return StringUtils.isNotEmpty(rootDataverseName) ? rootDataverseName : StringUtils.EMPTY;
+            String rootDataverseName = dataset.getRoot().getName();
+            return isNotEmpty(rootDataverseName) ? rootDataverseName : EMPTY;
         }
     }
 }

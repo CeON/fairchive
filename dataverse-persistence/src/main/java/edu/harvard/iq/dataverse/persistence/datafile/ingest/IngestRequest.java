@@ -5,18 +5,21 @@
  */
 package edu.harvard.iq.dataverse.persistence.datafile.ingest;
 
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.CascadeType;
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
+
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 
 /**
  * @author Leonid Andreev
@@ -26,7 +29,7 @@ import java.io.Serializable;
 public class IngestRequest implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     public Long getId() {
@@ -37,7 +40,7 @@ public class IngestRequest implements Serializable {
         this.id = id;
     }
 
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(cascade = {MERGE, PERSIST})
     @JoinColumn(name = "datafile_id")
     private DataFile dataFile;
 
@@ -93,17 +96,12 @@ public class IngestRequest implements Serializable {
     }
 
     public boolean isForceTypeCheck() {
-        if (forceTypeCheck != null) {
-            return forceTypeCheck;
-        }
-        return false;
+        return forceTypeCheck != null ? forceTypeCheck : false;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return this.id != null ? this.id.hashCode() : 0;
     }
 
     @Override

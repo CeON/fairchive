@@ -467,13 +467,9 @@
                                             <h:outputText value="#{bundle['user.isShibUser']}" />
                                             <h:outputText value=" #{bundle['user.helpShibUserMigrateOffShibBeforeLink']} " />
                                             <p:commandLink value="#{installationConfig.supportTeamName}"
-                                                           oncomplete="primeFacesShowModal('contactForm', this)" update=":contactDialog"
-                                                           actionListener="#{sendFeedbackDialog.initUserInput}">
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.messageSubject}" value=""/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.feedbackTarget}" value="#{null}"/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.userMessage}" value=""/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.userEmail}" value=""/>
-                                            </p:commandLink>
+                                                           oncomplete="primeFacesShowModal('contactForm', this)" 
+                                                           update=":contactDialog"
+                                                           actionListener="#{sendFeedbackDialog.reset(null)}"/>
                                             <h:outputText value=" #{bundle['user.helpShibUserMigrateOffShibAfterLink']}" />
                                         </p>
                                     </div>
@@ -485,13 +481,9 @@
                                                 <f:param value="#{DataverseUserPage.userAuthProvider.info.title}"/>
                                             </h:outputFormat>
                                             <p:commandLink value="#{installationConfig.supportTeamName}"
-                                                           oncomplete="primeFacesShowModal('contactForm', this)" update=":contactDialog"
-                                                           actionListener="#{sendFeedbackDialog.initUserInput}">
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.messageSubject}" value=""/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.feedbackTarget}" value="#{null}"/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.userMessage}" value=""/>
-                                                <f:setPropertyActionListener target="#{sendFeedbackDialog.userEmail}" value=""/>
-                                            </p:commandLink>
+                                                           oncomplete="primeFacesShowModal('contactForm', this)" 
+                                                           update=":contactDialog"
+                                                           actionListener="#{sendFeedbackDialog.reset(null)}"/>
                                             <h:outputText value=" #{bundle['user.helpOAuthAfterLink']}" />
                                         </p>
                                     </div>

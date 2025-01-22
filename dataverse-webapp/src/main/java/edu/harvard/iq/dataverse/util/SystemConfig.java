@@ -48,7 +48,14 @@ public class SystemConfig {
 
     @Inject
     private SettingsServiceBean settingsService;
-
+    
+    public SystemConfig() {
+    }
+    
+    
+    public SystemConfig(final SettingsServiceBean settingsService) {
+        this.settingsService = settingsService;
+    }
 
     private static String appVersionWithBuild = null;
     private static String appVersion = null;

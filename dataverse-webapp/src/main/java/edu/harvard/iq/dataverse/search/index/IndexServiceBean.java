@@ -205,7 +205,7 @@ public class IndexServiceBean {
             }
         }
 
-        if (dataverse.getOwner() != null) {
+        if (dataverse.isNotRoot()) {
             solrInputDocument.addField(SearchFields.PARENT_ID, dataverse.getOwner().getId());
             solrInputDocument.addField(SearchFields.PARENT_NAME, dataverse.getOwner().getName());
         }
@@ -558,7 +558,7 @@ public class IndexServiceBean {
         List<String> dataversePathIds = new ArrayList<>();
         dataversePathIds.add(dataverse.getId().toString());
 
-        while (dataverse.getOwner() != null) {
+        while (dataverse.isNotRoot()) {
             dataverse = dataverse.getOwner();
             dataversePathIds.add(dataverse.getId().toString());
         }

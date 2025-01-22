@@ -25,7 +25,7 @@ public abstract class DvObjectContainer extends DvObject {
 
     @Override
     public boolean isEffectivelyPermissionRoot() {
-        return isPermissionRoot() || (getOwner() == null);
+        return isPermissionRoot() || isRoot();
     }
 
 }

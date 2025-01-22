@@ -1,6 +1,11 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Locale.ENGLISH;
+
+import java.util.Locale;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
 
 import edu.harvard.iq.dataverse.persistence.DvObject;
 
@@ -53,6 +58,11 @@ public class PrivateUrlUser implements User {
     @Override
     public boolean isSuperuser() {
         return false;
+    }
+    
+    @Override
+    public Locale getNotificationsLanguage() {
+        return ENGLISH;
     }
 
     @Override
