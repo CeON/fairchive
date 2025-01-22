@@ -104,9 +104,7 @@ public class MoveDatasetCommand extends AbstractVoidCommand {
         // generate list of all possible parent dataverses to check against
         List<Dataverse> ownersToCheck = new ArrayList<>();
         ownersToCheck.add(destination);
-        if (destination.getOwners() != null) {
-            ownersToCheck.addAll(destination.getOwners());
-        }
+        ownersToCheck.addAll(destination.getOwners());
 
         // if the dataset is linked to the new dataverse or any of
         // its parent dataverses then remove the link

@@ -17,12 +17,10 @@ import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -41,9 +39,11 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import static java.util.Collections.emptyList;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.FetchType.LAZY;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -218,9 +218,7 @@ public class Dataverse extends DvObjectContainer {
 
     // Note: We can't have "Remove" here, as there are role assignments that refer
     //       to this role. So, adding it would mean violating a forign key contstraint.
-    @OneToMany(cascade = {CascadeType.MERGE},
-            fetch = FetchType.LAZY,
-            mappedBy = "owner")
+    @OneToMany(cascade = {MERGE}, fetch = LAZY, mappedBy = "owner")
     private Set<DataverseRole> roles;
 
     @ManyToOne
@@ -386,7 +384,7 @@ public class Dataverse extends DvObjectContainer {
         Dataverse testDV = this;
         while (testDV.isNotRoot()) {
             retList.addAll(testDV.getOwner().getGuestbooks());
-            if (testDV.getOwner().guestbookRoot) {
+            if (testDV.getOwner().isGuestbookRoot()) {
                 break;
             }
             testDV = testDV.getOwner();
@@ -399,7 +397,7 @@ public class Dataverse extends DvObjectContainer {
         List<Guestbook> retList = new ArrayList<>();
         Dataverse testDV = this;
         List<Guestbook> allGbs = new ArrayList<>();
-        if (!this.guestbookRoot) {
+        if (!this.isGuestbookRoot()) {
             while (testDV.isNotRoot()) {
 
                 allGbs.addAll(testDV.getOwner().getGuestbooks());
@@ -528,7 +526,7 @@ public class Dataverse extends DvObjectContainer {
         String retName = "Parent";
         while (testDV.isNotRoot()) {
             retName = testDV.getOwner().getDisplayName();
-            if (testDV.getOwner().guestbookRoot) {
+            if (testDV.getOwner().isGuestbookRoot()) {
                 break;
             }
             testDV = testDV.getOwner();
@@ -541,7 +539,7 @@ public class Dataverse extends DvObjectContainer {
         String retName = "Parent";
         while (testDV.isNotRoot()) {
             retName = testDV.getOwner().getDisplayName();
-            if (testDV.getOwner().templateRoot) {
+            if (testDV.getOwner().isTemplateRoot()) {
                 break;
             }
             testDV = testDV.getOwner();
@@ -554,7 +552,7 @@ public class Dataverse extends DvObjectContainer {
         String retName = "Parent";
         while (testDV.isNotRoot()) {
             retName = testDV.getOwner().getDisplayName();
-            if (testDV.getOwner().themeRoot) {
+            if (testDV.getOwner().isThemeRoot()) {
                 break;
             }
             testDV = testDV.getOwner();
@@ -573,7 +571,7 @@ public class Dataverse extends DvObjectContainer {
         String retName = "Parent";
         while (testDV.isNotRoot()) {
             retName = testDV.getOwner().getDisplayName();
-            if (testDV.getOwner().facetRoot) {
+            if (testDV.getOwner().isFacetRoot()) {
                 break;
             }
             testDV = testDV.getOwner();
@@ -722,12 +720,9 @@ public class Dataverse extends DvObjectContainer {
     }
 
 
-    public void addRole(DataverseRole role) {
+    public void addRole(final DataverseRole role) {
         role.setOwner(this);
-        if (roles == null) {
-            roles = new HashSet<>();
-        }
-        roles.add(role);
+        getRoles().add(role);
     }
 
     /**
@@ -744,12 +739,13 @@ public class Dataverse extends DvObjectContainer {
     }
 
     public List<Dataverse> getOwners() {
-        List<Dataverse> owners = new ArrayList<>();
         if (isNotRoot()) {
-            owners.addAll(getOwner().getOwners());
+            final List<Dataverse> owners = new ArrayList<>(getOwner().getOwners());
             owners.add(getOwner());
+            return owners;
+        } else {
+            return emptyList();
         }
-        return owners;
     }
     
     public Dataverse getRoot() {
