@@ -272,7 +272,7 @@ function initDvJS() {
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
     }
 
-    // need to call invalidateSize on tab change because leaflet map was not rendered correctly
+    // call invalidateSize to re-render leaflet map
     function render(key, data) {
       let map = data.leafMap
       map.invalidateSize();

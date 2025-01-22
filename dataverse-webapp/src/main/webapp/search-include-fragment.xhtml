@@ -781,7 +781,7 @@
         }
 
          function handleTabChange(i) {
-            // need to call invalidateSize on tab change because leaflet map was not rendered correctly
+            // need to call render on tab change because leaflet map was not displayed correctly
             let isMapTab = i === 1
             if (isMapTab) {
                 DvJS.Geo.SearchResults.render('searchResultMap');
