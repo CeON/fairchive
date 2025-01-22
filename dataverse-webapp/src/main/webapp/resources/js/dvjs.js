@@ -262,10 +262,43 @@ function initDvJS() {
       }
     }
 
+     // SearchResults – methods & data for search results
+
+    let searchResultsData = new Map();
+
+    function initializeMapSearchResults(key, data) {
+      data.leafMap = L.map(key, INIT_MAP_OPTS);
+      let map = data.leafMap;
+      L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
+    }
+
+    // call invalidateSize to re-render leaflet map
+    function render(key, data) {
+      let map = data.leafMap
+      map.invalidateSize();
+    }
+
+    let searchResults = {
+      prepare: function (key) {
+        searchResultsData.set(key, {
+          leafMap: undefined,
+          leafMapInitialized: false,
+        });
+      },
+      initializeAll: function(keyPrefix) {
+        initializeAll(searchResultsData, keyPrefix, initializeMapSearchResults.bind(this));
+      },
+      render: function(key) {
+        let mapData = searchResultsData.get(key);
+        render(key, mapData);
+      }
+    }
+
     return {
       MetadataView: metadataView,
       EditView: editView,
       SearchView: searchView,
+      SearchResults: searchResults,
     };
   }
 
