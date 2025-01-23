@@ -50,7 +50,11 @@ public class ExternalToolHandler {
         Preconditions.checkNotNull(externalTool);
         Preconditions.checkNotNull(dataFile);
 
-        return externalTool.getToolUrl() + getQueryParametersForUrl(externalTool, dataFile, apiToken, localeCode);
+        return getToolUrl(externalTool) + getQueryParametersForUrl(externalTool, dataFile, apiToken, localeCode);
+    }
+    
+    private String getToolUrl(final ExternalTool tool) {
+        return tool.getToolUrl().replace("{siteUrl}", systemConfig.getDataverseSiteUrl());
     }
 
     // -------------------- PRIVATE --------------------
@@ -95,6 +99,8 @@ public class ExternalToolHandler {
         switch (reservedWord) {
             case FILE_ID:
                 return datafile.getId().toString();
+            case FULE_URL:
+                return systemConfig.getDataverseSiteUrl() + "/api/access/datafile/" + datafile.getId();
             case SITE_URL:
                 return systemConfig.getDataverseSiteUrl();
             case API_TOKEN:

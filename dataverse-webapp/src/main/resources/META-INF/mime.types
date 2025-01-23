@@ -39,6 +39,8 @@ image/x-xwindowdump xwd XWD
 application/zip zip ZIP
 application/x-gzip gz GZ
 application/x-tar tar TAR
+application/nxz nxz
+application/ply ply
 # Rdata
 application/octet-stream
 # fits

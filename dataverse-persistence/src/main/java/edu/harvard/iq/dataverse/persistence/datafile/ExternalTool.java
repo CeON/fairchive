@@ -195,6 +195,7 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
         // various REST APIs. For example, "Variable substitutions will be made when a variable is named in {brackets}."
         // from https://swagger.io/specification/#fixed-fields-29 but that's for URLs.
         FILE_ID("fileId"),
+        FULE_URL("fileUrl"),
         SITE_URL("siteUrl"),
         API_TOKEN("apiToken"),
         DATASET_ID("datasetId"),
