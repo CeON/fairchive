@@ -12,14 +12,6 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-
-import java.io.StringReader;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -63,7 +55,7 @@ public class ExternalToolHandler {
     private String getQueryParametersForUrl(ExternalTool externalTool, DataFile datafile, ApiToken apiToken, String localeCode) {
         Dataset dataset = datafile.getLatestFileMetadata().getDatasetVersion().getDataset();
 
-        String queryString = parseToolParameters(externalTool).entrySet().stream()
+        String queryString = externalTool.getToolParametersAsMap().entrySet().stream()
                 .map(keyValue -> new Tuple2<>(keyValue.getKey(), resolvePlaceholder(keyValue.getValue(),
                         datafile, dataset, apiToken, localeCode)))
                 .filter(keyValue -> StringUtils.isNotEmpty(keyValue._2()))
@@ -71,27 +63,6 @@ public class ExternalToolHandler {
                 .collect(Collectors.joining("&"));
 
         return "?" + queryString;
-    }
-
-    private Map<String, String> parseToolParameters(ExternalTool externalTool) {
-        Map<String, String> toolParams = new HashMap<>();
-
-        String toolParameters = externalTool.getToolParameters();
-        JsonReader jsonReader = Json.createReader(new StringReader(toolParameters));
-        JsonObject obj = jsonReader.readObject();
-        JsonArray queryParams = obj.getJsonArray("queryParameters");
-        if (queryParams == null || queryParams.isEmpty()) {
-            return toolParams;
-        }
-
-        queryParams.getValuesAs(JsonObject.class).forEach((queryParam) -> {
-            queryParam.keySet().forEach((key) -> {
-
-                toolParams.put(key, queryParam.getString(key));
-            });
-        });
-
-        return toolParams;
     }
 
     private String resolvePlaceholder(String value, DataFile datafile, Dataset dataset, ApiToken apiToken, String localeCode) {

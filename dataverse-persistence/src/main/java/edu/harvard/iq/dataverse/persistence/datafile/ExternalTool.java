@@ -1,25 +1,32 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import static java.util.Collections.emptyMap;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * A specification or definition for how an external tool is intended to
  * operate. The specification is applied dynamically on a per-file basis through
  * an {@link ExternalToolHandler}.
  */
+@SuppressWarnings("serial")
 @Entity
 public class ExternalTool implements Serializable, JpaEntity<Long> {
 
@@ -29,9 +36,10 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
     public static final String TOOL_URL = "toolUrl";
     public static final String TOOL_PARAMETERS = "toolParameters";
     public static final String CONTENT_TYPE = "contentType";
+    public static final String ID = "id";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     /**
@@ -86,7 +94,9 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
     public ExternalTool() {
     }
 
-    public ExternalTool(String displayName, String description, Type type, String toolUrl, String toolParameters, String contentType) {
+    public ExternalTool(final String displayName, final String description,
+            final Type type,final String toolUrl, final String toolParameters,
+            final String contentType) {
         this.displayName = displayName;
         this.description = description;
         this.type = type;
@@ -106,65 +116,81 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
             this.text = text;
         }
 
-        public static Type fromString(String text) {
-            for (Type type : Type.values()) {
+        public static Type fromString(final String text) {
+            for (final Type type : Type.values()) {
                 if (type.text.equals(text)) {
                     return type;
                 }
             }
-            throw new IllegalArgumentException(String.format("Type must be one of these values: %s.",
-                    Arrays.stream(Type.values())
-                            .map(Type::toString)
-                            .collect(Collectors.joining(", "))));
+            throw new IllegalArgumentException("Type must be one of these values " +
+                    Type.values());
         }
 
         @Override
         public String toString() {
-            return text;
+            return this.text;
         }
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public String getDisplayName() {
-        return displayName;
+        return this.displayName;
     }
 
-    public void setDisplayName(String displayName) {
+    public void setDisplayName(final String displayName) {
         this.displayName = displayName;
     }
 
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(final String description) {
         this.description = description;
     }
 
     public Type getType() {
-        return type;
+        return this.type;
     }
 
     public String getToolUrl() {
-        return toolUrl;
+        return this.toolUrl;
     }
 
-    public void setToolUrl(String toolUrl) {
+    public void setToolUrl(final String toolUrl) {
         this.toolUrl = toolUrl;
     }
 
     public String getToolParameters() {
-        return toolParameters;
+        return this.toolParameters;
+    }
+    
+    private JsonObject getToolParametersAsJSON() {
+        return Json.createReader(new StringReader(this.toolParameters)).readObject();
+    }
+    
+    public Map<String, String> getToolParametersAsMap() {
+        final JsonArray queryParams = getToolParametersAsJSON()
+                .getJsonArray("queryParameters");
+        if (queryParams != null) {
+            final Map<String, String> result = new HashMap<>();
+            for(final JsonObject param : queryParams.getValuesAs(JsonObject.class)) {
+                param.forEach((key, value) -> result.put(key, param.getString(key)));
+            }
+            return result;
+        } else {
+            return emptyMap();
+        }
     }
 
-    public void setToolParameters(String toolParameters) {
+    public void setToolParameters(final String toolParameters) {
         this.toolParameters = toolParameters;
     }
 
@@ -177,8 +203,8 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
     }
 
     public JsonObjectBuilder toJson() {
-        JsonObjectBuilder jab = Json.createObjectBuilder();
-        jab.add("id", getId());
+        final JsonObjectBuilder jab = Json.createObjectBuilder();
+        jab.add(ID, getId());
         jab.add(DISPLAY_NAME, getDisplayName());
         jab.add(DESCRIPTION, getDescription());
         jab.add(TYPE, getType().text);
@@ -203,11 +229,9 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
         LOCALE_CODE("localeCode");
 
         private final String text;
-        private final String START = "{";
-        private final String END = "}";
 
         ReservedWord(final String text) {
-            this.text = START + text + END;
+            this.text = "{" + text + "}";
         }
 
         /**
@@ -218,26 +242,18 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
          *
          * @throws IllegalArgumentException
          */
-        public static ReservedWord fromString(String text) throws IllegalArgumentException {
-            if (text != null) {
-                for (ReservedWord reservedWord : ReservedWord.values()) {
-                    if (text.equals(reservedWord.text)) {
-                        return reservedWord;
-                    }
+        public static ReservedWord fromString(final String text) {
+            for (final ReservedWord reservedWord : ReservedWord.values()) {
+                if (reservedWord.text.equals(text)) {
+                    return reservedWord;
                 }
             }
-            // TODO: Consider switching to a more informative message that enumerates the valid reserved words.
-            boolean moreInformativeMessage = false;
-            if (moreInformativeMessage) {
-                throw new IllegalArgumentException("Unknown reserved word: " + text + ". A reserved word must be one of these values: " + Arrays.asList(ReservedWord.values()) + ".");
-            } else {
-                throw new IllegalArgumentException("Unknown reserved word: " + text);
-            }
+            throw new IllegalArgumentException("Unknown reserved word: " + text);
         }
 
         @Override
         public String toString() {
-            return text;
+            return this.text;
         }
     }
 
