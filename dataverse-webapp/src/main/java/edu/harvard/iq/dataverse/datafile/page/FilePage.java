@@ -263,6 +263,14 @@ public class FilePage implements java.io.Serializable {
                 && !this.fileMetadata.getDatasetVersion().getDataset()
                         .hasActiveEmbargo();
     }
+    
+    public boolean displayDownloadPopup() {
+        return isDownloadPopupRequired() && ! getGuestbookResponseProvided();
+    }
+    
+    public boolean displayPreviewArea() {
+        return !isDownloadPopupRequired() || getGuestbookResponseProvided();
+    }
 
     public boolean canViewUnpublishedDataset() {
         return permissionsWrapper.canViewUnpublishedDataset(fileMetadata.getDatasetVersion().getDataset());
