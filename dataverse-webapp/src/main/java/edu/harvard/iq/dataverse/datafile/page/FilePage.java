@@ -254,6 +254,15 @@ public class FilePage implements java.io.Serializable {
         previewTools = externalToolService.findExternalTools(ExternalTool.Type.PREVIEW, contentType, file, version);
         return null;
     }
+    
+    public boolean displayPreviewTab() {
+        return this.previewTools.size() > 0
+                && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata)
+                && !this.fileMetadata.getDatasetVersion().isDeaccessioned()
+                && !this.fileMetadata.getDatasetVersion().isDraft()
+                && !this.fileMetadata.getDatasetVersion().getDataset()
+                        .hasActiveEmbargo();
+    }
 
     public boolean canViewUnpublishedDataset() {
         return permissionsWrapper.canViewUnpublishedDataset(fileMetadata.getDatasetVersion().getDataset());
