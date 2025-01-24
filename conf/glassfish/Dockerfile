@@ -30,11 +30,15 @@ RUN wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.6.0/postgre
     && echo "Downloaded postgresql lib"
 RUN wget https://repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar \
     && echo "Downloaded commons-logging lib"
+RUN wget https://github.com/prometheus/jmx_exporter/releases/download/1.1.0/jmx_prometheus_javaagent-1.1.0.jar \
+    && echo "Downloaded prometheus javaagent"
 
 # Install Glassfish
 RUN unzip glassfish-*.zip \ 
     && cp postgresql-*.jar glassfish4/glassfish/domains/domain1/lib \
     && cp commons-logging-*.jar glassfish4/glassfish/modules \
+    && mkdir -p /opt/prometheus_javagent \
+    && cp jmx_prometheus_javaagent*.jar /opt/prometheus_javagent \
     && chgrp -R 0 glassfish4 \
     && chmod -R g=u glassfish4 \
     && mv glassfish4 /usr/local \

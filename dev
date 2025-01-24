@@ -7,7 +7,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
   cd "${DATAVERSE_SOURCE_DIR}"
 
   export BUILD_VERSION="dv-1.0"
-  export DATAVERSE_CONFIG_FILES=("conf/glassfish/dataverse.properties" "conf/glassfish/default.config")
+  export DATAVERSE_CONFIG_FILES=("conf/glassfish/dataverse.properties" "conf/glassfish/default.config" "conf/prometheus/prometheus_exporter.yaml")
   export DATAVERSE_LOCAL_WORKING_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/container"
   export DATAVERSE_CONTAINER_WORKING_DIR="/dataverse/dataverse-dist/target/container"
   export DATAVERSE_DIST_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/dist"
@@ -92,7 +92,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
 
   deploy() {
     mkdir -p ${DATAVERSE_LOCAL_WORKING_DIR}
-    cp -u ${DATAVERSE_WAR_PATH} ${DATAVERSE_LOCAL_WORKING_DIR}/dataverse.war
+    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "${DATAVERSE_LOCAL_WORKING_DIR}/dataverse.war"
     asadmin deploy ${DATAVERSE_CONTAINER_WORKING_DIR}/dataverse.war
   }
 
