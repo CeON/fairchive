@@ -258,10 +258,7 @@ public class FilePage implements java.io.Serializable {
     public boolean displayPreviewTab() {
         return this.previewTools.size() > 0
                 && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata)
-                && !this.fileMetadata.getDatasetVersion().isDeaccessioned()
-                && !this.fileMetadata.getDatasetVersion().isDraft()
-                && !this.fileMetadata.getDatasetVersion().getDataset()
-                        .hasActiveEmbargo();
+                && this.fileMetadata.isFilePubliclyAccessible();
     }
     
     public boolean displayDownloadPopup() {

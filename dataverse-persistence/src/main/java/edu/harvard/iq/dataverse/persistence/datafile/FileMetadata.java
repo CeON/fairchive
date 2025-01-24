@@ -355,6 +355,10 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
         return selected;
     }
     
+    public boolean isFilePubliclyAccessible() {
+        return this.datasetVersion.isPubliclyAccessible();
+    }
+    
     public boolean refersToNewerDatasetVersionThan(final FileMetadata other) {
         return this.datasetVersion.isNewerThan(other.datasetVersion);
     }
