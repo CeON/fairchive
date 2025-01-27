@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.persistence.dataverse;
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 import javax.ejb.Singleton;
+
 import java.util.List;
 
 @Singleton
@@ -23,4 +24,40 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
                 .setParameter("ownerId", ownerId)
                 .getResultList();
     }
+    
+    public List<Dataverse> findByOwnerId(final Long ownerId) {
+        return this.em.createQuery(
+                "select object(o) from Dataverse as o where o.owner.id =:ownerId order by o.name",
+                Dataverse.class)
+                .setParameter("ownerId", ownerId)
+                .getResultList();
+    }
+    
+    public Dataverse findRoot() {
+        return this.em
+                .createNamedQuery("SELECT d FROM Dataverse d where d.owner.id=null",
+                        Dataverse.class)
+                .getSingleResult();
+    }
+    
+    public Long countRoots() {
+        return this.em.createQuery(
+                "SELECT count(dv) FROM Dataverse dv WHERE dv.owner.id=null",
+                Long.class)
+                .getSingleResult();
+    }
+    
+    public List<Long> findAllIDs() {
+        return this.em.createQuery("SELECT o.id FROM Dataverse o ORDER BY o.id",
+                Long.class)
+                .getResultList();
+    }
+
+    public List<Long> findAllUnindexedIDs() {
+        return this.em.createQuery(
+                "SELECT o.id FROM Dataverse o WHERE o.indexTime IS null ORDER BY o.id",
+                Long.class)
+                .getResultList();
+    }
+    
 }

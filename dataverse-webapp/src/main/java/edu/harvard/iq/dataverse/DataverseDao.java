@@ -1,33 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
-import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
-import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.group.Group;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
-import edu.harvard.iq.dataverse.persistence.user.Permission;
-import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
-import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
 
@@ -41,7 +13,35 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
+import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
+import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.persistence.group.Group;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
+import edu.harvard.iq.dataverse.persistence.user.Permission;
+import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
+import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 
 /**
  * @author gdurand
@@ -74,6 +74,9 @@ public class DataverseDao implements java.io.Serializable {
 
     @EJB
     private PermissionServiceBean permissionService;
+    
+    @EJB
+    private DataverseRepository dataverseRepo;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -137,17 +140,14 @@ public class DataverseDao implements java.io.Serializable {
         return typedQuery.getResultList();
     }
 
-    public List<Long> findDataverseIdsForIndexing(boolean skipIndexed) {
-        final String query = skipIndexed 
-                ? "SELECT o.id FROM Dataverse o WHERE o.indexTime IS null ORDER BY o.id"
-                : "SELECT o.id FROM Dataverse o ORDER BY o.id";
-        return em.createQuery(query, Long.class).getResultList();
-
+    public List<Long> findDataverseIdsForIndexing(final boolean skipIndexed) {      
+        return skipIndexed 
+                ? this.dataverseRepo.findAllUnindexedIDs()
+                : this.dataverseRepo.findAllIDs();
     }
 
-    public List<Dataverse> findByOwnerId(Long ownerId) {
-        return em.createNamedQuery("Dataverse.findByOwnerId", Dataverse.class)
-                .setParameter("ownerId", ownerId).getResultList();
+    public List<Dataverse> findByOwnerId(final Long ownerId) {
+        return this.dataverseRepo.findByOwnerId(ownerId);
     }
 
     public List<Long> findIdsByOwnerId(Long ownerId) {
@@ -161,7 +161,7 @@ public class DataverseDao implements java.io.Serializable {
      * NoResultException which is a RuntimeException?
      */
     public Dataverse findRootDataverse() {
-        return em.createNamedQuery("Dataverse.findRoot", Dataverse.class).getSingleResult();
+        return this.dataverseRepo.findRoot();
     }
     
     public String getRootDataverseName() {
@@ -194,8 +194,7 @@ public class DataverseDao implements java.io.Serializable {
     }
 
     public boolean isRootDataverseExists() {
-        long count = em.createQuery("SELECT count(dv) FROM Dataverse dv WHERE dv.owner.id=null", Long.class).getSingleResult();
-        return (count == 1);
+        return this.dataverseRepo.countRoots() == 1;
     }
 
     public String determineDataversePath(Dataverse dataverse) {
@@ -343,8 +342,7 @@ public class DataverseDao implements java.io.Serializable {
     }
 
     public Long countDataverses() {
-        TypedQuery<Long> countQuery = em.createQuery("SELECT count(dv) FROM Dataverse dv", Long.class);
-        return countQuery.getSingleResult();
+        return this.dataverseRepo.countAll();
     }
 
     public Long countDataversesWithParent(Long parentId) {

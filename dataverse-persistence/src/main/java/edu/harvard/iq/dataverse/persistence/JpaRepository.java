@@ -50,7 +50,7 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
         final CriteriaQuery<Long> query = builder.createQuery(Long.class);
         query.select(builder.count(query.from(this.entityClass)));
         
-        return em.createQuery(query).getSingleResult();
+        return this.em.createQuery(query).getSingleResult();
     }
 
     @Override
