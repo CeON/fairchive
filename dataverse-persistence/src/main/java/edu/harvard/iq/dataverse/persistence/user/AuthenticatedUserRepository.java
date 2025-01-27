@@ -79,6 +79,12 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
                 notErased);
         }
     }
+    
+    public Long getSuperUserCount() {
+        return this.em.createQuery(
+                "SELECT count(au) FROM AuthenticatedUser au WHERE au.superuser = true",
+                Long.class).getSingleResult();
+    }
 
     // -------------------- INNER CLASSES --------------------
 
