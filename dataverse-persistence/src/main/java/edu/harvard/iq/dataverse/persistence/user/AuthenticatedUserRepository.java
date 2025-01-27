@@ -97,12 +97,10 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
             this.text = text;
         }
 
-        public static SortKey fromString(String text) {
-            if (text != null) {
-                for (SortKey sortKey : SortKey.values()) {
-                    if (text.equals(sortKey.text)) {
-                        return sortKey;
-                    }
+        public static SortKey fromString(final String text) {
+            for (SortKey sortKey : SortKey.values()) {
+                if (sortKey.text.equals(text)) {
+                    return sortKey;
                 }
             }
             return SortKey.ID;
@@ -110,7 +108,7 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
 
         @Override
         public String toString() {
-            return text;
+            return this.text;
         }
     }
 }
