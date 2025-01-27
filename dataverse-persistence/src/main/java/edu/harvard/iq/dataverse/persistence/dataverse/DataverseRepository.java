@@ -16,9 +16,10 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
 
     // -------------------- LOGIC --------------------
 
-    public List<Dataverse> findPublishedByOwnerId(Long ownerId) {
-        String query = "select d from Dataverse d where d.owner.id =:ownerId and d.publicationDate is not null order by d.name";
-        return em.createQuery(query, Dataverse.class)
+    public List<Dataverse> findPublishedByOwnerId(final Long ownerId) {
+        return this.em.createQuery(
+                "select d from Dataverse d where d.owner.id =:ownerId and d.publicationDate is not null order by d.name",
+                Dataverse.class)
                 .setParameter("ownerId", ownerId)
                 .getResultList();
     }
