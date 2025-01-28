@@ -35,9 +35,9 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
     }
     
     public Dataverse findRoot() {
-        return this.em
-                .createNamedQuery("SELECT d FROM Dataverse d where d.owner.id=null",
-                        Dataverse.class)
+        return this.em.createQuery(
+                "SELECT d FROM Dataverse d where d.owner.id=null",
+                Dataverse.class)
                 .getSingleResult();
     }
     
@@ -63,7 +63,7 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
     
     public Optional<Dataverse> findByAlias(String anAlias) {
         return getSingleResult(
-                this.em.createNamedQuery(
+                this.em.createQuery(
                         "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias)=:alias",
                         Dataverse.class)
                         .setParameter("alias", anAlias.toLowerCase()));
