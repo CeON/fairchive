@@ -126,7 +126,7 @@ public class ExternalToolServiceBean {
         ExternalTool.Type type = ExternalTool.Type.fromString(typeUserInput);
         String toolUrl = getRequiredTopLevelField(jsonObject, ExternalTool.TOOL_URL);
         JsonObject toolParametersObj = jsonObject.getJsonObject(ExternalTool.TOOL_PARAMETERS);
-        JsonArray queryParams = toolParametersObj.getJsonArray("queryParameters");
+        JsonArray queryParams = toolParametersObj.getJsonArray(ExternalTool.QUERY_PARAMETERS);
         boolean allRequiredReservedWordsFound = false;
         for (JsonObject queryParam : queryParams.getValuesAs(JsonObject.class)) {
             Set<String> keyValuePair = queryParam.keySet();

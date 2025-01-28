@@ -37,6 +37,7 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
     public static final String TOOL_PARAMETERS = "toolParameters";
     public static final String CONTENT_TYPE = "contentType";
     public static final String ID = "id";
+    public static final String QUERY_PARAMETERS = "queryParameters";
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -178,7 +179,7 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
     
     public Map<String, String> getToolParametersAsMap() {
         final JsonArray queryParams = getToolParametersAsJSON()
-                .getJsonArray("queryParameters");
+                .getJsonArray(QUERY_PARAMETERS);
         if (queryParams != null) {
             final Map<String, String> result = new HashMap<>();
             for(final JsonObject param : queryParams.getValuesAs(JsonObject.class)) {
