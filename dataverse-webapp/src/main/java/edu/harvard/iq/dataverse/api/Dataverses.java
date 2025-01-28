@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.api;
 
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
-import edu.harvard.iq.dataverse.MetadataBlockDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
 import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
@@ -60,6 +59,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
@@ -148,7 +148,7 @@ public class Dataverses extends AbstractApiBean {
     private PermissionServiceBean permissionSvc;
 
     @Inject
-    private MetadataBlockDao metadataBlockDao;
+    private MetadataBlockRepository metadataBlockRepo;
 
     @POST
     @ApiWriteOperation
@@ -489,13 +489,15 @@ public class Dataverses extends AbstractApiBean {
         List<MetadataBlock> blocks = new LinkedList<>();
         try {
             for (JsonValue blockId : Util.asJsonArray(blockIds).getValuesAs(JsonValue.class)) {
-                MetadataBlock blk = (blockId.getValueType() == ValueType.NUMBER)
-                        ? metadataBlockDao.findById(((JsonNumber) blockId).longValue())
-                        : metadataBlockDao.findByName(((JsonString) blockId).getString());
-                if (blk == null) {
+                Optional<MetadataBlock> blk = (blockId.getValueType() == ValueType.NUMBER)
+                        ? metadataBlockRepo.findById(((JsonNumber) blockId).longValue())
+                        : metadataBlockRepo.findByName(((JsonString) blockId).getString());
+                if (blk.isPresent()) {
+                    blocks.add(blk.get());
+                } else {
                     return error(Response.Status.BAD_REQUEST, "Can't find metadata block '" + blockId + "'");
                 }
-                blocks.add(blk);
+                
             }
         } catch (Exception e) {
             return error(Response.Status.BAD_REQUEST, e.getMessage());

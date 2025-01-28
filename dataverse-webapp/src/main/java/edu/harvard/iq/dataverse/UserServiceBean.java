@@ -84,11 +84,7 @@ public class UserServiceBean {
      * Return the number of superusers -- for the dashboard
      */
     public Long getSuperUserCount() {
-        String qstr = "SELECT count(au) FROM AuthenticatedUser au WHERE au.superuser = :superuserTrue";
-        Query query = em.createQuery(qstr);
-        query.setParameter("superuserTrue", true);
-
-        return (Long) query.getSingleResult();
+        return this.authenticatedUserRepository.getSuperUserCount();
     }
 
     public Long getTotalUserCount() {
