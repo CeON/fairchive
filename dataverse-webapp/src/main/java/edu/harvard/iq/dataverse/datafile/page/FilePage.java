@@ -265,7 +265,7 @@ public class FilePage implements java.io.Serializable {
     }
     
     public boolean displayDownloadPopup() {
-        return isDownloadPopupRequired() && ! getGuestbookResponseProvided();
+        return isDownloadPopupRequired() && !getGuestbookResponseProvided();
     }
     
     public boolean displayPreviewArea() {
