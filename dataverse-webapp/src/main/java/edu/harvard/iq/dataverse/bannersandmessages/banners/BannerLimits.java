@@ -12,7 +12,7 @@ public class BannerLimits {
     public BannerLimits() {
         maxWidth = 728;
         maxHeight = 90;
-        maxSizeInBytes = 100000;
+        maxSizeInBytes = 1000000;
     }
 
     public BannerLimits(int maxWidth, int maxHeight, int maxSizeInBytes) {
