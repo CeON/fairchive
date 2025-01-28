@@ -314,7 +314,7 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
         }
         dsf.setInputRendererType(InputRendererType.valueOf(values[15]));
         dsf.setInputRendererOptions(values[16]);
-        dsf.setMetadataBlock(dataverseDao.findMDBByName(values[17]));
+        dsf.setMetadataBlock(this.metadataBlockRepo.findByName(values[17]).get());
         setIfNotEmpty(dsf::setUri, 18, values);
         setIfNotEmpty(dsf::setValidation, 19, values);
         setIfNotEmpty(v -> dsf.setMetadata(jsonMapConverter.convertToEntityAttribute(v)), 20, values);

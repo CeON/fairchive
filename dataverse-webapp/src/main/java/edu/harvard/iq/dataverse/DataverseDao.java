@@ -34,6 +34,7 @@ import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.group.Group;
@@ -197,31 +198,6 @@ public class DataverseDao implements java.io.Serializable {
             dataversePath.append("/").append(segment);
         }
         return dataversePath.toString();
-    }
-
-    public MetadataBlock findMDB(Long id) {
-        return em.find(MetadataBlock.class, id);
-    }
-
-    public MetadataBlock findMDBByName(String name) {
-        return em.createQuery("select m from MetadataBlock m WHERE m.name=:name", MetadataBlock.class)
-                .setParameter("name", name)
-                .getSingleResult();
-    }
-
-    public List<MetadataBlock> findAllMetadataBlocks() {
-        return em.createQuery("select object(o) from MetadataBlock as o order by o.id", MetadataBlock.class).getResultList();
-    }
-
-    public List<MetadataBlock> findSystemMetadataBlocks() {
-        String qr = "select object(o) from MetadataBlock as o where o.owner.id=null  order by o.id";
-        return em.createQuery(qr, MetadataBlock.class).getResultList();
-    }
-
-    public List<MetadataBlock> findMetadataBlocksByDataverseId(Long dataverse_id) {
-        String qr = "select object(o) from MetadataBlock as o where o.owner.id=:dataverse_id order by o.id";
-        return em.createQuery(qr, MetadataBlock.class)
-                .setParameter("dataverse_id", dataverse_id).getResultList();
     }
 
     public String getDataverseLogoThumbnailFilePath(Long dvId) {
