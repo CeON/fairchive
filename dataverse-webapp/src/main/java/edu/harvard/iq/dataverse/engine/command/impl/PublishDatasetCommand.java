@@ -59,7 +59,7 @@ public class PublishDatasetCommand extends AbstractPublishDatasetCommand<Publish
     @Override
     public PublishDatasetResult execute(CommandContext ctxt) {
 
-        verifyCommandArguments();
+        verifyCommandArguments(ctxt);
 
         // Invariant 1: If we're here, publishing the dataset makes sense, from a "business logic" point of view.
         // Invariant 2: The latest version of the dataset is the one being published, EVEN IF IT IS NOT DRAFT.
@@ -164,7 +164,7 @@ public class PublishDatasetCommand extends AbstractPublishDatasetCommand<Publish
      *
      * @throws IllegalCommandException if the publication request is invalid.
      */
-    private void verifyCommandArguments() throws IllegalCommandException {
+    private void verifyCommandArguments(CommandContext ctxt) throws IllegalCommandException {
         if (!getDataset().getOwner().isReleased()) {
             throw new IllegalCommandException("This dataset may not be published because its host dataverse (" + getDataset().getOwner().getAlias() + ") has not been published.",
                                               this);
@@ -185,7 +185,8 @@ public class PublishDatasetCommand extends AbstractPublishDatasetCommand<Publish
                     .collect(joining(","))+ ". Please try publishing later.", this);
         }
 
-        if (getDataset().getLatestVersion().getFileMetadatas().isEmpty()) {
+        if (!ctxt.settings().isTrueForKey(SettingsServiceBean.Key.AllowDatasetPublishWithoutFiles)
+                && getDataset().getLatestVersion().getFileMetadatas().isEmpty()) {
             throw new NoDatasetFilesException("There was no files for dataset version with id: " + getDataset().getLatestVersion().getId());
         }
 

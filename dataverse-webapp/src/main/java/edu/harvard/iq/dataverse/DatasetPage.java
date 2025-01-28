@@ -86,12 +86,14 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRelPublication;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -108,6 +110,16 @@ import io.vavr.control.Try;
 public class DatasetPage implements Serializable {
 
     private static final Logger logger = Logger.getLogger(DatasetPage.class.getCanonicalName());
+
+    public enum PublishButtonCase {
+        DO_NOT_SHOW,
+        NO_FILES_IN_DATASET,
+        PARENT_NOT_RELEASED_NO_PERMISSION_TO_PUBLISH,
+        PARENT_AND_GRANDPARENT_NOT_RELEASED,
+        PARENT_NOT_RELEASED_CAN_PUBLISH,
+        PUBLISH_NOT_RELEASED,
+        PUBLISH_RELEASED
+    }
 
     private DataverseSession session;
     private EjbDataverseEngine commandEngine;
@@ -320,10 +332,29 @@ public class DatasetPage implements Serializable {
         return permissionsWrapper.canManagePermissions(dataset);
     }
 
-    public boolean isLatestDatasetWithAnyFilesIncluded(){
-       isLatestDatasetWithAnyFilesIncluded = Optional.of(isLatestDatasetWithAnyFilesIncluded.orElseGet(() -> datasetPageFacade.isLatestDatasetWithAnyFilesIncluded(dataset.getLatestVersion().getId())));
+    public PublishButtonCase showPublishButtonCase() {
+        if (dataset.getLatestVersion().getVersionState() != VersionState.DRAFT || !canPublishDataset()) {
+            return PublishButtonCase.DO_NOT_SHOW;
+        }
+        if (!latestDatasetHasFileOrPublishingWithoutFilesAllowed()) {
+            return PublishButtonCase.NO_FILES_IN_DATASET;
+        }
+        if (!dataset.getOwner().isReleased()) {
+            if (!canPublishDataverse()) {
+                return PublishButtonCase.PARENT_NOT_RELEASED_NO_PERMISSION_TO_PUBLISH;
+            } else if (dataset.getOwner().getOwner() != null && !dataset.getOwner().getOwner().isReleased()) {
+                return PublishButtonCase.PARENT_AND_GRANDPARENT_NOT_RELEASED;
+            } else {
+                return PublishButtonCase.PARENT_NOT_RELEASED_CAN_PUBLISH;
+            }
+        }
 
-       return isLatestDatasetWithAnyFilesIncluded.get();
+        return dataset.isReleased() ? PublishButtonCase.PUBLISH_RELEASED : PublishButtonCase.PUBLISH_NOT_RELEASED;
+    }
+
+    public boolean latestDatasetHasFileOrPublishingWithoutFilesAllowed() {
+        return settingsService.isTrueForKey(Key.AllowDatasetPublishWithoutFiles) ||
+                isLatestDatasetWithAnyFilesIncluded();
     }
 
     public boolean canViewUnpublishedDataset() {
@@ -1302,6 +1333,8 @@ public class DatasetPage implements Serializable {
     public Optional<StreamedContent> getLicenseIconContent(FileTermsOfUse termsOfUse) {
         return termsOfUse.getIcon().map(this::toStreamedContent);
     }
+
+    // -------------------- PRIVATE ---------------------
     
     private DefaultStreamedContent toStreamedContent(final LicenseIcon icon) {
         return DefaultStreamedContent.builder()
@@ -1310,7 +1343,11 @@ public class DatasetPage implements Serializable {
                 .build();
     }
 
-    // -------------------- PRIVATE ---------------------
+    private boolean isLatestDatasetWithAnyFilesIncluded(){
+       isLatestDatasetWithAnyFilesIncluded = Optional.of(isLatestDatasetWithAnyFilesIncluded.orElseGet(() -> datasetPageFacade.isLatestDatasetWithAnyFilesIncluded(dataset.getLatestVersion().getId())));
+
+       return isLatestDatasetWithAnyFilesIncluded.get();
+    }
 
     private void validateVersusMaximumDate(FacesContext context, UIComponent toValidate, Object embargoDate) {
         if(isMaximumEmbargoLengthSet() &&

@@ -294,6 +294,11 @@ public class SettingsServiceBean {
          */
         DatasetPublishPopupCustomTextOnAllVersions,
         /**
+         * If true then it is possible to publish a Dataset that do not have
+         * any file
+         */
+        AllowDatasetPublishWithoutFiles,
+        /**
          * Whether Harvesting (OAI) service is enabled
          */
         OAIServerEnabled,
