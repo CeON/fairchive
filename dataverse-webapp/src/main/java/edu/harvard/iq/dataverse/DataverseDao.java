@@ -173,17 +173,10 @@ public class DataverseDao implements java.io.Serializable {
      * belongs to the Center for Astrophysics, we don't want to allow Code for
      * America to start using "CFA". Force all queries to be lower case.
      */
-    public Dataverse findByAlias(String anAlias) {
-        try {
-            return (anAlias.equalsIgnoreCase(":root"))
-                    ? findRootDataverse()
-                    : em.createNamedQuery("Dataverse.findByAlias", Dataverse.class)
-                    .setParameter("alias", anAlias.toLowerCase())
-                    .getSingleResult();
-        } catch (NoResultException | NonUniqueResultException ex) {
-            logger.fine("Unable to find a single dataverse using alias \"" + anAlias + "\": " + ex);
-            return null;
-        }
+    public Dataverse findByAlias(final String alias) {
+        return alias.equalsIgnoreCase(":root")
+                ? this.dataverseRepo.findRoot()
+                : this.dataverseRepo.findByAlias(alias).orElse(null);
     }
 
     public boolean hasData(Dataverse dv) {

@@ -1,10 +1,11 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import java.util.List;
+import java.util.Optional;
 
 import javax.ejb.Singleton;
 
-import java.util.List;
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Singleton
 public class DataverseRepository extends JpaRepository<Long, Dataverse> {
@@ -58,6 +59,14 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
                 "SELECT o.id FROM Dataverse o WHERE o.indexTime IS null ORDER BY o.id",
                 Long.class)
                 .getResultList();
+    }
+    
+    public Optional<Dataverse> findByAlias(String anAlias) {
+        return getSingleResult(
+                this.em.createNamedQuery(
+                        "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias)=:alias",
+                        Dataverse.class)
+                        .setParameter("alias", anAlias.toLowerCase()));
     }
     
 }
