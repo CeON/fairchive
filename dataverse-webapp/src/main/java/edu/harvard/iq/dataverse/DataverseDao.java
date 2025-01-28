@@ -21,8 +21,6 @@ import javax.inject.Named;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
@@ -33,8 +31,6 @@ import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.group.Group;
@@ -102,8 +98,7 @@ public class DataverseDao implements java.io.Serializable {
     }
 
     public List<Dataverse> findAll() {
-        return this.em.createNamedQuery("Dataverse.findAll", Dataverse.class)
-                .getResultList();
+        return this.dataverseRepo.findAll();
     }
     
     /**
