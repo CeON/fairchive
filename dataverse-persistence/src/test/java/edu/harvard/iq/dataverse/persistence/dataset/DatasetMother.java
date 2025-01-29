@@ -1,10 +1,11 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.test.WithTestClock;
-
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.function.Consumer;
+
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.test.WithTestClock;
 
 public final class DatasetMother implements WithTestClock {
 
@@ -18,6 +19,16 @@ public final class DatasetMother implements WithTestClock {
 
     public static Dataset givenDataset() {
         Dataset dataset = new Dataset();
+        dataset.setCreateDate(new Timestamp(clock.millis()));
+        dataset.setModificationTime(new Timestamp(clock.millis()));
+        dataset.getLatestVersion().setCreateTime(new Timestamp(clock.millis()));
+        dataset.getLatestVersion().setLastUpdateTime(new Timestamp(clock.millis()));
+        return dataset;
+    }
+    
+    public static Dataset givenDataset(Dataverse owner)  {
+        Dataset dataset = new Dataset();
+        dataset.setOwner(owner);
         dataset.setCreateDate(new Timestamp(clock.millis()));
         dataset.setModificationTime(new Timestamp(clock.millis()));
         dataset.getLatestVersion().setCreateTime(new Timestamp(clock.millis()));
