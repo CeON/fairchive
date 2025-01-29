@@ -9,7 +9,6 @@ import edu.harvard.iq.dataverse.DatasetLinkingServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
-import edu.harvard.iq.dataverse.MetadataBlockDao;
 import edu.harvard.iq.dataverse.UserServiceBean;
 import edu.harvard.iq.dataverse.api.dto.ApiErrorResponseDTO;
 import edu.harvard.iq.dataverse.api.dto.ApiResponseDTO;
@@ -24,6 +23,7 @@ import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DataverseLinkingDataverse;
@@ -90,7 +90,7 @@ public abstract class AbstractApiBean {
     protected DatasetFieldServiceBean datasetFieldSvc;
 
     @EJB
-    protected MetadataBlockDao metadataBlockSvc;
+    protected MetadataBlockRepository metadataBlockRepo;
 
     @EJB
     protected UserServiceBean userSvc;
@@ -197,7 +197,7 @@ public abstract class AbstractApiBean {
     private final LazyRef<JsonParser> jsonParserRef = new LazyRef<>(new Callable<JsonParser>() {
         @Override
         public JsonParser call() throws Exception {
-            return new JsonParser(datasetFieldSvc, metadataBlockSvc, settingsSvc);
+            return new JsonParser(datasetFieldSvc, metadataBlockRepo, settingsSvc);
         }
     });
 

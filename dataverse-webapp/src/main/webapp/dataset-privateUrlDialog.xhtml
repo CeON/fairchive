@@ -30,18 +30,19 @@
                     <span class="glyphicon glyphicon-warning-sign" />
                     #{bundle['dataset.anonymized.privateurl.warning']}
                 </p>
-				<div jsf:rendered="#{dialog.displayUrl()}" class="highlight"
-					onclick="if (event.target) {
-                                            selectText(event.target);
-                                        } else {
-                                            selectText(this);
-                                        }">
+				<div jsf:rendered="#{dialog.displayUrl()}" 
+				     class="highlight">
 					<p jsf:rendered="#{dialog.displaySuccessMessage()}"
 						class="text-success highlightBold">
 						<span class="glyphicon glyphicon glyphicon-ok" />
 						#{bundle['dataset.privateurl.createdSuccess']}
 					</p>
-					<p class="no-margin-bottom">#{dialog.getUrl()}</p>
+					<p class="no-margin-bottom">
+					   <h:outputText value="#{dialog.getUrl()}"/>
+					   <span class="btn glyphicon glyphicon-copy"
+					         title="#{bundle['copyToClipboard']}"
+					         onclick="navigator.clipboard.writeText('#{dialog.getUrl()}');"/>
+					</p>
 				</div>
 			</div>
 			<div class="button-block">

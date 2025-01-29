@@ -1,11 +1,11 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
-import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type;
+import java.util.List;
 
 import javax.ejb.Stateless;
-import javax.persistence.TypedQuery;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type;
 
 @Stateless
 public class ExternalToolRepository extends JpaRepository<Long, ExternalTool> {
@@ -18,17 +18,21 @@ public class ExternalToolRepository extends JpaRepository<Long, ExternalTool> {
 
     // -------------------- LOGIC --------------------
 
-    public List<ExternalTool> findByType(Type type, String contentType) {
+    public List<ExternalTool> findByType(final Type type, final String contentType) {
+        return this.em.createQuery(
+                "SELECT OBJECT(o) FROM ExternalTool AS o " +
+                        "WHERE o.type = :type AND o.contentType = :contentType",
+                ExternalTool.class)
+                .setParameter("type", type)
+                .setParameter("contentType", contentType)
+                .getResultList();
+    }
 
-        // If contentType==null, get all tools of the given ExternalTool.Type
-        TypedQuery<ExternalTool> typedQuery = em.createQuery(
-                "SELECT OBJECT(o) FROM ExternalTool AS o WHERE o.type = :type"
-                        + (contentType != null ? " AND o.contentType = :contentType" : ""),
-                ExternalTool.class);
-        typedQuery.setParameter("type", type);
-        if (contentType != null) {
-            typedQuery.setParameter("contentType", contentType);
-        }
-        return typedQuery.getResultList();
+    public List<ExternalTool> findByType(final Type type) {
+        return this.em.createQuery(
+                "SELECT OBJECT(o) FROM ExternalTool AS o WHERE o.type = :type",
+                ExternalTool.class)
+                .setParameter("type", type)
+                .getResultList();
     }
 }

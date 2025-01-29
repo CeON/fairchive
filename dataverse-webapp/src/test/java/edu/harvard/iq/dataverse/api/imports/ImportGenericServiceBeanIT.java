@@ -3,10 +3,10 @@ package edu.harvard.iq.dataverse.api.imports;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
-import edu.harvard.iq.dataverse.MetadataBlockDao;
 import edu.harvard.iq.dataverse.api.dto.DatasetDTO;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
@@ -35,7 +35,7 @@ public class ImportGenericServiceBeanIT extends WebappArquillianDeployment {
     private DatasetFieldServiceBean datasetFieldService;
 
     @Inject
-    private MetadataBlockDao metadataBlockDao;
+    private MetadataBlockRepository metadataBlockRepo;
 
     @Inject
     private SettingsServiceBean settingsService;
@@ -61,7 +61,7 @@ public class ImportGenericServiceBeanIT extends WebappArquillianDeployment {
         JsonReader jsonReader = Json.createReader(new StringReader(json));
         JsonObject obj = jsonReader.readObject();
 
-        JsonParser parser = new JsonParser(datasetFieldService, metadataBlockDao, settingsService);
+        JsonParser parser = new JsonParser(datasetFieldService, metadataBlockRepo, settingsService);
         return parser.parseDataset(obj);
     }
 }
