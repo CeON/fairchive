@@ -136,7 +136,7 @@ class SamlSessionRegistryTest {
             @Override public void log(ActionLogRecord rec) { }
         };
         DataverseSession session = new DataverseSession(actionLogServiceBean, null);
-        session.logOut();
+        session.logIn(user);
         return session;
     }
 
