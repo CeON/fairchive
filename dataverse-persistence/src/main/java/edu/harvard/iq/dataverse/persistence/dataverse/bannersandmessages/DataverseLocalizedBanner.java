@@ -3,8 +3,12 @@ package edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Optional;
 
+import javax.imageio.ImageIO;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -55,6 +59,20 @@ public class DataverseLocalizedBanner {
 
     public byte[] getImage() {
         return this.image;
+    }
+    
+    private BufferedImage getBufferedImage() throws IOException {
+        return ImageIO.read(new ByteArrayInputStream(this.image));
+    }
+    
+    public boolean isImageWithin(final int maxWidth, final int maxHeight)
+            throws IOException {
+        final BufferedImage img = getBufferedImage();
+        if(img != null) {
+            return img.getWidth() > maxWidth || img.getHeight() > maxHeight;
+        } else {
+            throw new IOException("Unsupported image format");
+        }
     }
 
     public void setImage(final byte[] image) {

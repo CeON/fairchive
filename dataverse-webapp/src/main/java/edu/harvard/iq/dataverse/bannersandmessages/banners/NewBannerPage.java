@@ -6,8 +6,10 @@ import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import javax.ejb.EJB;
 import javax.faces.application.FacesMessage;
@@ -28,16 +30,18 @@ import edu.harvard.iq.dataverse.bannersandmessages.UnsupportedLanguageCleaner;
 import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.BannerMapper;
 import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseBannerDto;
 import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseLocalizedBannerDto;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.BannerErrorHandler;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.DataverseTextMessageValidator;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustBeAFutureDate;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustNotBeEarlierThanStartingDate;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator;
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBanner;
-import edu.harvard.iq.dataverse.util.JsfHelper;
+import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseLocalizedBanner;
+import edu.harvard.iq.dataverse.util.UIMessages;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("EditBannerPage")
 public class NewBannerPage implements Serializable {
@@ -47,9 +51,6 @@ public class NewBannerPage implements Serializable {
 
     @Inject
     private PermissionsWrapper permissionsWrapper;
-
-    @Inject
-    private BannerErrorHandler errorHandler;
 
     @Inject
     private BannerMapper mapper;
@@ -62,6 +63,9 @@ public class NewBannerPage implements Serializable {
 
     @Inject
     private BannerLimits bannerLimits;
+    
+    @Inject
+    private UIMessages uiMessages;
     
     
     private Long dataverseId;
@@ -110,15 +114,14 @@ public class NewBannerPage implements Serializable {
                             .build();
     }
     
-    public void uploadFileEvent(FileUploadEvent event) {
+    public void uploadFileEvent(final FileUploadEvent event) {
         
         if (ImageValidator.isImageResolutionTooBig(event.getFile().getContent(),
                 bannerLimits.getMaxWidth(), bannerLimits.getMaxHeight())) {
-            
-            FacesContext context = FacesContext.getCurrentInstance();
-            context.validationFailed();
-            FacesMessage message = new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("dataversemessages.banners.resolutionError"));
-            FacesContext.getCurrentInstance().addMessage(event.getComponent().getClientId(context), message);
+                  
+            this.uiMessages.addComponentErrorMessage(event.getComponent(),
+                    getStringFromBundle("messages.error"),
+                    getStringFromBundle("dataversemessages.banners.resolutionError"));
             return;
         }
         
@@ -138,15 +141,14 @@ public class NewBannerPage implements Serializable {
         DataverseBanner banner =
                 mapper.mapToEntity(dto, this.dataverseRepo.findById(dto.getDataverseId()).get());
 
-        banner.getDataverseLocalizedBanner().forEach(dlb ->
-                                                             errorHandler.handleBannerAddingErrors(banner, dlb, FacesContext.getCurrentInstance()));
+        banner.getDataverseLocalizedBanner().forEach(dlb -> handleBannerAddingErrors(banner, dlb, FacesContext.getCurrentInstance()));
 
         if (errorsOccurred()) {
             return EMPTY;
         }
 
         dao.save(banner);
-        JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataversemessages.banners.new.success"));
+        this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataversemessages.banners.new.success"));
         return redirectToTextMessages();
     }
 
@@ -171,7 +173,37 @@ public class NewBannerPage implements Serializable {
             throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("textmessages.endDateTime.future")));
         }
     }
+    
+    public List<FacesMessage> handleBannerAddingErrors(DataverseBanner banner,
+            DataverseLocalizedBanner dlb,
+            FacesContext faceContext) {
 
+        int localizedBannerIndex = banner.getDataverseLocalizedBanner().indexOf(dlb);
+
+        if (dlb.getImage().length < 1) {
+            addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.missingError");
+
+        } else {
+            try {
+                if (!dlb.isImageWithin(bannerLimits.getMaxWidth(),
+                        bannerLimits.getMaxHeight())) {
+                    addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.resolutionError");
+                }
+            } catch (final IOException e) {
+                addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.formatError");
+            }
+        }
+
+        return faceContext.getMessageList();
+    }
+    
+    private void addImageErrorMessage(final int index, final String key) {
+        this.uiMessages.addComponentErrorMessage(
+                "edit-text-messages-form:repeater:" + index + ":upload",
+                getStringFromBundle("messages.error"),
+                getStringFromBundle(key));
+    }
+    
     public int getBannerFileSizeLimit() {
         return bannerLimits.getMaxSizeInBytes();
     }
