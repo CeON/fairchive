@@ -47,15 +47,15 @@ public class ExternalToolServiceBean {
     /**
      * @return A list of tools or an empty list.
      */
-    public List<ExternalTool> findByType(Type type) {
-        return repository.findByType(type, null);
+    public List<ExternalTool> findByType(final Type type) {
+        return this.repository.findByType(type);
     }
 
     /**
      * @return A list of tools or an empty list.
      */
-    public List<ExternalTool> findByType(Type type, String contentType) {
-        return repository.findByType(type, contentType);
+    public List<ExternalTool> findByType(final Type type, final String contentType) {
+        return this.repository.findByType(type, contentType);
     }
 
     public boolean delete(long doomedId) {
@@ -126,7 +126,7 @@ public class ExternalToolServiceBean {
         ExternalTool.Type type = ExternalTool.Type.fromString(typeUserInput);
         String toolUrl = getRequiredTopLevelField(jsonObject, ExternalTool.TOOL_URL);
         JsonObject toolParametersObj = jsonObject.getJsonObject(ExternalTool.TOOL_PARAMETERS);
-        JsonArray queryParams = toolParametersObj.getJsonArray("queryParameters");
+        JsonArray queryParams = toolParametersObj.getJsonArray(ExternalTool.QUERY_PARAMETERS);
         boolean allRequiredReservedWordsFound = false;
         for (JsonObject queryParam : queryParams.getValuesAs(JsonObject.class)) {
             Set<String> keyValuePair = queryParam.keySet();

@@ -26,6 +26,7 @@ import javax.inject.Named;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -167,7 +168,7 @@ public class FileDownloadHelper implements java.io.Serializable {
             return false;
         }
 
-        if ((fileMetadata.getId() == null) || (fileMetadata.getDataFile().getId() == null)) {
+        if (fileMetadata.isNew() || fileMetadata.getDataFile().isNew()) {
             return false;
         }
 
@@ -176,7 +177,7 @@ public class FileDownloadHelper implements java.io.Serializable {
         }
 
 
-        boolean isRestrictedFile = fileMetadata.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED;
+        boolean isRestrictedFile = fileMetadata.getTermsOfUse().getTermsOfUseType() == RESTRICTED;
         if (!isRestrictedFile) {
             return true;
         }
