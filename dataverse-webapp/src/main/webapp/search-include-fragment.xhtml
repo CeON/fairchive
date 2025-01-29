@@ -456,7 +456,7 @@
                             <!--DATAVERSE CARDS-->
                             <div class="dataverseResult clearfix #{result.unpublishedState ? 'unpublished' : ''}" jsf:rendered="#{result.type eq searchObjectTypeEnum.DATAVERSES}">
                                 <c:set var="dvUrl" value="/dataverse/#{result.dataverseAlias}"/>
-                                <c:set var="dvUrlFinal" value="#{!SearchIncludeFragment.rootDv and !result.isInTree ? dvUrl : widgetWrapper.wrapURL(dvUrl)}" />
+                                <c:set var="dvUrlFinal" value="#{!lastSearchValue.rootDv and !result.isInTree ? dvUrl : widgetWrapper.wrapURL(dvUrl)}" />
                                 <c:set var="dvCardUrlsTarget" value="#{!lastSearchValue.rootDv and !result.isInTree and widgetWrapper.widgetView ? '_blank' : ''}" />
                                 <c:set var="dvIsLinked" value="#{!lastSearchValue.rootDv and !result.isInTree}" />
 
