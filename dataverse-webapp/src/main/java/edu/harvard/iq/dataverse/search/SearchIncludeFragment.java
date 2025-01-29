@@ -442,6 +442,8 @@ public class SearchIncludeFragment {
         setDisplayCardValues(dataversePath);
         
         this.lastSearchValue.setSearchResultsList(searchResultsList);
+        this.lastSearchValue.setRootDv(dataverse.isRoot());
+        this.lastSearchValue.setDataverseId(dataverse.getId());
     }
     
     public StreamedContent getSearchResultsFile() {
