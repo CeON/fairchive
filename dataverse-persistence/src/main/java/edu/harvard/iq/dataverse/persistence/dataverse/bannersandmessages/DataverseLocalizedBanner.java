@@ -1,21 +1,23 @@
 package edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages;
 
+import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.util.Optional;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import java.util.Optional;
 
 @Entity
 public class DataverseLocalizedBanner {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -23,7 +25,7 @@ public class DataverseLocalizedBanner {
 
     @Column(nullable = false)
     @Lob
-    @Basic(fetch = FetchType.LAZY)
+    @Basic(fetch = LAZY)
     private byte[] image;
 
     private String contentType;
@@ -32,62 +34,62 @@ public class DataverseLocalizedBanner {
 
     private String imageLink;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     private DataverseBanner dataverseBanner;
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public String getLocale() {
-        return locale;
+        return this.locale;
     }
 
-    public void setLocale(String locale) {
+    public void setLocale(final String locale) {
         this.locale = locale;
     }
 
     public byte[] getImage() {
-        return image;
+        return this.image;
     }
 
-    public void setImage(byte[] image) {
+    public void setImage(final byte[] image) {
         this.image = image;
     }
 
     public String getContentType() {
-        return contentType;
+        return this.contentType;
     }
 
-    public void setContentType(String contentType) {
+    public void setContentType(final String contentType) {
         this.contentType = contentType;
     }
 
     public String getImageName() {
-        return imageName;
+        return this.imageName;
     }
 
-    public void setImageName(String imageName) {
+    public void setImageName(final String imageName) {
         this.imageName = imageName;
     }
 
     public Optional<String> getImageLink() {
-        return Optional.ofNullable(imageLink);
+        return Optional.ofNullable(this.imageLink);
     }
 
-    public void setImageLink(String imageLink) {
+    public void setImageLink(final String imageLink) {
         this.imageLink = imageLink;
     }
 
     public DataverseBanner getDataverseBanner() {
-        return dataverseBanner;
+        return this.dataverseBanner;
     }
 
-    public void setDataverseBanner(DataverseBanner dataverseBanner) {
+    public void setDataverseBanner(final DataverseBanner dataverseBanner) {
         this.dataverseBanner = dataverseBanner;
     }
 }
