@@ -51,7 +51,7 @@ public class RorDataServiceIT extends WebappArquillianDeployment {
         final File file = copyRorDataFromClasspath();
         final AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setSuperuser(true);
-        session.setUser(authenticatedUser);
+        session.logIn(authenticatedUser);
 
         // when
         final RorDataService.UpdateResult niceFile = rorDataService.refreshRorData(file, FormDataContentDisposition

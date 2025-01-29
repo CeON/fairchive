@@ -72,7 +72,7 @@ public class ApiAuthorizationFilterTest {
         // then
         verify(authenticationService, never()).lookupUser(nullable(String.class));
         verify(userService, never()).updateLastApiUseTime(nullable(AuthenticatedUser.class));
-        verify(dataverseSession, never()).setUser(nullable(AuthenticatedUser.class));
+        verify(dataverseSession, never()).logIn(nullable(AuthenticatedUser.class));
         verify(httpSession, never()).invalidate();
     }
 
@@ -91,7 +91,7 @@ public class ApiAuthorizationFilterTest {
         // then
         verify(authenticationService, times(1)).lookupUser(anyString());
         verify(userService, times(1)).updateLastApiUseTime(any(AuthenticatedUser.class));
-        verify(dataverseSession, times(1)).setUser(any(AuthenticatedUser.class));
+        verify(dataverseSession, times(1)).logIn(any(AuthenticatedUser.class));
         verify(httpSession, times(1)).invalidate();
     }
 
@@ -108,7 +108,7 @@ public class ApiAuthorizationFilterTest {
         filter.doFilter(request, null, filterChain);
 
         // then
-        verify(dataverseSession, times(1)).setUser(any(AuthenticatedUser.class));
+        verify(dataverseSession, times(1)).logIn(any(AuthenticatedUser.class));
         verify(userService, never()).updateLastApiUseTime(any(AuthenticatedUser.class));
     }
 
@@ -125,7 +125,7 @@ public class ApiAuthorizationFilterTest {
         // then
         verify(authenticationService, times(1)).lookupUser(nullable(String.class));
         verify(userService, never()).updateLastApiUseTime(any(AuthenticatedUser.class));
-        verify(dataverseSession, never()).setUser(any(AuthenticatedUser.class));
+        verify(dataverseSession, never()).logIn(any(AuthenticatedUser.class));
         verify(httpSession, never()).invalidate();
     }
 }

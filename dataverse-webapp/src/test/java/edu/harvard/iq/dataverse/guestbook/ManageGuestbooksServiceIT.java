@@ -44,7 +44,7 @@ public class ManageGuestbooksServiceIT extends WebappArquillianDeployment {
 
     @BeforeEach
     public void setUp() {
-        dataverseSession.setUser(authenticationServiceBean.getAdminUser());
+        dataverseSession.logIn(authenticationServiceBean.getAdminUser());
     }
 
     @Test

@@ -35,7 +35,7 @@ public class PrivateUrlPage implements Serializable {
             PrivateUrlRedirectData privateUrlRedirectData = privateUrlService.getPrivateUrlRedirectDataFromToken(token);
             String datasetPageToBeRedirectedTo = privateUrlRedirectData.getDatasetPageToBeRedirectedTo() + "&faces-redirect=true";
             PrivateUrlUser privateUrlUser = privateUrlRedirectData.getPrivateUrlUser();
-            session.setUser(privateUrlUser);
+            session.logIn(privateUrlUser);
             logger.info("Redirecting PrivateUrlUser '" + privateUrlUser.getIdentifier() + "' to " + datasetPageToBeRedirectedTo);
             return datasetPageToBeRedirectedTo;
         } catch (Exception ex) {

@@ -48,7 +48,7 @@ public class ManageGroupsCRUDServiceIT extends WebappArquillianDeployment {
 
     @BeforeEach
     public void setUp() {
-        dataverseSession.setUser(authenticationService.getAdminUser());
+        dataverseSession.logIn(authenticationService.getAdminUser());
     }
 
     @Test

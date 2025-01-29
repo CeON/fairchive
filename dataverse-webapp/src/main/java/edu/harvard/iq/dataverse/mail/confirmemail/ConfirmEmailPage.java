@@ -55,7 +55,7 @@ public class ConfirmEmailPage implements java.io.Serializable {
             confirmEmailData = confirmEmailExecResponse.getConfirmEmailData();
             if (confirmEmailData != null) {
                 user = confirmEmailData.getAuthenticatedUser();
-                session.setUser(user);
+                session.logIn(user);
                 JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("confirmEmail.details.success"));
                 return "/dataverse.xhtml?faces-redirect=true";
             }

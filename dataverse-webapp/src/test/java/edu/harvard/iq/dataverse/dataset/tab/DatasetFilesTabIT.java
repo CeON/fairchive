@@ -147,7 +147,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
         this.filesTab.setFileLabelSearchTerm("");
 
         AuthenticatedUser user = this.userRepo.getById(2L);
-        this.session.setUser(user);
+        this.session.logIn(user);
 
         when(this.permissionsWrapper.canViewUnpublishedDataset(any()))
                 .thenReturn(TRUE);

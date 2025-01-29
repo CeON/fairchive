@@ -165,7 +165,7 @@ public class DatasetServiceTest {
         dataset.setVersions(Lists.newArrayList(new DatasetVersion(), new DatasetVersion()));
         AuthenticatedUser user = MocksFactory.makeAuthenticatedUser("Jurek","Kiler");
         user.setSuperuser(false);
-        session.setUser(user);
+        session.logIn(user);
         when(session.getUser()).thenReturn(user);
 
         Date embargoDate = Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS).plus(2, ChronoUnit.DAYS));

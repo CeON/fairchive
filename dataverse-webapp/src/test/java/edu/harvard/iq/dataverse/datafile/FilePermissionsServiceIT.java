@@ -64,7 +64,7 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
 
     @BeforeEach
     public void initBefore() {
-        dataverseSession.setUser(authenticationService.getAuthenticatedUser("superuser"));
+        dataverseSession.logIn(authenticationService.getAuthenticatedUser("superuser"));
     }
 
 
@@ -131,7 +131,7 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
     @Transactional(TransactionMode.ROLLBACK)
     public void assignFileDownloadRole__MISSING_MANAGE_DATASET_PERMISSIONS() {
         // given
-        dataverseSession.setUser(GuestUser.get());
+        dataverseSession.logIn(GuestUser.get());
         AuthenticatedUser user = authenticationService.getAuthenticatedUser("superuser");
         DataFile datafile = dataFileService.find(53L);
 
@@ -172,7 +172,7 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
     @Transactional(TransactionMode.ROLLBACK)
     public void revokeFileDownloadRole__MISSING_MANAGE_DATASET_PERMISSIONS() {
         // given
-        dataverseSession.setUser(GuestUser.get());
+        dataverseSession.logIn(GuestUser.get());
         DataFile datafile = dataFileService.find(53L);
         AuthenticatedUser user = authenticationService.getAuthenticatedUser("filedownloader");
 

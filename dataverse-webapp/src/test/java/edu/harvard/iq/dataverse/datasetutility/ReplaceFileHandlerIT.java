@@ -125,7 +125,7 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
         }
 
         //given
-        dataverseSession.setUser(authenticationServiceBean.getAdminUser());
+        dataverseSession.logIn(authenticationServiceBean.getAdminUser());
 
         Dataverse dataverse = new Dataverse();
         fillDataverseWithRequiredData(dataverse);
