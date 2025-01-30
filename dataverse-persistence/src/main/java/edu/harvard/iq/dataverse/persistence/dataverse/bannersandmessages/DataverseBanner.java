@@ -17,10 +17,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 @Entity
-public class DataverseBanner {
+public class DataverseBanner implements JpaEntity<Long> {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -37,11 +38,12 @@ public class DataverseBanner {
     private boolean active;
 
     @OneToMany(cascade = ALL, orphanRemoval = true, mappedBy = "dataverseBanner")
-    private List<DataverseLocalizedBanner> dataverseLocalizedBanner = new ArrayList<>();
+    private List<DataverseLocalizedBanner> localizedBanners = new ArrayList<>();
 
     @ManyToOne(fetch = LAZY)
     private Dataverse dataverse;
 
+    @Override
     public Long getId() {
         return this.id;
     }
@@ -74,13 +76,13 @@ public class DataverseBanner {
         this.active = active;
     }
 
-    public List<DataverseLocalizedBanner> getDataverseLocalizedBanner() {
-        return this.dataverseLocalizedBanner;
+    public List<DataverseLocalizedBanner> getLocalizedBanners() {
+        return this.localizedBanners;
     }
 
-    public void setDataverseLocalizedBanner(
-            final List<DataverseLocalizedBanner> dataverseLocalizedBanner) {
-        this.dataverseLocalizedBanner = dataverseLocalizedBanner;
+    public void setLocalizedBanners(
+            final List<DataverseLocalizedBanner> localizedBanners) {
+        this.localizedBanners = localizedBanners;
     }
 
     public Dataverse getDataverse() {

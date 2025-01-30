@@ -45,7 +45,7 @@ public class BannerMapperTest {
         //when
         DataverseBannerDto bannerDto = bannerMapper.mapToDto(dataverseBanner);
         DataverseLocalizedBannerDto localizedBannerDto = bannerDto.getDataverseLocalizedBanner().get(0);
-        DataverseLocalizedBanner localizedBanner = dataverseBanner.getDataverseLocalizedBanner().get(0);
+        DataverseLocalizedBanner localizedBanner = dataverseBanner.getLocalizedBanners().get(0);
 
         //then
         Assertions.assertEquals(bannerDto.getDataverseId(), dataverseBanner.getDataverse().getId());
@@ -69,7 +69,7 @@ public class BannerMapperTest {
         DataverseBanner banner = bannerMapper.mapToEntity(bannerDto, dataverse);
 
         //then
-        DataverseLocalizedBanner localizedBanner = banner.getDataverseLocalizedBanner().get(0);
+        DataverseLocalizedBanner localizedBanner = banner.getLocalizedBanners().get(0);
         Assertions.assertEquals(banner.getDataverse().getId(), bannerDto.getDataverseId());
         Assertions.assertEquals(banner.getFromTime(), bannerDto.getFromTime());
         Assertions.assertEquals(banner.getToTime(), bannerDto.getToTime());

@@ -41,7 +41,7 @@ public class BannerMapper {
 
         List<DataverseLocalizedBannerDto> dlbDto = new ArrayList<>();
 
-        for (DataverseLocalizedBanner dlb : dataverseBanner.getDataverseLocalizedBanner()) {
+        for (DataverseLocalizedBanner dlb : dataverseBanner.getLocalizedBanners()) {
 
             DataverseLocalizedBannerDto localBannerDto =
                     new DataverseLocalizedBannerDto(dlb.getId(), dlb.getLocale(),
@@ -80,7 +80,7 @@ public class BannerMapper {
                 .forEach(fuDto -> {
                     DataverseLocalizedBanner dataverseLocalizedBanner = mapToLocalizedBanner(banner, fuDto);
 
-                    banner.getDataverseLocalizedBanner().add(dataverseLocalizedBanner);
+                    banner.getLocalizedBanners().add(dataverseLocalizedBanner);
                 });
 
         return banner;

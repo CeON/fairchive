@@ -35,7 +35,7 @@ public class BannerErrorHandler {
                                                        DataverseLocalizedBanner dlb,
                                                        FacesContext faceContext) {
 
-        int localizedBannerIndex = banner.getDataverseLocalizedBanner().indexOf(dlb);
+        int localizedBannerIndex = banner.getLocalizedBanners().indexOf(dlb);
 
         if (dlb.getImage().length < 1) {
             addErrorMessageImageWasMissing(faceContext, localizedBannerIndex);

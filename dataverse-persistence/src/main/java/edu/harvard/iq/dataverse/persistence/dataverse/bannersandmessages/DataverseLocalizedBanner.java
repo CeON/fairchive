@@ -3,12 +3,8 @@ package edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Optional;
 
-import javax.imageio.ImageIO;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,8 +13,10 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+
 @Entity
-public class DataverseLocalizedBanner {
+public class DataverseLocalizedBanner implements JpaEntity<Long> {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -41,6 +39,7 @@ public class DataverseLocalizedBanner {
     @ManyToOne(fetch = LAZY)
     private DataverseBanner dataverseBanner;
 
+    @Override
     public Long getId() {
         return this.id;
     }

@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.ejb.EJB;
 import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
@@ -31,6 +30,7 @@ import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustNotBeEa
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBanner;
+import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBannerRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseLocalizedBanner;
 import edu.harvard.iq.dataverse.util.UIMessages;
 
@@ -39,26 +39,13 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 @Named("EditBannerPage")
 public class NewBannerPage implements Serializable {
 
-    @EJB
-    private BannerDAO dao;
-
-    @Inject
     private PermissionsWrapper permissionsWrapper;
-
-    @Inject
     private BannerMapper mapper;
-
-    @EJB
     private DataverseRepository dataverseRepo;
-
-    @Inject
     private UnsupportedLanguageCleaner languageCleaner;
-
-    @Inject
     private BannerLimits bannerLimits;
-    
-    @Inject
     private UIMessages uiMessages;
+    private DataverseBannerRepository bannerRepo;
     
     
     private Long dataverseId;
@@ -69,6 +56,24 @@ public class NewBannerPage implements Serializable {
     private UIInput fromTimeInput;
 
     private DataverseBannerDto dto;
+    
+    
+    @Inject
+    public NewBannerPage(final PermissionsWrapper permissionsWrapper,
+            final BannerMapper mapper,
+            final DataverseRepository dataverseRepo,
+            final UnsupportedLanguageCleaner languageCleaner,
+            final BannerLimits bannerLimits,
+            final UIMessages uiMessages,
+            final DataverseBannerRepository bannerRepo) {
+        this.permissionsWrapper = permissionsWrapper;
+        this.mapper = mapper;
+        this.dataverseRepo = dataverseRepo;
+        this.languageCleaner = languageCleaner;
+        this.bannerLimits = bannerLimits;
+        this.uiMessages = uiMessages;
+        this.bannerRepo = bannerRepo;
+    }
 
     public String init() {
         if (!permissionsWrapper.canEditDataverseTextMessagesAndBanners(dataverseId)) {
@@ -82,7 +87,7 @@ public class NewBannerPage implements Serializable {
         this.dataverse = this.dataverseRepo.findById(this.dataverseId).get();
 
         dto = bannerId != null ?
-                mapper.mapToDto(dao.getBanner(bannerId)) :
+                mapper.mapToDto(this.bannerRepo.findById(bannerId).get()) :
                 mapper.mapToNewBanner(dataverseId);
 
         if (dto.getId() != null) {
@@ -138,7 +143,7 @@ public class NewBannerPage implements Serializable {
         DataverseBanner banner =
                 mapper.mapToEntity(dto, this.dataverseRepo.findById(dto.getDataverseId()).get());
 
-        banner.getDataverseLocalizedBanner().forEach(dlb -> handleBannerAddingErrors(banner, dlb));
+        banner.getLocalizedBanners().forEach(dlb -> handleBannerAddingErrors(banner, dlb));
 
         if(this.dto.getFromTime() == null) {
             this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-fromtime", 
@@ -167,7 +172,7 @@ public class NewBannerPage implements Serializable {
             return EMPTY;
         }
 
-        dao.save(banner);
+        this.bannerRepo.save(banner);
         this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataversemessages.banners.new.success"));
         return redirectToTextMessages();
     }
@@ -175,7 +180,7 @@ public class NewBannerPage implements Serializable {
     public void handleBannerAddingErrors(DataverseBanner banner,
             DataverseLocalizedBanner dlb) {
 
-        int localizedBannerIndex = banner.getDataverseLocalizedBanner().indexOf(dlb);
+        int localizedBannerIndex = banner.getLocalizedBanners().indexOf(dlb);
         
         if(dlb.getImageLink().isPresent() && !isURLValid(dlb.getImageLink().get())) {
             addLinkErrorMessage(localizedBannerIndex, "textmessages.url.invalid");
