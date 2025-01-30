@@ -3,21 +3,15 @@ package edu.harvard.iq.dataverse.bannersandmessages.banners;
 import static edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator.imageExceedes;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.persistence.config.URLValidator.isURLValid;
-import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
 
 import javax.ejb.EJB;
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
-import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -34,8 +28,6 @@ import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseLocalize
 import edu.harvard.iq.dataverse.bannersandmessages.validation.DataverseTextMessageValidator;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustBeAFutureDate;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustNotBeEarlierThanStartingDate;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBanner;
@@ -142,12 +134,35 @@ public class NewBannerPage implements Serializable {
         }
     }
 
-    public String save() {
+    public String save() {      
         DataverseBanner banner =
                 mapper.mapToEntity(dto, this.dataverseRepo.findById(dto.getDataverseId()).get());
 
         banner.getDataverseLocalizedBanner().forEach(dlb -> handleBannerAddingErrors(banner, dlb));
 
+        if(this.dto.getFromTime() == null) {
+            this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-fromtime", 
+                    getStringFromBundle("messages.error"),
+                    getStringFromBundle("field.required"));
+        } 
+           
+        if(this.dto.getToTime() == null) {
+            this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-totime", 
+                    getStringFromBundle("messages.error"),
+                    getStringFromBundle("field.required"));
+        }      
+        try {
+            DataverseTextMessageValidator.validateEndDate(this.dto.getFromTime(), this.dto.getToTime());
+        } catch (EndDateMustNotBeEarlierThanStartingDate e) {
+            this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-totime", 
+                    getStringFromBundle("messages.error"),
+                    getStringFromBundle("textmessages.endDateTime.valid"));
+        } catch (EndDateMustBeAFutureDate e) {
+            this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-totime", 
+                    getStringFromBundle("messages.error"),
+                    getStringFromBundle("textmessages.endDateTime.future"));
+        }
+        
         if (errorsOccurred()) {
             return EMPTY;
         }
@@ -156,33 +171,15 @@ public class NewBannerPage implements Serializable {
         this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataversemessages.banners.new.success"));
         return redirectToTextMessages();
     }
-
-    public void validateLink(FacesContext context, UIComponent toValidate, Object rawValue) throws ValidatorException {
-        String valueStr = (String)rawValue;
-        
-        if (!isURLValid(valueStr)) {
-            String message = "'" + valueStr + "'  " + getStringFromBundle("url.invalid");
-            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", message));
-        }
-    }
-    
-    public void validateEndDateTime(FacesContext context, UIComponent toValidate, Object rawValue) throws ValidatorException {
-        Date toDate = (Date) rawValue;
-        Date fromDate = (Date)fromTimeInput.getValue();
-
-        try {
-            DataverseTextMessageValidator.validateEndDate(fromDate, toDate);
-        } catch (EndDateMustNotBeEarlierThanStartingDate e) {
-            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("textmessages.endDateTime.valid")));
-        } catch (EndDateMustBeAFutureDate e) {
-            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("textmessages.endDateTime.future")));
-        }
-    }
     
     public void handleBannerAddingErrors(DataverseBanner banner,
             DataverseLocalizedBanner dlb) {
 
         int localizedBannerIndex = banner.getDataverseLocalizedBanner().indexOf(dlb);
+        
+        if(dlb.getImageLink().isPresent() && !isURLValid(dlb.getImageLink().get())) {
+            addLinkErrorMessage(localizedBannerIndex, "textmessages.url.invalid");
+        }
 
         if (dlb.getImage().length < 1) {
             addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.missingError");
@@ -192,6 +189,13 @@ public class NewBannerPage implements Serializable {
     private void addImageErrorMessage(final int index, final String key) {
         this.uiMessages.addComponentErrorMessage(
                 "edit-text-messages-form:repeater:" + index + ":upload",
+                getStringFromBundle("messages.error"),
+                getStringFromBundle(key));
+    }
+    
+    private void addLinkErrorMessage(final int index, final String key) {
+        this.uiMessages.addComponentErrorMessage(
+                "edit-text-messages-form:repeater:" + index + ":message-link",
                 getStringFromBundle("messages.error"),
                 getStringFromBundle(key));
     }

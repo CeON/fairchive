@@ -49,15 +49,14 @@
                                 
                                 <div>
                                     <p:fileUpload id="upload" listener="#{EditBannerPage.uploadFileEvent}"
-                                                  update="image-preview-container, file-upload-errors" auto="true"
-                                                  mode="advanced" required="true"
+                                                  update="image-preview-container, file-upload-errors" 
+                                                  auto="true"
+                                                  mode="advanced" 
                                                   label="#{bundle['dataversemessages.banners.file.upload.label']}"
                                                   allowTypes="/(\.|\/)(jpg|jpeg|png)$/"
                                                   invalidFileMessage="#{bundle['dataversemessages.banners.extensionError']}"
                                                   sizeLimit="#{EditBannerPage.bannerFileSizeLimit}"
-                                                  invalidSizeMessage="#{bundle['dataversemessages.banners.sizeError']}"
-                                                  requiredMessage="#{bundle['dataversemessages.banners.missingError']}"
-                                                   >
+                                                  invalidSizeMessage="#{bundle['dataversemessages.banners.sizeError']}">
                                         <f:attribute name="imageLocale" value="#{lm.locale}"/>
                                     </p:fileUpload>
                                 </div>
@@ -75,12 +74,11 @@
                                 </p:fragment>
                                 
                                 <div class="col-sm-4 col-no-padding">
-                                    <h:outputLabel for="message-locale" value="Link: ">
+                                    <h:outputLabel for="message-link" value="Link: ">
                                     </h:outputLabel>
-                                    <p:inputText id="message-locale" styleClass="form-control"
-                                                 value="#{lm.imageLink}"
-                                                 validator="#{EditBannerPage.validateLink}"/>
-                                    <p:message style="margin: auto" for="message-locale"
+                                    <p:inputText id="message-link" styleClass="form-control"
+                                                 value="#{lm.imageLink}"/>
+                                    <p:message style="margin: auto" for="message-link"
                                                display="text"/>
                                 </div>
                             </div>
@@ -103,10 +101,7 @@
                                         mask="true"
                                         maskAutoClear="false"
                                         autocomplete="off"
-                                        converterMessage="#{bundle['common.forms.calendar.dateAndTime.conversionMessage']}"
-                                        required="true"
-                                        requiredMessage="#{validationMessages['field.required']}"
-                            />
+                                        converterMessage="#{bundle['common.forms.calendar.dateAndTime.conversionMessage']}"/>
                             <p:message id="error-message-fromtime" for="message-fromtime" display="text"/>
                         </div>
                         <p:watermark for="message-fromtime"
@@ -127,11 +122,8 @@
                                         mask="true"
                                         maskAutoClear="false"
                                         autocomplete="off"
-                                        converterMessage="#{bundle['common.forms.calendar.dateAndTime.conversionMessage']}"
-                                        required="true"
-                                        requiredMessage="#{validationMessages['field.required']}"
-                                        validator="#{EditBannerPage.validateEndDateTime}"
-                            />
+                                        converterMessage="#{bundle['common.forms.calendar.dateAndTime.conversionMessage']}"/>
+                                        
                             <p:message id="error-message-totime" for="message-totime" display="text"/>
                         </div>
                         <p:watermark for="message-totime"
