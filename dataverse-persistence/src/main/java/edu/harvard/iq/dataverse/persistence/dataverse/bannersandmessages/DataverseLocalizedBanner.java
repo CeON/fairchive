@@ -60,20 +60,6 @@ public class DataverseLocalizedBanner {
     public byte[] getImage() {
         return this.image;
     }
-    
-    private BufferedImage getBufferedImage() throws IOException {
-        return ImageIO.read(new ByteArrayInputStream(this.image));
-    }
-    
-    public boolean isImageWithin(final int maxWidth, final int maxHeight)
-            throws IOException {
-        final BufferedImage img = getBufferedImage();
-        if(img != null) {
-            return img.getWidth() > maxWidth || img.getHeight() > maxHeight;
-        } else {
-            throw new IOException("Unsupported image format");
-        }
-    }
 
     public void setImage(final byte[] image) {
         this.image = image;

@@ -25,4 +25,15 @@ public class ImageValidator {
         return buf != null && (buf.getWidth() > maxWidth || buf.getHeight() > maxHeight);
 
     }
+    
+    public static boolean imageExceedes(final InputStream in, final int maxWidth,
+            final int maxHeight)
+            throws IOException {
+        final BufferedImage img = ImageIO.read(in);
+        if (img != null) {
+            return img.getWidth() > maxWidth || img.getHeight() > maxHeight;
+        } else {
+            throw new IOException("Unsupported image format");
+        }
+    }
 }

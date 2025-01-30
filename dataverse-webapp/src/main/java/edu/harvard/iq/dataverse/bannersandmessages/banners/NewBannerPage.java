@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.bannersandmessages.banners;
 
+import static edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator.imageExceedes;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.persistence.config.URLValidator.isURLValid;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
@@ -115,33 +116,37 @@ public class NewBannerPage implements Serializable {
     }
     
     public void uploadFileEvent(final FileUploadEvent event) {
-        
-        if (ImageValidator.isImageResolutionTooBig(event.getFile().getContent(),
-                bannerLimits.getMaxWidth(), bannerLimits.getMaxHeight())) {
-                  
+        try {
+            if (imageExceedes(event.getFile().getInputStream(),
+                    this.bannerLimits.getMaxWidth(), this.bannerLimits.getMaxHeight())) {
+                this.uiMessages.addComponentErrorMessage(event.getComponent(),
+                        getStringFromBundle("messages.error"),
+                        getStringFromBundle(
+                                "dataversemessages.banners.resolutionError"));
+            } else {
+                String locale = (String) event.getComponent().getAttributes()
+                        .get("imageLocale");
+
+                dto.getDataverseLocalizedBanner().stream()
+                        .filter(dlb -> dlb.getLocale().equals(locale))
+                        .forEach(dlb -> {
+                            dlb.setContentType(event.getFile().getContentType());
+                            dlb.setFilename(event.getFile().getFileName());
+                            dlb.setContent(event.getFile().getContent());
+                        });
+            }
+        } catch (final IOException e) {
             this.uiMessages.addComponentErrorMessage(event.getComponent(),
                     getStringFromBundle("messages.error"),
-                    getStringFromBundle("dataversemessages.banners.resolutionError"));
-            return;
+                    getStringFromBundle("dataversemessages.banners.formatError"));
         }
-        
-        String locale = (String) event.getComponent().getAttributes()
-                .get("imageLocale");
-
-        dto.getDataverseLocalizedBanner().stream()
-                .filter(dlb -> dlb.getLocale().equals(locale))
-                .forEach(dlb -> {
-                    dlb.setContentType(event.getFile().getContentType());
-                    dlb.setFilename(event.getFile().getFileName());
-                    dlb.setContent(event.getFile().getContent());
-                });
     }
 
     public String save() {
         DataverseBanner banner =
                 mapper.mapToEntity(dto, this.dataverseRepo.findById(dto.getDataverseId()).get());
 
-        banner.getDataverseLocalizedBanner().forEach(dlb -> handleBannerAddingErrors(banner, dlb, FacesContext.getCurrentInstance()));
+        banner.getDataverseLocalizedBanner().forEach(dlb -> handleBannerAddingErrors(banner, dlb));
 
         if (errorsOccurred()) {
             return EMPTY;
@@ -174,27 +179,14 @@ public class NewBannerPage implements Serializable {
         }
     }
     
-    public List<FacesMessage> handleBannerAddingErrors(DataverseBanner banner,
-            DataverseLocalizedBanner dlb,
-            FacesContext faceContext) {
+    public void handleBannerAddingErrors(DataverseBanner banner,
+            DataverseLocalizedBanner dlb) {
 
         int localizedBannerIndex = banner.getDataverseLocalizedBanner().indexOf(dlb);
 
         if (dlb.getImage().length < 1) {
             addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.missingError");
-
-        } else {
-            try {
-                if (!dlb.isImageWithin(bannerLimits.getMaxWidth(),
-                        bannerLimits.getMaxHeight())) {
-                    addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.resolutionError");
-                }
-            } catch (final IOException e) {
-                addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.formatError");
-            }
-        }
-
-        return faceContext.getMessageList();
+        } 
     }
     
     private void addImageErrorMessage(final int index, final String key) {
