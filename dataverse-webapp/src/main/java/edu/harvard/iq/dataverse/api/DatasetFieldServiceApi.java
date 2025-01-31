@@ -1,11 +1,8 @@
 package edu.harvard.iq.dataverse.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.harvard.iq.dataverse.ControlledVocabularyValueServiceBean;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.MetadataBlockDao;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
@@ -19,6 +16,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.search.SolrField;
 import org.apache.commons.lang.StringUtils;
 
@@ -42,10 +40,6 @@ import static java.lang.Integer.parseInt;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -67,7 +61,7 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
     DataverseDao dataverseDao;
 
     @EJB
-    MetadataBlockDao metadataBlockService;
+    MetadataBlockRepository metadataBlockRepo;
 
     @EJB
     ControlledVocabularyValueServiceBean controlledVocabularyValueService;
@@ -277,11 +271,10 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
     }
 
     private String parseMetadataBlock(String[] values) {
-        //Test to see if it exists by name
-        MetadataBlock mdb = metadataBlockService.findByName(values[1]);
-        if (mdb == null) {
-            mdb = new MetadataBlock();
-        }
+        // Test to see if it exists by name
+        final MetadataBlock mdb = this.metadataBlockRepo.findByName(values[1])
+                .orElseGet(MetadataBlock::new);
+        
         mdb.setName(values[1]);
         if (!values[2].isEmpty()) {
             mdb.setOwner(dataverseDao.findByAlias(values[2]));
@@ -291,7 +284,7 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
             mdb.setNamespaceUri(values[4]);
         }
 
-        metadataBlockService.save(mdb);
+        metadataBlockRepo.save(mdb);
         return mdb.getName();
     }
 
@@ -321,7 +314,7 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
         }
         dsf.setInputRendererType(InputRendererType.valueOf(values[15]));
         dsf.setInputRendererOptions(values[16]);
-        dsf.setMetadataBlock(dataverseDao.findMDBByName(values[17]));
+        dsf.setMetadataBlock(this.metadataBlockRepo.findByName(values[17]).get());
         setIfNotEmpty(dsf::setUri, 18, values);
         setIfNotEmpty(dsf::setValidation, 19, values);
         setIfNotEmpty(v -> dsf.setMetadata(jsonMapConverter.convertToEntityAttribute(v)), 20, values);

@@ -6,6 +6,7 @@
 package edu.harvard.iq.dataverse;
 
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 
 import javax.ejb.EJB;
 import javax.faces.component.UIComponent;
@@ -20,11 +21,10 @@ import javax.faces.convert.FacesConverter;
 public class MetadataBlockConverter implements Converter {
 
     @EJB
-    DataverseDao dataverseDao;
+    private MetadataBlockRepository metadataBlockRepo;
 
     public Object getAsObject(FacesContext facesContext, UIComponent component, String submittedValue) {
-        MetadataBlock mdb = dataverseDao.findMDB(new Long(submittedValue));
-        return mdb;
+        return this.metadataBlockRepo.getById(new Long(submittedValue));
     }
 
     public String getAsString(FacesContext facesContext, UIComponent component, Object value) {

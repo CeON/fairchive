@@ -409,25 +409,30 @@
                             <p:ajax event="tabChange" listener="#{FilePage.tabChanged}"  update="@this" />
 
                             <!-- PREVIEW TAB -->
-                            <p:tab id="previewTab" class="padding-none" title="#{bundle.preview}"
-                                rendered="#{not empty FilePage.previewTools
-                                            and fileDownloadHelper.canUserDownloadFile(FilePage.fileMetadata)
-                                            and not FilePage.fileMetadata.datasetVersion.deaccessioned
-                                            and not FilePage.fileMetadata.datasetVersion.draft
-                                            and not FilePage.fileMetadata.datasetVersion.dataset.hasActiveEmbargo()}">
-                                <ui:fragment rendered="#{FilePage.downloadPopupRequired and !FilePage.guestbookResponseProvided}">
+                            <p:tab id="previewTab" 
+                                class="padding-none" 
+                                title="#{bundle.preview}"
+                                rendered="#{FilePage.displayPreviewTab()}">
+                                <ui:fragment rendered="#{FilePage.displayDownloadPopup()}">
                                     <ui:include src="file-download-popup-fragment.xhtml">
                                         <ui:param name="type" value="preview"/>
                                     </ui:include>
                                 </ui:fragment>
-                                <ui:fragment rendered="#{!FilePage.downloadPopupRequired or FilePage.guestbookResponseProvided}">
+                                <ui:fragment rendered="#{FilePage.displayPreviewArea()}">
                                     <div class="row">
-                                        <a class="btn btn-default" href="#{FilePage.previewUrl}" target="_blank" rel="noopener noreferrer">
-                                            #{bundle['file.previewTab.open.in.new.window.btn.text']} <span class="glyphicon glyphicon-new-window"></span>
+                                        <a class="btn btn-default" 
+                                           href="#{FilePage.previewUrl}" 
+                                           target="_blank" 
+                                           rel="noopener noreferrer">
+                                            #{bundle['file.previewTab.open.in.new.window.btn.text']}
+                                            <span class="glyphicon glyphicon-new-window"/>
                                         </a>
                                     </div>
-                                    <div id="previewPresentation" class="embed-responsive embed-responsive-16by9">
-                                        <iframe role="presentation" title="#{bundle['file.previewTab.presentation']}" src="#{FilePage.previewUrl}"></iframe>
+                                    <div id="previewPresentation" 
+                                         class="embed-responsive embed-responsive-16by9">
+                                        <iframe role="presentation" 
+                                                title="#{bundle['file.previewTab.presentation']}" 
+                                                src="#{FilePage.previewUrl}"/>
                                     </div>
                                 </ui:fragment>
                             </p:tab>

@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 import javax.persistence.Column;
@@ -8,8 +9,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
@@ -29,14 +28,9 @@ import java.util.Objects;
 /**
  * @author skraffmiller
  */
-@Table(indexes = {@Index(columnList = "name")
-        , @Index(columnList = "owner_id")})
-@NamedQueries({
-        @NamedQuery(name = "MetadataBlock.listAll", query = "SELECT mdb FROM MetadataBlock mdb"),
-        @NamedQuery(name = "MetadataBlock.findByName", query = "SELECT mdb FROM MetadataBlock mdb WHERE mdb.name=:name")
-})
+@Table(indexes = {@Index(columnList = "name") , @Index(columnList = "owner_id")})
 @Entity
-public class MetadataBlock implements Serializable {
+public class MetadataBlock implements JpaEntity<Long>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -52,6 +46,7 @@ public class MetadataBlock implements Serializable {
     @Column(name = "namespaceuri", columnDefinition = "TEXT")
     private String namespaceUri;
 
+    @Override
     public Long getId() {
         return id;
     }

@@ -8,20 +8,12 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.ApiToken;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple2;
-import org.apache.commons.lang.StringUtils;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 
-import java.io.StringReader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * Handles an operation on a specific file. Requires a file id in order to be
@@ -30,7 +22,6 @@ import java.util.stream.Collectors;
  */
 @Stateless
 public class ExternalToolHandler {
-    private static final Logger logger = Logger.getLogger(ExternalToolHandler.class.getCanonicalName());
 
     private SystemConfig systemConfig;
 
@@ -50,7 +41,11 @@ public class ExternalToolHandler {
         Preconditions.checkNotNull(externalTool);
         Preconditions.checkNotNull(dataFile);
 
-        return externalTool.getToolUrl() + getQueryParametersForUrl(externalTool, dataFile, apiToken, localeCode);
+        return getToolUrl(externalTool) + getQueryParametersForUrl(externalTool, dataFile, apiToken, localeCode);
+    }
+    
+    private String getToolUrl(final ExternalTool tool) {
+        return tool.getToolUrl().replace("{siteUrl}", systemConfig.getDataverseSiteUrl());
     }
 
     // -------------------- PRIVATE --------------------
@@ -59,65 +54,42 @@ public class ExternalToolHandler {
     private String getQueryParametersForUrl(ExternalTool externalTool, DataFile datafile, ApiToken apiToken, String localeCode) {
         Dataset dataset = datafile.getLatestFileMetadata().getDatasetVersion().getDataset();
 
-        String queryString = parseToolParameters(externalTool).entrySet().stream()
+        String queryString = externalTool.getToolParametersAsMap().entrySet().stream()
                 .map(keyValue -> new Tuple2<>(keyValue.getKey(), resolvePlaceholder(keyValue.getValue(),
                         datafile, dataset, apiToken, localeCode)))
-                .filter(keyValue -> StringUtils.isNotEmpty(keyValue._2()))
+                .filter(keyValue -> isNotEmpty(keyValue._2()))
                 .map(keyValue -> keyValue._1() + "=" + keyValue._2())
-                .collect(Collectors.joining("&"));
+                .collect(joining("&"));
 
         return "?" + queryString;
     }
 
-    private Map<String, String> parseToolParameters(ExternalTool externalTool) {
-        Map<String, String> toolParams = new HashMap<>();
-
-        String toolParameters = externalTool.getToolParameters();
-        JsonReader jsonReader = Json.createReader(new StringReader(toolParameters));
-        JsonObject obj = jsonReader.readObject();
-        JsonArray queryParams = obj.getJsonArray("queryParameters");
-        if (queryParams == null || queryParams.isEmpty()) {
-            return toolParams;
+    private String resolvePlaceholder(String value, DataFile datafile,
+            Dataset dataset, ApiToken apiToken, String localeCode) {
+        switch (ReservedWord.fromString(value)) {
+        case FILE_ID:
+            return datafile.getId().toString();
+        case FULE_URL:
+            return this.systemConfig.getDataverseSiteUrl() + "/api/access/datafile/"
+                    + datafile.getId();
+        case SITE_URL:
+            return this.systemConfig.getDataverseSiteUrl();
+        case API_TOKEN:
+            return apiToken != null ? apiToken.getTokenString() : null;
+        case DATASET_ID:
+            return dataset.getId().toString();
+        case DATASET_VERSION:
+            final String version = apiToken != null
+                    ? dataset.getLatestVersion().getFriendlyVersionNumber()
+                    : dataset.getLatestVersionForCopy().getFriendlyVersionNumber();
+            // send the token needed in api calls that can be substituted for a
+            // numeric version.
+            return "DRAFT".equals(version) ? ":draft" : version;
+        case LOCALE_CODE:
+            return localeCode;
+        default:
+            return null;
         }
-
-        queryParams.getValuesAs(JsonObject.class).forEach((queryParam) -> {
-            queryParam.keySet().forEach((key) -> {
-
-                toolParams.put(key, queryParam.getString(key));
-            });
-        });
-
-        return toolParams;
-    }
-
-    private String resolvePlaceholder(String value, DataFile datafile, Dataset dataset, ApiToken apiToken, String localeCode) {
-        ReservedWord reservedWord = ReservedWord.fromString(value);
-        switch (reservedWord) {
-            case FILE_ID:
-                return datafile.getId().toString();
-            case SITE_URL:
-                return systemConfig.getDataverseSiteUrl();
-            case API_TOKEN:
-                if (apiToken != null) {
-                    return apiToken.getTokenString();
-                }
-                break;
-            case DATASET_ID:
-                return dataset.getId().toString();
-            case DATASET_VERSION:
-                String version = apiToken != null
-                        ? dataset.getLatestVersion().getFriendlyVersionNumber()
-                        : dataset.getLatestVersionForCopy().getFriendlyVersionNumber();
-                if ("DRAFT".equals(version)) {
-                    version = ":draft"; // send the token needed in api calls that can be substituted for a numeric version.
-                }
-                return version;
-            case LOCALE_CODE:
-                return localeCode;
-            default:
-                break;
-        }
-        return null;
     }
 
 }

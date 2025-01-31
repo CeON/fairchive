@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.persistence;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
@@ -10,8 +10,9 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import java.util.List;
-import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base repository (data access) class for JPA entities.
@@ -50,7 +51,7 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
         final CriteriaQuery<Long> query = builder.createQuery(Long.class);
         query.select(builder.count(query.from(this.entityClass)));
         
-        return em.createQuery(query).getSingleResult();
+        return this.em.createQuery(query).getSingleResult();
     }
 
     @Override

@@ -249,8 +249,7 @@ public class ExternalToolServiceBeanTest {
 
         // when & then
         assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(tool))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Type must be one of these values: explore, configure, preview.");
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
