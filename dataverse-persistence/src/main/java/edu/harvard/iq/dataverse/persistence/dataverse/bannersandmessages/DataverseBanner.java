@@ -8,6 +8,7 @@ import static javax.persistence.TemporalType.TIMESTAMP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -83,6 +84,15 @@ public class DataverseBanner implements JpaEntity<Long> {
     public void setLocalizedBanners(
             final List<DataverseLocalizedBanner> localizedBanners) {
         this.localizedBanners = localizedBanners;
+    }
+    
+    public void addLocalizedBanner(final String locale) {
+        this.localizedBanners.add(new DataverseLocalizedBanner(locale));
+    }
+    
+    public Optional<DataverseLocalizedBanner> getBannerFor(final String locale) {
+        return this.localizedBanners.stream()
+                .filter(banner -> banner.getLocale().equals(locale)).findAny();
     }
 
     public Dataverse getDataverse() {

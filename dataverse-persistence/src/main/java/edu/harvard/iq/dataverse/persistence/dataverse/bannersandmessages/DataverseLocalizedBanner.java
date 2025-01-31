@@ -3,6 +3,8 @@ package edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Optional;
 
 import javax.persistence.Basic;
@@ -39,6 +41,13 @@ public class DataverseLocalizedBanner implements JpaEntity<Long> {
     @ManyToOne(fetch = LAZY)
     private DataverseBanner dataverseBanner;
 
+    public DataverseLocalizedBanner() {
+    }
+
+    public DataverseLocalizedBanner(final String locale) {
+        this.locale = locale;
+    }
+
     @Override
     public Long getId() {
         return this.id;
@@ -58,6 +67,14 @@ public class DataverseLocalizedBanner implements JpaEntity<Long> {
 
     public byte[] getImage() {
         return this.image;
+    }
+
+    public InputStream getImageAsStream() {
+        return new ByteArrayInputStream(this.image);
+    }
+    
+    public boolean isImagePresent() {
+        return this.image != null;
     }
 
     public void setImage(final byte[] image) {
@@ -80,8 +97,8 @@ public class DataverseLocalizedBanner implements JpaEntity<Long> {
         this.imageName = imageName;
     }
 
-    public Optional<String> getImageLink() {
-        return Optional.ofNullable(this.imageLink);
+    public String getImageLink() {
+        return this.imageLink;
     }
 
     public void setImageLink(final String imageLink) {

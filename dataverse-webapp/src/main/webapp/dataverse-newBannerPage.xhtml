@@ -10,17 +10,16 @@
 
 <h:body>
     <f:metadata>
-        <f:viewParam name="dataverseId" value="#{EditBannerPage.dataverseId}"/>
-        <f:viewParam name="bannerTemplateId" value="#{EditBannerPage.bannerId}"/>
-        <f:viewAction action="#{EditBannerPage.init()}"/>
-        <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(EditBannerPage.dataverse)}"/>
+        <f:viewParam name="dataverseId" value="#{newBannerPage.dataverseId}"/>
+        <f:viewAction action="#{newBannerPage.init()}"/>
+        <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(newBannerPage.dataverse)}"/>
         <f:viewAction action="#{dataverseHeaderFragment.addBreadcrumb
-        ('/dataverse-textMessages.xhtml?dataverseId='.concat(EditBannerPage.dataverseId),bundle['dataverse.option.textMessages'])}"/>
+        ('/dataverse-textMessages.xhtml?dataverseId='.concat(newBannerPage.dataverseId),bundle['dataverse.option.textMessages'])}"/>
         <f:viewAction action="#{dataverseHeaderFragment.addBreadcrumb(bundle['dataversemessages.banners.new'])}"/>
     </f:metadata>
 
     <ui:composition template="/dataverse_template.xhtml">
-        <ui:param name="pageTitle" value="#{bundle['dataversemessages.banners.new']} - #{EditBannerPage.dataverse.name}"/>
+        <ui:param name="pageTitle" value="#{bundle['dataversemessages.banners.new']} - #{newBannerPage.dataverse.name}"/>
 
         <ui:define name="body">
             <h2 class="no-margin-top">#{bundle['dataversemessages.banners.new']}</h2>
@@ -36,48 +35,57 @@
                     </div>
                 </div>
 
-                <ui:repeat id="repeater" value="#{EditBannerPage.dto.dataverseLocalizedBanner}" var="lm">
+                <ui:repeat id="repeater" value="#{newBannerPage.banner.localizedBanners}" var="localizedBanner">
                 
                     <div style="padding-top: 10px">
-                        <div class="form-group form-col-container" role="group" aria-labelledby="language-group-#{lm.locale}">
-                            <div id="language-group-#{lm.locale}" class="col-sm-3 control-label section-title" lang="#{lm.locale}">
-                                #{settingsWrapper.getConfiguredLocaleName(lm.locale)}
+                        <div class="form-group form-col-container" 
+                             role="group" 
+                             aria-labelledby="language-group-#{localizedBanner.locale}">
+                            <div id="language-group-#{localizedBanner.locale}" 
+                                 class="col-sm-3 control-label section-title" 
+                                 lang="#{localizedBanner.locale}">
+                                #{settingsWrapper.getConfiguredLocaleName(localizedBanner.locale)}
                                 <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
                             </div>
                             <div class="col-sm-9">
                                 <p class="help-block">#{bundle['dataversemessages.banners.file.tip']}</p>
-                                
                                 <div>
-                                    <p:fileUpload id="upload" listener="#{EditBannerPage.uploadFileEvent}"
+                                    <p:fileUpload id="upload" listener="#{newBannerPage.uploadFileEvent}"
                                                   update="image-preview-container, file-upload-errors" 
                                                   auto="true"
                                                   mode="advanced" 
                                                   label="#{bundle['dataversemessages.banners.file.upload.label']}"
                                                   allowTypes="/(\.|\/)(jpg|jpeg|png)$/"
                                                   invalidFileMessage="#{bundle['dataversemessages.banners.extensionError']}"
-                                                  sizeLimit="#{EditBannerPage.bannerFileSizeLimit}"
+                                                  sizeLimit="#{newBannerPage.bannerFileSizeLimit}"
                                                   invalidSizeMessage="#{bundle['dataversemessages.banners.sizeError']}">
-                                        <f:attribute name="imageLocale" value="#{lm.locale}"/>
+                                        <f:attribute name="imageLocale" value="#{localizedBanner.locale}"/>
                                     </p:fileUpload>
                                 </div>
                                 <div class="col-sm-11 form-col-container">
-                                    <p:messages style="margin: auto" id="file-upload-errors" for="upload"
-                                               showIcon="false" showSummary="false" showDetail="true"/>
+                                    <p:messages style="margin: auto" 
+                                                id="file-upload-errors" 
+                                                for="upload"
+                                                showIcon="false" 
+                                                showSummary="false" 
+                                                showDetail="true"/>
                                 </div>
                                 
                                 <p:fragment id="image-preview-container">
-                                <div class="edit-text-messages-form-image">
-                                    <p:graphicImage value="#{EditBannerPage.getDisplayLocalizedBanner(lm)}" stream="false"
-                                        alt="#{bundle['dataversemessages.banners.file.upload.previewAlt']}"
-                                        rendered="#{EditBannerPage.hasDisplayLocalizedBanner(lm)}"/>
-                                </div>
+	                                <div class="edit-text-messages-form-image">
+	                                    <p:graphicImage 
+	                                        value="#{newBannerPage.getBannerImage(localizedBanner)}" 
+	                                        stream="false"
+	                                        alt="#{bundle['dataversemessages.banners.file.upload.previewAlt']}"
+	                                        rendered="#{localizedBanner.isImagePresent()}"/>
+	                                </div>
                                 </p:fragment>
                                 
                                 <div class="col-sm-4 col-no-padding">
                                     <h:outputLabel for="message-link" value="Link: ">
                                     </h:outputLabel>
                                     <p:inputText id="message-link" styleClass="form-control"
-                                                 value="#{lm.imageLink}"/>
+                                                 value="#{localizedBanner.imageLink}"/>
                                     <p:message style="margin: auto" for="message-link"
                                                display="text"/>
                                 </div>
@@ -94,8 +102,7 @@
                         <div class="col-sm-6">
                             <p class="help-block">#{bundle['edittextmessages.startDateTime.format.tip']}</p>
                             <p:calendar id="message-fromtime"
-                                        value="#{EditBannerPage.dto.fromTime}"
-                                        binding="#{EditBannerPage.fromTimeInput}"
+                                        value="#{newBannerPage.banner.fromTime}"
                                         locale="#{dataverseSession.localeCode}"
                                         pattern="yyyy-MM-dd HH:mm"
                                         mask="true"
@@ -116,7 +123,7 @@
                         <div class="col-sm-6">
                             <p class="help-block">#{bundle['edittextmessages.endDateTime.format.tip']}</p>
                             <p:calendar id="message-totime"
-                                        value="#{EditBannerPage.dto.toTime}"
+                                        value="#{newBannerPage.banner.toTime}"
                                         locale="#{dataverseSession.localeCode}"
                                         pattern="yyyy-MM-dd HH:mm"
                                         mask="true"
@@ -137,7 +144,7 @@
                         </label>
                         <div class="col-sm-9">
                             <p:selectBooleanCheckbox id="message-active"
-                                                     value="#{EditBannerPage.dto.active}"
+                                                     value="#{newBannerPage.banner.active}"
                                                      itemLabel="#{bundle['edittextmessages.active']}"
                                                      style="padding-top: 4px;"/>
                         </div>
@@ -145,9 +152,9 @@
 
                 <div class="button-block">
                     <p:commandButton styleClass="btn btn-default" value="#{bundle['saveChanges']}"
-                                     action="#{EditBannerPage.save()}" update="@form"/>
+                                     action="#{newBannerPage.save()}" update="@form"/>
                     <p:commandButton styleClass="btn btn-default" value="#{bundle['cancel']}"
-                                     action="#{EditBannerPage.cancel()}" immediate="true"/>
+                                     action="#{newBannerPage.cancel()}" immediate="true"/>
                 </div>
             
             </div>

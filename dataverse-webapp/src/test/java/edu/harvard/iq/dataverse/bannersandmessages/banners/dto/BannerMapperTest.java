@@ -52,7 +52,7 @@ public class BannerMapperTest {
         Assertions.assertEquals(bannerDto.getFromTime(), dataverseBanner.getFromTime());
         Assertions.assertEquals(bannerDto.getToTime(), dataverseBanner.getToTime());
         Assertions.assertEquals(localizedBanner.getLocale(), localizedBannerDto.getLocale());
-        Assertions.assertEquals(localizedBanner.getImageLink().get(), localizedBannerDto.getImageLink());
+        Assertions.assertEquals(localizedBanner.getImageLink(), localizedBannerDto.getImageLink());
     }
 
     @Test
@@ -77,7 +77,7 @@ public class BannerMapperTest {
         Assertions.assertEquals(localizedBanner.getLocale(), localizedBannerDto.getLocale());
         Assertions.assertEquals(localizedBanner.getContentType(), localizedBannerDto.getContentType());
         Assertions.assertEquals(localizedBanner.getImageName(), localizedBannerDto.getFilename());
-        Assertions.assertEquals(localizedBanner.getImageLink().get(), localizedBannerDto.getImageLink());
+        Assertions.assertEquals(localizedBanner.getImageLink(), localizedBannerDto.getImageLink());
     }
 
     @Test
@@ -110,7 +110,7 @@ public class BannerMapperTest {
         dataverseLocalizedBanner.setImageName("Best Image");
         dataverseLocalizedBanner.setImage(bannerFile);
         dataverseLocalizedBanner.setImageLink("www.google.pl");
-        dataverseBanner.setDataverseLocalizedBanner(Lists.newArrayList(dataverseLocalizedBanner));
+        dataverseBanner.setLocalizedBanners(Lists.newArrayList(dataverseLocalizedBanner));
         return dataverseBanner;
     }
 

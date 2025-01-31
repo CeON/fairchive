@@ -45,8 +45,8 @@ public class BannerMapper {
 
             DataverseLocalizedBannerDto localBannerDto =
                     new DataverseLocalizedBannerDto(dlb.getId(), dlb.getLocale(),
-                                                    dlb.getImageLink().isPresent() ?
-                                                            dlb.getImageLink().get() : StringUtils.EMPTY);
+                                                    dlb.getImageLink() != null ?
+                                                            dlb.getImageLink(): StringUtils.EMPTY);
             
             localBannerDto.setContent(dlb.getImage());
             localBannerDto.setContentType(dlb.getContentType());
@@ -114,8 +114,11 @@ public class BannerMapper {
     }
 
     private List<DataverseLocalizedBannerDto> mapDefaultLocales() {
+        
         Map<String, String> locales = settingsWrapper.getConfiguredLocales();
 
+        System.out.println("!=====: mapDefaultLocales: " + locales);
+        
         return locales.entrySet().stream()
                 .map(e -> new DataverseLocalizedBannerDto(e.getKey()))
                 .collect(Collectors.toList());

@@ -5,11 +5,9 @@ import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.persistence.config.URLValidator.isURLValid;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -20,10 +18,6 @@ import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.bannersandmessages.UnsupportedLanguageCleaner;
-import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.BannerMapper;
-import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseBannerDto;
-import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseLocalizedBannerDto;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.DataverseTextMessageValidator;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustBeAFutureDate;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustNotBeEarlierThanStartingDate;
@@ -32,47 +26,43 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBanner;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBannerRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseLocalizedBanner;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.UIMessages;
 
 @SuppressWarnings("serial")
 @ViewScoped
-@Named("EditBannerPage")
+@Named()
 public class NewBannerPage implements Serializable {
 
     private PermissionsWrapper permissionsWrapper;
-    private BannerMapper mapper;
     private DataverseRepository dataverseRepo;
-    private UnsupportedLanguageCleaner languageCleaner;
     private BannerLimits bannerLimits;
     private UIMessages uiMessages;
     private DataverseBannerRepository bannerRepo;
-    
+    private SettingsWrapper settingsWrapper;
     
     private Long dataverseId;
     private Dataverse dataverse;
-    private Long bannerId;
-    private String link;
-
-    private UIInput fromTimeInput;
-
-    private DataverseBannerDto dto;
     
+    private DataverseBanner banner;
     
     @Inject
     public NewBannerPage(final PermissionsWrapper permissionsWrapper,
-            final BannerMapper mapper,
             final DataverseRepository dataverseRepo,
-            final UnsupportedLanguageCleaner languageCleaner,
             final BannerLimits bannerLimits,
             final UIMessages uiMessages,
-            final DataverseBannerRepository bannerRepo) {
+            final DataverseBannerRepository bannerRepo, 
+            final SettingsWrapper settingsWrapper) {
         this.permissionsWrapper = permissionsWrapper;
-        this.mapper = mapper;
         this.dataverseRepo = dataverseRepo;
-        this.languageCleaner = languageCleaner;
         this.bannerLimits = bannerLimits;
         this.uiMessages = uiMessages;
         this.bannerRepo = bannerRepo;
+        this.settingsWrapper = settingsWrapper;
+    }
+    
+    public DataverseBanner getBanner() {
+        return this.banner;
     }
 
     public String init() {
@@ -85,31 +75,25 @@ public class NewBannerPage implements Serializable {
         }
 
         this.dataverse = this.dataverseRepo.findById(this.dataverseId).get();
-
-        dto = bannerId != null ?
-                mapper.mapToDto(this.bannerRepo.findById(bannerId).get()) :
-                mapper.mapToNewBanner(dataverseId);
-
-        if (dto.getId() != null) {
-            languageCleaner.removeBannersLanguagesNotPresentInDataverse(dto);
+    
+        this.banner = new DataverseBanner();
+        for (final String locale : this.settingsWrapper.getConfiguredLocales()
+                .keySet()) {
+            this.banner.addLocalizedBanner(locale);
         }
 
         return EMPTY;
     }
-
-    public boolean hasDisplayLocalizedBanner(DataverseLocalizedBannerDto localizedBanner) {
-        return localizedBanner.getContent() != null;
-    }
     
-    public StreamedContent getDisplayLocalizedBanner(DataverseLocalizedBannerDto localizedBanner) {
-        if (localizedBanner.getContent() == null) {
+    public StreamedContent getBannerImage(final DataverseLocalizedBanner localizedBanner) {
+        if (localizedBanner.isImagePresent()) {
+            return DefaultStreamedContent.builder()
+                    .contentType(localizedBanner.getContentType())
+                    .stream(localizedBanner::getImageAsStream)
+                    .build();
+        } else {
             return null;
         }
-        return DefaultStreamedContent.builder()
-                            .contentType(localizedBanner.getContentType())
-                            .name(localizedBanner.getFilename())
-                            .stream(() -> new ByteArrayInputStream(localizedBanner.getContent()))
-                            .build();
     }
     
     public void uploadFileEvent(final FileUploadEvent event) {
@@ -123,14 +107,13 @@ public class NewBannerPage implements Serializable {
             } else {
                 String locale = (String) event.getComponent().getAttributes()
                         .get("imageLocale");
-
-                dto.getDataverseLocalizedBanner().stream()
-                        .filter(dlb -> dlb.getLocale().equals(locale))
-                        .forEach(dlb -> {
-                            dlb.setContentType(event.getFile().getContentType());
-                            dlb.setFilename(event.getFile().getFileName());
-                            dlb.setContent(event.getFile().getContent());
-                        });
+              
+                this.banner.getBannerFor(locale).ifPresent(lb -> {
+                    lb.setContentType(event.getFile().getContentType());
+                    lb.setImageName(event.getFile().getFileName());
+                    lb.setImage(event.getFile().getContent());
+                });
+                
             }
         } catch (final IOException e) {
             this.uiMessages.addComponentErrorMessage(event.getComponent(),
@@ -140,24 +123,33 @@ public class NewBannerPage implements Serializable {
     }
 
     public String save() {      
-        DataverseBanner banner =
-                mapper.mapToEntity(dto, this.dataverseRepo.findById(dto.getDataverseId()).get());
 
-        banner.getLocalizedBanners().forEach(dlb -> handleBannerAddingErrors(banner, dlb));
+        this.banner.getLocalizedBanners().forEach(lb -> {
+            
+            int localizedBannerIndex = banner.getLocalizedBanners().indexOf(lb);
+            
+            if(lb.getImageLink() != null && !isURLValid(lb.getImageLink())) {
+                addLinkErrorMessage(localizedBannerIndex, "textmessages.url.invalid");
+            }
 
-        if(this.dto.getFromTime() == null) {
+            if (lb.getImage().length < 1) {
+                addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.missingError");
+            } 
+        });
+
+        if(this.banner.getFromTime() == null) {
             this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-fromtime", 
                     getStringFromBundle("messages.error"),
                     getStringFromBundle("field.required"));
         } 
            
-        if(this.dto.getToTime() == null) {
+        if(this.banner.getToTime() == null) {
             this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-totime", 
                     getStringFromBundle("messages.error"),
                     getStringFromBundle("field.required"));
         }      
         try {
-            DataverseTextMessageValidator.validateEndDate(this.dto.getFromTime(), this.dto.getToTime());
+            DataverseTextMessageValidator.validateEndDate(this.banner.getFromTime(), this.banner.getToTime());
         } catch (EndDateMustNotBeEarlierThanStartingDate e) {
             this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-totime", 
                     getStringFromBundle("messages.error"),
@@ -171,24 +163,10 @@ public class NewBannerPage implements Serializable {
         if (errorsOccurred()) {
             return EMPTY;
         }
-
+        
         this.bannerRepo.save(banner);
         this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataversemessages.banners.new.success"));
         return redirectToTextMessages();
-    }
-    
-    public void handleBannerAddingErrors(DataverseBanner banner,
-            DataverseLocalizedBanner dlb) {
-
-        int localizedBannerIndex = banner.getLocalizedBanners().indexOf(dlb);
-        
-        if(dlb.getImageLink().isPresent() && !isURLValid(dlb.getImageLink().get())) {
-            addLinkErrorMessage(localizedBannerIndex, "textmessages.url.invalid");
-        }
-
-        if (dlb.getImage().length < 1) {
-            addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.missingError");
-        } 
     }
     
     private void addImageErrorMessage(final int index, final String key) {
@@ -243,37 +221,5 @@ public class NewBannerPage implements Serializable {
 
     public void setDataverse(Dataverse dataverse) {
         this.dataverse = dataverse;
-    }
-
-    public Long getBannerId() {
-        return bannerId;
-    }
-
-    public void setBannerId(Long bannerId) {
-        this.bannerId = bannerId;
-    }
-
-    public DataverseBannerDto getDto() {
-        return dto;
-    }
-
-    public void setDto(DataverseBannerDto dto) {
-        this.dto = dto;
-    }
-
-    public UIInput getFromTimeInput() {
-        return fromTimeInput;
-    }
-
-    public void setFromTimeInput(UIInput fromTimeInput) {
-        this.fromTimeInput = fromTimeInput;
-    }
-
-    public String getLink() {
-        return link;
-    }
-
-    public void setLink(String link) {
-        this.link = link;
     }
 }
