@@ -31,7 +31,7 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 
 @SuppressWarnings("serial")
 @ViewScoped
-@Named()
+@Named
 public class NewBannerPage implements Serializable {
 
     private PermissionsWrapper permissionsWrapper;
@@ -89,6 +89,7 @@ public class NewBannerPage implements Serializable {
         if (localizedBanner.isImagePresent()) {
             return DefaultStreamedContent.builder()
                     .contentType(localizedBanner.getContentType())
+                    .name(localizedBanner.getImageName())
                     .stream(localizedBanner::getImageAsStream)
                     .build();
         } else {
@@ -196,7 +197,8 @@ public class NewBannerPage implements Serializable {
     }
 
     private String redirectToTextMessages() {
-        return "/dataverse-textMessages.xhtml?dataverseId=" + dataverseId + "&activeTab=banners&faces-redirect=true";
+        return "/dataverse-textMessages.xhtml?activeTab=banners&faces-redirect=true&dataverseId="
+                + this.dataverseId;
     }
 
     public PermissionsWrapper getPermissionsWrapper() {

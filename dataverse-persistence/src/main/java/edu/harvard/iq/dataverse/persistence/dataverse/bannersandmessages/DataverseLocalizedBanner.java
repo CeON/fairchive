@@ -5,7 +5,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Optional;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
