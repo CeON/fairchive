@@ -1,11 +1,20 @@
 package edu.harvard.iq.dataverse.api.dto;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.harvard.iq.dataverse.DataverseDao;
+
 import edu.harvard.iq.dataverse.common.Util;
 import edu.harvard.iq.dataverse.mydata.RoleTagRetriever;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.search.SearchConstants;
 import edu.harvard.iq.dataverse.search.SolrField;
 import edu.harvard.iq.dataverse.search.query.SearchObjectType;
@@ -14,14 +23,6 @@ import edu.harvard.iq.dataverse.search.response.Highlight;
 import edu.harvard.iq.dataverse.search.response.SearchParentInfo;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, isGetterVisibility = JsonAutoDetect.Visibility.NONE)
@@ -483,14 +484,14 @@ public class SolrSearchResultDTO {
 
     public static class Creator {
 
-        private DataverseDao dataverseDao;
+        private DataverseRepository dataverseRepo;
         private RoleTagRetriever roleTagRetriever;
         private ChecksumDTO.Creator checksumCreator = new ChecksumDTO.Creator();
 
         // -------------------- CONSTRUCTORS --------------------
 
-        public Creator(DataverseDao dataverseDao, RoleTagRetriever roleTagRetriever) {
-            this.dataverseDao = dataverseDao;
+        public Creator(DataverseRepository dataverseRepo, RoleTagRetriever roleTagRetriever) {
+            this.dataverseRepo = dataverseRepo;
             this.roleTagRetriever = roleTagRetriever;
         }
 
@@ -504,7 +505,7 @@ public class SolrSearchResultDTO {
                     .filter(r -> !SearchObjectType.FILES.getSolrValue().equals(r.getType()))
                     .map(SolrSearchResultDTO::getEntityId)
                     .collect(Collectors.toList());
-            Map<Long, String> nonFileIdToParentAlias = dataverseDao.getParentAliasesForIds(nonFileIds).stream()
+            Map<Long, String> nonFileIdToParentAlias = this.dataverseRepo.getParentAliasesForIds(nonFileIds).stream()
                     .collect(Collectors.toMap(i -> (Long) i[0], i -> (String) i[1], (prev, next) -> next));
             List<Long> allIds = results.stream()
                     .map(SolrSearchResultDTO::getEntityId)

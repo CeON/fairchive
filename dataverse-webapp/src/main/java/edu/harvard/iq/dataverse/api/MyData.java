@@ -1,5 +1,17 @@
 package edu.harvard.iq.dataverse.api;
 
+import java.util.List;
+import java.util.logging.Logger;
+
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang3.StringUtils;
+
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
@@ -13,6 +25,7 @@ import edu.harvard.iq.dataverse.mydata.MyDataFilterParams;
 import edu.harvard.iq.dataverse.mydata.MyDataFinder;
 import edu.harvard.iq.dataverse.mydata.Pager;
 import edu.harvard.iq.dataverse.mydata.RoleTagRetriever;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.search.SearchConstants;
@@ -22,16 +35,6 @@ import edu.harvard.iq.dataverse.search.SearchServiceBean;
 import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.search.query.SearchForTypes;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.logging.Logger;
 
 
 /**
@@ -49,7 +52,7 @@ public class MyData extends AbstractApiBean {
     private DvObjectServiceBean dvObjectServiceBean;
     private SearchServiceBean searchService;
     private AuthenticationServiceBean authenticationService;
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverseRepo;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -58,13 +61,13 @@ public class MyData extends AbstractApiBean {
     @Inject
     public MyData(DataverseRoleServiceBean dataverseRoleService, RoleAssigneeServiceBean roleAssigneeService,
                   DvObjectServiceBean dvObjectServiceBean, SearchServiceBean searchService,
-                  AuthenticationServiceBean authenticationService, DataverseDao dataverseDao) {
+                  AuthenticationServiceBean authenticationService, DataverseRepository dataverseRepo) {
         this.dataverseRoleService = dataverseRoleService;
         this.roleAssigneeService = roleAssigneeService;
         this.dvObjectServiceBean = dvObjectServiceBean;
         this.searchService = searchService;
         this.authenticationService = authenticationService;
-        this.dataverseDao = dataverseDao;
+        this.dataverseRepo = dataverseRepo;
     }
 
     // -------------------- LOGIC --------------------
@@ -170,7 +173,7 @@ public class MyData extends AbstractApiBean {
         RoleTagRetriever roleTagRetriever = new RoleTagRetriever(rolePermissionHelper, roleAssigneeService, dvObjectServiceBean);
         roleTagRetriever.loadRoles(dataverseRequest, solrQueryResponse);
 
-        MyDataDTO myDataDTO = new MyDataDTO.Creator(dataverseDao, roleTagRetriever, rolePermissionHelper)
+        MyDataDTO myDataDTO = new MyDataDTO.Creator(this.dataverseRepo, roleTagRetriever, rolePermissionHelper)
                 .create(solrQueryResponse, pager, filterParams);
         if (OTHER_USER) {
             myDataDTO.setOtherUser(searchUser.getIdentifier());

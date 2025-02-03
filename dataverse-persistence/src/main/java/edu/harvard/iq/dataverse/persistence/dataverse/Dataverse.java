@@ -58,10 +58,8 @@ import java.util.Set;
  * @author mbarsinai
  */
 @NamedQueries({
-        @NamedQuery(name = "Dataverse.ownedObjectsById", query = "SELECT COUNT(obj) FROM DvObject obj WHERE obj.owner.id=:id"),
         @NamedQuery(name = "Dataverse.filterByAlias", query = "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias) LIKE :alias order by dv.alias"),
-        @NamedQuery(name = "Dataverse.filterByAliasNameAffiliation", query = "SELECT dv FROM Dataverse dv WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) order by dv.alias"),
-        @NamedQuery(name = "Dataverse.filterByAliasName", query = "SELECT dv FROM Dataverse dv WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) order by dv.alias")
+        @NamedQuery(name = "Dataverse.filterByAliasNameAffiliation", query = "SELECT dv FROM Dataverse dv WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) order by dv.alias")    
 })
 @NamedNativeQueries({
         @NamedNativeQuery(name = "Dataverse.findDataForSolrResults2", query =

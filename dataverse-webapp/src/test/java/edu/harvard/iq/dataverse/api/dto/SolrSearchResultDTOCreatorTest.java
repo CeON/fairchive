@@ -1,11 +1,14 @@
 package edu.harvard.iq.dataverse.api.dto;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.mydata.RoleTagRetriever;
-import edu.harvard.iq.dataverse.search.query.SearchObjectType;
-import edu.harvard.iq.dataverse.search.response.SearchParentInfo;
-import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
-import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,21 +18,19 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import edu.harvard.iq.dataverse.mydata.RoleTagRetriever;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.search.query.SearchObjectType;
+import edu.harvard.iq.dataverse.search.response.SearchParentInfo;
+import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
+import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 
 
 @ExtendWith(MockitoExtension.class)
 public class SolrSearchResultDTOCreatorTest {
 
     @Mock
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverseRepo;
 
     @Mock
     private RoleTagRetriever roleTagRetriever;
@@ -38,7 +39,7 @@ public class SolrSearchResultDTOCreatorTest {
 
     @BeforeEach
     void setUp() {
-        creator = new SolrSearchResultDTO.Creator(dataverseDao, roleTagRetriever);
+        creator = new SolrSearchResultDTO.Creator(dataverseRepo, roleTagRetriever);
     }
 
     // -------------------- TESTS --------------------
@@ -46,7 +47,7 @@ public class SolrSearchResultDTOCreatorTest {
     @Test
     void createResultsForMyData() {
         // given
-        Mockito.when(dataverseDao.getParentAliasesForIds(Mockito.anyList()))
+        Mockito.when(dataverseRepo.getParentAliasesForIds(Mockito.anyList()))
                 .thenAnswer(this::getParentAliasesForIds);
         Mockito.when(roleTagRetriever.getRolesForCard(Mockito.anyList()))
                 .thenAnswer(this::getRolesForCard);

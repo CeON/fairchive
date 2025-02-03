@@ -1,19 +1,20 @@
 package edu.harvard.iq.dataverse.api.dto;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import edu.harvard.iq.dataverse.DataverseDao;
+
 import edu.harvard.iq.dataverse.authorization.DataverseRolePermissionHelper;
 import edu.harvard.iq.dataverse.mydata.MyDataFilterParams;
 import edu.harvard.iq.dataverse.mydata.Pager;
 import edu.harvard.iq.dataverse.mydata.RoleTagRetriever;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.search.response.DvObjectCounts;
 import edu.harvard.iq.dataverse.search.response.PublicationStatusCounts;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, isGetterVisibility = JsonAutoDetect.Visibility.NONE)
@@ -253,15 +254,15 @@ public class MyDataDTO {
 
     public static class Creator {
 
-        private DataverseDao dataverseDao;
+        private DataverseRepository dataverseRepo;
         private RoleTagRetriever roleTagRetriever;
         private DataverseRolePermissionHelper permissionHelper;
 
         // -------------------- CONSTRUCTORS --------------------
 
-        public Creator(DataverseDao dataverseDao, RoleTagRetriever roleTagRetriever,
+        public Creator(DataverseRepository dataverseRepo, RoleTagRetriever roleTagRetriever,
                        DataverseRolePermissionHelper permissionHelper) {
-            this.dataverseDao = dataverseDao;
+            this.dataverseRepo = dataverseRepo;
             this.roleTagRetriever = roleTagRetriever;
             this.permissionHelper = permissionHelper;
         }
@@ -271,7 +272,7 @@ public class MyDataDTO {
         public MyDataDTO create(SolrQueryResponse response, Pager pager, MyDataFilterParams filterParams) {
             MyDataDTO created = new MyDataDTO();
             created.setPagination(new PagerDTO.Converter().convert(pager));
-            created.setItems(new SolrSearchResultDTO.Creator(dataverseDao, roleTagRetriever).createResultsForMyData(response));
+            created.setItems(new SolrSearchResultDTO.Creator(this.dataverseRepo, roleTagRetriever).createResultsForMyData(response));
             created.setTotalCount(response.getNumResultsFound());
             created.setStart(response.getResultsStart());
             created.setSearchTerm(filterParams.getSearchTerm());

@@ -1,13 +1,10 @@
 package edu.harvard.iq.dataverse.api.dto;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.authorization.DataverseRolePermissionHelper;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.mydata.MyDataFilterParams;
-import edu.harvard.iq.dataverse.mydata.Pager;
-import edu.harvard.iq.dataverse.mydata.RoleTagRetriever;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
+import java.util.Arrays;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,17 +13,21 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import edu.harvard.iq.dataverse.authorization.DataverseRolePermissionHelper;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.mydata.MyDataFilterParams;
+import edu.harvard.iq.dataverse.mydata.Pager;
+import edu.harvard.iq.dataverse.mydata.RoleTagRetriever;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 
 
 @ExtendWith(MockitoExtension.class)
 class MyDataDTOCreatorTest {
 
     @Mock
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverseRepo;
 
     @Mock
     private RoleTagRetriever roleTagRetriever;
@@ -41,7 +42,7 @@ class MyDataDTOCreatorTest {
 
     @BeforeEach
     void setUp() {
-        creator = new MyDataDTO.Creator(dataverseDao, roleTagRetriever, permissionHelper);
+        creator = new MyDataDTO.Creator(dataverseRepo, roleTagRetriever, permissionHelper);
         Mockito.when(permissionHelper.getRoleName(Mockito.anyLong()))
                 .thenAnswer(invocation -> "Role" + invocation.getArgument(0));
         Mockito.when(user.getIdentifier()).thenReturn("user");

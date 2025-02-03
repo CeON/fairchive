@@ -1,21 +1,5 @@
 package edu.harvard.iq.dataverse.search.dataversestree;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.search.SearchFields;
-import edu.harvard.iq.dataverse.search.query.PermissionFilterQueryBuilder;
-import edu.harvard.iq.dataverse.search.query.SearchObjectType;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,13 +11,31 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.search.SearchFields;
+import edu.harvard.iq.dataverse.search.query.PermissionFilterQueryBuilder;
+import edu.harvard.iq.dataverse.search.query.SearchObjectType;
+
 @Stateless
 public class SolrTreeService {
     private static final Logger logger = LoggerFactory.getLogger(SolrTreeService.class);
 
     private SolrClient solrClient;
     private PermissionFilterQueryBuilder permissionFilterQueryBuilder;
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverseRepo;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -41,10 +43,10 @@ public class SolrTreeService {
 
     @Inject
     public SolrTreeService(SolrClient solrClient, PermissionFilterQueryBuilder permissionFilterQueryBuilder,
-                           DataverseDao dataverseDao) {
+            DataverseRepository dataverseRepo) {
         this.solrClient = solrClient;
         this.permissionFilterQueryBuilder = permissionFilterQueryBuilder;
-        this.dataverseDao = dataverseDao;
+        this.dataverseRepo = dataverseRepo;
     }
 
     // -------------------- LOGIC --------------------
@@ -77,7 +79,7 @@ public class SolrTreeService {
     // -------------------- PRIVATE --------------------
 
     private QueryResponse executeSolrQueryForNodeInfo(DataverseRequest dataverseRequest) throws IOException, SolrServerException {
-        Integer dataversesCount = dataverseDao.countDataverses().intValue();
+        Integer dataversesCount = this.dataverseRepo.countAll().intValue();
         String permissionQuery = permissionFilterQueryBuilder.buildPermissionFilterQueryForAddDataset(dataverseRequest);
         SolrQuery query = new SolrQuery()
                 .setRows(dataversesCount)
@@ -116,7 +118,7 @@ public class SolrTreeService {
     }
 
     private QueryResponse executeSolrQueryForNodes(Long nodeId) throws IOException, SolrServerException {
-        Integer rows = dataverseDao.countDataversesWithParent(nodeId).intValue();
+        Integer rows = this.dataverseRepo.countDataversesWithParent(nodeId).intValue();
         SolrQuery query = new SolrQuery()
                 .setRows(rows)
                 .setQuery(String.format("%s:%s AND %s:%d",
