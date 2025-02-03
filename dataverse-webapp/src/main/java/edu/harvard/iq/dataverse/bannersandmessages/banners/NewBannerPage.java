@@ -173,7 +173,7 @@ public class NewBannerPage implements Serializable {
                 result = false;
             }
         }
-        ;
+
         if (!this.banner.isFromTimePresent()) {
             this.uiMessages.addComponentErrorMessage(
                     "edit-text-messages-form:message-fromtime",

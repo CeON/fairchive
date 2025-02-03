@@ -120,9 +120,7 @@ public class PermissionsWrapper implements java.io.Serializable {
     }
     
     public String authorizedToEditTextMessagesAndBannersOf(final Long dataverseId) {
-        final User user = this.dvRequestService.getDataverseRequest().getUser();
-        return this.permissionService
-                .isUserCanEditDataverseTextMessagesAndBanners(user, dataverseId)
+        return canEditDataverseTextMessagesAndBanners(dataverseId)
                         ? EMPTY
                         : notAuthorized();
     }

@@ -116,8 +116,6 @@ public class BannerMapper {
     private List<DataverseLocalizedBannerDto> mapDefaultLocales() {
         
         Map<String, String> locales = settingsWrapper.getConfiguredLocales();
-
-        System.out.println("!=====: mapDefaultLocales: " + locales);
         
         return locales.entrySet().stream()
                 .map(e -> new DataverseLocalizedBannerDto(e.getKey()))
