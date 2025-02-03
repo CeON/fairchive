@@ -80,6 +80,26 @@ services:
       smtp:
         condition: service_healthy
 
+  prometheus:
+    image: "prom/prometheus:v3.1.0"
+    container_name: "dataverse-dev-prometheus"
+    ports:
+      - "9090:9090"
+    volumes:
+      - "${DATAVERSE_SOURCE_DIR}/conf/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: "grafana/grafana:11.4.0"
+    container_name: "dataverse-dev-grafana"
+    ports:
+      - "3000:3000"
+    environment:
+      - "GF_SECURITY_ADMIN_PASSWORD=admin"
+    volumes:
+      - ${DATAVERSE_SOURCE_DIR}/conf/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ${DATAVERSE_SOURCE_DIR}/conf/grafana/datasources.yml:/etc/grafana/provisioning/datasources/main.yaml
+      - ${DATAVERSE_SOURCE_DIR}/conf/grafana/dashboards:/var/lib/grafana/dashboards
+
 volumes:
   postgres-data:
   gl-domain-data:
