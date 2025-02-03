@@ -198,6 +198,7 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
         dataFile.setFileAccessRequesters(Lists.newArrayList(authenticatedUser));
         dataFile.setCreateDate(new Timestamp(new Date().getTime()));
         dataFile.setModificationTime(new Timestamp(new Date().getTime()));
+        dataFile.setOwner(datasetDao.find(66L));
         dataFileService.save(dataFile);
 
         WorkflowComment workflowComment =
