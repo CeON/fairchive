@@ -71,7 +71,7 @@ class SamlSessionRegistryTest {
         // when
         registry.register(session, samlUserData);
         registry.register(anotherSession, samlUserData);
-        anotherSession.setUser(null);
+        anotherSession.logOut();
         List<DataverseSession> unregistered = registry.unregister(user);
 
         // then
@@ -136,7 +136,7 @@ class SamlSessionRegistryTest {
             @Override public void log(ActionLogRecord rec) { }
         };
         DataverseSession session = new DataverseSession(actionLogServiceBean, null);
-        session.setUser(user);
+        session.logIn(user);
         return session;
     }
 

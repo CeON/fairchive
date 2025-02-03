@@ -42,7 +42,7 @@ public class EmbargoAccessServiceIT extends WebappArquillianDeployment {
         // given
         Dataset dataset = datasetDao.find(57L);
         dataset.setEmbargoDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
-        dataverseSession.setUser(authenticationService.getAdminUser());
+        dataverseSession.logIn(authenticationService.getAdminUser());
 
         // when&then
         Assertions.assertFalse(embargoAccess.isRestrictedByEmbargo(dataset));
@@ -53,7 +53,7 @@ public class EmbargoAccessServiceIT extends WebappArquillianDeployment {
         // given
         Dataset dataset = datasetDao.find(57L);
         dataset.setEmbargoDate(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
-        dataverseSession.setUser(GuestUser.get());
+        dataverseSession.logIn(GuestUser.get());
 
         // when&then
         Assertions.assertTrue(embargoAccess.isRestrictedByEmbargo(dataset));

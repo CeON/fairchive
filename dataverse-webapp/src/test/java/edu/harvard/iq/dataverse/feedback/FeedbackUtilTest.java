@@ -63,7 +63,7 @@ public class FeedbackUtilTest {
         if (weKnowHowToCreateMockAuthenticatedUsers) {
             dataverseSessionAuthenticated = new DataverseSession(null, null);
             AuthenticatedUser authenticatedUser = MocksFactory.makeAuthenticatedUser("First", "Last");
-            dataverseSessionAuthenticated.setUser(authenticatedUser);
+            dataverseSessionAuthenticated.logIn(authenticatedUser);
         }
 
         systemAddress = new InternetAddress(systemEmail, supportTeamName);

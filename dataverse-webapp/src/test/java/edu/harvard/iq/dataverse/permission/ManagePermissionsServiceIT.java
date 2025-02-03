@@ -51,13 +51,13 @@ public class ManagePermissionsServiceIT extends WebappArquillianDeployment {
 
     @BeforeEach
     public void setUp() {
-        dataverseSession.setUser(authenticationService.getAdminUser());
+        dataverseSession.logIn(authenticationService.getAdminUser());
     }
 
     @Test
     public void shouldAssignRoleWithNotification() {
         // given
-        dataverseSession.setUser(authenticationService.findByID(1L));
+        dataverseSession.logIn(authenticationService.findByID(1L));
         String userEmail = dataverseSession.getUser().getDisplayInfo().getEmailAddress();
         Dataverse dataverse = dataverseDao.find(1L);
         DataverseRole roleToBeAssigned = roleService.findBuiltinRoleByAlias(BuiltInRole.EDITOR);
@@ -93,7 +93,7 @@ public class ManagePermissionsServiceIT extends WebappArquillianDeployment {
         // given
         Dataverse dataverse = dataverseDao.find(1L);
         DataverseRole roleToBeAssigned = roleService.findBuiltinRoleByAlias(BuiltInRole.EDITOR);
-        dataverseSession.setUser(GuestUser.get());
+        dataverseSession.logIn(GuestUser.get());
 
         // when&then
         assertThrows(PermissionException.class, () -> managePermissionsService.assignRoleWithNotification(roleToBeAssigned, dataverseSession.getUser(), dataverse));
@@ -129,7 +129,7 @@ public class ManagePermissionsServiceIT extends WebappArquillianDeployment {
         em.persist(toBeRemoved);
         em.flush();
 
-        dataverseSession.setUser(GuestUser.get());
+        dataverseSession.logIn(GuestUser.get());
 
         // when&then
         assertThrows(PermissionException.class, () -> managePermissionsService.removeRoleAssignmentWithNotification(toBeRemoved));
@@ -174,7 +174,7 @@ public class ManagePermissionsServiceIT extends WebappArquillianDeployment {
         toBeSaved.setAlias("newRoleAlias");
         toBeSaved.setDescription("newRoleDesc");
 
-        dataverseSession.setUser(GuestUser.get());
+        dataverseSession.logIn(GuestUser.get());
 
         // when&then
         assertThrows(PermissionException.class, () -> managePermissionsService.saveOrUpdateRole(toBeSaved));
@@ -212,7 +212,7 @@ public class ManagePermissionsServiceIT extends WebappArquillianDeployment {
         toBeSetDefault.setAlias("newRoleAlias");
         toBeSetDefault.setDescription("newRoleDesc");
 
-        dataverseSession.setUser(GuestUser.get());
+        dataverseSession.logIn(GuestUser.get());
 
         // when&then
         assertThrows(PermissionException.class, () -> managePermissionsService.setDataverseDefaultContributorRole(toBeSetDefault, dataverse));

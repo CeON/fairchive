@@ -264,7 +264,7 @@ public class SendFeedbackDialogTest {
         assertThat(this.dialog.getFormHeader())
                 .isEqualTo("Contact the Repository's Support");
 
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
@@ -302,7 +302,7 @@ public class SendFeedbackDialogTest {
         assertThat(this.dialog.getFormHeader())
                 .isEqualTo("Contact the Repository's Support");
 
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
@@ -368,7 +368,7 @@ public class SendFeedbackDialogTest {
                 .containsExactly(SYSTEM_SUPPORT, DATAVERSE_CONTACT);
         assertThat(this.dialog.getFormHeader()).isEqualTo("Send E-mail");
 
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
@@ -408,7 +408,7 @@ public class SendFeedbackDialogTest {
                 .containsExactly(SYSTEM_SUPPORT, DATAVERSE_CONTACT);
         assertThat(this.dialog.getFormHeader()).isEqualTo("Send E-mail");
 
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
@@ -459,7 +459,7 @@ public class SendFeedbackDialogTest {
                 .containsExactly(SYSTEM_SUPPORT, DATAVERSE_CONTACT, DATASET_CONTACT);
         assertThat(this.dialog.getFormHeader()).isEqualTo("Send E-mail");
 
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
@@ -498,7 +498,7 @@ public class SendFeedbackDialogTest {
                 .containsExactly(SYSTEM_SUPPORT, DATAVERSE_CONTACT, DATASET_CONTACT);
         assertThat(this.dialog.getFormHeader()).isEqualTo("Send E-mail");
 
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
@@ -549,7 +549,7 @@ public class SendFeedbackDialogTest {
                 .containsExactly(SYSTEM_SUPPORT, DATAVERSE_CONTACT, DATASET_CONTACT);
         assertThat(this.dialog.getFormHeader()).isEqualTo("Send E-mail");
 
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
@@ -588,7 +588,7 @@ public class SendFeedbackDialogTest {
                 .containsExactly(SYSTEM_SUPPORT, DATAVERSE_CONTACT, DATASET_CONTACT);
         assertThat(this.dialog.getFormHeader()).isEqualTo("Send E-mail");
 
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
@@ -633,7 +633,7 @@ public class SendFeedbackDialogTest {
     @Test
     public void exceedingCombinedAttachmentSizeLimit_failsValidation()
             throws Exception {
-        this.dataverseSession.setUser(this.authenticatedUser);
+        this.dataverseSession.logIn(this.authenticatedUser);
 
         this.dialog.handleFileUpload(newEvent(attachment2));
 
