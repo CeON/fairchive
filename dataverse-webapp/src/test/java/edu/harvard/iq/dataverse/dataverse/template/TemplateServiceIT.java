@@ -286,7 +286,7 @@ public class TemplateServiceIT extends WebappArquillianDeployment {
     private void createSessionUser() {
         AuthenticatedUser user = createUser();
         em.persist(user);
-        dataverseSession.setUser(user);
+        dataverseSession.logIn(user);
     }
 
     private AuthenticatedUser createUser() {

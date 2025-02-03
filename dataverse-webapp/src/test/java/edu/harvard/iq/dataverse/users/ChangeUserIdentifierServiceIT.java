@@ -50,7 +50,7 @@ public class ChangeUserIdentifierServiceIT extends WebappArquillianDeployment {
     @Test
     public void changeUserIdentifier_notSuperuser() {
         // given
-        dataverseSession.setUser(authenticationService.getAuthenticatedUser("filedownloader"));
+        dataverseSession.logIn(authenticationService.getAuthenticatedUser("filedownloader"));
 
         // when
         Exception exception = Assertions.assertThrows(EJBException.class, () -> {
@@ -62,7 +62,7 @@ public class ChangeUserIdentifierServiceIT extends WebappArquillianDeployment {
     @Test
     public void changeUserIdentifier() {
         // given
-        dataverseSession.setUser(authenticationService.getAdminUser());
+        dataverseSession.logIn(authenticationService.getAdminUser());
 
         String userIdBefore = "filedownloader";
         String userIdAfter = "changedUserIdentifier";

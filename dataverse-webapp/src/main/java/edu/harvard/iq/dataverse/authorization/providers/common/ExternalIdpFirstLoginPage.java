@@ -241,7 +241,7 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
         final AuthenticatedUser user = authenticationSvc.createAuthenticatedUser(newUser.toUserRecordIdentifier(),
                 getUsername(), newAuthenticatedUserDisplayInfo, true, preferredNotificationsLanguage).getOrNull();
 
-        session.setUser(user);
+        session.logIn(user);
         userNotificationService.sendNotificationWithEmail(user, new Timestamp(new Date().getTime()), NotificationType.CREATEACC,
                 null, NotificationObjectType.AUTHENTICATED_USER);
         consentService.executeActionsAndSaveAcceptedConsents(consents, user);
@@ -269,7 +269,7 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
             authenticationSvc.updateProvider(existingUser, newUser.getServiceId(), newUser.getIdInService());
             builtinUserSvc.removeUser(existingUser.getUserIdentifier());
 
-            session.setUser(existingUser);
+            session.logIn(existingUser);
             AuthenticationProvider newUserAuthProvider = authenticationSvc.getAuthenticationProvider(newUser.getServiceId());
             JsfHelper.addFlashSuccessMessage(
                     BundleUtil.getStringFromBundle("oauth2.convertAccount.success", newUserAuthProvider.getInfo().getTitle()));

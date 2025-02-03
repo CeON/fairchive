@@ -34,7 +34,7 @@ public class DashboardUsersServiceIT extends WebappArquillianDeployment {
 
     @BeforeEach
     public void setUp() {
-        dataverseSession.setUser(authenticationServiceBean.getAdminUser());
+        dataverseSession.logIn(authenticationServiceBean.getAdminUser());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class DashboardUsersServiceIT extends WebappArquillianDeployment {
     public void shouldRevokeAllRolesForUser_withPermissionsException() {
         // given
         AuthenticatedUser user = authenticationServiceBean.findByID(2L);
-        dataverseSession.setUser(authenticationServiceBean.findByID(4L));
+        dataverseSession.logIn(authenticationServiceBean.findByID(4L));
 
         // when & then
         assertThrows(PermissionException.class, () -> dashboardUsersService.revokeAllRolesForUser(user.getId()));
@@ -93,7 +93,7 @@ public class DashboardUsersServiceIT extends WebappArquillianDeployment {
     public void shouldChangeSuperuserStatus_revokeSuperuserStatus_withPermissionException() {
         // given
         AuthenticatedUser user = authenticationServiceBean.findByID(2L);
-        dataverseSession.setUser(authenticationServiceBean.findByID(4L));
+        dataverseSession.logIn(authenticationServiceBean.findByID(4L));
 
         // when & then
         assertThrows(PermissionException.class, () -> dashboardUsersService.changeSuperuserStatus(user.getId()));
@@ -103,7 +103,7 @@ public class DashboardUsersServiceIT extends WebappArquillianDeployment {
     public void shouldChangeSuperuserStatus_grantSuperuserStatus_withPermissionException() {
         // given
         AuthenticatedUser user = authenticationServiceBean.findByID(3L);
-        dataverseSession.setUser(authenticationServiceBean.findByID(4L));
+        dataverseSession.logIn(authenticationServiceBean.findByID(4L));
 
         // when & then
         assertThrows(PermissionException.class, () -> dashboardUsersService.changeSuperuserStatus(user.getId()));

@@ -1,9 +1,11 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.SessionManagement; 
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.SessionManagement;
+import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -160,12 +162,18 @@ public class DataverseSession implements Serializable {
     }
 
     // -------------------- SETTERS --------------------
-
-    public void setUser(User aUser) {
-        logSvc.log(
-                new ActionLogRecord(SessionManagement, (aUser == null) ? "logout" : "login")
-                        .setUserIdentifier((aUser != null) ? aUser.getIdentifier() : (user != null ? user.getIdentifier() : "")));
-        this.user = aUser != null ? aUser : GuestUser.get();
+    
+    public void logIn(final User user) {
+        requireNonNull(user);
+        this.logSvc.log(new ActionLogRecord(SessionManagement, "login")
+                .setUserIdentifier(user.getIdentifier()));
+        this.user = user;
+    }
+    
+    public void logOut() {
+        this.logSvc.log(new ActionLogRecord(SessionManagement, "logout")
+                .setUserIdentifier(this.user.getIdentifier()));
+        this.user = GuestUser.get();
     }
 
     public void setLocaleCode(String localeCode) {

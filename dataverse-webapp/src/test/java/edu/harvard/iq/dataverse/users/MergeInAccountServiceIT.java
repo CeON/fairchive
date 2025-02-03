@@ -97,7 +97,7 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
     @Test
     public void changeUserIdentifier_notSuperuser() {
         // given
-        dataverseSession.setUser(authenticationService.getAuthenticatedUser("filedownloader"));
+        dataverseSession.logIn(authenticationService.getAuthenticatedUser("filedownloader"));
 
         // when
         Exception exception = Assertions.assertThrows(EJBException.class, () -> {
@@ -109,7 +109,7 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
     @Test
     public void mergeAccounts() {
         // given
-        dataverseSession.setUser(authenticationService.getAdminUser());
+        dataverseSession.logIn(authenticationService.getAdminUser());
 
         createUserWithObjects("toBeConsumedUser", "test1@mail.com", "test1-api-token");
         createUserWithoutObjects("toBeMergedTo", "test2@mail.com", "test2-api-token");

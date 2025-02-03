@@ -40,7 +40,7 @@ public class DatasetReportServiceIT extends WebappArquillianDeployment {
 
         // given
         AuthenticatedUser user = authenticationService.getAuthenticatedUser("superuser");
-        dataverseSession.setUser(user);
+        dataverseSession.logIn(user);
 
         // when
         String output;

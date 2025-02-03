@@ -380,7 +380,7 @@ public class Shib implements java.io.Serializable {
 
     private void logInUserAndSetShibAttributes(AuthenticatedUser au) {
         au.setShibIdentityProvider(shibIdp);
-        session.setUser(au);
+        session.logIn(au);
         logger.debug("Groups for user " + au.getId() + " (" + au.getIdentifier() + "): " + getGroups(au));
     }
 

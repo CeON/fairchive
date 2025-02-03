@@ -172,7 +172,7 @@ public class LoginPage implements java.io.Serializable {
         try {
             AuthenticatedUser r = authSvc.getUpdateAuthenticatedUser(credentialsAuthProviderId, authReq);
             logger.log(Level.FINE, "User authenticated: {0}", r.getEmail());
-            session.setUser(r);
+            session.logIn(r);
 
             if ("dataverse.xhtml".equals(redirectPage)) {
                 redirectPage = redirectToRoot();

@@ -1415,7 +1415,7 @@ public class Admin extends AbstractApiBean {
 
         try {
             AuthenticatedUser au = findAuthenticatedUserOrDie();
-            session.setUser(au);
+            session.logIn(au);
             Dataset ds = findDatasetOrDie(dsid);
 
             DatasetVersion dv = datasetversionService.findByFriendlyVersionNumber(ds.getId(), versionNumber);
