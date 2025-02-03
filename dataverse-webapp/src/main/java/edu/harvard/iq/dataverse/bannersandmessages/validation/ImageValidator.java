@@ -1,6 +1,9 @@
 package edu.harvard.iq.dataverse.bannersandmessages.validation;
 
 import javax.imageio.ImageIO;
+
+import edu.harvard.iq.dataverse.bannersandmessages.banners.BannerLimits;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,12 +29,11 @@ public class ImageValidator {
 
     }
     
-    public static boolean imageExceedes(final InputStream in, final int maxWidth,
-            final int maxHeight)
+    public static boolean imageExceedes(final InputStream in, final BannerLimits limits)
             throws IOException {
         final BufferedImage img = ImageIO.read(in);
         if (img != null) {
-            return img.getWidth() > maxWidth || img.getHeight() > maxHeight;
+            return img.getWidth() > limits.getMaxWidth() || img.getHeight() > limits.getMaxHeight();
         } else {
             throw new IOException("Unsupported image format");
         }

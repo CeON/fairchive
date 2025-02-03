@@ -12,7 +12,7 @@ import org.primefaces.PrimeFaces;
 
 @Stateless
 public class UIMessages {
-    
+
     public void addSuccessMessage(final String message) {
         addComponentSuccessMessage("successMessage",
                 getStringFromBundle("messages.success"), message);
@@ -20,15 +20,14 @@ public class UIMessages {
 
     public void addErrorMessage(final String message) {
         addAjaxHasErrorParam();
-        addComponentErrorMessage((String) null,
-                getStringFromBundle("messages.error"), message);
+        addComponentErrorMessage((String) null, message);
     }
 
     public void addFlashSuccessMessage(final String message) {
         addAjaxHasErrorParam();
         addSuccessMessage(message);
     }
-    
+
     private static void addAjaxHasErrorParam() {
         PrimeFaces.current().ajax().addCallbackParam("hasErrorMessage", true);
     }
@@ -45,10 +44,24 @@ public class UIMessages {
                 new FacesMessage(SEVERITY_ERROR, summary, detail));
     }
 
+    public void addComponentErrorMessage(final String componentId,
+            final String detail) {
+        FacesContext.getCurrentInstance().addMessage(componentId,
+                new FacesMessage(SEVERITY_ERROR,
+                        getStringFromBundle("messages.error"), detail));
+    }
+
     public void addComponentErrorMessage(final UIComponent component,
             final String summary, final String detail) {
         final FacesContext context = FacesContext.getCurrentInstance();
         final String componentId = component.getClientId(context);
         addComponentErrorMessage(componentId, summary, detail);
+    }
+    
+    public void addComponentErrorMessage(final UIComponent component,
+            final String detail) {
+        final FacesContext context = FacesContext.getCurrentInstance();
+        final String componentId = component.getClientId(context);
+        addComponentErrorMessage(componentId, detail);
     }
 }

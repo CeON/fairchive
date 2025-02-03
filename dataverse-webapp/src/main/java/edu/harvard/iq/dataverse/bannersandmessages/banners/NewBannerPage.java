@@ -2,13 +2,14 @@ package edu.harvard.iq.dataverse.bannersandmessages.banners;
 
 import static edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator.imageExceedes;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.persistence.config.URLValidator.isURLValid;
+import static edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseLocalizedBanner.isOfAllowableType;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 
-import javax.faces.context.FacesContext;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -18,9 +19,6 @@ import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.DataverseTextMessageValidator;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustBeAFutureDate;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustNotBeEarlierThanStartingDate;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBanner;
@@ -34,24 +32,23 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 @Named
 public class NewBannerPage implements Serializable {
 
-    private PermissionsWrapper permissionsWrapper;
-    private DataverseRepository dataverseRepo;
-    private BannerLimits bannerLimits;
-    private UIMessages uiMessages;
-    private DataverseBannerRepository bannerRepo;
-    private SettingsWrapper settingsWrapper;
-    
+    private final PermissionsWrapper permissionsWrapper;
+    private final DataverseRepository dataverseRepo;
+    private final BannerLimits bannerLimits;
+    private final UIMessages uiMessages;
+    private final DataverseBannerRepository bannerRepo;
+    private final SettingsWrapper settingsWrapper;
+
     private Long dataverseId;
     private Dataverse dataverse;
-    
-    private DataverseBanner banner;
-    
+    private final DataverseBanner banner = new DataverseBanner();
+
     @Inject
     public NewBannerPage(final PermissionsWrapper permissionsWrapper,
             final DataverseRepository dataverseRepo,
             final BannerLimits bannerLimits,
             final UIMessages uiMessages,
-            final DataverseBannerRepository bannerRepo, 
+            final DataverseBannerRepository bannerRepo,
             final SettingsWrapper settingsWrapper) {
         this.permissionsWrapper = permissionsWrapper;
         this.dataverseRepo = dataverseRepo;
@@ -60,32 +57,26 @@ public class NewBannerPage implements Serializable {
         this.bannerRepo = bannerRepo;
         this.settingsWrapper = settingsWrapper;
     }
-    
+
+    @PostConstruct
+    public void init() {
+        this.settingsWrapper.getConfiguredLocales().keySet()
+                .forEach(this.banner::addLocalizedBanner);
+    }
+
+    public String verifyAccess() {
+        return this.dataverseId == null
+                ? this.permissionsWrapper.notFound()
+                : this.permissionsWrapper
+                        .authorizedToEditTextMessagesAndBannersOf(this.dataverseId);
+    }
+
     public DataverseBanner getBanner() {
         return this.banner;
     }
 
-    public String init() {
-        if (!permissionsWrapper.canEditDataverseTextMessagesAndBanners(dataverseId)) {
-            return permissionsWrapper.notAuthorized();
-        }
-
-        if (dataverseId == null) {
-            return permissionsWrapper.notFound();
-        }
-
-        this.dataverse = this.dataverseRepo.findById(this.dataverseId).get();
-    
-        this.banner = new DataverseBanner();
-        for (final String locale : this.settingsWrapper.getConfiguredLocales()
-                .keySet()) {
-            this.banner.addLocalizedBanner(locale);
-        }
-
-        return EMPTY;
-    }
-    
-    public StreamedContent getBannerImage(final DataverseLocalizedBanner localizedBanner) {
+    public StreamedContent getBannerImage(
+            final DataverseLocalizedBanner localizedBanner) {
         if (localizedBanner.isImagePresent()) {
             return DefaultStreamedContent.builder()
                     .contentType(localizedBanner.getContentType())
@@ -96,100 +87,118 @@ public class NewBannerPage implements Serializable {
             return null;
         }
     }
-    
+
+    public Long getDataverseId() {
+        return this.dataverseId;
+    }
+
+    public void setDataverseId(final Long dataverseId) {
+        this.dataverseId = dataverseId;
+        this.dataverse = this.dataverseRepo.findById(this.dataverseId).orElse(null);
+    }
+
+    public Dataverse getDataverse() {
+        return this.dataverse;
+    }
+
     public void uploadFileEvent(final FileUploadEvent event) {
+        if (isFileCorrect(event)) {
+            final String locale = (String) event.getComponent().getAttributes()
+                    .get("imageLocale");
+
+            this.banner.getBannerFor(locale).ifPresent(lb -> {
+                lb.setContentType(event.getFile().getContentType());
+                lb.setImageName(event.getFile().getFileName());
+                lb.setImage(event.getFile().getContent());
+            });
+        }
+    }
+
+    private boolean isFileCorrect(final FileUploadEvent event) {
+        boolean result = true;
         try {
-            if (imageExceedes(event.getFile().getInputStream(),
-                    this.bannerLimits.getMaxWidth(), this.bannerLimits.getMaxHeight())) {
+            if (event.getFile().getSize() > this.bannerLimits.getMaxSizeInBytes()) {
                 this.uiMessages.addComponentErrorMessage(event.getComponent(),
-                        getStringFromBundle("messages.error"),
+                        getStringFromBundle("dataversemessages.banners.sizeError"));
+                result = false;
+            }
+            if (imageExceedes(event.getFile().getInputStream(), this.bannerLimits)) {
+                this.uiMessages.addComponentErrorMessage(event.getComponent(),
                         getStringFromBundle(
                                 "dataversemessages.banners.resolutionError"));
-            } else {
-                String locale = (String) event.getComponent().getAttributes()
-                        .get("imageLocale");
-              
-                this.banner.getBannerFor(locale).ifPresent(lb -> {
-                    lb.setContentType(event.getFile().getContentType());
-                    lb.setImageName(event.getFile().getFileName());
-                    lb.setImage(event.getFile().getContent());
-                });
-                
+                result = false;
+            }
+            if (!isOfAllowableType(event.getFile().getFileName())) {
+                this.uiMessages.addComponentErrorMessage(event.getComponent(),
+                        getStringFromBundle(
+                                "dataversemessages.banners.extensionError"));
+                result = false;
             }
         } catch (final IOException e) {
             this.uiMessages.addComponentErrorMessage(event.getComponent(),
-                    getStringFromBundle("messages.error"),
                     getStringFromBundle("dataversemessages.banners.formatError"));
+            result = false;
         }
+        return result;
     }
 
-    public String save() {      
-
-        this.banner.getLocalizedBanners().forEach(lb -> {
-            
-            int localizedBannerIndex = banner.getLocalizedBanners().indexOf(lb);
-            
-            if(lb.getImageLink() != null && !isURLValid(lb.getImageLink())) {
-                addLinkErrorMessage(localizedBannerIndex, "textmessages.url.invalid");
-            }
-
-            if (lb.getImage().length < 1) {
-                addImageErrorMessage(localizedBannerIndex, "dataversemessages.banners.missingError");
-            } 
-        });
-
-        if(this.banner.getFromTime() == null) {
-            this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-fromtime", 
-                    getStringFromBundle("messages.error"),
-                    getStringFromBundle("field.required"));
-        } 
-           
-        if(this.banner.getToTime() == null) {
-            this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-totime", 
-                    getStringFromBundle("messages.error"),
-                    getStringFromBundle("field.required"));
-        }      
-        try {
-            DataverseTextMessageValidator.validateEndDate(this.banner.getFromTime(), this.banner.getToTime());
-        } catch (EndDateMustNotBeEarlierThanStartingDate e) {
-            this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-totime", 
-                    getStringFromBundle("messages.error"),
-                    getStringFromBundle("textmessages.endDateTime.valid"));
-        } catch (EndDateMustBeAFutureDate e) {
-            this.uiMessages.addComponentErrorMessage("edit-text-messages-form:message-totime", 
-                    getStringFromBundle("messages.error"),
-                    getStringFromBundle("textmessages.endDateTime.future"));
-        }
-        
-        if (errorsOccurred()) {
+    public String save() {
+        if (isDataCorrect()) {
+            this.bannerRepo.save(banner);
+            this.uiMessages.addFlashSuccessMessage(
+                    getStringFromBundle("dataversemessages.banners.new.success"));
+            return redirectToTextMessages();
+        } else {
             return EMPTY;
         }
-        
-        this.bannerRepo.save(banner);
-        this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataversemessages.banners.new.success"));
-        return redirectToTextMessages();
     }
-    
-    private void addImageErrorMessage(final int index, final String key) {
-        this.uiMessages.addComponentErrorMessage(
-                "edit-text-messages-form:repeater:" + index + ":upload",
-                getStringFromBundle("messages.error"),
-                getStringFromBundle(key));
-    }
-    
-    private void addLinkErrorMessage(final int index, final String key) {
-        this.uiMessages.addComponentErrorMessage(
-                "edit-text-messages-form:repeater:" + index + ":message-link",
-                getStringFromBundle("messages.error"),
-                getStringFromBundle(key));
-    }
-    
-    public int getBannerFileSizeLimit() {
-        return bannerLimits.getMaxSizeInBytes();
-    }
-    
-    private boolean errorsOccurred() {
-        return FacesContext.getCurrentInstance().getMessageList().size() > 0;
+
+    private boolean isDataCorrect() {
+        boolean result = true;
+        final List<DataverseLocalizedBanner> banners = this.banner
+                .getLocalizedBanners();
+        for (int index = 0; index < banners.size(); ++index) {
+            if (!banners.get(index).isImagePresent()) {
+                this.uiMessages.addComponentErrorMessage(
+                        "edit-text-messages-form:repeater:" + index + ":upload",
+                        getStringFromBundle(
+                                "dataversemessages.banners.missingError"));
+                result = false;
+            }
+            if (!banners.get(index).isImageLinkValid()) {
+                this.uiMessages.addComponentErrorMessage(
+                        "edit-text-messages-form:repeater:" + index
+                                + ":message-link",
+                        getStringFromBundle("textmessages.url.invalid"));
+                result = false;
+            }
+        }
+        ;
+        if (!this.banner.isFromTimePresent()) {
+            this.uiMessages.addComponentErrorMessage(
+                    "edit-text-messages-form:message-fromtime",
+                    getStringFromBundle("field.required"));
+            result = false;
+        }
+        if (!this.banner.isToTimePresent()) {
+            this.uiMessages.addComponentErrorMessage(
+                    "edit-text-messages-form:message-totime",
+                    getStringFromBundle("field.required"));
+            result = false;
+        }
+        if (!this.banner.isFromTimeBeforeEndTime()) {
+            this.uiMessages.addComponentErrorMessage(
+                    "edit-text-messages-form:message-totime",
+                    getStringFromBundle("textmessages.endDateTime.valid"));
+            result = false;
+        }
+        if (!this.banner.isToTimeInFuture()) {
+            this.uiMessages.addComponentErrorMessage(
+                    "edit-text-messages-form:message-totime",
+                    getStringFromBundle("textmessages.endDateTime.future"));
+            result = false;
+        }
+        return result;
     }
 
     public String cancel() {
@@ -199,29 +208,5 @@ public class NewBannerPage implements Serializable {
     private String redirectToTextMessages() {
         return "/dataverse-textMessages.xhtml?activeTab=banners&faces-redirect=true&dataverseId="
                 + this.dataverseId;
-    }
-
-    public PermissionsWrapper getPermissionsWrapper() {
-        return permissionsWrapper;
-    }
-
-    public void setPermissionsWrapper(PermissionsWrapper permissionsWrapper) {
-        this.permissionsWrapper = permissionsWrapper;
-    }
-
-    public Long getDataverseId() {
-        return dataverseId;
-    }
-
-    public void setDataverseId(Long dataverseId) {
-        this.dataverseId = dataverseId;
-    }
-
-    public Dataverse getDataverse() {
-        return dataverse;
-    }
-
-    public void setDataverse(Dataverse dataverse) {
-        this.dataverse = dataverse;
     }
 }

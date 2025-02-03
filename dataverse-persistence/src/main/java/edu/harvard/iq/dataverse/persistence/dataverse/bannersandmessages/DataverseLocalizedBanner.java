@@ -2,9 +2,13 @@ package edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages;
 
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.trim;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -71,7 +75,7 @@ public class DataverseLocalizedBanner implements JpaEntity<Long> {
     public InputStream getImageAsStream() {
         return new ByteArrayInputStream(this.image);
     }
-    
+
     public boolean isImagePresent() {
         return this.image != null;
     }
@@ -100,8 +104,21 @@ public class DataverseLocalizedBanner implements JpaEntity<Long> {
         return this.imageLink;
     }
 
-    public void setImageLink(final String imageLink) {
-        this.imageLink = imageLink;
+    public void setImageLink(final String link) {
+        this.imageLink = trim(link);
+    }
+
+    public boolean isImageLinkValid() {
+        if (isEmpty(this.imageLink)) {
+            return true;
+        } else {
+            try {
+                new URL(this.imageLink);
+                return true;
+            } catch (final MalformedURLException e) {
+                return false;
+            }
+        }
     }
 
     public DataverseBanner getDataverseBanner() {
@@ -110,5 +127,10 @@ public class DataverseLocalizedBanner implements JpaEntity<Long> {
 
     public void setDataverseBanner(final DataverseBanner dataverseBanner) {
         this.dataverseBanner = dataverseBanner;
+    }
+    
+    public static boolean isOfAllowableType(final String bannerFileName) {
+        return bannerFileName.endsWith(".jpg") || bannerFileName.endsWith(".jpeg")
+                || bannerFileName.endsWith(".png");
     }
 }

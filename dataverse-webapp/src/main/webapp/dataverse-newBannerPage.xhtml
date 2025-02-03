@@ -11,7 +11,7 @@
 <h:body>
     <f:metadata>
         <f:viewParam name="dataverseId" value="#{newBannerPage.dataverseId}"/>
-        <f:viewAction action="#{newBannerPage.init()}"/>
+        <f:viewAction action="#{newBannerPage.verifyAccess()}"/>
         <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(newBannerPage.dataverse)}"/>
         <f:viewAction action="#{dataverseHeaderFragment.addBreadcrumb
         ('/dataverse-textMessages.xhtml?dataverseId='.concat(newBannerPage.dataverseId),bundle['dataverse.option.textMessages'])}"/>
@@ -30,12 +30,14 @@
                 <div class="form-group">
                     <div class="col-sm-12">
                         <p class="form-control-static text-block">
-                            <span class="glyphicon glyphicon-asterisk text-danger"/> <h:outputText value=" #{bundle['common.forms.asterisk.tip']}"/>
+                            <span class="glyphicon glyphicon-asterisk text-danger"/> 
+                            <h:outputText value=" #{bundle['common.forms.asterisk.tip']}"/>
                         </p>
                     </div>
                 </div>
 
-                <ui:repeat id="repeater" value="#{newBannerPage.banner.localizedBanners}" var="localizedBanner">
+                <ui:repeat id="repeater" value="#{newBannerPage.banner.localizedBanners}" 
+                           var="localizedBanner">
                 
                     <div style="padding-top: 10px">
                         <div class="form-group form-col-container" 
@@ -45,23 +47,18 @@
                                  class="col-sm-3 control-label section-title" 
                                  lang="#{localizedBanner.locale}">
                                 #{settingsWrapper.getConfiguredLocaleName(localizedBanner.locale)}
-                                <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
+                                <span class="glyphicon glyphicon-asterisk text-danger" 
+                                      title="#{bundle.requiredField}"/>
                             </div>
                             <div class="col-sm-9">
                                 <p class="help-block">#{bundle['dataversemessages.banners.file.tip']}</p>
-                                <div>
-                                    <p:fileUpload id="upload" listener="#{newBannerPage.uploadFileEvent}"
-                                                  update="image-preview-container, file-upload-errors" 
-                                                  auto="true"
-                                                  mode="advanced" 
-                                                  label="#{bundle['dataversemessages.banners.file.upload.label']}"
-                                                  allowTypes="/(\.|\/)(jpg|jpeg|png)$/"
-                                                  invalidFileMessage="#{bundle['dataversemessages.banners.extensionError']}"
-                                                  sizeLimit="#{newBannerPage.bannerFileSizeLimit}"
-                                                  invalidSizeMessage="#{bundle['dataversemessages.banners.sizeError']}">
-                                        <f:attribute name="imageLocale" value="#{localizedBanner.locale}"/>
-                                    </p:fileUpload>
-                                </div>
+                                <p:fileUpload id="upload" listener="#{newBannerPage.uploadFileEvent}"
+                                              update="image-preview-container, file-upload-errors" 
+                                              auto="true"
+                                              mode="advanced" 
+                                              label="#{bundle['dataversemessages.banners.file.upload.label']}">
+                                    <f:attribute name="imageLocale" value="#{localizedBanner.locale}"/>
+                                </p:fileUpload>
                                 <div class="col-sm-11 form-col-container">
                                     <p:messages style="margin: auto" 
                                                 id="file-upload-errors" 
@@ -156,7 +153,6 @@
                     <p:commandButton styleClass="btn btn-default" value="#{bundle['cancel']}"
                                      action="#{newBannerPage.cancel()}" immediate="true"/>
                 </div>
-            
             </div>
             </h:form>
         </ui:define>

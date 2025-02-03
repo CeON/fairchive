@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages;
 
+import static edu.harvard.iq.dataverse.common.DateUtil.convertToDate;
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
@@ -18,6 +19,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 
+import edu.harvard.iq.dataverse.common.DataverseClock;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
@@ -69,6 +71,22 @@ public class DataverseBanner implements JpaEntity<Long> {
         this.toTime = toTime;
     }
 
+    public boolean isFromTimePresent() {
+        return this.fromTime != null;
+    }
+
+    public boolean isToTimePresent() {
+        return this.toTime != null;
+    }
+
+    public boolean isFromTimeBeforeEndTime() {
+        return this.fromTime.before(this.toTime);
+    }
+
+    public boolean isToTimeInFuture() {
+        return this.toTime.after(convertToDate(DataverseClock.now()));
+    }
+
     public boolean isActive() {
         return this.active;
     }
@@ -85,11 +103,11 @@ public class DataverseBanner implements JpaEntity<Long> {
             final List<DataverseLocalizedBanner> localizedBanners) {
         this.localizedBanners = localizedBanners;
     }
-    
+
     public void addLocalizedBanner(final String locale) {
         this.localizedBanners.add(new DataverseLocalizedBanner(locale));
     }
-    
+
     public Optional<DataverseLocalizedBanner> getBannerFor(final String locale) {
         return this.localizedBanners.stream()
                 .filter(banner -> banner.getLocale().equals(locale)).findAny();
