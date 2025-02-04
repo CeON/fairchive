@@ -14,6 +14,7 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.User;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -42,7 +43,8 @@ public class SubmitDatasetForReviewCommand extends AbstractDatasetCommand<Datase
             throw new IllegalCommandException(BundleUtil.getStringFromBundle("dataset.submit.failure.inReview"), this);
         }
 
-        if (getDataset().getLatestVersion().getFileMetadatas().isEmpty()) {
+        if (!ctxt.settings().isTrueForKey(SettingsServiceBean.Key.AllowDatasetPublishWithoutFiles)
+                && getDataset().getLatestVersion().getFileMetadatas().isEmpty()) {
             throw new NoDatasetFilesException("There was no files for dataset version with id: " + getDataset().getLatestVersion().getId());
         }
 

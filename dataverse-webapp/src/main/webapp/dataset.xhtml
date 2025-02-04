@@ -85,6 +85,9 @@
                 <o:importConstants
                         type="edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType"
                         var="termsOfUseTypeEnum"/>
+                <o:importConstants
+                        type="edu.harvard.iq.dataverse.DatasetPage.PublishButtonCase"
+                        var="publishButtonCaseEnum"/>
                 <f:viewParam name="id" value="#{DatasetPage.dataset.id}"/>
                 <f:viewParam name="version" value="#{DatasetPage.version}"/>
                 <f:viewParam name="versionId" value="#{DatasetPage.versionId}"/>
@@ -242,32 +245,21 @@
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('publishConfirm', this)"
-                                                       rendered="#{!DatasetPage.dataset.released
-                                                                   and DatasetPage.dataset.latestVersion.versionState=='DRAFT'
-                                                                   and DatasetPage.dataset.owner.released
-                                                                   and DatasetPage.canPublishDataset()
-                                                                   and DatasetPage.isLatestDatasetWithAnyFilesIncluded()}">
-                                            <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
-                                        </p:commandLink>
-
-                                        <p:commandLink type="button"
-                                                       styleClass="btn btn-default btn-access #{conditionallyDisable}"
-                                                       onclick="primeFacesShowModal('noFilesInDataset', this)"
-                                                       rendered="#{!DatasetPage.dataset.released
-                                                                   and DatasetPage.dataset.latestVersion.versionState=='DRAFT'
-                                                                   and DatasetPage.canPublishDataset()
-                                                                   and !DatasetPage.isLatestDatasetWithAnyFilesIncluded()}">
+                                                       rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PUBLISH_NOT_RELEASED}">
                                             <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('releaseDraft', this)"
-                                                       rendered="#{DatasetPage.dataset.released
-                                                        and DatasetPage.dataset.latestVersion.versionState=='DRAFT'
-                                                        and DatasetPage.dataset.owner.released
-                                                        and DatasetPage.canPublishDataset()
-                                                        and DatasetPage.isLatestDatasetWithAnyFilesIncluded()}">
+                                                       rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PUBLISH_RELEASED}">
+                                            <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
+                                        </p:commandLink>
+
+                                        <p:commandLink type="button"
+                                                       styleClass="btn btn-default btn-access #{conditionallyDisable}"
+                                                       onclick="primeFacesShowModal('noFilesInDataset', this)"
+                                                       rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.NO_FILES_IN_DATASET}">
                                             <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
@@ -275,33 +267,20 @@
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('mayNotRelease', this)"
-                                                       rendered="#{DatasetPage.dataset.latestVersion.versionState=='DRAFT' and
-                                                        !DatasetPage.dataset.owner.released
-                                                                   and DatasetPage.canPublishDataset()
-                                                                   and !DatasetPage.canPublishDataverse()
-                                                                   and DatasetPage.isLatestDatasetWithAnyFilesIncluded()}">
+                                                       rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PARENT_NOT_RELEASED_NO_PERMISSION_TO_PUBLISH}">
                                             <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('publishParent', this)"
-                                                       rendered="#{DatasetPage.dataset.latestVersion.versionState=='DRAFT' and !DatasetPage.dataset.owner.released
-                                                                   and DatasetPage.canPublishDataverse()
-                                                                   and (DatasetPage.dataset.owner.owner == null
-                                                                        or (DatasetPage.dataset.owner.owner != null and DatasetPage.dataset.owner.owner.released))
-                                                                   and DatasetPage.canPublishDataset()
-                                                                   and DatasetPage.isLatestDatasetWithAnyFilesIncluded()}">
+                                                       rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PARENT_NOT_RELEASED_CAN_PUBLISH}">
                                             <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
-                                                       rendered="#{DatasetPage.dataset.latestVersion.versionState=='DRAFT' and !DatasetPage.dataset.owner.released
-                                                                   and DatasetPage.canPublishDataverse()
-                                                                   and (DatasetPage.dataset.owner.owner != null and !DatasetPage.dataset.owner.owner.released)
-                                                                   and DatasetPage.canPublishDataset()
-                                                                   and DatasetPage.isLatestDatasetWithAnyFilesIncluded()}"
+                                                       rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PARENT_AND_GRANDPARENT_NOT_RELEASED}"
                                                        onclick="primeFacesShowModal('maynotPublishParent', this)">
                                             <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
                                         </p:commandLink>
@@ -1022,7 +1001,7 @@
                         styleClass="largePopUp"
                 >
 
-                    <p:outputPanel rendered="#{DatasetPage.isLatestDatasetWithAnyFilesIncluded()}">
+                    <p:outputPanel rendered="#{DatasetPage.latestDatasetHasFileOrPublishingWithoutFilesAllowed()}">
                         <p class="text-warning">
                             <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.submitForReview.submitMessage']}
                         </p>
@@ -1114,7 +1093,7 @@
                         </div>
                     </p:outputPanel>
 
-                    <p:outputPanel rendered="#{!DatasetPage.isLatestDatasetWithAnyFilesIncluded()}">
+                    <p:outputPanel rendered="#{!DatasetPage.latestDatasetHasFileOrPublishingWithoutFilesAllowed()}">
                         <p class="text-danger">
                             <span class="glyphicon glyphicon-exclamation-sign"/> #{bundle['dataset.submit.failure.noFiles']}
                         </p>
