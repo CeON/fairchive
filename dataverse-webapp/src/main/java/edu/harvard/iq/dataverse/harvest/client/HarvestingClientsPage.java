@@ -1,23 +1,12 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.NavigationWrapper;
-import edu.harvard.iq.dataverse.api.imports.HarvestImporterTypeResolver;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
-import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandler;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import edu.harvard.iq.dataverse.timer.DataverseTimerServiceBean;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import io.vavr.control.Try;
-import org.apache.commons.lang.StringUtils;
-import org.dspace.xoai.model.oaipmh.MetadataFormat;
-import org.omnifaces.cdi.ViewScoped;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.ejb.EJB;
 import javax.faces.application.FacesMessage;
@@ -29,13 +18,26 @@ import javax.faces.model.SelectItem;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
+import org.dspace.xoai.model.oaipmh.MetadataFormat;
+import org.omnifaces.cdi.ViewScoped;
+
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.NavigationWrapper;
+import edu.harvard.iq.dataverse.api.imports.HarvestImporterTypeResolver;
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
+import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandler;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
+import edu.harvard.iq.dataverse.timer.DataverseTimerServiceBean;
+import edu.harvard.iq.dataverse.util.JsfHelper;
+import edu.harvard.iq.dataverse.util.SystemConfig;
+import io.vavr.control.Try;
 
 /**
  * @author Leonid Andreev
@@ -49,7 +51,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
     @Inject
     DataverseSession session;
     @EJB
-    DataverseDao dataverseDao;
+    DataverseRepository dataverseRepo;
     @EJB
     HarvestingClientDao harvestingClientService;
     @EJB
@@ -94,8 +96,8 @@ public class HarvestingClientsPage implements java.io.Serializable {
         return this.selectedDestinationDataverse;
     }
 
-    public List<Dataverse> completeSelectedDataverse(String query) {
-        return dataverseDao.filterByAliasQuery(query);
+    public List<Dataverse> completeSelectedDataverse(final String query) {
+        return this.dataverseRepo.findByAliasOrNameOrAffiliation(query, query, query);
     }
 
     public String init() {
@@ -104,12 +106,12 @@ public class HarvestingClientsPage implements java.io.Serializable {
         }
 
         if (dataverseId != null) {
-            setDataverse(dataverseDao.find(getDataverseId()));
+            setDataverse(this.dataverseRepo.getById(getDataverseId()));
             if (getDataverse() == null) {
                 return navigationWrapper.notFound();
             }
         } else {
-            setDataverse(dataverseDao.findRootDataverse());
+            setDataverse(this.dataverseRepo.findRoot());
         }
 
         configuredHarvestingClients = harvestingClientService.getAllHarvestingClients();

@@ -1,12 +1,21 @@
 package edu.harvard.iq.dataverse.search.dataversestree;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.PermissionServiceBean;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.persistence.MocksFactory;
-import edu.harvard.iq.dataverse.search.query.PermissionFilterQueryBuilder;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
+import static edu.harvard.iq.dataverse.search.MockSolrResponseUtil.createSolrResponse;
+import static edu.harvard.iq.dataverse.search.MockSolrResponseUtil.document;
+import static edu.harvard.iq.dataverse.search.MockSolrResponseUtil.field;
+import static edu.harvard.iq.dataverse.search.MockSolrResponseUtil.list;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.solr.client.solrj.SolrClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,20 +25,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static edu.harvard.iq.dataverse.search.MockSolrResponseUtil.createSolrResponse;
-import static edu.harvard.iq.dataverse.search.MockSolrResponseUtil.document;
-import static edu.harvard.iq.dataverse.search.MockSolrResponseUtil.field;
-import static edu.harvard.iq.dataverse.search.MockSolrResponseUtil.list;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.when;
+import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.persistence.MocksFactory;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.search.query.PermissionFilterQueryBuilder;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 
 @ExtendWith(MockitoExtension.class)
 class SolrTreeServiceTest {
@@ -42,11 +44,11 @@ class SolrTreeServiceTest {
     @Mock
     private PermissionFilterQueryBuilder permissionFilterQueryBuilder;
     @Mock
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverseRepo;
 
     @Mock
     private PermissionServiceBean.RequestPermissionQuery permissionQuery;
-
+    
     // -------------------- TESTS --------------------
 
     @Test

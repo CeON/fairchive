@@ -84,7 +84,7 @@ public class DataverseDao implements java.io.Serializable {
     public Dataverse save(Dataverse dataverse) {
 
         dataverse.setModificationTime(new Timestamp(new Date().getTime()));
-        Dataverse savedDataverse = em.merge(dataverse);
+        Dataverse savedDataverse = this.dataverseRepo.save(dataverse);
         /**
          * @todo check the result to see if indexing was successful or not
          */
@@ -94,7 +94,7 @@ public class DataverseDao implements java.io.Serializable {
     }
 
     public Dataverse find(Object pk) {
-        return em.find(Dataverse.class, pk);
+        return this.dataverseRepo.findById((Long) pk).orElse(null);
     }
 
     public List<Dataverse> findAll() {
@@ -146,11 +146,6 @@ public class DataverseDao implements java.io.Serializable {
         return this.dataverseRepo.findByOwnerId(ownerId);
     }
 
-    public List<Long> findIdsByOwnerId(Long ownerId) {
-        String qr = "select o.id from Dataverse as o where o.owner.id =:ownerId order by o.id";
-        return em.createQuery(qr, Long.class).setParameter("ownerId", ownerId).getResultList();
-    }
-
     /**
      * @return the root dataverse
      * @todo Do we really want this method to sometimes throw a
@@ -175,11 +170,8 @@ public class DataverseDao implements java.io.Serializable {
                 : this.dataverseRepo.findByAlias(alias).orElse(null);
     }
 
-    public boolean hasData(Dataverse dv) {
-        TypedQuery<Long> amountQry = em.createNamedQuery("Dataverse.ownedObjectsById", Long.class)
-                .setParameter("id", dv.getId());
-
-        return (amountQry.getSingleResult() > 0);
+    public boolean hasData(final Dataverse dv) {
+        return this.dataverseRepo.countChildrenOf(dv) > 0;
     }
 
     public boolean isRootDataverseExists() {
@@ -261,29 +253,10 @@ public class DataverseDao implements java.io.Serializable {
         return datasetLinkingService.findLinkingDataverses(datasetId);
     }
 
-    public List<Dataverse> filterByAliasQuery(String filterQuery) {
-        //Query query = em.createNativeQuery("select o from Dataverse o where o.alias LIKE '" + filterQuery + "%' order by o.alias");
-        //Query query = em.createNamedQuery("Dataverse.filterByAlias", Dataverse.class).setParameter("alias", filterQuery.toLowerCase() + "%");
-        List<Dataverse> ret = em.createNamedQuery("Dataverse.filterByAliasNameAffiliation", Dataverse.class)
-                .setParameter("alias", filterQuery.toLowerCase() + "%")
-                .setParameter("name", "%" + filterQuery.toLowerCase() + "%")
-                .setParameter("affiliation", "%" + filterQuery.toLowerCase() + "%").getResultList();
-        //logger.info("created native query: select o from Dataverse o where o.alias LIKE '" + filterQuery + "%' order by o.alias");
-        logger.info("created named query");
-        if (ret != null) {
-            logger.info("results list: " + ret.size() + " results.");
-        }
-        return ret;
-    }
-
     public List<Dataverse> filterDataversesForLinking(String query, DataverseRequest req, Dataset dataset) {
 
         List<Dataverse> dataverseList = new ArrayList<>();
-
-        List<Dataverse> results = em.createNamedQuery("Dataverse.filterByAliasName", Dataverse.class)
-                .setParameter("alias", query.toLowerCase() + "%")
-                .setParameter("name", "%" + query.toLowerCase() + "%")
-                .getResultList();
+        List<Dataverse> results = this.dataverseRepo.findByAliasOrName(query, query);
 
         List<Object> alreadyLinkeddv_ids = em.createNativeQuery(
                 "SELECT linkingdataverse_id   FROM datasetlinkingdataverse WHERE dataset_id = " + dataset.getId())
@@ -309,26 +282,13 @@ public class DataverseDao implements java.io.Serializable {
         return this.dataverseRepo.countAll();
     }
 
-    public Long countDataversesWithParent(Long parentId) {
-        return (Long) em.createNativeQuery("SELECT count(1) FROM dvobject WHERE dtype='Dataverse' AND owner_id = ?1")
-                .setParameter(1, parentId)
-                .getSingleResult();
-    }
-
-    public List<Object[]> getParentAliasesForIds(List<Long> ids) {
-        return em.createQuery("SELECT o.id, dv.alias FROM Dataverse dv, DvObject o " +
-                "WHERE dv.id = o.owner.id AND o.id IN :ids", Object[].class)
-                .setParameter("ids", ids)
-                .getResultList();
-    }
-
     /**
      * Method to recursively find ids of all children of a dataverse that
      * are also of type dataverse
      */
     public List<Long> findAllDataverseDataverseChildren(Long dvId) {
         // get list of Dataverse children
-        List<Long> dataverseChildren = findIdsByOwnerId(dvId);
+        List<Long> dataverseChildren = this.dataverseRepo.findIDsByOwnerID(dvId);
 
         List<Long> newChildren = new ArrayList<>();
         for (Long childDvId : dataverseChildren) {
@@ -342,7 +302,7 @@ public class DataverseDao implements java.io.Serializable {
     // of type dataset
     public List<Long> findAllDataverseDatasetChildren(Long dvId) {
         // get list of Dataverse children
-        List<Long> dataverseChildren = findIdsByOwnerId(dvId);
+        List<Long> dataverseChildren = this.dataverseRepo.findIDsByOwnerID(dvId);
         // get list of Dataset children
         List<Long> datasetChildren = datasetRepository.findIdsByOwnerId(dvId);
 
