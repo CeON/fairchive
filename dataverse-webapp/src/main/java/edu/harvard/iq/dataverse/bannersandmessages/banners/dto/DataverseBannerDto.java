@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.bannersandmessages.banners.dto;
 import edu.harvard.iq.dataverse.common.DateUtil;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -13,10 +12,8 @@ public class DataverseBannerDto {
 
     private Long id;
 
-    @NotNull(message = "{field.required}")
     private Date fromTime;
 
-    @NotNull(message = "{field.required}")
     private Date toTime;
 
     private boolean active;

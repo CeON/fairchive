@@ -1,20 +1,15 @@
 package edu.harvard.iq.dataverse.bannersandmessages.banners;
 
+import static edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator.imageExceedes;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.persistence.config.URLValidator.isURLValid;
-import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseLocalizedBanner.isOfAllowableType;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 
-import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
+import java.util.List;
 
-import javax.ejb.EJB;
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.faces.validator.ValidatorException;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -24,160 +19,186 @@ import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.bannersandmessages.UnsupportedLanguageCleaner;
-import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.BannerMapper;
-import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseBannerDto;
-import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseLocalizedBannerDto;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.BannerErrorHandler;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.DataverseTextMessageValidator;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustBeAFutureDate;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustNotBeEarlierThanStartingDate;
-import edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBanner;
-import edu.harvard.iq.dataverse.util.JsfHelper;
+import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBannerRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseLocalizedBanner;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
+import edu.harvard.iq.dataverse.util.UIMessages;
 
+@SuppressWarnings("serial")
 @ViewScoped
-@Named("EditBannerPage")
+@Named
 public class NewBannerPage implements Serializable {
 
-    @EJB
-    private BannerDAO dao;
+    private final PermissionsWrapper permissionsWrapper;
+    private final DataverseRepository dataverseRepo;
+    private final BannerLimits bannerLimits;
+    private final UIMessages uiMessages;
+    private final DataverseBannerRepository bannerRepo;
+    private final SettingsWrapper settingsWrapper;
 
-    @Inject
-    private PermissionsWrapper permissionsWrapper;
-
-    @Inject
-    private BannerErrorHandler errorHandler;
-
-    @Inject
-    private BannerMapper mapper;
-
-    @EJB
-    private DataverseRepository dataverseRepo;
-
-    @Inject
-    private UnsupportedLanguageCleaner languageCleaner;
-
-    @Inject
-    private BannerLimits bannerLimits;
-    
-    
     private Long dataverseId;
     private Dataverse dataverse;
-    private Long bannerId;
-    private String link;
+    private final DataverseBanner banner = new DataverseBanner();
 
-    private UIInput fromTimeInput;
-
-    private DataverseBannerDto dto;
-
-    public String init() {
-        if (!permissionsWrapper.canEditDataverseTextMessagesAndBanners(dataverseId)) {
-            return permissionsWrapper.notAuthorized();
-        }
-
-        if (dataverseId == null) {
-            return permissionsWrapper.notFound();
-        }
-
-        this.dataverse = this.dataverseRepo.findById(this.dataverseId).get();
-
-        dto = bannerId != null ?
-                mapper.mapToDto(dao.getBanner(bannerId)) :
-                mapper.mapToNewBanner(dataverseId);
-
-        if (dto.getId() != null) {
-            languageCleaner.removeBannersLanguagesNotPresentInDataverse(dto);
-        }
-
-        return EMPTY;
+    @Inject
+    public NewBannerPage(final PermissionsWrapper permissionsWrapper,
+            final DataverseRepository dataverseRepo,
+            final BannerLimits bannerLimits,
+            final UIMessages uiMessages,
+            final DataverseBannerRepository bannerRepo,
+            final SettingsWrapper settingsWrapper) {
+        this.permissionsWrapper = permissionsWrapper;
+        this.dataverseRepo = dataverseRepo;
+        this.bannerLimits = bannerLimits;
+        this.uiMessages = uiMessages;
+        this.bannerRepo = bannerRepo;
+        this.settingsWrapper = settingsWrapper;
     }
 
-    public boolean hasDisplayLocalizedBanner(DataverseLocalizedBannerDto localizedBanner) {
-        return localizedBanner.getContent() != null;
+    @PostConstruct
+    public void init() {
+        this.settingsWrapper.getConfiguredLocales().keySet()
+                .forEach(this.banner::addLocalizedBanner);
     }
-    
-    public StreamedContent getDisplayLocalizedBanner(DataverseLocalizedBannerDto localizedBanner) {
-        if (localizedBanner.getContent() == null) {
+
+    public String verifyAccess() {
+        return this.dataverseId == null
+                ? this.permissionsWrapper.notFound()
+                : this.permissionsWrapper
+                        .authorizedToEditTextMessagesAndBannersOf(this.dataverseId);
+    }
+
+    public DataverseBanner getBanner() {
+        return this.banner;
+    }
+
+    public StreamedContent getBannerImage(
+            final DataverseLocalizedBanner localizedBanner) {
+        if (localizedBanner.isImagePresent()) {
+            return DefaultStreamedContent.builder()
+                    .contentType(localizedBanner.getContentType())
+                    .name(localizedBanner.getImageName())
+                    .stream(localizedBanner::getImageAsStream)
+                    .build();
+        } else {
             return null;
         }
-        return DefaultStreamedContent.builder()
-                            .contentType(localizedBanner.getContentType())
-                            .name(localizedBanner.getFilename())
-                            .stream(() -> new ByteArrayInputStream(localizedBanner.getContent()))
-                            .build();
     }
-    
-    public void uploadFileEvent(FileUploadEvent event) {
-        
-        if (ImageValidator.isImageResolutionTooBig(event.getFile().getContent(),
-                bannerLimits.getMaxWidth(), bannerLimits.getMaxHeight())) {
-            
-            FacesContext context = FacesContext.getCurrentInstance();
-            context.validationFailed();
-            FacesMessage message = new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("dataversemessages.banners.resolutionError"));
-            FacesContext.getCurrentInstance().addMessage(event.getComponent().getClientId(context), message);
-            return;
-        }
-        
-        String locale = (String) event.getComponent().getAttributes()
-                .get("imageLocale");
 
-        dto.getDataverseLocalizedBanner().stream()
-                .filter(dlb -> dlb.getLocale().equals(locale))
-                .forEach(dlb -> {
-                    dlb.setContentType(event.getFile().getContentType());
-                    dlb.setFilename(event.getFile().getFileName());
-                    dlb.setContent(event.getFile().getContent());
-                });
+    public Long getDataverseId() {
+        return this.dataverseId;
+    }
+
+    public void setDataverseId(final Long dataverseId) {
+        this.dataverseId = dataverseId;
+        this.dataverse = this.dataverseRepo.findById(this.dataverseId).orElse(null);
+    }
+
+    public Dataverse getDataverse() {
+        return this.dataverse;
+    }
+
+    public void uploadFileEvent(final FileUploadEvent event) {
+        if (isFileCorrect(event)) {
+            final String locale = (String) event.getComponent().getAttributes()
+                    .get("imageLocale");
+
+            this.banner.getBannerFor(locale).ifPresent(lb -> {
+                lb.setContentType(event.getFile().getContentType());
+                lb.setImageName(event.getFile().getFileName());
+                lb.setImage(event.getFile().getContent());
+            });
+        }
+    }
+
+    private boolean isFileCorrect(final FileUploadEvent event) {
+        boolean result = true;
+        try {
+            if (event.getFile().getSize() > this.bannerLimits.getMaxSizeInBytes()) {
+                this.uiMessages.addComponentErrorMessage(event.getComponent(),
+                        getStringFromBundle("dataversemessages.banners.sizeError"));
+                result = false;
+            }
+            if (imageExceedes(event.getFile().getInputStream(), this.bannerLimits)) {
+                this.uiMessages.addComponentErrorMessage(event.getComponent(),
+                        getStringFromBundle(
+                                "dataversemessages.banners.resolutionError"));
+                result = false;
+            }
+            if (!isOfAllowableType(event.getFile().getFileName())) {
+                this.uiMessages.addComponentErrorMessage(event.getComponent(),
+                        getStringFromBundle(
+                                "dataversemessages.banners.extensionError"));
+                result = false;
+            }
+        } catch (final IOException e) {
+            this.uiMessages.addComponentErrorMessage(event.getComponent(),
+                    getStringFromBundle("dataversemessages.banners.formatError"));
+            result = false;
+        }
+        return result;
     }
 
     public String save() {
-        DataverseBanner banner =
-                mapper.mapToEntity(dto, this.dataverseRepo.findById(dto.getDataverseId()).get());
-
-        banner.getDataverseLocalizedBanner().forEach(dlb ->
-                                                             errorHandler.handleBannerAddingErrors(banner, dlb, FacesContext.getCurrentInstance()));
-
-        if (errorsOccurred()) {
+        if (isDataCorrect()) {
+            this.bannerRepo.save(banner);
+            this.uiMessages.addFlashSuccessMessage(
+                    getStringFromBundle("dataversemessages.banners.new.success"));
+            return redirectToTextMessages();
+        } else {
             return EMPTY;
         }
-
-        dao.save(banner);
-        JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataversemessages.banners.new.success"));
-        return redirectToTextMessages();
     }
 
-    public void validateLink(FacesContext context, UIComponent toValidate, Object rawValue) throws ValidatorException {
-        String valueStr = (String)rawValue;
-        
-        if (!isURLValid(valueStr)) {
-            String message = "'" + valueStr + "'  " + getStringFromBundle("url.invalid");
-            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", message));
+    private boolean isDataCorrect() {
+        boolean result = true;
+        final List<DataverseLocalizedBanner> banners = this.banner
+                .getLocalizedBanners();
+        for (int index = 0; index < banners.size(); ++index) {
+            if (!banners.get(index).isImagePresent()) {
+                this.uiMessages.addComponentErrorMessage(
+                        "edit-text-messages-form:repeater:" + index + ":upload",
+                        getStringFromBundle(
+                                "dataversemessages.banners.missingError"));
+                result = false;
+            }
+            if (!banners.get(index).isImageLinkValid()) {
+                this.uiMessages.addComponentErrorMessage(
+                        "edit-text-messages-form:repeater:" + index
+                                + ":message-link",
+                        getStringFromBundle("textmessages.url.invalid"));
+                result = false;
+            }
         }
-    }
-    
-    public void validateEndDateTime(FacesContext context, UIComponent toValidate, Object rawValue) throws ValidatorException {
-        Date toDate = (Date) rawValue;
-        Date fromDate = (Date)fromTimeInput.getValue();
 
-        try {
-            DataverseTextMessageValidator.validateEndDate(fromDate, toDate);
-        } catch (EndDateMustNotBeEarlierThanStartingDate e) {
-            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("textmessages.endDateTime.valid")));
-        } catch (EndDateMustBeAFutureDate e) {
-            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("textmessages.endDateTime.future")));
+        if (!this.banner.isFromTimePresent()) {
+            this.uiMessages.addComponentErrorMessage(
+                    "edit-text-messages-form:message-fromtime",
+                    getStringFromBundle("field.required"));
+            result = false;
         }
-    }
-
-    public int getBannerFileSizeLimit() {
-        return bannerLimits.getMaxSizeInBytes();
-    }
-    
-    private boolean errorsOccurred() {
-        return FacesContext.getCurrentInstance().getMessageList().size() > 0;
+        if (!this.banner.isToTimePresent()) {
+            this.uiMessages.addComponentErrorMessage(
+                    "edit-text-messages-form:message-totime",
+                    getStringFromBundle("field.required"));
+            result = false;
+        }
+        if (!this.banner.isFromTimeBeforeEndTime()) {
+            this.uiMessages.addComponentErrorMessage(
+                    "edit-text-messages-form:message-totime",
+                    getStringFromBundle("textmessages.endDateTime.valid"));
+            result = false;
+        }
+        if (!this.banner.isToTimeInFuture()) {
+            this.uiMessages.addComponentErrorMessage(
+                    "edit-text-messages-form:message-totime",
+                    getStringFromBundle("textmessages.endDateTime.future"));
+            result = false;
+        }
+        return result;
     }
 
     public String cancel() {
@@ -185,62 +206,7 @@ public class NewBannerPage implements Serializable {
     }
 
     private String redirectToTextMessages() {
-        return "/dataverse-textMessages.xhtml?dataverseId=" + dataverseId + "&activeTab=banners&faces-redirect=true";
-    }
-
-    public PermissionsWrapper getPermissionsWrapper() {
-        return permissionsWrapper;
-    }
-
-    public void setPermissionsWrapper(PermissionsWrapper permissionsWrapper) {
-        this.permissionsWrapper = permissionsWrapper;
-    }
-
-    public Long getDataverseId() {
-        return dataverseId;
-    }
-
-    public void setDataverseId(Long dataverseId) {
-        this.dataverseId = dataverseId;
-    }
-
-    public Dataverse getDataverse() {
-        return dataverse;
-    }
-
-    public void setDataverse(Dataverse dataverse) {
-        this.dataverse = dataverse;
-    }
-
-    public Long getBannerId() {
-        return bannerId;
-    }
-
-    public void setBannerId(Long bannerId) {
-        this.bannerId = bannerId;
-    }
-
-    public DataverseBannerDto getDto() {
-        return dto;
-    }
-
-    public void setDto(DataverseBannerDto dto) {
-        this.dto = dto;
-    }
-
-    public UIInput getFromTimeInput() {
-        return fromTimeInput;
-    }
-
-    public void setFromTimeInput(UIInput fromTimeInput) {
-        this.fromTimeInput = fromTimeInput;
-    }
-
-    public String getLink() {
-        return link;
-    }
-
-    public void setLink(String link) {
-        this.link = link;
+        return "/dataverse-textMessages.xhtml?activeTab=banners&faces-redirect=true&dataverseId="
+                + this.dataverseId;
     }
 }

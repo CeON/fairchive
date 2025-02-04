@@ -41,12 +41,12 @@ public class BannerMapper {
 
         List<DataverseLocalizedBannerDto> dlbDto = new ArrayList<>();
 
-        for (DataverseLocalizedBanner dlb : dataverseBanner.getDataverseLocalizedBanner()) {
+        for (DataverseLocalizedBanner dlb : dataverseBanner.getLocalizedBanners()) {
 
             DataverseLocalizedBannerDto localBannerDto =
                     new DataverseLocalizedBannerDto(dlb.getId(), dlb.getLocale(),
-                                                    dlb.getImageLink().isPresent() ?
-                                                            dlb.getImageLink().get() : StringUtils.EMPTY);
+                                                    dlb.getImageLink() != null ?
+                                                            dlb.getImageLink(): StringUtils.EMPTY);
             
             localBannerDto.setContent(dlb.getImage());
             localBannerDto.setContentType(dlb.getContentType());
@@ -80,7 +80,7 @@ public class BannerMapper {
                 .forEach(fuDto -> {
                     DataverseLocalizedBanner dataverseLocalizedBanner = mapToLocalizedBanner(banner, fuDto);
 
-                    banner.getDataverseLocalizedBanner().add(dataverseLocalizedBanner);
+                    banner.getLocalizedBanners().add(dataverseLocalizedBanner);
                 });
 
         return banner;
@@ -114,8 +114,9 @@ public class BannerMapper {
     }
 
     private List<DataverseLocalizedBannerDto> mapDefaultLocales() {
+        
         Map<String, String> locales = settingsWrapper.getConfiguredLocales();
-
+        
         return locales.entrySet().stream()
                 .map(e -> new DataverseLocalizedBannerDto(e.getKey()))
                 .collect(Collectors.toList());

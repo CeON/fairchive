@@ -1,21 +1,30 @@
 package edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages;
 
+import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.trim;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import java.util.Optional;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 @Entity
-public class DataverseLocalizedBanner {
+public class DataverseLocalizedBanner implements JpaEntity<Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -23,7 +32,7 @@ public class DataverseLocalizedBanner {
 
     @Column(nullable = false)
     @Lob
-    @Basic(fetch = FetchType.LAZY)
+    @Basic(fetch = LAZY)
     private byte[] image;
 
     private String contentType;
@@ -32,62 +41,96 @@ public class DataverseLocalizedBanner {
 
     private String imageLink;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     private DataverseBanner dataverseBanner;
 
-    public Long getId() {
-        return id;
+    public DataverseLocalizedBanner() {
     }
 
-    public void setId(Long id) {
+    public DataverseLocalizedBanner(final String locale) {
+        this.locale = locale;
+    }
+
+    @Override
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public String getLocale() {
-        return locale;
+        return this.locale;
     }
 
-    public void setLocale(String locale) {
+    public void setLocale(final String locale) {
         this.locale = locale;
     }
 
     public byte[] getImage() {
-        return image;
+        return this.image;
     }
 
-    public void setImage(byte[] image) {
+    public InputStream getImageAsStream() {
+        return new ByteArrayInputStream(this.image);
+    }
+
+    public boolean isImagePresent() {
+        return this.image != null;
+    }
+
+    public void setImage(final byte[] image) {
         this.image = image;
     }
 
     public String getContentType() {
-        return contentType;
+        return this.contentType;
     }
 
-    public void setContentType(String contentType) {
+    public void setContentType(final String contentType) {
         this.contentType = contentType;
     }
 
     public String getImageName() {
-        return imageName;
+        return this.imageName;
     }
 
-    public void setImageName(String imageName) {
+    public void setImageName(final String imageName) {
         this.imageName = imageName;
     }
 
-    public Optional<String> getImageLink() {
-        return Optional.ofNullable(imageLink);
+    public String getImageLink() {
+        return this.imageLink;
     }
 
-    public void setImageLink(String imageLink) {
-        this.imageLink = imageLink;
+    public void setImageLink(final String link) {
+        this.imageLink = trim(link);
+    }
+
+    public boolean isImageLinkValid() {
+        if (isEmpty(this.imageLink)) {
+            return true;
+        } else {
+            try {
+                new URL(this.imageLink);
+                return true;
+            } catch (final MalformedURLException e) {
+                return false;
+            }
+        }
     }
 
     public DataverseBanner getDataverseBanner() {
-        return dataverseBanner;
+        return this.dataverseBanner;
     }
 
-    public void setDataverseBanner(DataverseBanner dataverseBanner) {
+    public void setDataverseBanner(final DataverseBanner dataverseBanner) {
         this.dataverseBanner = dataverseBanner;
+    }
+    
+    public static boolean isOfAllowableType(final String bannerFileName) {
+        return bannerFileName.endsWith(".jpg") || bannerFileName.endsWith(".jpeg")
+                || bannerFileName.endsWith(".png");
     }
 }

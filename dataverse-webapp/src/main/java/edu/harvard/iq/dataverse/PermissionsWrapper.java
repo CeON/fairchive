@@ -1,5 +1,16 @@
 package edu.harvard.iq.dataverse;
 
+import static org.apache.commons.lang.StringUtils.EMPTY;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.AbstractCreateDatasetCommand;
@@ -15,13 +26,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.HashMap;
-import java.util.Map;
+import edu.harvard.iq.dataverse.persistence.user.User;
 
 /**
  * @author gdurand
@@ -112,6 +117,12 @@ public class PermissionsWrapper implements java.io.Serializable {
 
     public boolean canEditDataverseTextMessagesAndBanners(Long dataverseId) {
         return permissionService.isUserCanEditDataverseTextMessagesAndBanners(dvRequestService.getDataverseRequest().getUser(), dataverseId);
+    }
+    
+    public String authorizedToEditTextMessagesAndBannersOf(final Long dataverseId) {
+        return canEditDataverseTextMessagesAndBanners(dataverseId)
+                        ? EMPTY
+                        : notAuthorized();
     }
 
     public boolean canManagePermissions(DvObject dvo) {
