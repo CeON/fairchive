@@ -75,7 +75,7 @@ public class ApiAuthorizationFilter implements Filter {
                 if (!systemConfig.isReadonlyMode()) {
                     user = userService.updateLastApiUseTime(user);
                 }
-                session.setUser(user);
+                session.logIn(user);
                 return FilterLogIn.TOKEN_LOG_IN;
             }
         }
@@ -94,7 +94,7 @@ public class ApiAuthorizationFilter implements Filter {
         NONE((r, ds) -> { }),
         TOKEN_LOG_IN((r, ds) -> {
             r.getSession().invalidate();
-            ds.setUser(null);
+            ds.logOut();
         });
 
         private final BiConsumer<HttpServletRequest, DataverseSession> logout;

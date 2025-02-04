@@ -442,6 +442,12 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     public boolean isDeaccessioned() {
         return VersionState.DEACCESSIONED.equals(versionState);
     }
+    
+    public boolean isPubliclyAccessible() {
+        return !isDeaccessioned()
+                && !isDraft()
+                && !getDataset().hasActiveEmbargo();
+    }
 
     public boolean isMinorUpdate() {
         if (dataset.getLatestVersion().isWorkingCopy()

@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.persistence.workflow;
 import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.test.WithTestClock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WorkflowExecutionRepositoryIT extends PersistenceArquillianDeployment implements WithTestClock {
 
     @Inject DatasetRepository datasets;
+    @Inject DataverseRepository dataverses;
     @Inject WorkflowRepository workflows;
     @Inject WorkflowExecutionRepository executions;
 
@@ -28,7 +30,7 @@ public class WorkflowExecutionRepositoryIT extends PersistenceArquillianDeployme
 
     @BeforeEach
     public void setUp() {
-        dataset = datasets.save(givenDataset());
+        dataset = datasets.save(givenDataset(dataverses.findById(1L).get()));
         workflow = workflows.saveFlushAndClear(givenWorkflow(
                 givenWorkflowStep("step1"),
                 givenWorkflowStep("step2")

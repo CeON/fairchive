@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.util.json;
 
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
-import edu.harvard.iq.dataverse.MetadataBlockDao;
 import edu.harvard.iq.dataverse.api.dto.UningestRequestDTO;
 import edu.harvard.iq.dataverse.common.Util;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
@@ -13,6 +12,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -56,12 +55,12 @@ public class JsonParser {
     private static final Logger logger = Logger.getLogger(JsonParser.class.getCanonicalName());
 
     DatasetFieldServiceBean datasetFieldSvc;
-    MetadataBlockDao blockService;
+    MetadataBlockRepository metadataBlockRepo;
     SettingsServiceBean settingsService;
 
-    public JsonParser(DatasetFieldServiceBean datasetFieldSvc, MetadataBlockDao blockService, SettingsServiceBean settingsService) {
+    public JsonParser(DatasetFieldServiceBean datasetFieldSvc, MetadataBlockRepository metadataBlockRepo, SettingsServiceBean settingsService) {
         this.datasetFieldSvc = datasetFieldSvc;
-        this.blockService = blockService;
+        this.metadataBlockRepo = metadataBlockRepo;
         this.settingsService = settingsService;
     }
 

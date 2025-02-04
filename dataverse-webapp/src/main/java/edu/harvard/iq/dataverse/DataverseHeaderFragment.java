@@ -188,7 +188,7 @@ public class DataverseHeaderFragment implements Serializable {
 
     public String logout() {
         samlSessionRegistry.unregister(dataverseSession);
-        dataverseSession.setUser(null);
+        dataverseSession.logOut();
         dataverseSession.setStatusDismissed(false);
 
         String redirectPage = navigationWrapper.getPageFromContext();

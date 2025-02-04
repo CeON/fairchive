@@ -46,6 +46,9 @@ import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.ValidationException;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -254,12 +257,27 @@ public class FilePage implements java.io.Serializable {
         previewTools = externalToolService.findExternalTools(ExternalTool.Type.PREVIEW, contentType, file, version);
         return null;
     }
-
-    public boolean canViewUnpublishedDataset() {
-        return permissionsWrapper.canViewUnpublishedDataset(fileMetadata.getDatasetVersion().getDataset());
+    
+    public boolean displayPreviewTab() {
+        return this.previewTools.size() > 0
+                && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata)
+                && this.fileMetadata.isFilePubliclyAccessible();
+    }
+    
+    public boolean displayDownloadPopup() {
+        return isDownloadPopupRequired() && !getGuestbookResponseProvided();
+    }
+    
+    public boolean displayPreviewArea() {
+        return !isDownloadPopupRequired() || getGuestbookResponseProvided();
     }
 
-    public boolean isDownloadPopupRequired() {
+    private boolean canViewUnpublishedDataset() {
+        return this.permissionsWrapper.canViewUnpublishedDataset(
+                this.fileMetadata.getDatasetVersion().getDataset());
+    }
+
+    private boolean isDownloadPopupRequired() {
         return fileMetadata.getId() != null
                 && fileMetadata.getDatasetVersion().getId() != null
                 && FileUtil.isDownloadPopupRequired(fileMetadata.getDatasetVersion());
@@ -470,11 +488,14 @@ public class FilePage implements java.io.Serializable {
     }
 
     public String getPreviewUrl() {
-        if (previewTools.isEmpty()) {
-            return StringUtils.EMPTY;
+        if (this.previewTools.isEmpty()) {
+            return EMPTY;
+        } else {
+            final ExternalTool previewer = previewTools.get(0);
+            return externalToolHandler.buildToolUrlWithQueryParams(previewer,
+                    this.file, null,
+                    this.session.getLocaleCode()) + "&preview=true";
         }
-        ExternalTool previewer = previewTools.get(0);
-        return externalToolHandler.buildToolUrlWithQueryParams(previewer, file, null, session.getLocaleCode()) + "&preview=true";
     }
 
     public void showPreview(GuestbookResponse guestbookResponse) {

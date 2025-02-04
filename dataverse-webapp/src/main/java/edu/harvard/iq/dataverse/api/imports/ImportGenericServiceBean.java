@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.api.imports;
 
 import com.google.gson.Gson;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
-import edu.harvard.iq.dataverse.MetadataBlockDao;
 import edu.harvard.iq.dataverse.api.dto.DatasetDTO;
 import edu.harvard.iq.dataverse.api.dto.DatasetFieldDTOFactory;
 import edu.harvard.iq.dataverse.api.dto.DatasetVersionDTO;
@@ -14,6 +13,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.ForeignMetadataFieldMapping;
 import edu.harvard.iq.dataverse.persistence.dataset.ForeignMetadataFormatMapping;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
@@ -60,7 +60,7 @@ public class ImportGenericServiceBean {
     DatasetFieldServiceBean datasetFieldSvc;
 
     @EJB
-    MetadataBlockDao blockService;
+    MetadataBlockRepository metadataBlockRepo;
 
     @Inject
     SettingsServiceBean settingsService;
@@ -104,7 +104,7 @@ public class ImportGenericServiceBean {
             logger.fine(json);
             JsonReader jsonReader = Json.createReader(new StringReader(json));
             JsonObject obj = jsonReader.readObject();
-            new JsonParser(datasetFieldSvc, blockService, settingsService).parseDatasetVersion(obj, datasetVersion);
+            new JsonParser(datasetFieldSvc, metadataBlockRepo, settingsService).parseDatasetVersion(obj, datasetVersion);
         } catch (XMLStreamException ex) {
             throw new EJBException("ERROR occurred while parsing XML fragment  (" + xmlToParse.substring(0, 64) + "...); ", ex);
         } catch (JsonParseException ex) {

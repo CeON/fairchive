@@ -108,7 +108,7 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
         final int EXPECTED_DV_COUNT = 9; // Root + 8 dataverses from dbinit
 
         Dataverse dataverse = prepareDataverse();
-        dataverseSession.setUser(GuestUser.get());
+        dataverseSession.logIn(GuestUser.get());
 
         //when
         Either<DataverseError, Dataverse> savedDataverse = dataverseService.saveNewDataverse(Lists.newArrayList(), dataverse, new DualListModel<>());
@@ -215,7 +215,7 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
 
     private long loginSessionWithSuperUser() {
         AuthenticatedUser user = userServiceBean.find(2L);
-        dataverseSession.setUser(user);
+        dataverseSession.logIn(user);
         return user.getId();
     }
 

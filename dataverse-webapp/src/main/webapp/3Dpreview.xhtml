@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:jsf="http://xmlns.jcp.org/jsf" xmlns:o="http://omnifaces.org/ui"
+	xmlns:dv="http://dataverse.org/facelets"
+	xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+	<meta content="charset=UTF-8" />
+	<title>3D Presenter</title>
+	<link type="text/css" rel="stylesheet"
+		href="/javax.faces.resource/css/3dhop.css" />
+	<!--SPIDERGL-->
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/spidergl.js"></script>
+	<!--JQUERY-->
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/jquery.js"></script>
+	<!--PRESENTER-->
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/presenter.js"></script>
+	<!--3D MODELS LOADING AND RENDERING-->
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/nexus.js"></script>
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/ply.js"></script>
+	<!--TRACKBALLS-->
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/trackball_sphere.js"></script>
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/trackball_turntable.js"></script>
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/trackball_turntable_pan.js"></script>
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/trackball_pantilt.js"></script>
+	<!--UTILITY-->
+	<script type="text/javascript"
+		src="/javax.faces.resource/js/3dhop/init.js"></script>
+</h:head>
+<h:body>
+	<div id="3dhop" class="tdhop"
+		onmousedown="if (event.preventDefault) event.preventDefault()">
+		<div id="tdhlg"></div>
+		<div id="toolbar">
+			<img id="home" title="Home"
+				src="/javax.faces.resource/images/3dhop/transparent_light/home.png" /><br />
+			<img id="zoomin" title="Zoom In"
+				src="/javax.faces.resource/images/3dhop/transparent_light/zoomin.png" /><br />
+			<img id="zoomout" title="Zoom Out"
+				src="/javax.faces.resource/images/3dhop/transparent_light/zoomout.png" /><br />
+			<img id="light_on" title="Disable Light Control"
+				src="/javax.faces.resource/images/3dhop/transparent_light/lightcontrol_on.png"
+				style="position: absolute; visibility: hidden;" /> <img id="light"
+				title="Enable Light Control"
+				src="/javax.faces.resource/images/3dhop/transparent_light/lightcontrol.png" /><br />
+			<img id="screenshot" title="Save Screenshot"
+				src="/javax.faces.resource/images/3dhop/transparent_light/screenshot.png" /><br />
+			<img id="full_on" title="Exit Full Screen"
+				src="/javax.faces.resource/images/3dhop/transparent_light/full_on.png"
+				style="position: absolute; visibility: hidden;" /> <img id="full"
+				title="Full Screen"
+				src="/javax.faces.resource/images/3dhop/transparent_light/full.png" />
+		</div>
+		<canvas id="draw-canvas"
+			style="background-image: url(/javax.faces.resource/images/3dhop/light_background.jpg)" />
+	</div>
+</h:body>
+
+<script type="text/javascript">
+	var presenter = null;
+
+	function setup3dhop() {
+		presenter = new Presenter("draw-canvas");
+
+		presenter.setScene({
+			meshes : {
+				"Preview" : {
+					url : (new URLSearchParams(window.location.search))
+							.get("fileUrl")
+				}
+			},
+			modelInstances : {
+				"Model1" : {
+					mesh : "Preview"
+				}
+			}
+		});
+	}
+
+	function actionsToolbar(action) {
+		if (action == 'home')
+			presenter.resetTrackball();
+		else if (action == 'zoomin')
+			presenter.zoomIn();
+		else if (action == 'zoomout')
+			presenter.zoomOut();
+		else if (action == 'light' || action == 'light_on') {
+			presenter
+					.enableLightTrackball(!presenter.isLightTrackballEnabled());
+			lightSwitch();
+		} else if (action == 'full' || action == 'full_on')
+			fullscreenSwitch();
+		else if (action == 'screenshot')
+			presenter.saveScreenshot();
+	}
+
+	$(document).ready(function() {
+		init3dhop();
+
+		setup3dhop();
+
+		resizeCanvas(window.innerWidth - 5, window.innerHeight - 5);
+
+		moveToolbar(20, 20);
+	});
+</script>
+</html>

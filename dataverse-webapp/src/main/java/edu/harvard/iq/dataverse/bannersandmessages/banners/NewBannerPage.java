@@ -1,6 +1,28 @@
 package edu.harvard.iq.dataverse.bannersandmessages.banners;
 
-import edu.harvard.iq.dataverse.DataverseDao;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.persistence.config.URLValidator.isURLValid;
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+
+import java.io.ByteArrayInputStream;
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
+import javax.faces.validator.ValidatorException;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
+
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.bannersandmessages.UnsupportedLanguageCleaner;
 import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.BannerMapper;
@@ -11,37 +33,14 @@ import edu.harvard.iq.dataverse.bannersandmessages.validation.DataverseTextMessa
 import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustBeAFutureDate;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.EndDateMustNotBeEarlierThanStartingDate;
 import edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.config.URLValidator;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBanner;
 import edu.harvard.iq.dataverse.util.JsfHelper;
-import org.apache.commons.lang.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.event.FileUploadEvent;
-import org.primefaces.model.DefaultStreamedContent;
-import org.primefaces.model.StreamedContent;
-
-import javax.ejb.EJB;
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.faces.validator.ValidatorException;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.io.ByteArrayInputStream;
-import java.io.Serializable;
-import java.util.Date;
 
 @ViewScoped
 @Named("EditBannerPage")
 public class NewBannerPage implements Serializable {
-
-    @PersistenceContext(unitName = "VDCNet-ejbPU")
-    private EntityManager em;
 
     @EJB
     private BannerDAO dao;
@@ -56,7 +55,7 @@ public class NewBannerPage implements Serializable {
     private BannerMapper mapper;
 
     @EJB
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverseRepo;
 
     @Inject
     private UnsupportedLanguageCleaner languageCleaner;
@@ -83,7 +82,7 @@ public class NewBannerPage implements Serializable {
             return permissionsWrapper.notFound();
         }
 
-        dataverse = dataverseDao.find(dataverseId);
+        this.dataverse = this.dataverseRepo.findById(this.dataverseId).get();
 
         dto = bannerId != null ?
                 mapper.mapToDto(dao.getBanner(bannerId)) :
@@ -93,7 +92,7 @@ public class NewBannerPage implements Serializable {
             languageCleaner.removeBannersLanguagesNotPresentInDataverse(dto);
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     public boolean hasDisplayLocalizedBanner(DataverseLocalizedBannerDto localizedBanner) {
@@ -118,7 +117,7 @@ public class NewBannerPage implements Serializable {
             
             FacesContext context = FacesContext.getCurrentInstance();
             context.validationFailed();
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "", BundleUtil.getStringFromBundle("dataversemessages.banners.resolutionError"));
+            FacesMessage message = new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("dataversemessages.banners.resolutionError"));
             FacesContext.getCurrentInstance().addMessage(event.getComponent().getClientId(context), message);
             return;
         }
@@ -137,26 +136,26 @@ public class NewBannerPage implements Serializable {
 
     public String save() {
         DataverseBanner banner =
-                mapper.mapToEntity(dto, em.find(Dataverse.class, dto.getDataverseId()));
+                mapper.mapToEntity(dto, this.dataverseRepo.findById(dto.getDataverseId()).get());
 
         banner.getDataverseLocalizedBanner().forEach(dlb ->
                                                              errorHandler.handleBannerAddingErrors(banner, dlb, FacesContext.getCurrentInstance()));
 
         if (errorsOccurred()) {
-            return StringUtils.EMPTY;
+            return EMPTY;
         }
 
         dao.save(banner);
-        JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataversemessages.banners.new.success"));
+        JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataversemessages.banners.new.success"));
         return redirectToTextMessages();
     }
 
     public void validateLink(FacesContext context, UIComponent toValidate, Object rawValue) throws ValidatorException {
         String valueStr = (String)rawValue;
         
-        if (!URLValidator.isURLValid(valueStr)) {
-            String message = "'" + valueStr + "'  " + BundleUtil.getStringFromBundle("url.invalid");
-            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "", message));
+        if (!isURLValid(valueStr)) {
+            String message = "'" + valueStr + "'  " + getStringFromBundle("url.invalid");
+            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", message));
         }
     }
     
@@ -167,9 +166,9 @@ public class NewBannerPage implements Serializable {
         try {
             DataverseTextMessageValidator.validateEndDate(fromDate, toDate);
         } catch (EndDateMustNotBeEarlierThanStartingDate e) {
-            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "", BundleUtil.getStringFromBundle("textmessages.endDateTime.valid")));
+            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("textmessages.endDateTime.valid")));
         } catch (EndDateMustBeAFutureDate e) {
-            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR, "", BundleUtil.getStringFromBundle("textmessages.endDateTime.future")));
+            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR, "", getStringFromBundle("textmessages.endDateTime.future")));
         }
     }
 
@@ -195,14 +194,6 @@ public class NewBannerPage implements Serializable {
 
     public void setPermissionsWrapper(PermissionsWrapper permissionsWrapper) {
         this.permissionsWrapper = permissionsWrapper;
-    }
-
-    public DataverseDao getDataverseDao() {
-        return dataverseDao;
-    }
-
-    public void setDataverseDao(DataverseDao dataverseDao) {
-        this.dataverseDao = dataverseDao;
     }
 
     public Long getDataverseId() {

@@ -1,0 +1,36 @@
+
+rules:
+- pattern: 'org.apache.activemq<type=Broker, brokerName=(\S*), destinationType=Queue, destinationName=(\S*)><>(\w+)'
+  name: activemq_queue_$3
+  attrNameSnakeCase: true
+  labels:
+    destination: $2
+
+- pattern: 'org.apache.activemq<type=Broker, brokerName=(\S*), destinationType=Topic, destinationName=(\S*)><>(\w+)'
+  name: activemq_topic_$3
+  attrNameSnakeCase: true
+  labels:
+    destination: $2
+
+- pattern: 'org.apache.activemq<type=Broker, brokerName=(\S*)><>CurrentConnectionsCount'
+  name: activemq_connections
+  type: GAUGE
+
+- pattern: 'org.apache.activemq<type=Broker, brokerName=(\S*)><>Total(.*)Count'
+  name: activemq_$2_total
+  type: COUNTER
+
+- pattern: 'org.apache.activemq<type=Broker, brokerName=(\S*)><>(.*)PercentUsage'
+  name: activemq_$2_usage_ratio
+  type: GAUGE
+  valueFactor: 0.01
+
+- pattern: 'java.lang<type=OperatingSystem><>(committed_virtual_memory|free_physical_memory|free_swap_space|total_physical_memory|total_swap_space)_size:'
+  name: os_$1_bytes
+  type: GAUGE
+  attrNameSnakeCase: true
+
+- pattern: 'java.lang<type=OperatingSystem><>((?!process_cpu_time)\w+):'
+  name: os_$1
+  type: GAUGE
+  attrNameSnakeCase: true

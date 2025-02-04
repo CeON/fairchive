@@ -140,6 +140,9 @@
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.infoMessageAuthor.title']}</strong> –
                                 <h:outputText escape="false" value="#{DatasetPage.getPrivateUrlMessageDetails(false)}"/>
+                                <span class="btn glyphicon glyphicon-copy"
+                                      title="#{bundle['copyToClipboard']}"
+                                      onclick="navigator.clipboard.writeText('#{DatasetPage.getPrivateUrlLink(false)}');"/>
                             </p>
                         </div> 
                         <div jsf:rendered="#{DatasetPage.displayPrivateUrl(true)}" 
@@ -147,6 +150,9 @@
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.anonymized.infoMessageAuthor.title']}</strong> –
                                 <h:outputText escape="false" value="#{DatasetPage.getPrivateUrlMessageDetails(true)}"/>
+                                <span class="btn glyphicon glyphicon-copy"
+                                      title="#{bundle['copyToClipboard']}"
+                                      onclick="navigator.clipboard.writeText('#{DatasetPage.getPrivateUrlLink(true)}');"/>
                             </p>
                         </div>
                         <div jsf:rendered="#{DatasetPage.isViewedFromPrivateUrl()}" class="alert alert-info" role="alert" aria-atomic="true">

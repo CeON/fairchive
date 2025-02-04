@@ -177,7 +177,7 @@ public class SamlAuthenticationServlet extends HttpServlet {
                 return;
             }
             AuthenticatedUser updatedUser = updateResult.get();
-            session.setUser(updatedUser);
+            session.logIn(updatedUser);
             String relayState = request.getParameter("RelayState");
             response.sendRedirect(StringUtils.isNotBlank(relayState)
                     ? relayState
@@ -247,7 +247,7 @@ public class SamlAuthenticationServlet extends HttpServlet {
     private void clearActiveSessionsForUser(AuthenticatedUser user) {
         List<DataverseSession> sessions = samlSessionRegistry.unregister(user);
         for (DataverseSession session : sessions) {
-            session.setUser(null);
+            session.logOut();
         }
     }
 

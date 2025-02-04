@@ -664,6 +664,10 @@ public class DatasetPage implements Serializable {
         return this.commandEngine.submit(new GetPrivateUrlCommand(
                 this.dvRequestService.getDataverseRequest(), this.dataset, anonymized));
     }
+    
+    public String getPrivateUrlLink(final boolean anonymized) {
+        return this.getPrivateUrl(anonymized).getLink();
+    }
 
     public void fetchMetricsDownloadCount() {
         datasetDownloadCount = guestbookResponseService.getCountGuestbookResponsesByDatasetId(dataset.getId());

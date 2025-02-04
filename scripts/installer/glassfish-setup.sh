@@ -72,6 +72,13 @@ function preliminary_setup()
   # 
   # location of the datafiles directory: 
   # (defaults to dataverse/files in the users home directory)
+
+  if [ -n "$GLASSFISH_JAVAAGENT" ]
+   then
+     echo "Setting javaagent: $GLASSFISH_JAVAAGENT"
+    ./asadmin $ASADMIN_OPTS create-jvm-options "\-javaagent\:$GLASSFISH_JAVAAGENT"
+  fi
+
   ./asadmin $ASADMIN_OPTS create-jvm-options "\-Ddataverse.files.directory=${FILES_DIR}"
   # Rserve-related JVM options: 
   ./asadmin $ASADMIN_OPTS create-jvm-options "\-Ddataverse.rserve.host=${RSERVE_HOST}"

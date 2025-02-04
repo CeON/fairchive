@@ -393,7 +393,7 @@ public class DataverseUserPage extends BaseUserPage {
 
             // Authenticated user registered. Save the new bulitin, and log in.
             builtinUserService.save(builtinUser);
-            session.setUser(au);
+            session.logIn(au);
             /**
              * @todo Move this to
              * AuthenticationServiceBean.createAuthenticatedUser
@@ -452,7 +452,7 @@ public class DataverseUserPage extends BaseUserPage {
                 } catch (ConfirmEmailException ex) {
                     logger.log(Level.INFO, "Unable to send email confirmation link to user id {0}", savedUser.getId());
                 }
-                session.setUser(currentUser);
+                session.logIn(currentUser);
                 JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("confirmEmail.changed", currentUser.getEmail(), expTime));
             } else {
                 JsfHelper.addFlashSuccessMessage(msg.toString());

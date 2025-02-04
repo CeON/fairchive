@@ -1,10 +1,10 @@
 package edu.harvard.iq.dataverse.dataverse;
 
-import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseFieldTypeInputLevelServiceBean;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import io.vavr.Tuple;
@@ -13,7 +13,6 @@ import io.vavr.Tuple2;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.faces.model.SelectItem;
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -24,8 +23,8 @@ import java.util.Set;
 @Stateless
 public class MetadataBlockService {
 
-    @Inject
-    private DataverseDao dataverseDao;
+    @EJB
+    MetadataBlockRepository metadataBlockRepo;
 
     @EJB
     private DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService;
@@ -192,7 +191,7 @@ public class MetadataBlockService {
     }
 
     private Set<MetadataBlock> prepareMetadataBlocks(Dataverse dataverse) {
-        Set<MetadataBlock> availableBlocks = new HashSet<>(dataverseDao.findSystemMetadataBlocks());
+        Set<MetadataBlock> availableBlocks = new HashSet<>(this.metadataBlockRepo.findSystemMetadataBlocks());
         Set<MetadataBlock> metadataBlocks = retriveAllDataverseParentsMetaBlocks(dataverse);
         availableBlocks.addAll(metadataBlocks);
 
