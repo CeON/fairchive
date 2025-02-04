@@ -253,15 +253,9 @@ public class DataverseDao implements java.io.Serializable {
         return datasetLinkingService.findLinkingDataverses(datasetId);
     }
 
-    public List<Dataverse> filterByAliasQuery(String filterQuery) {
-        filterQuery = filterQuery.toLowerCase();
-        return this.dataverseRepo.findByAliasOrNameOrAffiliation(filterQuery, filterQuery, filterQuery);
-    }
-
     public List<Dataverse> filterDataversesForLinking(String query, DataverseRequest req, Dataset dataset) {
 
         List<Dataverse> dataverseList = new ArrayList<>();
-        query = query.toLowerCase();
         List<Dataverse> results = this.dataverseRepo.findByAliasOrName(query, query);
 
         List<Object> alreadyLinkeddv_ids = em.createNativeQuery(

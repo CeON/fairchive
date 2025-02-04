@@ -83,8 +83,8 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
                 "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) "+
                 "order by dv.alias",
                 Dataverse.class)
-                .setParameter("alias", "%" + alias + "%")
-                .setParameter("name", "%" + name + "%")
+                .setParameter("alias", "%" + alias.toLowerCase() + "%")
+                .setParameter("name", "%" + name.toLowerCase() + "%")
                 .getResultList();
     }
 
@@ -95,9 +95,9 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
                 "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) " +
                  "order by dv.alias",
                 Dataverse.class)
-                .setParameter("alias", alias + "%")
-                .setParameter("name", "%" + name + "%")
-                .setParameter("affiliation", "%" + affiliation + "%")
+                .setParameter("alias", alias.toLowerCase() + "%")
+                .setParameter("name", "%" + name.toLowerCase() + "%")
+                .setParameter("affiliation", "%" + affiliation.toLowerCase() + "%")
                 .getResultList();
     }
 

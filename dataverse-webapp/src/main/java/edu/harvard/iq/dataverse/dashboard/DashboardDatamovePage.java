@@ -1,7 +1,24 @@
 package edu.harvard.iq.dataverse.dashboard;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.lang.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -16,26 +33,11 @@ import edu.harvard.iq.dataverse.engine.command.impl.MoveDataverseCommand;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 
 @ViewScoped
 @Named("DashboardDatamovePage")
@@ -49,7 +51,7 @@ public class DashboardDatamovePage implements Serializable {
     private DatasetDao datasetDao;
 
     @EJB
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverseRepo;
 
     @Inject
     private DataverseSession session;
@@ -114,8 +116,8 @@ public class DashboardDatamovePage implements Serializable {
         return Collections.emptyList();
     }
 
-    public List<Dataverse> completeDataverse(String query) {
-        return dataverseDao.filterByAliasQuery(query);
+    public List<Dataverse> completeDataverse(final String query) {
+        return this.dataverseRepo.findByAliasOrNameOrAffiliation(query, query, query);
     }
 
     public void moveDataset() {
