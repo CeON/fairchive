@@ -255,9 +255,9 @@ public class DatasetFilesTab implements Serializable {
             lockedDueToDcmUpload = false;
         }
 
-        configureTools = externalToolService.findByType(CONFIGURE);
-        exploreTools = externalToolService.findByType(EXPLORE);
-        previewTools = externalToolService.findByType(PREVIEW);
+        configureTools = externalToolService.findBy(CONFIGURE);
+        exploreTools = externalToolService.findBy(EXPLORE);
+        previewTools = externalToolService.findBy(PREVIEW);
 
         guestbookResponseDialog.initForDatasetVersion(workingVersion);
 

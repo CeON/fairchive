@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
 import static javax.persistence.CascadeType.MERGE;
@@ -46,6 +47,7 @@ import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
@@ -318,6 +320,14 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     @Override
     public boolean isAncestorOf(DvObject other) {
         return equals(other);
+    }
+    
+    public boolean isPublicIn(final DatasetVersion datasetVersion) {
+        boolean released = datasetVersion.isReleased();
+        boolean embargoed = getOwner().hasActiveEmbargo();
+        boolean restricted = getFileMetadata().getTermsOfUse().getTermsOfUseType() == RESTRICTED;
+
+        return released && !embargoed && !restricted;
     }
 
     /**

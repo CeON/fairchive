@@ -7,6 +7,7 @@ import static javax.persistence.CascadeType.REMOVE;
 import static org.eclipse.persistence.annotations.BatchFetchType.JOIN;
 
 import java.io.Serializable;
+import java.security.acl.LastOwnerException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -124,6 +125,15 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
     public String getLabel() {
         return label;
+    }
+    
+    public String getFileNameExtention() {
+        final int index = this.label.lastIndexOf('.');
+        if(index < 0) {
+            return "";
+        } else {
+            return this.label.substring(index+1);
+        }
     }
 
     public void setLabel(String label) {
