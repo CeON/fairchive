@@ -228,11 +228,9 @@ public class DataverseDao implements java.io.Serializable {
         List<Object> alreadyLinkeddv_ids = em.createNativeQuery(
                 "SELECT linkingdataverse_id   FROM datasetlinkingdataverse WHERE dataset_id = " + dataset.getId())
                 .getResultList();
+        
         List<Dataverse> toRemove = new ArrayList<>();
-
-        if (alreadyLinkeddv_ids != null && !alreadyLinkeddv_ids.isEmpty()) {
             alreadyLinkeddv_ids.stream().map(this::find).forEachOrdered(toRemove::add);
-        }
 
         for (Dataverse res : results) {
             if (!toRemove.contains(res)) {
