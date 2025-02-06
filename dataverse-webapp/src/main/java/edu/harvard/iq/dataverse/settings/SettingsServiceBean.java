@@ -752,7 +752,12 @@ public class SettingsServiceBean {
         CookieName,
         CookieSecure,
 
-        AllowedExternalRedirectionUrlAfterLogin
+        AllowedExternalRedirectionUrlAfterLogin,
+
+        /**
+         * Custom prefix for Solr fields used for retrieving location/geo results on search page
+         */
+        SearchResultLocationCustomPrefix
         ;
 
 

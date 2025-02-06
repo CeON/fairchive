@@ -153,6 +153,13 @@ INSERT INTO datasetfield_controlledvocabularyvalue (datasetfield_id, controlledv
 INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (662, NULL, 41, 58, 0, '2019-09-26');
 INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (669, NULL, 41, 57, 0, 'Some depositor name');
 
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (580, NULL, 41, 79, 0, NULL);
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (581, 580, NULL, 86, 0, '50.17739');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (582, 580, NULL, 87, 0, '22.21139');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (583, 580, NULL, 88, 0, '21.82144');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (584, 580, NULL, 89, 0, '49.85973');
+
+
 INSERT INTO dvobject (id, dtype, owner_id, previewimageavailable, protocol, authority, identifier, globalidcreatetime, identifierregistered, storageidentifier, releaseuser_id, publicationdate,
                       creator_id, createdate, modificationtime, permissionmodificationtime, indextime, permissionindextime)
 VALUES (71, 'Dataset', 1, false, 'doi', '10.18150', 'FK2/QTVQKZ', NULL, false, 'file://10.18150/FK2/QTVQKZ', NULL, NULL,

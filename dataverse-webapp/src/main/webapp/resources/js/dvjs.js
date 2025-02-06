@@ -291,6 +291,23 @@ function initDvJS() {
       render: function(key) {
         let mapData = searchResultsData.get(key);
         render(key, mapData);
+      },
+      addClusteredMarkers: function (key, field, value) {
+        if (!value || value.length === 0) {
+            return;
+        }
+
+        putValue(searchResultsData, key, field, value);
+        let mapData = searchResultsData.get(key);
+        var markers = L.markerClusterGroup();
+
+        for (const dataset of value) {
+            var marker = L.marker([dataset.marker.latitude, dataset.marker.longitude])
+                    .bindPopup("<b style='font-size: 14px'>Dataset name:</b> <span style='font-size: 12px;'>" + dataset.name + "</span>");
+            markers.addLayer(marker);
+        }
+
+         mapData.leafMap.addLayer(markers);
       }
     }
 
