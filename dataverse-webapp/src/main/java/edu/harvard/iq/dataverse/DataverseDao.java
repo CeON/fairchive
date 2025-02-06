@@ -155,13 +155,12 @@ public class DataverseDao implements java.io.Serializable {
         return this.dataverseRepo.countRoots() == 1;
     }
 
-    public String determineDataversePath(Dataverse dataverse) {
-        List<String> dataversePathSegments = indexService.findPathSegments(dataverse);
-        StringBuilder dataversePath = new StringBuilder();
-        for (String segment : dataversePathSegments) {
-            dataversePath.append("/").append(segment);
+    public CharSequence determineDataversePath(final Dataverse dataverse) {
+        final StringBuilder result = new StringBuilder();
+        for (final String segment : this.indexService.findPathSegments(dataverse)) {
+            result.append("/").append(segment);
         }
-        return dataversePath.toString();
+        return result;
     }
 
     public String getDataverseLogoThumbnailFilePath(Long dvId) {
