@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse;
 
-import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 import java.io.File;
 import java.sql.Timestamp;
@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
@@ -22,7 +23,8 @@ import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.StringUtils;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
@@ -33,6 +35,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseThemeRepository;
 import edu.harvard.iq.dataverse.persistence.group.Group;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
@@ -80,6 +83,9 @@ public class DataverseDao implements java.io.Serializable {
 
     @Inject
     private ImageThumbConverter imageThumbConverter;
+    
+    @Inject
+    private DataverseThemeRepository dataverseThemeRepo;
 
     public Dataverse save(Dataverse dataverse) {
 
@@ -183,33 +189,18 @@ public class DataverseDao implements java.io.Serializable {
         return null;
     }
 
-    private File getLogoById(Long id) {
-        if (id == null) {
-            return null;
-        }
-
-        String logoFileName;
-
-        try {
-            logoFileName = (String) em.createNativeQuery("SELECT logo FROM dataversetheme WHERE dataverse_id = " + id).getSingleResult();
-
-        } catch (Exception ex) {
-            return null;
-        }
-
-        if (logoFileName != null && !logoFileName.isEmpty()) {
-            Properties p = System.getProperties();
-            String domainRoot = p.getProperty("com.sun.aas.instanceRoot");
-
-            if (domainRoot != null && !"".equals(domainRoot)) {
+    private File getLogoById(final Long id) {
+        final Optional<String> logoFileName = this.dataverseThemeRepo.findLogoByDataverseId(id);
+        if (logoFileName.isPresent() && !logoFileName.get().isEmpty()) {
+            final String domainRoot = System.getProperty("com.sun.aas.instanceRoot");
+            if (isNotEmpty(domainRoot)) {
                 return new File(domainRoot + File.separator +
                                         "docroot" + File.separator +
                                         "logos" + File.separator +
                                         id + File.separator +
-                                        logoFileName);
+                                        logoFileName.get());
             }
         }
-
         return null;
     }
 
