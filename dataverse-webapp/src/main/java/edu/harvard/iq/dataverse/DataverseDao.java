@@ -113,29 +113,6 @@ public class DataverseDao implements java.io.Serializable {
                 .collect(toList());
     }
 
-    /**
-     * @param numPartitions The number of partitions you intend to split the
-     *                      indexing job into. Perhaps you have three Glassfish servers and you'd
-     *                      like each one to operate on a subset of dataverses.
-     * @param partitionId   Maybe "partitionId" is the wrong term but it's what we
-     *                      call in the (text) UI. If you've specified three partitions the three
-     *                      partitionIds are 0, 1, and 2. We do `dataverseId % numPartitions =
-     *                      partitionId` to figure out which partition the dataverseId falls into.
-     * @param skipIndexed   If true, will skip any dvObjects that have a indexTime set
-     * @return All dataverses if you say numPartitions=1 and partitionId=0.
-     * Otherwise, a subset of dataverses.
-     */
-    public List<Dataverse> findAllOrSubset(long numPartitions, long partitionId, boolean skipIndexed) {
-        numPartitions = max(numPartitions, 1); 
-        String skipClause = skipIndexed ? "AND o.indexTime is null " : "";
-        TypedQuery<Dataverse> typedQuery = em.createQuery("SELECT OBJECT(o) FROM Dataverse AS o WHERE MOD( o.id, :numPartitions) = :partitionId " +
-                                                                  skipClause +
-                                                                  "ORDER BY o.id", Dataverse.class);
-        typedQuery.setParameter("numPartitions", numPartitions);
-        typedQuery.setParameter("partitionId", partitionId);
-        return typedQuery.getResultList();
-    }
-
     public List<Long> findDataverseIdsForIndexing(final boolean skipIndexed) {      
         return skipIndexed 
                 ? this.dataverseRepo.findAllUnindexedIDs()
