@@ -332,23 +332,24 @@ public class SearchIncludeFragment {
     }
 
     public void search() {
+        // searchResultList contains all grouping/counting logic for search filters
+        // so we need to call it also on location tab
+        searchResultList();
+        if (lastSearchValue.getActiveTabIndex() == 1) {
+            searchDatasetLocation();
+        }
+    }
+
+    public void searchResultList() {
         String queryToPassToSolr = StringUtils.isEmpty(query) ? "*" : query;
 
         dataverseAlias = dataverse.getAlias();
-
         List<String> filterQueriesFinal = new ArrayList<>();
-        String dataversePath = null;
 
-        Optional<String> filterDownToSubtree;
-        if (!dataverse.isRoot()) {
-            dataversePath = dataverseDao.determineDataversePath(dataverse);
-            filterDownToSubtree = Optional.of(SearchFields.SUBTREE + ":\"" + dataversePath + "\"");
-        } else {
-            filterDownToSubtree = Optional.empty();
-        }
+        String dataversePath = dataverse.isRoot() ? null : dataverseDao.determineDataversePath(dataverse);
 
+        Optional<String> filterDownToSubtree = getFilterDownToSubtree(dataverse);
         filterDownToSubtree.ifPresent(filterQueriesFinal::add);
-
         filterQueriesFinal.addAll(prepareSpecialFilterQueries(filterQueries));
 
         SearchForTypes searchForTypes = SearchForTypes.byTypes(
@@ -451,6 +452,32 @@ public class SearchIncludeFragment {
         this.lastSearchValue.setSearchResultsList(searchResultsList);
         this.lastSearchValue.setRootDv(dataverse.isRoot());
         this.lastSearchValue.setDataverseId(dataverse.getId());
+    }
+
+    public void searchDatasetLocation() {
+        String queryToPassToSolr = "";
+        try {
+            queryToPassToSolr = StringUtils.isEmpty(query) ? "*" : query;
+
+            List<String> filterQueriesFinal = new ArrayList<>();
+            Optional<String> filterDownToSubtree = getFilterDownToSubtree(dataverse);
+            filterDownToSubtree.ifPresent(filterQueriesFinal::add);
+            filterQueriesFinal.addAll(prepareSpecialFilterQueries(filterQueries));
+
+            searchMapResultsList = searchService.searchDatasetLocation(
+                dataverseRequestService.getDataverseRequest(),
+                queryToPassToSolr,
+                filterQueriesFinal
+            );
+        } catch (SearchException ex) {
+            String message = String.format("Exception running dataset location search for [%s] with filterQueries %s",
+                    queryToPassToSolr, filterQueries);
+            logger.log(Level.INFO, message, ex);
+            solrIsDown = true;
+            searchException = ex;
+            solrErrorEncountered = true;
+            errorFromSolr = ex.getMessage();
+        }
     }
     
     public StreamedContent getSearchResultsFile() {
@@ -598,32 +625,20 @@ public class SearchIncludeFragment {
         return datafile != null && datafile.isTabularData();
     }
 
-    public void onTabChange(TabChangeEvent event) throws SearchException {
+    public void onTabChange(TabChangeEvent event) {
         String tabId = event.getTab().getId();
-        if (MAP_TAB_ID.equals(tabId)) {
-            String queryToPassToSolr = StringUtils.isEmpty(query) ? "*" : query;
-            List<String> filterQueries = prepareFilterQueries();
-            searchMapResultsList = searchService.searchDatasetLocation(
-                    dataverseRequestService.getDataverseRequest(),
-                    queryToPassToSolr,
-                    filterQueries
-            );
-        }
+        lastSearchValue.setActiveTabIndex(MAP_TAB_ID.equals(tabId) ? 1 : 0);
+        search();
     }
 
     // -------------------- PRIVATE --------------------
 
-    private List<String> prepareFilterQueries() {
-        List<String> filterQueriesFinal = new ArrayList<>();
-        Optional<String> filterDownToSubtree = Optional.empty();
+    private Optional<String> getFilterDownToSubtree(Dataverse dataverse) {
         if (!dataverse.isRoot()) {
             String dataversePath = dataverseDao.determineDataversePath(dataverse);
-            filterDownToSubtree = Optional.of(SearchFields.SUBTREE + ":\"" + dataversePath + "\"");
+            return Optional.of(SearchFields.SUBTREE + ":\"" + dataversePath + "\"");
         }
-        filterDownToSubtree.ifPresent(filterQueriesFinal::add);
-        filterQueriesFinal.addAll(prepareSpecialFilterQueries(filterQueries));
-
-        return filterQueriesFinal;
+        return Optional.empty();
     }
 
     private List<String> prepareSpecialFilterQueries(List<String> filterQueries) {

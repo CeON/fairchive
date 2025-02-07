@@ -292,6 +292,10 @@ function initDvJS() {
         let mapData = searchResultsData.get(key);
         render(key, mapData);
       },
+      translation: function (key, fieldName, translation) {
+        let mapData = searchResultsData.get(key);
+        mapData[fieldName] = translation;
+      },
       addClusteredMarkers: function (key, field, value) {
         if (!value || value.length === 0) {
             return;
@@ -302,8 +306,9 @@ function initDvJS() {
         var markers = L.markerClusterGroup();
 
         for (const dataset of value) {
+            var datasetName = mapData['datasetName'];
             var marker = L.marker([dataset.marker.latitude, dataset.marker.longitude])
-                    .bindPopup("<b style='font-size: 14px'>Dataset name:</b> <span style='font-size: 12px;'>" + dataset.name + "</span>");
+                    .bindPopup("<b style='font-size: 14px'>" +  datasetName + " :</b> <span style='font-size: 12px;'>" + dataset.name + "</span>");
             markers.addLayer(marker);
         }
 

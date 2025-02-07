@@ -165,6 +165,8 @@ public class SearchIncludeFragmentTest {
         Tab tab = new Tab();
         tab.setId("test");
         when(tabChangeEvent.getTab()).thenReturn(tab);
+        when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
+                any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
 
         // when
         this.fragment.onTabChange(tabChangeEvent);
@@ -174,18 +176,34 @@ public class SearchIncludeFragmentTest {
     }
 
     @Test
-    public void onTabChange__map_result() throws SearchException {
+    public void onTabChange__dataset_location_result() throws SearchException {
 
         // given
         TabChangeEvent tabChangeEvent = mock(TabChangeEvent.class);
         Tab tab = new Tab();
         tab.setId("mapSearchResult");
         when(tabChangeEvent.getTab()).thenReturn(tab);
+        when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
+                any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
 
         // when
         this.fragment.onTabChange(tabChangeEvent);
 
         // then
         verify(searchService, times(1)).searchDatasetLocation(any(), anyString(), any());
+    }
+
+    @Test
+    public void searchDatasetLocation__search_Exception() throws SearchException {
+
+        //given
+        when(this.searchService.searchDatasetLocation(any(), anyString(), any())).thenThrow(SearchException.class);
+
+        // when
+        this.fragment.searchDatasetLocation();
+
+        //
+        assertThat(fragment.isSolrIsDown()).isTrue();
+        assertThat(fragment.wasSolrErrorEncountered()).isTrue();
     }
 }
