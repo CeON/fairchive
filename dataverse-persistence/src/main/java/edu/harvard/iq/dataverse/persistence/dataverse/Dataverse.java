@@ -623,31 +623,6 @@ public class Dataverse extends DvObjectContainer {
         return dataverseContacts;
     }
 
-    /**
-     * Get the email addresses of the dataverse contacts as a comma-separated
-     * concatenation.
-     *
-     * @return a comma-separated concatenation of email addresses, or the empty
-     * string if there are no contacts.
-     * @author bencomp
-     */
-    public String getContactEmails() {
-        if (dataverseContacts != null && !dataverseContacts.isEmpty()) {
-            StringBuilder buf = new StringBuilder();
-            Iterator<DataverseContact> it = dataverseContacts.iterator();
-            while (it.hasNext()) {
-                DataverseContact con = it.next();
-                buf.append(con.getContactEmail());
-                if (it.hasNext()) {
-                    buf.append(",");
-                }
-            }
-            return buf.toString();
-        } else {
-            return "";
-        }
-    }
-
     public void setDataverseContacts(List<DataverseContact> dataverseContacts) {
         this.dataverseContacts = dataverseContacts;
     }
