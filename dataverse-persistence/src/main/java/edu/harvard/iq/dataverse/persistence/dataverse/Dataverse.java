@@ -39,7 +39,10 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
 import static java.util.Collections.emptyList;
+import static java.util.Locale.ENGLISH;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
@@ -145,21 +148,21 @@ public class Dataverse extends DvObjectContainer {
     public String getFriendlyCategoryName() {
         switch (this.dataverseType) {
             case RESEARCHERS:
-                return BundleUtil.getStringFromBundle("dataverse.type.selectTab.researcher");
+                return getStringFromBundle("dataverse.type.selectTab.researcher");
             case RESEARCH_PROJECTS:
-                return BundleUtil.getStringFromBundle("dataverse.type.selectTab.research_project");
+                return getStringFromBundle("dataverse.type.selectTab.research_project");
             case JOURNALS:
-                return BundleUtil.getStringFromBundle("dataverse.type.selectTab.journal");
+                return getStringFromBundle("dataverse.type.selectTab.journal");
             case ORGANIZATIONS_INSTITUTIONS:
-                return BundleUtil.getStringFromBundle("dataverse.type.selectTab.organization_or_institution");
+                return getStringFromBundle("dataverse.type.selectTab.organization_or_institution");
             case TEACHING_COURSES:
-                return BundleUtil.getStringFromBundle("dataverse.type.selectTab.teaching_course");
+                return getStringFromBundle("dataverse.type.selectTab.teaching_course");
             case LABORATORY:
-                return BundleUtil.getStringFromBundle("dataverse.type.selectTab.laboratory");
+                return getStringFromBundle("dataverse.type.selectTab.laboratory");
             case RESEARCH_GROUP:
-                return BundleUtil.getStringFromBundle("dataverse.type.selectTab.research_group");
+                return getStringFromBundle("dataverse.type.selectTab.research_group");
             case DEPARTMENT:
-                return BundleUtil.getStringFromBundle("dataverse.type.selectTab.department");
+                return getStringFromBundle("dataverse.type.selectTab.department");
             case UNCATEGORIZED:
                 return uncategorizedString;
             default:
@@ -170,23 +173,23 @@ public class Dataverse extends DvObjectContainer {
     private String getCategoryNameForIndex() {
         switch (this.dataverseType) {
             case RESEARCHERS:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.researcher", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.researcher", ENGLISH);
             case RESEARCH_PROJECTS:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.research_project", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.research_project", ENGLISH);
             case JOURNALS:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.journal", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.journal", ENGLISH);
             case ORGANIZATIONS_INSTITUTIONS:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.organization_or_institution", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.organization_or_institution", ENGLISH);
             case TEACHING_COURSES:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.teaching_course", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.teaching_course", ENGLISH);
             case LABORATORY:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.laboratory", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.laboratory", ENGLISH);
             case RESEARCH_GROUP:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.research_group", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.research_group", ENGLISH);
             case DEPARTMENT:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.department", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.department", ENGLISH);
             case UNCATEGORIZED:
-                return BundleUtil.getStringFromBundleWithLocale("dataverse.type.selectTab.uncategorized", Locale.ENGLISH);
+                return getStringFromBundleWithLocale("dataverse.type.selectTab.uncategorized", ENGLISH);
             default:
                 return "";
         }
