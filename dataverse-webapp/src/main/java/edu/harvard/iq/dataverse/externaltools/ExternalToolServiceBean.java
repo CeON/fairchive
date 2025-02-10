@@ -30,11 +30,6 @@ public class ExternalToolServiceBean {
     @Inject
     private ExternalToolRepository repository;
 
-//    @Inject
-//    public ExternalToolServiceBean(final ExternalToolRepository repository) {
-//        this.repository = repository;
-//    }
-
     public List<ExternalTool> findAll() {
         return this.repository.findAll();
     }
@@ -113,7 +108,6 @@ public class ExternalToolServiceBean {
     }
 
     public List<ExternalTool> findExternalTools(Type type, String contentType, DataFile file, DatasetVersion version) {
-        //return findExternalToolsByFileAndVersion(findByType(type, contentType), file, version);
         return findExternalToolsByFileAndVersion(findBy(type, contentType, file.getFileMetadata().getFileNameExtention()), file, version);
     }
 

@@ -323,11 +323,15 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
     public boolean isPublicIn(final DatasetVersion datasetVersion) {
-        boolean released = datasetVersion.isReleased();
-        boolean embargoed = getOwner().hasActiveEmbargo();
-        boolean restricted = getFileMetadata().getTermsOfUse().getTermsOfUseType() == RESTRICTED;
-
-        return released && !embargoed && !restricted;
+        if (getOwner().equals(datasetVersion.getDataset())) {
+            boolean released = datasetVersion.isReleased();
+            boolean embargoed = getOwner().hasActiveEmbargo();
+            boolean restricted = getFileMetadata().getTermsOfUse()
+                    .getTermsOfUseType() == RESTRICTED;
+            return released && !embargoed && !restricted;
+        } else {
+            return false;
+        }
     }
 
     /**

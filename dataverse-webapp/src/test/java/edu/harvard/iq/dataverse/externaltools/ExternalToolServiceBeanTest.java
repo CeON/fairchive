@@ -373,7 +373,7 @@ public class ExternalToolServiceBeanTest {
     }
     
     @Test
-    public void findByType_returnsproperResults() {
+    public void findBy_withType_returnsproperResults() {
         
         assertThat(this.service.findBy(EXPLORE)).isEmpty();
         assertThat(this.service.findBy(CONFIGURE)).containsExactly(tool1);
@@ -381,7 +381,7 @@ public class ExternalToolServiceBeanTest {
     }
     
     @Test
-    public void findByTypeAndExtention_returnsproperResults() {
+    public void findBy_withTypeAndExtention_returnsproperResults() {
         
         assertThat(this.service.findBy(PREVIEW, TEXT_PLAIN, "obj")).containsExactly(tool4);
         assertThat(this.service.findBy(PREVIEW, TEXT_PLAIN, "")).containsExactly(tool3);
