@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse;
 
-import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 import java.io.File;
 import java.sql.Timestamp;
@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
@@ -22,7 +23,8 @@ import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.StringUtils;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
@@ -33,6 +35,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseThemeRepository;
 import edu.harvard.iq.dataverse.persistence.group.Group;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
@@ -80,6 +83,9 @@ public class DataverseDao implements java.io.Serializable {
 
     @Inject
     private ImageThumbConverter imageThumbConverter;
+    
+    @Inject
+    private DataverseThemeRepository dataverseThemeRepo;
 
     public Dataverse save(Dataverse dataverse) {
 
@@ -111,29 +117,6 @@ public class DataverseDao implements java.io.Serializable {
                 .filter(Dataverse::isNotRoot)
                 .filter(Dataverse::isStale)
                 .collect(toList());
-    }
-
-    /**
-     * @param numPartitions The number of partitions you intend to split the
-     *                      indexing job into. Perhaps you have three Glassfish servers and you'd
-     *                      like each one to operate on a subset of dataverses.
-     * @param partitionId   Maybe "partitionId" is the wrong term but it's what we
-     *                      call in the (text) UI. If you've specified three partitions the three
-     *                      partitionIds are 0, 1, and 2. We do `dataverseId % numPartitions =
-     *                      partitionId` to figure out which partition the dataverseId falls into.
-     * @param skipIndexed   If true, will skip any dvObjects that have a indexTime set
-     * @return All dataverses if you say numPartitions=1 and partitionId=0.
-     * Otherwise, a subset of dataverses.
-     */
-    public List<Dataverse> findAllOrSubset(long numPartitions, long partitionId, boolean skipIndexed) {
-        numPartitions = max(numPartitions, 1); 
-        String skipClause = skipIndexed ? "AND o.indexTime is null " : "";
-        TypedQuery<Dataverse> typedQuery = em.createQuery("SELECT OBJECT(o) FROM Dataverse AS o WHERE MOD( o.id, :numPartitions) = :partitionId " +
-                                                                  skipClause +
-                                                                  "ORDER BY o.id", Dataverse.class);
-        typedQuery.setParameter("numPartitions", numPartitions);
-        typedQuery.setParameter("partitionId", partitionId);
-        return typedQuery.getResultList();
     }
 
     public List<Long> findDataverseIdsForIndexing(final boolean skipIndexed) {      
@@ -178,13 +161,12 @@ public class DataverseDao implements java.io.Serializable {
         return this.dataverseRepo.countRoots() == 1;
     }
 
-    public String determineDataversePath(Dataverse dataverse) {
-        List<String> dataversePathSegments = indexService.findPathSegments(dataverse);
-        StringBuilder dataversePath = new StringBuilder();
-        for (String segment : dataversePathSegments) {
-            dataversePath.append("/").append(segment);
+    public CharSequence determineDataversePath(final Dataverse dataverse) {
+        final StringBuilder result = new StringBuilder();
+        for (final String segment : this.indexService.findPathSegments(dataverse)) {
+            result.append("/").append(segment);
         }
-        return dataversePath.toString();
+        return result;
     }
 
     public String getDataverseLogoThumbnailFilePath(Long dvId) {
@@ -207,33 +189,18 @@ public class DataverseDao implements java.io.Serializable {
         return null;
     }
 
-    private File getLogoById(Long id) {
-        if (id == null) {
-            return null;
-        }
-
-        String logoFileName;
-
-        try {
-            logoFileName = (String) em.createNativeQuery("SELECT logo FROM dataversetheme WHERE dataverse_id = " + id).getSingleResult();
-
-        } catch (Exception ex) {
-            return null;
-        }
-
-        if (logoFileName != null && !logoFileName.isEmpty()) {
-            Properties p = System.getProperties();
-            String domainRoot = p.getProperty("com.sun.aas.instanceRoot");
-
-            if (domainRoot != null && !"".equals(domainRoot)) {
+    private File getLogoById(final Long id) {
+        final Optional<String> logoFileName = this.dataverseThemeRepo.findLogoByDataverseId(id);
+        if (logoFileName.isPresent() && !logoFileName.get().isEmpty()) {
+            final String domainRoot = System.getProperty("com.sun.aas.instanceRoot");
+            if (isNotEmpty(domainRoot)) {
                 return new File(domainRoot + File.separator +
                                         "docroot" + File.separator +
                                         "logos" + File.separator +
                                         id + File.separator +
-                                        logoFileName);
+                                        logoFileName.get());
             }
         }
-
         return null;
     }
 
@@ -261,11 +228,9 @@ public class DataverseDao implements java.io.Serializable {
         List<Object> alreadyLinkeddv_ids = em.createNativeQuery(
                 "SELECT linkingdataverse_id   FROM datasetlinkingdataverse WHERE dataset_id = " + dataset.getId())
                 .getResultList();
+        
         List<Dataverse> toRemove = new ArrayList<>();
-
-        if (alreadyLinkeddv_ids != null && !alreadyLinkeddv_ids.isEmpty()) {
             alreadyLinkeddv_ids.stream().map(this::find).forEachOrdered(toRemove::add);
-        }
 
         for (Dataverse res : results) {
             if (!toRemove.contains(res)) {

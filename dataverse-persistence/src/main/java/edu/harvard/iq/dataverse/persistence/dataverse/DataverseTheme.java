@@ -1,17 +1,21 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.Objects;
+
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
-import java.util.Objects;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * @author ellenk
@@ -19,29 +23,22 @@ import java.util.Objects;
 
 @Entity
 @Table(indexes = {@Index(columnList = "dataverse_id")})
-public class DataverseTheme implements Serializable {
+public class DataverseTheme implements Serializable, JpaEntity<Long> {
 
-    private static final long serialVersionUID = 1L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    public Long getId() {
-        return this.id;
+    public enum ImageFormat {
+        SQUARE, RECTANGLE
     }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    @Enumerated(EnumType.STRING)
-    private ImageFormat logoFormat;
-
+    
     public enum Alignment {
         LEFT, CENTER, RIGHT
     }
-
+    
+    private static final long serialVersionUID = 1L;
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    private Long id;
+    @Enumerated(EnumType.STRING)
+    private ImageFormat logoFormat;
     @Enumerated(EnumType.STRING)
     private Alignment logoAlignment;
     private String logoBackgroundColor;
@@ -51,46 +48,53 @@ public class DataverseTheme implements Serializable {
     private String linkColor;
     private String textColor;
     private String backgroundColor;
+    @OneToOne
+    @JoinColumn(name = "dataverse_id")
+    private Dataverse dataverse;
+    
+    @Override
+    public Long getId() {
+        return this.id;
+    }
 
-    public enum ImageFormat {
-
-        SQUARE, RECTANGLE
+    public void setId(final Long id) {
+        this.id = id;
     }
 
     public ImageFormat getLogoFormat() {
-        return logoFormat;
+        return this.logoFormat;
     }
 
-    public void setLogoFormat(ImageFormat logoFormat) {
-        this.logoFormat = logoFormat;
+    public void setLogoFormat(final ImageFormat format) {
+        this.logoFormat = format;
     }
 
     public Alignment getLogoAlignment() {
-        return logoAlignment;
+        return this.logoAlignment;
     }
 
-    public void setLogoAlignment(Alignment logoAlignment) {
-        this.logoAlignment = logoAlignment;
+    public void setLogoAlignment(final Alignment alignment) {
+        this.logoAlignment = alignment;
     }
 
     public String getLogoBackgroundColor() {
-        return logoBackgroundColor;
+        return this.logoBackgroundColor;
     }
 
-    public void setLogoBackgroundColor(String logoBackgroundColor) {
-        this.logoBackgroundColor = logoBackgroundColor;
+    public void setLogoBackgroundColor(final String color) {
+        this.logoBackgroundColor = color;
     }
 
     public String getLogo() {
-        return logo;
+        return this.logo;
     }
 
-    public void setLogo(String logo) {
+    public void setLogo(final String logo) {
         this.logo = logo;
     }
 
     public String getTagline() {
-        return tagline;
+        return this.tagline;
     }
 
     public void setTagline(String tagline) {
@@ -101,43 +105,39 @@ public class DataverseTheme implements Serializable {
         return linkUrl;
     }
 
-    public void setLinkUrl(String linkUrl) {
+    public void setLinkUrl(final String linkUrl) {
         this.linkUrl = linkUrl;
     }
 
     public String getLinkColor() {
-        return linkColor;
+        return this.linkColor;
     }
 
-    public void setLinkColor(String linkColor) {
-        this.linkColor = linkColor;
+    public void setLinkColor(final String color) {
+        this.linkColor = color;
     }
 
     public String getTextColor() {
-        return textColor;
+        return this.textColor;
     }
 
-    public void setTextColor(String textColor) {
-        this.textColor = textColor;
+    public void setTextColor(final String color) {
+        this.textColor = color;
     }
 
     public String getBackgroundColor() {
-        return backgroundColor;
+        return this.backgroundColor;
     }
 
-    public void setBackgroundColor(String backgroundColor) {
-        this.backgroundColor = backgroundColor;
+    public void setBackgroundColor(final String color) {
+        this.backgroundColor = color;
     }
-
-    @OneToOne
-    @JoinColumn(name = "dataverse_id")
-    private Dataverse dataverse;
 
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
     }
 
-    public void setDataverse(Dataverse dataverse) {
+    public void setDataverse(final Dataverse dataverse) {
         this.dataverse = dataverse;
     }
 
