@@ -43,6 +43,7 @@ application/nxz nxz
 application/ply ply
 application/octet-stream fbx FBX
 application/stl stl STL
+application/xml dae DAE
 # Rdata
 application/octet-stream
 # fits
