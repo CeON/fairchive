@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.search.response;
 
+import java.util.Objects;
+
 public class GeoPoint {
     private final double latitude;
     private final double longitude;
@@ -24,6 +26,21 @@ public class GeoPoint {
 
     public double getLongitude() {
         return longitude;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GeoPoint geoPoint = (GeoPoint) o;
+        return Double.compare(geoPoint.latitude, latitude) == 0 &&
+                Double.compare(geoPoint.longitude, longitude) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(latitude, longitude);
     }
 
     @Override

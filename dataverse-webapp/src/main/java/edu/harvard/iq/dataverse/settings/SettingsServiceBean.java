@@ -756,6 +756,8 @@ public class SettingsServiceBean {
 
         /**
          * Custom prefix for Solr fields used for retrieving location/geo results on search page
+         * When empty standard geo field will be used:
+         * dsf_txt_northLongitude, dsf_txt_southLongitude, dsf_txt_eastLongitude, dsf_txt_westLongitude
          */
         SearchResultLocationCustomPrefix
         ;

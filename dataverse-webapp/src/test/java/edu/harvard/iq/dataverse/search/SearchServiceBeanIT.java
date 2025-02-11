@@ -19,6 +19,7 @@ import edu.harvard.iq.dataverse.search.response.PublicationStatusCounts;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
@@ -292,6 +293,13 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
 
         // then
         assertThat(solrSearchMapResults, hasSize(1));
+        assertThat(solrSearchMapResults.get(0).getPolygonPoints(), hasSize(2));
+        assertThat(solrSearchMapResults.get(0).getPolygonPoints(),
+            containsInAnyOrder(
+                new GeoPoint(21.82144, 50.17739),
+                new GeoPoint(49.85973, 22.21139)
+            )
+        );
     }
 
     @Test

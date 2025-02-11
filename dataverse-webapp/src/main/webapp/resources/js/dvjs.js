@@ -308,7 +308,7 @@ function initDvJS() {
         for (const dataset of value) {
             var datasetName = mapData['datasetName'];
             var marker = L.marker([dataset.marker.latitude, dataset.marker.longitude])
-                    .bindPopup("<b style='font-size: 14px'>" +  datasetName + " :</b> <span style='font-size: 12px;'>" + dataset.name + "</span>");
+                    .bindPopup("<span class='search-map-popup-title'>" +  datasetName + " :</span> <span class='search-map-popup-description'>" + dataset.name + "</span>");
             markers.addLayer(marker);
         }
 
