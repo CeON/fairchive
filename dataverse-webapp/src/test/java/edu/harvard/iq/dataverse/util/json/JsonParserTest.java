@@ -4,7 +4,49 @@
 
 package edu.harvard.iq.dataverse.util.json;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
+
+import org.apache.commons.lang.SerializationException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.api.dto.IpGroupDTO;
 import edu.harvard.iq.dataverse.authorization.groups.impl.ipaddress.IpGroupProvider;
@@ -26,45 +68,6 @@ import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.qualifiers.TestBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import io.vavr.control.Try;
-import org.apache.commons.lang.SerializationException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.json.JsonValue;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author michael
@@ -185,7 +188,6 @@ public class JsonParserTest {
             assertEquals("We do all the science.", actual.getDescription());
             assertEquals("LABORATORY", actual.getDataverseType().toString());
             assertEquals(2, actual.getDataverseContacts().size());
-            assertEquals("pi@example.edu,student@example.edu", actual.getContactEmails());
             assertEquals(0, actual.getDataverseContacts().get(0).getDisplayOrder());
             assertEquals(1, actual.getDataverseContacts().get(1).getDisplayOrder());
             /**
@@ -221,7 +223,6 @@ public class JsonParserTest {
             assertEquals("lion", actual.getDataverseTheme().getLogo());
             assertEquals(Alignment.CENTER, actual.getDataverseTheme().getLogoAlignment());
             assertEquals(2, actual.getDataverseContacts().size());
-            assertEquals("test@example.com,test@example.org", actual.getContactEmails());
             assertEquals(0, actual.getDataverseContacts().get(0).getDisplayOrder());
             assertEquals(1, actual.getDataverseContacts().get(1).getDisplayOrder());
             assertTrue(actual.isPermissionRoot());
@@ -251,7 +252,6 @@ public class JsonParserTest {
             assertEquals("testAlias", actual.getAlias());
             assertEquals("UNCATEGORIZED", actual.getDataverseType().toString());
             assertTrue(actual.getDataverseContacts().isEmpty());
-            assertEquals("", actual.getContactEmails());
             assertFalse(actual.isPermissionRoot());
             assertFalse(actual.isFacetRoot());
         } catch (IOException ioe) {

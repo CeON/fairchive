@@ -1,5 +1,37 @@
 package edu.harvard.iq.dataverse.externaltools;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.CONFIGURE;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EXPLORE;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType.NOT_FOR_REDISTRIBUTION;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DRAFT;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
+import static java.util.Arrays.asList;
+import static java.util.Calendar.DAY_OF_MONTH;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
+import static org.mockito.quality.Strictness.LENIENT;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
@@ -9,28 +41,29 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.user.ApiToken;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = LENIENT)
 public class ExternalToolServiceBeanTest {
+    
+    private final static String TEXT_PLAIN = "text/plain";
+    private final static String APPLICATION_PDF = "application/pdf";
 
-    ExternalToolServiceBean externalToolServiceBean = new ExternalToolServiceBean(new ExternalToolRepository());
+    @Mock
+    private ExternalToolRepository repository;
+    
+    @InjectMocks
+    private ExternalToolServiceBean service; 
+    
+    private final ExternalTool tool1 = new ExternalTool("tool1", "", CONFIGURE, "", "{}", TEXT_PLAIN);
+    private final ExternalTool tool2 = new ExternalTool("tool2", "", PREVIEW, "", "{}", APPLICATION_PDF);
+    private final ExternalTool tool3 = new ExternalTool("tool3", "", PREVIEW, "", "{}", TEXT_PLAIN);
+    private final ExternalTool tool4 = new ExternalTool("tool4", "", PREVIEW, "", "{}", TEXT_PLAIN, "obj");
+    
+    @BeforeEach
+    public void setUp() {
+        when(repository.findAll()).thenReturn(asList(tool1, tool2, tool3, tool4));
+    }
 
     // -------------------- TESTS --------------------
 
@@ -45,42 +78,95 @@ public class ExternalToolServiceBeanTest {
         DataFile dataFile = new DataFile();
         dataFile.setId(42l);
         DatasetVersion datasetVersion = new DatasetVersion();
-        datasetVersion.setVersionState(released ? DatasetVersion.VersionState.RELEASED : DatasetVersion.VersionState.DRAFT);
+        datasetVersion.setVersionState(released ? RELEASED : DRAFT);
         Dataset dataset = new Dataset();
         datasetVersion.setDataset(dataset);
 
         Calendar futureEmbargoExpirationDate = Calendar.getInstance();
         futureEmbargoExpirationDate.setTime(new Date());
-        futureEmbargoExpirationDate.add(Calendar.DAY_OF_MONTH, 1);
+        futureEmbargoExpirationDate.add(DAY_OF_MONTH, 1);
         dataset.setEmbargoDate(embargoed ? futureEmbargoExpirationDate.getTime() : null);
 
         FileMetadata metadata = new FileMetadata();
         metadata.setDatasetVersion(datasetVersion);
+        metadata.setLabel("abc");
         List<FileMetadata> metadataList = new ArrayList<>();
         metadataList.add(metadata);
         dataFile.setOwner(dataset);
 
         FileTermsOfUse termsOfUse = new FileTermsOfUse();
-        termsOfUse.setRestrictType(restricted ? FileTermsOfUse.RestrictType.NOT_FOR_REDISTRIBUTION : null);
+        termsOfUse.setRestrictType(restricted ? NOT_FOR_REDISTRIBUTION : null);
         metadata.setTermsOfUse(termsOfUse);
 
         dataFile.setFileMetadatas(metadataList);
         dataFile.setDataTable(new DataTable());
 
-        ApiToken apiToken = new ApiToken();
-        apiToken.setTokenString("7196b5ce-f200-4286-8809-03ffdbc255d7");
-
-        ExternalTool.Type type = ExternalTool.Type.EXPLORE;
+        ExternalTool.Type type = EXPLORE;
         ExternalTool externalTool = new ExternalTool("displayName", "description", type, "http://foo.com", "{}", TextMimeType.TSV_ALT.getMimeValue());
         List<ExternalTool> externalTools = new ArrayList<>();
         externalTools.add(externalTool);
 
         // when
         List<ExternalTool> availableExternalTools
-                = externalToolServiceBean.findExternalToolsByFileAndVersion(externalTools, dataFile, datasetVersion);
+                = service.findExternalToolsByFileAndVersion(externalTools, dataFile, datasetVersion);
 
         // then
         assertThat(availableExternalTools).hasSize(expectedSize);
+    }
+    
+    @Test
+    void findExternalTools_returnsToolsBasedOnMimeType() {
+        // given
+        DataFile dataFile = new DataFile();
+        dataFile.setId(42l);
+        dataFile.setContentType(TEXT_PLAIN);
+        DatasetVersion datasetVersion = new DatasetVersion();
+        datasetVersion.setVersionState(RELEASED);
+        Dataset dataset = new Dataset();
+        datasetVersion.setDataset(dataset);
+
+        FileMetadata metadata = new FileMetadata();
+        metadata.setDatasetVersion(datasetVersion);
+        metadata.setLabel("abc");
+        List<FileMetadata> metadataList = new ArrayList<>();
+        metadataList.add(metadata);
+        dataFile.setOwner(dataset);
+
+        FileTermsOfUse termsOfUse = new FileTermsOfUse();
+        metadata.setTermsOfUse(termsOfUse);
+
+        dataFile.setFileMetadatas(metadataList);
+
+        // when
+        assertThat(this.service.findExternalTools(PREVIEW, TEXT_PLAIN, dataFile,
+                datasetVersion)).containsExactly(tool3);
+    }
+    
+    @Test
+    public void findExternalTools_returnToolsBasedOnFileExtention() {
+        // given
+        DataFile dataFile = new DataFile();
+        dataFile.setId(42l);
+        dataFile.setContentType(TEXT_PLAIN);
+        DatasetVersion datasetVersion = new DatasetVersion();
+        datasetVersion.setVersionState(RELEASED);
+        Dataset dataset = new Dataset();
+        datasetVersion.setDataset(dataset);
+
+        FileMetadata metadata = new FileMetadata();
+        metadata.setDatasetVersion(datasetVersion);
+        metadata.setLabel("abc.obj");
+        List<FileMetadata> metadataList = new ArrayList<>();
+        metadataList.add(metadata);
+        dataFile.setOwner(dataset);
+
+        FileTermsOfUse termsOfUse = new FileTermsOfUse();
+        metadata.setTermsOfUse(termsOfUse);
+
+        dataFile.setFileMetadatas(metadataList);
+
+        assertThat(this.service.findExternalTools(PREVIEW, TEXT_PLAIN, dataFile,
+                datasetVersion)).containsExactly(tool4);
     }
 
     @Test
@@ -105,7 +191,7 @@ public class ExternalToolServiceBeanTest {
         String tool = json.build().toString();
 
         // when
-        ExternalTool externalTool = externalToolServiceBean.parseAddExternalToolManifest(tool);
+        ExternalTool externalTool = service.parseAddExternalToolManifest(tool);
 
         // then
         assertThat(externalTool.getDisplayName()).isEqualTo("AwesomeTool");
@@ -135,7 +221,7 @@ public class ExternalToolServiceBeanTest {
         String tool = json.build().toString();
 
         // when & then
-        assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(tool))
+        assertThatThrownBy(() -> service.parseAddExternalToolManifest(tool))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Required reserved word not found: {fileId}");
     }
@@ -143,7 +229,7 @@ public class ExternalToolServiceBeanTest {
     @Test
     void parseAddExternalToolManifest__null() {
         // when & then
-        assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(null))
+        assertThatThrownBy(() -> service.parseAddExternalToolManifest(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("External tool manifest was null or empty!");
     }
@@ -151,7 +237,7 @@ public class ExternalToolServiceBeanTest {
     @Test
     void parseAddExternalToolManifest__emptyString() {
         // when & then
-        assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(""))
+        assertThatThrownBy(() -> service.parseAddExternalToolManifest(""))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("External tool manifest was null or empty!");
     }
@@ -181,7 +267,7 @@ public class ExternalToolServiceBeanTest {
         String tool = json.build().toString();
 
         // when & then
-        assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(tool))
+        assertThatThrownBy(() -> service.parseAddExternalToolManifest(tool))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Unknown reserved word: mode1");
     }
@@ -197,7 +283,7 @@ public class ExternalToolServiceBeanTest {
         String tool = json.build().toString();
 
         // when & then
-        assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(tool))
+        assertThatThrownBy(() -> service.parseAddExternalToolManifest(tool))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("displayName is required.");
     }
@@ -213,7 +299,7 @@ public class ExternalToolServiceBeanTest {
         String tool = json.build().toString();
 
         // when & then
-        assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(tool))
+        assertThatThrownBy(() -> service.parseAddExternalToolManifest(tool))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("description is required.");
     }
@@ -230,7 +316,7 @@ public class ExternalToolServiceBeanTest {
         String tool = json.build().toString();
 
         // when & then
-        assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(tool))
+        assertThatThrownBy(() -> service.parseAddExternalToolManifest(tool))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("toolUrl is required.");
     }
@@ -248,7 +334,7 @@ public class ExternalToolServiceBeanTest {
         String tool = json.build().toString();
 
         // when & then
-        assertThatThrownBy(() -> externalToolServiceBean.parseAddExternalToolManifest(tool))
+        assertThatThrownBy(() -> service.parseAddExternalToolManifest(tool))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -273,9 +359,33 @@ public class ExternalToolServiceBeanTest {
         String tool = json.build().toString();
 
         // when
-        ExternalTool externalTool = externalToolServiceBean.parseAddExternalToolManifest(tool);
+        ExternalTool externalTool = service.parseAddExternalToolManifest(tool);
 
         // then
         assertThat(externalTool.getContentType()).isEqualTo(TextMimeType.TSV_ALT.getMimeValue());
+    }
+    
+    
+    @Test
+    public void findAll_returnsproperResults() {
+        
+        assertThat(this.service.findAll()).containsExactly(tool1, tool2, tool3, tool4);
+    }
+    
+    @Test
+    public void findBy_withType_returnsproperResults() {
+        
+        assertThat(this.service.findBy(EXPLORE)).isEmpty();
+        assertThat(this.service.findBy(CONFIGURE)).containsExactly(tool1);
+        assertThat(this.service.findBy(PREVIEW)).containsExactly(tool2, tool3, tool4);
+    }
+    
+    @Test
+    public void findBy_withTypeAndExtention_returnsproperResults() {
+        
+        assertThat(this.service.findBy(PREVIEW, TEXT_PLAIN, "obj")).containsExactly(tool4);
+        assertThat(this.service.findBy(PREVIEW, TEXT_PLAIN, "")).containsExactly(tool3);
+        assertThat(this.service.findBy(PREVIEW, APPLICATION_PDF, "obj")).containsExactly(tool2);
+        
     }
 }

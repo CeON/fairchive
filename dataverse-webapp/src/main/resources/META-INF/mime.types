@@ -4,7 +4,7 @@ application/msword doc DOC
 application/vnd.ms-excel xls XLS xlc XLC xll XLL xlm XLM xlw XLW
 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet xlsx XLSX
 text/csv csv CSV
-text/plain txt TXT
+text/plain txt TXT obj OBJ
 text/xml xml XML
 # Common statistical data formats
 text/tsv tsv TSV
@@ -41,6 +41,9 @@ application/x-gzip gz GZ
 application/x-tar tar TAR
 application/nxz nxz
 application/ply ply
+application/octet-stream fbx FBX
+application/stl stl STL
+application/xml dae DAE
 # Rdata
 application/octet-stream
 # fits

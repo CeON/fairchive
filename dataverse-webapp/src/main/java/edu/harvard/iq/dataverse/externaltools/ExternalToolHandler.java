@@ -1,6 +1,15 @@
 package edu.harvard.iq.dataverse.externaltools;
 
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+
+import java.util.Base64;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
 import com.google.common.base.Preconditions;
+
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.ReservedWord;
@@ -8,12 +17,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.ApiToken;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple2;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
  * Handles an operation on a specific file. Requires a file id in order to be
@@ -69,9 +72,13 @@ public class ExternalToolHandler {
         switch (ReservedWord.fromString(value)) {
         case FILE_ID:
             return datafile.getId().toString();
-        case FULE_URL:
+        case FILE_URL:
             return this.systemConfig.getDataverseSiteUrl() + "/api/access/datafile/"
                     + datafile.getId();
+        case FILE_URL64:
+            final String url = this.systemConfig.getDataverseSiteUrl() + "/api/access/datafile/"
+                    + datafile.getId() + "#" + datafile.getDisplayName();
+            return  Base64.getEncoder().encodeToString(url.getBytes());
         case SITE_URL:
             return this.systemConfig.getDataverseSiteUrl();
         case API_TOKEN:
