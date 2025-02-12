@@ -346,7 +346,7 @@ public class SearchIncludeFragment {
         dataverseAlias = dataverse.getAlias();
         List<String> filterQueriesFinal = new ArrayList<>();
 
-        String dataversePath = dataverse.isRoot() ? null : dataverseDao.determineDataversePath(dataverse);
+        String dataversePath = dataverse.isRoot() ? null : dataverseDao.determineDataversePath(dataverse).toString();
 
         Optional<String> filterDownToSubtree = getFilterDownToSubtree(dataverse);
         filterDownToSubtree.ifPresent(filterQueriesFinal::add);
@@ -635,7 +635,7 @@ public class SearchIncludeFragment {
 
     private Optional<String> getFilterDownToSubtree(Dataverse dataverse) {
         if (!dataverse.isRoot()) {
-            String dataversePath = dataverseDao.determineDataversePath(dataverse);
+            String dataversePath = dataverseDao.determineDataversePath(dataverse).toString();
             return Optional.of(SearchFields.SUBTREE + ":\"" + dataversePath + "\"");
         }
         return Optional.empty();
