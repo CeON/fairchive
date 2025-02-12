@@ -334,7 +334,7 @@ public class SearchIncludeFragment {
 
         Optional<String> filterDownToSubtree;
         if (!dataverse.isRoot()) {
-            dataversePath = dataverseDao.determineDataversePath(dataverse);
+            dataversePath = dataverseDao.determineDataversePath(dataverse).toString();
             filterDownToSubtree = Optional.of(SearchFields.SUBTREE + ":\"" + dataversePath + "\"");
         } else {
             filterDownToSubtree = Optional.empty();

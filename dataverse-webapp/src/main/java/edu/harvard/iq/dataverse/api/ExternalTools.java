@@ -98,7 +98,7 @@ public class ExternalTools extends AbstractApiBean {
 
     private boolean previewerOfSameContentAlreadyRegistered(ExternalTool externalTool) {
         return externalTool.getType() == Type.PREVIEW
-                && externalToolService.findByType(Type.PREVIEW)
+                && externalToolService.findBy(Type.PREVIEW)
                     .stream()
                     .anyMatch(p -> p.getContentType().equals(externalTool.getContentType()));
     }

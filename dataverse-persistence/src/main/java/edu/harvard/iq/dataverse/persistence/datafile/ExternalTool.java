@@ -79,6 +79,8 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
      */
     @Column(nullable = false, columnDefinition = "TEXT")
     private String contentType;
+    
+    private String fileExtention;
 
 
     /**
@@ -104,6 +106,18 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
         this.toolUrl = toolUrl;
         this.toolParameters = toolParameters;
         this.contentType = contentType;
+    }
+    
+    public ExternalTool(final String displayName, final String description,
+            final Type type,final String toolUrl, final String toolParameters,
+            final String contentType, final String fileExtention) {
+        this.displayName = displayName;
+        this.description = description;
+        this.type = type;
+        this.toolUrl = toolUrl;
+        this.toolParameters = toolParameters;
+        this.contentType = contentType;
+        this.fileExtention = fileExtention;
     }
 
     public enum Type {
@@ -142,6 +156,11 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
     }
 
     public String getDisplayName() {
+        return this.displayName;
+    }
+    
+    @Override
+    public String toString() {
         return this.displayName;
     }
 
@@ -203,6 +222,14 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
         this.contentType = contentType;
     }
 
+    public String getFileExtention() {
+        return this.fileExtention;
+    }
+
+    public void setFileExtention(final String fileExtention) {
+        this.fileExtention = fileExtention;
+    }
+
     public JsonObjectBuilder toJson() {
         final JsonObjectBuilder jab = Json.createObjectBuilder();
         jab.add(ID, getId());
@@ -222,7 +249,8 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
         // various REST APIs. For example, "Variable substitutions will be made when a variable is named in {brackets}."
         // from https://swagger.io/specification/#fixed-fields-29 but that's for URLs.
         FILE_ID("fileId"),
-        FULE_URL("fileUrl"),
+        FILE_URL("fileUrl"),
+        FILE_URL64("fileUrl64"),
         SITE_URL("siteUrl"),
         API_TOKEN("apiToken"),
         DATASET_ID("datasetId"),

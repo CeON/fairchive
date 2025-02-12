@@ -1,0 +1,15 @@
+INSERT INTO public.externaltool (description,displayname,toolparameters,toolurl,"type",contenttype,fileextention) VALUES
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','text/plain','obj'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','application/octet-stream','fbx'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','application/sla','stl'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','application/octet-stream','3ds'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','application/octet-stream','3dm'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','application/x-tika-ooxml','3mf'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','application/x-amf','amf'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','text/plain','brep'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','text/plain','ifc'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','text/plain','iges');
+INSERT INTO public.externaltool (description,displayname,toolparameters,toolurl,"type",contenttype,fileextention) VALUES
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','text/plain','stp'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','text/plain','off'),
+     ('Preview 3D model','Preview 3D model','{"queryParameters":[{"fileUrl64":"{fileUrl64}"}]}','{siteUrl}/3Dviewer.xhtml','PREVIEW','application/xml','dae');
