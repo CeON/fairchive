@@ -21,8 +21,11 @@ import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+import edu.harvard.iq.dataverse.util.UIMessages;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = LENIENT)
@@ -40,9 +43,14 @@ public class DashboardExportSearchResultsPageTest {
     private PermissionsWrapper permissionsWrapper;
     @Mock
     private DataverseDao dataverseDao;
+    @Mock
+    private MetadataBlockRepository metadataBlockRepo;
+    @Mock
+    private UIMessages uiMessages;
 
     private DatasetFieldType type1 = new DatasetFieldType();
     private DatasetFieldType type2 = new DatasetFieldType();
+    private MetadataBlock metadataBlock = new MetadataBlock();
     private List<DatasetFieldType> types = asList(this.type1, this.type2);
 
     @BeforeEach
@@ -56,29 +64,24 @@ public class DashboardExportSearchResultsPageTest {
         this.type2.setId(2L);
         this.type2.setTitle("abc");
 
-        when(this.datasetFiledTypeRepo.findAll()).thenReturn(types);
-        
+        this.metadataBlock.setDatasetFieldTypes(types);
+
+        when(this.metadataBlockRepo.findSystemMetadataBlocks())
+                .thenReturn(asList(this.metadataBlock));
+
         this.page.init();
     }
 
     @Test
     public void selectionAndSavingWorks() throws Exception {
+        assertThat(this.page.getBlocks().size()).isEqualTo(1);
+        assertThat(this.page.getBlocks().get(0)).isSameAs(this.metadataBlock);
 
-        assertThat(this.page.getFieldTypes().size()).isEqualTo(2);
-
-        assertThat(this.page.getFieldTypes().get(0).getId()).isEqualTo(2L);
-        assertThat(this.page.getFieldTypes().get(0).getTitle()).isEqualTo("abc");
-        assertThat(this.page.getFieldTypes().get(0).isExportToFile()).isFalse();
-
-        assertThat(this.page.getFieldTypes().get(1).getId()).isEqualTo(1L);
-        assertThat(this.page.getFieldTypes().get(1).getTitle()).isEqualTo("def");
-        assertThat(this.page.getFieldTypes().get(1).isExportToFile()).isFalse();
-
-        this.page.getFieldTypes().get(0).setExportToFile(true);
+        this.page.getBlocks().get(0).getDatasetFieldTypes().get(0).setExportToFile(true);
         this.page.save();
 
         verify(this.datasetFiledTypeRepo).saveAll(this.types);
-        assertThat(this.type1.isExportToFile()).isFalse();
-        assertThat(this.type2.isExportToFile()).isTrue();
+        assertThat(this.type1.isExportToFile()).isTrue();
+        assertThat(this.type2.isExportToFile()).isFalse();
     }
 }

@@ -5,14 +5,7 @@
 	xmlns:ui="http://java.sun.com/jsf/facelets"
 	xmlns:jsf="http://xmlns.jcp.org/jsf" 
 	xmlns:p="http://primefaces.org/ui"
-	>
-<h:head>
-    <style>
-    .column1 { width: 20%; }
-    .column2 { width: 70%; }
-    .column3 { width: 10%; }
-    </style>
-</h:head>
+	xmlns:o="http://omnifaces.org/ui">
 
 <h:body>
 	<f:metadata>
@@ -35,31 +28,32 @@
 		<ui:define name="body">
 			<h:form id="dashboardExportSearchResultsForm"
 				onkeypress="return event.keyCode != 13">
-				<div class="panel-group" jsf:id="maximumEmbargoBlockHeader">
-					<div class="panel panel-default">
-						<div class="collapse in">
-							<div class="panel-body">
-								<div class="form-group">
-									<p:dataTable value="#{ExportSearchResultsPage.fieldTypes}" var="mt"  >
-										<p:column width="20%" 
-										          headerText="#{bundle['dashboard.card.exportsearchresults.name']}">
-    										<h:outputText value="#{mt.title}"/>
-										</p:column>
-										<p:column width="70%" 
-										          headerText="#{bundle['dashboard.card.exportsearchresults.desc']}">
-                                            <h:outputText value="#{mt.description}"/>
-                                        </p:column>
-										<p:column width="10%" 
-										          headerText="#{bundle['dashboard.card.exportsearchresults.exported']}">
-										    <p:selectBooleanCheckbox value="#{mt.exportToFile}"/>
-										</p:column>
-									</p:dataTable>
-								</div>
-							</div>
+				<!-- Metadata selections -->
+				<ui:repeat value="#{ExportSearchResultsPage.blocks}" 
+				           var="block">
+					<h:outputText value="#{block.localeDisplayName}"
+						styleClass="text-muted" />
+						<div style="border: 1px solid #e8e8e8;"
+						     role="group" 
+							 aria-label="#{block.localeDisplayName}">
+								<ul style="list-style-type: none;">
+									<ui:repeat value="#{block.datasetFieldTypes}" 
+									           var="fieldType">
+										<li jsf:rendered="#{fieldType.hasChildren}">
+										  <h:outputText value="#{fieldType.displayName}"
+                                                        escape="false" />
+                                        </li>
+                                        <li jsf:rendered="#{!fieldType.hasChildren}"
+                                            style="#{fieldType.hasParent ? 'padding-left: 2em;' : ''}">
+										  <p:selectBooleanCheckbox 
+												value="#{fieldType.exportToFile}"
+												itemLabel="#{fieldType.displayName}" 
+												escape="false"/>
+										</li>
+									</ui:repeat>
+								</ul>
 						</div>
-					</div>
-				</div>
-
+				</ui:repeat>
 				<!-- Bottom action buttons -->
 				<div class="button-block">
 					<p:commandButton id="save" styleClass="btn btn-default"
@@ -72,7 +66,6 @@
 						<p:resetInput target="@form" />
 					</p:commandButton>
 				</div>
-
 			</h:form>
 		</ui:define>
 	</ui:composition>
