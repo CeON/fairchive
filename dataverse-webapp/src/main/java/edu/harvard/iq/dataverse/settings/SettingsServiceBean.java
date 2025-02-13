@@ -752,7 +752,13 @@ public class SettingsServiceBean {
         CookieName,
         CookieSecure,
 
-        AllowedExternalRedirectionUrlAfterLogin
+        AllowedExternalRedirectionUrlAfterLogin,
+
+        /**
+         * Show dataset search results on map as markers if geo coordinates were selected (if set to 'true').
+         * By default is set to 'false', so tab with map won't be shown.
+         */
+        ShowSearchResultOnMap,
         ;
 
 
