@@ -805,10 +805,9 @@ public class SearchServiceBean {
 
             int locationCount = solrDocument.getFieldValues(locationSolrFields.getNorth()).size();
             for (int i = 0; i < locationCount; i++) {
-                List<GeoPoint> polygonPoints = new ArrayList<>();
-                polygonPoints.add(new GeoPoint(north.get(i), west.get(i)));
-                polygonPoints.add(new GeoPoint(south.get(i), east.get(i)));
-                SolrSearchLocationResult result = new SolrSearchLocationResult(datasetName, polygonPoints);
+                GeoPoint pointA = new GeoPoint(north.get(i), west.get(i));
+                GeoPoint pointB = new GeoPoint(south.get(i), east.get(i));
+                SolrSearchLocationResult result = new SolrSearchLocationResult(datasetName, pointA, pointB);
                 results.add(result);
             }
         }

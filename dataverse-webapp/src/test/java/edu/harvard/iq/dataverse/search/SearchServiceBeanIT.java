@@ -293,13 +293,7 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
 
         // then
         assertThat(solrSearchMapResults, hasSize(1));
-        assertThat(solrSearchMapResults.get(0).getPolygonPoints(), hasSize(2));
-        assertThat(solrSearchMapResults.get(0).getPolygonPoints(),
-            containsInAnyOrder(
-                new GeoPoint(21.82144, 50.17739),
-                new GeoPoint(49.85973, 22.21139)
-            )
-        );
+        assertThat(solrSearchMapResults.get(0).getMarker(), is(new GeoPoint(35.840585,36.19439)));
     }
 
     @Test

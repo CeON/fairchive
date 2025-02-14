@@ -296,6 +296,8 @@ function initDvJS() {
         let mapData = searchResultsData.get(key);
         mapData[fieldName] = translation;
       },
+      // value: representing geo marker coordinates with name
+      // eq {"name": "test", "marker": {"latitude": 1, "longitude": 2}}
       addClusteredMarkers: function (key, field, value) {
         if (!value || value.length === 0) {
             return;
@@ -306,9 +308,9 @@ function initDvJS() {
         var markers = L.markerClusterGroup();
 
         for (const dataset of value) {
-            var datasetName = mapData['datasetName'];
+            var datasetNameLabel = mapData['datasetNameLabel'];
             var marker = L.marker([dataset.marker.latitude, dataset.marker.longitude])
-                    .bindPopup("<span class='search-map-popup-title'>" +  datasetName + " :</span> <span class='search-map-popup-description'>" + dataset.name + "</span>");
+                    .bindPopup("<span class='search-map-popup-title'>" +  datasetNameLabel + " :</span> <span class='search-map-popup-description'>" + dataset.name + "</span>");
             markers.addLayer(marker);
         }
 
