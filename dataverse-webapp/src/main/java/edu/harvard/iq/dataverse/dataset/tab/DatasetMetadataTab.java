@@ -71,6 +71,12 @@ public class DatasetMetadataTab implements Serializable {
     public boolean isDatasetLocked() {
         return isDatasetLocked;
     }
+    
+    public String getDatasetGlobalIdString() {
+        return this.session.isViewedFromAnonymizedPrivateUrl(this.dataset)
+                ? null
+                : this.dataset.getGlobalId().asString();
+    }
 
     /**
      * Metadata blocks meant for view.

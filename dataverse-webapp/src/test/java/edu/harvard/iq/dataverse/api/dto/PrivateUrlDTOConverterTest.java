@@ -35,7 +35,7 @@ class PrivateUrlDTOConverterTest {
         // then
         assertThat(converted)
                 .extracting(PrivateUrlDTO::getToken, PrivateUrlDTO::getLink)
-                .contains("token", "siteUrl/privateurl.xhtml?token=token");
+                .contains("token", "siteUrl/dataset.xhtml?token=token");
         assertThat(converted.getRoleAssignment())
                 .extracting(RoleAssignmentDTO::getId, RoleAssignmentDTO::getAssignee, RoleAssignmentDTO::getRoleId,
                         RoleAssignmentDTO::getRoleAlias, RoleAssignmentDTO::getPrivateUrlToken, RoleAssignmentDTO::getDefinitionPointId)

@@ -89,8 +89,10 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
+import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
@@ -143,6 +145,7 @@ public class DatasetPage implements Serializable {
     private DatasetPageFacade datasetPageFacade;
     private CitationFactory citationFactory;
     private UningestInfoService uningestInfoService;
+    private PrivateUrlServiceBean privateUrlService;
 
     private Dataset dataset = new Dataset();
 
@@ -156,6 +159,7 @@ public class DatasetPage implements Serializable {
 
     private String persistentId;
     private String version;
+    private String token;
 
     private boolean stateChanged = false;
     private Boolean sameTermsOfUseForAllFiles;
@@ -193,7 +197,8 @@ public class DatasetPage implements Serializable {
                        DatasetThumbnailService datasetThumbnailService, DatasetSummaryService datasetSummaryService,
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
                        AuthenticationServiceBean authenticationService, DatasetPageFacade datasetPageFacade,
-                       CitationFactory citationFactory, UningestInfoService uningestInfoService) {
+                       CitationFactory citationFactory, UningestInfoService uningestInfoService,
+                       PrivateUrlServiceBean privateUrlService) {
         this.session = session;
         this.commandEngine = commandEngine;
         this.permissionsWrapper = permissionsWrapper;
@@ -216,6 +221,7 @@ public class DatasetPage implements Serializable {
         this.datasetPageFacade = datasetPageFacade;
         this.citationFactory = citationFactory;
         this.uningestInfoService = uningestInfoService;
+        this.privateUrlService = privateUrlService;
     }
 
 
@@ -441,6 +447,14 @@ public class DatasetPage implements Serializable {
         this.versionId = versionId;
     }
 
+    public String getToken() {
+        return this.token;
+    }
+
+    public void setToken(final String token) {
+        this.token = token;
+    }
+
     public int getSelectedTabIndex() {
         return selectedTabIndex;
     }
@@ -528,7 +542,7 @@ public class DatasetPage implements Serializable {
     }
 
     private String init(boolean initFull) {
-        if (dataset.getId() == null && versionId == null && persistentId == null) {
+        if (dataset.getId() == null && versionId == null && persistentId == null && this.token == null) {
             return permissionsWrapper.notFound();
         }
         // view mode for a dataset
@@ -570,6 +584,18 @@ public class DatasetPage implements Serializable {
             // Set Working Version and Dataset by DatasetVersion Id
             //retrieveDatasetVersionResponse = datasetVersionService.retrieveDatasetVersionByVersionId(versionId);
 
+        } else if(this.token != null) {
+            final PrivateUrlUser user = this.privateUrlService.getPrivateUrlUserFromToken(this.token);
+            this.session.logIn(user);
+            this.dataset = this.datasetPageFacade.retrieveDataset(user.getDatasetId());
+            if (this.dataset != null) {
+                this.workingVersion = this.dataset.getLatestVersion();
+                retrieveDatasetVersionResponse = this.datasetVersionService.
+                        selectRequestedVersion(this.dataset.getVersions(), this.workingVersion.getFriendlyVersionNumber());
+            } else {
+                logger.warning("No such dataset: " + this.dataset);
+                return this.permissionsWrapper.notFound();
+            }
         }
 
         if (retrieveDatasetVersionResponse == null) {

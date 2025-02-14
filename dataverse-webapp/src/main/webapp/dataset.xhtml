@@ -92,6 +92,7 @@
                 <f:viewParam name="version" value="#{DatasetPage.version}"/>
                 <f:viewParam name="versionId" value="#{DatasetPage.versionId}"/>
                 <f:viewParam name="persistentId" value="#{DatasetPage.persistentId}"/>
+                <f:viewParam name="token" value="#{DatasetPage.token}"/>
                 <f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}"/>
                 <f:viewAction action="#{DatasetPage.init}"/>
                 <f:viewAction action="#{datasetFilesTab.init(DatasetPage.workingVersion)}"/>
