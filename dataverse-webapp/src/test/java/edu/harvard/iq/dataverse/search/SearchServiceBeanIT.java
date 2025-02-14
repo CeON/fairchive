@@ -18,6 +18,8 @@ import edu.harvard.iq.dataverse.search.response.FacetLabel;
 import edu.harvard.iq.dataverse.search.response.PublicationStatusCounts;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
+import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
@@ -37,6 +39,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -274,6 +277,34 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
         assertThat(searchResponse.getSpellingSuggestionsByToken(), aMapWithSize(0));
 
         assertThat(searchResponse.getFacetCategoryList(), is(empty()));
+    }
+
+    @Test
+    public void searchDatasetLocation() throws SearchException {
+
+        // given
+        List<String> filters = Lists.newArrayList("authorName_ss: \"Some author name\"");
+
+        // when
+        List<SolrSearchLocationResult> solrSearchMapResults = searchService.searchDatasetLocation(
+                adminDataverseRequest,
+                "*",
+                filters);
+
+        // then
+        assertThat(solrSearchMapResults, hasSize(1));
+        assertThat(solrSearchMapResults.get(0).getMarker(), is(new GeoPoint(35.840585,36.19439)));
+    }
+
+    @Test
+    public void searchDatasetLocation__no_results() throws SearchException {
+
+        // when
+        List<SolrSearchLocationResult> solrSearchMapResults = searchService.searchDatasetLocation(adminDataverseRequest,
+                "doi:10.18150/FK2/MLXK1N", Collections.emptyList());
+
+        // then
+        assertThat(solrSearchMapResults, is(empty()));
     }
 
     // -------------------- PRIVATE --------------------

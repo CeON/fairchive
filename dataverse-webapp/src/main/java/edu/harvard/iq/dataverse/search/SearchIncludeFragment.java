@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.Param;
+import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.StreamedContent;
 
 import edu.harvard.iq.dataverse.DatasetDao;
@@ -54,6 +55,7 @@ import edu.harvard.iq.dataverse.search.response.FacetCategory;
 import edu.harvard.iq.dataverse.search.response.FilterQuery;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
+import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
 
 @RequestScoped
 @Named("SearchIncludeFragment")
@@ -62,6 +64,7 @@ public class SearchIncludeFragment {
     private static final Logger logger = Logger.getLogger(SearchIncludeFragment.class.getCanonicalName());
 
     private static final int RESULTS_PER_PAGE = 10;
+    private static final String MAP_TAB_ID = "mapSearchResult";
 
     public static final String SEARCH_FIELD_TYPE = SearchFields.TYPE;
     public static final String SEARCH_FIELD_SUBTREE = SearchFields.SUBTREE;
@@ -117,6 +120,7 @@ public class SearchIncludeFragment {
     private List<String> filterQueries = new ArrayList<>();
     private List<FacetCategory> facetCategoryList = new ArrayList<>();
     private List<SolrSearchResult> searchResultsList = new ArrayList<>();
+    private List<SolrSearchLocationResult> searchMapResultsList = new ArrayList<>();
     private Map<String, SpecialFilter> specialFilterIndex = new HashMap<>();
 
     private int searchResultsCount;
@@ -163,6 +167,10 @@ public class SearchIncludeFragment {
 
     public List<SolrSearchResult> getSearchResultsList() {
         return searchResultsList;
+    }
+
+    public List<SolrSearchLocationResult> getSearchMapResultsList() {
+        return searchMapResultsList;
     }
 
     public int getSearchResultsCount() {
@@ -323,26 +331,26 @@ public class SearchIncludeFragment {
         return widgetWrapper.wrapURL("dataverse.xhtml?faces-redirect=true&q=" + qParam + optionalDataverseScope);
     }
 
-    public void search(Dataverse dataverse) {
+    public void search() {
+        // searchResultList contains all grouping/counting logic for search filters
+        // so we need to call it also on location tab
+        searchResultList();
+        if (lastSearchValue.getActiveTabIndex() == 1) {
+            searchDatasetLocation();
+        }
+    }
+
+    public void searchResultList() {
         String queryToPassToSolr = StringUtils.isEmpty(query) ? "*" : query;
 
-        this.dataverse = dataverse;
         dataverseAlias = dataverse.getAlias();
-
         List<String> filterQueriesFinal = new ArrayList<>();
-        String dataversePath = null;
 
-        Optional<String> filterDownToSubtree;
-        if (!dataverse.isRoot()) {
-            dataversePath = dataverseDao.determineDataversePath(dataverse).toString();
-            filterDownToSubtree = Optional.of(SearchFields.SUBTREE + ":\"" + dataversePath + "\"");
-        } else {
-            filterDownToSubtree = Optional.empty();
-        }
+        String dataversePath = dataverse.isRoot() ? null : dataverseDao.determineDataversePath(dataverse).toString();
 
+        Optional<String> filterDownToSubtree = getFilterDownToSubtree(dataverse);
         filterDownToSubtree.ifPresent(filterQueriesFinal::add);
-
-        filterQueriesFinal.addAll(prepareFilterQueries(filterQueries));
+        filterQueriesFinal.addAll(prepareSpecialFilterQueries(filterQueries));
 
         SearchForTypes searchForTypes = SearchForTypes.byTypes(
                 selectedTypesMap.entrySet().stream()
@@ -444,6 +452,32 @@ public class SearchIncludeFragment {
         this.lastSearchValue.setSearchResultsList(searchResultsList);
         this.lastSearchValue.setRootDv(dataverse.isRoot());
         this.lastSearchValue.setDataverseId(dataverse.getId());
+    }
+
+    public void searchDatasetLocation() {
+        String queryToPassToSolr = "";
+        try {
+            queryToPassToSolr = StringUtils.isEmpty(query) ? "*" : query;
+
+            List<String> filterQueriesFinal = new ArrayList<>();
+            Optional<String> filterDownToSubtree = getFilterDownToSubtree(dataverse);
+            filterDownToSubtree.ifPresent(filterQueriesFinal::add);
+            filterQueriesFinal.addAll(prepareSpecialFilterQueries(filterQueries));
+
+            searchMapResultsList = searchService.searchDatasetLocation(
+                dataverseRequestService.getDataverseRequest(),
+                queryToPassToSolr,
+                filterQueriesFinal
+            );
+        } catch (SearchException ex) {
+            String message = String.format("Exception running dataset location search for [%s] with filterQueries %s",
+                    queryToPassToSolr, filterQueries);
+            logger.log(Level.INFO, message, ex);
+            solrIsDown = true;
+            searchException = ex;
+            solrErrorEncountered = true;
+            errorFromSolr = ex.getMessage();
+        }
     }
     
     public StreamedContent getSearchResultsFile() {
@@ -591,9 +625,23 @@ public class SearchIncludeFragment {
         return datafile != null && datafile.isTabularData();
     }
 
+    public void onTabChange(TabChangeEvent event) {
+        String tabId = event.getTab().getId();
+        lastSearchValue.setActiveTabIndex(MAP_TAB_ID.equals(tabId) ? 1 : 0);
+        search();
+    }
+
     // -------------------- PRIVATE --------------------
 
-    private List<String> prepareFilterQueries(List<String> filterQueries) {
+    private Optional<String> getFilterDownToSubtree(Dataverse dataverse) {
+        if (!dataverse.isRoot()) {
+            String dataversePath = dataverseDao.determineDataversePath(dataverse).toString();
+            return Optional.of(SearchFields.SUBTREE + ":\"" + dataversePath + "\"");
+        }
+        return Optional.empty();
+    }
+
+    private List<String> prepareSpecialFilterQueries(List<String> filterQueries) {
         for (String filterQuery : filterQueries) {
             if (!specialFilterService.isSpecialFilter(filterQuery) || specialFilterIndex.containsKey(filterQuery)) {
                 continue;
@@ -717,5 +765,9 @@ public class SearchIncludeFragment {
 
     public void setDataverseAlias(String dataverseAlias) {
         this.dataverseAlias = dataverseAlias;
+    }
+
+    public void setDataverse(Dataverse dataverse) {
+        this.dataverse = dataverse;
     }
 }
