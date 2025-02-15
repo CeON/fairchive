@@ -49,7 +49,7 @@ import java.util.Objects;
                 query = "SELECT COUNT(a) FROM AuthenticatedUser a WHERE a.userIdentifier=:identifier"),
         @NamedQuery(name = "AuthenticatedUser.filter",
                 query = "select au from AuthenticatedUser au WHERE ("
-                        + "au.userIdentifier like :query OR "
+                        + "lower(au.userIdentifier) like lower(:query) OR "
                         + "lower(concat(au.firstName,' ',au.lastName)) like lower(:query))"),
         @NamedQuery(name = "AuthenticatedUser.findAdminUser",
                 query = "select au from AuthenticatedUser au WHERE "
