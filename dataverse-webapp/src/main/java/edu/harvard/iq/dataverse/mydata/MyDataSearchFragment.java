@@ -680,7 +680,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
     }
 
     public boolean isSuperuser() {
-        return (session.getUser() != null) && session.getUser().isSuperuser();
+        return session.getUser().isSuperuser();
     }
 
     public List<String> getRolesForEntity(long id) {
