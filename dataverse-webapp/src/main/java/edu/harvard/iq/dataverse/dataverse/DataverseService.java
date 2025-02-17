@@ -56,7 +56,7 @@ public class DataverseService {
             facets.getTarget().clear();
         }
 
-        if (session.getUser().isAuthenticated()) {
+        if (session.isUserLoggedIn()) {
             Command<Dataverse> cmd = new CreateDataverseCommand(dataverse,
                                                                 dvRequestService.getDataverseRequest(),
                                                                 facets.getTarget(),

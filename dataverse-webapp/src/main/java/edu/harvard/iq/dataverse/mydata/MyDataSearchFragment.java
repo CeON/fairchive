@@ -446,7 +446,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
     }
 
     public String retrieveMyData() {
-        if ((session.getUser() != null) && (session.getUser().isAuthenticated())) {
+        if (session.isUserLoggedIn()) {
             authUser = (AuthenticatedUser) session.getUser();
             if (StringUtils.isEmpty(searchUserId)) {
                 searchUserId = getAuthUserIdentifier();

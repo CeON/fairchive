@@ -258,7 +258,7 @@ public class DataverseUserPage extends BaseUserPage {
     }
 
     public boolean isUserAuthenticated() {
-        return session.getUser().isAuthenticated();
+        return this.session.isUserLoggedIn();
     }
 
     public void edit(ActionEvent e) {

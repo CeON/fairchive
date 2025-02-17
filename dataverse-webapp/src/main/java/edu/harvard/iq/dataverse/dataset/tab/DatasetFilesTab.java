@@ -488,8 +488,8 @@ public class DatasetFilesTab implements Serializable {
         boolean versionContainsDownloadableFiles = datasetFilesTabFacade.isVersionContainsDownloadableFiles(workingVersion.getId());
 
         if (versionContainsNonDownloadableFiles) {
-            fileAccessRequestMultiButtonRequired = session.getUser().isAuthenticated();
-            fileAccessRequestMultiSignUpButtonRequired = !session.getUser().isAuthenticated();
+            fileAccessRequestMultiButtonRequired = session.isUserLoggedIn();
+            fileAccessRequestMultiSignUpButtonRequired = !session.isUserLoggedIn();
         }
         downloadButtonAvailable = versionContainsDownloadableFiles;
         csvDownloadAvailable = workingVersion.isReleased() && (dataset.getGuestbook() == null || !dataset.getGuestbook().isEnabled());

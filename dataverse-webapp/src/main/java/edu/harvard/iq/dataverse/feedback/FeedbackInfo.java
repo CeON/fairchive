@@ -118,7 +118,7 @@ public class FeedbackInfo<T extends DvObject> {
 
     private static boolean isLoggedIn(DataverseSession dataverseSession) {
         if (dataverseSession != null) {
-            return dataverseSession.getUser().isAuthenticated();
+            return dataverseSession.isUserLoggedIn();
         }
         return false;
     }

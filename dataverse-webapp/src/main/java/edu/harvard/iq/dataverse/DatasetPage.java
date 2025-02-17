@@ -380,7 +380,7 @@ public class DatasetPage implements Serializable {
      * every time; it doesn't do any new db lookups.
      */
     public boolean isSessionUserAuthenticated() {
-        return session.getUser().isAuthenticated();
+        return session.isUserLoggedIn();
     }
 
     public boolean hasAnythingToUningest() {
@@ -959,7 +959,7 @@ public class DatasetPage implements Serializable {
 
     public List<Dataverse> completeLinkingDataverse(String query) {
         dataset = datasetPageFacade.retrieveDataset(dataset.getId());
-        if (session.getUser().isAuthenticated()) {
+        if (session.isUserLoggedIn()) {
             return datasetPageFacade.filterDataversesForLinking(query, dvRequestService.getDataverseRequest(), dataset);
         } else {
             return null;

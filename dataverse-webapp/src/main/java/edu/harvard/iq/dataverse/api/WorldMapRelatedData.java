@@ -583,8 +583,8 @@ public class WorldMapRelatedData extends AbstractApiBean {
 
         AuthenticatedUser user = null;
 
-        if (session != null && session.getUser() != null && session.getUser().isAuthenticated()) {
-            user = (AuthenticatedUser) session.getUser();
+        if (this.session.isUserLoggedIn()) {
+            user = (AuthenticatedUser) this.session.getUser();
         }
         if (user == null) {
             return forbidden("Not logged in");
