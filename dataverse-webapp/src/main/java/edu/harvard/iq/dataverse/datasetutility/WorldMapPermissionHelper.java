@@ -275,46 +275,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
     }// A DataFile may have a related MapLayerMetadata object
 
 
-    /**
-     * Check if this is a mappable file type.
-     * <p>
-     * Currently (2/2016)
-     * - Shapefile (zipped shapefile)
-     * - Tabular file with Geospatial Data tag
-     *
-     * @param fm
-     * @return
-     */
-    private boolean isPotentiallyMappableFileType(FileMetadata fm) {
-        if (fm == null) {
-            return false;
-        }
 
-        // Yes, it's a shapefile
-        //
-        if (this.isShapefileType(fm)) {
-            return true;
-        }
-
-        // Yes, it's tabular with a geospatial tag
-        //
-        if (fm.getDataFile().isTabularData()) {
-            return fm.getDataFile().hasGeospatialTag();
-        }
-        return false;
-    }
-
-
-    public boolean isShapefileType(FileMetadata fm) {
-        if (fm == null) {
-            return false;
-        }
-        if (fm.getDataFile() == null) {
-            return false;
-        }
-
-        return fm.getDataFile().isShapefileType();
-    }
 
 
     /**
@@ -396,7 +357,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
 
         // (2) Is this file a Shapefile or a Tabular file tagged as Geospatial?
         //
-        if (!(this.isPotentiallyMappableFileType(fm))) {
+        if (!fm.isShapeOrTabularWithGeospatialTag()) {
             return false;
         }
 
@@ -485,7 +446,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         //  (1) Is this file a Shapefile or a Tabular file tagged as Geospatial?
         //  TO DO:  EXPAND FOR TABULAR FILES TAGGED AS GEOSPATIAL!
         //
-        if (!(this.isPotentiallyMappableFileType(fm))) {
+        if (!fm.isShapeOrTabularWithGeospatialTag()) {
             return false;
         }
 

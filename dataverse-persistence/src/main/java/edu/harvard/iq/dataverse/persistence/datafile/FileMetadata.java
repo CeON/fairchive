@@ -366,6 +366,11 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
         return this.datasetVersion.isPubliclyAccessible();
     }
     
+    public boolean isShapeOrTabularWithGeospatialTag() {
+        return this.dataFile.isShapefileType()
+                || this.dataFile.isTabularWithGeospatialTag();
+    }
+    
     public boolean refersToNewerDatasetVersionThan(final FileMetadata other) {
         return this.datasetVersion.isNewerThan(other.datasetVersion);
     }
