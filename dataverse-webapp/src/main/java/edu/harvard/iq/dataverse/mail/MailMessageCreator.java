@@ -516,7 +516,7 @@ public class MailMessageCreator {
     private String getNumberOfUsersRequestingForFileAccess(Dataset dataset) {
         long numberOfUsersRequestingForAccess = dataset.getFiles().stream()
                 .filter(f -> f.getFileMetadatas().stream()
-                        .anyMatch(m -> FileTermsOfUse.TermsOfUseType.RESTRICTED.equals(m.getTermsOfUse().getTermsOfUseType())))
+                        .anyMatch(m -> m.isFileUseRestricted()))
                 .map(DataFile::getFileAccessRequesters)
                 .flatMap(Collection::stream)
                 .distinct()

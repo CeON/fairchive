@@ -177,7 +177,7 @@ public class OREMap {
                     addIfNotNull(aggRes, JsonLDTerm.schemaOrg("description"), df.getDescription());
                 }
                 addIfNotNull(aggRes, JsonLDTerm.schemaOrg("name"), fmd.getLabel()); // "label" is the filename
-                addIfNotNull(aggRes, JsonLDTerm.restricted, fmd.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED);
+                addIfNotNull(aggRes, JsonLDTerm.restricted, fmd.isFileUseRestricted());
                 addIfNotNull(aggRes, JsonLDTerm.directoryLabel, fmd.getDirectoryLabel());
                 addIfNotNull(aggRes, JsonLDTerm.schemaOrg("version"), fmd.getVersion());
                 addIfNotNull(aggRes, JsonLDTerm.datasetVersionId, fmd.getDatasetVersion().getId());

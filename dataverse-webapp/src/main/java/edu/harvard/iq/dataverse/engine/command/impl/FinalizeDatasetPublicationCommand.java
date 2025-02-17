@@ -215,7 +215,7 @@ public class FinalizeDatasetPublicationCommand extends AbstractPublishDatasetCom
             }
 
 
-            if (dataFile.getFileMetadata().getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED) {
+            if (dataFile.getFileMetadata().isFileUseRestricted()) {
                 // A couple things need to happen if the file has been restricted:
                 // 1. If there's a map layer associated with this shape file, or
                 //    tabular-with-geo-tag file, all that map layer data (that

@@ -314,7 +314,7 @@ public class WorldMapRelatedData extends AbstractApiBean {
         jsonData.add("datafile_create_datetime", dfile.getCreateDate().toString());
 
         // restriction status of the DataFile
-        jsonData.add("datafile_is_restricted", dfileMeta.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED);
+        jsonData.add("datafile_is_restricted", dfileMeta.isFileUseRestricted());
 
         return ok(jsonData);
     }

@@ -179,14 +179,11 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         if (fm.getDatasetVersion().isDeaccessioned()) {
             return this.doesSessionUserHavePermission(Permission.EditDataset, fm);
         }
-        //Check for restrictions
-
-        boolean isRestrictedFile = fm.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED;
 
         // --------------------------------------------------------------------
         //  Is the file Unrestricted ?        
         // --------------------------------------------------------------------
-        if (!isRestrictedFile) {
+        if (!fm.isFileUseRestricted()) {
             return true;
         }
 
@@ -458,7 +455,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
 
 
         // (3) Is File restricted? if Yes - no button.
-        if (fm.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED) {
+        if (fm.isFileUseRestricted()) {
             return false;
         }
 

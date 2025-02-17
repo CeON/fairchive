@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.util.stream.Collectors.toList;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
@@ -52,6 +53,7 @@ import com.google.gson.annotations.Expose;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.TermsOfUseForm;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 
@@ -364,6 +366,10 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     
     public boolean isFilePubliclyAccessible() {
         return this.datasetVersion.isPubliclyAccessible();
+    }
+    
+    public boolean isFileUseRestricted() {
+        return this.termsOfUse.getTermsOfUseType() == RESTRICTED;
     }
     
     public boolean isShapeOrTabularWithGeospatialTag() {
