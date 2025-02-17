@@ -53,6 +53,10 @@ public class SettingsWrapper implements java.io.Serializable {
         return settingService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled);
     }
 
+    public boolean isSearchResultOnMap() {
+        return settingService.isTrueForKey(SettingsServiceBean.Key.ShowSearchResultOnMap);
+    }
+
     public boolean isRsyncUpload() {
         return systemConfig.isRsyncUpload();
     }

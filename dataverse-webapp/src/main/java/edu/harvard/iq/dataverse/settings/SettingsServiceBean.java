@@ -759,8 +759,15 @@ public class SettingsServiceBean {
          * When empty standard geo field will be used:
          * dsf_txt_northLongitude, dsf_txt_southLongitude, dsf_txt_eastLongitude, dsf_txt_westLongitude
          */
-        SearchResultLocationCustomPrefix
+        SearchResultLocationCustomPrefix,
+
+        /**
+         * Show dataset search results on map as markers (if set to 'true').
+         * By default is set to 'false', so tab with map won't be shown.
+         */
+        ShowSearchResultOnMap,
         ;
+
 
 
         @Override
