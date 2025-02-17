@@ -434,7 +434,7 @@ public class DatasetFilesTab implements Serializable {
 
         // If the script has been successfully downloaded, lock the dataset:
         DatasetLock lock = datasetFilesTabFacade.addDatasetLock(dataset.getId(), DcmUpload,
-                session.getUser() != null ? ((AuthenticatedUser) session.getUser()).getId() : null,
+                session.isUserLoggedIn() ? ((AuthenticatedUser) session.getUser()).getId() : null,
                         "script downloaded");
         if (lock != null) {
             dataset.addLock(lock);
