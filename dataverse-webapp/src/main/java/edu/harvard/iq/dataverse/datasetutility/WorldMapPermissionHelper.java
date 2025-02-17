@@ -471,28 +471,13 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
 
         // Is the user authenticated?
         //
-        if (!(isSessionUserAuthenticated())) {
+        if (!(this.session.isUserLoggedIn())) {
             return false;
         }
 
         //  If so, can the logged in user edit the Dataset to which this FileMetadata belongs?
         //
         return this.doesSessionUserHavePermission(Permission.EditDataset, fm);
-
-    }
-
-    public boolean isSessionUserAuthenticated() {
-
-
-        if (session == null) {
-            return false;
-        }
-
-        if (session.getUser() == null) {
-            return false;
-        }
-
-        return session.getUser().isAuthenticated();
 
     }
 
