@@ -18,6 +18,9 @@ import org.omnifaces.cdi.ViewScoped;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.persistence.user.Permission.EditDataset;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -468,16 +471,8 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
     }
 
     private boolean isUserAuthenticatedWithEditDatasetPermission(FileMetadata fm) {
-
-        // Is the user authenticated?
-        //
-        if (!(this.session.isUserLoggedIn())) {
-            return false;
-        }
-
-        //  If so, can the logged in user edit the Dataset to which this FileMetadata belongs?
-        //
-        return this.doesSessionUserHavePermission(Permission.EditDataset, fm);
+        return this.session.isUserLoggedIn() && 
+            doesSessionUserHavePermission(EditDataset, fm);
 
     }
 
