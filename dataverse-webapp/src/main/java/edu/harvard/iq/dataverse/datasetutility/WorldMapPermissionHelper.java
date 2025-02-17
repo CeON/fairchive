@@ -498,10 +498,6 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
             return false;
         }
 
-        if (this.session.getUser() == null) {
-            return false;
-        }
-
         if (this.permissionService == null) {
             return false;
         }
