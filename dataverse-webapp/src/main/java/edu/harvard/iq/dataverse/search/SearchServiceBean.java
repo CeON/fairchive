@@ -29,6 +29,8 @@ import edu.harvard.iq.dataverse.search.response.PublicationStatusCounts;
 import edu.harvard.iq.dataverse.search.response.SearchParentInfo;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
+import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Try;
@@ -578,6 +580,35 @@ public class SearchServiceBean {
         return solrQueryResponse;
     }
 
+    public List<SolrSearchLocationResult> searchDatasetLocation(DataverseRequest dataverseRequest,
+                                                                String query,
+                                                                List<String> filterQueries) throws SearchException {
+        SolrQuery solrQuery = new SolrQuery();
+        List<DatasetFieldType> datasetFields = datasetFieldService.findAllOrderedById();
+        query = querySanitizer.sanitizeQuery(query, datasetFields);
+        solrQuery.setQuery(query);
+
+        DatasetLocationSolrFields locationSolrFields = new DatasetLocationSolrFields(
+                settingsService.getValueForKey(SettingsServiceBean.Key.SearchResultLocationCustomPrefix)
+        );
+        setSolrParametersForDatasetLocations(solrQuery, locationSolrFields);
+        setSolrFiltersForDatasetLocations(solrQuery, dataverseRequest, locationSolrFields, filterQueries);
+
+        logger.fine("Solr query:" + solrQuery);
+        // -----------------------------------
+        // Make the solr query
+        // -----------------------------------
+        QueryResponse queryResponse;
+        try {
+            queryResponse = solrServer.query(solrQuery);
+        } catch (RemoteSolrException | SolrServerException | IOException ex) {
+            throw new SearchException("Internal Dataverse Search Engine Error", ex);
+        }
+
+        SolrDocumentList docs = queryResponse.getResults();
+        return parseSolrDatasetLocationResults(docs, locationSolrFields);
+    }
+
     // -------------------- PRIVATE --------------------
 
     private Long getRootDataverseId() {
@@ -761,5 +792,64 @@ public class SearchServiceBean {
             return false;
         }
         return true;
+    }
+
+    private List<SolrSearchLocationResult> parseSolrDatasetLocationResults(SolrDocumentList docs, DatasetLocationSolrFields locationSolrFields) {
+        List<SolrSearchLocationResult> results = new ArrayList<>();
+        for (SolrDocument solrDocument : docs) {
+            String datasetName = (String) solrDocument.getFieldValue(SearchFields.NAME_SORT);
+            List<String> north = parseCoordinates(solrDocument, locationSolrFields.getNorth());
+            List<String> east = parseCoordinates(solrDocument, locationSolrFields.getEast());
+            List<String> south = parseCoordinates(solrDocument, locationSolrFields.getSouth());
+            List<String> west = parseCoordinates(solrDocument, locationSolrFields.getWest());
+
+            int locationCount = solrDocument.getFieldValues(locationSolrFields.getNorth()).size();
+            for (int i = 0; i < locationCount; i++) {
+                GeoPoint pointA = new GeoPoint(north.get(i), west.get(i));
+                GeoPoint pointB = new GeoPoint(south.get(i), east.get(i));
+                SolrSearchLocationResult result = new SolrSearchLocationResult(datasetName, pointA, pointB);
+                results.add(result);
+            }
+        }
+
+        return results;
+    }
+
+    private List<String> parseCoordinates(SolrDocument solrDocument, String fieldName) {
+        return solrDocument.getFieldValues(fieldName)
+                .stream()
+                .map(String.class::cast)
+                .collect(toList());
+    }
+
+    private void setSolrParametersForDatasetLocations(SolrQuery solrQuery, DatasetLocationSolrFields locationSolrFields) {
+        solrQuery.setParam("fl", String.join(
+                ",",
+                asList(SearchFields.NAME_SORT,
+                        locationSolrFields.getNorth(),
+                        locationSolrFields.getEast(),
+                        locationSolrFields.getSouth(),
+                        locationSolrFields.getWest()
+                ))
+        );
+        solrQuery.setParam("qt", "/select");
+    }
+
+    private void setSolrFiltersForDatasetLocations(SolrQuery solrQuery,
+                                                   DataverseRequest dataverseRequest,
+                                                   DatasetLocationSolrFields locationSolrFields,
+                                                   List<String> filterQueries) {
+        for (String filterQuery : filterQueries) {
+            solrQuery.addFilterQuery(filterQuery);
+        }
+        // Documents only with geographic location
+        solrQuery.addFilterQuery(String.format("%s:%s", locationSolrFields.getEast(), "[* TO *]"));
+
+        addDvObjectTypeFilterQuery(solrQuery, SearchForTypes.byTypes(SearchObjectType.DATASETS));
+
+        String permissionFilterQuery = permissionQueryBuilder.buildPermissionFilterQuery(dataverseRequest);
+        if (!permissionFilterQuery.isEmpty()) {
+            solrQuery.addFilterQuery(permissionFilterQuery);
+        }
     }
 }

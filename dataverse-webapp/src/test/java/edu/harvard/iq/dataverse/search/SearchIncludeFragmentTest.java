@@ -10,6 +10,9 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.primefaces.component.tabview.Tab;
+import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.StreamedContent;
 
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
@@ -73,6 +78,7 @@ public class SearchIncludeFragmentTest {
         this.fragment.postConstruct();
 
         this.dataverse.setId(1L);
+        this.fragment.setDataverse(this.dataverse);
 
         this.type1.setId(1L);
         this.type1.setTitle("def");
@@ -86,9 +92,6 @@ public class SearchIncludeFragmentTest {
         df.setValue("one");
         dsv.setDatasetFields(asList(df));
         this.dataset.setVersions(asList(dsv));
-
-        when(this.datasetFieldTypeRepo.findAll())
-                .thenReturn(asList(this.type1, this.type2));
     }
 
     private SolrQueryResponse responseOf(final SolrSearchResult... results) {
@@ -115,8 +118,10 @@ public class SearchIncludeFragmentTest {
                 .thenReturn(responseOf(intendedResult));
         when(this.datasetRepo.getById(eq(intendedResult.getEntityId())))
                 .thenReturn(this.dataset);
+        when(this.datasetFieldTypeRepo.findAll())
+                .thenReturn(asList(this.type1, this.type2));
 
-        this.fragment.search(this.dataverse);
+        this.fragment.search();
         StreamedContent file = this.fragment.getSearchResultsFile();
 
         assertThat(file.getContentEncoding()).isEqualTo("utf-8");
@@ -136,8 +141,10 @@ public class SearchIncludeFragmentTest {
 
         when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
                 any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
+        when(this.datasetFieldTypeRepo.findAll())
+                .thenReturn(asList(this.type1, this.type2));
 
-        this.fragment.search(this.dataverse);
+        this.fragment.search();
         StreamedContent file = this.fragment.getSearchResultsFile();
 
         assertThat(file.getContentEncoding()).isEqualTo("utf-8");
@@ -148,5 +155,55 @@ public class SearchIncludeFragmentTest {
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(1);
         assertThat(lines.get(0)).isEqualTo("Id,Name,Title,def");
+    }
+
+    @Test
+    public void onTabChange__list_result() throws SearchException {
+
+        // given
+        TabChangeEvent tabChangeEvent = mock(TabChangeEvent.class);
+        Tab tab = new Tab();
+        tab.setId("test");
+        when(tabChangeEvent.getTab()).thenReturn(tab);
+        when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
+                any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
+
+        // when
+        this.fragment.onTabChange(tabChangeEvent);
+
+        // then
+        verify(searchService, times(0)).searchDatasetLocation(any(), anyString(), any());
+    }
+
+    @Test
+    public void onTabChange__dataset_location_result() throws SearchException {
+
+        // given
+        TabChangeEvent tabChangeEvent = mock(TabChangeEvent.class);
+        Tab tab = new Tab();
+        tab.setId("mapSearchResult");
+        when(tabChangeEvent.getTab()).thenReturn(tab);
+        when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
+                any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
+
+        // when
+        this.fragment.onTabChange(tabChangeEvent);
+
+        // then
+        verify(searchService, times(1)).searchDatasetLocation(any(), anyString(), any());
+    }
+
+    @Test
+    public void searchDatasetLocation__search_Exception() throws SearchException {
+
+        //given
+        when(this.searchService.searchDatasetLocation(any(), anyString(), any())).thenThrow(SearchException.class);
+
+        // when
+        this.fragment.searchDatasetLocation();
+
+        //
+        assertThat(fragment.isSolrIsDown()).isTrue();
+        assertThat(fragment.wasSolrErrorEncountered()).isTrue();
     }
 }

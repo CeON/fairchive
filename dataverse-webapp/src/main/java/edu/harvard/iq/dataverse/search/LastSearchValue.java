@@ -25,6 +25,7 @@ public class LastSearchValue implements Serializable {
     private List<SolrSearchResult> searchResultsList = new ArrayList<>();
     private boolean rootDv;
     private long dataverseId;
+    private long activeTabIndex;
 
     public List<SolrSearchResult> getSearchResultsList() {
 
@@ -47,6 +48,14 @@ public class LastSearchValue implements Serializable {
         return dataverseId;
     }
 
+    /**
+     * Returns current tab index
+     */
+    public long getActiveTabIndex() {
+        return activeTabIndex;
+    }
+
+
     public void setSearchResultsList(List<SolrSearchResult> searchResultsList) {
 
         this.searchResultsList = searchResultsList;
@@ -60,5 +69,9 @@ public class LastSearchValue implements Serializable {
     public void setDataverseId(long dataverseId) {
 
         this.dataverseId = dataverseId;
+    }
+
+    public void setActiveTabIndex(long activeTabIndex) {
+        this.activeTabIndex = activeTabIndex;
     }
 }

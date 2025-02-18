@@ -4,9 +4,11 @@ import static java.util.stream.Collectors.toList;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
+import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.eclipse.persistence.annotations.BatchFetchType.JOIN;
 
 import java.io.Serializable;
+import java.security.acl.LastOwnerException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +38,7 @@ import javax.persistence.Transient;
 import javax.persistence.Version;
 import javax.validation.constraints.Pattern;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.persistence.annotations.BatchFetch;
 import org.hibernate.validator.constraints.NotBlank;
@@ -124,6 +127,10 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
     public String getLabel() {
         return label;
+    }
+    
+    public String getFileNameExtention() {  
+        return getExtension(this.label);
     }
 
     public void setLabel(String label) {

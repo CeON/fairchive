@@ -98,6 +98,8 @@ public class DataversePage {
         if (dataverse == null) {
             permissionsWrapper.notFound();
         }
+
+        searchIncludeFragment.setDataverse(dataverse);
     }
 
     public String init() {
@@ -106,7 +108,7 @@ public class DataversePage {
             return permissionsWrapper.notAuthorized();
         }
 
-        searchIncludeFragment.search(dataverse);
+        searchIncludeFragment.search();
         linkToDataverseDialog.init(dataverse, searchIncludeFragment.getQuery(), searchIncludeFragment.getFilterQueriesDebug());
 
         featuredDataversesDialog.init(dataverse);

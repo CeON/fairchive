@@ -33,4 +33,27 @@ public class FileMatadataTest {
         assertThat(meta.getCategoriesByName())
                 .containsExactly(this.category1.getName(), this.category2.getName());
     }
+    
+    @Test
+    public void getFileNameExtention() {
+        
+        final FileMetadata fileMeta = new FileMetadata();
+        
+        fileMeta.setLabel("abc");
+        
+        assertThat(fileMeta.getFileNameExtention()).isEmpty();
+        
+        
+        fileMeta.setLabel("abc.");
+        
+        assertThat(fileMeta.getFileNameExtention()).isEmpty();
+        
+        fileMeta.setLabel("abc.txt");
+        
+        assertThat(fileMeta.getFileNameExtention()).isEqualTo("txt");
+        
+        fileMeta.setLabel("abc.tar.gz");
+        
+        assertThat(fileMeta.getFileNameExtention()).isEqualTo("gz");
+    }
 }
