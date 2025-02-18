@@ -1,7 +1,5 @@
 package edu.harvard.iq.dataverse.search;
 
-import org.apache.commons.lang3.StringUtils;
-
 
 public class DatasetLocationSolrFields {
     private static final String NORTH = "northLongitude";
@@ -9,15 +7,7 @@ public class DatasetLocationSolrFields {
     private static final String WEST = "westLongitude";
     private static final String EAST = "eastLongitude";
 
-    private String prefix = "dsf_txt";
-
-    // -------------------- CONSTRUCTORS --------------------
-
-    public DatasetLocationSolrFields(String customPrefix) {
-        if (StringUtils.isNotBlank(customPrefix)) {
-            this.prefix = String.format("%s_%s", this.prefix, customPrefix);
-        }
-    }
+    private final String prefix = "dsf_txt";
 
     // -------------------- GETTERS --------------------
 
