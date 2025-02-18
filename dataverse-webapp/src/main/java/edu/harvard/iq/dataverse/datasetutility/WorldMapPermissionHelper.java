@@ -19,7 +19,10 @@ import org.omnifaces.cdi.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import static edu.harvard.iq.dataverse.persistence.user.Permission.DownloadFile;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.EditDataset;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GeoconnectCreateEditMaps;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GeoconnectViewMaps;
 
 import java.util.HashMap;
 import java.util.List;
@@ -100,7 +103,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         if (user == null) {
             return false;
         }
-        if (!this.permissionService.userOn(user, fm.getDataFile()).has(Permission.DownloadFile)) {
+        if (!this.permissionService.userOn(user, fm.getDataFile()).has(DownloadFile)) {
             return false;
         }
 
@@ -171,7 +174,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
             Is setting for GeoconnectViewMaps true?
             Nope? no button
         */
-        if (!settingsService.isTrueForKey(SettingsServiceBean.Key.GeoconnectViewMaps)) {
+        if (!settingsService.isTrueForKey(GeoconnectViewMaps)) {
             return false;
         }
         //----------------------------------------------------------------------
@@ -318,7 +321,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
             return false;
         }
 
-        if (!this.permissionService.userOn(user, fm.getDataFile().getOwner()).has(Permission.EditDataset)) {
+        if (!this.permissionService.userOn(user, fm.getDataFile().getOwner()).has(EditDataset)) {
             return false;
         }
 
@@ -350,7 +353,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         }
 
         //  (1) Is the view GeoconnectViewMaps 
-        if (!settingsService.isTrueForKey(SettingsServiceBean.Key.GeoconnectCreateEditMaps)) {
+        if (!settingsService.isTrueForKey(GeoconnectCreateEditMaps)) {
             return false;
         }
 

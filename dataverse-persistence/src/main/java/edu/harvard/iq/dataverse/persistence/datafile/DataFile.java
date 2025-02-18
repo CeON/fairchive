@@ -413,9 +413,10 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         return SHAPEFILE_FILE_TYPE.getMimeValue().equalsIgnoreCase(this.contentType);
     }
     
-    public boolean isTabularWithGeospatialTag() {
-        return isTabularData() && hasGeospatialTag();
+    public boolean isShapeOrTabularWithGeospatialTag() {
+        return isShapefileType() || isTabularData() && hasGeospatialTag();
     }
+    
 
     public boolean isImage() {
         // Some browsers (Chrome?) seem to identify FITS files as mime
