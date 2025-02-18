@@ -13,10 +13,11 @@ import java.util.Map;
  * which field it should be applied.<br>
  * Configuration for implementing validators can contain `dependantIsSibling`
  * parameter. If value for the parameter is true (default) then dependant field
- * must be a sibling of the field (have the same parent). If the value for the
- * parameter is false then dependant field can be any field. There is a
- * limitation in such case is that dependant field and its parents can not be a
- * multivalued fields.
+ * must be a sibling of the field (have the same parent). In this case parent
+ * field can be multivalued but dependant field can not be multivalued. If the
+ * value for the parameter is false then dependant field can be any field.
+ * There is a limitation in such case that dependant field and its parents
+ * can not be a multivalued fields.
  * 
  * @author Filipe Dias Lewandowski
  * @author Krzysztof Mądry
