@@ -314,7 +314,7 @@ public class WorldMapRelatedData extends AbstractApiBean {
         jsonData.add("datafile_create_datetime", dfile.getCreateDate().toString());
 
         // restriction status of the DataFile
-        jsonData.add("datafile_is_restricted", dfileMeta.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED);
+        jsonData.add("datafile_is_restricted", dfileMeta.isFileUseRestricted());
 
         return ok(jsonData);
     }
@@ -583,8 +583,8 @@ public class WorldMapRelatedData extends AbstractApiBean {
 
         AuthenticatedUser user = null;
 
-        if (session != null && session.getUser() != null && session.getUser().isAuthenticated()) {
-            user = (AuthenticatedUser) session.getUser();
+        if (this.session.isUserLoggedIn()) {
+            user = (AuthenticatedUser) this.session.getUser();
         }
         if (user == null) {
             return forbidden("Not logged in");

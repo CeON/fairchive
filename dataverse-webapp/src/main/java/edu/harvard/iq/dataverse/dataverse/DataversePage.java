@@ -122,7 +122,7 @@ public class DataversePage {
     }
 
     public String releaseDataverse() {
-        if (!session.getUser().isAuthenticated()) {
+        if (!session.isUserLoggedIn()) {
             JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.not.authorized"));
         }
 

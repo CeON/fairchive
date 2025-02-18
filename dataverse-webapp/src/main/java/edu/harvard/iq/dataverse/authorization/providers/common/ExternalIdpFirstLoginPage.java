@@ -188,7 +188,7 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
         if (!DevOAuthAccountType.PRODUCTION.equals(devMode)) {
             createRandomAuthentication(devMode);
         }
-        if (newUser != null && session.getUser().isAuthenticated()) {
+        if (newUser != null && session.isUserLoggedIn()) {
             // Do not show this page if user is already registered
             // and the newUser object is somehow cached in viewscope
             return redirectToHome();

@@ -253,7 +253,7 @@ public class CreateDatasetPage implements Serializable {
 
         datasetFields = datasetFieldsInitializer.prepareDatasetFieldsForEdit(datasetFields, dataset.getOwner().getMetadataBlockRootDataverse());
 
-        if (session.getUser().isAuthenticated()) {
+        if (session.isUserLoggedIn()) {
             userDataFieldFiller.fillUserDataInDatasetFields(datasetFields, (AuthenticatedUser) session.getUser());
         }
 

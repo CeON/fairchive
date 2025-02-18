@@ -352,7 +352,7 @@ public class FileUtil implements java.io.Serializable {
         if (fileMetadata == null) {
             return false;
         }
-        if (fileMetadata.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED) {
+        if (fileMetadata.isFileUseRestricted()) {
             String msg = "Not publicly downloadable because the file is restricted.";
             logger.debug(msg);
             return false;

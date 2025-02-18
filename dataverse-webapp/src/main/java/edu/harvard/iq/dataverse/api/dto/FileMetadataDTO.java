@@ -314,7 +314,7 @@ public class FileMetadataDTO {
             FileMetadataDTO converted = new FileMetadataDTO();
             converted.setDescription(metadata.getDescription());
             converted.setLabel(metadata.getLabel());
-            converted.setRestricted(metadata.getTermsOfUse().getTermsOfUseType() == FileTermsOfUse.TermsOfUseType.RESTRICTED);
+            converted.setRestricted(metadata.isFileUseRestricted());
             converted.setTermsOfUseType(metadata.getTermsOfUse().getTermsOfUseType().toString());
             Optional<License> license = Optional.ofNullable(metadata.getTermsOfUse())
                     .map(FileTermsOfUse::getLicense);

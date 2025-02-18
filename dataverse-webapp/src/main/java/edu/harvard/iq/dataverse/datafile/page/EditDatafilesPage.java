@@ -799,7 +799,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         // If the script has been successfully downloaded, lock the dataset:
         String lockInfoMessage = "script downloaded";
-        DatasetLock lock = datasetDao.addDatasetLock(dataset.getId(), DatasetLock.Reason.DcmUpload, session.getUser() != null ? ((AuthenticatedUser) session.getUser()).getId() : null, lockInfoMessage);
+        DatasetLock lock = datasetDao.addDatasetLock(dataset.getId(), DatasetLock.Reason.DcmUpload, session.isUserLoggedIn() ? ((AuthenticatedUser) session.getUser()).getId() : null, lockInfoMessage);
         if (lock != null) {
             dataset.addLock(lock);
         } else {

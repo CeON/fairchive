@@ -351,7 +351,7 @@ public class ManageFilePermissionsPage implements java.io.Serializable {
     private boolean anyFileMetadataRestricted(DataFile file) {
         
         for (FileMetadata fileMetadata: file.getFileMetadatas()) {
-            if (fileMetadata.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED) {
+            if (fileMetadata.isFileUseRestricted()) {
                 return true;
             }
         }
