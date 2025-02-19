@@ -129,7 +129,7 @@ public class DashboardDatamovePage implements Serializable {
         List<String> successfulIds = new ArrayList<>();
         List<String> failureMessages = new ArrayList<>();
         for (Dataset source : sourceDatasets) {
-            Summary summary = new Summary(Summary.Mode.DATASET, this.uiMessages);
+            Summary summary = new Summary("dashboard.datamove.dataset", this.uiMessages);
             try {
                 summary.addParameter(source.getDisplayName())
                         .addParameter(extractSourcePersistentId(source))
@@ -167,7 +167,7 @@ public class DashboardDatamovePage implements Serializable {
             return;
         }
 
-        Summary summary = new Summary(Summary.Mode.DATAVERSE, this.uiMessages)
+        Summary summary = new Summary("dashboard.datamove.dataverse", this.uiMessages)
                 .addParameter(extractDataverseAlias(sourceDataverse))
                 .addParameter(extractDataverseAlias(targetDataverse));
 
@@ -294,33 +294,15 @@ public class DashboardDatamovePage implements Serializable {
     // -------------------- INNER CLASSES ---------------------
 
     private static class Summary {
-        public enum Mode {
-            DATAVERSE("dashboard.datamove.dataverse"),
-            DATASET("dashboard.datamove.dataset");
 
-            private final String key;
-
-            Mode(String key) {
-                this.key = key;
-            }
-
-            public String getKey() {
-                return key;
-            }
-        }
-
-        private final Mode mode;
+        private final String key;
         private final List<String> summaryParameters = new ArrayList<>();
         private final UIMessages uiMessages;
 
-        // -------------------- CONSTRUCTORS --------------------
-
-        public Summary(final Mode mode, final UIMessages uiMessages) {
-            this.mode = mode;
+        public Summary(final String key, final UIMessages uiMessages) {
+            this.key = key;
             this.uiMessages = uiMessages;
         }
-
-        // -------------------- LOGIC --------------------
 
         public Summary addParameter(final String param) {
             this.summaryParameters.add(param != null ? param : EMPTY);
@@ -337,24 +319,18 @@ public class DashboardDatamovePage implements Serializable {
 
         public void showSuccessMessage() {
             this.uiMessages.addFlashSuccessMessage(getStringFromBundle(
-                    buildKey("message.success"), summaryParameters.toArray()));
+                    this.key.concat(".message.success"), this.summaryParameters.toArray()));
         }
 
         public String getFailureMessageDetail() {
-            return getStringFromBundle(buildKey("message.failure.details"),
-                    summaryParameters.toArray());
+            return getStringFromBundle(this.key.concat(".message.failure.details"),
+                    this.summaryParameters.toArray());
         }
 
         public void showFailureMessage() {
             this.uiMessages.addErrorMessage(
-                    getStringFromBundle(buildKey("message.failure.summary")),
+                    getStringFromBundle(this.key.concat(".message.failure.summary")),
                     getFailureMessageDetail());
-        }
-
-        // -------------------- PRIVATE --------------------
-
-        private String buildKey(final String postfix) {
-            return this.mode.getKey() + '.' + postfix;
         }
     }
 }

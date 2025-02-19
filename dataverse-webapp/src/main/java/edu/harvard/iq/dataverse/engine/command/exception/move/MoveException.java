@@ -24,4 +24,6 @@ public class MoveException extends IllegalCommandException {
     public List<AdditionalMoveStatus> getDetails() {
         return details;
     }
+    
+    
 }
