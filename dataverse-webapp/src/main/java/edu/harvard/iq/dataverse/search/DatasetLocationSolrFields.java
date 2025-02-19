@@ -7,23 +7,23 @@ public class DatasetLocationSolrFields {
     private static final String WEST = "westLongitude";
     private static final String EAST = "eastLongitude";
 
-    private final String prefix = "dsf_txt";
+    private static final String PREFIX = "dsf_txt";
 
     // -------------------- GETTERS --------------------
 
     public String getNorth() {
-        return String.format("%s_%s", this.prefix, NORTH);
+        return String.format("%s_%s", PREFIX, NORTH);
     }
 
     public String getSouth() {
-        return String.format("%s_%s", this.prefix, SOUTH);
+        return String.format("%s_%s", PREFIX, SOUTH);
     }
 
     public String getWest() {
-        return String.format("%s_%s", this.prefix, WEST);
+        return String.format("%s_%s", PREFIX, WEST);
     }
 
     public String getEast() {
-        return String.format("%s_%s", this.prefix, EAST);
+        return String.format("%s_%s", PREFIX, EAST);
     }
 }
