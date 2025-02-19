@@ -82,7 +82,7 @@ public class NavigationWrapper implements Serializable {
     }
 
     public String notAuthorized() {
-        if (!session.getUser().isAuthenticated()) {
+        if (!session.isUserLoggedIn()) {
             return "/loginpage.xhtml" + getRedirectPage();
         } else {
             return sendError(HttpServletResponse.SC_FORBIDDEN);

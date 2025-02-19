@@ -76,7 +76,7 @@ public class DatasetThumbnailService {
             DataFile dataFile = fileMetadata.getDataFile();
 
             if (dataFile != null && imageThumbConverter.isThumbnailAvailable(dataFile)
-                    && fileMetadata.getTermsOfUse().getTermsOfUseType() != TermsOfUseType.RESTRICTED) {
+                    && !fileMetadata.isFileUseRestricted()) {
                 String imageSourceBase64 = null;
                 imageSourceBase64 = imageThumbConverter.getImageThumbnailAsBase64(dataFile, ImageThumbConverter.DEFAULT_CARDIMAGE_SIZE);
 
@@ -154,7 +154,7 @@ public class DatasetThumbnailService {
                         return defaultDatasetThumbnail;
                     }
                 }
-            } else if (thumbnailFile.getFileMetadata().getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED) {
+            } else if (thumbnailFile.getFileMetadata().isFileUseRestricted()) {
                 logger.fine("Dataset (id :" + dataset.getId() + ") has a thumbnail the user selected but the file must have later been restricted. Returning null.");
                 return null;
             } else {
@@ -219,7 +219,7 @@ public class DatasetThumbnailService {
         for (FileMetadata fmd : datasetVersion.getFileMetadatas()) {
             DataFile testFile = fmd.getDataFile();
             // We don't want to use a restricted image file as the dedicated thumbnail:
-            if (fmd.getTermsOfUse().getTermsOfUseType() != TermsOfUseType.RESTRICTED && 
+            if (!fmd.isFileUseRestricted() && 
                     imageThumbConverter.isThumbnailAvailable(testFile, ImageThumbConverter.DEFAULT_CARDIMAGE_SIZE)) {
                 return testFile;
             }

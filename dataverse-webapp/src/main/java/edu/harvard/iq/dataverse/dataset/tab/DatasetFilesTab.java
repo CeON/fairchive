@@ -434,7 +434,7 @@ public class DatasetFilesTab implements Serializable {
 
         // If the script has been successfully downloaded, lock the dataset:
         DatasetLock lock = datasetFilesTabFacade.addDatasetLock(dataset.getId(), DcmUpload,
-                session.getUser() != null ? ((AuthenticatedUser) session.getUser()).getId() : null,
+                session.isUserLoggedIn() ? ((AuthenticatedUser) session.getUser()).getId() : null,
                         "script downloaded");
         if (lock != null) {
             dataset.addLock(lock);
@@ -488,8 +488,8 @@ public class DatasetFilesTab implements Serializable {
         boolean versionContainsDownloadableFiles = datasetFilesTabFacade.isVersionContainsDownloadableFiles(workingVersion.getId());
 
         if (versionContainsNonDownloadableFiles) {
-            fileAccessRequestMultiButtonRequired = session.getUser().isAuthenticated();
-            fileAccessRequestMultiSignUpButtonRequired = !session.getUser().isAuthenticated();
+            fileAccessRequestMultiButtonRequired = session.isUserLoggedIn();
+            fileAccessRequestMultiSignUpButtonRequired = !session.isUserLoggedIn();
         }
         downloadButtonAvailable = versionContainsDownloadableFiles;
         csvDownloadAvailable = workingVersion.isReleased() && (dataset.getGuestbook() == null || !dataset.getGuestbook().isEnabled());

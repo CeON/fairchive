@@ -80,6 +80,8 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static edu.harvard.iq.dataverse.search.SearchConstants.PUBLIC;
+import static edu.harvard.iq.dataverse.search.SearchConstants.RESTRICTED;
 import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 
 @Stateless
@@ -987,8 +989,7 @@ public class IndexServiceBean {
                     datafileSolrInputDocument.addField(SearchFields.PERSISTENT_URL, dataset.getPersistentURL());
                     datafileSolrInputDocument.addField(SearchFields.TYPE, SearchObjectType.FILES.getSolrValue());
                     datafileSolrInputDocument.addField(SearchFields.CATEGORY_OF_DATAVERSE, dataset.getDataverseContext().getIndexableCategoryName());
-                    datafileSolrInputDocument.addField(SearchFields.ACCESS,
-                                                       fileMetadata.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED ? SearchConstants.RESTRICTED : SearchConstants.PUBLIC);
+                    datafileSolrInputDocument.addField(SearchFields.ACCESS, fileMetadata.isFileUseRestricted() ? RESTRICTED : PUBLIC);
 
                     if (!dataset.hasActiveEmbargo()) {
                         FileTermsOfUse fileTermsOfUse = fileMetadata.getTermsOfUse();
@@ -1005,7 +1006,7 @@ public class IndexServiceBean {
 
                     /* Full-text indexing using Apache Tika */
                     if (doFullTextIndexing) {
-                        if (!dataset.isHarvested() && fileMetadata.getTermsOfUse().getTermsOfUseType() != TermsOfUseType.RESTRICTED
+                        if (!dataset.isHarvested() && !fileMetadata.isFileUseRestricted()
                                 && !fileMetadata.getDataFile().isFilePackage()) {
                             StorageIO<DataFile> accessObject;
                             InputStream instream = null;

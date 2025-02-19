@@ -18,6 +18,12 @@ import org.omnifaces.cdi.ViewScoped;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.persistence.user.Permission.DownloadFile;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.EditDataset;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GeoconnectCreateEditMaps;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GeoconnectViewMaps;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +103,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         if (user == null) {
             return false;
         }
-        if (!this.permissionService.userOn(user, fm.getDataFile()).has(Permission.DownloadFile)) {
+        if (!this.permissionService.userOn(user, fm.getDataFile()).has(DownloadFile)) {
             return false;
         }
 
@@ -168,7 +174,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
             Is setting for GeoconnectViewMaps true?
             Nope? no button
         */
-        if (!settingsService.isTrueForKey(SettingsServiceBean.Key.GeoconnectViewMaps)) {
+        if (!settingsService.isTrueForKey(GeoconnectViewMaps)) {
             return false;
         }
         //----------------------------------------------------------------------
@@ -179,14 +185,11 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         if (fm.getDatasetVersion().isDeaccessioned()) {
             return this.doesSessionUserHavePermission(Permission.EditDataset, fm);
         }
-        //Check for restrictions
-
-        boolean isRestrictedFile = fm.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED;
 
         // --------------------------------------------------------------------
         //  Is the file Unrestricted ?        
         // --------------------------------------------------------------------
-        if (!isRestrictedFile) {
+        if (!fm.isFileUseRestricted()) {
             return true;
         }
 
@@ -275,46 +278,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
     }// A DataFile may have a related MapLayerMetadata object
 
 
-    /**
-     * Check if this is a mappable file type.
-     * <p>
-     * Currently (2/2016)
-     * - Shapefile (zipped shapefile)
-     * - Tabular file with Geospatial Data tag
-     *
-     * @param fm
-     * @return
-     */
-    private boolean isPotentiallyMappableFileType(FileMetadata fm) {
-        if (fm == null) {
-            return false;
-        }
 
-        // Yes, it's a shapefile
-        //
-        if (this.isShapefileType(fm)) {
-            return true;
-        }
-
-        // Yes, it's tabular with a geospatial tag
-        //
-        if (fm.getDataFile().isTabularData()) {
-            return fm.getDataFile().hasGeospatialTag();
-        }
-        return false;
-    }
-
-
-    public boolean isShapefileType(FileMetadata fm) {
-        if (fm == null) {
-            return false;
-        }
-        if (fm.getDataFile() == null) {
-            return false;
-        }
-
-        return fm.getDataFile().isShapefileType();
-    }
 
 
     /**
@@ -357,7 +321,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
             return false;
         }
 
-        if (!this.permissionService.userOn(user, fm.getDataFile().getOwner()).has(Permission.EditDataset)) {
+        if (!this.permissionService.userOn(user, fm.getDataFile().getOwner()).has(EditDataset)) {
             return false;
         }
 
@@ -389,14 +353,14 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         }
 
         //  (1) Is the view GeoconnectViewMaps 
-        if (!settingsService.isTrueForKey(SettingsServiceBean.Key.GeoconnectCreateEditMaps)) {
+        if (!settingsService.isTrueForKey(GeoconnectCreateEditMaps)) {
             return false;
         }
 
 
         // (2) Is this file a Shapefile or a Tabular file tagged as Geospatial?
         //
-        if (!(this.isPotentiallyMappableFileType(fm))) {
+        if (!fm.isShapeOrTabularWithGeospatialTag()) {
             return false;
         }
 
@@ -485,7 +449,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         //  (1) Is this file a Shapefile or a Tabular file tagged as Geospatial?
         //  TO DO:  EXPAND FOR TABULAR FILES TAGGED AS GEOSPATIAL!
         //
-        if (!(this.isPotentiallyMappableFileType(fm))) {
+        if (!fm.isShapeOrTabularWithGeospatialTag()) {
             return false;
         }
 
@@ -497,7 +461,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
 
 
         // (3) Is File restricted? if Yes - no button.
-        if (fm.getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED) {
+        if (fm.isFileUseRestricted()) {
             return false;
         }
 
@@ -510,31 +474,8 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
     }
 
     private boolean isUserAuthenticatedWithEditDatasetPermission(FileMetadata fm) {
-
-        // Is the user authenticated?
-        //
-        if (!(isSessionUserAuthenticated())) {
-            return false;
-        }
-
-        //  If so, can the logged in user edit the Dataset to which this FileMetadata belongs?
-        //
-        return this.doesSessionUserHavePermission(Permission.EditDataset, fm);
-
-    }
-
-    public boolean isSessionUserAuthenticated() {
-
-
-        if (session == null) {
-            return false;
-        }
-
-        if (session.getUser() == null) {
-            return false;
-        }
-
-        return session.getUser().isAuthenticated();
+        return this.session.isUserLoggedIn() && 
+            doesSessionUserHavePermission(EditDataset, fm);
 
     }
 
@@ -552,10 +493,6 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
         }
 
         if (objectToCheck == null) {
-            return false;
-        }
-
-        if (this.session.getUser() == null) {
             return false;
         }
 

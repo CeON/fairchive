@@ -224,7 +224,7 @@ public class DatasetService {
     // -------------------- PRIVATE --------------------
 
     private AuthenticatedUser retrieveAuthenticatedUser() {
-        if (!session.getUser().isAuthenticated()) {
+        if (!session.isUserLoggedIn()) {
             throw new NotAuthenticatedException();
         }
         return (AuthenticatedUser) session.getUser();

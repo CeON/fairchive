@@ -539,7 +539,7 @@ public class Access extends AbstractApiBean {
                             new MissingParameterValueException("[Couldn't retrive embargo date for file id=]" + file.getId());
                     zipperWrapper.addToManifest("File with id=" + file.getId() + " IS EMBARGOED UNTIL "
                             + file.getOwner().getEmbargoDate().getOrElseThrow(exception).toInstant() + "\r\n");
-                } else if (file.getLatestFileMetadata().getTermsOfUse().getTermsOfUseType() == TermsOfUseType.RESTRICTED) {
+                } else if (file.getLatestFileMetadata().isFileUseRestricted()) {
                     zipperWrapper.addToManifest(file.getFileMetadata().getLabel() + " IS RESTRICTED AND CANNOT BE DOWNLOADED\r\n");
                 } else {
                     // As of now this errors out. This is bad because the user ends up with a broken zip and manifest
@@ -1078,7 +1078,7 @@ public class Access extends AbstractApiBean {
         // from released Dataset versions and not restricted:
         for (FileMetadata fm : df.getFileMetadatas()) {
             if (fm.getDatasetVersion().isReleased()) {
-                if (fm.getTermsOfUse().getTermsOfUseType() != TermsOfUseType.RESTRICTED) {
+                if (!fm.isFileUseRestricted()) {
                     return true;
                 }
                 fileIsInsideAnyReleasedDsVersion = true;

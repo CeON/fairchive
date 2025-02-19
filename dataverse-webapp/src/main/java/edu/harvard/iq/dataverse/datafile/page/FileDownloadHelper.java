@@ -176,9 +176,7 @@ public class FileDownloadHelper implements java.io.Serializable {
             return permissionsWrapper.canCurrentUserUpdateDataset(fileMetadata.getDatasetVersion().getDataset());
         }
 
-
-        boolean isRestrictedFile = fileMetadata.getTermsOfUse().getTermsOfUseType() == RESTRICTED;
-        if (!isRestrictedFile) {
+        if (!fileMetadata.isFileUseRestricted()) {
             return true;
         }
 

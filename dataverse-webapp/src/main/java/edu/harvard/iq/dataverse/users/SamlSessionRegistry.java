@@ -33,7 +33,7 @@ public class SamlSessionRegistry {
 
     public List<DataverseSession> unregister(DataverseSession session) {
         cleanUp();
-        if (session == null || !session.getUser().isAuthenticated()) {
+        if (session == null || !session.isUserLoggedIn()) {
             return Collections.emptyList();
         }
 
@@ -129,7 +129,7 @@ public class SamlSessionRegistry {
         }
 
         void cleanUpDataverseSessions() {
-            dataverseSessions.values().removeIf(session -> !session.getUser().isAuthenticated());
+            dataverseSessions.values().removeIf(session -> !session.isUserLoggedIn());
         }
     }
 }

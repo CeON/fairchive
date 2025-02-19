@@ -485,7 +485,7 @@ public class PermissionServiceBean {
             if (realeasedDatasetVersion != null) {
                 for (FileMetadata fm : realeasedDatasetVersion.getFileMetadatas()) {
                     if (df.equals(fm.getDataFile())) {
-                        return fm.getTermsOfUse().getTermsOfUseType() != TermsOfUseType.RESTRICTED;
+                        return !fm.isFileUseRestricted();
                     }
                 }
             }

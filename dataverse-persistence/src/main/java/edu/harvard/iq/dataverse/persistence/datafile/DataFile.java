@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType.SHAPEFILE_FILE_TYPE;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
@@ -409,8 +410,13 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     // Does the contentType indicate a shapefile?
     public boolean isShapefileType() {
-        return ShapefileMimeType.SHAPEFILE_FILE_TYPE.getMimeValue().equalsIgnoreCase(this.contentType);
+        return SHAPEFILE_FILE_TYPE.getMimeValue().equalsIgnoreCase(this.contentType);
     }
+    
+    public boolean isShapeOrTabularWithGeospatialTag() {
+        return isShapefileType() || isTabularData() && hasGeospatialTag();
+    }
+    
 
     public boolean isImage() {
         // Some browsers (Chrome?) seem to identify FITS files as mime

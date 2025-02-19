@@ -107,7 +107,7 @@ public class UningestPage implements Serializable {
     }
 
     public void uningest() {
-        if (selectedFiles.isEmpty() || !dataverseSession.getUser().isAuthenticated()) {
+        if (selectedFiles.isEmpty() || !dataverseSession.isUserLoggedIn()) {
             return;
         }
 
