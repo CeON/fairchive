@@ -1,17 +1,18 @@
 package edu.harvard.iq.dataverse.dashboard;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang.StringUtils.EMPTY;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -22,7 +23,7 @@ import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
-import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.NavigationWrapper;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -34,52 +35,46 @@ import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
-import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
-import edu.harvard.iq.dataverse.util.SystemConfig;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DashboardDatamovePage")
 public class DashboardDatamovePage implements Serializable {
     private static final Logger logger = Logger.getLogger(DashboardDatamovePage.class.getCanonicalName());
 
-    @Inject
-    DataverseRequestServiceBean requestService;
-
-    @EJB
-    private DatasetDao datasetDao;
-
-    @EJB
-    private DataverseRepository dataverseRepo;
-
-    @Inject
-    private DataverseSession session;
-
-    @Inject
-    private PermissionsWrapper permissionsWrapper;
-
-    @EJB
-    private EjbDataverseEngine commandEngine;
-
-    @Inject
-    private SettingsWrapper settings;
-
-    @Inject
-    private SystemConfig systemConfig;
+    private final DataverseRequestServiceBean requestService;
+    private final DatasetDao datasetDao;
+    private final DataverseRepository dataverseRepo;
+    private final DataverseSession session;
+    private final NavigationWrapper navigation;
+    private final EjbDataverseEngine commandEngine;
+    private final SettingsWrapper settings;
 
     private boolean forceMove = false;
 
-    // Following two are for dataset move
-    private List<Dataset> sourceDatasets;
-
+    private List<Dataset> sourceDatasets = new ArrayList<>();
     private Dataverse targetDataverse;
-
-    // And following two for dataverse move
 
     private Dataverse sourceDataverse;
 
-    // -------------------- GETTERS --------------------
+    @Inject
+    public DashboardDatamovePage(final DataverseRequestServiceBean requestService,
+            final DatasetDao datasetDao, 
+            final DataverseRepository dataverseRepo,
+            final DataverseSession session, 
+            final NavigationWrapper navigation,
+            final EjbDataverseEngine commandEngine, 
+            final SettingsWrapper settings) {
+        this.requestService = requestService;
+        this.datasetDao = datasetDao;
+        this.dataverseRepo = dataverseRepo;
+        this.session = session;
+        this.navigation = navigation;
+        this.commandEngine = commandEngine;
+        this.settings = settings;
+    }
 
     public boolean isForceMove() {
         return forceMove;
@@ -97,23 +92,18 @@ public class DashboardDatamovePage implements Serializable {
         return sourceDataverse;
     }
 
-    // -------------------- LOGIC --------------------
-
-    public String init() {
-        User user = session.getUser();
-        if (!user.isSuperuser() || systemConfig.isReadonlyMode()) {
-            return permissionsWrapper.notAuthorized();
-        }
-        sourceDatasets = new ArrayList<>();
-        return StringUtils.EMPTY;
+    // -------------------- LOGIC -------------------- 
+    public String verifyAccess() {
+        return this.session.canEditDashboard() ? EMPTY : this.navigation.notAuthorized();
     }
 
-    public List<Dataset> completeSourceDataset(String query) {
+    public List<Dataset> completeSourceDataset(final String query) {
         if (query.contains("/")) {
-            Dataset ds = datasetDao.findByGlobalId(query);
-            return ds != null ? Collections.singletonList(ds) : Collections.emptyList();
+            final Dataset ds = datasetDao.findByGlobalId(query);
+            return ds != null ? singletonList(ds) : emptyList();
+        } else {
+            return emptyList();
         }
-        return Collections.emptyList();
     }
 
     public List<Dataverse> completeDataverse(final String query) {
@@ -210,20 +200,20 @@ public class DashboardDatamovePage implements Serializable {
         return Optional.ofNullable(source)
                 .map(Dataset::getGlobalId)
                 .map(GlobalId::asString)
-                .orElse(StringUtils.EMPTY);
+                .orElse(EMPTY);
     }
 
     private static String extractSourceAlias(Dataset source) {
         return Optional.ofNullable(source)
                 .map(Dataset::getOwner)
                 .map(Dataverse::getAlias)
-                .orElse(StringUtils.EMPTY);
+                .orElse(EMPTY);
     }
 
     private static String extractDataverseAlias(Dataverse dataverse) {
         return Optional.ofNullable(dataverse)
                 .map(Dataverse::getAlias)
-                .orElse(StringUtils.EMPTY);
+                .orElse(EMPTY);
     }
 
     private String createMessageWithDatasetMoveInfo(Dataset sourceDs, String message, String source) {
@@ -250,11 +240,6 @@ public class DashboardDatamovePage implements Serializable {
     private boolean isForcingPossible(MoveException mde) {
         return mde.getDetails().stream()
                 .allMatch(AdditionalMoveStatus::isPassByForcePossible);
-    }
-
-    private void resetDatasetMoveFields() {
-        sourceDatasets = new ArrayList<>();
-        targetDataverse = null;
     }
 
     private void resetDataverseMoveFields() {
