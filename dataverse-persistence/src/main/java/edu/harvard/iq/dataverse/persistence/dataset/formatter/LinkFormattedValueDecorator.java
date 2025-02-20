@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.persistence.dataset.formatter;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import io.vavr.control.Option;
 
@@ -24,7 +27,13 @@ public class LinkFormattedValueDecorator implements DatasetFieldFormattedValueDe
     @Override
     public Option<String> decorate(DatasetField field, String formattedValue) {
         return urlProvider.getUrl(field)
-                .map(href -> "<a href=\"" + href + "\" target=\"_blank\">" + formattedValue + "</a>");
+                .map(href -> "<a href=\"" 
+                        + href 
+                        + "\" target=\"_blank\" title=\""
+                        + getStringFromBundle("opensInNewTab")
+                        + "\">" 
+                        + formattedValue 
+                        + "</a>");
     }
 
     public interface UrlProvider {
