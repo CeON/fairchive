@@ -30,7 +30,7 @@ public class LinkFormattedValueDecoratorTest {
         // then
         assertThat(decoratedValue.toJavaOptional())
                 .isNotEmpty()
-                .contains("<a href=\"http://url.com\" target=\"_blank\">value</a>");
+                .contains("<a href=\"http://url.com\" target=\"_blank\" title=\"(opens in new tab)\">value</a>");
 
     }
 
