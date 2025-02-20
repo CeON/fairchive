@@ -588,9 +588,7 @@ public class SearchServiceBean {
         query = querySanitizer.sanitizeQuery(query, datasetFields);
         solrQuery.setQuery(query);
 
-        DatasetLocationSolrFields locationSolrFields = new DatasetLocationSolrFields(
-                settingsService.getValueForKey(SettingsServiceBean.Key.SearchResultLocationCustomPrefix)
-        );
+        DatasetLocationSolrFields locationSolrFields = new DatasetLocationSolrFields();
         setSolrParametersForDatasetLocations(solrQuery, locationSolrFields);
         setSolrFiltersForDatasetLocations(solrQuery, dataverseRequest, locationSolrFields, filterQueries);
 
