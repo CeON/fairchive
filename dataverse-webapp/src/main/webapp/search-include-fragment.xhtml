@@ -348,15 +348,11 @@
                         <ui:include src="search-results-list.xhtml"></ui:include>
                     </p:tab>
                     <p:tab id="mapSearchResult" title="#{bundle['dataverse.search.tab.mapView']}">
+                        <ui:include src="pluggable/map-marker-dialog-template.xhtml"></ui:include>
                         <div id="searchResultMap" style=" width:100%; height:400px; position:relative;"/>
                         <h:outputScript>
                             DvJS.Geo.SearchResults.prepare('searchResultMap');
                             DvJS.Geo.SearchResults.initializeAll('searchResultMap');
-                            DvJS.Geo.SearchResults.translation(
-                                'searchResultMap',
-                                'datasetNameLabel',
-                                '#{bundle['dataset.location.dialog.name']}'
-                            );
                             var datasetGeoMarkers = #{of:toJson(SearchIncludeFragment.searchMapResultsList)};
                             DvJS.Geo.SearchResults.addClusteredMarkers('searchResultMap', 'geo', datasetGeoMarkers);
                         </h:outputScript>
