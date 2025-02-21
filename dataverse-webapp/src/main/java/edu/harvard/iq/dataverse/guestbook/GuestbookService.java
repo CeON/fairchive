@@ -1,24 +1,23 @@
 package edu.harvard.iq.dataverse.guestbook;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseGuestbookCommand;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
-import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import java.sql.Timestamp;
-import java.util.Date;
 
 @Stateless
 public class GuestbookService {
 
     private EjbDataverseEngine commandEngine;
     private DataverseRequestServiceBean dvRequestService;
-    private GuestbookRepository guestbookService;
 
     // -------------------- CONSTRUCTORS --------------------
     @Deprecated
@@ -26,10 +25,9 @@ public class GuestbookService {
     }
 
     @Inject
-    public GuestbookService(DataverseRequestServiceBean dvRequestService, GuestbookRepository guestbookService,
+    public GuestbookService(DataverseRequestServiceBean dvRequestService, 
                             EjbDataverseEngine commandEngine) {
         this.dvRequestService = dvRequestService;
-        this.guestbookService = guestbookService;
         this.commandEngine = commandEngine;
     }
 

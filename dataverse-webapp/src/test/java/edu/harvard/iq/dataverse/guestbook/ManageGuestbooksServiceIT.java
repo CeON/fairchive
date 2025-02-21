@@ -30,7 +30,7 @@ public class ManageGuestbooksServiceIT extends WebappArquillianDeployment {
     private ManageGuestbooksService manageGuestbooksService;
 
     @Inject
-    private GuestbookRepository guestbookService;
+    private GuestbookRepository guestbookRepo;
 
     @Inject
     private DataverseDao dataverseDao;
@@ -61,7 +61,7 @@ public class ManageGuestbooksServiceIT extends WebappArquillianDeployment {
 
         // then
         Assertions.assertEquals(0, dataverseDao.findByAlias("ownmetadatablocks").getGuestbooks().size());
-        Assertions.assertNull(guestbookService.find(guestbookId));
+        Assertions.assertNull(guestbookRepo.find(guestbookId));
     }
 
 
@@ -69,7 +69,7 @@ public class ManageGuestbooksServiceIT extends WebappArquillianDeployment {
     public void shouldEnableGuestbook() {
         // given
         long guestbookId = 2L;
-        Guestbook guestbook = guestbookService.find(guestbookId);
+        Guestbook guestbook = guestbookRepo.find(guestbookId);
         guestbook.setEnabled(false);
         em.persist(guestbook);
 
@@ -86,7 +86,7 @@ public class ManageGuestbooksServiceIT extends WebappArquillianDeployment {
     public void shouldDisableGuestbook() {
         // given
         long guestbookId = 2L;
-        Guestbook guestbook = guestbookService.find(guestbookId);
+        Guestbook guestbook = guestbookRepo.find(guestbookId);
         guestbook.setEnabled(true);
         em.persist(guestbook);
 

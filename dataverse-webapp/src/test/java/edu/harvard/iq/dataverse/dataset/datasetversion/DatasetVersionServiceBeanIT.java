@@ -42,7 +42,7 @@ public class DatasetVersionServiceBeanIT extends WebappArquillianDeployment {
     @Inject
     private DatasetFieldServiceBean datasetFieldService;
     @Inject
-    private GuestbookRepository guestbookService;
+    private GuestbookRepository guestbookRepo;
     @Inject
     private DataverseSession dataverseSession;
     @EJB
@@ -61,7 +61,7 @@ public class DatasetVersionServiceBeanIT extends WebappArquillianDeployment {
         // given
         Dataset dataset = datasetDao.find(52L);
         modifyFileLicense(dataset);
-        dataset.setGuestbook(guestbookService.find(2L));
+        dataset.setGuestbook(guestbookRepo.find(2L));
 
         // when
         datasetVersionService.updateDatasetVersion(dataset.getEditVersion(), true);
