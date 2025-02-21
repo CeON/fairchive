@@ -6,7 +6,8 @@
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
 >
     <div class="button-block tab-header margin-bottom text-right">
-        <p:link id="editMetadataButton" styleClass="btn btn-default btn-access"
+        <p:link id="editMetadataButton" 
+                styleClass="btn btn-default btn-access"
                 disabled="#{DatasetPage.lockedFromEdits}"
                 outcome="editDatasetMetadata"
                 rendered="#{!widgetWrapper.widgetView and DatasetMetadataTab.showEditMetadataButton()}">
@@ -33,9 +34,13 @@
     <ui:include src="viewMetadata.xhtml">
         <ui:param name="metadataBlocks"
                   value="#{DatasetMetadataTab.metadataBlocks.entrySet().toArray()}"/>
-        <ui:param name="globalId" value="#{DatasetMetadataTab.dataset.globalIdString}"/>
-        <ui:param name="altPID" value="#{DatasetMetadataTab.getAlternativePersistentIdentifier()}"/>
-        <ui:param name="publicationDate" value="#{DatasetMetadataTab.dataset.publicationDateFormattedYYYYMMDD}"/>
-        <ui:param name="isViewedFromAnonymizedPrivateUrl" value="#{DatasetPage.isViewedFromAnonymizedPrivateUrl()}"/>
+        <ui:param name="globalId" 
+                  value="#{DatasetMetadataTab.datasetGlobalIdString}"/>
+        <ui:param name="altPID" 
+                  value="#{DatasetMetadataTab.getAlternativePersistentIdentifier()}"/>
+        <ui:param name="publicationDate" 
+                  value="#{DatasetMetadataTab.dataset.publicationDateFormattedYYYYMMDD}"/>
+        <ui:param name="isViewedFromAnonymizedPrivateUrl" 
+                  value="#{DatasetPage.isViewedFromAnonymizedPrivateUrl()}"/>
     </ui:include>
 </ui:composition>

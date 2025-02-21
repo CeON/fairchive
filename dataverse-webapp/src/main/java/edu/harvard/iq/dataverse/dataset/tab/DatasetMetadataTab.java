@@ -1,6 +1,17 @@
 package edu.harvard.iq.dataverse.dataset.tab;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.DatasetDao;
+import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
 import edu.harvard.iq.dataverse.export.ExportService;
@@ -14,14 +25,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @ViewScoped
 @Named("DatasetMetadataTab")
@@ -32,6 +35,7 @@ public class DatasetMetadataTab implements Serializable {
     private SystemConfig systemConfig;
     private DatasetFieldsInitializer datasetFieldsInitializer;
     private DatasetDao datasetDao;
+    private DataverseSession session;
 
     private Dataset dataset;
     private boolean isDatasetLocked;
@@ -45,11 +49,13 @@ public class DatasetMetadataTab implements Serializable {
 
     @Inject
     public DatasetMetadataTab(PermissionsWrapper permissionsWrapper,
+                              DataverseSession session,
                               ExportService exportService,
                               SystemConfig systemConfig,
                               DatasetFieldsInitializer datasetVersionUI,
                               DatasetDao datasetDao) {
         this.permissionsWrapper = permissionsWrapper;
+        this.session = session;
         this.exportService = exportService;
         this.systemConfig = systemConfig;
         this.datasetFieldsInitializer = datasetVersionUI;
@@ -64,6 +70,12 @@ public class DatasetMetadataTab implements Serializable {
 
     public boolean isDatasetLocked() {
         return isDatasetLocked;
+    }
+    
+    public String getDatasetGlobalIdString() {
+        return this.session.isViewedFromAnonymizedPrivateUrl(this.dataset)
+                ? null
+                : this.dataset.getGlobalId().asString();
     }
 
     /**
@@ -89,7 +101,8 @@ public class DatasetMetadataTab implements Serializable {
     }
     
     public boolean showExportButton() {
-        return dataset.containsReleasedVersion();
+        return ! this.session.isViewedFromAnonymizedPrivateUrl(this.dataset)
+            && this.dataset.containsReleasedVersion();
     }
 
     
