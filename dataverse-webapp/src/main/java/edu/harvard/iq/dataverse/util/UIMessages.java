@@ -30,7 +30,7 @@ public class UIMessages {
     }
     
     public void addInfoMessage(final String detail) {
-        addIComponentInfoMessage(null, getStringFromBundle("messages.info"), detail);
+        addComponentInfoMessage(null, getStringFromBundle("messages.info"), detail);
     }
 
     public void addFlashSuccessMessage(final String message) {
@@ -48,7 +48,7 @@ public class UIMessages {
                 new FacesMessage(summary, detail));
     }
     
-    public void addIComponentInfoMessage(final String componentId,
+    public void addComponentInfoMessage(final String componentId,
             final String message, final String detail) {
         FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(SEVERITY_INFO, message, detail));
