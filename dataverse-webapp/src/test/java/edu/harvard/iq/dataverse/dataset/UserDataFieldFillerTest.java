@@ -225,7 +225,7 @@ public class UserDataFieldFillerTest {
         // then
         assertEquals(1, datasetFields.size());
         assertEquals("Doe, John; Aff; https://ror.org/04k0tth05; " +
-                "<a href=\"https://orcid.org/0000-0001-2345-6789\" target=\"_blank\">0000-0001-2345-6789</a>; " +
+                "<a href=\"https://orcid.org/0000-0001-2345-6789\" target=\"_blank\" title=\"(opens in new tab)\">0000-0001-2345-6789</a>; " +
                 "ORCID", datasetFields.get(0).getCompoundRawValue());
     }
     
