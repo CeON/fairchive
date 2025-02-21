@@ -10,6 +10,8 @@ import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseGuestbookRootCommand;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +39,7 @@ public class ManageGuestbooksServiceTest {
     @Mock
     private EjbDataverseEngine engineService;
     @Mock
-    private GuestbookServiceBean guestbookService;
+    private GuestbookRepository guestbookService;
     @Mock
     private DataverseRequestServiceBean dataverseRequestService;
     @Mock

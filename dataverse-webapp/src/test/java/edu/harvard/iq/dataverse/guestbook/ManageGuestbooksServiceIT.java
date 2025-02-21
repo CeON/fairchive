@@ -6,6 +6,8 @@ import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDe
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
+
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +30,7 @@ public class ManageGuestbooksServiceIT extends WebappArquillianDeployment {
     private ManageGuestbooksService manageGuestbooksService;
 
     @Inject
-    private GuestbookServiceBean guestbookService;
+    private GuestbookRepository guestbookService;
 
     @Inject
     private DataverseDao dataverseDao;

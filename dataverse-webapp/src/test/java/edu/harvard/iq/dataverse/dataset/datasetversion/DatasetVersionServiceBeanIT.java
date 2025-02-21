@@ -6,7 +6,6 @@ import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.guestbook.GuestbookServiceBean;
 import edu.harvard.iq.dataverse.persistence.MockMetadataFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -14,6 +13,8 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
+
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +42,7 @@ public class DatasetVersionServiceBeanIT extends WebappArquillianDeployment {
     @Inject
     private DatasetFieldServiceBean datasetFieldService;
     @Inject
-    private GuestbookServiceBean guestbookService;
+    private GuestbookRepository guestbookService;
     @Inject
     private DataverseSession dataverseSession;
     @EJB

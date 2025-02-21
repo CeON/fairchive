@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseGuestbookRootCommand;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -17,7 +18,7 @@ import javax.inject.Inject;
 public class ManageGuestbooksService {
     private EjbDataverseEngine engineService;
     private DataverseRequestServiceBean dvRequestService;
-    private GuestbookServiceBean guestbookService;
+    private GuestbookRepository guestbookService;
     private DataverseDao dataverseDao;
 
     // -------------------- CONSTRUCTORS --------------------
@@ -27,7 +28,7 @@ public class ManageGuestbooksService {
 
     @Inject
     public ManageGuestbooksService(EjbDataverseEngine engineService, DataverseRequestServiceBean dvRequestService,
-                                   GuestbookServiceBean guestbookService, DataverseDao dataverseDao) {
+                                   GuestbookRepository guestbookService, DataverseDao dataverseDao) {
         this.engineService = engineService;
         this.dvRequestService = dvRequestService;
         this.guestbookService = guestbookService;

@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import io.vavr.control.Try;
 import org.apache.commons.lang.StringUtils;
@@ -34,7 +35,7 @@ public class ManageGuestbooksPage implements java.io.Serializable {
 
     private DataverseDao dvService;
     private GuestbookResponseServiceBean guestbookResponseService;
-    private GuestbookServiceBean guestbookService;
+    private GuestbookRepository guestbookService;
     private PermissionsWrapper permissionsWrapper;
     private ManageGuestbooksService manageGuestbooksService;
     private DataverseSession dataverseSession;
@@ -53,7 +54,7 @@ public class ManageGuestbooksPage implements java.io.Serializable {
 
     @Inject
     public ManageGuestbooksPage(DataverseDao dvService, GuestbookResponseServiceBean guestbookResponseService,
-                                GuestbookServiceBean guestbookService,
+                                GuestbookRepository guestbookService,
                                 PermissionsWrapper permissionsWrapper,
                                 ManageGuestbooksService manageGuestbooksService,
                                 DataverseSession dataverseSession) {
