@@ -63,7 +63,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Collection;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -801,17 +800,13 @@ public class SearchServiceBean {
         for (SolrDocument solrDocument : docs) {
             String datasetName = (String) solrDocument.getFieldValue(SearchFields.NAME_SORT);
             String doi = (String) solrDocument.getFieldValue(SearchFields.DATASET_PERSISTENT_ID);
-            Collection<Object> publicationStatus = solrDocument.getFieldValues(SearchFields.PUBLICATION_STATUS);
-            List<String> publicationStatuses = (publicationStatus != null)
-                    ? publicationStatus.stream().map(String.class::cast).map(String::toUpperCase).collect(Collectors.toList())
-                    : Collections.emptyList();
             List<String> north = parseCoordinates(solrDocument, locationSolrFields.getNorth());
             List<String> east = parseCoordinates(solrDocument, locationSolrFields.getEast());
             List<String> south = parseCoordinates(solrDocument, locationSolrFields.getSouth());
             List<String> west = parseCoordinates(solrDocument, locationSolrFields.getWest());
 
             int locationCount = solrDocument.getFieldValues(locationSolrFields.getNorth()).size();
-            boolean isDraft = publicationStatuses.contains(DatasetVersion.VersionState.DRAFT.name());
+            boolean isDraft = isDraftDataset(solrDocument);
             for (int i = 0; i < locationCount; i++) {
                 GeoPoint pointA = new GeoPoint(north.get(i), west.get(i));
                 GeoPoint pointB = new GeoPoint(south.get(i), east.get(i));
@@ -853,6 +848,17 @@ public class SearchServiceBean {
         }
 
         return customData;
+    }
+
+    private boolean isDraftDataset(SolrDocument solrDocument) {
+        List<String> publicationStatuses = Optional.of(solrDocument.getFieldValues(SearchFields.PUBLICATION_STATUS))
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(String.class::cast)
+                .map(String::toUpperCase)
+                .collect(Collectors.toList());
+
+        return publicationStatuses.contains(DatasetVersion.VersionState.DRAFT.name());
     }
 
     private void setSolrParametersForDatasetLocations(SolrQuery solrQuery, DatasetLocationSolrFields locationSolrFields) {

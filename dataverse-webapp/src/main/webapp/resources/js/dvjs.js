@@ -175,7 +175,7 @@ function initDvJS() {
 
     // use html <template> with possibility to replace values from data
     // templateId - id of template
-    // data - any json that will be use to replace placeholders {{placeholder}}
+    // data - any json that will be used to replace placeholders {{placeholder}}
     function renderTemplate(templateId, data) {
         let template = document.getElementById(templateId).innerHTML;
 
