@@ -98,7 +98,8 @@ public class DashboardDatamovePage implements Serializable {
 
     // -------------------- LOGIC --------------------
     public String verifyAccess() {
-        return this.session.canEditDashboard() ? EMPTY
+        return this.session.canEditDashboard() 
+                ? EMPTY
                 : this.navigation.notAuthorized();
     }
 
@@ -156,6 +157,7 @@ public class DashboardDatamovePage implements Serializable {
             }
         }
 
+        resetDatasetMoveFields();
         showDatasetsMovedMessage(successfulIds, failureMessages,
                 targetDataverse.getDisplayName());
     }
@@ -266,6 +268,11 @@ public class DashboardDatamovePage implements Serializable {
     private boolean isForcingPossible(MoveException mde) {
         return mde.getDetails().stream()
                 .allMatch(AdditionalMoveStatus::isPassByForcePossible);
+    }
+    
+    private void resetDatasetMoveFields() {
+        this.sourceDatasets = new ArrayList<>();
+        this.targetDataverse = null;
     }
 
     private void resetDataverseMoveFields() {
