@@ -1,17 +1,13 @@
 package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 
-@Named
-@RequestScoped
 public class AnonymizedPrivateUrlDialog {
 
     private final SettingsWrapper settingsWrapper;
@@ -27,7 +23,6 @@ public class AnonymizedPrivateUrlDialog {
         this.datasetPage = datasetPage;
     }
     
-    @PostConstruct
     public void init() {
         this.url = datasetPage.getPrivateUrl(true);
     }
@@ -58,7 +53,7 @@ public class AnonymizedPrivateUrlDialog {
     }
 
     public String getUrl() {
-        return this.url.getLink();
+        return isUrlGenerated() ? this.url.getLink() : EMPTY;
     }
 
     public boolean isUrlGenerated() {
