@@ -95,6 +95,7 @@ import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
@@ -146,6 +147,7 @@ public class DatasetPage implements Serializable {
     private CitationFactory citationFactory;
     private UningestInfoService uningestInfoService;
     private PrivateUrlServiceBean privateUrlService;
+    private SettingsWrapper settingsWrapper;
 
     private Dataset dataset = new Dataset();
 
@@ -181,6 +183,9 @@ public class DatasetPage implements Serializable {
     private List<DatasetFileTermDifferenceItem> fileTermDiffsWithLatestReleased;
 
     private Date currentEmbargoDate;
+    
+    private AnonymizedPrivateUrlDialog anonymizedPrivateUrlDialog;
+    private PrivateUrlDialog privateUrlDialog;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -198,7 +203,7 @@ public class DatasetPage implements Serializable {
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
                        AuthenticationServiceBean authenticationService, DatasetPageFacade datasetPageFacade,
                        CitationFactory citationFactory, UningestInfoService uningestInfoService,
-                       PrivateUrlServiceBean privateUrlService) {
+                       PrivateUrlServiceBean privateUrlService, SettingsWrapper settingsWrapper) {
         this.session = session;
         this.commandEngine = commandEngine;
         this.permissionsWrapper = permissionsWrapper;
@@ -222,6 +227,11 @@ public class DatasetPage implements Serializable {
         this.citationFactory = citationFactory;
         this.uningestInfoService = uningestInfoService;
         this.privateUrlService = privateUrlService;
+        this.settingsWrapper = settingsWrapper;
+        
+        this.anonymizedPrivateUrlDialog = new AnonymizedPrivateUrlDialog(
+                this.settingsWrapper, this);
+        this.privateUrlDialog = new PrivateUrlDialog(this.settingsWrapper, this);
     }
 
 
@@ -395,6 +405,14 @@ public class DatasetPage implements Serializable {
 
     private final Map<Long, MapLayerMetadata> mapLayerMetadataLookup = new HashMap<>();
 
+    public AnonymizedPrivateUrlDialog getAnonymizedPrivateUrlDialog() {
+        return this.anonymizedPrivateUrlDialog;
+    }
+    
+    public PrivateUrlDialog getPrivateUrlDialog() {
+        return this.privateUrlDialog;
+    }
+    
     public String getGlobalId() {
         return persistentId;
     }
@@ -678,12 +696,20 @@ public class DatasetPage implements Serializable {
             AuthenticatedUser replyToUser = (AuthenticatedUser) session.getUser();
             replyTo = replyToUser.getEmail();
         }
+        
+        if(displayPrivateUrl(true)) {
+            this.anonymizedPrivateUrlDialog.init();
+        }
+        if(displayPrivateUrl(false)) {
+            this.privateUrlDialog.init();
+        }
 
         return null;
     }
     
     public boolean displayPrivateUrl(final boolean anonymized) {
-        return getPrivateUrl(anonymized) != null && !isViewedFromPrivateUrl();
+        return this.session.isUserLoggedIn() && getPrivateUrl(anonymized) != null
+                && !isViewedFromPrivateUrl();
     }
     
     PrivateUrl getPrivateUrl(final boolean anonymized) {

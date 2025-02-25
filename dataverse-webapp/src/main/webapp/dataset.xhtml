@@ -405,14 +405,14 @@
                                                 </li>
                                                 <li>
                                                     <p:commandLink id="privateUrl"
-                                                                   oncomplete="primeFacesShowModal('#{privateUrlDialog.getName()}', this)">
+                                                                   oncomplete="primeFacesShowModal('#{DatasetPage.privateUrlDialog.getName()}', this)">
                                                         <h:outputText
                                                                 value="#{bundle['dataset.editBtn.itemLabel.privateUrl']}"/>
                                                     </p:commandLink>
                                                 </li>
                                                 <li>
                                                     <p:commandLink id="anonymizedPrivateUrl"
-                                                                   oncomplete="primeFacesShowModal('#{anonymizedPrivateUrlDialog.getName()}', this)">
+                                                                   oncomplete="primeFacesShowModal('#{DatasetPage.anonymizedPrivateUrlDialog.getName()}', this)">
                                                         <h:outputText
                                                                 value="#{bundle['dataset.editBtn.itemLabel.privateAnonymizedUrl']}"/>
                                                     </p:commandLink>
@@ -923,10 +923,10 @@
                     </div>
                 </p:dialog>
                 <ui:include src="dataset-privateUrlDialog.xhtml" >
-                    <ui:param name = "dialog" value="#{anonymizedPrivateUrlDialog}"/>
+                    <ui:param name = "dialog" value="#{DatasetPage.anonymizedPrivateUrlDialog}"/>
                 </ui:include>
                 <ui:include src="dataset-privateUrlDialog.xhtml" >
-                    <ui:param name = "dialog" value="#{privateUrlDialog}"/>
+                    <ui:param name = "dialog" value="#{DatasetPage.privateUrlDialog}"/>
                 </ui:include>
 
                 <p:dialog id="linkDatasetForm" styleClass="largePopUp" header="#{bundle['dataset.link']}"

@@ -1,40 +1,35 @@
 package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 
-@Named
-@RequestScoped
 public class PrivateUrlDialog {
 
-    private final SettingsWrapper settingsWrapper;
+    private final SettingsWrapper settings;
     private final DatasetPage datasetPage;
 
     private PrivateUrl url;
     private boolean displaySuccess = false;
 
     @Inject
-    public PrivateUrlDialog(final SettingsWrapper settingsWrapper,
+    public PrivateUrlDialog(final SettingsWrapper settings,
             final DatasetPage datasetPage) {
-        this.settingsWrapper = settingsWrapper;
+        this.settings = settings;
         this.datasetPage = datasetPage;
     }
     
-    @PostConstruct
     public void init() {
         this.url = datasetPage.getPrivateUrl(false);
     }
 
     public String getHelpUrl() {
-        return this.settingsWrapper.getGuidesBaseUrl() + "/"
-                + this.settingsWrapper.getGuidesVersion() +
+        return this.settings.getGuidesBaseUrl() + "/"
+                + this.settings.getGuidesVersion() +
                 "/user/dataset-management.html#private-url-for-reviewing-an-unpublished-dataset";
     }
     
@@ -58,7 +53,7 @@ public class PrivateUrlDialog {
     }
 
     public String getUrl() {
-        return this.url.getLink();
+        return isUrlGenerated() ? this.url.getLink() : EMPTY;
     }
 
     public boolean isUrlGenerated() {
