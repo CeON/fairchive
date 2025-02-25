@@ -851,14 +851,11 @@ public class SearchServiceBean {
     }
 
     private boolean isDraftDataset(SolrDocument solrDocument) {
-        List<String> publicationStatuses = Optional.of(solrDocument.getFieldValues(SearchFields.PUBLICATION_STATUS))
+        return Optional.of(solrDocument.getFieldValues(SearchFields.PUBLICATION_STATUS))
                 .orElse(Collections.emptyList())
                 .stream()
                 .map(String.class::cast)
-                .map(String::toUpperCase)
-                .collect(Collectors.toList());
-
-        return publicationStatuses.contains(DatasetVersion.VersionState.DRAFT.name());
+                .map(String::toUpperCase).anyMatch(DatasetVersion.VersionState.DRAFT.name()::equals);
     }
 
     private void setSolrParametersForDatasetLocations(SolrQuery solrQuery, DatasetLocationSolrFields locationSolrFields) {
