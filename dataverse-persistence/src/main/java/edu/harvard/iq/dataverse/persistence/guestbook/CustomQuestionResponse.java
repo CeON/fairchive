@@ -1,18 +1,23 @@
 package edu.harvard.iq.dataverse.persistence.guestbook;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
+
 import javax.faces.model.SelectItem;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import java.io.Serializable;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * @author skraffmiller
@@ -21,11 +26,11 @@ import java.util.List;
 @Table(indexes = {
         @Index(columnList = "guestbookresponse_id")
 })
-public class CustomQuestionResponse implements Serializable {
+public class CustomQuestionResponse implements Serializable, JpaEntity<Long> {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
     @ManyToOne
     @JoinColumn(nullable = false)
@@ -37,56 +42,66 @@ public class CustomQuestionResponse implements Serializable {
 
     @Column(name = "response", columnDefinition = "TEXT", nullable = true)
     private String response;
+    
+    @Transient
+    private List<SelectItem> responseSelectItems;
+    
+    @Transient
+    private String validationMessage;
 
+    @Override
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public GuestbookResponse getGuestbookResponse() {
-        return guestbookResponse;
+        return this.guestbookResponse;
     }
 
-    public void setGuestbookResponse(GuestbookResponse guestbookResponse) {
-        this.guestbookResponse = guestbookResponse;
+    public void setGuestbookResponse(final GuestbookResponse response) {
+        this.guestbookResponse = response;
     }
 
     public String getResponse() {
-        return response;
+        return this.response;
     }
 
-    public void setResponse(String response) {
+    public void setResponse(final String response) {
         this.response = response;
     }
 
 
     public CustomQuestion getCustomQuestion() {
-        return customQuestion;
+        return this.customQuestion;
     }
 
-    public void setCustomQuestion(CustomQuestion customQuestion) {
-        this.customQuestion = customQuestion;
+    public void setCustomQuestion(final CustomQuestion question) {
+        this.customQuestion = question;
     }
-
-    @Transient
-    private List<SelectItem> responseSelectItems;
 
     public List<SelectItem> getResponseSelectItems() {
         return responseSelectItems;
     }
 
-    public void setResponseSelectItems(List<SelectItem> responseSelectItems) {
-        this.responseSelectItems = responseSelectItems;
+    public void setResponseSelectItems(final List<SelectItem> items) {
+        this.responseSelectItems = items;
+    }
+    
+    public String getValidationMessage() {
+        return this.validationMessage;
+    }
+
+    public void setValidationMessage(final String message) {
+        this.validationMessage = message;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return Objects.hashCode(this.id);
     }
 
     @Override
@@ -103,18 +118,5 @@ public class CustomQuestionResponse implements Serializable {
     public String toString() {
         return "edu.harvard.iq.dvn.core.vdc.CustomQuestionResponse[ id=" + id + " ]";
     }
-
-    @Transient
-    private String validationMessage;
-
-    public String getValidationMessage() {
-        return validationMessage;
-    }
-
-    public void setValidationMessage(String validationMessage) {
-        this.validationMessage = validationMessage;
-    }
-
-
 }
 

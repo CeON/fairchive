@@ -5,15 +5,21 @@
  */
 package edu.harvard.iq.dataverse.persistence.guestbook;
 
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.TemporalType.TIMESTAMP;
 
-import javax.persistence.CascadeType;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -24,12 +30,12 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 /**
  * @author skraffmiller
@@ -44,10 +50,10 @@ import java.util.List;
         @NamedQuery(name = "GuestbookResponse.findByAuthenticatedUserId",
                 query = "SELECT gbr FROM GuestbookResponse gbr WHERE gbr.authenticatedUser.id=:authenticatedUserId")
 )
-public class GuestbookResponse implements Serializable {
+public class GuestbookResponse implements Serializable, JpaEntity<Long> {
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -70,7 +76,7 @@ public class GuestbookResponse implements Serializable {
     @JoinColumn(nullable = true)
     private AuthenticatedUser authenticatedUser;
 
-    @OneToMany(mappedBy = "guestbookResponse", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "guestbookResponse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     @OrderBy("id")
     private List<CustomQuestionResponse> customQuestionResponses;
 
@@ -92,7 +98,7 @@ public class GuestbookResponse implements Serializable {
     private String downloadtype;
     private String sessionId;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     private Date responseTime;
 
 
@@ -127,131 +133,130 @@ public class GuestbookResponse implements Serializable {
 
 
     public String getEmail() {
-        return email;
+        return this.email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(final String email) {
         this.email = email;
     }
 
     public Guestbook getGuestbook() {
-        return guestbook;
+        return this.guestbook;
     }
 
-    public void setGuestbook(Guestbook guestbook) {
+    public void setGuestbook(final Guestbook guestbook) {
         this.guestbook = guestbook;
     }
 
     public String getInstitution() {
-        return institution;
+        return this.institution;
     }
 
-    public void setInstitution(String institution) {
+    public void setInstitution(final String institution) {
         this.institution = institution;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
     public String getPosition() {
-        return position;
+        return this.position;
     }
 
-    public void setPosition(String position) {
+    public void setPosition(final String position) {
         this.position = position;
     }
 
+    @Override
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public Date getResponseTime() {
-        return responseTime;
+        return this.responseTime;
     }
 
-    public void setResponseTime(Date responseTime) {
-        this.responseTime = responseTime;
+    public void setResponseTime(final Date time) {
+        this.responseTime = time;
     }
 
     public String getResponseDate() {
-        return new SimpleDateFormat("MMMM d, yyyy").format(responseTime);
+        return new SimpleDateFormat("MMMM d, yyyy").format(this.responseTime);
     }
 
     public String getResponseDateForDisplay() {
-        return null; //    SimpleDateFormat("yyyy").format(new Timestamp(new Date().getTime()));
+        return null;
     }
 
 
     public List<CustomQuestionResponse> getCustomQuestionResponses() {
-        return customQuestionResponses;
+        return this.customQuestionResponses;
     }
 
-    public void setCustomQuestionResponses(List<CustomQuestionResponse> customQuestionResponses) {
-        this.customQuestionResponses = customQuestionResponses;
+    public void setCustomQuestionResponses(final List<CustomQuestionResponse> responses) {
+        this.customQuestionResponses = responses;
     }
 
     public Dataset getDataset() {
-        return dataset;
+        return this.dataset;
     }
 
-    public void setDataset(Dataset dataset) {
+    public void setDataset(final Dataset dataset) {
         this.dataset = dataset;
     }
 
     public DataFile getDataFile() {
-        return dataFile;
+        return this.dataFile;
     }
 
-    public void setDataFile(DataFile dataFile) {
+    public void setDataFile(final DataFile dataFile) {
         this.dataFile = dataFile;
     }
 
     public DatasetVersion getDatasetVersion() {
-        return datasetVersion;
+        return this.datasetVersion;
     }
 
-    public void setDatasetVersion(DatasetVersion datasetVersion) {
-        this.datasetVersion = datasetVersion;
+    public void setDatasetVersion(final DatasetVersion version) {
+        this.datasetVersion = version;
     }
 
     public AuthenticatedUser getAuthenticatedUser() {
-        return authenticatedUser;
+        return this.authenticatedUser;
     }
 
-    public void setAuthenticatedUser(AuthenticatedUser authenticatedUser) {
-        this.authenticatedUser = authenticatedUser;
+    public void setAuthenticatedUser(final AuthenticatedUser user) {
+        this.authenticatedUser = user;
     }
 
     public String getDownloadtype() {
-        return downloadtype;
+        return this.downloadtype;
     }
 
-    public void setDownloadtype(String downloadtype) {
-        this.downloadtype = downloadtype;
+    public void setDownloadtype(final String type) {
+        this.downloadtype = type;
     }
 
     public String getSessionId() {
-        return sessionId;
+        return this.sessionId;
     }
 
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
+    public void setSessionId(final String id) {
+        this.sessionId = id;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return Objects.hashCode(this.id);
     }
 
     @Override
