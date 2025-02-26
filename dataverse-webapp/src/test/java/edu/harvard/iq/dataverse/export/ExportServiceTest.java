@@ -1,6 +1,48 @@
 package edu.harvard.iq.dataverse.export;
 
+import static edu.harvard.iq.dataverse.UnitTestUtils.readFileToString;
+import static edu.harvard.iq.dataverse.export.ExporterType.DATACITE;
+import static edu.harvard.iq.dataverse.export.ExporterType.DCTERMS;
+import static edu.harvard.iq.dataverse.export.ExporterType.DUBLINCORE;
+import static edu.harvard.iq.dataverse.export.ExporterType.JSON;
+import static edu.harvard.iq.dataverse.export.ExporterType.OAIORE;
+import static edu.harvard.iq.dataverse.export.ExporterType.OPENAIRE;
+import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import javax.enterprise.inject.Instance;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.ws.rs.core.MediaType;
+
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.UnitTestUtils;
@@ -24,36 +66,6 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
 import io.vavr.control.Either;
-import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-
-import javax.enterprise.inject.Instance;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.ws.rs.core.MediaType;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.sql.Timestamp;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -248,6 +260,96 @@ public class ExportServiceTest {
         // then
         assertThat(mediaType).isEqualTo(MediaType.APPLICATION_JSON);
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    @Test
+    public void toString_forDataCite() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, DATACITE);
+        // then
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/testDatacite.xml"));
+    }
+
+    @Test
+    public void toString_forDCTerms() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, DCTERMS);
+        // then
+        assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/dcterms.xml"));
+    }
+
+    @Test
+    public void toString_forJson() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, JSON);
+        // then
+        assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/datasetInJson.json"));
+    }
+
+    @Test
+    public void toString_forOaiOre() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, OAIORE);
+        // then
+        assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/oai_ore_authors.json"));
+    }
+
+    @Test
+    public void toString_forSchemaOrg() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, SCHEMADOTORG);
+        // then
+        assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/schemaorg.json"));
+    }
+
+    @Test
+    public void to_forOpenAire() throws Exception{
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, OPENAIRE);
+        // then
+        assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/openaire.xml"));
+    }
+
+    @Test
+    public void toString_forDublinCore() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, DUBLINCORE);
+        // then
+        assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/dublincore.xml"));
+    }
+    
+    @Test
+    public void toString_frowsException_forNullType() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
+        
+        assertThatThrownBy(() -> this.exportService.toString(datasetVersion, null))
+            .isInstanceOf(Exception.class);
+    }
 
     // -------------------- PRIVATE --------------------
 
@@ -287,6 +389,11 @@ public class ExportServiceTest {
         prepareDatasetFieldValues(datasetVersion);
 
         return datasetVersion;
+    }
+    
+    private DatasetVersion prepareDataFrom(final String classpath)
+            throws IOException, JsonParseException {
+        return prepareDataForExport(parseDatasetVersionFromClasspath(classpath));
     }
 
     private void prepareDatasetFieldValues(DatasetVersion datasetVersion) {

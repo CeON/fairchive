@@ -1,20 +1,20 @@
 package edu.harvard.iq.dataverse.export;
 
-import edu.harvard.iq.dataverse.error.DataverseError;
-import edu.harvard.iq.dataverse.export.spi.Exporter;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import io.vavr.control.Either;
-import io.vavr.control.Try;
-import org.apache.commons.lang.StringUtils;
+import static java.util.Collections.unmodifiableMap;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import edu.harvard.iq.dataverse.error.DataverseError;
+import edu.harvard.iq.dataverse.export.spi.Exporter;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import io.vavr.control.Either;
 
 
 /**
@@ -34,14 +34,14 @@ public class ExportService {
     }
 
     @Inject
-    public ExportService(Instance<Exporter> exporters) {
+    public ExportService(final Instance<Exporter> exporters) {
         this.exporters = exporters;
     }
 
     @PostConstruct
     void loadAllExporters() {
-
-        exporters.iterator().forEachRemaining(exporter -> exportersMap.put(exporter.getExporterType(), exporter));
+        this.exporters.iterator().forEachRemaining(
+                exporter -> this.exportersMap.put(exporter.getExporterType(), exporter));
 
     }
 
@@ -54,26 +54,35 @@ public class ExportService {
      * <p>
      * {@code String} if exporting was a success.
      */
-    public Either<DataverseError, String> exportDatasetVersionAsString(DatasetVersion datasetVersion, ExporterType exporter) {
-        Optional<Exporter> loadedExporter = getExporter(exporter);
-
-        if (loadedExporter.isPresent()) {
-
-            String exportedDataset = Try.of(() -> loadedExporter.get()
-                    .exportDataset(datasetVersion))
-                    .onFailure(Throwable::printStackTrace)
-                    .getOrElse(StringUtils.EMPTY);
-
-            return exportedDataset.isEmpty() ?
-                    Either.left(new DataverseError("Failed to export the dataset as " + exporter)) :
-                    Either.right(exportedDataset);
+    public Either<DataverseError, String> exportDatasetVersionAsString(
+            final DatasetVersion datasetVersion, final ExporterType type) {
+        final Exporter exporter = this.exportersMap.get(type);
+        if(exporter != null) {
+            try {
+                return Either.right(exporter.exportDataset(datasetVersion));
+            } catch(final ExportException e) {
+                return Either.left(new DataverseError(
+                        "Failed to export the dataset as " + type));
+            }
+        } else {
+            return Either.left(
+                    new DataverseError(type + " was not found among exporter list"));
         }
-
-        return Either.left(new DataverseError(exporter + " was not found among exporter list"));
+    }
+    
+    public String toString(final DatasetVersion datasetVersion, final ExporterType type) 
+        throws ExportException {
+        
+        final Exporter exporter = this.exportersMap.get(type);
+        if(exporter != null) {
+            return exporter.exportDataset(datasetVersion);
+        } else {
+            throw new ExportException(type + " was not found among exporter list");
+        }
     }
 
     public Map<ExporterType, Exporter> getAllExporters() {
-        return exportersMap;
+        return unmodifiableMap(this.exportersMap);
     }
 
     /**
@@ -81,15 +90,15 @@ public class ExportService {
      */
     public String getMediaType(ExporterType provider) {
 
-        return getExporter(provider)
+        return findExporter(provider)
                 .map(Exporter::getMediaType)
                 .get();
     }
 
     // -------------------- PRIVATE --------------------
 
-    private Optional<Exporter> getExporter(ExporterType exporter) {
-        return Optional.ofNullable(exportersMap.get(exporter));
+    private Optional<Exporter> findExporter(final ExporterType type) {
+        return Optional.ofNullable(exportersMap.get(type));
     }
 
 }

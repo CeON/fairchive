@@ -5,11 +5,11 @@
  */
 package edu.harvard.iq.dataverse.export.spi;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+
 import edu.harvard.iq.dataverse.export.ExportException;
 import edu.harvard.iq.dataverse.export.ExporterType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-
-import javax.ws.rs.core.MediaType;
 
 /**
  * @author skraffmi
@@ -37,7 +37,7 @@ public interface Exporter {
     String getXMLSchemaVersion();
 
     default String getMediaType() {
-        return MediaType.APPLICATION_XML;
+        return APPLICATION_XML;
     }
 
 }
