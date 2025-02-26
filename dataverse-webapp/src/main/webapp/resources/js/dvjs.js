@@ -173,6 +173,19 @@ function initDvJS() {
       centerMap(data, data.selection.getBounds());
     }
 
+    // use html <template> with possibility to replace values from data
+    // templateId - id of template
+    // data - any json that will be used to replace placeholders {{placeholder}}
+    function renderTemplate(templateId, data) {
+        let template = document.getElementById(templateId).innerHTML;
+
+        return template.replace(/\{\{(.*?)\}\}/g, (_, key) => {
+            let keys = key.trim().split('.');
+            // allow support nested placeholder {{test.test}}
+            return keys.reduce((obj, k) => (obj && obj[k] !== undefined ? obj[k] : ''), data);
+        });
+    }
+
     function createEmptyEntry() {
       return {
         leafMap: undefined,
@@ -283,6 +296,7 @@ function initDvJS() {
         searchResultsData.set(key, {
           leafMap: undefined,
           leafMapInitialized: false,
+          markerDialogTemplate: 'mapMarkerDialogTemplate'
         });
       },
       initializeAll: function(keyPrefix) {
@@ -308,9 +322,8 @@ function initDvJS() {
         var markers = L.markerClusterGroup();
 
         for (const dataset of value) {
-            var datasetNameLabel = mapData['datasetNameLabel'];
             var marker = L.marker([dataset.marker.latitude, dataset.marker.longitude])
-                    .bindPopup("<span class='search-map-popup-title'>" +  datasetNameLabel + " :</span> <span class='search-map-popup-description'>" + dataset.name + "</span>");
+                    .bindPopup(renderTemplate(mapData.markerDialogTemplate, dataset));
             markers.addLayer(marker);
         }
 
