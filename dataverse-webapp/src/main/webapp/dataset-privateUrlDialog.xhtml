@@ -39,9 +39,14 @@
 					</p>
 					<p class="no-margin-bottom">
 					   <h:outputText value="#{dialog.getUrl()}"/>
-					   <span class="btn glyphicon glyphicon-copy"
-					         title="#{bundle['copyToClipboard']}"
-					         onclick="navigator.clipboard.writeText('#{dialog.getUrl()}');"/>
+					   <span class="btn" 
+					         aria-label="#{bundle['dataset.copyUrl']}"
+					         tabindex="0"
+					         onclick="navigator.clipboard.writeText('#{dialog.getUrl()}');"
+					         onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{dialog.getUrl()}');">
+					       <span class="glyphicon glyphicon-copy"/>
+					         #{bundle['dataset.copyUrl']} 
+					   </span>
 					</p>
 				</div>
 			</div>
