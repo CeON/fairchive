@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.export;
 
-import java.util.Arrays;
+import static java.util.Arrays.stream;
+
 import java.util.Optional;
 
 public enum ExporterType {
@@ -13,19 +14,20 @@ public enum ExporterType {
     OAIORE("OAIORE"),
     SCHEMADOTORG("SCHEMADOTORG"),
     OPENAIRE("oai_datacite"),
-    DDI_HTML("ddi_html");
+    DDI_HTML("ddi_html"),
+    OAI_PMH("oai_pmh");
 
-    private String prefix;
+    private final String prefix;
 
     // -------------------- CONSTRUCTORS --------------------
 
-    ExporterType(String prefix) {
+    ExporterType(final String prefix) {
         this.prefix = prefix;
     }
     // -------------------- GETTERS --------------------
 
     public String getPrefix() {
-        return prefix;
+        return this.prefix;
     }
 
     // -------------------- LOGIC --------------------
@@ -33,8 +35,8 @@ public enum ExporterType {
     /**
      * @return ExporterConstant if present or Optional.empty if the enum with given string doesnt exist.
      */
-    public static Optional<ExporterType> fromPrefix(String prefix) {
-        return Arrays.stream(values())
+    public static Optional<ExporterType> fromPrefix(final String prefix) {
+        return stream(values())
                 .filter(v -> v.getPrefix().equals(prefix))
                 .findFirst();
     }
