@@ -142,6 +142,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 import java.io.IOException;
@@ -283,26 +285,25 @@ public class Datasets extends AbstractApiBean {
         Optional<ExporterType> exporterConstant = ExporterType.fromPrefix(exporter);
 
         if (!exporterConstant.isPresent()) {
-            return error(Response.Status.BAD_REQUEST, exporter + " is not a valid exporter");
+            return error(BAD_REQUEST, exporter + " is not a valid exporter");
         }
 
         Dataset dataset = datasetDao.findByGlobalId(persistentId);
         if (dataset == null) {
-            return error(Response.Status.NOT_FOUND, "A dataset with the persistentId " + persistentId + " could not be found.");
+            return error(NOT_FOUND, "A dataset with the persistentId " + persistentId + " could not be found.");
         }
 
-        Either<DataverseError, String> exportedDataset
-                = exportService.exportDatasetVersionAsString(dataset.getReleasedVersion(), exporterConstant.get());
-
-        if (exportedDataset.isLeft()) {
-            return error(Response.Status.FORBIDDEN, exportedDataset.getLeft().getErrorMsg());
+        try {
+            final String exportedDataset = this.exportService
+                    .toString(dataset.getReleasedVersion(), exporterConstant.get());
+            final String mediaType = this.exportService.getMediaType(exporterConstant.get());
+            return allowCors(Response.ok()
+                    .entity(exportedDataset)
+                    .type(mediaType)
+                    .build());
+        } catch (final Exception e) {
+            return error(FORBIDDEN, e.getMessage());
         }
-
-        String mediaType = exportService.getMediaType(exporterConstant.get());
-        return allowCors(Response.ok()
-                .entity(exportedDataset.get())
-                .type(mediaType)
-                .build());
     }
 
     @DELETE

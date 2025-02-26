@@ -8,49 +8,44 @@ import static edu.harvard.iq.dataverse.export.ExporterType.JSON;
 import static edu.harvard.iq.dataverse.export.ExporterType.OAIORE;
 import static edu.harvard.iq.dataverse.export.ExporterType.OPENAIRE;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExcludeEmailFromExport;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.quality.Strictness.LENIENT;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import javax.enterprise.inject.Instance;
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
-import edu.harvard.iq.dataverse.UnitTestUtils;
 import edu.harvard.iq.dataverse.citation.CitationDataExtractor;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.citation.StandardCitationFormatsConverter;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
@@ -65,11 +60,10 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
-import io.vavr.control.Either;
 
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
+@MockitoSettings(strictness = LENIENT)
 public class ExportServiceTest {
 
     //10/07/2019
@@ -97,7 +91,7 @@ public class ExportServiceTest {
 
     @BeforeEach
     void prepareData() {
-        when(settingsService.isTrueForKey(SettingsServiceBean.Key.ExcludeEmailFromExport)).thenReturn(false);
+        when(settingsService.isTrueForKey(ExcludeEmailFromExport)).thenReturn(false);
         when(systemConfig.getDataverseSiteUrl()).thenReturn("https://localhost");
         when(dataFileService.isSameTermsOfUse(any(), any())).thenReturn(false);
         jsonLdBuilder = new JsonLdBuilder(dataFileService, settingsService, systemConfig);
@@ -117,160 +111,6 @@ public class ExportServiceTest {
     }
 
     // -------------------- TESTS --------------------
-
-    @Test
-    @DisplayName("export DatasetVersion as string for datacite")
-    public void exportDatasetVersionAsString_forDataCite() throws IOException, JsonParseException, URISyntaxException {
-        // given
-        DatasetVersion datasetVersion = parseDatasetVersionFromClasspath("json/testDataset.json");
-        prepareDataForExport(datasetVersion);
-
-        // when
-        Either<DataverseError, String> exportedDataset =
-                exportService.exportDatasetVersionAsString(datasetVersion, ExporterType.DATACITE);
-
-        // then
-        assertThat(exportedDataset.get())
-                .isEqualToIgnoringWhitespace(UnitTestUtils.readFileToString("exportdata/testDatacite.xml"));
-    }
-
-    @Test
-    @DisplayName("export DatasetVersion as string for DCTerms")
-    public void exportDatasetVersionAsString_forDCTerms() throws IOException, JsonParseException, URISyntaxException {
-        // given
-        DatasetVersion datasetVersion = parseDatasetVersionFromClasspath("json/testDataset.json");
-        prepareDataForExport(datasetVersion);
-
-        // when
-        Either<DataverseError, String> exportedDataset =
-                exportService.exportDatasetVersionAsString(datasetVersion, ExporterType.DCTERMS);
-
-        // then
-        assertThat(exportedDataset.get())
-                .isEqualTo(UnitTestUtils.readFileToString("exportdata/dcterms.xml"));
-    }
-
-    @Test
-    @DisplayName("export DatasetVersion as string for json")
-    public void exportDatasetVersionAsString_forJson() throws IOException, JsonParseException, URISyntaxException {
-        // given
-        DatasetVersion datasetVersion = parseDatasetVersionFromClasspath("json/testDataset.json");
-        prepareDataForExport(datasetVersion);
-
-        // when
-        Either<DataverseError, String> exportedDataset =
-                exportService.exportDatasetVersionAsString(datasetVersion, ExporterType.JSON);
-
-        // then
-        assertThat(exportedDataset.get())
-                .isEqualTo(UnitTestUtils.readFileToString("exportdata/datasetInJson.json"));
-    }
-
-    @Test
-    @DisplayName("export DatasetVersion as string for Oai Ore")
-    public void exportDatasetVersionAsString_forOaiOre() throws IOException, JsonParseException, URISyntaxException {
-        // given
-        DatasetVersion datasetVersion = parseDatasetVersionFromClasspath("json/testDatasetMultipleAuthors.json");
-        prepareDataForExport(datasetVersion);
-
-        // when
-        Either<DataverseError, String> exportedDataset =
-                exportService.exportDatasetVersionAsString(datasetVersion, ExporterType.OAIORE);
-
-        // then
-        assertThat(exportedDataset.get())
-                .isEqualTo(UnitTestUtils.readFileToString("exportdata/oai_ore_authors.json"));
-    }
-
-    @Test
-    @DisplayName("export DatasetVersion as string for Schema Org")
-    public void exportDatasetVersionAsString_forSchemaOrg() throws IOException, JsonParseException, URISyntaxException {
-        // given
-        DatasetVersion datasetVersion = parseDatasetVersionFromClasspath("json/testDataset.json");
-        prepareDataForExport(datasetVersion);
-
-        // when
-        Either<DataverseError, String> exportedDataset =
-                exportService.exportDatasetVersionAsString(datasetVersion, ExporterType.SCHEMADOTORG);
-
-        // then
-        assertThat(exportedDataset.get())
-                .isEqualTo(UnitTestUtils.readFileToString("exportdata/schemaorg.json"));
-    }
-
-    @Test
-    @DisplayName("export DatasetVersion as string for OpenAire")
-    public void exportDatasetVersionAsString_forOpenAire() throws IOException, JsonParseException, URISyntaxException {
-        // given
-        DatasetVersion datasetVersion = parseDatasetVersionFromClasspath("json/testDataset.json");
-        prepareDataForExport(datasetVersion);
-
-        // when
-        Either<DataverseError, String> exportedDataset =
-                exportService.exportDatasetVersionAsString(datasetVersion, ExporterType.OPENAIRE);
-
-        // then
-        assertThat(exportedDataset.get())
-                .isEqualTo(UnitTestUtils.readFileToString("exportdata/openaire.xml"));
-    }
-
-    @Test
-    @DisplayName("export DatasetVersion as string for DublinCore")
-    public void exportDatasetVersionAsString_forDublinCore() throws IOException, JsonParseException {
-        // given
-        DatasetVersion datasetVersion = parseDatasetVersionFromClasspath("json/testDataset.json");
-        prepareDataForExport(datasetVersion);
-
-        // when
-        Either<DataverseError, String> exportedDataset =
-                exportService.exportDatasetVersionAsString(datasetVersion, ExporterType.DUBLINCORE);
-
-        // then
-        assertThat(exportedDataset.get())
-                .isEqualTo(UnitTestUtils.readFileToString("exportdata/dublincore.xml"));
-    }
-
-    @Test
-    @DisplayName("Get all exporters")
-    public void getAllExporters() {
-        // when
-        Map<ExporterType, Exporter> allExporters = exportService.getAllExporters();
-
-        // then
-        assertThat(allExporters).containsKeys(ExporterType.JSON, ExporterType.DATACITE, ExporterType.SCHEMADOTORG,
-                ExporterType.DCTERMS, ExporterType.OPENAIRE);
-    }
-
-    @Test
-    @DisplayName("Get mediaType for dataCite exporter")
-    public void getMediaType_forDataCite() {
-        // when
-        String mediaType = exportService.getMediaType(ExporterType.DATACITE);
-
-        // then
-        assertThat(mediaType).isEqualTo(MediaType.APPLICATION_XML);
-    }
-
-    @Test
-    @DisplayName("Get mediaType for json exporter")
-    public void getMediaType_forJsonExporter() {
-        // when
-        String mediaType = exportService.getMediaType(ExporterType.JSON);
-
-        // then
-        assertThat(mediaType).isEqualTo(MediaType.APPLICATION_JSON);
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     @Test
     public void toString_forDataCite() throws Exception {

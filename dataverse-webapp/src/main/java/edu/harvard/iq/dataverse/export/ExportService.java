@@ -11,10 +11,8 @@ import javax.ejb.Stateless;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import io.vavr.control.Either;
 
 
 /**
@@ -47,29 +45,6 @@ public class ExportService {
 
     // -------------------- LOGIC --------------------
 
-    /**
-     * Exports datasetVersion with given exporter.
-     *
-     * @return {@code Error} if exporting failed or exporter was not found in the list of exporters.
-     * <p>
-     * {@code String} if exporting was a success.
-     */
-    public Either<DataverseError, String> exportDatasetVersionAsString(
-            final DatasetVersion datasetVersion, final ExporterType type) {
-        final Exporter exporter = this.exportersMap.get(type);
-        if(exporter != null) {
-            try {
-                return Either.right(exporter.exportDataset(datasetVersion));
-            } catch(final ExportException e) {
-                return Either.left(new DataverseError(
-                        "Failed to export the dataset as " + type));
-            }
-        } else {
-            return Either.left(
-                    new DataverseError(type + " was not found among exporter list"));
-        }
-    }
-    
     public String toString(final DatasetVersion datasetVersion, final ExporterType type) 
         throws ExportException {
         
