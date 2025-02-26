@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.CustomQuestion;
 import edu.harvard.iq.dataverse.persistence.guestbook.CustomQuestionValue;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import io.vavr.control.Try;
 import org.apache.commons.lang.StringUtils;
@@ -42,7 +43,7 @@ public class GuestbookPage implements java.io.Serializable {
 
     private static final Logger logger = Logger.getLogger(GuestbookPage.class.getCanonicalName());
 
-    private GuestbookServiceBean guestbookHelperService;
+    private GuestbookRepository guestbookHelperService;
     private DataverseDao dataverseDao;
     private PermissionsWrapper permissionsWrapper;
     private GuestbookService guestbookService;
@@ -68,7 +69,7 @@ public class GuestbookPage implements java.io.Serializable {
     }
 
     @Inject
-    public GuestbookPage(GuestbookServiceBean guestbookHelperService, DataverseDao dataverseDao,
+    public GuestbookPage(GuestbookRepository guestbookHelperService, DataverseDao dataverseDao,
                          PermissionsWrapper permissionsWrapper, GuestbookService guestbookService) {
         this.guestbookHelperService = guestbookHelperService;
         this.dataverseDao = dataverseDao;

@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.omnifaces.cdi.ViewScoped;
@@ -29,7 +30,7 @@ public class GuestbookResponsesPage implements java.io.Serializable {
     private static final Logger logger = Logger.getLogger(GuestbookResponsesPage.class.getCanonicalName());
 
     @EJB
-    GuestbookServiceBean guestbookService;
+    GuestbookRepository guestbookService;
 
     @EJB
     GuestbookResponseServiceBean guestbookResponseService;

@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseGuestbookRootCommand;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -17,7 +18,7 @@ import javax.inject.Inject;
 public class ManageGuestbooksService {
     private EjbDataverseEngine engineService;
     private DataverseRequestServiceBean dvRequestService;
-    private GuestbookServiceBean guestbookService;
+    private GuestbookRepository guestbookRepo;
     private DataverseDao dataverseDao;
 
     // -------------------- CONSTRUCTORS --------------------
@@ -27,16 +28,16 @@ public class ManageGuestbooksService {
 
     @Inject
     public ManageGuestbooksService(EjbDataverseEngine engineService, DataverseRequestServiceBean dvRequestService,
-                                   GuestbookServiceBean guestbookService, DataverseDao dataverseDao) {
+                                   GuestbookRepository guestbookRepo, DataverseDao dataverseDao) {
         this.engineService = engineService;
         this.dvRequestService = dvRequestService;
-        this.guestbookService = guestbookService;
+        this.guestbookRepo = guestbookRepo;
         this.dataverseDao = dataverseDao;
     }
 
     // -------------------- LOGIC --------------------
     public Dataverse deleteGuestbook(long guestbookId) {
-        Guestbook guestbook = guestbookService.find(guestbookId);
+        Guestbook guestbook = guestbookRepo.find(guestbookId);
         Dataverse dataverse = guestbook.getDataverse();
         dataverse.getGuestbooks().remove(guestbook);
 
@@ -48,7 +49,7 @@ public class ManageGuestbooksService {
     }
 
     public Guestbook enableGuestbook(long guestbookId) {
-        Guestbook guestbook = guestbookService.find(guestbookId);
+        Guestbook guestbook = guestbookRepo.find(guestbookId);
         guestbook.setEnabled(true);
         updateDataverse(guestbook.getDataverse());
 
@@ -56,7 +57,7 @@ public class ManageGuestbooksService {
     }
 
     public Guestbook disableGuestbook(long guestbookId) {
-        Guestbook guestbook = guestbookService.find(guestbookId);
+        Guestbook guestbook = guestbookRepo.find(guestbookId);
         guestbook.setEnabled(false);
         updateDataverse(guestbook.getDataverse());
 

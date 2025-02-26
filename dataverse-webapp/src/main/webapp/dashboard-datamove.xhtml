@@ -13,7 +13,7 @@
     <f:metadata>
         <f:viewParam name="dataverseId" value="#{dataverseServiceBean.findRootDataverse().id}"/>
         <f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}"/>
-        <f:viewAction action="#{DashboardDatamovePage.init}"/>
+        <f:viewAction action="#{DashboardDatamovePage.verifyAccess()}"/>
         <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(dataverseServiceBean.findRootDataverse())}"/>
         <f:viewAction
                 action="#{dataverseHeaderFragment.addBreadcrumb('/dashboard.xhtml?dataverseId='.concat(dataverse.id), bundle['dashboard.title'])}"/>
@@ -57,15 +57,21 @@
                                                             required="true"
                                                             requiredMessage="#{bundle['requiredField']}"
                                                             placeholder="#{bundle['dashboard.datamove.dataset.placeholder']}"
-                                                            multiple="true" unique="true" scrollHeight="180"
+                                                            multiple="true" 
+                                                            unique="true" 
+                                                            scrollHeight="180"
                                                             forceSelection="true"
-                                                            minQueryLength="10" queryDelay="1000" size="36"
+                                                            minQueryLength="10" 
+                                                            queryDelay="1000"
+                                                            size="36"
                                                             emptyMessage="#{bundle['dashboard.datamove.dataset.menu.invalidMsg']}"
                                                             value="#{DashboardDatamovePage.sourceDatasets}"
                                                             completeMethod="#{DashboardDatamovePage.completeSourceDataset}"
-                                                            var="srcDS" styleClass="DropdownPopup"
+                                                            var="srcDS" 
+                                                            styleClass="DropdownPopup"
                                                             panelStyleClass="DropdownPopupPanel"
-                                                            itemLabel="#{srcDS.globalId}" itemValue="#{srcDS}"
+                                                            itemLabel="#{srcDS.globalId}" 
+                                                            itemValue="#{srcDS}"
                                                             converter="datasetConverter">
                                                 <p:column>
                                                     <f:facet name="header">

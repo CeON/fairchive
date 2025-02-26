@@ -27,11 +27,11 @@ import edu.harvard.iq.dataverse.globalid.FakePidProviderServiceBean;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBeanResolver;
 import edu.harvard.iq.dataverse.globalid.HandlenetServiceBean;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
-import edu.harvard.iq.dataverse.guestbook.GuestbookServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.search.SearchServiceBean;
@@ -143,7 +143,7 @@ public class EjbDataverseEngine {
     SettingsServiceBean settings;
 
     @EJB
-    GuestbookServiceBean guestbookService;
+    GuestbookRepository guestbookService;
 
     @EJB
     GuestbookResponseServiceBean responses;
@@ -442,7 +442,7 @@ public class EjbDataverseEngine {
                 }
 
                 @Override
-                public GuestbookServiceBean guestbooks() {
+                public GuestbookRepository guestbooks() {
                     return guestbookService;
                 }
 

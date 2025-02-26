@@ -32,9 +32,9 @@ import edu.harvard.iq.dataverse.globalid.FakePidProviderServiceBean;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBeanResolver;
 import edu.harvard.iq.dataverse.globalid.HandlenetServiceBean;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
-import edu.harvard.iq.dataverse.guestbook.GuestbookServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.search.SearchServiceBean;
 import edu.harvard.iq.dataverse.search.index.IndexBatchServiceBean;
@@ -175,7 +175,7 @@ public class TestCommandContext implements CommandContext {
     }
 
     @Override
-    public GuestbookServiceBean guestbooks() {
+    public GuestbookRepository guestbooks() {
         return null;
     }
 

@@ -148,7 +148,7 @@ public class CreatePrivateUrlCommandTest {
         assertEquals(expectedUser.isAuthenticated(), false);
         assertEquals(expectedUser.getDisplayInfo().getTitle(), "Private URL Enabled");
         assertNotNull(privateUrl.getToken());
-        assertEquals("https://dataverse.example.edu/privateurl.xhtml?token=" + privateUrl.getToken(), privateUrl.getLink());
+        assertEquals("https://dataverse.example.edu/dataset.xhtml?token=" + privateUrl.getToken(), privateUrl.getLink());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class CreatePrivateUrlCommandTest {
         assertEquals(expectedUser.isAuthenticated(), false);
         assertEquals(expectedUser.getDisplayInfo().getTitle(), "Private URL Enabled");
         assertNotNull(privateUrl.getToken());
-        assertEquals("https://dataverse.example.edu/privateurl.xhtml?token=" + privateUrl.getToken(), privateUrl.getLink());
+        assertEquals("https://dataverse.example.edu/dataset.xhtml?token=" + privateUrl.getToken(), privateUrl.getLink());
     }
 
 }

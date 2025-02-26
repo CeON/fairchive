@@ -7,13 +7,17 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author skraffmiller
  */
 @Entity
-public class CustomQuestionValue implements Serializable {
+public class CustomQuestionValue implements Serializable, JpaEntity<Long> {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +25,10 @@ public class CustomQuestionValue implements Serializable {
 
     @Column(nullable = false)
     private String valueString;
+    
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private CustomQuestion customQuestion;
 
     private int displayOrder;
 
@@ -28,43 +36,38 @@ public class CustomQuestionValue implements Serializable {
         return this.displayOrder;
     }
 
-    public void setDisplayOrder(int displayOrder) {
-        this.displayOrder = displayOrder;
+    public void setDisplayOrder(final int order) {
+        this.displayOrder = order;
     }
 
     public CustomQuestion getCustomQuestion() {
-        return customQuestion;
+        return this.customQuestion;
     }
 
-    public void setCustomQuestion(CustomQuestion customQuestion) {
-        this.customQuestion = customQuestion;
+    public void setCustomQuestion(final CustomQuestion question) {
+        this.customQuestion = question;
     }
 
     public String getValueString() {
-        return valueString;
+        return this.valueString;
     }
 
-    public void setValueString(String valueString) {
-        this.valueString = valueString;
+    public void setValueString(final String value) {
+        this.valueString = value;
     }
-
-    @ManyToOne
-    @JoinColumn(nullable = false)
-    private CustomQuestion customQuestion;
-
+    
+    @Override
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return Objects.hashCode(this.id);
     }
 
     @Override

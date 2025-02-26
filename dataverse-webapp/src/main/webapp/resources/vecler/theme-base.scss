@@ -1456,7 +1456,9 @@ input.fancy-checkbox[type=checkbox] {
 }
 
 .ui-autocomplete-panel.ui-widget-content.ui-corner-all.ui-helper-hidden.ui-shadow.ui-input-overlay.DropdownPopupPanel {
-	height: 12em !important;
+    width: 700px !important;  
+    max-height: 400px !important; 
+    overflow-y: auto !important; 
 }
 
 /* Buttons */

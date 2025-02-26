@@ -14,13 +14,13 @@ import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
-import edu.harvard.iq.dataverse.guestbook.GuestbookServiceBean;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
@@ -171,20 +171,7 @@ public class MoveDatasetCommandTest {
                 };
             }
 
-            @Override
-            public GuestbookServiceBean guestbooks() {
-                return new GuestbookServiceBean() {
-                    @Override
-                    public Long findCountResponsesForGivenDataset(Long guestbookId, Long datasetId) {
-                        //We're going to fake a response for a dataset with responses
-                        if (datasetId == 1) {
-                            return new Long(0);
-                        } else {
-                            return new Long(1);
-                        }
-                    }
-                };
-            }
+
 
             @Override
             public IndexServiceBean index() {
