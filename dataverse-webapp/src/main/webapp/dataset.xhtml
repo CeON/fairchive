@@ -163,7 +163,12 @@
                                       onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{DatasetPage.anonymizedPrivateUrlDialog.url}');">
                                     <span class="glyphicon glyphicon-copy"/>
                                     #{bundle['dataset.copyUrl']} 
-                                    </span>
+                                </span>
+                                <p  jsf:rendered="#{DatasetPage.anonymizedPrivateUrlDialog.displayPublishedWarning()}"
+                                    class="text-warning">
+                                    <span class="glyphicon glyphicon-warning-sign" />
+                                    #{bundle['dataset.anonymized.privateurl.warning']}
+                                </p>
                             </p>
                         </div>
                         <div jsf:rendered="#{DatasetPage.isViewedFromPrivateUrl()}" class="alert alert-info" role="alert" aria-atomic="true">
