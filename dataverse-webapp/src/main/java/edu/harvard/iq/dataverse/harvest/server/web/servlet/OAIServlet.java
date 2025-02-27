@@ -187,8 +187,7 @@ public class OAIServlet extends HttpServlet {
     }
 
     private void addSupportedMetadataFormats(Context context) {
-        Map<ExporterType, Exporter> exporters = exportService.getAllExporters();
-        for (Exporter exporter : exporters.values()) {
+        for (final Exporter exporter : exportService) {
             if (!exporter.isXMLFormat() || !exporter.isHarvestable()) {
                 continue;
             }

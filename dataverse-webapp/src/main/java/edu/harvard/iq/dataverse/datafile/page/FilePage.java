@@ -291,9 +291,8 @@ public class FilePage implements java.io.Serializable {
 
     public List<String[]> getExporters() {
         List<String[]> retList = new ArrayList<>();
-        Map<ExporterType, Exporter> exporters = exportService.getAllExporters();
 
-        for (Exporter exporter : exporters.values()) {
+        for (final Exporter exporter : exportService) {
             if (exporter.isAvailableToUsers()) {
                 String myHostURL = systemConfig.getDataverseSiteUrl();
                 String[] temp = new String[2];

@@ -110,13 +110,15 @@ public class DatasetMetadataTab implements Serializable {
      * Extracts exporters display name and redirect url.
      */
     public List<Tuple2<String, String>> getExportersDisplayNameAndURL() {
-        List<Tuple2<String, String>> exportersInfo = new ArrayList<>();
+        List<Tuple2<String, String>> result = new ArrayList<>();
 
-        exportService.getAllExporters().values().stream()
-                .filter(Exporter::isAvailableToUsers)
-                .forEach(exporter -> exportersInfo.add(Tuple.of(exporter.getDisplayName(), createExporterURL(exporter, systemConfig.getDataverseSiteUrl()))));
-
-        return exportersInfo;
+        for (final Exporter exporter : exportService) {
+            if (exporter.isAvailableToUsers()) {
+                result.add(Tuple.of(exporter.getDisplayName(), createExporterURL(
+                                exporter, systemConfig.getDataverseSiteUrl())));
+            }
+        }
+        return result;
     }
 
     public String getAlternativePersistentIdentifier() {

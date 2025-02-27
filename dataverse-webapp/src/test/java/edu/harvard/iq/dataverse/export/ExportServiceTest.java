@@ -107,7 +107,6 @@ public class ExportServiceTest {
                 new OpenAireExporter(settingsService, citationFactory),
                 new JSONExporter(settingsService, citationFactory)));
         exportService = new ExportService(exporters);
-        exportService.loadAllExporters();
     }
 
     // -------------------- TESTS --------------------

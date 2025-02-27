@@ -1,12 +1,7 @@
 package edu.harvard.iq.dataverse.export;
 
-import static java.util.Collections.unmodifiableMap;
+import java.util.Iterator;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -19,12 +14,9 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
  * Class responsible for managing exporters and mainly exporting.
  */
 @Stateless
-public class ExportService {
+public class ExportService implements Iterable<Exporter>{
 
     private Instance<Exporter> exporters;
-    private Map<ExporterType, Exporter> exportersMap = new HashMap<>();
-
-    // -------------------- CONSTRUCTORS --------------------
 
     @Deprecated
     ExportService() {
@@ -36,44 +28,30 @@ public class ExportService {
         this.exporters = exporters;
     }
 
-    @PostConstruct
-    void loadAllExporters() {
-        this.exporters.iterator().forEachRemaining(
-                exporter -> this.exportersMap.put(exporter.getExporterType(), exporter));
-
+    @Override
+    public Iterator<Exporter> iterator() {
+        return this.exporters.iterator();
     }
-
-    // -------------------- LOGIC --------------------
 
     public String toString(final DatasetVersion datasetVersion, final ExporterType type) 
-        throws ExportException {
-        
-        final Exporter exporter = this.exportersMap.get(type);
-        if(exporter != null) {
-            return exporter.exportDataset(datasetVersion);
-        } else {
-            throw new ExportException(type + " was not found among exporter list");
-        }
-    }
-
-    public Map<ExporterType, Exporter> getAllExporters() {
-        return unmodifiableMap(this.exportersMap);
+        throws ExportException { 
+        return getExporterOf(type).exportDataset(datasetVersion);
     }
 
     /**
      * @return MediaType of given exporter or {@link Exporter#getMediaType()} default value.
      */
-    public String getMediaType(ExporterType provider) {
-
-        return findExporter(provider)
-                .map(Exporter::getMediaType)
-                .get();
+    public String getMediaType(final ExporterType type) 
+            throws ExportException {
+        return getExporterOf(type).getMediaType();
     }
 
-    // -------------------- PRIVATE --------------------
-
-    private Optional<Exporter> findExporter(final ExporterType type) {
-        return Optional.ofNullable(exportersMap.get(type));
+    private Exporter getExporterOf(final ExporterType type) throws ExportException {
+        for(final Exporter exporter : this.exporters) {
+            if(exporter.getExporterType() == type) {
+                return exporter;
+            }
+        }
+        throw new ExportException(type + " was not found among exporters");
     }
-
 }
