@@ -1,54 +1,54 @@
 package edu.harvard.iq.dataverse.export;
 
-import edu.harvard.iq.dataverse.citation.CitationFactory;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.export.ExporterType.DCTERMS;
+import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DCTERMS_XML_NAMESPACE;
+import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DCTERMS_XML_SCHEMALOCATION;
+import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DC_FLAVOR_DCTERMS;
+import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DEFAULT_XML_VERSION;
+import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.datasetJson2dublincore;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
-/**
- * @author Leonid Andreev
- */
+import edu.harvard.iq.dataverse.citation.CitationFactory;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+
 @ApplicationScoped
 public class DCTermsExporter extends ExporterBase {
 
-
-    // -------------------- CONSTRUCTORS --------------------
-
     @Inject
-    DCTermsExporter(SettingsServiceBean settingsService, CitationFactory citationFactory) {
+    DCTermsExporter(final SettingsServiceBean settingsService, 
+            final CitationFactory citationFactory) {
         super(citationFactory, settingsService);
     }
-
-    // -------------------- LOGIC --------------------
+    
+    @Override
+    public String exportDataset(final DatasetVersion version) throws ExportException {
+        try (final ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+            datasetJson2dublincore(createDTO(version), stream, DC_FLAVOR_DCTERMS);
+            return stream.toString(UTF_8.name());
+        } catch (final XMLStreamException | IOException e) {
+            throw new ExportException("There was a problem with exporting datasetVersion: "
+                            + version.toString(), e);
+        }
+    }
 
     @Override
     public ExporterType getExporterType() {
-        return ExporterType.DCTERMS;
+        return DCTERMS;
     }
 
     @Override
     public String getDisplayName() {
-        return BundleUtil.getStringFromBundle("dataset.exportBtn.itemLabel.dublinCore") != null
-                ? BundleUtil.getStringFromBundle("dataset.exportBtn.itemLabel.dublinCore")
-                : "Dublin Core (DCTERMS)";
-    }
-
-    @Override
-    public String exportDataset(DatasetVersion version) throws ExportException {
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-            DublinCoreExportUtil.datasetJson2dublincore(createDTO(version), byteArrayOutputStream, DublinCoreExportUtil.DC_FLAVOR_DCTERMS);
-            return byteArrayOutputStream.toString(StandardCharsets.UTF_8.name());
-        } catch (XMLStreamException | IOException xse) {
-            throw new ExportException("Caught XMLStreamException performing DCTERMS export", xse);
-        }
+        final String name = getStringFromBundle("dataset.exportBtn.itemLabel.dublinCore");
+        return  name != null ? name: "Dublin Core (DCTERMS)";
     }
 
     @Override
@@ -68,16 +68,16 @@ public class DCTermsExporter extends ExporterBase {
 
     @Override
     public String getXMLNameSpace() {
-        return DublinCoreExportUtil.DCTERMS_XML_NAMESPACE;
+        return DCTERMS_XML_NAMESPACE;
     }
 
     @Override
     public String getXMLSchemaLocation() {
-        return DublinCoreExportUtil.DCTERMS_XML_SCHEMALOCATION;
+        return DCTERMS_XML_SCHEMALOCATION;
     }
 
     @Override
     public String getXMLSchemaVersion() {
-        return DublinCoreExportUtil.DEFAULT_XML_VERSION;
+        return DEFAULT_XML_VERSION;
     }
 }

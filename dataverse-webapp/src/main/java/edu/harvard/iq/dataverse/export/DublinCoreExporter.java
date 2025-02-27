@@ -23,16 +23,11 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 @ApplicationScoped
 public class DublinCoreExporter extends ExporterBase {
 
-
-    // -------------------- CONSTRUCTORS --------------------
-
     @Inject
     public DublinCoreExporter(final SettingsServiceBean settingsService, 
             final CitationFactory citationFactory) {
         super(citationFactory, settingsService);
     }
-
-    // -------------------- LOGIC --------------------
     
     @Override
     public String exportDataset(final DatasetVersion version) throws ExportException {
@@ -40,8 +35,7 @@ public class DublinCoreExporter extends ExporterBase {
             datasetJson2dublincore(createDTO(version), stream, DC_FLAVOR_OAI);
             return stream.toString(UTF_8.name());
         } catch (final XMLStreamException | IOException e) {
-            throw new ExportException(
-                    "There was a problem with exporting datasetVersion: "
+            throw new ExportException( "There was a problem with exporting datasetVersion: "
                             + version.toString(), e);
         }
     }
