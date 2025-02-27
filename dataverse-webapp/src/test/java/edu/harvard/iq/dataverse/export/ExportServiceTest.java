@@ -6,6 +6,7 @@ import static edu.harvard.iq.dataverse.export.ExporterType.DCTERMS;
 import static edu.harvard.iq.dataverse.export.ExporterType.DUBLINCORE;
 import static edu.harvard.iq.dataverse.export.ExporterType.JSON;
 import static edu.harvard.iq.dataverse.export.ExporterType.OAIORE;
+import static edu.harvard.iq.dataverse.export.ExporterType.OAI_PMH;
 import static edu.harvard.iq.dataverse.export.ExporterType.OPENAIRE;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExcludeEmailFromExport;
@@ -103,6 +104,7 @@ public class ExportServiceTest {
                 new DCTermsExporter(settingsService, citationFactory),
                 new DublinCoreExporter(settingsService, citationFactory),
                 new OAI_OREExporter(settingsService, systemConfig, clock),
+                new OAI_PMHExporter(settingsService, citationFactory),
                 new SchemaDotOrgExporter(jsonLdBuilder),
                 new OpenAireExporter(settingsService, citationFactory),
                 new JSONExporter(settingsService, citationFactory)));
@@ -149,6 +151,16 @@ public class ExportServiceTest {
         String exportedDataset = this.exportService.toString(datasetVersion, OAIORE);
         // then
         assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/oai_ore_authors.json"));
+    }
+    
+    @Test
+    public void toString_forOaiPmh() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        // then
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh.xml"));
     }
 
     @Test

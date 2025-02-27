@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.export.dublincore;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Iterator;
@@ -37,6 +39,7 @@ public class DublinCoreExportUtil {
 
     public static String DC_FLAVOR_OAI = "dc";
     public static String DC_FLAVOR_DCTERMS = "dcterms";
+    public static String DC_FLAVOR_PMH = "dc_iao_pmh";
 
     public static void datasetJson2dublincore(DatasetDTO datasetDto, OutputStream outputStream, String dcFlavor) throws XMLStreamException {
         XMLStreamWriter xmlw = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream);
@@ -57,7 +60,16 @@ public class DublinCoreExportUtil {
             xmlw.writeAttribute("xsi:schemaLocation", OAI_DC_XML_NAMESPACE + " " + OAI_DC_XML_SCHEMALOCATION);
             //writeAttribute(xmlw, "version", DEFAULT_XML_VERSION);
             createOAIDC(xmlw, datasetDto, dcFlavor);
-        }
+        }  else if (DC_FLAVOR_PMH.equals(dcFlavor)) {
+            xmlw.writeStartElement("oai_dc:dc");
+            xmlw.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+            xmlw.writeAttribute("xmlns:oai_dc", OAI_DC_XML_NAMESPACE);
+            xmlw.writeAttribute("xmlns:dc", DC_XML_NAMESPACE);
+            xmlw.writeAttribute("xmlns:dcterms", DCTERMS_XML_NAMESPACE);
+            xmlw.writeAttribute("xsi:schemaLocation", OAI_DC_XML_NAMESPACE + " " + OAI_DC_XML_SCHEMALOCATION);
+            //writeAttribute(xmlw, "version", DEFAULT_XML_VERSION);
+            createOAIDC(xmlw, datasetDto, DC_FLAVOR_OAI);
+        } 
 
         xmlw.writeEndElement(); // <metadata> or <oai_dc:dc>
         xmlw.flush();
@@ -456,7 +468,7 @@ public class DublinCoreExportUtil {
 
     private static void writeFullElementList(XMLStreamWriter xmlw, String name, List<String> values) throws XMLStreamException {
         //For the simplest Elements we can
-        if (values != null && !values.isEmpty()) {
+        if (values != null) {
             for (String value : values) {
                 xmlw.writeStartElement(name);
                 xmlw.writeCharacters(value);
@@ -468,7 +480,7 @@ public class DublinCoreExportUtil {
 
     private static void writeFullElement(XMLStreamWriter xmlw, String name, String value) throws XMLStreamException {
         //For the simplest Elements we can
-        if (!StringUtilisEmpty(value)) {
+        if (!isBlank(value)) {
             xmlw.writeStartElement(name);
             xmlw.writeCharacters(value);
             xmlw.writeEndElement(); // labl
@@ -476,13 +488,9 @@ public class DublinCoreExportUtil {
     }
 
     private static void writeAttribute(XMLStreamWriter xmlw, String name, String value) throws XMLStreamException {
-        if (!StringUtilisEmpty(value)) {
+        if (!isBlank(value)) {
             xmlw.writeAttribute(name, value);
         }
-    }
-
-    private static boolean StringUtilisEmpty(String str) {
-        return str == null || str.trim().equals("");
     }
 
 }
