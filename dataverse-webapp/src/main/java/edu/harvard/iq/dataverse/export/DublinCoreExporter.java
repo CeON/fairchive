@@ -47,11 +47,6 @@ public class DublinCoreExporter extends ExporterBase {
     }
 
     @Override
-    public String getProviderName() {
-        return getExporterType().getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return DUBLINCORE;
     }

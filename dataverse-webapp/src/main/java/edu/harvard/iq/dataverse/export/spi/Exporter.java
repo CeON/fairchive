@@ -18,7 +18,9 @@ public interface Exporter {
 
     String exportDataset(DatasetVersion version) throws ExportException;
 
-    String getProviderName();
+    default String getProviderName() {
+        return getExporterType().getPrefix();
+    }
 
     String getDisplayName();
 

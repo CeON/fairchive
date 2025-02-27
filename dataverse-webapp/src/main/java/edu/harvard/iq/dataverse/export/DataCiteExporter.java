@@ -34,11 +34,6 @@ public class DataCiteExporter implements Exporter {
     // -------------------- LOGIC --------------------
 
     @Override
-    public String getProviderName() {
-        return ExporterType.DATACITE.getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return ExporterType.DATACITE;
     }

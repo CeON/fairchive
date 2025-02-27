@@ -30,11 +30,6 @@ public class DCTermsExporter extends ExporterBase {
     // -------------------- LOGIC --------------------
 
     @Override
-    public String getProviderName() {
-        return ExporterType.DCTERMS.getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return ExporterType.DCTERMS;
     }
