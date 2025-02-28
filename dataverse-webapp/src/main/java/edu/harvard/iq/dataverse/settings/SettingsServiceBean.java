@@ -759,6 +759,13 @@ public class SettingsServiceBean {
          * By default is set to 'false', so tab with map won't be shown.
          */
         ShowSearchResultOnMap,
+
+        /**
+         * List of custom solr field used in search dataset location
+         * Supported solr fields types: string, list of strings
+         * Default value: empty.
+         */
+        CustomSearchLocationsSolrFields
         ;
 
 

@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.anEmptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -294,6 +295,9 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
         // then
         assertThat(solrSearchMapResults, hasSize(1));
         assertThat(solrSearchMapResults.get(0).getMarker(), is(new GeoPoint(35.840585,36.19439)));
+        assertThat(solrSearchMapResults.get(0).getDoi(), is("doi:10.18150/FK2/QTVQKL"));
+        assertThat(solrSearchMapResults.get(0).getDatasetUrl(), is("/dataset.xhtml?persistentId=doi:10.18150/FK2/QTVQKL"));
+        assertThat(solrSearchMapResults.get(0).getCustomData(), anEmptyMap());
     }
 
     @Test
