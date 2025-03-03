@@ -296,7 +296,7 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
         assertThat(solrSearchMapResults, hasSize(1));
         assertThat(solrSearchMapResults.get(0).getMarker(), is(new GeoPoint(35.840585,36.19439)));
         assertThat(solrSearchMapResults.get(0).getDoi(), is("doi:10.18150/FK2/QTVQKL"));
-        assertThat(solrSearchMapResults.get(0).getDatasetUrl(), is("/dataset.xhtml?persistentId=doi:10.18150/FK2/QTVQKL"));
+        assertThat(solrSearchMapResults.get(0).getDatasetUrl(), is("/dataset.xhtml?persistentId=doi:10.18150/FK2/QTVQKL&version=DRAFT"));
         assertThat(solrSearchMapResults.get(0).getCustomData(), anEmptyMap());
     }
 
