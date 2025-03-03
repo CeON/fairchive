@@ -83,13 +83,15 @@ public class SamlConvertAccountPage implements Serializable {
         }
         userData = samlUser;
         if (!samlUser.isCompleteForLogin()) {
-            HttpSession session = JsfHelper.getCurrentSession();
-            session.setAttribute(SamlAuthenticationServlet.SAML_LOGIN_ISSUE_SESSION_PARAM,
-                    new SamlLoginIssue(SamlLoginIssue.Type.INCOMPLETE_DATA).addMessage(samlUser.printLoginData()));
-            return "/failedLogin.xhtml";
+            return failedLogin(SamlLoginIssue.Type.INCOMPLETE_DATA, samlUser);
         }
         AuthenticatedUser existingUser = authenticationService.getAuthenticatedUserByEmail(samlUser.getEmail());
         BuiltinUser existingBuiltinUser = builtinUserService.findByUserName(existingUser.getUserIdentifier());
+        if (existingBuiltinUser == null) {
+            logger.error("Authentication error. No builtin user found for {} with identifier {} (SAML id: {})",
+                    samlUser.getEmail(), existingUser.getUserIdentifier(), samlUser.getId());
+            return failedLogin(SamlLoginIssue.Type.AUTHENTICATION_ERROR, samlUser);
+        }
         builtinUsername = existingBuiltinUser.getUserName();
         consents = consentService.prepareConsentsForView(dataverseSession.getLocale());
         return StringUtils.EMPTY;
@@ -127,6 +129,13 @@ public class SamlConvertAccountPage implements Serializable {
         SamlUserData samlUser = (SamlUserData) session.getAttribute(SamlAuthenticationServlet.USER_TO_CONVERT_SESSION_PARAM);
         session.removeAttribute(SamlAuthenticationServlet.USER_TO_CONVERT_SESSION_PARAM);
         return samlUser;
+    }
+
+    private static String failedLogin(SamlLoginIssue.Type authenticationError, SamlUserData samlUser) {
+        HttpSession session = JsfHelper.getCurrentSession();
+        session.setAttribute(SamlAuthenticationServlet.SAML_LOGIN_ISSUE_SESSION_PARAM,
+                new SamlLoginIssue(authenticationError).addMessage(samlUser.printLoginData()));
+        return "/failedLogin.xhtml";
     }
 
     // -------------------- SETTERS --------------------
