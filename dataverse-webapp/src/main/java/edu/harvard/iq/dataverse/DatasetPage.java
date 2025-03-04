@@ -183,9 +183,6 @@ public class DatasetPage implements Serializable {
     private List<DatasetFileTermDifferenceItem> fileTermDiffsWithLatestReleased;
 
     private Date currentEmbargoDate;
-    
-    private AnonymizedPrivateUrlDialog anonymizedPrivateUrlDialog;
-    private PrivateUrlDialog privateUrlDialog;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -228,10 +225,6 @@ public class DatasetPage implements Serializable {
         this.uningestInfoService = uningestInfoService;
         this.privateUrlService = privateUrlService;
         this.settingsWrapper = settingsWrapper;
-        
-        this.anonymizedPrivateUrlDialog = new AnonymizedPrivateUrlDialog(
-                this.settingsWrapper, this);
-        this.privateUrlDialog = new PrivateUrlDialog(this.settingsWrapper, this);
     }
 
 
@@ -404,13 +397,11 @@ public class DatasetPage implements Serializable {
     }
 
     private final Map<Long, MapLayerMetadata> mapLayerMetadataLookup = new HashMap<>();
-
-    public AnonymizedPrivateUrlDialog getAnonymizedPrivateUrlDialog() {
-        return this.anonymizedPrivateUrlDialog;
-    }
     
-    public PrivateUrlDialog getPrivateUrlDialog() {
-        return this.privateUrlDialog;
+    public String getPrivateUrlHelpUrl() {
+        return this.settingsWrapper.getGuidesBaseUrl() + "/"
+                + this.settingsWrapper.getGuidesVersion() +
+                "/user/dataset-management.html#private-url-for-reviewing-an-unpublished-dataset";
     }
     
     public String getGlobalId() {
@@ -696,14 +687,6 @@ public class DatasetPage implements Serializable {
             AuthenticatedUser replyToUser = (AuthenticatedUser) session.getUser();
             replyTo = replyToUser.getEmail();
         }
-        
-        if(displayPrivateUrl(true)) {
-            this.anonymizedPrivateUrlDialog.init();
-        }
-        if(displayPrivateUrl(false)) {
-            this.privateUrlDialog.init();
-        }
-
         return null;
     }
     
@@ -713,8 +696,13 @@ public class DatasetPage implements Serializable {
     }
     
     PrivateUrl getPrivateUrl(final boolean anonymized) {
-        return this.commandEngine.submit(new GetPrivateUrlCommand(
-                this.dvRequestService.getDataverseRequest(), this.dataset, anonymized));
+        if (this.session.isUserLoggedIn()) {
+            return this.commandEngine.submit(new GetPrivateUrlCommand(
+                    this.dvRequestService.getDataverseRequest(), this.dataset,
+                    anonymized));
+        } else {
+            return null;
+        }
     }
     
     public String getPrivateUrlLink(final boolean anonymized) {
