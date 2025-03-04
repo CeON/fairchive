@@ -28,6 +28,7 @@ public class PrivateUrlDialog implements Serializable {
         this.datasetPage = datasetPage;
         this.anonymized = anonymized;
     }
+    
     @PostConstruct
     public void init() {
         this.url = this.datasetPage.getPrivateUrl(this.anonymized);
