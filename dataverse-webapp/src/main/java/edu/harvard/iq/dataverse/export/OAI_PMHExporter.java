@@ -47,8 +47,7 @@ public class OAI_PMHExporter extends ExporterBase {
 
     @Override
     public String getDisplayName() {
-        final String name = getStringFromBundle("dataset.exportBtn.itemLabel.dublinCore");
-        return name != null ? name : "Dublin Core";
+        return getStringFromBundle("dataset.exportBtn.itemLabel.oai_pmh");
     }
 
     @Override

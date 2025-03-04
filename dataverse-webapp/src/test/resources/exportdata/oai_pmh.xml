@@ -1,18 +1,22 @@
-<oai_dc:dc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-           xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" 
-           xmlns:dc="http://purl.org/dc/elements/1.1/" 
-           xmlns:dcterms="http://purl.org/dc/terms/" 
-           xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
-    <dc:title>Export test</dc:title>
-    <dc:identifier>https://doi.org/10.5072/FK2/05NAR1</dc:identifier>
-    <dcterms:license>Different licenses for individual files<dcterms:license>
-    <dc:creator>Admin, Dataverse</dc:creator>
-    <dc:publisher>Root</dc:publisher>
-    <dc:description>EXPORT</dc:description>
-    <dc:relation> https://repod.icm.edu.pl/api/access/datafile/560762<dc:relation> 
-    <dc:subject>Agricultural Sciences</dc:subject>
-    <dc:date>2019-07-10</dc:date>
-    <dc:contributor>Admin, Dataverse</dc:contributor>
-    <dcterms:created>2025-02-17<dcterms:created> 
-    <dcterms:issued>2025-02-19<dcterms:issued>
-</oai_dc:dc>
+<?xml version='1.0' encoding='UTF-8'?>
+<metadata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:qdc="http://worldcat.org/xmlschemas/qdc-1.0/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:dcterms="http://purl.org/dc/terms/"
+    xmlns="http://dublincore.org/documents/dcmi-terms/"
+    xsi:schemaLocation="http://worldcat.org/xmlschemas/qdc-1.0/ 
+                        http://worldcat.org/xmlschemas/qdc-1.0/qdc.xsd">
+    <qdc:qualifieddc>
+        <dc:title>Export test<dc:title>
+        <dc:creator>Admin, Dataverse</dc:creator>
+        <dc:creator>Kowalski, Jan</dc:creator>
+        <dc:contributor>Admin, Dataverse</dc:contributor>
+        <dc:identifier>https://doi.org/10.5072/FK2/05NAR1</dc:identifier>
+        <dc:description>EXPORT<dc:description>
+        <dc:relation> https://repod.icm.edu.pl/api/access/datafile/560762<dc:relation> 
+        <dc:relation>https://repod.icm.edu.pl/api/access/datafile/560763<dc:relation> 
+        <dcterms:license>Different licenses for individual files<dcterms:license> 
+        <dcterms:created>2019-07-10<dcterms:created> 
+        <dcterms:issued>2019-07-10<dcterms:issued> 
+    </qdc:qualifieddc>
+</metadata>

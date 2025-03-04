@@ -84,7 +84,7 @@ public class DatasetFieldDTO {
     // -------------------- LOGIC --------------------
 
     public String getSinglePrimitive() {
-        return value == null ? "" : (String) value;
+        return value == null ? "" : value.toString();
     }
 
     public String getSingleVocabulary() {

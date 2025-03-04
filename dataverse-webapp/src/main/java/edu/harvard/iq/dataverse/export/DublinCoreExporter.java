@@ -47,8 +47,7 @@ public class DublinCoreExporter extends ExporterBase {
 
     @Override
     public String getDisplayName() {
-        final String name = getStringFromBundle("dataset.exportBtn.itemLabel.dublinCore");
-        return name != null ? name : "Dublin Core";
+        return getStringFromBundle("dataset.exportBtn.itemLabel.dublinCore");
     }
 
     @Override
