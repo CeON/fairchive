@@ -16,6 +16,8 @@ import java.io.Serializable;
 @Named("FailedLogin")
 public class SamlFailedLoginPage implements Serializable {
 
+    public static String FAILED_LOGIN_XHTML = "/failedLogin.xhtml";
+
     private static final Logger logger = LoggerFactory.getLogger(SamlFailedLoginPage.class);
 
     private SamlLoginIssue samlLoginIssue;

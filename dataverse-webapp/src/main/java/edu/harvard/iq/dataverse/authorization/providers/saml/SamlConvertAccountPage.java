@@ -135,7 +135,7 @@ public class SamlConvertAccountPage implements Serializable {
         HttpSession session = JsfHelper.getCurrentSession();
         session.setAttribute(SamlAuthenticationServlet.SAML_LOGIN_ISSUE_SESSION_PARAM,
                 new SamlLoginIssue(authenticationError).addMessage(samlUser.printLoginData()));
-        return "/failedLogin.xhtml";
+        return SamlFailedLoginPage.FAILED_LOGIN_XHTML;
     }
 
     // -------------------- SETTERS --------------------
