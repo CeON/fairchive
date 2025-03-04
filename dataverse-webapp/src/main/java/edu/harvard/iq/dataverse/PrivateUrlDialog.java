@@ -1,55 +1,40 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
+import java.io.Serializable;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
 
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
-import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 
-public class PrivateUrlDialog {
+@SuppressWarnings("serial")
+public class PrivateUrlDialog implements Serializable {
 
-    private final SettingsWrapper settings;
     private final DatasetPage datasetPage;
-
+    private final boolean anonymized;
+    
     private PrivateUrl url;
     private boolean displaySuccess = false;
 
-    @Inject
-    public PrivateUrlDialog(final SettingsWrapper settings,
-            final DatasetPage datasetPage) {
-        this.settings = settings;
+    public PrivateUrlDialog(final DatasetPage datasetPage, final boolean anonymized) {
         this.datasetPage = datasetPage;
+        this.anonymized = anonymized;
     }
-    
+    @PostConstruct
     public void init() {
-        this.url = datasetPage.getPrivateUrl(false);
+        this.url = this.datasetPage.getPrivateUrl(this.anonymized);
     }
 
     public String getHelpUrl() {
-        return this.settings.getGuidesBaseUrl() + "/"
-                + this.settings.getGuidesVersion() +
-                "/user/dataset-management.html#private-url-for-reviewing-an-unpublished-dataset";
-    }
-    
-    public String getName() {
-        return "prvUrlDlg";
-    }
-    
-    public String getPanelName() {
-        return "prvUrlDlgPanel";
-    }
-    public String getConfirmationName() {
-        return "prvUrlConfirmDlg";
-    }
-    
-    public String getHeaderText() {
-        return getStringFromBundle("dataset.privateurl.header");
-    }
-    
-    public String getTipText() {
-        return getStringFromBundle("dataset.privateurl.tip");
+        return this.datasetPage.getPrivateUrlHelpUrl();
     }
 
     public String getUrl() {
@@ -81,17 +66,41 @@ public class PrivateUrlDialog {
     }
     
     public boolean displayPublishedWarning() {
-        return false;
+        return this.anonymized && this.datasetPage.isExistReleasedVersion();
     }
 
     public void generateUrl() {
-        this.url = this.datasetPage.createPrivateUrl(false);
+        this.url = this.datasetPage.createPrivateUrl(this.anonymized);
         this.displaySuccess = isUrlGenerated();
     }
 
     public void disableUrl() {
-        this.datasetPage.disablePrivateUrl(false);
+        this.datasetPage.disablePrivateUrl(this.anonymized);
         this.url = null;
         this.displaySuccess = false;
+    }
+
+    //--------------------------------------------------------------------------
+    @ApplicationScoped
+    public static class Factory implements Serializable {
+        
+        private final Instance<DatasetPage> datasetPage;
+        
+        @Inject
+        public Factory(final Instance<DatasetPage> datasetPage) {
+            this.datasetPage = datasetPage;
+        }
+        @Produces
+        @ViewScoped
+        @Named("privateUrlDialog")
+        public PrivateUrlDialog createPrivateUrlDialog() {
+            return new PrivateUrlDialog(this.datasetPage.get(), false);
+        }
+        @Produces
+        @ViewScoped
+        @Named("anonymizedPrivateUrlDialog")
+        public PrivateUrlDialog createAnonymizedPrivateUrlDialog() {
+            return new PrivateUrlDialog(this.datasetPage.get(), true);
+        }
     }
 }

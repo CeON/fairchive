@@ -144,8 +144,8 @@
                                 <span class="btn" 
                                       aria-label="#{bundle['dataset.copyUrl']}"
                                       tabindex="0"
-                                      onclick="navigator.clipboard.writeText('#{DatasetPage.privateUrlDialog.url}');"
-                                      onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{DatasetPage.privateUrlDialog.url}');">
+                                      onclick="navigator.clipboard.writeText('#{privateUrlDialog.url}');"
+                                      onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{privateUrlDialog.url}');">
                                     <span class="glyphicon glyphicon-copy"/>
                                     #{bundle['dataset.copyUrl']} 
                                 </span>
@@ -159,12 +159,12 @@
                                 <span class="btn" 
                                       aria-label="#{bundle['dataset.copyUrl']}"
                                       tabindex="0"
-                                      onclick="navigator.clipboard.writeText('#{DatasetPage.anonymizedPrivateUrlDialog.url}');"
-                                      onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{DatasetPage.anonymizedPrivateUrlDialog.url}');">
+                                      onclick="navigator.clipboard.writeText('#{anonymizedPrivateUrlDialog.url}');"
+                                      onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{anonymizedPrivateUrlDialog.url}');">
                                     <span class="glyphicon glyphicon-copy"/>
                                     #{bundle['dataset.copyUrl']} 
                                 </span>
-                                <p  jsf:rendered="#{DatasetPage.anonymizedPrivateUrlDialog.displayPublishedWarning()}"
+                                <p  jsf:rendered="#{anonymizedPrivateUrlDialog.displayPublishedWarning()}"
                                     class="text-warning">
                                     <span class="glyphicon glyphicon-warning-sign" />
                                     #{bundle['dataset.anonymized.privateurl.warning']}
@@ -420,14 +420,14 @@
                                                 </li>
                                                 <li>
                                                     <p:commandLink id="privateUrl"
-                                                                   oncomplete="primeFacesShowModal('#{DatasetPage.privateUrlDialog.getName()}', this)">
+                                                                   oncomplete="primeFacesShowModal('prvUrlDlg', this)">
                                                         <h:outputText
                                                                 value="#{bundle['dataset.editBtn.itemLabel.privateUrl']}"/>
                                                     </p:commandLink>
                                                 </li>
                                                 <li>
                                                     <p:commandLink id="anonymizedPrivateUrl"
-                                                                   oncomplete="primeFacesShowModal('#{DatasetPage.anonymizedPrivateUrlDialog.getName()}', this)">
+                                                                   oncomplete="primeFacesShowModal('anonPrvUrlDlg', this)">
                                                         <h:outputText
                                                                 value="#{bundle['dataset.editBtn.itemLabel.privateAnonymizedUrl']}"/>
                                                     </p:commandLink>
@@ -938,10 +938,20 @@
                     </div>
                 </p:dialog>
                 <ui:include src="dataset-privateUrlDialog.xhtml" >
-                    <ui:param name = "dialog" value="#{DatasetPage.anonymizedPrivateUrlDialog}"/>
+                    <ui:param name="dialog" value="#{anonymizedPrivateUrlDialog}"/>
+                    <ui:param name="dialogName" value="anonPrvUrlDlg"/>
+                    <ui:param name="confirmationDialogName" value="anonPrvUrlConfirmDlg"/>
+                    <ui:param name="panelName" value="anonPrvUrlDlgPanel"/>
+                    <ui:param name="headerText" value="#{bundle['dataset.anonymized.privateurl.header']}"/>
+                    <ui:param name="tipText" value="#{bundle['dataset.anonymized.privateurl.tip']}"/>
                 </ui:include>
                 <ui:include src="dataset-privateUrlDialog.xhtml" >
-                    <ui:param name = "dialog" value="#{DatasetPage.privateUrlDialog}"/>
+                    <ui:param name="dialog" value="#{privateUrlDialog}"/>
+                    <ui:param name="dialogName" value="prvUrlDlg"/>
+                    <ui:param name="confirmationDialogName" value="prvUrlConfirmDlg"/>
+                    <ui:param name="panelName" value="prvUrlDlgPanel"/>
+                    <ui:param name="headerText" value="#{bundle['dataset.privateurl.header']}"/>
+                    <ui:param name="tipText" value="#{bundle['dataset.privateurl.tip']}"/>
                 </ui:include>
 
                 <p:dialog id="linkDatasetForm" styleClass="largePopUp" header="#{bundle['dataset.link']}"
