@@ -7,7 +7,12 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
   cd "${DATAVERSE_SOURCE_DIR}"
 
   export BUILD_VERSION="dv-1.0"
-  export DATAVERSE_CONFIG_FILES=("conf/glassfish/dataverse.properties" "conf/glassfish/default.config" "conf/prometheus/prometheus_exporter.yaml")
+  export DATAVERSE_CONFIG_FILES=(
+    "conf/glassfish/dataverse.properties"
+    "conf/glassfish/default.config"
+    "conf/glassfish/run-install.sh"
+    "conf/prometheus/prometheus_exporter.yaml"
+  )
   export DATAVERSE_LOCAL_WORKING_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/container"
   export DATAVERSE_CONTAINER_WORKING_DIR="/dataverse/dataverse-dist/target/container"
   export DATAVERSE_DIST_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/dist"
@@ -61,6 +66,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     echo "EXTENSION_SOURCE_DIR: ${EXTENSION_SOURCE_DIR}"
     echo "EXTENSION_DIST_DIR: ${EXTENSION_DIST_DIR}"
     echo "COMPOSE_CMD: ${COMPOSE_CMD}"
+    echo "DATAVERSE_CONFIG_FILES: ${DATAVERSE_CONFIG_FILES[*]}"
   }
 
 
@@ -73,17 +79,31 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     rm -rf "${DATAVERSE_LOCAL_WORKING_DIR}"
     mkdir -p "${DATAVERSE_LOCAL_WORKING_DIR}"
 
+    echo "* Copying files."
     for i in "${!DATAVERSE_CONFIG_FILES[@]}"; do
-      copy_with_fallback "${EXTENSION_SOURCE_DIR}" "${DATAVERSE_SOURCE_DIR}" "${DATAVERSE_CONFIG_FILES[$i]}" "${DATAVERSE_LOCAL_WORKING_DIR}"
+      echo "* Copying ${DATAVERSE_CONFIG_FILES[$i]}"
+      copy_to_dv_container_with_fallback "${EXTENSION_SOURCE_DIR}" "${DATAVERSE_SOURCE_DIR}" "${DATAVERSE_CONFIG_FILES[$i]}"
     done
 
-    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "${DATAVERSE_LOCAL_WORKING_DIR}/dataverse.war"
-    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "activemq" "${DATAVERSE_LOCAL_WORKING_DIR}"
-    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "glassfish" "${DATAVERSE_LOCAL_WORKING_DIR}"
+    copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "dataverse.war"
+    copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "activemq"
+    copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "glassfish"
 
-    ${COMPOSE_CMD} exec -T glassfish /dataverse/conf/glassfish/run-install.sh
+    echo "* Running installation script inside the container."
+    exec_script_in_dv_container "run-install.sh"
+
+    if [[ $(type -t extension_post_install) == function ]]; then
+      echo "* Extension post install."
+      extension_post_install
+    fi
+
     echo "* Stopping the environment"
     ${COMPOSE_CMD} stop
+  }
+
+  exec_script_in_dv_container() {
+    SCRIPT_TO_EXECUTE="$1"
+    ${COMPOSE_CMD} exec -T glassfish /bin/bash -c "${DATAVERSE_CONTAINER_WORKING_DIR}/${SCRIPT_TO_EXECUTE}"
   }
 
   asadmin() {
@@ -92,7 +112,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
 
   deploy() {
     mkdir -p ${DATAVERSE_LOCAL_WORKING_DIR}
-    copy_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "${DATAVERSE_LOCAL_WORKING_DIR}/dataverse.war"
+    copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "dataverse.war"
     asadmin deploy ${DATAVERSE_CONTAINER_WORKING_DIR}/dataverse.war
   }
 
@@ -164,8 +184,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     done
   }
 
-
-  copy_with_fallback() {
+  copy_to_dv_container_with_fallback() {
     SRC_EXT_DIR="$1"
     SRC_DV_DIR="$2"
     SRC_FILE="$3"
@@ -174,24 +193,25 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     SRC_EXT="${SRC_EXT_DIR}/${SRC_FILE}"
     SRC_DV="${SRC_DV_DIR}/${SRC_FILE}"
 
-    copy_if_exists "${SRC_EXT}" "${DEST}" || \
-      copy_if_exists "${SRC_DV}" "${DEST}" || \
+    copy_to_dv_container "${SRC_EXT}" "${DEST}" || \
+      copy_to_dv_container "${SRC_DV}" "${DEST}" || \
       (echo "Could not copy ${SRC_FILE} from ${SRC_EXT_DIR} or ${SRC_DV_DIR}." && exit 1)
   }
 
-  copy_if_exists() {
+  copy_to_dv_container() {
     SRC="$1"
     DEST="$2"
+    DEST_FULL_PATH="${DATAVERSE_LOCAL_WORKING_DIR}/$DEST"
 
     if [[ -d ${SRC} ]]; then
-        cp -ur "${SRC}" "${DEST}"
+        cp -ur "${SRC}" "${DEST_FULL_PATH}"
         true
     elif [[ -f ${SRC} ]]; then
-        cp -u "${SRC}" "${DEST}"
+        cp -u "${SRC}" "${DEST_FULL_PATH}"
         true
     elif compgen -G "${SRC}" > /dev/null; then
       for f in ${SRC}; do
-        copy_if_exists "${f}" "${DEST}"
+        copy_to_dv_container "${f}" "${DEST}"
       done
     else
       false
