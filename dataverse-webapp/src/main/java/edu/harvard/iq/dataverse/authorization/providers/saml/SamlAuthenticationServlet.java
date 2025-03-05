@@ -278,7 +278,7 @@ public class SamlAuthenticationServlet extends HttpServlet {
     private void redirectOnLoginIssue(HttpServletRequest request, HttpServletResponse response, SamlLoginIssue issue)
             throws IOException {
         request.getSession().setAttribute(SAML_LOGIN_ISSUE_SESSION_PARAM, issue);
-        response.sendRedirect("/failedLogin.xhtml");
+        response.sendRedirect(SamlFailedLoginPage.FAILED_LOGIN_XHTML);
     }
 
     private HttpServletRequest wrapHttpRequest(HttpServletRequest httpRequest) throws MalformedURLException {
