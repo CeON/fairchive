@@ -6,11 +6,11 @@ import javax.inject.Named;
 
 @SuppressWarnings("serial")
 @ViewScoped
-@Named("privateUrlDialog")
-public class PrivateUrlDialog extends AbstractPrivateUrlDialog {
+@Named("anonymizedPrivateUrlDialog")
+public class AnonymizedPrivateUrlDialog extends AbstractPrivateUrlDialog {
 
     @Override
     public boolean isAnonymized() {
-        return false;
+        return true;
     }
 }
