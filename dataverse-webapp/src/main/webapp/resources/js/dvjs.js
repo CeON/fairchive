@@ -215,7 +215,6 @@ function initDvJS() {
                   .split("\n") // Split by new lines
                   .map(line => line.trim().split(/\s+/).map(Number));
         var data = editMapsData.get(key);
-        var map = data.leafMap;
 
         data.polygonLayer.clearLayers()
         const hasTwoPoints = cords.every(cord => Array.isArray(cord) && cord.length === 2);
@@ -233,7 +232,7 @@ function initDvJS() {
         }
 
         const bounds = L.latLngBounds(cords);
-        centerMap(editMapsData.get(key), bounds);
+        centerMap(data, bounds);
       },
 
       prepare: function(key) {
