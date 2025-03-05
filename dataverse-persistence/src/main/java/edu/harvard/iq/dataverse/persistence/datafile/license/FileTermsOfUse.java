@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.datafile.license;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.persistence.Column;
@@ -11,6 +12,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+
+import org.apache.commons.lang3.StringUtils;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
@@ -29,7 +32,7 @@ public class FileTermsOfUse implements Serializable, JpaEntity<Long> {
         LICENSE_BASED,
         ALL_RIGHTS_RESERVED,
         RESTRICTED,
-        TERMS_UNKNOWN
+        TERMS_UNKNOWN;
     }
 
     public enum RestrictType {
@@ -92,6 +95,36 @@ public class FileTermsOfUse implements Serializable, JpaEntity<Long> {
      */
     public String getRestrictCustomText() {
         return restrictCustomText;
+    }
+    
+    public String getDisplayText() {
+        switch(getTermsOfUseType()) {
+        case LICENSE_BASED : 
+            return this.license.getName();
+        case ALL_RIGHTS_RESERVED :
+            return "All rights reserved";
+        case RESTRICTED :
+            return Objects.toString(this.restrictCustomText, "");
+        case TERMS_UNKNOWN:
+            return "Unknown";
+        default:
+            return "Unknown";
+        }
+    }
+    
+    public boolean isSameAs(final FileTermsOfUse other) {
+        final TermsOfUseType thisTerms = getTermsOfUseType();
+        if (thisTerms != other.getTermsOfUseType()) {
+            return false;
+        } else if (thisTerms == TermsOfUseType.LICENSE_BASED) {
+            return this.license.getId().equals(other.license.getId());
+        } else if (thisTerms == TermsOfUseType.RESTRICTED) {
+            return this.restrictType == other.restrictType &&
+                    StringUtils.equals(this.restrictCustomText,
+                            other.restrictCustomText);
+        } else {
+            return true;
+        }
     }
 
     // -------------------- LOGIC --------------------

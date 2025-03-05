@@ -9,7 +9,9 @@ import static edu.harvard.iq.dataverse.export.ExporterType.OAIORE;
 import static edu.harvard.iq.dataverse.export.ExporterType.OAI_PMH;
 import static edu.harvard.iq.dataverse.export.ExporterType.OPENAIRE;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType.ACADEMIC_PURPOSE;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExcludeEmailFromExport;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +25,7 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -49,6 +52,10 @@ import edu.harvard.iq.dataverse.citation.StandardCitationFormatsConverter;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.datafile.license.License;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
@@ -104,7 +111,7 @@ public class ExportServiceTest {
                 new DCTermsExporter(settingsService, citationFactory),
                 new DublinCoreExporter(settingsService, citationFactory),
                 new OAI_OREExporter(settingsService, systemConfig, clock),
-                new OAI_PMHExporter(settingsService, citationFactory),
+                new OAI_PMHExporter(systemConfig),
                 new SchemaDotOrgExporter(jsonLdBuilder),
                 new OpenAireExporter(settingsService, citationFactory),
                 new JSONExporter(settingsService, citationFactory)));
@@ -154,13 +161,73 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_forOaiPmh() throws Exception {
+    public void toString_forOaiPmh_noFiles() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         // when
         String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_no_files.xml"));
+    }
+    
+    @Test
+    public void toString_forOaiPmh_varousLicenses() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
+        prepareFiles(datasetVersion);
+        setVariousLicenses(datasetVersion.getFileMetadatas());
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        // then
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_various_licenses.xml"));
+    }
+    
+    @Test
+    public void toString_forOaiPmh_sameLicense() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
+        prepareFiles(datasetVersion);
+        setSameLicense(datasetVersion.getFileMetadatas());
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        // then
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_same_license.xml"));
+    }
+    
+    @Test
+    public void toString_forOaiPmh_allRightsReserved() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
+        prepareFiles(datasetVersion);
+        setAllRightsReserved(datasetVersion.getFileMetadatas());
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        // then
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_all_rights_reserved.xml"));
+    }
+    
+    @Test
+    public void toString_forOaiPmh_restricted() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
+        prepareFiles(datasetVersion);
+        setRestricted(datasetVersion.getFileMetadatas());
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        // then
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_restricted.xml"));
+    }
+    
+    @Test
+    public void toString_forOaiPmh_termsUnknown() throws Exception {
+        // given
+        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
+        prepareFiles(datasetVersion);
+        setTermsUnknown(datasetVersion.getFileMetadatas());
+        // when
+        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        // then
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_unknown.xml"));
     }
 
     @Test
@@ -245,6 +312,62 @@ public class ExportServiceTest {
     private DatasetVersion prepareDataFrom(final String classpath)
             throws IOException, JsonParseException {
         return prepareDataForExport(parseDatasetVersionFromClasspath(classpath));
+    }
+    
+    private void prepareFiles(final DatasetVersion datasetVersion) {
+
+        FileMetadata file1 = new FileMetadata();
+        file1.setDataFile(new DataFile());
+        file1.getDataFile().setId(1L);
+        
+        FileMetadata file2 = new FileMetadata();
+        file2.setDataFile(new DataFile());
+        file2.getDataFile().setId(2L);
+        
+        datasetVersion.setFileMetadatas(asList(file1, file2));
+    }
+    
+    private void setVariousLicenses(final List<FileMetadata> files) {
+        files.get(0).setTermsOfUse(new FileTermsOfUse());
+        files.get(0).getTermsOfUse().setAllRightsReserved(true);
+        
+        files.get(1).setTermsOfUse(new FileTermsOfUse());
+        files.get(1).getTermsOfUse().setLicense(new License());
+        files.get(1).getTermsOfUse().getLicense().setId(1L);
+    }
+    
+    private void setSameLicense(final List<FileMetadata> files) {
+        files.get(0).setTermsOfUse(new FileTermsOfUse());
+        files.get(0).getTermsOfUse().setLicense(new License());
+        files.get(0).getTermsOfUse().getLicense().setId(1L);
+        files.get(0).getTermsOfUse().getLicense().setName("License 1");
+        
+        files.get(1).setTermsOfUse(new FileTermsOfUse());
+        files.get(1).getTermsOfUse().setLicense(files.get(0).getTermsOfUse().getLicense());
+    }
+    
+    private void setAllRightsReserved(final List<FileMetadata> files) {
+        files.get(0).setTermsOfUse(new FileTermsOfUse());
+        files.get(0).getTermsOfUse().setAllRightsReserved(true);
+        
+        files.get(1).setTermsOfUse(new FileTermsOfUse());
+        files.get(1).getTermsOfUse().setAllRightsReserved(true);
+    }
+    
+    private void setRestricted(final List<FileMetadata> files) {
+        files.get(0).setTermsOfUse(new FileTermsOfUse());
+        files.get(0).getTermsOfUse().setRestrictType(ACADEMIC_PURPOSE);
+        files.get(0).getTermsOfUse().setRestrictCustomText("For academic use only");
+        
+        files.get(1).setTermsOfUse(new FileTermsOfUse());
+        files.get(1).getTermsOfUse().setRestrictType(ACADEMIC_PURPOSE);
+        files.get(1).getTermsOfUse().setRestrictCustomText("For academic use only");
+    }
+    
+    private void setTermsUnknown(final List<FileMetadata> files) {
+        files.get(0).setTermsOfUse(new FileTermsOfUse());
+        
+        files.get(1).setTermsOfUse(new FileTermsOfUse());
     }
 
     private void prepareDatasetFieldValues(DatasetVersion datasetVersion) {
