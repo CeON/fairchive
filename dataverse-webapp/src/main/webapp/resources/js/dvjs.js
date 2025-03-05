@@ -151,6 +151,7 @@ function initDvJS() {
       let map = data.leafMap;
       map.invalidateSize();
       map.on('click', function (evt) { onMapClicked(evt, data) });
+      data.polygonLayer = L.layerGroup().addTo(map);
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       this.updateMap(key);
     }
@@ -202,6 +203,36 @@ function initDvJS() {
       // Update position of markers and selection rectangle using the stored values
       updateMap: function(key) {
         updateEditableMap(editMapsData, key);
+      },
+      // Draw on map: marker, line, polygon using list of coordinates
+      // coordinates - excepted format, each line represent pair of latitude longitude
+      // e.q.
+      // 1.112 41.12
+      // 2.12 15.21
+      updateMapCoordinates: function(key, coordinates) {
+        var cords = coordinates
+                  .trim() // Remove extra spaces/newlines
+                  .split("\n") // Split by new lines
+                  .map(line => line.trim().split(/\s+/).map(Number));
+        var data = editMapsData.get(key);
+
+        data.polygonLayer.clearLayers()
+        const hasTwoPoints = cords.every(cord => Array.isArray(cord) && cord.length === 2);
+        if (cords.length == 0 || !hasTwoPoints) {
+            return;
+        }
+
+        var shape;
+        if (cords.length == 1) {
+            shape = L.marker(cords[0]).addTo(data.polygonLayer)
+        } else if (cords.length == 2) {
+            shape = L.polyline(cords).addTo(data.polygonLayer)
+        } else if (cords.length >= 3) {
+            shape = L.polygon(cords).addTo(data.polygonLayer);
+        }
+
+        const bounds = L.latLngBounds(cords);
+        centerMap(data, bounds);
       },
 
       prepare: function(key) {
