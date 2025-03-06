@@ -8,7 +8,6 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -48,7 +47,6 @@ public class DublinCoreExportUtil {
 
     public static String DC_FLAVOR_OAI = "dc";
     public static String DC_FLAVOR_DCTERMS = "dcterms";
-    public static String DC_FLAVOR_PMH = "dc_iao_pmh";
 
     public static void datasetJson2dublincore(DatasetDTO datasetDto, OutputStream outputStream, String dcFlavor) throws XMLStreamException {
         XMLStreamWriter xmlw = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream);
@@ -69,18 +67,6 @@ public class DublinCoreExportUtil {
             xmlw.writeAttribute("xsi:schemaLocation", OAI_DC_XML_NAMESPACE + " " + OAI_DC_XML_SCHEMALOCATION);
             //writeAttribute(xmlw, "version", DEFAULT_XML_VERSION);
             createOAIDC(xmlw, datasetDto, dcFlavor);
-        }  else if (DC_FLAVOR_PMH.equals(dcFlavor)) {
-            xmlw.writeStartDocument();
-            xmlw.writeStartElement("metadata");
-            xmlw.writeAttribute("xmlns:xsi", XSI_NAMESPACE);
-            xmlw.writeAttribute("xmlns:qdc", QDC_NAMESPACE);
-            xmlw.writeAttribute("xmlns:dc", DC_XML_NAMESPACE);
-            xmlw.writeAttribute("xmlns:dcterms", DCTERMS_XML_NAMESPACE);
-            xmlw.writeDefaultNamespace(DCTERMS_DEFAULT_NAMESPACE);
-            xmlw.writeAttribute("xsi:schemaLocation", QDC_NAMESPACE + " " + QDC_SCHEMALOCATION);
-            xmlw.writeStartElement("qdc:qualifieddc");
-            createOAIPMH(xmlw, datasetDto);
-            xmlw.writeEndElement(); 
         } 
 
         xmlw.writeEndElement(); // <metadata> or <oai_dc:dc>

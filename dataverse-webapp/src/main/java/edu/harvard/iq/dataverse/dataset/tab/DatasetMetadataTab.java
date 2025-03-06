@@ -112,7 +112,7 @@ public class DatasetMetadataTab implements Serializable {
     public List<Tuple2<String, String>> getExportersDisplayNameAndURL() {
         List<Tuple2<String, String>> result = new ArrayList<>();
 
-        for (final Exporter exporter : exportService) {
+        for (final Exporter exporter : exportService.exporters()) {
             if (exporter.isAvailableToUsers()) {
                 result.add(Tuple.of(exporter.getDisplayName(), createExporterURL(
                                 exporter, systemConfig.getDataverseSiteUrl())));
