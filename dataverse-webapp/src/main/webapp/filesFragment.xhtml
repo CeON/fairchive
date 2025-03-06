@@ -110,6 +110,10 @@
                     <div jsf:id="uploadComputeBlock" class="button-block pull-right no-margin-top"
                           jsf:rendered="#{!widgetWrapper.widgetView}">
 
+                        <ui:include src="pluggable/dataset-extra-download-buttons.xhtml">
+                            <ui:param name="datasetVersion" value="#{datasetFilesTab.workingVersion}"/>
+                        </ui:include>
+
                         <!-- DOWNLOAD DCM SCRIPT BUTTON -->
                         <h:commandLink id="rsyncDLFF" actionListener="#{datasetFilesTab.downloadRsyncScript()}" styleClass="btn btn-default"
                                        rendered="#{datasetFilesTab.canUpdateDataset() and datasetFilesTab.getFileSize() eq 0
