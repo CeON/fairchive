@@ -5,6 +5,7 @@
         xmlns:c="http://java.sun.com/jsp/jstl/core"
         xmlns:p="http://primefaces.org/ui"
         xmlns:jsf="http://xmlns.jcp.org/jsf"
+        xmlns:of="http://omnifaces.org/functions"
         xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
 
 
@@ -27,12 +28,23 @@
 
     <c:set var="widgetVar" value="#{mapId}_#{datasetField.datasetFieldType.name}"/>
     <p:inputTextarea value="#{datasetField.value}" id="geoInputTextBox"
-                 onchange="DvJS.Geo.EditView.updateMapCoordinates('#{mapId}', $(this).val())"
+                 onchange="
+                    this.value = this.value.replace(/,/g, '.');
+                    DvJS.Geo.EditView.storeCoordinates('#{mapId}', $(this).val());
+                    DvJS.Geo.EditView.updateMap('#{mapId}');"
                  widgetVar="#{widgetVar}"
+                 rows="5"
                  pt:data-handler="#{widgetVar}"
                  styleClass="form-control"/>
 
-    <p:watermark for="geoInputTextBox" value="#{datasetField.datasetFieldType.localeWatermark}"></p:watermark>
+    <script>
+        DvJS.Geo.EditView.enablePolygonSupport('#{mapId}');
+        DvJS.Geo.EditView.putWidgetVar('#{mapId}', 'polygonGeo', '#{widgetVar}');
+        var escapedCoordinates = "#{of:escapeJS(datasetField.value)}";
+        DvJS.Geo.EditView.storeCoordinates('#{mapId}', escapedCoordinates);
+    </script>
+
+    <p:watermark for="geoInputTextBox" value="#{bundle['dataset.geobox.text.area.watermakr']}"></p:watermark>
 
     <div class="ui-message ui-message-error ui-widget ui-corner-all" aria-live="polite" jsf:rendered="#{!empty datasetField.validationMessage}">
         <span class="ui-message-error-detail">
