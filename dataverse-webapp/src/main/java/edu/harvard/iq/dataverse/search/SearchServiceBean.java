@@ -54,6 +54,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyMap;
 import static java.util.Arrays.asList;
 import java.util.Collections;
 import java.util.Date;
@@ -309,200 +310,9 @@ public class SearchServiceBean {
 
         //Going through the results
         for (SolrDocument solrDocument : docs) {
-            String id = (String) solrDocument.getFieldValue(SearchFields.ID);
-            Long entityId = (Long) solrDocument.getFieldValue(SearchFields.ENTITY_ID);
-            String solrType = (String) solrDocument.getFieldValue(SearchFields.TYPE);
-            SearchObjectType type = SearchObjectType.fromSolrValue(solrType);
-
-            float score = (Float) solrDocument.getFieldValue(SearchFields.RELEVANCE);
-            logger.fine("score for " + id + ": " + score);
-            String identifier = (String) solrDocument.getFieldValue(SearchFields.IDENTIFIER);
-            String citation = getLocalizedValueWithFallback(solrDocument, SearchFields.DATASET_CITATION);
-            String citationPlainHtml = getLocalizedValueWithFallback(solrDocument, SearchFields.DATASET_CITATION_HTML);
-            String persistentUrl = (String) solrDocument.getFieldValue(SearchFields.PERSISTENT_URL);
-            String name = (String) solrDocument.getFieldValue(SearchFields.NAME);
-            String nameSort = (String) solrDocument.getFieldValue(SearchFields.NAME_SORT);
-            String title = (String) solrDocument.getFirstValue(titleSolrField);
-            Long datasetVersionId = (Long) solrDocument.getFieldValue(SearchFields.DATASET_VERSION_ID);
-            String deaccessionReason = (String) solrDocument.getFieldValue(SearchFields.DATASET_DEACCESSION_REASON);
-            String fileContentType = (String) solrDocument.getFieldValue(SearchFields.FILE_CONTENT_TYPE);
-            Date release_or_create_date = (Date) solrDocument.getFieldValue(SearchFields.RELEASE_OR_CREATE_DATE);
-            String dvTree = (String) solrDocument.getFirstValue(SearchFields.SUBTREE);
-            String identifierOfDataverse = (String) solrDocument.getFieldValue(SearchFields.IDENTIFIER_OF_DATAVERSE);
-            String nameOfDataverse = (String) solrDocument.getFieldValue(SearchFields.DATAVERSE_NAME);
-            Date embargoUntil = (Date) solrDocument.getFieldValue(SearchFields.EMBARGO_UNTIL);
-
-            List<String> matchedFields = new ArrayList<>();
-            List<Highlight> highlights = new ArrayList<>();
-            Map<SolrField, Highlight> highlightsMap = new HashMap<>();
-            Map<SolrField, List<String>> highlightsMap2 = new HashMap<>();
-            Map<String, Highlight> highlightsMap3 = new HashMap<>();
-            if (queryResponse.getHighlighting().get(id) != null) {
-                for (Map.Entry<String, String> entry : solrFieldsToHightlightOnMap.entrySet()) {
-                    String field = entry.getKey();
-                    String displayName = entry.getValue();
-
-                    List<String> highlightSnippets = queryResponse.getHighlighting().get(id).get(field);
-                    if (highlightSnippets != null) {
-                        matchedFields.add(field);
-                        /*
-                          @todo only SolrField.SolrType.STRING? that's not
-                         * right... knit the SolrField object more into the
-                         * highlighting stuff
-                         */
-                        SolrField solrField = new SolrField(field, SolrField.SolrType.STRING, true, true, false);
-                        Highlight highlight = new Highlight(solrField, highlightSnippets, displayName);
-                        highlights.add(highlight);
-                        highlightsMap.put(solrField, highlight);
-                        highlightsMap2.put(solrField, highlightSnippets);
-                        highlightsMap3.put(field, highlight);
-                    }
-                }
-
-            }
-            SolrSearchResult solrSearchResult = new SolrSearchResult();
-            // @todo put all this in the constructor?
-            List<String> states = (List<String>) solrDocument.getFieldValue(SearchFields.PUBLICATION_STATUS);
-            if (states != null) {
-                // set list of all statuses
-                // this method also sets booleans for individual statuses
-                List<SearchPublicationStatus> publicationStates = states.stream()
-                        .map(solrStatus -> SearchPublicationStatus.fromSolrValue(solrStatus))
-                        .collect(toList());
-                solrSearchResult.setPublicationStatuses(publicationStates);
-            }
-            solrSearchResult.setId(id);
-            solrSearchResult.setEntityId(entityId);
-            solrSearchResult.setIdentifier(identifier);
-            solrSearchResult.setPersistentUrl(persistentUrl);
-            solrSearchResult.setType(type);
-            solrSearchResult.setScore(score);
-            solrSearchResult.setNameSort(nameSort);
-            solrSearchResult.setReleaseOrCreateDate(release_or_create_date);
-            solrSearchResult.setMatchedFields(matchedFields);
-            solrSearchResult.setHighlightsAsList(highlights);
-            solrSearchResult.setHighlightsMap(highlightsMap);
-            solrSearchResult.setHighlightsAsMap(highlightsMap3);
-            SearchParentInfo parent = new SearchParentInfo();
-            String description = (String) solrDocument.getFieldValue(SearchFields.DESCRIPTION);
-            solrSearchResult.setDescriptionNoSnippet(description);
-            solrSearchResult.setDeaccessionReason(deaccessionReason);
-            solrSearchResult.setEmbargoUntil(embargoUntil);
-
-            String originSource = (String) solrDocument.getFieldValue(SearchFields.METADATA_SOURCE);
-            if (IndexServiceBean.HARVESTED.equals(originSource)) {
-                solrSearchResult.setHarvested(true);
-            }
-
-            if (type == SearchObjectType.DATAVERSES) {
-                solrSearchResult.setName(name);
-                solrSearchResult.setHtmlUrl(baseUrl + SystemConfig.DATAVERSE_PATH + identifier);
-                // Do not set the ImageUrl, let the search include fragment fill in
-                // the thumbnail, similarly to how the dataset and datafile cards
-                // are handled.
-                //solrSearchResult.setImageUrl(baseUrl + "/api/access/dvCardImage/" + entityid);
-                /*
-                  @todo Expose this API URL after "dvs" is changed to
-                 * "dataverses". Also, is an API token required for published
-                 * dataverses? Michael: url changed.
-                 */
-//                solrSearchResult.setApiUrl(baseUrl + "/api/dataverses/" + entityid);
-            } else if (type == SearchObjectType.DATASETS) {
-                solrSearchResult.setHtmlUrl(baseUrl + "/dataset.xhtml?globalId=" + identifier);
-                solrSearchResult.setApiUrl(baseUrl + "/api/datasets/" + entityId);
-                //Image url now set via thumbnail api
-                //solrSearchResult.setImageUrl(baseUrl + "/api/access/dsCardImage/" + datasetVersionId);
-                // No, we don't want to set the base64 thumbnails here.
-                // We want to do it inside SearchIncludeFragment, AND ONLY once the rest of the
-                // page has already loaded.
-                //DatasetVersion datasetVersion = datasetVersionService.find(datasetVersionId);
-                //if (datasetVersion != null){
-                //    solrSearchResult.setDatasetThumbnail(datasetVersion.getDataset().getDatasetThumbnail(datasetVersion));
-                //}
-
-                // @todo Could use getFieldValues (plural) here.
-                String firstDatasetDescription = (String) solrDocument.getFirstValue(SearchFields.DATASET_DESCRIPTION);
-                solrSearchResult.setDescriptionNoSnippet(firstDatasetDescription);
-
-                solrSearchResult.setDatasetVersionId(datasetVersionId);
-
-                solrSearchResult.setCitation(citation);
-                solrSearchResult.setCitationHtml(citationPlainHtml);
-
-                solrSearchResult.setIdentifierOfDataverse(identifierOfDataverse);
-                solrSearchResult.setNameOfDataverse(nameOfDataverse);
-
-                if (title != null) {
-                    solrSearchResult.setTitle(title);
-                } else {
-                    logger.fine("No title indexed. Setting to empty string to prevent NPE. Dataset id " + entityId + " and version id " + datasetVersionId);
-                    solrSearchResult.setTitle("");
-                }
-                List<String> authors = (List) solrDocument.getFieldValues("dsf_txt_" + DatasetFieldConstant.authorName);
-                if (authors != null) {
-                    solrSearchResult.setDatasetAuthors(authors);
-                }
-            } else if (type == SearchObjectType.FILES) {
-                String parentGlobalId = null;
-                Object parentGlobalIdObject = solrDocument.getFieldValue(SearchFields.PARENT_IDENTIFIER);
-                if (parentGlobalIdObject != null) {
-                    parentGlobalId = (String) parentGlobalIdObject;
-                    parent.setParentIdentifier(parentGlobalId);
-                }
-                solrSearchResult.setHtmlUrl(baseUrl + "/dataset.xhtml?persistentId=" + parentGlobalId);
-                solrSearchResult.setDownloadUrl(baseUrl + "/api/access/datafile/" + entityId);
-                /*
-                  @todo We are not yet setting the API URL for files because
-                 * not all files have metadata. Only subsettable files (those
-                 * with a datatable) seem to have metadata. Furthermore, the
-                 * response is in XML whereas the rest of the Search API returns
-                 * JSON.
-                 */
-//                solrSearchResult.setApiUrl(baseUrl + "/api/meta/datafile/" + entityid);
-                //solrSearchResult.setImageUrl(baseUrl + "/api/access/fileCardImage/" + entityid);
-                solrSearchResult.setName(name);
-                solrSearchResult.setFiletype(FriendlyFileTypeUtil.getUserFriendlyFileTypeForDisplay(fileContentType));
-                solrSearchResult.setFileContentType(fileContentType);
-                Object fileSizeInBytesObject = solrDocument.getFieldValue(SearchFields.FILE_SIZE_IN_BYTES);
-                if (fileSizeInBytesObject != null) {
-                    try {
-                        long fileSizeInBytesLong = (long) fileSizeInBytesObject;
-                        solrSearchResult.setFileSizeInBytes(fileSizeInBytesLong);
-                    } catch (ClassCastException ex) {
-                        logger.info("Could not cast file " + entityId + " to long for " + SearchFields.FILE_SIZE_IN_BYTES + ": " + ex.getLocalizedMessage());
-                    }
-                }
-                solrSearchResult.setFileMd5((String) solrDocument.getFieldValue(SearchFields.FILE_MD5));
-                try {
-                    solrSearchResult.setFileChecksumType(DataFile.ChecksumType.fromString((String) solrDocument.getFieldValue(SearchFields.FILE_CHECKSUM_TYPE)));
-                } catch (IllegalArgumentException ex) {
-                    logger.info("Exception setting setFileChecksumType: " + ex);
-                }
-                solrSearchResult.setFileChecksumValue((String) solrDocument.getFieldValue(SearchFields.FILE_CHECKSUM_VALUE));
-                solrSearchResult.setUnf((String) solrDocument.getFieldValue(SearchFields.UNF));
-                solrSearchResult.setDatasetVersionId(datasetVersionId);
-                List<String> fileCategories = (List) solrDocument.getFieldValues(SearchFields.FILE_TAG);
-                if (fileCategories != null) {
-                    solrSearchResult.setFileCategories(fileCategories);
-                }
-                List<String> tabularDataTags = (List) solrDocument.getFieldValues(SearchFields.TABDATA_TAG);
-                if (tabularDataTags != null) {
-                    Collections.sort(tabularDataTags);
-                    solrSearchResult.setTabularDataTags(tabularDataTags);
-                }
-                String filePID = (String) solrDocument.getFieldValue(SearchFields.FILE_PERSISTENT_ID);
-                if (null != filePID && !"".equals(filePID)) {
-                    solrSearchResult.setFilePersistentId(filePID);
-                }
-
-                String fileAccess = (String) solrDocument.getFirstValue(SearchFields.ACCESS);
-                solrSearchResult.setFileAccess(fileAccess);
-            }
-            // @todo store PARENT_ID as a long instead and cast as such
-            parent.setId((String) solrDocument.getFieldValue(SearchFields.PARENT_ID))
-                  .setName((String) solrDocument.getFieldValue(SearchFields.PARENT_NAME))
-                  .setCitation(getLocalizedValueWithFallback(solrDocument, SearchFields.PARENT_CITATION));
-            solrSearchResult.setParent(parent);
+            SolrSearchResult solrSearchResult = searchResultFrom(
+                    solrFieldsToHightlightOnMap, queryResponse, titleSolrField,
+                    baseUrl, solrDocument);
             solrSearchResults.add(solrSearchResult);
         }
 
@@ -581,6 +391,234 @@ public class SearchServiceBean {
         solrQueryResponse.setPublicationStatusCounts(convertFacetToPublicationStatusCounts(queryResponse.getFacetField(SearchFields.PUBLICATION_STATUS)));
 
         return solrQueryResponse;
+    }
+
+    private static SolrSearchResult searchResultFrom (
+            Map<String, String> solrFieldsToHightlightOnMap,
+            QueryResponse queryResponse, String titleSolrField, String baseUrl,
+            SolrDocument solrDocument) {
+        String id = (String) solrDocument.getFieldValue(SearchFields.ID);
+        Long entityId = (Long) solrDocument.getFieldValue(SearchFields.ENTITY_ID);
+        String solrType = (String) solrDocument.getFieldValue(SearchFields.TYPE);
+        SearchObjectType type = SearchObjectType.fromSolrValue(solrType);
+
+        float score = (Float) solrDocument.getFieldValue(SearchFields.RELEVANCE);
+        logger.fine("score for " + id + ": " + score);
+        String identifier = (String) solrDocument.getFieldValue(SearchFields.IDENTIFIER);
+        String citation = getLocalizedValueWithFallback(solrDocument, SearchFields.DATASET_CITATION);
+        String citationPlainHtml = getLocalizedValueWithFallback(solrDocument, SearchFields.DATASET_CITATION_HTML);
+        String persistentUrl = (String) solrDocument.getFieldValue(SearchFields.PERSISTENT_URL);
+        String name = (String) solrDocument.getFieldValue(SearchFields.NAME);
+        String nameSort = (String) solrDocument.getFieldValue(SearchFields.NAME_SORT);
+        String title = (String) solrDocument.getFirstValue(titleSolrField);
+        Long datasetVersionId = (Long) solrDocument.getFieldValue(SearchFields.DATASET_VERSION_ID);
+        String deaccessionReason = (String) solrDocument.getFieldValue(SearchFields.DATASET_DEACCESSION_REASON);
+        String fileContentType = (String) solrDocument.getFieldValue(SearchFields.FILE_CONTENT_TYPE);
+        Date release_or_create_date = (Date) solrDocument.getFieldValue(SearchFields.RELEASE_OR_CREATE_DATE);
+        String dvTree = (String) solrDocument.getFirstValue(SearchFields.SUBTREE);
+        String identifierOfDataverse = (String) solrDocument.getFieldValue(SearchFields.IDENTIFIER_OF_DATAVERSE);
+        String nameOfDataverse = (String) solrDocument.getFieldValue(SearchFields.DATAVERSE_NAME);
+        Date embargoUntil = (Date) solrDocument.getFieldValue(SearchFields.EMBARGO_UNTIL);
+
+        List<String> matchedFields = new ArrayList<>();
+        List<Highlight> highlights = new ArrayList<>();
+        Map<SolrField, Highlight> highlightsMap = new HashMap<>();
+        Map<SolrField, List<String>> highlightsMap2 = new HashMap<>();
+        Map<String, Highlight> highlightsMap3 = new HashMap<>();
+        if (queryResponse.getHighlighting().get(id) != null) {
+            for (Map.Entry<String, String> entry : solrFieldsToHightlightOnMap.entrySet()) {
+                String field = entry.getKey();
+                String displayName = entry.getValue();
+
+                List<String> highlightSnippets = queryResponse.getHighlighting().get(id).get(field);
+                if (highlightSnippets != null) {
+                    matchedFields.add(field);
+                    /*
+                      @todo only SolrField.SolrType.STRING? that's not
+                     * right... knit the SolrField object more into the
+                     * highlighting stuff
+                     */
+                    SolrField solrField = new SolrField(field, SolrField.SolrType.STRING, true, true, false);
+                    Highlight highlight = new Highlight(solrField, highlightSnippets, displayName);
+                    highlights.add(highlight);
+                    highlightsMap.put(solrField, highlight);
+                    highlightsMap2.put(solrField, highlightSnippets);
+                    highlightsMap3.put(field, highlight);
+                }
+            }
+
+        }
+        SolrSearchResult solrSearchResult = new SolrSearchResult();
+        // @todo put all this in the constructor?
+        List<String> states = (List<String>) solrDocument.getFieldValue(SearchFields.PUBLICATION_STATUS);
+        if (states != null) {
+            // set list of all statuses
+            // this method also sets booleans for individual statuses
+            List<SearchPublicationStatus> publicationStates = states.stream()
+                    .map(solrStatus -> SearchPublicationStatus.fromSolrValue(solrStatus))
+                    .collect(toList());
+            solrSearchResult.setPublicationStatuses(publicationStates);
+        }
+        solrSearchResult.setId(id);
+        solrSearchResult.setEntityId(entityId);
+        solrSearchResult.setIdentifier(identifier);
+        solrSearchResult.setPersistentUrl(persistentUrl);
+        solrSearchResult.setType(type);
+        solrSearchResult.setScore(score);
+        solrSearchResult.setNameSort(nameSort);
+        solrSearchResult.setReleaseOrCreateDate(release_or_create_date);
+        solrSearchResult.setMatchedFields(matchedFields);
+        solrSearchResult.setHighlightsAsList(highlights);
+        solrSearchResult.setHighlightsMap(highlightsMap);
+        solrSearchResult.setHighlightsAsMap(highlightsMap3);
+        SearchParentInfo parent = new SearchParentInfo();
+        String description = (String) solrDocument.getFieldValue(SearchFields.DESCRIPTION);
+        solrSearchResult.setDescriptionNoSnippet(description);
+        solrSearchResult.setDeaccessionReason(deaccessionReason);
+        solrSearchResult.setEmbargoUntil(embargoUntil);
+
+        String originSource = (String) solrDocument.getFieldValue(SearchFields.METADATA_SOURCE);
+        if (IndexServiceBean.HARVESTED.equals(originSource)) {
+            solrSearchResult.setHarvested(true);
+        }
+
+        if (type == SearchObjectType.DATAVERSES) {
+            solrSearchResult.setName(name);
+            solrSearchResult.setHtmlUrl(baseUrl + SystemConfig.DATAVERSE_PATH + identifier);
+            // Do not set the ImageUrl, let the search include fragment fill in
+            // the thumbnail, similarly to how the dataset and datafile cards
+            // are handled.
+            //solrSearchResult.setImageUrl(baseUrl + "/api/access/dvCardImage/" + entityid);
+            /*
+              @todo Expose this API URL after "dvs" is changed to
+             * "dataverses". Also, is an API token required for published
+             * dataverses? Michael: url changed.
+             */
+//                solrSearchResult.setApiUrl(baseUrl + "/api/dataverses/" + entityid);
+        } else if (type == SearchObjectType.DATASETS) {
+            solrSearchResult.setHtmlUrl(baseUrl + "/dataset.xhtml?globalId=" + identifier);
+            solrSearchResult.setApiUrl(baseUrl + "/api/datasets/" + entityId);
+            //Image url now set via thumbnail api
+            //solrSearchResult.setImageUrl(baseUrl + "/api/access/dsCardImage/" + datasetVersionId);
+            // No, we don't want to set the base64 thumbnails here.
+            // We want to do it inside SearchIncludeFragment, AND ONLY once the rest of the
+            // page has already loaded.
+            //DatasetVersion datasetVersion = datasetVersionService.find(datasetVersionId);
+            //if (datasetVersion != null){
+            //    solrSearchResult.setDatasetThumbnail(datasetVersion.getDataset().getDatasetThumbnail(datasetVersion));
+            //}
+
+            // @todo Could use getFieldValues (plural) here.
+            String firstDatasetDescription = (String) solrDocument.getFirstValue(SearchFields.DATASET_DESCRIPTION);
+            solrSearchResult.setDescriptionNoSnippet(firstDatasetDescription);
+
+            solrSearchResult.setDatasetVersionId(datasetVersionId);
+
+            solrSearchResult.setCitation(citation);
+            solrSearchResult.setCitationHtml(citationPlainHtml);
+
+            solrSearchResult.setIdentifierOfDataverse(identifierOfDataverse);
+            solrSearchResult.setNameOfDataverse(nameOfDataverse);
+
+            if (title != null) {
+                solrSearchResult.setTitle(title);
+            } else {
+                logger.fine("No title indexed. Setting to empty string to prevent NPE. Dataset id " + entityId + " and version id " + datasetVersionId);
+                solrSearchResult.setTitle("");
+            }
+            List<String> authors = (List) solrDocument.getFieldValues("dsf_txt_" + DatasetFieldConstant.authorName);
+            if (authors != null) {
+                solrSearchResult.setDatasetAuthors(authors);
+            }
+        } else if (type == SearchObjectType.FILES) {
+            String parentGlobalId = null;
+            Object parentGlobalIdObject = solrDocument.getFieldValue(SearchFields.PARENT_IDENTIFIER);
+            if (parentGlobalIdObject != null) {
+                parentGlobalId = (String) parentGlobalIdObject;
+                parent.setParentIdentifier(parentGlobalId);
+            }
+            solrSearchResult.setHtmlUrl(baseUrl + "/dataset.xhtml?persistentId=" + parentGlobalId);
+            solrSearchResult.setDownloadUrl(baseUrl + "/api/access/datafile/" + entityId);
+            /*
+              @todo We are not yet setting the API URL for files because
+             * not all files have metadata. Only subsettable files (those
+             * with a datatable) seem to have metadata. Furthermore, the
+             * response is in XML whereas the rest of the Search API returns
+             * JSON.
+             */
+//                solrSearchResult.setApiUrl(baseUrl + "/api/meta/datafile/" + entityid);
+            //solrSearchResult.setImageUrl(baseUrl + "/api/access/fileCardImage/" + entityid);
+            solrSearchResult.setName(name);
+            solrSearchResult.setFiletype(FriendlyFileTypeUtil.getUserFriendlyFileTypeForDisplay(fileContentType));
+            solrSearchResult.setFileContentType(fileContentType);
+            Object fileSizeInBytesObject = solrDocument.getFieldValue(SearchFields.FILE_SIZE_IN_BYTES);
+            if (fileSizeInBytesObject != null) {
+                try {
+                    long fileSizeInBytesLong = (long) fileSizeInBytesObject;
+                    solrSearchResult.setFileSizeInBytes(fileSizeInBytesLong);
+                } catch (ClassCastException ex) {
+                    logger.info("Could not cast file " + entityId + " to long for " + SearchFields.FILE_SIZE_IN_BYTES + ": " + ex.getLocalizedMessage());
+                }
+            }
+            solrSearchResult.setFileMd5((String) solrDocument.getFieldValue(SearchFields.FILE_MD5));
+            try {
+                solrSearchResult.setFileChecksumType(DataFile.ChecksumType.fromString((String) solrDocument.getFieldValue(SearchFields.FILE_CHECKSUM_TYPE)));
+            } catch (IllegalArgumentException ex) {
+                logger.info("Exception setting setFileChecksumType: " + ex);
+            }
+            solrSearchResult.setFileChecksumValue((String) solrDocument.getFieldValue(SearchFields.FILE_CHECKSUM_VALUE));
+            solrSearchResult.setUnf((String) solrDocument.getFieldValue(SearchFields.UNF));
+            solrSearchResult.setDatasetVersionId(datasetVersionId);
+            List<String> fileCategories = (List) solrDocument.getFieldValues(SearchFields.FILE_TAG);
+            if (fileCategories != null) {
+                solrSearchResult.setFileCategories(fileCategories);
+            }
+            List<String> tabularDataTags = (List) solrDocument.getFieldValues(SearchFields.TABDATA_TAG);
+            if (tabularDataTags != null) {
+                Collections.sort(tabularDataTags);
+                solrSearchResult.setTabularDataTags(tabularDataTags);
+            }
+            String filePID = (String) solrDocument.getFieldValue(SearchFields.FILE_PERSISTENT_ID);
+            if (null != filePID && !"".equals(filePID)) {
+                solrSearchResult.setFilePersistentId(filePID);
+            }
+
+            String fileAccess = (String) solrDocument.getFirstValue(SearchFields.ACCESS);
+            solrSearchResult.setFileAccess(fileAccess);
+        }
+        // @todo store PARENT_ID as a long instead and cast as such
+        parent.setId((String) solrDocument.getFieldValue(SearchFields.PARENT_ID))
+              .setName((String) solrDocument.getFieldValue(SearchFields.PARENT_NAME))
+              .setCitation(getLocalizedValueWithFallback(solrDocument, SearchFields.PARENT_CITATION));
+        solrSearchResult.setParent(parent);
+        return solrSearchResult;
+    }
+    
+    public List<SolrSearchResult> search(final SolrQuery solrQuery)
+            throws SearchException {
+        try {
+            final List<SolrSearchResult> result = new ArrayList<>();
+            final QueryResponse queryResponse = this.solrServer.query(solrQuery);
+
+            final String baseUrl = this.systemConfig.getDataverseSiteUrl();
+            List<DatasetFieldType> datasetFields = this.datasetFieldService
+                    .findAllOrderedById();
+            Map<String, DatasetFieldType> fieldIndex = datasetFields.stream()
+                    .collect(toMap(DatasetFieldType::getName, Function.identity()));
+            final String titleSolrField = SolrField
+                    .of(fieldIndex.get(DatasetFieldConstant.title))
+                    .getNameSearchable();
+            // Going through the results
+            for (SolrDocument solrDocument : queryResponse.getResults()) {
+                SolrSearchResult solrSearchResult = searchResultFrom(
+                        emptyMap(), queryResponse, titleSolrField,
+                        baseUrl, solrDocument);
+                result.add(solrSearchResult);
+            }
+            return result;
+        } catch (RemoteSolrException | SolrServerException | IOException ex) {
+            throw new SearchException("Internal Dataverse Search Engine Error", ex);
+        }
     }
 
     public List<SolrSearchLocationResult> searchDatasetLocation(DataverseRequest dataverseRequest,
@@ -777,7 +815,7 @@ public class SearchServiceBean {
         query.addFilterQuery(SearchFields.TYPE + ":(" + filterValue + ")");
     }
 
-    private String getLocalizedValueWithFallback(SolrDocument document, String fieldName) {
+    private static String getLocalizedValueWithFallback(SolrDocument document, String fieldName) {
         String suffix = "_" + BundleUtil.getCurrentLocale().getLanguage();
         return (String) (document.containsKey(fieldName + suffix)
                 ? document.getFieldValue(fieldName + suffix)

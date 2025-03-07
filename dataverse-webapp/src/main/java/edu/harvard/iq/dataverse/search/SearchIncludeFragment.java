@@ -26,6 +26,7 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.omnifaces.cdi.Param;
 import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.StreamedContent;
@@ -54,8 +55,8 @@ import edu.harvard.iq.dataverse.search.response.DvObjectCounts;
 import edu.harvard.iq.dataverse.search.response.FacetCategory;
 import edu.harvard.iq.dataverse.search.response.FilterQuery;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
-import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
+import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 
 @RequestScoped
 @Named("SearchIncludeFragment")
@@ -449,7 +450,7 @@ public class SearchIncludeFragment {
 
         setDisplayCardValues(dataversePath);
         
-        this.lastSearchValue.setSearchResultsList(searchResultsList);
+        this.lastSearchValue.setResponse(solrQueryResponse);
         this.lastSearchValue.setRootDv(dataverse.isRoot());
         this.lastSearchValue.setDataverseId(dataverse.getId());
     }
@@ -480,10 +481,20 @@ public class SearchIncludeFragment {
         }
     }
     
-    public StreamedContent getSearchResultsFile() {
-
-        return new CSVResultPrinter(this.datasetRepo, this.datasetFieldTypeRepo)
-                .print(getLastSearchValue().getSearchResultsList());
+    public StreamedContent getSearchResultsFile() throws Exception {
+        final SolrQuery lastQuery = getLastSearchValue().getResponse()
+                .getSolrQuery();
+        final Integer start = lastQuery.getStart();
+        final Integer rows = lastQuery.getRows();
+        try {
+            lastQuery.setStart(null);
+            lastQuery.setRows(null);
+            return new CSVResultPrinter(this.datasetRepo, this.datasetFieldTypeRepo)
+                    .print(this.searchService.search(lastQuery));
+        } finally {
+            lastQuery.setStart(start);
+            lastQuery.setRows(rows);
+        }
     }
     
     public String prepareSearchResults()  {
