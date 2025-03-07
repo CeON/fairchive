@@ -43,6 +43,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.group.AuthenticatedUsers;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -106,6 +107,8 @@ public class SearchIncludeFragment {
     DatasetRepository datasetRepo;
     @Inject
     DatasetFieldTypeRepository datasetFieldTypeRepo;
+    @Inject
+    MetadataBlockRepository metadataBlockRepo;
 
     @Inject @Param(name = "q")
     private String query;
@@ -489,7 +492,7 @@ public class SearchIncludeFragment {
         try {
             lastQuery.setStart(null);
             lastQuery.setRows(Integer.MAX_VALUE);
-            return new CSVResultPrinter(this.datasetRepo, this.datasetFieldTypeRepo)
+            return new CSVResultPrinter(this.datasetRepo, this.metadataBlockRepo)
                     .print(this.searchService.search(lastQuery));
         } finally {
             lastQuery.setStart(start);

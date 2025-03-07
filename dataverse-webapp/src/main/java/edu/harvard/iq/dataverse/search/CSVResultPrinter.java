@@ -1,13 +1,13 @@
 package edu.harvard.iq.dataverse.search;
 
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
+import static java.util.Collections.emptyList;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
@@ -15,25 +15,33 @@ import org.apache.commons.csv.CSVPrinter;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 
 public final class CSVResultPrinter {
 
     private final DatasetRepository datasetRepo;
-    private final List<DatasetFieldType> exportedFields;
+    private final List<DatasetFieldType> exportedFields = new ArrayList<>();
 
     private final static CSVFormat format = CSVFormat.DEFAULT.builder().build();
 
     public CSVResultPrinter(final DatasetRepository datasetRepo,
-            final DatasetFieldTypeRepository datasetFieldTypeRepo) {
+            final MetadataBlockRepository metadataBlockRepo) {
         this.datasetRepo = datasetRepo;
-        this.exportedFields = datasetFieldTypeRepo.findAll().stream()
-                .filter(DatasetFieldType::isExportToFile)
-                .sorted(comparing(DatasetFieldType::getTitle)).collect(toList());
+        
+        for(final MetadataBlock block : metadataBlockRepo.findSystemMetadataBlocks()) {
+            for(final DatasetFieldType fieldType : block.getDatasetFieldTypes()) {
+                if(fieldType.isExportToFile()) {
+                    this.exportedFields.add(fieldType);
+                }
+            }
+        }
     }
 
     public StreamedContent print(final List<SolrSearchResult> results) {
@@ -70,7 +78,14 @@ public final class CSVResultPrinter {
         printer.print("Name");
         printer.print("Title");
         for (final DatasetFieldType type : this.exportedFields) {
-            printer.print(type.getTitle());
+            if (type.getParentDatasetFieldType() != null) {
+                printer.print(type.getMetadataBlock().getName() + "->"
+                        + type.getParentDatasetFieldType().getTitle() + "->"
+                        + type.getTitle());
+            } else {
+                printer.print(type.getMetadataBlock().getName() 
+                        + "->" + type.getTitle());
+            }
         }
     }
 
@@ -85,8 +100,10 @@ public final class CSVResultPrinter {
     }
 
     private List<DatasetField> getAllFieldsOfLatestVersionOf(final Long datasetId) {
-        return this.datasetRepo.getById(datasetId).getLatestVersion()
-                .getDatasetFieldsAll();
+        return this.datasetRepo.findById(datasetId)
+                .map(Dataset::getLatestVersion)
+                .map(DatasetVersion::getDatasetFieldsAll)
+                .orElse(emptyList());
     }
 
     private static String getFieldValueOfType(final List<DatasetField> fields,
