@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.eclipse.persistence.annotations.BatchFetchType.JOIN;
 
@@ -298,7 +299,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     /**
@@ -476,23 +477,14 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     }
 
 
-    public JsonObject asGsonObject(boolean prettyPrint) {
-
-
-        GsonBuilder builder;
-        if (prettyPrint) {  // Add pretty printing
-            builder = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting();
-        } else {
-            builder = new GsonBuilder().excludeFieldsWithoutExposeAnnotation();
+    public JsonObject asGsonObject(final boolean prettyPrint) {
+        final GsonBuilder builder = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation().serializeNulls();
+        if (prettyPrint) {
+            builder.setPrettyPrinting();
         }
-
-        builder.serializeNulls();   // correctly capture nulls
-        Gson gson = builder.create();
-
-        // serialize this object
-        JsonElement jsonObj = gson.toJsonTree(this);
+        final JsonElement jsonObj = builder.create().toJsonTree(this);
         jsonObj.getAsJsonObject().addProperty("id", this.getId());
-
         return jsonObj.getAsJsonObject();
     }
 
