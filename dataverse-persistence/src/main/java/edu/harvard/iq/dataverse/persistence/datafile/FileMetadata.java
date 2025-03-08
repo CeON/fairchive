@@ -276,23 +276,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     }
 
     public Date getFileDateToDisplay() {
-        Date fileDate = null;
-        DataFile datafile = this.getDataFile();
-        if (datafile != null) {
-            boolean fileHasBeenReleased = datafile.isReleased();
-            if (fileHasBeenReleased) {
-                Timestamp filePublicationTimestamp = datafile.getPublicationDate();
-                if (filePublicationTimestamp != null) {
-                    fileDate = filePublicationTimestamp;
-                }
-            } else {
-                Timestamp fileCreateTimestamp = datafile.getCreateDate();
-                if (fileCreateTimestamp != null) {
-                    fileDate = fileCreateTimestamp;
-                }
-            }
-        }
-        return fileDate;
+        return this.dataFile.getDate();
     }
 
     public DatasetVersion getDatasetVersion() {

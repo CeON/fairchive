@@ -278,6 +278,10 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
     public void setPublicationDate(Timestamp publicationDate) {
         this.publicationDate = publicationDate;
     }
+    
+    public Timestamp getDate() {        
+        return isReleased() ? this.publicationDate : this.createDate;
+    }
 
     public AuthenticatedUser getReleaseUser() {
         return releaseUser;
