@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -409,9 +410,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return Objects.hashCode(this.id);
     }
 
     @Override
@@ -431,21 +430,9 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
      * versions.
      */
     public boolean contentEquals(FileMetadata other) {
-        if (other == null) {
-            return false;
-        }
-
-        if (!StringUtils.equals(getLabel(), other.getLabel())) {
-            return false;
-        }
-        if (!StringUtils.equals(getDirectoryLabel(), other.getDirectoryLabel())) {
-            return false;
-        }
-        if (!StringUtils.equals(getDescription(), other.getDescription())) {
-            return false;
-        }
-
-        return true;
+        return StringUtils.equals(getLabel(), other.getLabel()) &&
+                StringUtils.equals(getDirectoryLabel(), other.getDirectoryLabel()) &&
+                StringUtils.equals(getDescription(), other.getDescription());
     }
 
 
