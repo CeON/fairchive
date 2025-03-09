@@ -10,8 +10,6 @@ import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.eclipse.persistence.annotations.BatchFetchType.JOIN;
 
 import java.io.Serializable;
-import java.security.acl.LastOwnerException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -27,7 +25,6 @@ import javax.json.JsonArrayBuilder;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -41,12 +38,10 @@ import javax.persistence.Transient;
 import javax.persistence.Version;
 import javax.validation.constraints.Pattern;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.persistence.annotations.BatchFetch;
 import org.hibernate.validator.constraints.NotBlank;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -55,7 +50,6 @@ import com.google.gson.annotations.Expose;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.TermsOfUseForm;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 
@@ -429,7 +423,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
      * determine if any of the actual metadata fields have changed between
      * versions.
      */
-    public boolean contentEquals(FileMetadata other) {
+    public boolean contentEquals(final FileMetadata other) {
         return StringUtils.equals(getLabel(), other.getLabel()) &&
                 StringUtils.equals(getDirectoryLabel(), other.getDirectoryLabel()) &&
                 StringUtils.equals(getDescription(), other.getDescription());
