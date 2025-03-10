@@ -284,11 +284,12 @@ public class DatasetPage implements Serializable {
     public String getJsonLd() {
         try {
             if (isThisLatestReleasedVersion()) {
-                return this.exportService.toString(dataset.getReleasedVersion(), SCHEMADOTORG);
+                return this.exportService.exportToString(dataset.getReleasedVersion(), SCHEMADOTORG);
             } else {
                 return EMPTY;
             }
         } catch (final ExportException e) {
+            logger.warning(e.toString());
             return EMPTY;
         }
     }

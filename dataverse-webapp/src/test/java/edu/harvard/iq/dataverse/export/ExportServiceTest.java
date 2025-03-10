@@ -125,7 +125,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, DATACITE);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DATACITE);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/testDatacite.xml"));
     }
@@ -135,7 +135,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, DCTERMS);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS);
         // then
         assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/dcterms.xml"));
     }
@@ -145,7 +145,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, JSON);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, JSON);
         // then
         assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/datasetInJson.json"));
     }
@@ -155,7 +155,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, OAIORE);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, OAIORE);
         // then
         assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/oai_ore_authors.json"));
     }
@@ -165,7 +165,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_no_files.xml"));
     }
@@ -177,7 +177,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setVariousLicenses(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_various_licenses.xml"));
     }
@@ -189,7 +189,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setSameLicense(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_same_license.xml"));
     }
@@ -201,7 +201,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setAllRightsReserved(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_all_rights_reserved.xml"));
     }
@@ -213,7 +213,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setRestricted(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_restricted.xml"));
     }
@@ -225,7 +225,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setTermsUnknown(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_unknown.xml"));
     }
@@ -235,7 +235,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, SCHEMADOTORG);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, SCHEMADOTORG);
         // then
         assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/schemaorg.json"));
     }
@@ -245,7 +245,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, OPENAIRE);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, OPENAIRE);
         // then
         assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/openaire.xml"));
     }
@@ -255,7 +255,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
-        String exportedDataset = this.exportService.toString(datasetVersion, DUBLINCORE);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DUBLINCORE);
         // then
         assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/dublincore.xml"));
     }
@@ -265,7 +265,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         
-        assertThatThrownBy(() -> this.exportService.toString(datasetVersion, null))
+        assertThatThrownBy(() -> this.exportService.exportToString(datasetVersion, null))
             .isInstanceOf(Exception.class);
     }
 

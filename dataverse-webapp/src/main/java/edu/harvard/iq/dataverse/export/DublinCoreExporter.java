@@ -23,6 +23,8 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 @ApplicationScoped
 public class DublinCoreExporter extends ExporterBase {
 
+    // -------------------- CONSTRUCTORS --------------------
+    
     @Inject
     public DublinCoreExporter(final SettingsServiceBean settingsService, 
             final CitationFactory citationFactory) {

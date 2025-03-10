@@ -35,7 +35,15 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-
+/*
+ * This exporter will be used to provide metadata from archeological repository 
+ * to PBI platform being developed by PSNC, so it is made to fulfill 
+ * the requirements of the PBI. 
+ * It combines the DC and DCTERMS namespaces. For this reason we cannot 
+ * use (or even extend) our standard oai_dc exporter. Moreover, we would like to 
+ * preserve the compatibility of oai_dc with other Dataverse installations 
+ * (PBI requirements unfortunatelly have some non-obvious quirks).
+ */
 @ApplicationScoped
 public class OAI_PMHExporter implements Exporter {
 

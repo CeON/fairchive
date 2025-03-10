@@ -97,6 +97,8 @@ public class FileTermsOfUse implements Serializable, JpaEntity<Long> {
         return restrictCustomText;
     }
     
+    // -------------------- LOGIC -------------------- 
+    
     public String getDisplayText() {
         switch(getTermsOfUseType()) {
         case LICENSE_BASED : 
@@ -127,7 +129,6 @@ public class FileTermsOfUse implements Serializable, JpaEntity<Long> {
         }
     }
 
-    // -------------------- LOGIC --------------------
 
     public TermsOfUseType getTermsOfUseType() {
         if (license != null) {

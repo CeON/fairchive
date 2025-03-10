@@ -295,7 +295,7 @@ public class Datasets extends AbstractApiBean {
 
         try {
             final String exportedDataset = this.exportService
-                    .toString(dataset.getReleasedVersion(), exporterConstant.get());
+                    .exportToString(dataset.getReleasedVersion(), exporterConstant.get());
             final String mediaType = this.exportService.getMediaType(exporterConstant.get());
             return allowCors(Response.ok()
                     .entity(exportedDataset)

@@ -17,6 +17,7 @@ public class ExportService {
 
     private Instance<Exporter> exporters;
 
+    // -------------------- CONSTRUCTORS --------------------
     @Deprecated
     public ExportService() {
 
@@ -31,7 +32,7 @@ public class ExportService {
         return this.exporters;
     }
 
-    public String toString(final DatasetVersion datasetVersion,
+    public String exportToString(final DatasetVersion datasetVersion,
             final ExporterType type)
             throws ExportException {
         return getExporterOf(type).exportDataset(datasetVersion);

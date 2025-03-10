@@ -163,56 +163,6 @@ public class DublinCoreExportUtil {
 
 
     }
-    
-    private static void createOAIPMH(final XMLStreamWriter xmlw, final DatasetDTO datasetDto) 
-            throws XMLStreamException {
-        DatasetVersionDTO version = datasetDto.getDatasetVersion();
-        String persistentAgency = datasetDto.getProtocol();
-        String persistentAuthority = datasetDto.getAuthority();
-        String persistentId = datasetDto.getIdentifier();
-        GlobalId globalId = new GlobalId(persistentAgency, persistentAuthority,
-                persistentId);
-
-        writeFullElement(xmlw, "dc:title", dto2Primitive(version, title));
-        writeAuthorsElement(xmlw, version, "dc"); // creator
-        writeFullElement(xmlw, "dc:contributor",dto2Primitive(version, depositor));
-        xmlw.writeStartElement("dc:identifier");
-        xmlw.writeCharacters(globalId.toURL().toString());
-        xmlw.writeEndElement(); 
-        writeFullElement(xmlw, "dc:description", extractChildValue(version, description, "dsDescriptionValue"));
-        writeFullElement(xmlw, "dc:relation",
-                extractChildValue(version, relatedDatasets, relatedDatasetCitation));
-        final String createDate = version.getCreateTime().substring(0,
-                version.getCreateTime().indexOf('T'));
-        writeFullElement(xmlw, "dcterms:created", createDate);
-        final String releaseDate = version.getReleaseTime().substring(0,
-                version.getReleaseTime().indexOf('T'));
-        writeFullElement(xmlw, "dcterms:issued", releaseDate);
-        
-        
-       // jak zrobić licencję ?
-        
-//
-//        writeAbstractElement(xmlw, version, dcFlavor); // Description
-//        writeSubjectElement(xmlw, version, dcFlavor); // Subjects and Key Words
-//
-//        writeFullElementList(xmlw, dcFlavor + ":" + "language",
-//                dto2PrimitiveList(version, DatasetFieldConstant.language));
-//
-//        writeFullElement(xmlw, dcFlavor + ":" + "date",
-//                datasetDto.getPublicationDate());
-//
-//
-//
-//        writeContributorElement(xmlw, version, dcFlavor);
-//
-//
-//        writeFullElementList(xmlw, dcFlavor + ":" + "type",
-//                dto2PrimitiveList(version, DatasetFieldConstant.kindOfData));
-//
-//        writeFullElementList(xmlw, dcFlavor + ":" + "source",
-//                dto2PrimitiveList(version, DatasetFieldConstant.dataSources));
-    }
 
     private static void writeAuthorsElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String dcFlavor) throws XMLStreamException {
 

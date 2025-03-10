@@ -81,7 +81,7 @@ public class Xrecord extends Record {
 
                 if (dataset != null && formatName != null) {
                     try {
-                        final String exportedDataset = exportService.toString(
+                        final String exportedDataset = exportService.exportToString(
                                 dataset.getReleasedVersion(),
                                 ExporterType.fromPrefix(formatName).get());
                         outputStream.write(exportedDataset.getBytes());
