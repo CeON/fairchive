@@ -27,6 +27,8 @@ public class ExportService {
     public ExportService(final Instance<Exporter> exporters) {
         this.exporters = exporters;
     }
+    
+    // -------------------- LOGIC --------------------
 
     public Iterable<Exporter> exporters() {
         return this.exporters;
@@ -47,6 +49,8 @@ public class ExportService {
         return getExporterOf(type).getMediaType();
     }
 
+    // -------------------- PRIVATE --------------------
+    
     private Exporter getExporterOf(final ExporterType type) throws ExportException {
         for (final Exporter exporter : this.exporters) {
             if (exporter.getExporterType() == type) {

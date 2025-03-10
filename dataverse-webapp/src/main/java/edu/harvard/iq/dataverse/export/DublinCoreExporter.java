@@ -31,6 +31,8 @@ public class DublinCoreExporter extends ExporterBase {
         super(citationFactory, settingsService);
     }
     
+    // -------------------- LOGIC --------------------
+    
     @Override
     public String exportDataset(final DatasetVersion version) throws ExportException {
         try (final ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
