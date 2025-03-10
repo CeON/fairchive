@@ -7,7 +7,7 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.dateOfDeposit
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionText;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
-import static edu.harvard.iq.dataverse.export.ExporterType.OAI_PMH;
+import static edu.harvard.iq.dataverse.export.ExporterType.DCTERMS_PBI;
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DCTERMS_DEFAULT_NAMESPACE;
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DCTERMS_XML_NAMESPACE;
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DC_XML_NAMESPACE;
@@ -119,7 +119,7 @@ public class DCTermsPBIExporter implements Exporter {
     
     @Override
     public ExporterType getExporterType() {
-        return OAI_PMH;
+        return DCTERMS_PBI;
     }
 
     @Override
