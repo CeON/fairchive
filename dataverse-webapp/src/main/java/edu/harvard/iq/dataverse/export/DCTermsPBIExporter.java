@@ -45,12 +45,12 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
  * (PBI requirements unfortunatelly have some non-obvious quirks).
  */
 @ApplicationScoped
-public class OAI_PMHExporter implements Exporter {
+public class DCTermsPBIExporter implements Exporter {
 
     private final SystemConfig config;
     
     @Inject
-    public OAI_PMHExporter(final SystemConfig config) {
+    public DCTermsPBIExporter(final SystemConfig config) {
         this.config = config;
     }
     

@@ -15,7 +15,7 @@ public enum ExporterType {
     SCHEMADOTORG("SCHEMADOTORG"),
     OPENAIRE("oai_datacite"),
     DDI_HTML("ddi_html"),
-    OAI_PMH("oai_pmh");
+    DCTERMS_PBI("DCTERMS_PBI");
 
     private final String prefix;
 

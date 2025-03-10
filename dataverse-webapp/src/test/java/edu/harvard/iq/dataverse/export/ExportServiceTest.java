@@ -3,10 +3,10 @@ package edu.harvard.iq.dataverse.export;
 import static edu.harvard.iq.dataverse.UnitTestUtils.readFileToString;
 import static edu.harvard.iq.dataverse.export.ExporterType.DATACITE;
 import static edu.harvard.iq.dataverse.export.ExporterType.DCTERMS;
+import static edu.harvard.iq.dataverse.export.ExporterType.DCTERMS_PBI;
 import static edu.harvard.iq.dataverse.export.ExporterType.DUBLINCORE;
 import static edu.harvard.iq.dataverse.export.ExporterType.JSON;
 import static edu.harvard.iq.dataverse.export.ExporterType.OAIORE;
-import static edu.harvard.iq.dataverse.export.ExporterType.OAI_PMH;
 import static edu.harvard.iq.dataverse.export.ExporterType.OPENAIRE;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType.ACADEMIC_PURPOSE;
@@ -25,7 +25,6 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -111,7 +110,7 @@ public class ExportServiceTest {
                 new DCTermsExporter(settingsService, citationFactory),
                 new DublinCoreExporter(settingsService, citationFactory),
                 new OAI_OREExporter(settingsService, systemConfig, clock),
-                new OAI_PMHExporter(systemConfig),
+                new DCTermsPBIExporter(systemConfig),
                 new SchemaDotOrgExporter(jsonLdBuilder),
                 new OpenAireExporter(settingsService, citationFactory),
                 new JSONExporter(settingsService, citationFactory)));
@@ -165,7 +164,7 @@ public class ExportServiceTest {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_no_files.xml"));
     }
@@ -177,7 +176,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setVariousLicenses(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_various_licenses.xml"));
     }
@@ -189,7 +188,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setSameLicense(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_same_license.xml"));
     }
@@ -201,7 +200,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setAllRightsReserved(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_all_rights_reserved.xml"));
     }
@@ -213,7 +212,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setRestricted(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_restricted.xml"));
     }
@@ -225,7 +224,7 @@ public class ExportServiceTest {
         prepareFiles(datasetVersion);
         setTermsUnknown(datasetVersion.getFileMetadatas());
         // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, OAI_PMH);
+        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
         assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_unknown.xml"));
     }
