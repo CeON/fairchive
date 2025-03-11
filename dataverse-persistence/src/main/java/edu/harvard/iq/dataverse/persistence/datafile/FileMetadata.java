@@ -42,9 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.persistence.annotations.BatchFetch;
 import org.hibernate.validator.constraints.NotBlank;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
@@ -272,7 +269,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     }
 
     public Date getFileDateToDisplay() {
-        return this.dataFile.getDate();
+        return this.dataFile.getPublishedCreated();
     }
 
     public DatasetVersion getDatasetVersion() {
@@ -437,37 +434,6 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
     public static final Comparator<FileMetadata> compareByDisplayOrder = 
             (o1, o2) -> o1.getDisplayOrder() - o2.getDisplayOrder();
-
-
-    public String toPrettyJSON() {
-
-        return serializeAsJSON(true);
-    }
-
-    public String toJSON() {
-
-        return serializeAsJSON(false);
-    }
-
-    /**
-     * @param prettyPrint
-     * @return
-     */
-    private String serializeAsJSON(final boolean prettyPrint) {
-        return asGsonObject(prettyPrint).toString();
-    }
-
-
-    public JsonObject asGsonObject(final boolean prettyPrint) {
-        final GsonBuilder builder = new GsonBuilder()
-                .excludeFieldsWithoutExposeAnnotation().serializeNulls();
-        if (prettyPrint) {
-            builder.setPrettyPrinting();
-        }
-        final JsonElement jsonObj = builder.create().toJsonTree(this);
-        jsonObj.getAsJsonObject().addProperty("id", this.getId());
-        return jsonObj.getAsJsonObject();
-    }
 
     public String getProvFreeForm() {
         return provFreeForm;
