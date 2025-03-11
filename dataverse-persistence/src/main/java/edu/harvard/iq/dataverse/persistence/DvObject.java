@@ -458,7 +458,7 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
         return new SimpleDateFormat("yyyy").format(getPublishedCreated());
     }
     
-    private Date getPublishedCreated() {
+    public Date getPublishedCreated() {
         //if published get the year if draft get when created
         if (this.isReleased()) {
             return getPublicationDate();
@@ -468,7 +468,8 @@ public abstract class DvObject extends DataverseEntity implements java.io.Serial
             return new Date();
         }
     }
-
+    
+    
     public String getStorageIdentifier() {
         return storageIdentifier;
     }
