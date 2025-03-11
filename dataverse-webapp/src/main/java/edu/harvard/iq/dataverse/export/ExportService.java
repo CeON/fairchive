@@ -1,7 +1,5 @@
 package edu.harvard.iq.dataverse.export;
 
-import java.io.Serializable;
-
 import javax.ejb.Stateless;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;

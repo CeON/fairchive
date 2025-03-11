@@ -67,8 +67,9 @@ public class DCTermsPBIExporter implements Exporter {
     }
     
     
-    private void writeDocument(final DatasetVersion version, final XMLStreamWriter xmlw) 
-        throws ExportException, XMLStreamException {
+    private void writeDocument(final DatasetVersion version,
+            final XMLStreamWriter xmlw)
+            throws ExportException, XMLStreamException {
         xmlw.writeStartDocument();
         xmlw.writeStartElement("metadata");
         xmlw.writeAttribute("xmlns:xsi", XSI_NAMESPACE);
@@ -76,38 +77,48 @@ public class DCTermsPBIExporter implements Exporter {
         xmlw.writeAttribute("xmlns:dc", DC_XML_NAMESPACE);
         xmlw.writeAttribute("xmlns:dcterms", DCTERMS_XML_NAMESPACE);
         xmlw.writeDefaultNamespace(DCTERMS_DEFAULT_NAMESPACE);
-        xmlw.writeAttribute("xsi:schemaLocation", QDC_NAMESPACE + " " + QDC_SCHEMALOCATION);
+        xmlw.writeAttribute("xsi:schemaLocation",
+                QDC_NAMESPACE + " " + QDC_SCHEMALOCATION);
         xmlw.writeStartElement("qdc:qualifieddc");
-        {
-            writeElement(xmlw, "dc:title", version.extractFieldValues(title).get(0));
-            String tag = "dc:creator";
-            for(final Map<String, DatasetField> creator : version.extractFieldsWithSubfields(author, authorName)) {
-                writeElement(xmlw, tag, creator.get(authorName).getValue());
-                tag = "dc:contributor";
-            }
-            writeElement(xmlw, "dc:identifier", version.getDataset().getGlobalId().toURL().toString());
-            for(final Map<String, DatasetField> creator : version.extractFieldsWithSubfields(description, descriptionText)) {
-                writeElement(xmlw, "dc:description", creator.get(descriptionText).getValue());
-            }
-            final String siteUrl = this.config.getDataverseSiteUrl();
-            for(final FileMetadata fileMetadata : version.getFileMetadatas()) {
-                writeElement(xmlw, "dc:relation", getPublicDownloadUrl(siteUrl, 
-                        null, fileMetadata.getDataFile().getId()));
-            }
-            if(version.getFileMetadatas().size() > 0)
-            if(version.hasSameTermsOfUseForAllFiles()) {
-                writeElement(xmlw, "dcterms:license",  version.getFileMetadatas().get(0).getTermsOfUse().getDisplayText());
-            } else {
-                writeElement(xmlw, "dcterms:license", "Different licenses for individual files");
-            }
-            
-            writeElement(xmlw, "dcterms:created", version.extractFieldValues(dateOfDeposit).get(0));
-            writeElement(xmlw, "dcterms:issued", version.getDataset().getPublicationDateFormattedYYYYMMDD());
+
+        writeElement(xmlw, "dc:title", version.extractFieldValues(title).get(0));
+        String tag = "dc:creator";
+        for (final Map<String, DatasetField> author : version
+                .extractFieldsWithSubfields(author, authorName)) {
+            writeElement(xmlw, tag, author.get(authorName).getValue());
+            tag = "dc:contributor";
         }
-        xmlw.writeEndElement(); 
+        writeElement(xmlw, "dc:identifier",
+                version.getDataset().getGlobalId().toURL().toString());
+        for (final Map<String, DatasetField> description : version
+                .extractFieldsWithSubfields(description, descriptionText)) {
+            writeElement(xmlw, "dc:description",
+                    description.get(descriptionText).getValue());
+        }
+        final String siteUrl = this.config.getDataverseSiteUrl();
+        for (final FileMetadata fileMetadata : version.getFileMetadatas()) {
+            writeElement(xmlw, "dc:relation", getPublicDownloadUrl(siteUrl,
+                    null, fileMetadata.getDataFile().getId()));
+        }
+        if (version.getFileMetadatas().size() > 0) {
+            if (version.hasSameTermsOfUseForAllFiles()) {
+                writeElement(xmlw, "dcterms:license", version.getFileMetadatas()
+                        .get(0).getTermsOfUse().getDisplayText());
+            } else {
+                writeElement(xmlw, "dcterms:license",
+                        "Different licenses for individual files");
+            }
+        }
+
+        writeElement(xmlw, "dcterms:created",
+                version.extractFieldValues(dateOfDeposit).get(0));
+        writeElement(xmlw, "dcterms:issued",
+                version.getDataset().getPublicationDateFormattedYYYYMMDD());
+
+        xmlw.writeEndElement();
         xmlw.writeEndElement(); // <metadata> or <oai_dc:dc>
         xmlw.flush();
-        
+
     }
     
     private static void writeElement(final XMLStreamWriter xmlw,
@@ -124,7 +135,7 @@ public class DCTermsPBIExporter implements Exporter {
 
     @Override
     public String getDisplayName() {
-        return getStringFromBundle("dataset.exportBtn.itemLabel.oai_pmh");
+        return getStringFromBundle("dataset.exportBtn.itemLabel.dcterms_pbi");
     }
 
     @Override

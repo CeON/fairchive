@@ -160,17 +160,17 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_forOaiPmh_noFiles() throws Exception {
+    public void toString_forDcTermsPBI_noFiles() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_no_files.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_no_files.xml"));
     }
     
     @Test
-    public void toString_forOaiPmh_varousLicenses() throws Exception {
+    public void toString_forDcTermsPBI_varousLicenses() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion);
@@ -178,11 +178,11 @@ public class ExportServiceTest {
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_various_licenses.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_various_licenses.xml"));
     }
     
     @Test
-    public void toString_forOaiPmh_sameLicense() throws Exception {
+    public void toString_forDcTermsPBI_sameLicense() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion);
@@ -190,11 +190,11 @@ public class ExportServiceTest {
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_same_license.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_same_license.xml"));
     }
     
     @Test
-    public void toString_forOaiPmh_allRightsReserved() throws Exception {
+    public void toString_forDcTermsPBI_allRightsReserved() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion);
@@ -202,11 +202,11 @@ public class ExportServiceTest {
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_all_rights_reserved.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/cdterms_pbi_all_rights_reserved.xml"));
     }
     
     @Test
-    public void toString_forOaiPmh_restricted() throws Exception {
+    public void toString_forDcTermsPBI_restricted() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion);
@@ -214,11 +214,11 @@ public class ExportServiceTest {
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_restricted.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/cdterms_pbi_restricted.xml"));
     }
     
     @Test
-    public void toString_forOaiPmh_termsUnknown() throws Exception {
+    public void toString_forDcTermsPBI_termsUnknown() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion);
@@ -226,7 +226,7 @@ public class ExportServiceTest {
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/oai_pmh_unknown.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/cdterms_pbi_unknown.xml"));
     }
 
     @Test
