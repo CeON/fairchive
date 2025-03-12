@@ -6,6 +6,7 @@ function initDvJS() {
     const Y1 = 'S';
     const X2 = 'E';
     const Y2 = 'N';
+    const TEXT_AREA_COORDINATES = 'textAreaCoordinates'
 
     const RECT_COLOR = '#e3276f';
     const MAX_ZOOM = 19;
@@ -116,6 +117,11 @@ function initDvJS() {
     }
 
     function updateInputAndValue(data, coord, value) {
+      if (!PF(data.widgetVars[coord])) {
+        throw new Error('Missing dataset field supporting rectangles edit: ' +
+        'westLongitude, eastLongitude, northLongitude, southLongitude');
+      }
+
       PF(data.widgetVars[coord]).jq.val(value.toFixed(5));
       data.values[coord] = Number(value);
     }
@@ -147,13 +153,138 @@ function initDvJS() {
     }
 
     function initializeMapInView(key, data) {
+      if (data.polygonSupport) {
+        INIT_MAP_OPTS.editable = true;
+      }
       data.leafMap = L.map(key, INIT_MAP_OPTS);
       let map = data.leafMap;
       map.invalidateSize();
-      map.on('click', function (evt) { onMapClicked(evt, data) });
-      data.polygonLayer = L.layerGroup().addTo(map);
+      if (data.polygonSupport) {
+        data.polygonLayer = L.layerGroup().addTo(map);
+        map.on('editable:drawing:commit', function (evt) { createdShape(evt ,data); })
+        map.on('editable:edited', function (e) {
+          updateTextArea(e.layer, data.widgetVars);
+        });
+        map.on('editable:vertex:new', function (e) {
+          updateTextArea(e.layer, data.widgetVars);
+        });
+        map.on('editable:vertex:deleted', function (e) {
+          updateTextArea(e.layer, data.widgetVars);
+        });
+
+        createBaseEditControls()
+        createNewMarkerControl(map, data.polygonLayer)
+        createNewPolygonControl(map, data.polygonLayer)
+        createNewRectangleControl(map, data.polygonLayer)
+      } else {
+        map.on('click', function (evt) { onMapClicked(evt, data) });
+      }
+
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       this.updateMap(key);
+    }
+
+    function createBaseEditControls() {
+      L.EditControl = L.Control.extend({
+        options: {
+          position: 'topleft',
+          callback: null,
+          kind: '',
+          html: ''
+         },
+        onAdd: function (map) {
+          var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar'),
+          link = L.DomUtil.create('a', '', container);
+
+          link.href = '#';
+          link.title = 'Create a new ' + this.options.kind;
+          link.innerHTML = this.options.html;
+          L.DomEvent.on(link, 'click', L.DomEvent.stop)
+                    .on(link, 'click', function () {
+                      window.LAYER = this.options.callback.call(map.editTools);
+                    }, this);
+
+          return container;
+        }
+      });
+    }
+
+    function createNewMarkerControl(map, polygonLayer) {
+      L.NewMarkerControl = L.EditControl.extend({
+        options: {
+          position: 'topleft',
+          callback: function () {
+            polygonLayer.clearLayers();
+            map.editTools.startMarker();
+          },
+          kind: 'marker',
+          html: '<svg width="20" height="20" viewBox="0 0 100 100" style="margin-top:5px">' +
+                  '<path d="M50,10 C70,10 80,30 50,90 C20,30 30,10 50,10 Z" fill="black" stroke="black" stroke-width="5"/>' +
+                  '<circle cx="50" cy="35" r="10" fill="white" stroke="black" stroke-width="3"/>' +
+                '</svg>'
+        }
+      });
+
+      map.addControl(new L.NewMarkerControl());
+    }
+
+    function createNewPolygonControl(map, polygonLayer) {
+      L.NewPolygonControl = L.EditControl.extend({
+        options: {
+          position: 'topleft',
+          callback: function () {
+            polygonLayer.clearLayers();
+            map.editTools.startPolygon();
+          },
+          kind: 'polygon',
+          html: '<svg width="20" height="20" viewBox="0 0 100 100" style="margin-top:5px">' +
+                  '<polygon points="50,10 90,30 90,70 50,90 10,70 10,30" fill="black" stroke="black" stroke-width="5"/>' +
+                '</svg>'
+        }
+      });
+
+      map.addControl(new L.NewPolygonControl());
+    }
+
+    function createNewRectangleControl(map, polygonLayer) {
+      L.NewRectangleControl = L.EditControl.extend({
+        options: {
+          position: 'topleft',
+          callback: function () {
+            polygonLayer.clearLayers();
+            map.editTools.startRectangle();
+          },
+          kind: 'rectangle',
+          html: '<svg width="20" height="20" viewBox="0 0 100 100" style="margin-top:5px">' +
+                  '<polygon points="10,10 90,10 90,90 10,90 10,10" fill="black" stroke="black" stroke-width="5"/>' +
+                '</svg>'
+        }
+      });
+
+      map.addControl(new L.NewRectangleControl());
+    }
+
+    function createdShape(e, data) {
+        let layer = e.layer;
+        data.polygonLayer.addLayer(layer);
+
+        updateTextArea(layer, data.widgetVars);
+    }
+
+    function updateTextArea(layer, widgetVars) {
+      if (!PF(widgetVars['polygonGeo'])) {
+        throw new Error('Missing dataset field supporting polygon edit: polygonGeo');
+      }
+
+      const geometry = layer.toGeoJSON().geometry.coordinates;
+
+      const isPolygon = Array.isArray(geometry[0]);
+      if (isPolygon) {
+        result = geometry[0].map(row => row.join(" ")).join("\n");
+      } else {
+        result = geometry.join(" ");
+      }
+      PF(widgetVars['polygonGeo']).jq.val(result);
     }
 
     function updateEditableMap(dataMap, key) {
@@ -174,6 +305,51 @@ function initDvJS() {
       centerMap(data, data.selection.getBounds());
     }
 
+    // Draw on map: marker, line, polygon using list of coordinates
+    // coordinates - excepted format, each line represent pair of longitude, latitude
+    // e.q.
+    // 1.112 41.12
+    // 2.12 15.21
+    function updateMapCoordinates(key, coordinates) {
+      if (!coordinates || coordinates.trim() === '') {
+        return;
+      }
+
+      var data = editMapsData.get(key);
+      if (!data.polygonLayer) {
+        return;
+      }
+
+      var cords = coordinates
+                .trim() // Remove extra spaces/newlines
+                .split("\n") // Split by new lines
+                .map(line => line.trim().split(/\s+/).map(Number))
+                .map(coord => [coord[1], coord[0]]); // Reverse the order (longitude, latitude) -> (latitude, longitude)
+      // validation
+      const hasTwoNumericPoints = cords.every(cord =>
+        Array.isArray(cord) &&
+        cord.length === 2 &&
+        cord.every(point => !isNaN(point))
+      );
+      if (cords.length == 0 || !hasTwoNumericPoints) {
+          return;
+      }
+
+      data.polygonLayer.clearLayers();
+      var shape;
+      if (cords.length == 1) {
+          shape = L.marker(cords[0]).addTo(data.polygonLayer)
+      } else if (cords.length == 2) {
+          shape = L.polyline(cords).addTo(data.polygonLayer)
+      } else if (cords.length >= 3) {
+          shape = L.polygon(cords).addTo(data.polygonLayer);
+      }
+
+      const bounds = L.latLngBounds(cords);
+      centerMap(data, bounds);
+      shape.enableEdit();
+    }
+
     // use html <template> with possibility to replace values from data
     // templateId - id of template
     // data - any json that will be used to replace placeholders {{placeholder}}
@@ -191,6 +367,7 @@ function initDvJS() {
       return {
         leafMap: undefined,
         leafMapInitialized: false,
+        polygonSupport: false,
         markerA: undefined,
         markerB: undefined,
         selection: undefined,
@@ -202,37 +379,12 @@ function initDvJS() {
     let editView = {
       // Update position of markers and selection rectangle using the stored values
       updateMap: function(key) {
-        updateEditableMap(editMapsData, key);
-      },
-      // Draw on map: marker, line, polygon using list of coordinates
-      // coordinates - excepted format, each line represent pair of latitude longitude
-      // e.q.
-      // 1.112 41.12
-      // 2.12 15.21
-      updateMapCoordinates: function(key, coordinates) {
-        var cords = coordinates
-                  .trim() // Remove extra spaces/newlines
-                  .split("\n") // Split by new lines
-                  .map(line => line.trim().split(/\s+/).map(Number));
-        var data = editMapsData.get(key);
-
-        data.polygonLayer.clearLayers()
-        const hasTwoPoints = cords.every(cord => Array.isArray(cord) && cord.length === 2);
-        if (cords.length == 0 || !hasTwoPoints) {
-            return;
+        let data = editMapsData.get(key);
+        if (data.polygonSupport) {
+          updateMapCoordinates(key, data.values[TEXT_AREA_COORDINATES])
+        } else {
+          updateEditableMap(editMapsData, key);
         }
-
-        var shape;
-        if (cords.length == 1) {
-            shape = L.marker(cords[0]).addTo(data.polygonLayer)
-        } else if (cords.length == 2) {
-            shape = L.polyline(cords).addTo(data.polygonLayer)
-        } else if (cords.length >= 3) {
-            shape = L.polygon(cords).addTo(data.polygonLayer);
-        }
-
-        const bounds = L.latLngBounds(cords);
-        centerMap(data, bounds);
       },
 
       prepare: function(key) {
@@ -255,6 +407,18 @@ function initDvJS() {
       putWidgetVar: function(key, field, widgetVar) {
         let data = editMapsData.get(key);
         data.widgetVars[field] = widgetVar;
+      },
+
+      storeCoordinates: function(key, value) {
+        let data = editMapsData.get(key);
+        if (data.polygonSupport) {
+          data.values[TEXT_AREA_COORDINATES] = value;
+        }
+      },
+      // Enable advanced map edit mode. Allow to draw markers, rectangles, polygons
+      enablePolygonSupport: function(key) {
+        let data = editMapsData.get(key);
+        data.polygonSupport = true;
       },
 
       initializeAll: function(keyPrefix) {
