@@ -9,13 +9,19 @@
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
                 xmlns:dv="http://dataverse.org/facelets">
 
-	<h:form style="display: inline;">
+	<h:form style="display: inline;"
+	       rendered="#{SearchIncludeFragment.displaySaveToFileButton()}">
 		<p:commandButton id="downloadLink"
 			value="#{bundle['dataverse.results.btn.saveToFile']}" ajax="false"
 			action="#{SearchIncludeFragment.prepareSearchResults}">
 			<p:fileDownload value="#{SearchIncludeFragment.searchResultsFile}" />
 		</p:commandButton>
 	</h:form>
+	<div jsf:rendered="#{!SearchIncludeFragment.displaySaveToFileButton()}">
+	   <h:outputFormat value="#{bundle['dataverse.results.msg.tooManyResults']}">
+	       <f:param value="#{SearchIncludeFragment.getMaxResultsCountSavedToFile()}"/>
+	   </h:outputFormat>
+	</div>
 
 	<div id="resultsCountPaginatorBlock" class="row" jsf:rendered="#{SearchIncludeFragment.searchResultsCount > 0}">
     <!-- RESULTS COUNT -->

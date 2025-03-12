@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.search;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaxResultsCountSavedToFile;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.startsWith;
@@ -58,6 +59,7 @@ import edu.harvard.iq.dataverse.search.response.FilterQuery;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 @RequestScoped
 @Named("SearchIncludeFragment")
@@ -109,6 +111,8 @@ public class SearchIncludeFragment {
     DatasetFieldTypeRepository datasetFieldTypeRepo;
     @Inject
     MetadataBlockRepository metadataBlockRepo;
+    @Inject
+    SettingsServiceBean settings;
 
     @Inject @Param(name = "q")
     private String query;
@@ -483,6 +487,15 @@ public class SearchIncludeFragment {
             errorFromSolr = ex.getMessage();
         }
     }
+    
+    public boolean displaySaveToFileButton() {
+        return getSearchResultsCount() < getMaxResultsCountSavedToFile();
+    }
+    
+    public Long getMaxResultsCountSavedToFile() {
+        return this.settings.getValueForKeyAsLong(MaxResultsCountSavedToFile, 1000L);
+    }
+    
     
     public StreamedContent getSearchResultsFile() throws Exception {
         final SolrQuery lastQuery = getLastSearchValue().getResponse()

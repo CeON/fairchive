@@ -765,8 +765,9 @@ public class SettingsServiceBean {
          * Supported solr fields types: string, list of strings
          * Default value: empty.
          */
-        CustomSearchLocationsSolrFields
-        ;
+        CustomSearchLocationsSolrFields,
+        
+        MaxResultsCountSavedToFile;
 
 
 
@@ -865,6 +866,11 @@ public class SettingsServiceBean {
             return null;
         }
 
+    }
+    
+    public Long getValueForKeyAsLong(final Key key, final Long defaultValue) {
+        final Long value = getValueForKeyAsLong(key);
+        return value != null ? value : defaultValue;
     }
 
     public Integer getValueForKeyAsInt(Key key) {
