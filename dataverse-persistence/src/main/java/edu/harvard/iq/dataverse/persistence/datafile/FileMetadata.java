@@ -20,8 +20,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -192,16 +190,6 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     public List<String> getCategoriesByName() {
         return this.fileCategories.stream().map(DataFileCategory::getName)
                 .collect(toList());
-    }
-
-
-    public JsonArrayBuilder getCategoryNamesAsJsonArrayBuilder() {
-        final JsonArrayBuilder builder = Json.createArrayBuilder();
-        
-        for (final DataFileCategory fileCategory : this.fileCategories) {
-            builder.add(fileCategory.getName());
-        }
-        return builder;
     }
 
 
