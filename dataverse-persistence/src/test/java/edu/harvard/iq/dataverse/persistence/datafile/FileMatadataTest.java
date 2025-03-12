@@ -2,6 +2,8 @@ package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.Timestamp;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -55,5 +57,22 @@ public class FileMatadataTest {
         fileMeta.setLabel("abc.tar.gz");
         
         assertThat(fileMeta.getFileNameExtention()).isEqualTo("gz");
+    }
+    
+    @Test
+    public void getFileDateToDisplay() {
+        final FileMetadata fileMeta = new FileMetadata();
+        fileMeta.setDataFile(new DataFile());
+        fileMeta.getDataFile()
+                .setCreateDate(Timestamp.valueOf("2000-01-01 00:00:00"));
+
+        assertThat(fileMeta.getFileDateToDisplay())
+                .isEqualTo(fileMeta.getDataFile().getCreateDate());
+
+        fileMeta.getDataFile()
+                .setPublicationDate(Timestamp.valueOf("2010-10-10 00:00:00"));
+
+        assertThat(fileMeta.getFileDateToDisplay())
+                .isEqualTo(fileMeta.getDataFile().getPublicationDate());
     }
 }

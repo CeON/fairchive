@@ -95,6 +95,7 @@ import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
@@ -146,6 +147,7 @@ public class DatasetPage implements Serializable {
     private CitationFactory citationFactory;
     private UningestInfoService uningestInfoService;
     private PrivateUrlServiceBean privateUrlService;
+    private SettingsWrapper settingsWrapper;
 
     private Dataset dataset = new Dataset();
 
@@ -198,7 +200,7 @@ public class DatasetPage implements Serializable {
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
                        AuthenticationServiceBean authenticationService, DatasetPageFacade datasetPageFacade,
                        CitationFactory citationFactory, UningestInfoService uningestInfoService,
-                       PrivateUrlServiceBean privateUrlService) {
+                       PrivateUrlServiceBean privateUrlService, SettingsWrapper settingsWrapper) {
         this.session = session;
         this.commandEngine = commandEngine;
         this.permissionsWrapper = permissionsWrapper;
@@ -222,6 +224,7 @@ public class DatasetPage implements Serializable {
         this.citationFactory = citationFactory;
         this.uningestInfoService = uningestInfoService;
         this.privateUrlService = privateUrlService;
+        this.settingsWrapper = settingsWrapper;
     }
 
 
@@ -394,7 +397,13 @@ public class DatasetPage implements Serializable {
     }
 
     private final Map<Long, MapLayerMetadata> mapLayerMetadataLookup = new HashMap<>();
-
+    
+    public String getPrivateUrlHelpUrl() {
+        return this.settingsWrapper.getGuidesBaseUrl() + "/"
+                + this.settingsWrapper.getGuidesVersion() +
+                "/user/dataset-management.html#private-url-for-reviewing-an-unpublished-dataset";
+    }
+    
     public String getGlobalId() {
         return persistentId;
     }
@@ -678,17 +687,22 @@ public class DatasetPage implements Serializable {
             AuthenticatedUser replyToUser = (AuthenticatedUser) session.getUser();
             replyTo = replyToUser.getEmail();
         }
-
         return null;
     }
     
     public boolean displayPrivateUrl(final boolean anonymized) {
-        return getPrivateUrl(anonymized) != null && !isViewedFromPrivateUrl();
+        return this.session.isUserLoggedIn() && getPrivateUrl(anonymized) != null
+                && !isViewedFromPrivateUrl();
     }
     
     PrivateUrl getPrivateUrl(final boolean anonymized) {
-        return this.commandEngine.submit(new GetPrivateUrlCommand(
-                this.dvRequestService.getDataverseRequest(), this.dataset, anonymized));
+        if (this.session.isUserLoggedIn()) {
+            return this.commandEngine.submit(new GetPrivateUrlCommand(
+                    this.dvRequestService.getDataverseRequest(), this.dataset,
+                    anonymized));
+        } else {
+            return null;
+        }
     }
     
     public String getPrivateUrlLink(final boolean anonymized) {
