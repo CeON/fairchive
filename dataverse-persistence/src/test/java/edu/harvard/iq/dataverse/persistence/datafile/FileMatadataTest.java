@@ -129,7 +129,6 @@ public class FileMatadataTest {
         FileMetadata meta = new FileMetadata();
         meta.setDatasetVersion(new DatasetVersion());
         meta.getDatasetVersion().setDataset(new Dataset());
-        meta.getDatasetVersion().getDataset().setFileCategories(asList(this.category2));
         meta.addCategory(this.category1);
         
         meta.addCategoryByName("NewCategory");
