@@ -121,7 +121,7 @@ public class ExportServiceTest {
     // -------------------- TESTS --------------------
     
     @Test
-    public void toString_forDataCite() throws Exception {
+    public void exportToString_forDataCite() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
@@ -131,7 +131,7 @@ public class ExportServiceTest {
     }
 
     @Test
-    public void toString_forDCTerms() throws Exception {
+    public void exportToString_forDCTerms() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
@@ -141,7 +141,7 @@ public class ExportServiceTest {
     }
 
     @Test
-    public void toString_forJson() throws Exception {
+    public void exportToString_forJson() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
@@ -151,7 +151,7 @@ public class ExportServiceTest {
     }
 
     @Test
-    public void toString_forOaiOre() throws Exception {
+    public void exportToString_forOaiOre() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         // when
@@ -161,7 +161,7 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_forDcTermsPBI_noFiles() throws Exception {
+    public void exportToString_forDcTermsPBI_noFiles() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         // when
@@ -171,7 +171,7 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_forDcTermsPBI_varousLicenses() throws Exception {
+    public void exportToString_forDcTermsPBI_varousLicenses() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion, newRestricted(), newCustomLicense(1L));
@@ -182,7 +182,7 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_forDcTermsPBI_sameLicense() throws Exception {
+    public void exportToString_forDcTermsPBI_sameLicense() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion, newCustomLicense(1L), newCustomLicense(1L));
@@ -193,7 +193,7 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_forDcTermsPBI_allRightsReserved() throws Exception {
+    public void exportToString_forDcTermsPBI_allRightsReserved() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion, newAllRightsReserved(), newAllRightsReserved());
@@ -204,7 +204,7 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_forDcTermsPBI_restricted() throws Exception {
+    public void exportToString_forDcTermsPBI_restricted() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion, newRestricted(), newRestricted());
@@ -215,7 +215,7 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_forDcTermsPBI_termsUnknown() throws Exception {
+    public void exportToString_forDcTermsPBI_termsUnknown() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
         prepareFiles(datasetVersion, newUnknown(), newUnknown());
@@ -226,7 +226,7 @@ public class ExportServiceTest {
     }
 
     @Test
-    public void toString_forSchemaOrg() throws Exception {
+    public void exportToString_forSchemaOrg() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
@@ -236,7 +236,7 @@ public class ExportServiceTest {
     }
 
     @Test
-    public void to_forOpenAire() throws Exception{
+    public void exportToString_forOpenAire() throws Exception{
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
@@ -246,7 +246,7 @@ public class ExportServiceTest {
     }
 
     @Test
-    public void toString_forDublinCore() throws Exception {
+    public void exportToString_forDublinCore() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         // when
@@ -256,7 +256,7 @@ public class ExportServiceTest {
     }
     
     @Test
-    public void toString_frowsException_forNullType() throws Exception {
+    public void exportToString_frowsException_forNullType() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDataset.json");
         
