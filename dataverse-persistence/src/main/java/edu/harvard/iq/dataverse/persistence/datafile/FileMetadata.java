@@ -192,30 +192,8 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
     // alternative, experimental method:
 
-    public void setCategoriesByName(List<String> newCategoryNames) {
-        setCategories(null); // ?? TODO: investigate!
-
-        if (newCategoryNames != null) {
-
-            for (String newCategoryName : newCategoryNames) {
-                // Dataset.getCategoryByName() will check if such a category
-                // already exists for the parent dataset; it will be created
-                // if not. The method will return null if the supplied
-                // category name is null or empty. -- L.A. 4.0 beta 10
-                DataFileCategory fileCategory;
-                try {
-                    // Using "try {}" to catch any null pointer exceptions,
-                    // just in case:
-                    fileCategory = this.getDatasetVersion().getDataset().getCategoryByName(newCategoryName);
-                } catch (Exception ex) {
-                    fileCategory = null;
-                }
-                if (fileCategory != null) {
-                    this.addCategory(fileCategory);
-                    fileCategory.addFileMetadata(this);
-                }
-            }
-        }
+    public void setCategoriesByName(final List<String> newCategoryNames) {
+        newCategoryNames.forEach(this::addCategoryByName);
     }
 
     public void addCategoryByName(final String name) {
