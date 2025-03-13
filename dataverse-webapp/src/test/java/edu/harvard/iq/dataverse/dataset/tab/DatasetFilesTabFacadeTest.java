@@ -302,6 +302,8 @@ class DatasetFilesTabFacadeTest {
         FileMetadata fileMetadata = new FileMetadata();
         fileMetadata.setId(new Random().nextLong());
         fileMetadata.setDataFile(new DataFile());
+        fileMetadata.setDatasetVersion(new DatasetVersion());
+        fileMetadata.getDatasetVersion().setDataset(new Dataset());
         return fileMetadata;
     }
 }
