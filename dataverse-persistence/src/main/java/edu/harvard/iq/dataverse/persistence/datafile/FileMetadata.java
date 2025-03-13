@@ -184,7 +184,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
      *
      * @return
      */
-    public List<String> getCategoriesByName() {
+    public List<String> getCategoryNames() {
         return this.fileCategories.stream().map(DataFileCategory::getName)
                 .collect(toList());
     }
@@ -197,7 +197,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     }
 
     public void addCategoryByName(final String name) {
-        if (isNotEmpty(name) && !getCategoriesByName().contains(name)) {
+        if (isNotEmpty(name) && !getCategoryNames().contains(name)) {
             final DataFileCategory fileCategory = this.getDatasetVersion()
                     .getDataset().getCategoryByName(name);
             addCategory(fileCategory);

@@ -27,16 +27,16 @@ public class FileMatadataTest {
 
         FileMetadata meta = new FileMetadata();
 
-        assertThat(meta.getCategoriesByName()).isEmpty();
+        assertThat(meta.getCategoryNames()).isEmpty();
 
         meta.addCategory(this.category1);
 
-        assertThat(meta.getCategoriesByName())
+        assertThat(meta.getCategoryNames())
                 .containsExactly(this.category1.getName());
 
         meta.addCategory(this.category2);
 
-        assertThat(meta.getCategoriesByName())
+        assertThat(meta.getCategoryNames())
                 .containsExactly(this.category1.getName(), this.category2.getName());
     }
     
