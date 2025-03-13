@@ -504,7 +504,7 @@ public class SearchIncludeFragment {
         final Integer rows = lastQuery.getRows();
         try {
             lastQuery.setStart(null);
-            lastQuery.setRows(Integer.MAX_VALUE);
+            lastQuery.setRows(getMaxResultsCountSavedToFile().intValue());
             return new CSVResultPrinter(this.datasetRepo, this.metadataBlockRepo)
                     .print(this.searchService.search(lastQuery));
         } finally {
