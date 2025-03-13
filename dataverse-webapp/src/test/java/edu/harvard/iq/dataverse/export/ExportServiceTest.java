@@ -12,6 +12,7 @@ import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType.ACADEMIC_PURPOSE;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExcludeEmailFromExport;
 import static java.util.Arrays.asList;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -266,6 +267,11 @@ public class ExportServiceTest {
         
         assertThatThrownBy(() -> this.exportService.exportToString(datasetVersion, null))
             .isInstanceOf(Exception.class);
+    }
+    
+    @Test
+    public void getMediaType()  throws Exception { 
+        assertThat(this.exportService.getMediaType(DCTERMS_PBI)).isEqualTo(APPLICATION_XML);
     }
 
     // -------------------- PRIVATE --------------------
