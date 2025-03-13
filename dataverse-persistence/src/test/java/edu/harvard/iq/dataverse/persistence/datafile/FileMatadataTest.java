@@ -81,7 +81,7 @@ public class FileMatadataTest {
     }
     
     @Test
-    public void addingCategoryByName_withNullArgument_doesNothing() {
+    public void addCategoryByName_withNullArgument_doesNothing() {
         FileMetadata meta = new FileMetadata();
         
         meta.addCategoryByName(null);
@@ -90,7 +90,7 @@ public class FileMatadataTest {
     }
     
     @Test
-    public void addingCategoryByName_withEmptyArgument_doesNothing() {
+    public void addCategoryByName_withEmptyArgument_doesNothing() {
         FileMetadata meta = new FileMetadata();
         
         meta.addCategoryByName("");
@@ -99,7 +99,7 @@ public class FileMatadataTest {
     }
     
     @Test
-    public void addingCategoryByName_whenItIsAlreadyPresent_doesNothing() {
+    public void addgCategoryByName_whenItIsAlreadyPresent_doesNothing() {
         FileMetadata meta = new FileMetadata();
         meta.addCategory(this.category1);
         
@@ -110,7 +110,7 @@ public class FileMatadataTest {
     }
     
     @Test
-    public void addingCategoryByName_whenItAlreadyExistsinDataset_addsExistingCategory() {
+    public void addCategoryByName_whenItAlreadyExistsinDataset_addsExistingCategory() {
         FileMetadata meta = new FileMetadata();
         meta.setDatasetVersion(new DatasetVersion());
         meta.getDatasetVersion().setDataset(new Dataset());
@@ -125,7 +125,7 @@ public class FileMatadataTest {
     }
     
     @Test
-    public void addingCategoryByName_withNeName_addsNewCategory() {
+    public void addCategoryByName_withNeName_addsNewCategory() {
         FileMetadata meta = new FileMetadata();
         meta.setDatasetVersion(new DatasetVersion());
         meta.getDatasetVersion().setDataset(new Dataset());
