@@ -174,8 +174,7 @@ public class ExportServiceTest {
     public void toString_forDcTermsPBI_varousLicenses() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion);
-        setVariousLicenses(datasetVersion.getFileMetadatas());
+        prepareFiles(datasetVersion, newRestricted(), newCustomLicense(1L));
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
@@ -186,8 +185,7 @@ public class ExportServiceTest {
     public void toString_forDcTermsPBI_sameLicense() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion);
-        setSameLicense(datasetVersion.getFileMetadatas());
+        prepareFiles(datasetVersion, newCustomLicense(1L), newCustomLicense(1L));
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
@@ -198,8 +196,7 @@ public class ExportServiceTest {
     public void toString_forDcTermsPBI_allRightsReserved() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion);
-        setAllRightsReserved(datasetVersion.getFileMetadatas());
+        prepareFiles(datasetVersion, newAllRightsReserved(), newAllRightsReserved());
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
@@ -210,8 +207,7 @@ public class ExportServiceTest {
     public void toString_forDcTermsPBI_restricted() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion);
-        setRestricted(datasetVersion.getFileMetadatas());
+        prepareFiles(datasetVersion, newRestricted(), newRestricted());
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
@@ -222,8 +218,7 @@ public class ExportServiceTest {
     public void toString_forDcTermsPBI_termsUnknown() throws Exception {
         // given
         DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion);
-        setTermsUnknown(datasetVersion.getFileMetadatas());
+        prepareFiles(datasetVersion, newUnknown(), newUnknown());
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
@@ -319,60 +314,45 @@ public class ExportServiceTest {
         return prepareDataForExport(parseDatasetVersionFromClasspath(classpath));
     }
     
-    private void prepareFiles(final DatasetVersion datasetVersion) {
+    private void prepareFiles(final DatasetVersion datasetVersion,
+            final FileTermsOfUse terms1, final FileTermsOfUse terms2) {
 
         FileMetadata file1 = new FileMetadata();
         file1.setDataFile(new DataFile());
         file1.getDataFile().setId(1L);
-        
+        file1.setTermsOfUse(terms1);
+
         FileMetadata file2 = new FileMetadata();
         file2.setDataFile(new DataFile());
         file2.getDataFile().setId(2L);
-        
+        file2.setTermsOfUse(terms2);
+
         datasetVersion.setFileMetadatas(asList(file1, file2));
     }
     
-    private void setVariousLicenses(final List<FileMetadata> files) {
-        files.get(0).setTermsOfUse(new FileTermsOfUse());
-        files.get(0).getTermsOfUse().setAllRightsReserved(true);
-        
-        files.get(1).setTermsOfUse(new FileTermsOfUse());
-        files.get(1).getTermsOfUse().setLicense(new License());
-        files.get(1).getTermsOfUse().getLicense().setId(1L);
+    private FileTermsOfUse newRestricted() {
+        FileTermsOfUse fileTermsOfUse = new FileTermsOfUse();
+        fileTermsOfUse.setRestrictType(ACADEMIC_PURPOSE);
+        fileTermsOfUse.setRestrictCustomText("For academic use only");
+        return fileTermsOfUse;
     }
     
-    private void setSameLicense(final List<FileMetadata> files) {
-        files.get(0).setTermsOfUse(new FileTermsOfUse());
-        files.get(0).getTermsOfUse().setLicense(new License());
-        files.get(0).getTermsOfUse().getLicense().setId(1L);
-        files.get(0).getTermsOfUse().getLicense().setName("License 1");
-        
-        files.get(1).setTermsOfUse(new FileTermsOfUse());
-        files.get(1).getTermsOfUse().setLicense(files.get(0).getTermsOfUse().getLicense());
+    private FileTermsOfUse newAllRightsReserved() {
+        FileTermsOfUse fileTermsOfUse = new FileTermsOfUse();
+        fileTermsOfUse.setAllRightsReserved(true);
+        return fileTermsOfUse;
+    }
+
+    private FileTermsOfUse newCustomLicense(Long id) {
+        FileTermsOfUse fileTermsOfUse = new FileTermsOfUse();
+        fileTermsOfUse.setLicense(new License());
+        fileTermsOfUse.getLicense().setId(id);
+        fileTermsOfUse.getLicense().setName("License " + fileTermsOfUse.getLicense().getId());
+        return fileTermsOfUse;
     }
     
-    private void setAllRightsReserved(final List<FileMetadata> files) {
-        files.get(0).setTermsOfUse(new FileTermsOfUse());
-        files.get(0).getTermsOfUse().setAllRightsReserved(true);
-        
-        files.get(1).setTermsOfUse(new FileTermsOfUse());
-        files.get(1).getTermsOfUse().setAllRightsReserved(true);
-    }
-    
-    private void setRestricted(final List<FileMetadata> files) {
-        files.get(0).setTermsOfUse(new FileTermsOfUse());
-        files.get(0).getTermsOfUse().setRestrictType(ACADEMIC_PURPOSE);
-        files.get(0).getTermsOfUse().setRestrictCustomText("For academic use only");
-        
-        files.get(1).setTermsOfUse(new FileTermsOfUse());
-        files.get(1).getTermsOfUse().setRestrictType(ACADEMIC_PURPOSE);
-        files.get(1).getTermsOfUse().setRestrictCustomText("For academic use only");
-    }
-    
-    private void setTermsUnknown(final List<FileMetadata> files) {
-        files.get(0).setTermsOfUse(new FileTermsOfUse());
-        
-        files.get(1).setTermsOfUse(new FileTermsOfUse());
+    private FileTermsOfUse newUnknown() {
+        return new FileTermsOfUse();
     }
 
     private void prepareDatasetFieldValues(DatasetVersion datasetVersion) {
