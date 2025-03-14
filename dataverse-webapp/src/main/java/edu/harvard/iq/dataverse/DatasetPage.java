@@ -1,8 +1,10 @@
 package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
 import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -70,6 +72,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.ReturnDatasetToAuthorCommand
 import edu.harvard.iq.dataverse.engine.command.impl.SubmitDatasetForReviewCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.error.DataverseError;
+import edu.harvard.iq.dataverse.export.ExportException;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.ExporterType;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
@@ -279,19 +282,16 @@ public class DatasetPage implements Serializable {
      * Used in dataset.xhtml
      */
     public String getJsonLd() {
-        if (isThisLatestReleasedVersion()) {
-            Either<DataverseError, String> exportedDataset =
-                    exportService.exportDatasetVersionAsString(dataset.getReleasedVersion(),
-                                                               ExporterType.SCHEMADOTORG);
-
-            if (exportedDataset.isLeft()) {
-                logger.fine(exportedDataset.getLeft().getErrorMsg());
-                return StringUtils.EMPTY;
+        try {
+            if (isThisLatestReleasedVersion()) {
+                return this.exportService.exportToString(dataset.getReleasedVersion(), SCHEMADOTORG);
+            } else {
+                return EMPTY;
             }
-
-            return exportedDataset.get();
+        } catch (final ExportException e) {
+            logger.warning(e.toString());
+            return EMPTY;
         }
-        return StringUtils.EMPTY;
     }
 
     public boolean isThisLatestReleasedVersion() {

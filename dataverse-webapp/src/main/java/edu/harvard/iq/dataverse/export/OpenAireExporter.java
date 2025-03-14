@@ -26,11 +26,6 @@ public class OpenAireExporter extends ExporterBase {
     // -------------------- LOGIC --------------------
 
     @Override
-    public String getProviderName() {
-        return ExporterType.OPENAIRE.getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return ExporterType.OPENAIRE;
     }

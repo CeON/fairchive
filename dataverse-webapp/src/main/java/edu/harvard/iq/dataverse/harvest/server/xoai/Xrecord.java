@@ -80,16 +80,14 @@ public class Xrecord extends Record {
                 outputStream.flush();
 
                 if (dataset != null && formatName != null) {
-                    Either<DataverseError, String> exportedDataset =
-                            exportService.exportDatasetVersionAsString(
-                                    dataset.getReleasedVersion(),
-                                    ExporterType.fromPrefix(formatName).orElseThrow(IllegalArgumentException::new));
-
-                    if (exportedDataset.isLeft()) {
-                        throw new RuntimeException(exportedDataset.getLeft().getErrorMsg());
+                    try {
+                        final String exportedDataset = exportService.exportToString(
+                                dataset.getReleasedVersion(),
+                                ExporterType.fromPrefix(formatName).get());
+                        outputStream.write(exportedDataset.getBytes());
+                    } catch (final Exception e) {
+                        throw new RuntimeException(e);
                     }
-
-                    outputStream.write(exportedDataset.get().getBytes());
                 }
                 outputStream.write(METADATA_END_ELEMENT.getBytes());
             } else {
