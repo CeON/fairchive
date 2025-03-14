@@ -13,6 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.quality.Strictness.LENIENT;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.primefaces.component.tabview.Tab;
 import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.StreamedContent;
@@ -46,9 +46,10 @@ import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
+@MockitoSettings(strictness = LENIENT)
 public class SearchIncludeFragmentTest {
 
     private SearchIncludeFragment fragment = new SearchIncludeFragment();
@@ -63,7 +64,9 @@ public class SearchIncludeFragmentTest {
     @Mock
     private DatasetRepository datasetRepo;
     @Mock
-    MetadataBlockRepository metadataBlockRepo;
+    private MetadataBlockRepository metadataBlockRepo;
+    @Mock 
+    private SettingsServiceBean settings;
 
     private Dataverse dataverse = new Dataverse();
 
@@ -84,8 +87,12 @@ public class SearchIncludeFragmentTest {
         this.fragment.lastSearchValue = new LastSearchValue();
         this.fragment.datasetFieldTypeRepo = this.datasetFieldTypeRepo;
         this.fragment.datasetRepo = this.datasetRepo;
-        this.fragment.metadataBlockRepo = metadataBlockRepo;
+        this.fragment.metadataBlockRepo = this.metadataBlockRepo;
+        this.fragment.settings = this.settings;
         this.fragment.postConstruct();
+        
+        when(this.settings.getValueForKeyAsLong(any(SettingsServiceBean.Key.class), any()))
+            .thenReturn(1000L);
 
         this.dataverse.setId(1L);
         this.fragment.setDataverse(this.dataverse);
