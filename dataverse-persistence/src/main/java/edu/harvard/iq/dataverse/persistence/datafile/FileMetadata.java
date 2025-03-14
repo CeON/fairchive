@@ -190,8 +190,8 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     }
 
 
-    // alternative, experimental method:
-
+    // to be removed once tests in mcrdr extention get updated
+    @Deprecated
     public void setCategoriesByName(final List<String> newCategoryNames) {
         newCategoryNames.forEach(this::addCategoryByName);
     }
