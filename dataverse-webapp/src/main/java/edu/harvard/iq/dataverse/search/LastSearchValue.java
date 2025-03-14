@@ -1,12 +1,12 @@
 package edu.harvard.iq.dataverse.search;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
 
+import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 
 /**
@@ -22,14 +22,18 @@ public class LastSearchValue implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private List<SolrSearchResult> searchResultsList = new ArrayList<>();
+    private SolrQueryResponse response;
     private boolean rootDv;
     private long dataverseId;
     private long activeTabIndex;
 
     public List<SolrSearchResult> getSearchResultsList() {
 
-        return this.searchResultsList;
+        return this.response.getSolrSearchResults();
+    }
+    
+    public SolrQueryResponse getResponse() {
+        return this.response;
     }
 
     /**
@@ -56,9 +60,8 @@ public class LastSearchValue implements Serializable {
     }
 
 
-    public void setSearchResultsList(List<SolrSearchResult> searchResultsList) {
-
-        this.searchResultsList = searchResultsList;
+    public void setResponse(final SolrQueryResponse response) {
+        this.response = response;
     }
 
     public void setRootDv(boolean rootDv) {
