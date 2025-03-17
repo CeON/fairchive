@@ -1,20 +1,24 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 
 /**
  * @author Leonid Andreev
@@ -22,38 +26,36 @@ import java.util.Collection;
 
 @Entity
 @Table(indexes = {@Index(columnList = "dataset_id")})
-public class DataFileCategory implements Serializable {
+public class DataFileCategory implements Serializable, JpaEntity<Long> {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Dataset to which this file category belongs:
-     */
+    @Column(nullable = false)
+    private String name;
     @ManyToOne
     @JoinColumn(nullable = false)
     private Dataset dataset;
+    @ManyToMany(mappedBy = "fileCategories")
+    private Collection<FileMetadata> fileMetadatas = new ArrayList<>();
+
+    @Override
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(final Long id) {
+        this.id = id;
+    }
 
     public Dataset getDataset() {
         return this.dataset;
     }
 
-    public void setDataset(Dataset dataset) {
+    public void setDataset(final Dataset dataset) {
         this.dataset = dataset;
     }
-
-    @Column(nullable = false)
-    private String name;
 
     public String getName() {
         return this.name;
@@ -63,33 +65,25 @@ public class DataFileCategory implements Serializable {
         this.name = name;
     }
 
-    /*
-     * DataFiles which belong to this category:
-     */
-    @ManyToMany(mappedBy = "fileCategories")
-    private Collection<FileMetadata> fileMetadatas = new ArrayList<>();
-
     public Collection<FileMetadata> getFileMetadatas() {
-        return fileMetadatas;
+        if (this.fileMetadatas == null) {
+            this.fileMetadatas = new ArrayList<>();
+        }
+        return this.fileMetadatas;
     }
 
-    public void setFileMetadatas(Collection<FileMetadata> fileMetadatas) {
+    public void setFileMetadatas(final Collection<FileMetadata> fileMetadatas) {
         this.fileMetadatas = fileMetadatas;
     }
 
-    public void addFileMetadata(FileMetadata fileMetadata) {
-        if (fileMetadatas == null) {
-            fileMetadatas = new ArrayList<>();
-        }
-        fileMetadatas.add(fileMetadata);
+    public void addFileMetadata(final FileMetadata fileMetadata) {
+        getFileMetadatas().add(fileMetadata);
     }
 
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return Objects.hashCode(this.id);
     }
 
     @Override
@@ -98,19 +92,6 @@ public class DataFileCategory implements Serializable {
             return false;
         }
         DataFileCategory other = (DataFileCategory) object;
-
-        // Custom code for comparing 2 categories before the 
-        // objects have been persisted with the entity manager
-        // and assigned database ids: 
-        // (will also need to compare datasets for it to work - ?
-        /*
-        if (this.id == null && other.id == null) {
-            if (this.name != null) {
-                return this.name.equals(other.name);
-             }
-            return false; 
-        }*/
-
         return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
     }
 

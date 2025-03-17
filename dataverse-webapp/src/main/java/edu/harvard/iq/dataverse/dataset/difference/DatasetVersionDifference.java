@@ -505,7 +505,7 @@ public final class DatasetVersionDifference {
             return false;
         }
 
-        if (!StringUtils.equals(fmdo.getCategoriesByName().toString(), fmdn.getCategoriesByName().toString())) {
+        if (!StringUtils.equals(fmdo.getCategoryNames().toString(), fmdn.getCategoryNames().toString())) {
             return false;
         }
 
@@ -710,8 +710,8 @@ public final class DatasetVersionDifference {
 
             // deprecated: fdi.setFileCat1(fm1.getCategory());
             fdi.setFileDesc1(fm1.getDescription());
-            if (!fm1.getCategoriesByName().isEmpty()) {
-                fdi.setFileCat1(fm1.getCategoriesByName().toString());
+            if (!fm1.getCategoryNames().isEmpty()) {
+                fdi.setFileCat1(fm1.getCategoryNames().toString());
             }
 
             fdi.setFileProvFree1(fm1.getProvFreeForm());
@@ -726,8 +726,8 @@ public final class DatasetVersionDifference {
             //fdi.setFileSize2(FileUtil.byteCountToDisplaySize(new File(fm2.getStudyFile().getFileSystemLocation()).length()));
             // deprecated: fdi.setFileCat2(fm2.getCategory());
             fdi.setFileDesc2(fm2.getDescription());
-            if (!fm2.getCategoriesByName().isEmpty()) {
-                fdi.setFileCat2(fm2.getCategoriesByName().toString());
+            if (!fm2.getCategoryNames().isEmpty()) {
+                fdi.setFileCat2(fm2.getCategoryNames().toString());
             }
             fdi.setFileProvFree2(fm2.getProvFreeForm());
         } else {
@@ -757,8 +757,8 @@ public final class DatasetVersionDifference {
             // for the same studyFile! -- so no need to check for differences in
             // these 2 items.
             // file category:
-            value1 = fm1.getCategoriesByName().toString();
-            value2 = fm2.getCategoriesByName().toString();
+            value1 = fm1.getCategoryNames().toString();
+            value2 = fm2.getCategoryNames().toString();
 
             value1 = StringUtils.trimToEmpty(value1);
             value2 = StringUtils.trimToEmpty(value2);
