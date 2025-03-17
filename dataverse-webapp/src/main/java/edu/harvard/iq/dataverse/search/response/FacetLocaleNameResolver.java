@@ -75,7 +75,11 @@ public class FacetLocaleNameResolver {
         if (matchedDatasetField.isControlledVocabulary()) {
             String key = "controlledvocabulary." + matchedDatasetField.getName() + "." + formattedFacetLabelName;
             String bundleName = matchedDatasetField.getMetadataBlock().getName().toLowerCase();
-            return BundleUtil.getStringFromNonDefaultBundle(key, bundleName);
+            
+            String facetLabelTranslation = BundleUtil.getStringFromNonDefaultBundle(key, bundleName);
+            if (StringUtils.isNotBlank(formattedFacetLabelName)) {
+                return facetLabelTranslation;
+            }
         }
         return facetLabelName;
     }
