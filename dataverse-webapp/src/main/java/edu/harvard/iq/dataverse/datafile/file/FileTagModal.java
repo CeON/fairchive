@@ -137,9 +137,9 @@ public class FileTagModal implements Serializable {
 
     private void prepareFileMetadataTags(FileMetadata fileMetadata, Dataset dataset) {
         fileMetadataTags.addAll(dataset.getCategoriesByName());
-        fileMetadataTags.addAll(fileMetadata.getCategoriesByName());
+        fileMetadataTags.addAll(fileMetadata.getCategoryNames());
 
-        selectedFileMetadataTags.addAll(fileMetadata.getCategoriesByName());
+        selectedFileMetadataTags.addAll(fileMetadata.getCategoryNames());
     }
 
     /**

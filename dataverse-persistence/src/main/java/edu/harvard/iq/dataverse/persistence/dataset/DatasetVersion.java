@@ -401,6 +401,17 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     public boolean isInReview() {
         return VersionState.DRAFT.equals(versionState) && dataset.isLockedFor(DatasetLock.Reason.InReview);
     }
+    
+    public boolean hasSameTermsOfUseForAllFiles() {
+        if (this.fileMetadatas.isEmpty()) {
+            return true;
+        } else {
+            final FileTermsOfUse firstTermsOfUse = this.fileMetadatas.get(0)
+                    .getTermsOfUse();       
+            return this.fileMetadatas.stream()
+                    .allMatch(fm -> firstTermsOfUse.isSameAs(fm.getTermsOfUse()));
+        }
+    }
 
     public VersionState getPriorVersionState() {
         if (isDeaccessioned()) {

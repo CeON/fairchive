@@ -5,27 +5,22 @@ import static java.util.stream.Collectors.toList;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
 import static org.apache.commons.io.FilenameUtils.getExtension;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.eclipse.persistence.annotations.BatchFetchType.JOIN;
 
 import java.io.Serializable;
-import java.security.acl.LastOwnerException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Objects;
 
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -39,21 +34,15 @@ import javax.persistence.Transient;
 import javax.persistence.Version;
 import javax.validation.constraints.Pattern;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.persistence.annotations.BatchFetch;
 import org.hibernate.validator.constraints.NotBlank;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.TermsOfUseForm;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 
@@ -64,7 +53,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 @Entity
 public class FileMetadata implements JpaEntity<Long>, Serializable {
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger(FileMetadata.class.getCanonicalName());
 
 
     @Expose
@@ -187,8 +175,8 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
         this.fileCategories = fileCategories;
     }
 
-    public void addCategory(DataFileCategory category) {
-        fileCategories.add(category);
+    public void addCategory(final DataFileCategory category) {
+        this.fileCategories.add(category);
     }
 
     /**
@@ -196,103 +184,29 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
      *
      * @return
      */
-    public List<String> getCategoriesByName() {
+    public List<String> getCategoryNames() {
         return this.fileCategories.stream().map(DataFileCategory::getName)
                 .collect(toList());
     }
 
 
-    public JsonArrayBuilder getCategoryNamesAsJsonArrayBuilder() {
-        final JsonArrayBuilder builder = Json.createArrayBuilder();
-        
-        for (final DataFileCategory fileCategory : this.fileCategories) {
-            builder.add(fileCategory.getName());
-        }
-        return builder;
+    // to be removed once tests in mcrdr extention get updated
+    @Deprecated
+    public void setCategoriesByName(final List<String> newCategoryNames) {
+        newCategoryNames.forEach(this::addCategoryByName);
     }
 
-
-    // alternative, experimental method:
-
-    public void setCategoriesByName(List<String> newCategoryNames) {
-        setCategories(null); // ?? TODO: investigate!
-
-        if (newCategoryNames != null) {
-
-            for (String newCategoryName : newCategoryNames) {
-                // Dataset.getCategoryByName() will check if such a category
-                // already exists for the parent dataset; it will be created
-                // if not. The method will return null if the supplied
-                // category name is null or empty. -- L.A. 4.0 beta 10
-                DataFileCategory fileCategory;
-                try {
-                    // Using "try {}" to catch any null pointer exceptions,
-                    // just in case:
-                    fileCategory = this.getDatasetVersion().getDataset().getCategoryByName(newCategoryName);
-                } catch (Exception ex) {
-                    fileCategory = null;
-                }
-                if (fileCategory != null) {
-                    this.addCategory(fileCategory);
-                    fileCategory.addFileMetadata(this);
-                }
-            }
-        }
-    }
-
-    public void addCategoryByName(String newCategoryName) {
-        if (newCategoryName != null && !newCategoryName.isEmpty()) {
-            Collection<String> oldCategoryNames = getCategoriesByName();
-            if (!oldCategoryNames.contains(newCategoryName)) {
-                DataFileCategory fileCategory;
-                // Dataset.getCategoryByName() will check if such a category
-                // already exists for the parent dataset; it will be created
-                // if not. The method will return null if the supplied
-                // category name is null or empty. -- L.A. 4.0 beta 10
-                try {
-                    // Using "try {}" to catch any null pointer exceptions,
-                    // just in case:
-                    fileCategory = this.getDatasetVersion().getDataset().getCategoryByName(newCategoryName);
-                } catch (Exception ex) {
-                    // If we failed to obtain an existing category, we'll create a new one:
-                    fileCategory = new DataFileCategory();
-                    fileCategory.setName(newCategoryName);
-                }
-
-
-                if (fileCategory != null) {
-                    logger.log(Level.FINE, "Found file category for {0}", newCategoryName);
-
-                    this.addCategory(fileCategory);
-                    fileCategory.addFileMetadata(this);
-                } else {
-                    logger.log(Level.INFO, "Could not find file category for {0}", newCategoryName);
-                }
-            } else {
-                // don't do anything - this file metadata already belongs to
-                // this category.
-            }
+    public void addCategoryByName(final String name) {
+        if (isNotEmpty(name) && !getCategoryNames().contains(name)) {
+            final DataFileCategory fileCategory = this.getDatasetVersion()
+                    .getDataset().getCategoryByName(name);
+            addCategory(fileCategory);
+            fileCategory.addFileMetadata(this);
         }
     }
 
     public Date getFileDateToDisplay() {
-        Date fileDate = null;
-        DataFile datafile = this.getDataFile();
-        if (datafile != null) {
-            boolean fileHasBeenReleased = datafile.isReleased();
-            if (fileHasBeenReleased) {
-                Timestamp filePublicationTimestamp = datafile.getPublicationDate();
-                if (filePublicationTimestamp != null) {
-                    fileDate = filePublicationTimestamp;
-                }
-            } else {
-                Timestamp fileCreateTimestamp = datafile.getCreateDate();
-                if (fileCreateTimestamp != null) {
-                    fileDate = fileCreateTimestamp;
-                }
-            }
-        }
-        return fileDate;
+        return this.dataFile.getPublishedCreated();
     }
 
     public DatasetVersion getDatasetVersion() {
@@ -314,7 +228,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     /**
@@ -424,9 +338,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        return Objects.hashCode(this.id);
     }
 
     @Override
@@ -445,22 +357,10 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
      * determine if any of the actual metadata fields have changed between
      * versions.
      */
-    public boolean contentEquals(FileMetadata other) {
-        if (other == null) {
-            return false;
-        }
-
-        if (!StringUtils.equals(getLabel(), other.getLabel())) {
-            return false;
-        }
-        if (!StringUtils.equals(getDirectoryLabel(), other.getDirectoryLabel())) {
-            return false;
-        }
-        if (!StringUtils.equals(getDescription(), other.getDescription())) {
-            return false;
-        }
-
-        return true;
+    public boolean contentEquals(final FileMetadata other) {
+        return StringUtils.equals(getLabel(), other.getLabel()) &&
+                StringUtils.equals(getDirectoryLabel(), other.getDirectoryLabel()) &&
+                StringUtils.equals(getDescription(), other.getDescription());
     }
 
 
@@ -471,46 +371,6 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
     public static final Comparator<FileMetadata> compareByDisplayOrder = 
             (o1, o2) -> o1.getDisplayOrder() - o2.getDisplayOrder();
-
-
-    public String toPrettyJSON() {
-
-        return serializeAsJSON(true);
-    }
-
-    public String toJSON() {
-
-        return serializeAsJSON(false);
-    }
-
-    /**
-     * @param prettyPrint
-     * @return
-     */
-    private String serializeAsJSON(final boolean prettyPrint) {
-        return asGsonObject(prettyPrint).toString();
-    }
-
-
-    public JsonObject asGsonObject(boolean prettyPrint) {
-
-
-        GsonBuilder builder;
-        if (prettyPrint) {  // Add pretty printing
-            builder = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting();
-        } else {
-            builder = new GsonBuilder().excludeFieldsWithoutExposeAnnotation();
-        }
-
-        builder.serializeNulls();   // correctly capture nulls
-        Gson gson = builder.create();
-
-        // serialize this object
-        JsonElement jsonObj = gson.toJsonTree(this);
-        jsonObj.getAsJsonObject().addProperty("id", this.getId());
-
-        return jsonObj.getAsJsonObject();
-    }
 
     public String getProvFreeForm() {
         return provFreeForm;

@@ -9,18 +9,17 @@
 	xmlns:f="http://xmlns.jcp.org/jsf/core">
 <h:body>
 	<!-- editing dialog -->
-	<p:dialog id="#{dialog.getName()}" styleClass="smallPopUp"
-		header="#{dialog.getHeaderText()}" widgetVar="#{dialog.getName()}"
+	<p:dialog id="#{dialogName}" styleClass="smallPopUp"
+		header="#{headerText}" widgetVar="#{dialogName}"
 		modal="true">
 
 		<p class="help-block">
-			<h:outputFormat
-				value="#{dialog.getTipText()}"
-				escape="false">
+			<h:outputFormat value="#{tipText}" 
+			                escape="false">
 				<f:param value="#{dialog.getHelpUrl()}" />
 			</h:outputFormat>
 		</p>
-		<p:fragment id="#{dialog.getPanelName()}">
+		<p:fragment id="#{panelName}">
 			<div>
 				<p jsf:rendered="#{dialog.displayUrlAbsentMessage()}"
 					class="no-margin-bottom, highlight">
@@ -39,9 +38,14 @@
 					</p>
 					<p class="no-margin-bottom">
 					   <h:outputText value="#{dialog.getUrl()}"/>
-					   <span class="btn glyphicon glyphicon-copy"
-					         title="#{bundle['copyToClipboard']}"
-					         onclick="navigator.clipboard.writeText('#{dialog.getUrl()}');"/>
+					   <span class="btn" 
+					         aria-label="#{bundle['dataset.copyUrl']}"
+					         tabindex="0"
+					         onclick="navigator.clipboard.writeText('#{dialog.getUrl()}');"
+					         onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{dialog.getUrl()}');">
+					       <span class="glyphicon glyphicon-copy"/>
+					         #{bundle['dataset.copyUrl']} 
+					   </span>
 					</p>
 				</div>
 			</div>
@@ -49,23 +53,23 @@
 				<p:commandButton rendered="#{dialog.displayGenerateButton()}"
 					value="#{bundle['dataset.privateurl.createPrivateUrl']}"
 					action="#{dialog.generateUrl()}"
-					update="#{dialog.getPanelName()}, staticMessagesPanel, :messagePanel" />
+					update="#{panelName}, staticMessagesPanel, :messagePanel" />
 				<p:commandButton rendered="#{dialog.displayDisableButton()}"
 					value="#{bundle['dataset.privateurl.disablePrivateUrl']}"
-					action="#{dialog.disableUrl()}"
-					onclick="PF('#{dialog.getName()}').hide();PF('#{dialog.getConfirmationName()}').show()"
-					update="#{dialog.getPanelName()}, staticMessagesPanel" />
+					onclick="PF('#{dialogName}').hide();PF('#{confirmationDialogName}').show()"
+					update="#{panelName}, staticMessagesPanel" />
 				<p:commandButton styleClass="btn btn-default"
-					value="#{bundle.close}" onclick="PF('#{dialog.getName()}').hide();"
-					update="#{dialog.getPanelName()}, staticMessagesPanel" />
+					value="#{bundle.close}" onclick="PF('#{dialogName}').hide();"
+					update="#{panelName}, staticMessagesPanel" />
 			</div>
 		</p:fragment>
 	</p:dialog>
 
 	<!-- confirmation dialog -->
 	<p:dialog styleClass="smallPopUp"
-		header="#{bundle['dataset.privateurl.anonymized.header']}"
-		widgetVar="#{dialog.getConfirmationName()}" modal="true"
+		header="#{headerText}"
+		widgetVar="#{confirmationDialogName}"
+		modal="true"
 		closable="false">
 		<p class="text-warning">
 			<span class="glyphicon glyphicon-warning-sign" />
@@ -75,10 +79,10 @@
 			<p:commandButton
 				value="#{bundle['dataset.privateurl.disablePrivateUrlConfirm']}"
 				action="#{dialog.disableUrl()}"
-				update="#{dialog.getPanelName()} staticMessagesPanel, :messagePanel"
-				onclick="PF('#{dialog.getConfirmationName()}').hide();" />
+				update="#{panelName} staticMessagesPanel, :messagePanel"
+				onclick="PF('#{confirmationDialogName}').hide();" />
 			<p:commandButton value="#{bundle.cancel}"
-				onclick="PF('#{dialog.getConfirmationName()}').hide();PF('#{dialog.getName()}').show();"
+				onclick="PF('#{confirmationDialogName}').hide();PF('#{dialogName}').show();"
 				type="button" />
 		</div>
 	</p:dialog>

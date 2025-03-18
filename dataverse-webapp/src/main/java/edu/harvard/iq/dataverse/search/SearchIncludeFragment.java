@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.search;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaxResultsCountSavedToFile;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.startsWith;
@@ -26,6 +27,7 @@ import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.omnifaces.cdi.Param;
 import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.StreamedContent;
@@ -42,6 +44,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.group.AuthenticatedUsers;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -54,8 +57,9 @@ import edu.harvard.iq.dataverse.search.response.DvObjectCounts;
 import edu.harvard.iq.dataverse.search.response.FacetCategory;
 import edu.harvard.iq.dataverse.search.response.FilterQuery;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
-import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
+import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 @RequestScoped
 @Named("SearchIncludeFragment")
@@ -105,6 +109,10 @@ public class SearchIncludeFragment {
     DatasetRepository datasetRepo;
     @Inject
     DatasetFieldTypeRepository datasetFieldTypeRepo;
+    @Inject
+    MetadataBlockRepository metadataBlockRepo;
+    @Inject
+    SettingsServiceBean settings;
 
     @Inject @Param(name = "q")
     private String query;
@@ -449,7 +457,7 @@ public class SearchIncludeFragment {
 
         setDisplayCardValues(dataversePath);
         
-        this.lastSearchValue.setSearchResultsList(searchResultsList);
+        this.lastSearchValue.setResponse(solrQueryResponse);
         this.lastSearchValue.setRootDv(dataverse.isRoot());
         this.lastSearchValue.setDataverseId(dataverse.getId());
     }
@@ -480,10 +488,29 @@ public class SearchIncludeFragment {
         }
     }
     
-    public StreamedContent getSearchResultsFile() {
-
-        return new CSVResultPrinter(this.datasetRepo, this.datasetFieldTypeRepo)
-                .print(getLastSearchValue().getSearchResultsList());
+    public boolean displaySaveToFileButton() {
+        return getSearchResultsCount() < getMaxResultsCountSavedToFile();
+    }
+    
+    public Long getMaxResultsCountSavedToFile() {
+        return this.settings.getValueForKeyAsLong(MaxResultsCountSavedToFile, 1000L);
+    }
+    
+    
+    public StreamedContent getSearchResultsFile() throws Exception {
+        final SolrQuery lastQuery = getLastSearchValue().getResponse()
+                .getSolrQuery();
+        final Integer start = lastQuery.getStart();
+        final Integer rows = lastQuery.getRows();
+        try {
+            lastQuery.setStart(null);
+            lastQuery.setRows(getMaxResultsCountSavedToFile().intValue());
+            return new CSVResultPrinter(this.datasetRepo, this.metadataBlockRepo)
+                    .print(this.searchService.search(lastQuery));
+        } finally {
+            lastQuery.setStart(start);
+            lastQuery.setRows(rows);
+        }
     }
     
     public String prepareSearchResults()  {

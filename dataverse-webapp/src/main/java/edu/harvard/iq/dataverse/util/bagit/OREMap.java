@@ -183,7 +183,7 @@ public class OREMap {
                 addIfNotNull(aggRes, JsonLDTerm.datasetVersionId, fmd.getDatasetVersion().getId());
                 JsonArray catArray = null;
                 if (fmd != null) {
-                    List<String> categories = fmd.getCategoriesByName();
+                    List<String> categories = fmd.getCategoryNames();
                     if (categories.size() > 0) {
                         JsonArrayBuilder jab = Json.createArrayBuilder();
                         for (String s : categories) {

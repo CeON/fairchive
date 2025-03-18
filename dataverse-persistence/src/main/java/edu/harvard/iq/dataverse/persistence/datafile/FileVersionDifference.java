@@ -139,8 +139,8 @@ public class FileVersionDifference {
             /*
             get Tags differences
             */
-            String value1 = originalFileMetadata.getCategoriesByName().toString();
-            String value2 = newFileMetadata.getCategoriesByName().toString();
+            String value1 = originalFileMetadata.getCategoryNames().toString();
+            String value2 = newFileMetadata.getCategoryNames().toString();
             if (value1 == null || value1.isEmpty() || value1.equals(" ")) {
                 value1 = "";
             }
@@ -153,9 +153,9 @@ public class FileVersionDifference {
                 int added = 0;
                 int deleted = 0;
 
-                added = newFileMetadata.getCategoriesByName().stream().map((tag) -> {
+                added = newFileMetadata.getCategoryNames().stream().map((tag) -> {
                     boolean found = false;
-                    for (String tagOld : originalFileMetadata.getCategoriesByName()) {
+                    for (String tagOld : originalFileMetadata.getCategoryNames()) {
                         if (tag.equals(tagOld)) {
                             found = true;
                             break;
@@ -164,9 +164,9 @@ public class FileVersionDifference {
                     return found;
                 }).filter((found) -> (!found)).map((_item) -> 1).reduce(added, Integer::sum);
 
-                for (String tag : originalFileMetadata.getCategoriesByName()) {
+                for (String tag : originalFileMetadata.getCategoryNames()) {
                     boolean found = false;
-                    for (String tagNew : newFileMetadata.getCategoriesByName()) {
+                    for (String tagNew : newFileMetadata.getCategoryNames()) {
                         if (tag.equals(tagNew)) {
                             found = true;
                             break;
