@@ -34,5 +34,4 @@ export LOGIN_AS_SOLR="sudo /bin/su - solr -s /bin/bash"
 export SERVICE_BIN="sudo /bin/systemctl"
 
 export DATAVERSE_API_URL=http://localhost:8080/api
-export UNBLOCK_KEY=BYvB7FCE-TuzYdTAN
 
