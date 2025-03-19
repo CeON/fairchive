@@ -1,21 +1,22 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
-import edu.harvard.iq.dataverse.search.ror.RorDto;
-import edu.harvard.iq.dataverse.search.ror.RorSolrDataFinder;
-import org.apache.commons.lang3.StringUtils;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+import java.util.Map;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import com.google.common.collect.Lists;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
+import edu.harvard.iq.dataverse.search.ror.RorDto;
+import edu.harvard.iq.dataverse.search.ror.RorSolrDataFinder;
 
 @Stateless
 public class RorSuggestionHandler implements SuggestionHandler {
@@ -26,16 +27,6 @@ public class RorSuggestionHandler implements SuggestionHandler {
     // -------------------- LOGIC --------------------
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * This implementation always returns class name.
-     */
-    @Override
-    public String getName() {
-        return getClass().getSimpleName();
-    }
-
-    /**
      * This suggestion is dependent on sibling input value.
      * Only values that match pointed out sibling input value will be taken
      * to create suggestion.
@@ -44,17 +35,6 @@ public class RorSuggestionHandler implements SuggestionHandler {
     @Override
     public boolean isDependentOnSiblings() {
         return !getAllowedFilters().isEmpty();
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * This implementation doesn't support filters. Always
-     * returns empty map.
-     */
-    @Override
-    public List<String> getAllowedFilters() {
-        return Collections.emptyList();
     }
 
     @Override

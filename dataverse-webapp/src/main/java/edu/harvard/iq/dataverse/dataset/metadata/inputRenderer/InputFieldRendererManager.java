@@ -1,23 +1,23 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
-import io.vavr.control.Try;
-import org.apache.commons.collections4.IteratorUtils;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import io.vavr.control.Try;
 
 @Stateless
 public class InputFieldRendererManager {
@@ -31,14 +31,15 @@ public class InputFieldRendererManager {
     public InputFieldRendererManager() { }
 
     @Inject
-    public InputFieldRendererManager(Instance<InputFieldRendererFactory<?>> inputRendererFactoriesInstance) {
-        this.inputRendererFactoriesInstance = inputRendererFactoriesInstance;
+    public InputFieldRendererManager(Instance<InputFieldRendererFactory<?>> fatories) {
+        this.inputRendererFactoriesInstance = fatories;
     }
 
     @PostConstruct
     public void postConstruct() {
-        IteratorUtils.toList(inputRendererFactoriesInstance.iterator())
-            .forEach(factory -> inputRendererFactories.put(factory.isFactoryForType(), factory));
+        this.inputRendererFactoriesInstance.iterator()
+                .forEachRemaining(factory -> this.inputRendererFactories
+                        .put(factory.isFactoryForType(), factory));
     }
 
     // -------------------- LOGIC --------------------
