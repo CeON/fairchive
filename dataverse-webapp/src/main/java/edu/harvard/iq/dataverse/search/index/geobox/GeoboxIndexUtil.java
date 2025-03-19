@@ -80,10 +80,6 @@ public class GeoboxIndexUtil {
     }
 
     public boolean isIndexablePolygon(DatasetField field) {
-        if (field == null) {
-            return false;
-        }
-
         return field.getDatasetFieldsChildren()
                         .stream()
                         .anyMatch(f -> geographicCoordinates.equals(f.getTypeName()));
