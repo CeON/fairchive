@@ -51,20 +51,27 @@ function initDvJS() {
       data.leafMap = L.map(key);
       let leafMap = data.leafMap;
       leafMap.invalidateSize();
-      let values = data.values;
-      if (!isValidGeobox(values)) {
-        return;
+
+      if (data.polygonSupport) {
+        data.polygonLayer = L.layerGroup().addTo(leafMap);
+        updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
+      } else {
+        let values = data.values;
+        if (!isValidGeobox(values)) {
+          return;
+        }
+        let bounds = L.latLngBounds([
+          [values[Y1], values[X1]],
+          [values[Y2], values[X2] + (shouldWrapGeobox(values) ? 1 : 0) * 360.0]
+        ]);
+        ((values[X1] === values[X2] && values[Y1] === values[Y2])
+          ? L.marker([values[Y1], values[X1]]).addTo(leafMap)
+          : L.rectangle(bounds, { color: RECT_COLOR, weight: 1 }))
+          .addTo(leafMap);
+        leafMap.fitBounds(bounds.pad(0.1));
       }
+
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(leafMap);
-      let bounds = L.latLngBounds([
-        [values[Y1], values[X1]],
-        [values[Y2], values[X2] + (shouldWrapGeobox(values) ? 1 : 0) * 360.0]
-      ]);
-      ((values[X1] === values[X2] && values[Y1] === values[Y2])
-        ? L.marker([values[Y1], values[X1]]).addTo(leafMap)
-        : L.rectangle(bounds, { color: RECT_COLOR, weight: 1 }))
-        .addTo(leafMap);
-      leafMap.fitBounds(bounds.pad(0.1));
     }
 
     let metadataMapsData = new Map();
@@ -74,6 +81,7 @@ function initDvJS() {
         metadataMapsData.set(key, {
           leafMap: undefined,
           leafMapInitialized: false,
+          polygonSupport: false,
           values: {}
         });
       },
@@ -81,7 +89,17 @@ function initDvJS() {
       putValue: function (key, field, value) {
         putValue(metadataMapsData, key, field, value);
       },
-
+      storeCoordinates: function(key, value) {
+        let data = metadataMapsData.get(key);
+        if (data.polygonSupport) {
+          data.values[TEXT_AREA_COORDINATES] = value;
+        }
+      },
+      // Enable to draw markers, rectangles, polygons
+      enablePolygonSupport: function(key) {
+        let data = metadataMapsData.get(key);
+        data.polygonSupport = true;
+      },
       initializeAll: function (keyPrefix) {
         initializeAll(metadataMapsData, keyPrefix, initializeMapInMetadataView);
       }
@@ -310,12 +328,11 @@ function initDvJS() {
     // e.q.
     // 1.112 41.12
     // 2.12 15.21
-    function updateMapCoordinates(key, coordinates) {
+    function updateMapCoordinates(data, coordinates) {
       if (!coordinates || coordinates.trim() === '') {
         return;
       }
 
-      var data = editMapsData.get(key);
       if (!data.polygonLayer) {
         return;
       }
@@ -347,7 +364,6 @@ function initDvJS() {
 
       const bounds = L.latLngBounds(cords);
       centerMap(data, bounds);
-      shape.enableEdit();
     }
 
     // use html <template> with possibility to replace values from data
@@ -381,7 +397,10 @@ function initDvJS() {
       updateMap: function(key) {
         let data = editMapsData.get(key);
         if (data.polygonSupport) {
-          updateMapCoordinates(key, data.values[TEXT_AREA_COORDINATES])
+          updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
+          data.polygonLayer.eachLayer(function (shape) {
+            shape.enableEdit();
+          });
         } else {
           updateEditableMap(editMapsData, key);
         }
