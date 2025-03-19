@@ -77,7 +77,7 @@ public class FacetLocaleNameResolver {
             String bundleName = matchedDatasetField.getMetadataBlock().getName().toLowerCase();
             
             String facetLabelTranslation = BundleUtil.getStringFromNonDefaultBundle(key, bundleName);
-            if (StringUtils.isNotBlank(formattedFacetLabelName)) {
+            if (StringUtils.isNotBlank(facetLabelTranslation)) {
                 return facetLabelTranslation;
             }
         }

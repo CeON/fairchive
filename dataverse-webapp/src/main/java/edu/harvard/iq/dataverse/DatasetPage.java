@@ -691,12 +691,15 @@ public class DatasetPage implements Serializable {
     }
     
     public boolean displayPrivateUrl(final boolean anonymized) {
-        return this.session.isUserLoggedIn() && getPrivateUrl(anonymized) != null
-                && !isViewedFromPrivateUrl();
+        return this.session.isUserLoggedIn() 
+                && this.permissionsWrapper.canManagePermissions(this.dataset)
+                && !isViewedFromPrivateUrl() 
+                && getPrivateUrl(anonymized) != null;
     }
     
     PrivateUrl getPrivateUrl(final boolean anonymized) {
-        if (this.session.isUserLoggedIn()) {
+        if (this.session.isUserLoggedIn()
+                && this.permissionsWrapper.canManagePermissions(this.dataset)) {
             return this.commandEngine.submit(new GetPrivateUrlCommand(
                     this.dvRequestService.getDataverseRequest(), this.dataset,
                     anonymized));

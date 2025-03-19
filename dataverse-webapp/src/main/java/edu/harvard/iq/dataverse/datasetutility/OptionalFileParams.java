@@ -355,7 +355,7 @@ public class OptionalFileParams implements Serializable {
             return;
         }
 
-        List<String> currentCategories = fileMetadata.getCategoriesByName();
+        List<String> currentCategories = fileMetadata.getCategoryNames();
 
         // Add categories to the file metadata object
         //

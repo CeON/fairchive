@@ -106,9 +106,9 @@ class DatasetFilesTabFacadeTest {
         //then
         List<FileMetadata> updatedFiles = updatedDsv.getFileMetadatas();
 
-        assertThat(updatedFiles.get(0)).extracting(FileMetadata::getCategoriesByName).is(new Condition<>(strings -> strings.contains(metaTag), ""));
-        assertThat(updatedFiles.get(1)).extracting(FileMetadata::getCategoriesByName).is(new Condition<>(strings -> strings.contains(metaTag), ""));
-        assertThat(updatedFiles.get(2)).extracting(FileMetadata::getCategoriesByName).is(new Condition<>(strings -> strings.contains(metaTag), ""));
+        assertThat(updatedFiles.get(0)).extracting(FileMetadata::getCategoryNames).is(new Condition<>(strings -> strings.contains(metaTag), ""));
+        assertThat(updatedFiles.get(1)).extracting(FileMetadata::getCategoryNames).is(new Condition<>(strings -> strings.contains(metaTag), ""));
+        assertThat(updatedFiles.get(2)).extracting(FileMetadata::getCategoryNames).is(new Condition<>(strings -> strings.contains(metaTag), ""));
         Mockito.verify(datasetVersionRepository, times(1)).save(datasetVersion);
 
     }
@@ -138,7 +138,7 @@ class DatasetFilesTabFacadeTest {
         //then
         List<FileMetadata> updatedFiles = updatedDsv.getFileMetadatas();
 
-        assertThat(updatedFiles.get(0)).extracting(FileMetadata::getCategoriesByName).is(new Condition<>(List::isEmpty, ""));
+        assertThat(updatedFiles.get(0)).extracting(FileMetadata::getCategoryNames).is(new Condition<>(List::isEmpty, ""));
 
     }
 
@@ -302,6 +302,8 @@ class DatasetFilesTabFacadeTest {
         FileMetadata fileMetadata = new FileMetadata();
         fileMetadata.setId(new Random().nextLong());
         fileMetadata.setDataFile(new DataFile());
+        fileMetadata.setDatasetVersion(new DatasetVersion());
+        fileMetadata.getDatasetVersion().setDataset(new Dataset());
         return fileMetadata;
     }
 }
