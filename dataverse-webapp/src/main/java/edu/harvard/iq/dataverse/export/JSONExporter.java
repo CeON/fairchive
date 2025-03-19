@@ -25,11 +25,6 @@ public class JSONExporter extends ExporterBase {
     // -------------------- LOGIC --------------------
 
     @Override
-    public String getProviderName() {
-        return ExporterType.JSON.getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return ExporterType.JSON;
     }

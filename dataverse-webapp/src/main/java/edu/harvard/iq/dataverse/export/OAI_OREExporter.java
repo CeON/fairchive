@@ -57,11 +57,6 @@ public class OAI_OREExporter implements Exporter {
     }
 
     @Override
-    public String getProviderName() {
-        return ExporterType.OAIORE.getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return ExporterType.OAIORE;
     }

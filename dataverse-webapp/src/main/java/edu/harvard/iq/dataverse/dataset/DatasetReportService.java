@@ -190,7 +190,7 @@ public class DatasetReportService {
                 .map(DataFileTag::getTypeLabel)
                 .collect(Collectors.joining(tagsDelimiter));
 
-        String categories = String.join(tagsDelimiter, fileMetadata.getCategoriesByName());
+        String categories = String.join(tagsDelimiter, fileMetadata.getCategoryNames());
         if(!tags.isEmpty() && !categories.isEmpty()) {
             tags += tagsDelimiter + categories;
         } else if(!categories.isEmpty()) {

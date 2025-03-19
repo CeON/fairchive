@@ -41,11 +41,6 @@ public class OAI_DDIExporter extends ExporterBase {
     // -------------------- LOGIC --------------------
 
     @Override
-    public String getProviderName() {
-        return ExporterType.OAIDDI.getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return ExporterType.OAIDDI;
     }

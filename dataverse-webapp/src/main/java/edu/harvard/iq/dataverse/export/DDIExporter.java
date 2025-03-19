@@ -44,11 +44,6 @@ public class DDIExporter extends ExporterBase {
     // -------------------- LOGIC --------------------
 
     @Override
-    public String getProviderName() {
-        return ExporterType.DDI.getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return ExporterType.DDI;
     }
