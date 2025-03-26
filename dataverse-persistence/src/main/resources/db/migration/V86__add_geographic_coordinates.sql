@@ -11,7 +11,7 @@ select d.*, 'southLongitude' as fieldname from datasetfield d join datasetfieldt
 
 INSERT INTO public.datasetfieldtype
 (advancedsearchfieldtype, allowcontrolledvocabulary, allowmultiples, description, displayformat, displayoncreate, displayorder, facetable, fieldtype, "name", required, title, uri, watermark, metadatablock_id, parentdatasetfieldtype_id, inputrenderertype, inputrendereroptions, validation, metadata, exporttofile, visiblethroughanonymizedurl)
-VALUES(true, false, false, 'Enter geographic coordinates to mark dataset location', '', true, 15, false, 'TEXTBOX', 'geographicCoordinates', true, 'Geographic coordinates', NULL, '', 2, 85, 'TEXTBOX', '{}', '[{"name":"geobox_polygon_component_validator", "parameters":{"runOnEmpty":"true"}}]', '{}', false, true);
+VALUES(true, false, false, 'Enter geographic coordinates to mark dataset location', '', false, 15, false, 'TEXTBOX', 'geographicCoordinates', false, 'Geographic coordinates', NULL, '', 2, 85, 'TEXTBOX', '{}', '[{"name":"geobox_polygon_component_validator", "parameters":{"runOnEmpty":"true"}}]', '{}', false, true);
 
 
 insert into datasetfield (datasetfieldtype_id, datasetversion_id, template_id, datasetfieldparent_id, displayorder, "source", fieldvalue)
