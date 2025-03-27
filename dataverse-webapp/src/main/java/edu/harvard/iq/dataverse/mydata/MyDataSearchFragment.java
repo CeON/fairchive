@@ -29,6 +29,7 @@ import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.search.query.SearchForTypes;
 import edu.harvard.iq.dataverse.search.query.SearchObjectType;
 import edu.harvard.iq.dataverse.search.response.FacetCategory;
+import edu.harvard.iq.dataverse.search.response.FacetLocaleNameResolver;
 import edu.harvard.iq.dataverse.search.response.FacetLabel;
 import edu.harvard.iq.dataverse.search.response.FilterQuery;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
@@ -667,8 +668,8 @@ public class MyDataSearchFragment implements java.io.Serializable {
                     results.getOrDefault(SearchObjectType.FILES, Collections.emptyList()));
 
             for (String publicationStatusFilter: publicationStatusFilters) {
-                String key = format(SearchServiceBean.FACETBUNDLE_MASK_VALUE, "publicationStatus");
-                String value = format(SearchServiceBean.FACETBUNDLE_MASK_GROUP_AND_VALUE, "publicationStatus", publicationStatusFilter.toLowerCase().replace(" ", "_"));
+                String key = format(FacetLocaleNameResolver.FACETBUNDLE_MASK_VALUE, "publicationStatus");
+                String value = format(FacetLocaleNameResolver.FACETBUNDLE_MASK_GROUP_AND_VALUE, "publicationStatus", publicationStatusFilter.toLowerCase().replace(" ", "_"));
 
                 selectedFilterQueries.add(
                         new FilterQuery(publicationStatusFilter,

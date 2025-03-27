@@ -1,9 +1,7 @@
 package edu.harvard.iq.dataverse.search;
 
-import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
@@ -15,7 +13,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
-import edu.harvard.iq.dataverse.search.index.IndexedTermOfUse;
 import edu.harvard.iq.dataverse.search.query.PermissionFilterQueryBuilder;
 import edu.harvard.iq.dataverse.search.query.SearchForTypes;
 import edu.harvard.iq.dataverse.search.query.SearchObjectType;
@@ -23,6 +20,7 @@ import edu.harvard.iq.dataverse.search.query.SearchPublicationStatus;
 import edu.harvard.iq.dataverse.search.query.SolrQuerySanitizer;
 import edu.harvard.iq.dataverse.search.response.DvObjectCounts;
 import edu.harvard.iq.dataverse.search.response.FacetCategory;
+import edu.harvard.iq.dataverse.search.response.FacetLocaleNameResolver;
 import edu.harvard.iq.dataverse.search.response.FacetLabel;
 import edu.harvard.iq.dataverse.search.response.FilterQuery;
 import edu.harvard.iq.dataverse.search.response.Highlight;
@@ -35,7 +33,6 @@ import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
@@ -74,16 +71,11 @@ import static java.util.stream.Collectors.joining;
 
 import static edu.harvard.iq.dataverse.search.SearchFields.RELEASE_OR_CREATE_DATE;
 import static edu.harvard.iq.dataverse.search.SearchFields.RELEVANCE;
-import static java.lang.String.format;
 
 @Stateless
 public class SearchServiceBean {
 
     private static final Logger logger = Logger.getLogger(SearchServiceBean.class.getCanonicalName());
-
-    public static final String FACETBUNDLE_MASK_GROUP_AND_VALUE = "facets.search.fieldtype.%s.%s.label";
-    public static final String FACETBUNDLE_MASK_VALUE = "facets.search.fieldtype.%s.label";
-    private static final String FACETBUNDLE_MASK_DVCATEGORY_VALUE = "dataverse.type.selectTab.%s";
 
     public enum SortOrder {
         
@@ -109,7 +101,6 @@ public class SearchServiceBean {
         }
     }
 
-    private DvObjectServiceBean dvObjectService;
     private DatasetFieldServiceBean datasetFieldService;
     private SettingsServiceBean settingsService;
     private SystemConfig systemConfig;
@@ -126,12 +117,11 @@ public class SearchServiceBean {
     public SearchServiceBean() { }
 
     @Inject
-    public SearchServiceBean(DvObjectServiceBean dvObjectService, DatasetFieldServiceBean datasetFieldService,
+    public SearchServiceBean(DatasetFieldServiceBean datasetFieldService,
                              SettingsServiceBean settingsService, SystemConfig systemConfig,
                              PermissionFilterQueryBuilder permissionQueryBuilder, SolrClient solrServer,
                              SolrQuerySanitizer querySanitizer, LicenseRepository licenseRepository,
                              DataverseDao dataverseDao) {
-        this.dvObjectService = dvObjectService;
         this.datasetFieldService = datasetFieldService;
         this.settingsService = settingsService;
         this.systemConfig = systemConfig;
@@ -327,6 +317,8 @@ public class SearchServiceBean {
 
         List<FacetCategory> facetCategoryList = new ArrayList<>();
 
+        FacetLocaleNameResolver facetCategoryNameResolver = new FacetLocaleNameResolver(licenseRepository, fieldIndex);
+
         for (FacetField facetField : queryResponse.getFacetFields()) {
             if (!shouldIncludeFacetInResults(facetField)) {
                 continue;
@@ -334,14 +326,14 @@ public class SearchServiceBean {
 
             FacetCategory facetCategory = new FacetCategory();
             facetCategory.setName(facetField.getName());
-            facetCategory.setFriendlyName(getLocaleFacetCategoryName(facetField.getName(), fieldIndex));
+            facetCategory.setFriendlyName(facetCategoryNameResolver.getLocaleFacetCategoryName(facetField.getName()));
 
             List<FacetLabel> facetLabelList = new ArrayList<>();
 
             for (FacetField.Count facetFieldCount : facetField.getValues()) {
                 // @todo we do want to show the count for each facet
                 FacetLabel facetLabel = new FacetLabel(facetFieldCount.getName(),
-                        getLocaleFacetLabelName(facetFieldCount.getName(), facetField.getName(), fieldIndex),
+                        facetCategoryNameResolver.getLocaleFacetLabelName(facetFieldCount.getName(), facetField.getName()),
                         facetFieldCount.getCount());
                 // quote field facets
                 facetLabel.setFilterQuery(facetField.getName() + ":\"" + facetFieldCount.getName() + "\"");
@@ -382,8 +374,8 @@ public class SearchServiceBean {
 
                 solrQueryResponse.addFilterQuery(new FilterQuery(
                         filterQuery,
-                        getLocaleFacetCategoryName(key, fieldIndex),
-                        getLocaleFacetLabelName(value, key, fieldIndex)));
+                        facetCategoryNameResolver.getLocaleFacetCategoryName(key),
+                        facetCategoryNameResolver.getLocaleFacetLabelName(value, key)));
             }
 
         }
@@ -657,87 +649,6 @@ public class SearchServiceBean {
         return rootDataverseId;
     }
 
-    private String getLocaleFacetCategoryName(String facetCategoryName, Map<String, DatasetFieldType> index) {
-        final String formattedFacetFieldName = removeSolrFieldSuffix(facetCategoryName);
-
-        if (index.containsKey(formattedFacetFieldName)) {
-            return getDatasetFieldFacetCategoryName(index.get(formattedFacetFieldName));
-        } else {
-            return getNonDatasetFieldFacetCategoryName(facetCategoryName);
-        }
-    }
-
-    private String getLocaleFacetLabelName(String facetLabelName, String facetCategoryName,
-                                          Map<String, DatasetFieldType> index) {
-        String formattedFacetCategoryName = removeSolrFieldSuffix(facetCategoryName);
-        String formattedFacetLabelName = toBundleNameFormat(facetLabelName);
-
-        if (index.containsKey(formattedFacetCategoryName)) {
-            return getDatasetFieldFacetLabelName(facetLabelName, formattedFacetLabelName, index.get(formattedFacetCategoryName));
-
-        } else {
-            return getNonDatasetFieldFacetLabelName(facetLabelName, formattedFacetCategoryName);
-        }
-    }
-
-    private String getDatasetFieldFacetCategoryName(DatasetFieldType matchedDatasetField) {
-        if (matchedDatasetField.isFacetable() && !matchedDatasetField.isHasParent()) {
-            String key = format(FACETBUNDLE_MASK_VALUE, matchedDatasetField.getName());
-            return Optional.ofNullable(BundleUtil.getStringFromBundle(key))
-                    .filter(name -> !name.isEmpty())
-                    .orElse(matchedDatasetField.getDisplayName());
-        }
-        return matchedDatasetField.getDisplayName();
-    }
-
-    private String getNonDatasetFieldFacetCategoryName(String facetCategoryName) {
-        if(facetCategoryName.equals(SearchFields.TYPE)) {
-            return facetCategoryName;
-        }
-        String key = format(FACETBUNDLE_MASK_VALUE, facetCategoryName);
-        return BundleUtil.getStringFromBundle(key);
-    }
-
-    private String getDatasetFieldFacetLabelName(String facetLabelName, String formattedFacetLabelName,
-                                                 DatasetFieldType matchedDatasetField) {
-        if (matchedDatasetField.isControlledVocabulary()) {
-            String key = "controlledvocabulary." + matchedDatasetField.getName() + "." + formattedFacetLabelName;
-            String bundleName = matchedDatasetField.getMetadataBlock().getName().toLowerCase();
-            return BundleUtil.getStringFromNonDefaultBundle(key, bundleName);
-        }
-        return facetLabelName;
-    }
-
-    private String getNonDatasetFieldFacetLabelName(String facetLabelName, String formattedFacetCategoryName) {
-        String formattedFacetLabelName = toBundleNameFormat(facetLabelName);
-        List<String> translatableNonDictionaryFacets = Lists.newArrayList(SearchFields.PUBLICATION_STATUS,
-                SearchFields.DATAVERSE_CATEGORY, SearchFields.FILE_TYPE, SearchFields.ACCESS);
-
-        if(translatableNonDictionaryFacets.contains(formattedFacetCategoryName)) {
-            if(formattedFacetCategoryName.equals(SearchFields.DATAVERSE_CATEGORY)) {
-                String key = format(FACETBUNDLE_MASK_DVCATEGORY_VALUE, formattedFacetLabelName);
-                return BundleUtil.getStringFromBundle(key);
-            }
-            String key = format(FACETBUNDLE_MASK_GROUP_AND_VALUE, formattedFacetCategoryName, formattedFacetLabelName);
-            return BundleUtil.getStringFromBundle(key);
-        }
-
-        if(formattedFacetCategoryName.equals(SearchFields.METADATA_SOURCE) && formattedFacetLabelName.equals("harvested")) {
-            return BundleUtil.getStringFromBundle(formattedFacetLabelName);
-        }
-
-        if(formattedFacetCategoryName.equals(SearchFields.LICENSE)) {
-            return licenseRepository.findLicenseByName(facetLabelName)
-                .map(l -> l.getLocalizedName(BundleUtil.getCurrentLocale()))
-                .orElseGet(() -> {
-                    String label = BundleUtil.getStringFromBundle(IndexedTermOfUse.getLabelFromName(facetLabelName));
-                    return StringUtils.isBlank(label)?facetLabelName:label;
-                });
-        }
-
-        return facetLabelName;
-    }
-
     private SolrQuery addHighlightFields(SolrQuery solrQuery, Map<String, String> solrFieldsToHightlightOnMap) {
         Set<String> dynamicDatasetFieldsPrefixes = new HashSet<>();
 
@@ -758,24 +669,6 @@ public class SearchServiceBean {
 
     private boolean isFieldDynamic(String field) {
         return field.length() > 8 && SearchDynamicFieldPrefix.contains(field.substring(0, 8));
-    }
-
-    private String removeSolrFieldSuffix(String name) {
-        if(name.endsWith("_ss")) {
-            name = name.substring(0, name.length() - 3);
-        } else if (name.endsWith("_s")) {
-            name = name.substring(0, name.length() - 2);
-        }
-        return name;
-    }
-
-    /**
-     * if exist, multi word bundle names are connected with underscores and formatted toLowerCase
-     * @param name text for which we want to create its bundle name
-     * @return text with replaced spaces with underscores, and leading/trailing whitespaces removed, toLowerCased
-     */
-    private String toBundleNameFormat(String name) {
-        return StringUtils.stripAccents(name.toLowerCase().replace(" ", "_"));
     }
 
     private DvObjectCounts convertFacetToDvObjectCounts(FacetField dvObjectFacetField) {
