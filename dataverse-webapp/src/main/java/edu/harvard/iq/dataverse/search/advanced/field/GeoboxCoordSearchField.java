@@ -1,11 +1,14 @@
 package edu.harvard.iq.dataverse.search.advanced.field;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.search.advanced.SearchFieldType;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryPartType;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,13 +45,30 @@ public class GeoboxCoordSearchField extends SearchField {
         }
         List<SearchField> children = parent.getChildren();
         String coords = children.stream()
-                .filter(f -> StringUtils.isNotBlank(f.getSingleValue()))
-                .map(f -> f.getSingleValue() + f.getDatasetFieldType().getMetadata("geoboxCoord"))
+                .map(ValidatableField::getSingleValue)
+                .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining("|"));
         if (coords.isEmpty()) {
             return QueryPart.EMPTY;
         }
-        return new QueryPart(QueryPartType.FILTER, String.format("[GEO[%s|%s]]", parent.getDatasetFieldType().getName(), coords));
+
+        List<GeoPoint> points = Arrays.stream(coords.split("\n"))
+                .map(line -> {
+                    String[] lineCoordinates = line.trim().split("\\s+");
+                    double longitude = Double.parseDouble(lineCoordinates[0]);
+                    double latitude = Double.parseDouble(lineCoordinates[1]);
+                    return new GeoPoint(latitude, longitude);}
+                )
+                .collect(Collectors.toList());
+
+        String boundingBox = String.join("|",
+                points.stream().mapToDouble(GeoPoint::getLongitude).min().orElse(0) + "W",
+                points.stream().mapToDouble(GeoPoint::getLatitude).min().orElse(0) + "S",
+                points.stream().mapToDouble(GeoPoint::getLongitude).max().orElse(0) + "E",
+                points.stream().mapToDouble(GeoPoint::getLatitude).max().orElse(0) + "N"
+        );
+
+        return new QueryPart(QueryPartType.FILTER, String.format("[GEO[%s|%s]]", parent.getDatasetFieldType().getName(), boundingBox));
     }
 
     // -------------------- SETTERS --------------------
