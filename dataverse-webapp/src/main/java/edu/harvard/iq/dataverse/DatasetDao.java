@@ -303,10 +303,7 @@ public class DatasetDao implements java.io.Serializable {
         }
 
         // Create new:
-        DatasetLock newLock = new DatasetLock(reason, user);
-        newLock.setDataset(dataset);
-        newLock.setInfo(info);
-        newLock.setStartTime(new Date());
+        DatasetLock newLock = new DatasetLock(reason, dataset, user, info);
 
         if (userId != null) {
             newLock.setUser(user);

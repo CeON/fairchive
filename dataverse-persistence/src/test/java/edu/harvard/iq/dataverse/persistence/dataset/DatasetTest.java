@@ -34,17 +34,14 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 public class DatasetTest {
 
     private final AuthenticatedUser user = makeAuthenticatedUser("jane", "doe");
-    private final Date startTime = new Date();
     private final DatasetLock ingestLock = new DatasetLock(Ingest, this.user);
     private final DatasetLock inReviewLock = new DatasetLock(InReview, this.user);
     
     @BeforeEach
     public void setUp() {
         this.ingestLock.setId(1L);
-        this.ingestLock.setStartTime(this.startTime);
         
         this.inReviewLock.setId(2L);
-        this.inReviewLock.setStartTime(this.startTime);
     }
     
 

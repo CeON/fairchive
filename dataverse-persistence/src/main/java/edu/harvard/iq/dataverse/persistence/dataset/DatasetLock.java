@@ -118,36 +118,32 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
      *                                  anyway.
      */
     public DatasetLock(final Reason reason, final AuthenticatedUser user) {
-        this(reason, user, null);
+        this(reason, null, user, null);
     }
-
+    
     /**
      * Constructing a lock for the given reason, with the specified descriptive info
      * message.
      *
      * @param reason      Why the dataset gets locked. Cannot be {@code null}.
+     * @param dataset     Dataset to be locked
      * @param user        The user causing the lock. Cannot be {@code null}.
      * @param infoMessage Descriptive message.
      * @throws IllegalArgumentException if any of the parameters are null. That's
      *                                  because JPA would throw an exception later
      *                                  anyway.
      */
-    public DatasetLock(final Reason reason, final AuthenticatedUser user,
+    public DatasetLock(final Reason reason, final Dataset dataset, final AuthenticatedUser user,
             final String infoMessage) {
         requireNonNull(reason, "Cannot lock a dataset for a null reason");
         requireNonNull(user, "Cannot lock a dataset for a null user");
         this.reason = reason;
+        this.dataset = dataset;
         this.startTime = new Date();
         this.user = user;
         this.info = infoMessage;
     }
 
-    /**
-     * JPA no-args constructor. Client code should use the public constructor and
-     * not this one.
-     *
-     * @see #DatasetLock(edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason)
-     */
     protected DatasetLock() {
     }
 
