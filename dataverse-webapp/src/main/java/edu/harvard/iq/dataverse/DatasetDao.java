@@ -278,41 +278,26 @@ public class DatasetDao implements java.io.Serializable {
     public DatasetLock addDatasetLock(Dataset dataset, DatasetLock lock) {
         lock.setDataset(dataset);
         dataset.addLock(lock);
-        lock.setStartTime(new Date());
         em.persist(lock);
         em.merge(dataset);
         return lock;
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) /*?*/
-    public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason, Long userId, String info) {
-
-        Dataset dataset = this.datasetRepo.getById(datasetId);
-
-        AuthenticatedUser user = null;
-        if (userId != null) {
-            user = em.find(AuthenticatedUser.class, userId);
-        }
+    public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason,
+            Long userId, String info) {
+        final Dataset dataset = this.datasetRepo.getById(datasetId);
+        final AuthenticatedUser user = em.find(AuthenticatedUser.class, userId);
 
         // Check if the dataset is already locked for this reason:
         // (to prevent multiple, duplicate locks on the dataset!)
-        Optional<DatasetLock> lock = dataset.getLockFor(reason);
+        final Optional<DatasetLock> lock = dataset.getLockFor(reason);
         if (lock.isPresent()) {
             return lock.get();
+        } else {
+            final DatasetLock newLock = new DatasetLock(reason, dataset, user, info);
+            return addDatasetLock(dataset, newLock);
         }
-
-        // Create new:
-        DatasetLock newLock = new DatasetLock(reason, dataset, user, info);
-
-        if (userId != null) {
-            newLock.setUser(user);
-            if (user.getDatasetLocks() == null) {
-                user.setDatasetLocks(new ArrayList<>());
-            }
-            user.getDatasetLocks().add(newLock);
-        }
-
-        return addDatasetLock(dataset, newLock);
     }
 
     /**

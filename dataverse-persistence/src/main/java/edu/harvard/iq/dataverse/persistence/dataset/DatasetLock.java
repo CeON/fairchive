@@ -136,10 +136,10 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
     public DatasetLock(final Reason reason, final Dataset dataset, final AuthenticatedUser user,
             final String infoMessage) {
         requireNonNull(reason, "Cannot lock a dataset for a null reason");
-        requireNonNull(user, "Cannot lock a dataset for a null user");
         this.reason = reason;
         this.dataset = dataset;
         this.startTime = new Date();
+        user.getDatasetLocks().add(this);
         this.user = user;
         this.info = infoMessage;
     }
@@ -176,6 +176,7 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
     }
 
     public void setUser(final AuthenticatedUser user) {
+        user.getDatasetLocks().add(this);
         this.user = user;
     }
 
