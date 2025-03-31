@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.lang.Long.MAX_VALUE;
 import static java.lang.Long.parseLong;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
@@ -27,7 +28,7 @@ public final class PeriodoDictionary {
 
     static {
         try (final Reader in = new InputStreamReader(PeriodoDictionary.class
-                .getResourceAsStream("/periodo-dataset.json"), "utf-8")) {
+                .getResourceAsStream("/periodo-dataset.json"), UTF_8)) {
             final JSONObject json = new JSONObject(new JSONTokener(in));
             final JSONArray context = json.getJSONArray("@context");
             base = context.getJSONObject(1).getString("@base");
@@ -171,10 +172,10 @@ public final class PeriodoDictionary {
         }
 
         private boolean matches(final String query) {
-            return this.id.contains(query) |
-                    this.label.contains(query) |
-                    this.coverageName.contains(query) |
-                    this.authorityTitle.contains(query) |
+            return this.id.contains(query) ||
+                    this.label.contains(query) ||
+                    this.coverageName.contains(query) ||
+                    this.authorityTitle.contains(query) ||
                     this.locations.stream()
                             .anyMatch(location -> location.contains(query));
         }
@@ -188,7 +189,7 @@ public final class PeriodoDictionary {
             return getValue();
         }
 
-        public String getDatails(final String separator) {
+        public String getDetails(final String separator) {
             final StringBuilder result = new StringBuilder(80);
             result.append(getStringFromBundle("periodo.name")).append(this.label)
                     .append(separator);
@@ -217,7 +218,7 @@ public final class PeriodoDictionary {
         }
 
         public String getDetails() {
-            return getDatails(" ");
+            return getDetails(" ");
         }
     }
 }

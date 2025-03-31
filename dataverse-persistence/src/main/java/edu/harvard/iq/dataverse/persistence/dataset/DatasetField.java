@@ -479,7 +479,7 @@ public class DatasetField implements Serializable, ValidatableField {
         if (fieldType.getFieldType().equals(FieldType.PERIODO)) {
             return this.fieldValue + "<br>" +
                     PeriodoDictionary.getByUrl(this.fieldValue).get()
-                            .getDatails("<br>");
+                            .getDetails("<br>");
         }
         
         String retVal = "";
