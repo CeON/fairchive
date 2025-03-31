@@ -83,12 +83,15 @@ public class DatasetDao implements java.io.Serializable {
 
     @EJB
     private DatasetThumbnailService datasetThumbnailService;
+    
+    @Inject
+    private DatasetRepository datasetRepo;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;
 
     public Dataset find(Object pk) {
-        return em.find(Dataset.class, pk);
+        return this.datasetRepo.getById((Long)pk);
     }
 
     public List<Dataset> findByOwnerId(Long ownerId) {
@@ -96,25 +99,23 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public List<Dataset> findAll() {
-        return em.createQuery("select object(o) from Dataset as o order by o.id", Dataset.class).getResultList();
+        return this.datasetRepo.findAll();
     }
     
     public List<Dataset> findStaleOrMissingDatasets() {
-        return findAll().stream().filter(DvObject::isStale).collect(toList());
+        return this.datasetRepo.findStaleOrMissingDatasets();
     }
 
     public List<Dataset> findNotIndexedAfterEmbargo() {
-        TypedQuery<Dataset> typedQuery = em.createQuery("select d from Dataset d, DvObject o where d.id = o.id and d.embargoDate < :actualTimestamp and d.embargoDate > o.indexTime", Dataset.class);
-        typedQuery.setParameter("actualTimestamp", Timestamp.from(Instant.now()));
-        return typedQuery.getResultList();
+        return this.datasetRepo.findNotIndexedAfterEmbargo();
     }
 
     public List<Long> findAllLocalDatasetIds() {
-        return em.createQuery("SELECT o.id FROM Dataset o WHERE o.harvestedFrom IS null ORDER BY o.id", Long.class).getResultList();
+        return this.datasetRepo.findAllLocalDatasetIds();
     }
 
     public List<Long> findAllUnindexed() {
-        return em.createQuery("SELECT o.id FROM Dataset o WHERE o.indexTime IS null ORDER BY o.id DESC", Long.class).getResultList();
+        return this.datasetRepo.findAllUnindexed();
     }
 
     /**
@@ -126,15 +127,12 @@ public class DatasetDao implements java.io.Serializable {
      * @return a list of datasets
      * @see DataverseDao#findAllOrSubset(long, long, boolean)
      */
-    public List<Long> findAllOrSubset(long numPartitions, long partitionId, boolean skipIndexed) {
-        numPartitions = max(numPartitions, 1);
-        String skipClause = skipIndexed ? "AND o.indexTime is null " : "";
-        TypedQuery<Long> typedQuery = em.createQuery("SELECT o.id FROM Dataset o WHERE MOD( o.id, :numPartitions) = :partitionId " +
-                                                             skipClause +
-                                                             "ORDER BY o.id", Long.class);
-        typedQuery.setParameter("numPartitions", numPartitions);
-        typedQuery.setParameter("partitionId", partitionId);
-        return typedQuery.getResultList();
+    public List<Long> findAllOrSubset(final long numPartitions, final long partitionId,
+            final boolean skipIndexed) {
+        return skipIndexed
+                ? this.datasetRepo.findAllOrSubsetSkippingIndexed(numPartitions,
+                        partitionId)
+                : this.datasetRepo.findAllOrSubset(numPartitions, partitionId);
     }
 
     /**
@@ -480,7 +478,7 @@ public class DatasetDao implements java.io.Serializable {
             logger.warning("Failed to sleep for 15 seconds.");
         }
         logger.fine("Running FinalizeDatasetPublicationCommand, asynchronously");
-        Dataset theDataset = find(datasetId);
+        Dataset theDataset = this.datasetRepo.getById(datasetId);
         commandEngine.submit(new FinalizeDatasetPublicationCommand(theDataset, request, isPidPrePublished));
     }
 
