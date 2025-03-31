@@ -149,18 +149,18 @@ public class DatasetTest {
         dataset.addLock(this.inReviewLock);
         
         assertEquals(2, dataset.getLocks().size());
-        assertEquals(this.ingestLock, dataset.getLockFor(Ingest));
+        assertEquals(this.ingestLock, dataset.getLockFor(Ingest).get());
         
         dataset.removeLock(this.ingestLock);
         
         assertTrue(dataset.isLocked());
-        assertNull(dataset.getLockFor(Ingest));
+        assertFalse(dataset.getLockFor(Ingest).isPresent());
         assertEquals(1, dataset.getLocks().size());
 
         dataset.removeLock(this.inReviewLock);
         
         assertFalse(dataset.isLocked());
-        assertNull(dataset.getLockFor(InReview));
+        assertFalse(dataset.getLockFor(InReview).isPresent());
         assertEquals(0, dataset.getLocks().size());
     }
     

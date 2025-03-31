@@ -1296,12 +1296,12 @@ public class Datasets extends AbstractApiBean {
                             logger.log(Level.SEVERE, "S3 File package import failed.");
                             return error(Response.Status.INTERNAL_SERVER_ERROR, "S3 File package import failed.");
                         }
-                        DatasetLock dcmLock = dataset.getLockFor(DatasetLock.Reason.DcmUpload);
-                        if (dcmLock == null) {
-                            logger.log(Level.WARNING, "Dataset not locked for DCM upload");
-                        } else {
+                        Optional<DatasetLock> dcmLock = dataset.getLockFor(DatasetLock.Reason.DcmUpload);
+                        if (dcmLock.isPresent()) {
                             datasetDao.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
-                            dataset.removeLock(dcmLock);
+                            dataset.removeLock(dcmLock.get());
+                        } else {
+                            logger.log(Level.WARNING, "Dataset not locked for DCM upload");
                         }
 
                         // update version using the command engine to enforce user permissions and constraints
@@ -1514,10 +1514,10 @@ public class Datasets extends AbstractApiBean {
                 locks = dataset.getLocks();
             } else {
                 // request for a specific type lock:
-                DatasetLock lock = dataset.getLockFor(lockType);
+                Optional<DatasetLock> lock = dataset.getLockFor(lockType);
                 locks = new HashSet<>();
-                if (lock != null) {
-                    locks.add(lock);
+                if (lock.isPresent()) {
+                    locks.add(lock.get());
                 }
             }
             List<DatasetLockDTO> allLocks = locks.stream()
@@ -1559,14 +1559,14 @@ public class Datasets extends AbstractApiBean {
                     return ok("dataset not locked");
                 }
                 // request for a specific type lock:
-                DatasetLock lock = dataset.getLockFor(lockType);
-                if (lock != null) {
-                    execCommand(new RemoveLockCommand(req, dataset, lock.getReason()));
+                Optional<DatasetLock> lock = dataset.getLockFor(lockType);
+                if (lock.isPresent()) {
+                    execCommand(new RemoveLockCommand(req, dataset, lock.get().getReason()));
                     // refresh the dataset:
                     dataset = findDatasetOrDie(id);
                     // ... and kick of dataset reindexing, in case the lock removed affected the search card:
                     indexService.indexDataset(dataset, true);
-                    return ok("lock type " + lock.getReason() + " removed");
+                    return ok("lock type " + lock.get().getReason() + " removed");
                 }
                 return ok("no lock type " + lockType + " on the dataset");
             } catch (WrappedResponse wr) {
@@ -1586,12 +1586,12 @@ public class Datasets extends AbstractApiBean {
                     return error(Response.Status.FORBIDDEN, "This API end point can be used by superusers only.");
                 }
                 Dataset dataset = findDatasetOrDie(id);
-                DatasetLock lock = dataset.getLockFor(lockType);
-                if (lock != null) {
+                Optional<DatasetLock> lock = dataset.getLockFor(lockType);
+                if (lock.isPresent()) {
                     return error(Response.Status.FORBIDDEN, "dataset already locked with lock type " + lockType);
                 }
-                lock = new DatasetLock(lockType, user);
-                execCommand(new AddLockCommand(req, dataset, lock));
+                DatasetLock newLock = new DatasetLock(lockType, user);
+                execCommand(new AddLockCommand(req, dataset, newLock));
                 // refresh the dataset:
                 dataset = findDatasetOrDie(id);
                 // ... and kick of dataset reindexing:

@@ -1,21 +1,20 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.AlternativePersistentIdentifier;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.DvObjectContainer;
-import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
-import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -33,20 +32,24 @@ import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.persistence.AlternativePersistentIdentifier;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.DvObjectContainer;
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
+import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
+import io.vavr.control.Option;
 
 /**
  * @author skraffmiller
@@ -212,9 +215,9 @@ public class Dataset extends DvObjectContainer {
      *
      * @return the dataset lock, or {@code null}.
      */
-    public DatasetLock getLockFor(DatasetLock.Reason reason) {
+    public Optional<DatasetLock> getLockFor(DatasetLock.Reason reason) {
         return getLocks().stream().filter(lock -> lock.getReason().equals(reason))
-                .findAny().orElse(null);
+                .findAny();
     }
 
     public Set<DatasetLock> getLocks() {

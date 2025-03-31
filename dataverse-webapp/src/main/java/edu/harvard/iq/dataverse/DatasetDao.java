@@ -1,5 +1,36 @@
 package edu.harvard.iq.dataverse;
 
+import static java.lang.Math.max;
+import static java.util.stream.Collectors.toList;
+
+import java.io.InputStream;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.Asynchronous;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
+import javax.persistence.TemporalType;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.RandomStringUtils;
+
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
@@ -20,35 +51,6 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import org.apache.commons.lang.RandomStringUtils;
-
-import javax.ejb.Asynchronous;
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TemporalType;
-import javax.persistence.TypedQuery;
-
-import static java.lang.Math.max;
-import static java.util.stream.Collectors.toList;
-
-import java.io.InputStream;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author skraffmiller
@@ -311,26 +313,26 @@ public class DatasetDao implements java.io.Serializable {
 
         // Check if the dataset is already locked for this reason:
         // (to prevent multiple, duplicate locks on the dataset!)
-        DatasetLock lock = dataset.getLockFor(reason);
-        if (lock != null) {
-            return lock;
+        Optional<DatasetLock> lock = dataset.getLockFor(reason);
+        if (lock.isPresent()) {
+            return lock.get();
         }
 
         // Create new:
-        lock = new DatasetLock(reason, user);
-        lock.setDataset(dataset);
-        lock.setInfo(info);
-        lock.setStartTime(new Date());
+        DatasetLock newLock = new DatasetLock(reason, user);
+        newLock.setDataset(dataset);
+        newLock.setInfo(info);
+        newLock.setStartTime(new Date());
 
         if (userId != null) {
-            lock.setUser(user);
+            newLock.setUser(user);
             if (user.getDatasetLocks() == null) {
                 user.setDatasetLocks(new ArrayList<>());
             }
-            user.getDatasetLocks().add(lock);
+            user.getDatasetLocks().add(newLock);
         }
 
-        return addDatasetLock(dataset, lock);
+        return addDatasetLock(dataset, newLock);
     }
 
     /**
@@ -501,17 +503,17 @@ public class DatasetDao implements java.io.Serializable {
      * @return true if dataset is In Review locked state
      */
     public boolean isInReview(Dataset dataset) {
-        if(dataset.getLocks().isEmpty()) {
-            return false;
-        }
+        if (dataset.isLocked()) {
+            List<DatasetLock> locks = em
+                    .createNamedQuery("DatasetLock.getLocksByDatasetId",
+                            DatasetLock.class)
+                    .setParameter("datasetId", dataset.getId())
+                    .getResultList();
 
-        List<DatasetLock> locks = em.createNamedQuery("DatasetLock.getLocksByDatasetId", DatasetLock.class)
-                .setParameter("datasetId", dataset.getId())
-                .getResultList();
-
-        for(DatasetLock lock : locks) {
-            if(lock.getReason().equals(DatasetLock.Reason.InReview)){
-                return true;
+            for (DatasetLock lock : locks) {
+                if (lock.getReason().equals(DatasetLock.Reason.InReview)) {
+                    return true;
+                }
             }
         }
         return false;
