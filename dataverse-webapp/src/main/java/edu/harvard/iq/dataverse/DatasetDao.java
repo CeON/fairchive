@@ -1,11 +1,9 @@
 package edu.harvard.iq.dataverse;
 
-import static java.lang.Math.max;
-import static java.util.stream.Collectors.toList;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 
 import java.io.InputStream;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -38,7 +36,6 @@ import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.FinalizeDatasetPublicationCommand;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
-import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
@@ -141,14 +138,12 @@ public class DatasetDao implements java.io.Serializable {
      * @param ds the dataset whose new state we want to persist.
      * @return The managed entity representing {@code ds}.
      */
-    public Dataset merge(Dataset ds) {
-        return em.merge(ds);
+    public Dataset merge(final Dataset ds) {
+        return this.datasetRepo.save(ds);
     }
 
-    public Dataset mergeAndFlush(Dataset ds) {
-        Dataset merged = em.merge(ds);
-        em.flush();
-        return merged;
+    public Dataset mergeAndFlush(final Dataset ds) {
+        return this.datasetRepo.saveAndFlush(ds);
     }
 
     public Dataset findByGlobalId(String globalId) {
@@ -162,8 +157,8 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public String generateDatasetIdentifier(Dataset dataset) {
-        String identifierType = settingsService.getValueForKey(SettingsServiceBean.Key.IdentifierGenerationStyle);
-        String shoulder = settingsService.getValueForKey(SettingsServiceBean.Key.Shoulder);
+        String identifierType = settingsService.getValueForKey(IdentifierGenerationStyle);
+        String shoulder = settingsService.getValueForKey(Shoulder);
 
         switch (identifierType) {
             case "randomString":
@@ -232,11 +227,8 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public boolean isIdentifierLocallyUnique(String identifier, Dataset dataset) {
-        return em.createNamedQuery("Dataset.findByIdentifierAuthorityProtocol")
-                .setParameter("identifier", identifier)
-                .setParameter("authority", dataset.getAuthority())
-                .setParameter("protocol", dataset.getProtocol())
-                .getResultList().isEmpty();
+        return this.datasetRepo.findByIdentifierAuthorityAndProtocol(identifier,
+                dataset.getAuthority(), dataset.getProtocol()).isEmpty();
     }
 
     public DatasetVersion storeVersion(DatasetVersion dsv) {
@@ -296,7 +288,7 @@ public class DatasetDao implements java.io.Serializable {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) /*?*/
     public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason, Long userId, String info) {
 
-        Dataset dataset = em.find(Dataset.class, datasetId);
+        Dataset dataset = this.datasetRepo.getById(datasetId);
 
         AuthenticatedUser user = null;
         if (userId != null) {
@@ -391,19 +383,19 @@ public class DatasetDao implements java.io.Serializable {
 
     }
 
-    public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
-        String queryStr = "SELECT d FROM Dataset d, DvObject o WHERE d.id = o.id AND o.owner.id = " + dataverse.getId() + " and d.harvestIdentifier = '" + harvestIdentifier + "'";
-        Query query = em.createQuery(queryStr);
-        List resultList = query.getResultList();
-        Dataset dataset = null;
+    public Dataset getDatasetByHarvestInfo(Dataverse dataverse,
+            String harvestIdentifier) {
+        final List<Dataset> resultList = this.datasetRepo
+                .findByOwnerIdAndHarvestIdentifier(dataverse.getId(), harvestIdentifier);
         if (resultList.size() > 1) {
-            throw new EJBException("More than one dataset found in the dataverse (id= " + dataverse.getId() + "), with harvestIdentifier= " + harvestIdentifier);
+            throw new EJBException("More than one dataset found in the dataverse (id= "
+                    + dataverse.getId() + "), with harvestIdentifier= "
+                    + harvestIdentifier);
+        } else if (resultList.size() == 1) {
+            return resultList.get(0);
+        } else {
+            return null;
         }
-        if (resultList.size() == 1) {
-            dataset = (Dataset) resultList.get(0);
-        }
-        return dataset;
-
     }
 
     public void updateLastExportTimeStamp(Long datasetId) {

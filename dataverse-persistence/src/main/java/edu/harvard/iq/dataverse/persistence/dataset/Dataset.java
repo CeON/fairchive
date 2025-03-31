@@ -21,8 +21,6 @@ import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.NamedStoredProcedureQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -54,12 +52,6 @@ import io.vavr.control.Option;
 /**
  * @author skraffmiller
  */
-@NamedQueries({
-        @NamedQuery(name = "Dataset.findByIdentifier",
-                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier"),
-        @NamedQuery(name = "Dataset.findByIdentifierAuthorityProtocol",
-                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier AND d.protocol=:protocol AND d.authority=:authority"),
-})
 
 /*
     Below is the stored procedure for getting a numeric value from a database

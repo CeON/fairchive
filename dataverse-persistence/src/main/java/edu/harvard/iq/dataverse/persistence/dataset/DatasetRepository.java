@@ -99,4 +99,25 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
                 .setParameter("partitionId", partitionId)
                 .getResultList();
     }
+    
+    public List<Dataset> findByIdentifierAuthorityAndProtocol(final String identifier,
+            final String authority, final String protocol) {
+        return this.em.createQuery("SELECT d FROM Dataset d "
+                + "WHERE d.identifier = :identifier AND d.protocol = :protocol AND d.authority = :authority",
+                Dataset.class)
+                .setParameter("identifier", identifier)
+                .setParameter("authority", authority)
+                .setParameter("protocol", protocol)
+                .getResultList();
+    }
+    
+    public List<Dataset> findByOwnerIdAndHarvestIdentifier(final Long ownerId,
+            final String harvestIdentifier) {
+        return this.em.createQuery("SELECT d FROM Dataset d, DvObject o " +
+                "WHERE d.id = o.id AND o.owner.id = :ownerId and d.harvestIdentifier = :harvestIdentifier",
+                Dataset.class)
+                .setParameter("ownerId", ownerId)
+                .setParameter("harvestIdentifier", harvestIdentifier)
+                .getResultList();
+    }
 }
