@@ -89,6 +89,7 @@ import java.util.stream.Collectors;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
@@ -438,7 +439,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (dataset.isLockedFor(InReview) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 

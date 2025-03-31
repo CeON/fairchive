@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
 
@@ -488,26 +489,6 @@ public class DatasetDao implements java.io.Serializable {
         logger.fine("Running FinalizeDatasetPublicationCommand, asynchronously");
         Dataset theDataset = find(datasetId);
         commandEngine.submit(new FinalizeDatasetPublicationCommand(theDataset, request, isPidPrePublished));
-    }
-
-    /**
-     * @return true if dataset is In Review locked state
-     */
-    public boolean isInReview(Dataset dataset) {
-        if (dataset.isLocked()) {
-            List<DatasetLock> locks = em
-                    .createNamedQuery("DatasetLock.getLocksByDatasetId",
-                            DatasetLock.class)
-                    .setParameter("datasetId", dataset.getId())
-                    .getResultList();
-
-            for (DatasetLock lock : locks) {
-                if (lock.getReason().equals(DatasetLock.Reason.InReview)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public void updateAllLastChangeForExporterTime() {
