@@ -1,5 +1,9 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticatedUser;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Ingest;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -8,9 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -18,9 +24,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.google.common.collect.Lists;
 
-import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 
 /**
@@ -28,7 +34,20 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
  */
 public class DatasetTest {
 
-    // -------------------- TESTS --------------------
+    private final AuthenticatedUser user = makeAuthenticatedUser("jane", "doe");
+    private final Date startTime = new Date();
+    private final DatasetLock ingestLock = new DatasetLock(Ingest, this.user);
+    private final DatasetLock inReviewLock = new DatasetLock(InReview, this.user);
+    
+    @BeforeEach
+    public void setUp() {
+        this.ingestLock.setId(1L);
+        this.ingestLock.setStartTime(this.startTime);
+        
+        this.inReviewLock.setId(2L);
+        this.inReviewLock.setStartTime(this.startTime);
+    }
+    
 
     @ParameterizedTest
     @MethodSource("isDeacessionedArguments")
@@ -84,40 +103,65 @@ public class DatasetTest {
      * Test of isLockedFor method, of class Dataset.
      */
     @Test
-    public void testIsLockedFor() {
-        Dataset sut = new Dataset();
-        assertFalse(sut.isLockedFor(DatasetLock.Reason.Ingest));
-        DatasetLock dl = new DatasetLock(DatasetLock.Reason.Ingest, MocksFactory.makeAuthenticatedUser("jane", "doe"));
-        sut.addLock(dl);
-        assertTrue(sut.isLockedFor(DatasetLock.Reason.Ingest));
-        assertFalse(sut.isLockedFor(DatasetLock.Reason.Workflow));
+    public void datasetIsOnlyLockForTheReason_isHasBeanExplicitelyLockedFor() {
+        Dataset dataset = new Dataset();
+        this.ingestLock.setDataset(dataset);
+        
+        assertFalse(dataset.isLockedFor(Ingest));
+        assertFalse(dataset.isLockedFor(Ingest.name()));
+        assertFalse(dataset.isLockedFor(Workflow));
+        assertFalse(dataset.isLockedFor(Workflow.name()));
+        assertFalse(dataset.isLockedFor(""));
+        
+        dataset.addLock(this.ingestLock);
+        
+        assertTrue(dataset.isLockedFor(Ingest));
+        assertTrue(dataset.isLockedFor(Ingest.name()));
+        assertFalse(dataset.isLockedFor(Workflow));
+        assertFalse(dataset.isLockedFor(Workflow.name()));
+        
+        dataset.removeLock(null);
+        
+        assertTrue(dataset.isLockedFor(Ingest));
+        
+        dataset.removeLock(new DatasetLock(Workflow, this.user));
+        
+        assertTrue(dataset.isLockedFor(Ingest));
+        assertTrue(dataset.isLockedFor(Ingest.name()));
+        
+        dataset.removeLock(this.ingestLock);
+        
+        assertFalse(dataset.isLockedFor(Ingest));
+        assertFalse(dataset.isLockedFor(Ingest.name()));
     }
 
     @Test
     public void testLocksManagement() {
-        Dataset sut = new Dataset();
-        assertFalse(sut.isLocked());
+        Dataset dataset = new Dataset();
+        this.ingestLock.setDataset(dataset);
+        this.inReviewLock.setDataset(dataset);
+        
+        assertFalse(dataset.isLocked());
 
-        DatasetLock dlIngest = new DatasetLock(DatasetLock.Reason.Ingest, MocksFactory.makeAuthenticatedUser("jane", "doe"));
-        dlIngest.setId(MocksFactory.nextId());
-        sut.addLock(dlIngest);
-        assertTrue(sut.isLocked());
+        dataset.addLock(this.ingestLock);
+        assertTrue(dataset.isLocked());
 
-        final DatasetLock dlInReview = new DatasetLock(DatasetLock.Reason.InReview, MocksFactory.makeAuthenticatedUser("jane", "doe"));
-        dlInReview.setId(MocksFactory.nextId());
-        sut.addLock(dlInReview);
-        assertEquals(2, sut.getLocks().size());
+        dataset.addLock(this.inReviewLock);
+        
+        assertEquals(2, dataset.getLocks().size());
+        assertEquals(this.ingestLock, dataset.getLockFor(Ingest));
+        
+        dataset.removeLock(this.ingestLock);
+        
+        assertTrue(dataset.isLocked());
+        assertNull(dataset.getLockFor(Ingest));
+        assertEquals(1, dataset.getLocks().size());
 
-        DatasetLock retrievedDl = sut.getLockFor(DatasetLock.Reason.Ingest);
-        assertEquals(dlIngest, retrievedDl);
-        sut.removeLock(dlIngest);
-        assertNull(sut.getLockFor(DatasetLock.Reason.Ingest));
-
-        assertTrue(sut.isLocked());
-
-        sut.removeLock(dlInReview);
-        assertFalse(sut.isLocked());
-
+        dataset.removeLock(this.inReviewLock);
+        
+        assertFalse(dataset.isLocked());
+        assertNull(dataset.getLockFor(InReview));
+        assertEquals(0, dataset.getLocks().size());
     }
     
     @Test
