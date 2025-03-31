@@ -414,15 +414,6 @@ public class DatasetDao implements java.io.Serializable {
 
     }
 
-    public Long getDatasetVersionCardImage(Long versionId, User user) {
-        if (versionId == null) {
-            return null;
-        }
-
-
-        return null;
-    }
-
     public void updateLastExportTimeStamp(Long datasetId) {
         Date now = new Date();
         em.createNativeQuery("UPDATE Dataset SET lastExportTime='" + now.toString() + "' WHERE id=" + datasetId).executeUpdate();
