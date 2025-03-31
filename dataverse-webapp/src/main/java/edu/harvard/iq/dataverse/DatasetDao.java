@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
 
@@ -271,6 +270,8 @@ public class DatasetDao implements java.io.Serializable {
         typedQuery.setParameter("authenticatedUserId", user.getId());
         return typedQuery.getResultList();
     }
+
+
 
     public List<DatasetLock> getDatasetLocksByUser( AuthenticatedUser user) {
 
