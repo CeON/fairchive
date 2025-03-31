@@ -194,6 +194,10 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
     public void setReason(final Reason reason) {
         this.reason = reason;
     }
+    
+    public void removeFromDataset() {
+        getDataset().removeLock(this);
+    }
 
     @Override
     public int hashCode() {

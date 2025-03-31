@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -325,16 +324,17 @@ public class DatasetDao implements java.io.Serializable {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void removeDatasetLocks(Dataset dataset, DatasetLock.Reason aReason) {
-        dataset.streamLocksFor(aReason)
-                .forEach(lock -> {
-                    lock = em.merge(lock);
-                    dataset.removeLock(lock);
+        dataset.streamLocksFor(aReason).forEach(this::remove);
+    }
+    
+    private void remove(DatasetLock lock) {
+        lock.removeFromDataset();
+        lock = em.merge(lock);
 
-                    AuthenticatedUser user = lock.getUser();
-                    user.getDatasetLocks().remove(lock);
+        AuthenticatedUser user = lock.getUser();
+        user.getDatasetLocks().remove(lock);
 
-                    em.remove(lock);
-                });
+        em.remove(lock);
     }
 
     /*
