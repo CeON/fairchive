@@ -4,7 +4,6 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Identifi
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -39,8 +38,10 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLockRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
@@ -75,13 +76,14 @@ public class DatasetDao implements java.io.Serializable {
     EjbDataverseEngine commandEngine;
 
     @EJB
-    private DatasetRepository datasetRepository;
-
-    @EJB
     private DatasetThumbnailService datasetThumbnailService;
     
     @Inject
     private DatasetRepository datasetRepo;
+    @Inject
+    private DatasetLockRepository datasetLockRepo;
+    @Inject 
+    private DatasetVersionRepository datasetVersionRepo;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;
@@ -91,7 +93,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public List<Dataset> findByOwnerId(Long ownerId) {
-        return datasetRepository.findByOwnerId(ownerId);
+        return this.datasetRepo.findByOwnerId(ownerId);
     }
 
     public List<Dataset> findAll() {
@@ -231,8 +233,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public DatasetVersion storeVersion(DatasetVersion dsv) {
-        em.persist(dsv);
-        return dsv;
+        return this.datasetVersionRepo.save(dsv);
     }
 
 
@@ -278,8 +279,8 @@ public class DatasetDao implements java.io.Serializable {
     public DatasetLock addDatasetLock(Dataset dataset, DatasetLock lock) {
         lock.setDataset(dataset);
         dataset.addLock(lock);
-        em.persist(lock);
-        em.merge(dataset);
+        this.datasetLockRepo.save(lock);
+        this.datasetRepo.save(dataset);
         return lock;
     }
 
@@ -314,12 +315,12 @@ public class DatasetDao implements java.io.Serializable {
     
     private void remove(DatasetLock lock) {
         lock.removeFromDataset();
-        lock = em.merge(lock);
+        this.datasetLockRepo.save(lock);
 
         AuthenticatedUser user = lock.getUser();
         user.getDatasetLocks().remove(lock);
 
-        em.remove(lock);
+        this.datasetLockRepo.delete(lock);
     }
 
     /*
