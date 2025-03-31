@@ -208,8 +208,12 @@ public class Dataset extends DvObjectContainer {
      * @return the dataset lock, or {@code null}.
      */
     public Optional<DatasetLock> getLockFor(DatasetLock.Reason reason) {
-        return getLocks().stream().filter(lock -> lock.getReason().equals(reason))
-                .findAny();
+        return streamLocksFor(reason).findAny();
+    }
+    
+    public Stream<DatasetLock> streamLocksFor(DatasetLock.Reason reason) {
+        return getLocks().stream().filter(lock -> lock.getReason().equals(reason));
+
     }
 
     public Set<DatasetLock> getLocks() {

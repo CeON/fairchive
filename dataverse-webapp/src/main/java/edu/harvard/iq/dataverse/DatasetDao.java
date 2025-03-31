@@ -325,19 +325,16 @@ public class DatasetDao implements java.io.Serializable {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void removeDatasetLocks(Dataset dataset, DatasetLock.Reason aReason) {
-        if (dataset != null) {
-            new HashSet<>(dataset.getLocks()).stream()
-                    .filter(l -> l.getReason() == aReason)
-                    .forEach(lock -> {
-                        lock = em.merge(lock);
-                        dataset.removeLock(lock);
+        dataset.streamLocksFor(aReason)
+                .forEach(lock -> {
+                    lock = em.merge(lock);
+                    dataset.removeLock(lock);
 
-                        AuthenticatedUser user = lock.getUser();
-                        user.getDatasetLocks().remove(lock);
+                    AuthenticatedUser user = lock.getUser();
+                    user.getDatasetLocks().remove(lock);
 
-                        em.remove(lock);
-                    });
-        }
+                    em.remove(lock);
+                });
     }
 
     /*
