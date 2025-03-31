@@ -4,6 +4,7 @@ import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 import javax.ejb.Singleton;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
 import static java.lang.Math.max;
@@ -119,5 +120,12 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
                 .setParameter("ownerId", ownerId)
                 .setParameter("harvestIdentifier", harvestIdentifier)
                 .getResultList();
+    }
+    
+    public String generateIdentifierAsSequentialNumber() {
+        final StoredProcedureQuery query = this.em.createNamedStoredProcedureQuery(
+                "Dataset.generateIdentifierAsSequentialNumber");
+        query.execute();
+        return query.getOutputParameterValue(1).toString();
     }
 }

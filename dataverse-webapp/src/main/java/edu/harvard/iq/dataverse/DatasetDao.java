@@ -2,12 +2,14 @@ package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
+import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,11 +23,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
-
-import org.apache.commons.lang.RandomStringUtils;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
@@ -128,8 +127,7 @@ public class DatasetDao implements java.io.Serializable {
     public List<Long> findAllOrSubset(final long numPartitions, final long partitionId,
             final boolean skipIndexed) {
         return skipIndexed
-                ? this.datasetRepo.findAllOrSubsetSkippingIndexed(numPartitions,
-                        partitionId)
+                ? this.datasetRepo.findAllOrSubsetSkippingIndexed(numPartitions, partitionId)
                 : this.datasetRepo.findAllOrSubset(numPartitions, partitionId);
     }
 
@@ -157,46 +155,23 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    public String generateDatasetIdentifier(Dataset dataset) {
-        String identifierType = settingsService.getValueForKey(IdentifierGenerationStyle);
-        String shoulder = settingsService.getValueForKey(Shoulder);
-
-        switch (identifierType) {
-            case "randomString":
-                return generateIdentifierAsRandomString(dataset, shoulder);
-            case "sequentialNumber":
-                return generateIdentifierAsSequentialNumber(dataset, shoulder);
-            default:
-                /* Should we throw an exception instead?? -- L.A. 4.6.2 */
-                return generateIdentifierAsRandomString(dataset, shoulder);
-        }
+    public String generateDatasetIdentifier(final Dataset dataset) {
+        final String identifierType = this.settingsService.getValueForKey(IdentifierGenerationStyle);
+        final String shoulder = this.settingsService.getValueForKey(Shoulder);
+        final Supplier<String> generator = identifierType.equals("sequentialNumber") 
+            ? () -> shoulder.concat(this.datasetRepo.generateIdentifierAsSequentialNumber())
+            : () -> shoulder.concat(randomAlphanumeric(6).toUpperCase());
+        
+        return generateId(dataset, generator);
     }
-
-    private String generateIdentifierAsRandomString(Dataset dataset, String shoulder) {
-        String identifier = null;
-        do {
-            identifier = shoulder + RandomStringUtils.randomAlphanumeric(6).toUpperCase();
-        } while (!isIdentifierLocallyUnique(identifier, dataset));
-
-        return identifier;
-    }
-
-    private String generateIdentifierAsSequentialNumber(Dataset dataset, String shoulder) {
-
-        String identifier;
-        do {
-            StoredProcedureQuery query = this.em.createNamedStoredProcedureQuery("Dataset.generateIdentifierAsSequentialNumber");
-            query.execute();
-            Integer identifierNumeric = (Integer) query.getOutputParameterValue(1);
-            // some diagnostics here maybe - is it possible to determine that it's failing
-            // because the stored procedure hasn't been created in the database?
-            if (identifierNumeric == null) {
-                return null;
+    
+    private String generateId(final Dataset dataset, final Supplier<String> generator) {      
+        while (true) {
+            final String id = generator.get();
+            if (isIdentifierLocallyUnique(id, dataset)) {
+                return id;
             }
-            identifier = shoulder + identifierNumeric.toString();
-        } while (!isIdentifierLocallyUnique(identifier, dataset));
-
-        return identifier;
+        }
     }
 
     /**
@@ -209,17 +184,18 @@ public class DatasetDao implements java.io.Serializable {
      * @param persistentIdSvc
      * @return {@code true} if the identifier is unique, {@code false} otherwise.
      */
-    public boolean isIdentifierUnique(String userIdentifier, Dataset dataset, GlobalIdServiceBean persistentIdSvc) {
+    public boolean isIdentifierUnique(final String userIdentifier,
+            final Dataset dataset, final GlobalIdServiceBean persistentIdSvc) {
         if (!isIdentifierLocallyUnique(userIdentifier, dataset)) {
             return false; // duplication found in local database
-        }
-
-        // not in local DB, look in the persistent identifier service
-        try {
-            return !persistentIdSvc.alreadyExists(dataset);
-        } catch (Exception e) {
-            //we can live with failure - means identifier not found remotely
-            return true;
+        } else {
+            // not in local DB, look in the persistent identifier service
+            try {
+                return !persistentIdSvc.alreadyExists(dataset);
+            } catch (final Exception e) {
+                // we can live with failure - means identifier not found remotely
+                return true;
+            }
         }
     }
 
