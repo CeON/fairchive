@@ -272,14 +272,6 @@ public class DatasetDao implements java.io.Serializable {
         return typedQuery.getResultList();
     }
 
-    public boolean checkDatasetLock(Long datasetId) {
-        TypedQuery<DatasetLock> lockCounter = em.createNamedQuery("DatasetLock.getLocksByDatasetId", DatasetLock.class);
-        lockCounter.setParameter("datasetId", datasetId);
-        lockCounter.setMaxResults(1);
-        List<DatasetLock> lock = lockCounter.getResultList();
-        return lock.size() > 0;
-    }
-
     public List<DatasetLock> getDatasetLocksByUser( AuthenticatedUser user) {
 
         TypedQuery<DatasetLock> query =

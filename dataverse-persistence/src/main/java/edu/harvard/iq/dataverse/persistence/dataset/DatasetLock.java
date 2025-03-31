@@ -55,7 +55,6 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 @Entity
 @Table(indexes = { @Index(columnList = "user_id"), @Index(columnList = "dataset_id") })
 @NamedQueries({
-        @NamedQuery(name = "DatasetLock.getLocksByDatasetId", query = "SELECT lock FROM DatasetLock lock WHERE lock.dataset.id=:datasetId"),
         @NamedQuery(name = "DatasetLock.getLocksByAuthenticatedUserId", query = "SELECT lock FROM DatasetLock lock WHERE lock.user.id=:authenticatedUserId")
 })
 public class DatasetLock implements Serializable, JpaEntity<Long> {
