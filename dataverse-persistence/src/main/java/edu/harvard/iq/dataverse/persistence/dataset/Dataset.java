@@ -193,13 +193,8 @@ public class Dataset extends DvObjectContainer {
      * @param reason the reason we test for.
      * @return {@code true} if the data set is locked for {@code reason}.
      */
-    public boolean isLockedFor(DatasetLock.Reason reason) {
-        for (DatasetLock lock : getLocks()) {
-            if (lock.getReason() == reason) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isLockedFor(final DatasetLock.Reason reason) {
+        return getLocks().stream().anyMatch(lock -> lock.getReason().equals(reason));
     }
 
     /**
@@ -208,13 +203,8 @@ public class Dataset extends DvObjectContainer {
      * @param reason the reason we test for.
      * @return {@code true} if the data set is locked for {@code reason}.
      */
-    public boolean isLockedFor(String reason) {
-        for (DatasetLock lock : getLocks()) {
-            if (lock.getReason().name().equals(reason)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isLockedFor(final String reason) {
+        return getLocks().stream().anyMatch(lock -> lock.getReason().name().equals(reason));
     }
 
     /**
@@ -223,12 +213,8 @@ public class Dataset extends DvObjectContainer {
      * @return the dataset lock, or {@code null}.
      */
     public DatasetLock getLockFor(DatasetLock.Reason reason) {
-        for (DatasetLock lock : getLocks()) {
-            if (lock.getReason() == reason) {
-                return lock;
-            }
-        }
-        return null;
+        return getLocks().stream().filter(lock -> lock.getReason().equals(reason))
+                .findAny().orElse(null);
     }
 
     public Set<DatasetLock> getLocks() {
