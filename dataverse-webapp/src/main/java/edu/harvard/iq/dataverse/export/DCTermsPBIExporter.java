@@ -12,8 +12,6 @@ import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DC
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DCTERMS_XML_NAMESPACE;
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DC_XML_NAMESPACE;
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.DEFAULT_XML_VERSION;
-import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.OAI_DC_XML_NAMESPACE;
-import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.OAI_DC_XML_SCHEMALOCATION;
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.QDC_NAMESPACE;
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.QDC_SCHEMALOCATION;
 import static edu.harvard.iq.dataverse.export.dublincore.DublinCoreExportUtil.XSI_NAMESPACE;
@@ -70,7 +68,6 @@ public class DCTermsPBIExporter implements Exporter {
     private void writeDocument(final DatasetVersion version,
             final XMLStreamWriter xmlw)
             throws ExportException, XMLStreamException {
-        xmlw.writeStartDocument();
         xmlw.writeStartElement("metadata");
         xmlw.writeAttribute("xmlns:xsi", XSI_NAMESPACE);
         xmlw.writeAttribute("xmlns:qdc", QDC_NAMESPACE);
@@ -155,12 +152,12 @@ public class DCTermsPBIExporter implements Exporter {
 
     @Override
     public String getXMLNameSpace() {
-        return OAI_DC_XML_NAMESPACE;
+        return QDC_NAMESPACE;
     }
 
     @Override
     public String getXMLSchemaLocation() {
-        return OAI_DC_XML_SCHEMALOCATION;
+        return QDC_SCHEMALOCATION;
     }
 
     @Override
