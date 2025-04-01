@@ -477,8 +477,8 @@ public class DatasetField implements Serializable, ValidatableField {
     private String getFieldDisplayValue(String value, DatasetFieldType fieldType) {
         
         if (fieldType.getFieldType().equals(FieldType.PERIODO)) {
-            return this.fieldValue + "<br>" +
-                    PeriodoDictionary.getByUrl(this.fieldValue).get()
+            return  "<a href=\"" + this.fieldValue + "\" target=\"_blank\">" + this.fieldValue +
+                    "</a><br>" + PeriodoDictionary.getByUrl(this.fieldValue).get()
                             .getDetails("<br>");
         }
         
