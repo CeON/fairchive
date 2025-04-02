@@ -220,5 +220,33 @@ public final class PeriodoDictionary {
         public String getDetails() {
             return getDetails(" ");
         }
+
+        public String getId() {
+            return this.id;
+        }
+
+        public String getLabel() {
+            return this.label;
+        }
+
+        public long getStart() {
+            return this.start;
+        }
+
+        public long getStop() {
+            return this.stop;
+        }
+
+        public String getAuthorityTitle() {
+            return this.authorityTitle;
+        }
+
+        public String getCoverageName() {
+            return this.coverageName;
+        }
+
+        public Collection<String> getLocations() {
+            return this.locations;
+        }
     }
 }
