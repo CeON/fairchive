@@ -261,6 +261,6 @@ public class SearchFields {
     public static final String LICENSE = "license";
     public static final String EMBARGO_UNTIL = "embargoUntil";
 
-    public static final String GEOGRAPHIC_COORDINATES = "dsf_txt_geographicCoordinates";
+    public static final String GEOGRAPHIC_COORDINATES = SearchDynamicFieldPrefix.TEXT.getPrefix() + "geographicCoordinates";
 
 }
