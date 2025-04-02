@@ -621,9 +621,8 @@ public class SearchServiceBean {
         query = querySanitizer.sanitizeQuery(query, datasetFields);
         solrQuery.setQuery(query);
 
-        DatasetLocationSolrFields locationSolrFields = new DatasetLocationSolrFields();
-        setSolrParametersForDatasetLocations(solrQuery, locationSolrFields);
-        setSolrFiltersForDatasetLocations(solrQuery, dataverseRequest, locationSolrFields, filterQueries);
+        setSolrParametersForDatasetLocations(solrQuery);
+        setSolrFiltersForDatasetLocations(solrQuery, dataverseRequest, filterQueries);
 
         logger.fine("Solr query:" + solrQuery);
         // -----------------------------------
@@ -637,7 +636,7 @@ public class SearchServiceBean {
         }
 
         SolrDocumentList docs = queryResponse.getResults();
-        return parseSolrDatasetLocationResults(docs, locationSolrFields);
+        return parseSolrDatasetLocationResults(docs);
     }
 
     // -------------------- PRIVATE --------------------
@@ -726,28 +725,28 @@ public class SearchServiceBean {
         return true;
     }
 
-    private List<SolrSearchLocationResult> parseSolrDatasetLocationResults(SolrDocumentList docs, DatasetLocationSolrFields locationSolrFields) {
+    private List<SolrSearchLocationResult> parseSolrDatasetLocationResults(SolrDocumentList docs) {
         List<SolrSearchLocationResult> results = new ArrayList<>();
         for (SolrDocument solrDocument : docs) {
             String datasetName = (String) solrDocument.getFieldValue(SearchFields.NAME_SORT);
             String doi = (String) solrDocument.getFieldValue(SearchFields.DATASET_PERSISTENT_ID);
-            List<String> north = parseCoordinates(solrDocument, locationSolrFields.getNorth());
-            List<String> east = parseCoordinates(solrDocument, locationSolrFields.getEast());
-            List<String> south = parseCoordinates(solrDocument, locationSolrFields.getSouth());
-            List<String> west = parseCoordinates(solrDocument, locationSolrFields.getWest());
+            List<String> coordinates = parseCoordinates(solrDocument, SearchFields.GEOGRAPHIC_COORDINATES);
 
-            int locationCount = solrDocument.getFieldValues(locationSolrFields.getNorth()).size();
             boolean isDraft = isDraftDataset(solrDocument);
-            for (int i = 0; i < locationCount; i++) {
-                GeoPoint pointA = new GeoPoint(north.get(i), west.get(i));
-                GeoPoint pointB = new GeoPoint(south.get(i), east.get(i));
+            for (String coords : coordinates) {
+                List<GeoPoint> points = new ArrayList<>();
+                String[] geoPoints = coords.trim().split("\\s+");
+                for (int i = 0; i < geoPoints.length; i += 2) {
+                    double longitude = Double.parseDouble(geoPoints[i]);
+                    double latitude = Double.parseDouble(geoPoints[i + 1]);
+                    points.add(new GeoPoint(latitude, longitude));
+                }
                 Map<String, String> customData = parseCustomData(solrDocument);
                 SolrSearchLocationResult result = new SolrSearchLocationResult(
                         datasetName,
                         doi,
                         isDraft,
-                        pointA,
-                        pointB,
+                        points,
                         customData
                 );
                 results.add(result);
@@ -789,14 +788,11 @@ public class SearchServiceBean {
                 .map(String::toUpperCase).anyMatch(DatasetVersion.VersionState.DRAFT.name()::equals);
     }
 
-    private void setSolrParametersForDatasetLocations(SolrQuery solrQuery, DatasetLocationSolrFields locationSolrFields) {
+    private void setSolrParametersForDatasetLocations(SolrQuery solrQuery) {
         List<String> defaultFields = asList(SearchFields.NAME_SORT,
                 SearchFields.DATASET_PERSISTENT_ID,
                 SearchFields.PUBLICATION_STATUS,
-                locationSolrFields.getNorth(),
-                locationSolrFields.getEast(),
-                locationSolrFields.getSouth(),
-                locationSolrFields.getWest()
+                SearchFields.GEOGRAPHIC_COORDINATES
         );
         List<String> customFields = settingsService.getValueForKeyAsList(SettingsServiceBean.Key.CustomSearchLocationsSolrFields);
         List<String> allFields = new ArrayList<>();
@@ -809,13 +805,12 @@ public class SearchServiceBean {
 
     private void setSolrFiltersForDatasetLocations(SolrQuery solrQuery,
                                                    DataverseRequest dataverseRequest,
-                                                   DatasetLocationSolrFields locationSolrFields,
                                                    List<String> filterQueries) {
         for (String filterQuery : filterQueries) {
             solrQuery.addFilterQuery(filterQuery);
         }
         // Documents only with geographic location
-        solrQuery.addFilterQuery(String.format("%s:%s", locationSolrFields.getEast(), "[* TO *]"));
+        solrQuery.addFilterQuery(String.format("%s:%s", SearchFields.GEOGRAPHIC_COORDINATES, "[* TO *]"));
 
         addDvObjectTypeFilterQuery(solrQuery, SearchForTypes.byTypes(SearchObjectType.DATASETS));
 
