@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.geographicCoordinates;
+
 public class GeoboxTestUtil {
 
     // -------------------- LOGIC --------------------
@@ -26,6 +28,19 @@ public class GeoboxTestUtil {
             field.setDatasetFieldParent(geobox);
             children.add(field);
         }
+        return geobox;
+    }
+
+    public DatasetField buildPolygonGeobox(String coordinates) {
+        DatasetField geobox = buildSingle(null, null);
+        List<DatasetField> children = geobox.getDatasetFieldsChildren();
+        DatasetField field = new DatasetField();
+        DatasetFieldType type = new DatasetFieldType(geographicCoordinates, FieldType.TEXT, true);
+        field.setDatasetFieldType(type);
+        field.setValue(coordinates);
+        field.setDatasetFieldParent(geobox);
+        children.add(field);
+
         return geobox;
     }
 

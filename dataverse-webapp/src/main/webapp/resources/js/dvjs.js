@@ -172,14 +172,24 @@ function initDvJS() {
 
     function initializeMapInView(key, data) {
       if (data.polygonSupport) {
+        INIT_MAP_OPTS.minZoom = 2;
         INIT_MAP_OPTS.editable = true;
+        var bounds = [
+          [-85, -180], // Southwest corner (near Antarctica)
+          [85, 180]    // Northeast corner (near the Arctic)
+        ];
+        INIT_MAP_OPTS.bounds = bounds;
+        INIT_MAP_OPTS.maxBounds =  bounds;      // Restrict view to these bounds
+        INIT_MAP_OPTS.maxBoundsViscosity = 1.0; // Prevents dragging outside
       }
       data.leafMap = L.map(key, INIT_MAP_OPTS);
       let map = data.leafMap;
       map.invalidateSize();
       if (data.polygonSupport) {
         data.polygonLayer = L.layerGroup().addTo(map);
-        map.on('editable:drawing:commit', function (evt) { createdShape(evt ,data); })
+        map.on('editable:drawing:commit', function (e) {
+          createdShape(e ,data);
+        });
         map.on('editable:edited', function (e) {
           updateTextArea(e.layer, data.widgetVars);
         });

@@ -28,6 +28,12 @@ public class GeoPoint {
         return longitude;
     }
 
+    // -------------------- LOGIC --------------------
+
+    public String formatLngLat() {
+        return String.format("%.6f %.6f", longitude, latitude);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

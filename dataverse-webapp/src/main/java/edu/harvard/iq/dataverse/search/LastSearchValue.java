@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.search;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 import javax.enterprise.context.SessionScoped;
@@ -28,8 +29,9 @@ public class LastSearchValue implements Serializable {
     private long activeTabIndex;
 
     public List<SolrSearchResult> getSearchResultsList() {
-
-        return this.response.getSolrSearchResults();
+        return this.response != null
+                ? this.response.getSolrSearchResults()
+                : Collections.emptyList();
     }
     
     public SolrQueryResponse getResponse() {
