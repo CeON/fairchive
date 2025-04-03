@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import com.github.openjson.JSONArray;
@@ -25,6 +27,7 @@ public final class PeriodoDictionary {
 
     private static final String base;
     private static final List<Period> periods = new ArrayList<>(8800);
+    private static final Set<String> locations = new TreeSet<>();
 
     static {
         try (final Reader in = new InputStreamReader(PeriodoDictionary.class
@@ -44,6 +47,21 @@ public final class PeriodoDictionary {
 
     public static Optional<Period> getByUrl(final String url) {
         return url.startsWith(base) ? stream(url).findAny() : empty();
+    }
+    
+    public static List<String> locations() {
+        return new ArrayList<String>(locations);
+    }
+    
+    public static List<String> locations(final String phraze) {
+        final String sanitizedPrhase = phraze.trim().toLowerCase();
+        if (sanitizedPrhase.isEmpty()) {
+            return emptyList();
+        } else {
+            return locations.stream()
+                    .filter(location -> location.toLowerCase().contains(sanitizedPrhase))
+                    .collect(toList());
+        }
     }
 
     private static void parseAuthorities(final JSONObject json) {
@@ -132,7 +150,9 @@ public final class PeriodoDictionary {
     
     private static String getLabel(final JSONObject json) {
         // locations often repeat, so interning them reduces size of the dictionary in memory
-        return json.getString("label").intern();
+        final String label = json.getString("label").intern();
+        locations.add(label);
+        return label;
     }
 
     private static Stream<Period> stream(final String query) {
@@ -176,8 +196,7 @@ public final class PeriodoDictionary {
                     this.label.contains(query) ||
                     this.coverageName.contains(query) ||
                     this.authorityTitle.contains(query) ||
-                    this.locations.stream()
-                            .anyMatch(location -> location.contains(query));
+                    this.locations.stream().anyMatch(location -> location.contains(query));
         }
 
         public String getValue() {

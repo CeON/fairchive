@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary.find;
 import static edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary.getByUrl;
+import static edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary.locations;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -108,5 +109,22 @@ public class PeriodoDictionaryTest {
     void stopDatesAtPresentTimes_areInernationalized() {     
         assertThat(find(PERIOD_STOPPING_AT_PRESENT_TIMES).get(0).getDetails()
                 .contains("End: Present times")).isTrue();
+    }
+    
+    @Test
+    void locationsAreGatheredDuringStartup_andAlphabeticallySorted() {
+        assertThat(locations()).isNotEmpty();
+        assertThat(locations()).isSorted();
+        
+        assertThat(locations("")).isEmpty();
+        
+        List<String> upperCaseLocations = locations("New");
+        assertThat(upperCaseLocations).isNotEmpty();
+        assertThat(upperCaseLocations).isSorted();
+        assertThat(locations()).containsAll(upperCaseLocations);
+        
+        List<String> lowerCaseLocations = locations("new");
+        
+        assertThat(lowerCaseLocations).containsExactlyElementsOf(upperCaseLocations);
     }
 }
