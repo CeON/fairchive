@@ -8,6 +8,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -18,6 +19,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -54,12 +57,12 @@ public final class PeriodoDictionary {
     }
     
     public static List<String> locations(final String phraze) {
-        final String sanitizedPrhase = phraze.trim().toLowerCase();
+        final String sanitizedPrhase = phraze.trim();
         if (sanitizedPrhase.isEmpty()) {
             return emptyList();
         } else {
             return locations.stream()
-                    .filter(location -> location.toLowerCase().contains(sanitizedPrhase))
+                    .filter(location -> containsIgnoreCase(location, sanitizedPrhase))
                     .collect(toList());
         }
     }
