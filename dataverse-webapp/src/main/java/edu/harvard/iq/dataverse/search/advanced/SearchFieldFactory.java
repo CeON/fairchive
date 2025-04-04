@@ -1,7 +1,8 @@
 package edu.harvard.iq.dataverse.search.advanced;
 
+import javax.ejb.Stateless;
+
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.search.advanced.field.CheckboxSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.DateSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.GeoboxCoordSearchField;
@@ -11,28 +12,26 @@ import edu.harvard.iq.dataverse.search.advanced.field.SelectOneSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.TextSearchField;
 import io.vavr.Tuple;
 
-import javax.ejb.Stateless;
-
 @Stateless
 public class SearchFieldFactory {
 
     // -------------------- LOGIC --------------------
 
     public SearchField create(DatasetFieldType fieldType) {
-        if (containsControlledVocabularyValues(fieldType)) {
+        if (fieldType.containsControlledVocabularyValues()) {
             return fieldType.isThisOrParentAllowsMultipleValues()
                     ? mapCheckBoxValues(fieldType) : mapSelectOneValues(fieldType);
-        }
-        if (isTextField(fieldType)) {
+        } else if (fieldType.isTextual()) {
             return new TextSearchField(fieldType);
-        } else if (isDateField(fieldType)) {
+        } else if (fieldType.isDate()) {
             return new DateSearchField(fieldType);
-        } else if (isNumberField(fieldType)) {
+        } else if (fieldType.isNumberic()) {
             return new NumberSearchField(fieldType);
-        } else if (hasGeoboxAsParentType(fieldType)) {
+        } else if (fieldType.hasGeospatialAsParent()) {
             return new GeoboxCoordSearchField(fieldType);
+        } else {
+            return SearchField.EMPTY;
         }
-        return SearchField.EMPTY;
     }
 
     // -------------------- PRIVATE --------------------
@@ -53,36 +52,6 @@ public class SearchFieldFactory {
                 .forEach(v -> selectOneSearchField.getListLabelAndValue()
                         .add(Tuple.of(v.getLocaleStrValue(), v.getStrValue())));
         return selectOneSearchField;
-    }
-
-    private boolean containsControlledVocabularyValues(DatasetFieldType fieldType) {
-        return !fieldType.getControlledVocabularyValues().isEmpty();
-    }
-
-    private boolean isNumberField(DatasetFieldType datasetFieldType) {
-        return FieldType.INT.equals(datasetFieldType.getFieldType())
-                || FieldType.FLOAT.equals(datasetFieldType.getFieldType());
-    }
-
-    private boolean isTextField(DatasetFieldType fieldType) {
-        return !hasGeoboxAsParentType(fieldType) &&
-                (FieldType.TEXT.equals(fieldType.getFieldType())
-                        || FieldType.TEXTBOX.equals(fieldType.getFieldType())
-                        || isOtherTextTypeField(fieldType));
-    }
-
-    private boolean isDateField(DatasetFieldType fieldType) {
-        return FieldType.DATE.equals(fieldType.getFieldType());
-    }
-
-    private boolean hasGeoboxAsParentType(DatasetFieldType fieldType) {
-        DatasetFieldType parentType = fieldType.getParentDatasetFieldType();
-        return parentType != null && FieldType.GEOBOX.equals(parentType.getFieldType());
-    }
-
-    private boolean isOtherTextTypeField(DatasetFieldType fieldType) {
-        return FieldType.EMAIL.equals(fieldType.getFieldType())
-                || FieldType.URL.equals(fieldType.getFieldType());
     }
 }
 
