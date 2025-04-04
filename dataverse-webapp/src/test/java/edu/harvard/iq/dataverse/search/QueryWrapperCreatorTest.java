@@ -84,7 +84,7 @@ class QueryWrapperCreatorTest {
                                     "AND date3:[2022-07-07 TO 2022-12-31] AND selectOneValue1:\"checkedFieldValue1\" " +
                                     "AND selectOneValue2:\"checkedFieldValue2\"");
         assertThat(result.getFilters())
-                .containsExactly("[GEO[GoespatialBox|7W|77S|8E|88N]]");
+                .containsExactly("[GEO[GoespatialBox|7.111W|77.222S|8.333E|88.444N]]");
     }
 
     // -------------------- PRIVATE --------------------
@@ -191,7 +191,7 @@ class QueryWrapperCreatorTest {
     }
 
     private static List<SearchField> createGeoboxField() {
-        return new GeoboxTestUtil().buildGeoboxSearchField("7", "77", "8", "88").getChildren();
+        return new GeoboxTestUtil().buildGeoboxSearchField("7.111 77.222\n8.333 77.222\n8.333 88.444\n7.111 88.444\n7.111 77.222").getChildren();
     }
 
     private static DatasetFieldType createType(String name, String displayName, String description) {

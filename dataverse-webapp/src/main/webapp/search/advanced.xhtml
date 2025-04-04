@@ -127,28 +127,20 @@
                                                 <c:set var="mapId" value="#{item.parent.isDefined()
                                                     ? (mdb.blockName).concat('_').concat(item.getParent().get().getDisplayId()) : ''}"/>
                                                 <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
-                                                <p:inputText id="geoboxSearchValue" styleClass="form-control coord-marker"
+
+                                                <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker" style="display:none"
                                                              value="#{item.fieldValue}"
                                                              onchange="DvJS.Geo.SearchView.putValue('#{mapId}', '#{item.datasetFieldType.metadata['geoboxCoord']}', $(this).val()); DvJS.Geo.SearchView.updateMap('#{mapId}')"
                                                              widgetVar="#{widgetVar}"
-                                                             pt:data-handler="#{widgetVar}"/>
+                                                              pt:data-handler="#{widgetVar}"/>
+
+                                                <div id="#{mapId}" class="form-col-container geo-map">
+                                                </div>
+
                                                 <script>
                                                     DvJS.Geo.SearchView.prepare('#{mapId}');
-                                                    DvJS.Geo.SearchView.putValue('#{mapId}', '#{item.datasetFieldType.metadata["geoboxCoord"]}', '#{item.fieldValue}');
-                                                    DvJS.Geo.SearchView.putWidgetVar('#{mapId}', '#{item.datasetFieldType.metadata["geoboxCoord"]}', '#{widgetVar}');
-                                                    if (DvJS.Geo.SearchView.canCreateMap('#{mapId}')) {
-                                                        let left = document.createElement('div');
-                                                        left.classList.add('col-sm-4');
-                                                        let right = document.createElement('div');
-                                                        right.classList.add('col-sm-6');
-                                                        right.classList.add('geo-map');
-                                                        right.id = '#{mapId}';
-                                                        let container = document.createElement('div');
-                                                        container.classList.add('form-group');
-                                                        container.appendChild(left);
-                                                        container.appendChild(right);
-                                                        $('.coord-marker').last().closest('.form-group').after(container);
-                                                    }
+                                                    DvJS.Geo.SearchView.putValue('#{mapId}', 'polygonGeo', '#{item.fieldValue}');
+                                                    DvJS.Geo.SearchView.putWidgetVar('#{mapId}', 'polygonGeo', '#{widgetVar}');
                                                 </script>
                                             </div>
                                             <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">
