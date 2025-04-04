@@ -154,7 +154,7 @@ INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetf
 INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (669, NULL, 41, 57, 0, 'Some depositor name');
 
 INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (580, NULL, 41, 79, 0, NULL);
-INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (581, 580, NULL, 201, 0, '50.17739 21.82144\n22.21139 21.82144\n22.21139 49.85973\n50.17739 49.85973\n50.17739 21.82144');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (581, 580, NULL, 201, 0, E'50.17739 21.82144\n22.21139 21.82144\n22.21139 49.85973\n50.17739 49.85973\n50.17739 21.82144');
 
 
 INSERT INTO dvobject (id, dtype, owner_id, previewimageavailable, protocol, authority, identifier, globalidcreatetime, identifierregistered, storageidentifier, releaseuser_id, publicationdate,
