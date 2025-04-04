@@ -57,8 +57,8 @@ public class GeoboxCoordSearchField extends SearchField {
                     String[] lineCoordinates = line.trim().split("\\s+");
                     double longitude = Double.parseDouble(lineCoordinates[0]);
                     double latitude = Double.parseDouble(lineCoordinates[1]);
-                    return new GeoPoint(latitude, longitude);}
-                )
+                    return new GeoPoint(latitude, longitude);
+                })
                 .collect(Collectors.toList());
 
         String boundingBox = String.join("|",
