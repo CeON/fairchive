@@ -201,9 +201,15 @@ function initDvJS() {
         });
 
         createBaseEditControls()
-        createNewMarkerControl(map, data.polygonLayer)
-        createNewPolygonControl(map, data.polygonLayer)
-        createNewRectangleControl(map, data.polygonLayer)
+        if (data.drawTools.allowMarker) {
+          createNewMarkerControl(map, data.polygonLayer);
+        }
+        if (data.drawTools.allowPolygon) {
+          createNewPolygonControl(map, data.polygonLayer);
+        }
+        if (data.drawTools.allowRectangle) {
+          createNewRectangleControl(map, data.polygonLayer);
+        }
       } else {
         map.on('click', function (evt) { onMapClicked(evt, data) });
       }
@@ -356,7 +362,8 @@ function initDvJS() {
       const hasTwoNumericPoints = cords.every(cord =>
         Array.isArray(cord) &&
         cord.length === 2 &&
-        cord.every(point => !isNaN(point))
+        cord.every(point => !isNaN(point)) &&
+        cord.every(point => point >= -180 && point <= 180 )
       );
       if (cords.length == 0 || !hasTwoNumericPoints) {
           return;
@@ -394,6 +401,11 @@ function initDvJS() {
         leafMap: undefined,
         leafMapInitialized: false,
         polygonSupport: false,
+        drawTools: {
+          allowMarker: false,
+          allowRectangle: false,
+          allowPolygon: false,
+        },
         markerA: undefined,
         markerB: undefined,
         selection: undefined,
@@ -448,6 +460,9 @@ function initDvJS() {
       enablePolygonSupport: function(key) {
         let data = editMapsData.get(key);
         data.polygonSupport = true;
+        data.drawTools.allowMarker = true
+        data.drawTools.allowRectangle = true
+        data.drawTools.allowPolygon = true
       },
 
       initializeAll: function(keyPrefix) {
@@ -460,22 +475,21 @@ function initDvJS() {
     let searchMapsData = new Map();
 
     let searchView = {
-      // As the parent fields on advanced search form are not used to render 
-      // their subfields, we have to count coordinate fields with the same key
-      canCreateMap: function(key) {
-        let vars = searchMapsData.get(key).widgetVars;
-        return key && Object.keys(vars).length === 4;
-      },
 
       updateMap: function (key) {
-        updateEditableMap(searchMapsData, key);
+        let data = searchMapsData.get(key);
+        updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
       },
 
       prepare: function(key) {
         if (key && searchMapsData.has(key)) {
           return;
         }
-        searchMapsData.set(key, createEmptyEntry());
+
+        let options = createEmptyEntry();
+        options.polygonSupport = true;
+        options.drawTools.allowRectangle = true;
+        searchMapsData.set(key, options);
       },
 
       putValue: function (key, field, value) {
