@@ -26,4 +26,8 @@ public enum FieldType {
     public boolean isDate() {
         return this.equals(DATE);
     }
+    
+    public boolean isPeriodo() {
+        return this.equals(PERIODO);
+    }
 }

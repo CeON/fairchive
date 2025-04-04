@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.search.advanced.field.CheckboxSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.DateSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.GeoboxCoordSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.NumberSearchField;
+import edu.harvard.iq.dataverse.search.advanced.field.PeriodoSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SelectOneSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.TextSearchField;
@@ -29,6 +30,8 @@ public class SearchFieldFactory {
             return new NumberSearchField(fieldType);
         } else if (fieldType.hasGeospatialAsParent()) {
             return new GeoboxCoordSearchField(fieldType);
+        } else if(fieldType.isPeriodo()) {
+            return new PeriodoSearchField(fieldType);
         } else {
             return SearchField.EMPTY;
         }

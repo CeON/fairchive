@@ -8,7 +8,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -19,8 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -54,17 +51,6 @@ public final class PeriodoDictionary {
     
     public static List<String> locations() {
         return new ArrayList<String>(locations);
-    }
-    
-    public static List<String> locations(final String phraze) {
-        final String sanitizedPrhase = phraze.trim();
-        if (sanitizedPrhase.isEmpty()) {
-            return emptyList();
-        } else {
-            return locations.stream()
-                    .filter(location -> containsIgnoreCase(location, sanitizedPrhase))
-                    .collect(toList());
-        }
     }
 
     private static void parseAuthorities(final JSONObject json) {
@@ -213,28 +199,27 @@ public final class PeriodoDictionary {
 
         public String getDetails(final String separator) {
             final StringBuilder result = new StringBuilder(80);
-            result.append(getStringFromBundle("periodo.name")).append(this.label)
-                    .append(separator);
-            result.append(getStringFromBundle("periodo.location"));
+            result.append(getStringFromBundle("periodo.label")).append(": ")
+                    .append(this.label).append(separator);
+            result.append(getStringFromBundle("periodo.location")).append(": ");
             String coma = "";
             for (final String location : this.locations) {
                 result.append(coma).append(location);
                 coma = ", ";
             }
             result.append(separator);
-            result.append(getStringFromBundle("periodo.location.desc"))
+            result.append(getStringFromBundle("periodo.location.desc")).append(": ")
                     .append(this.coverageName).append(separator);
-            result.append(getStringFromBundle("periodo.start")).append(this.start)
-                    .append(separator);
-            result.append(getStringFromBundle("periodo.end"));
+            result.append(getStringFromBundle("periodo.start")).append(": ")
+                    .append(this.start).append(separator);
+            result.append(getStringFromBundle("periodo.end")).append(": ");
             if (this.stop == MAX_VALUE) {
                 result.append(getStringFromBundle("periodo.present"));
             } else {
                 result.append(this.stop);
-
             }
             result.append(separator);
-            result.append(getStringFromBundle("periodo.authority"))
+            result.append(getStringFromBundle("periodo.authority")).append(": ")
                     .append(this.authorityTitle);
             return result.toString();
         }

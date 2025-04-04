@@ -115,16 +115,5 @@ public class PeriodoDictionaryTest {
     void locationsAreGatheredDuringStartup_andAlphabeticallySorted() {
         assertThat(locations()).isNotEmpty();
         assertThat(locations()).isSorted();
-        
-        assertThat(locations("")).isEmpty();
-        
-        List<String> upperCaseLocations = locations("New");
-        assertThat(upperCaseLocations).isNotEmpty();
-        assertThat(upperCaseLocations).isSorted();
-        assertThat(locations()).containsAll(upperCaseLocations);
-        
-        List<String> lowerCaseLocations = locations("new");
-        
-        assertThat(lowerCaseLocations).containsExactlyElementsOf(upperCaseLocations);
     }
 }
