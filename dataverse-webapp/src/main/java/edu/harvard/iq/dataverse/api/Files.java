@@ -16,6 +16,7 @@ import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.DeleteMapLayerMetadataCommand;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
+import edu.harvard.iq.dataverse.ingest.StartIngestResult;
 import edu.harvard.iq.dataverse.ingest.UningestService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
@@ -24,7 +25,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
@@ -279,30 +280,12 @@ public class Files extends AbstractApiBean {
     @ApiWriteOperation
     @Path("{id}/reingest")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response reingest(@PathParam("id") String id, ReingestOptionDTO options) {
+    public Response reingest(@PathParam("id") String id, ReingestOptionDTO options) throws WrappedResponse {
 
-        AuthenticatedUser u;
-        try {
-            u = findAuthenticatedUserOrDie();
-            if (!u.isSuperuser()) {
-                return error(Response.Status.FORBIDDEN, "This API call can be used by superusers only");
-            }
-        } catch (WrappedResponse wr) {
-            return wr.getResponse();
-        }
-
-        DataFile dataFile;
-        try {
-            dataFile = findDataFileOrDie(id);
-        } catch (WrappedResponse ex) {
-            return error(Response.Status.NOT_FOUND, "File not found for given id.");
-        }
+        AuthenticatedUser u = findSuperuserOrDie();
+        DataFile dataFile = findDataFileOrDie(id);
 
         Dataset dataset = dataFile.getOwner();
-
-        if (dataset == null) {
-            return error(Response.Status.BAD_REQUEST, "Failed to locate the parent dataset for the datafile.");
-        }
 
         if (dataFile.isTabularData()) {
             return error(Response.Status.BAD_REQUEST, "The datafile is already ingested as Tabular.");
@@ -334,17 +317,17 @@ public class Files extends AbstractApiBean {
         dataFile = fileService.save(dataFile);
 
         // queue the data ingest job for asynchronous execution:
-        String status = ingestService.startIngestJobs(new ArrayList<>(Arrays.asList(dataFile)), u);
+        StartIngestResult result = ingestService.startIngestJobs(new ArrayList<>(Arrays.asList(dataFile)), u);
 
-        if (!StringUtil.isEmpty(status)) {
-            // This most likely indicates some sort of a problem (for example,
-            // the ingest job was not put on the JMS queue because of the size
-            // of the file). But we are still returning the OK status - because
-            // from the point of view of the API, it's a success - we have
-            // successfully gone through the process of trying to schedule the
-            // ingest job...
-
-            return ok(status);
+        if (result.hasSkippedExceedingSizeDataFiles()) {
+            // This indicates a problem because of the size of the file. But
+            // we are still returning the OK status - because from the point of
+            // view of the API, it's a success - we have successfully gone
+            // through the process of trying to schedule the ingest job...
+            String message = result.getSkippedExceedingSizeDataFiles().stream()
+                .map(df ->  "Skipping tabular ingest of the file " + df.getLabel() + ", because of the size limit (set to " + df.getMaxSize() + " bytes)")
+                .collect(Collectors.joining("; "));
+            return ok(message);
         }
         return ok("Datafile " + id + " queued for ingest");
 

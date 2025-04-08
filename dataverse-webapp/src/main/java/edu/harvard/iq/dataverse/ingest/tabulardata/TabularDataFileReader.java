@@ -66,7 +66,7 @@ public abstract class TabularDataFileReader {
         return originatingProvider;
     }
 
-    public String getFormatName() throws IOException {
+    public String getFormatName() {
         return originatingProvider.getFormatNames()[0];
     }
 
