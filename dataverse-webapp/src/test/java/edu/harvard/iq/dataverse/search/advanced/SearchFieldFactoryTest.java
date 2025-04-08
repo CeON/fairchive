@@ -29,6 +29,7 @@ class SearchFieldFactoryTest {
     static Stream<Arguments> create() {
         return Stream.of(
                 Arguments.of(createGeobox(), GeoboxCoordSearchField.class),
+                Arguments.of(createTextBoxInsideGeoboxParent(), TextSearchField.class),
                 Arguments.of(createType(FieldType.TEXT), TextSearchField.class),
                 Arguments.of(createType(FieldType.TEXTBOX), TextSearchField.class),
                 Arguments.of(createType(FieldType.URL), TextSearchField.class),
@@ -52,6 +53,13 @@ class SearchFieldFactoryTest {
     // -------------------- PRIVATE --------------------
 
     private static DatasetFieldType createGeobox() {
+        DatasetFieldType parentType = createType(FieldType.GEOBOX);
+        DatasetFieldType type = createType(FieldType.TEXTBOX);
+        type.setParentDatasetFieldType(parentType);
+        return type;
+    }
+
+    private static DatasetFieldType createTextBoxInsideGeoboxParent() {
         DatasetFieldType parentType = createType(FieldType.GEOBOX);
         DatasetFieldType type = createType(FieldType.TEXT);
         type.setParentDatasetFieldType(parentType);
