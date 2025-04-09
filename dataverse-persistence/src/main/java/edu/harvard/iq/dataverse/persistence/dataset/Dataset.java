@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import static java.util.stream.Collectors.toList;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -207,13 +209,16 @@ public class Dataset extends DvObjectContainer {
      *
      * @return the dataset lock, or {@code null}.
      */
-    public Optional<DatasetLock> getLockFor(DatasetLock.Reason reason) {
+    public Optional<DatasetLock> getLockFor(final DatasetLock.Reason reason) {
         return streamLocksFor(reason).findAny();
     }
     
-    public Stream<DatasetLock> streamLocksFor(DatasetLock.Reason reason) {
+    public List<DatasetLock> getAllLocksFor(final DatasetLock.Reason reason) {
+        return streamLocksFor(reason).collect(toList());
+    }
+    
+    private Stream<DatasetLock> streamLocksFor(final DatasetLock.Reason reason) {
         return getLocks().stream().filter(lock -> lock.getReason().equals(reason));
-
     }
 
     public Set<DatasetLock> getLocks() {

@@ -80,6 +80,13 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
                 Long.class)
                 .getResultList();
     }
+    
+    public List<Long> findAllOrSubset(final long numPartitions, final long partitionId,
+            final boolean skipIndexed) {
+        return skipIndexed
+                ? findAllOrSubsetSkippingIndexed(numPartitions, partitionId)
+                : findAllOrSubset(numPartitions, partitionId);
+    }
 
     public List<Long> findAllOrSubset(final long numPartitions,
             final long partitionId) {

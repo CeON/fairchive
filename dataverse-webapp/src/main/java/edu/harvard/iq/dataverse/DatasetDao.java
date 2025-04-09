@@ -126,9 +126,7 @@ public class DatasetDao implements java.io.Serializable {
      */
     public List<Long> findAllOrSubset(final long numPartitions, final long partitionId,
             final boolean skipIndexed) {
-        return skipIndexed
-                ? this.datasetRepo.findAllOrSubsetSkippingIndexed(numPartitions, partitionId)
-                : this.datasetRepo.findAllOrSubset(numPartitions, partitionId);
+         return this.datasetRepo.findAllOrSubset(numPartitions, partitionId, skipIndexed);
     }
 
     /**
@@ -286,7 +284,7 @@ public class DatasetDao implements java.io.Serializable {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void removeDatasetLocks(Dataset dataset, DatasetLock.Reason aReason) {
-        dataset.streamLocksFor(aReason).forEach(this::remove);
+        dataset.getAllLocksFor(aReason).forEach(this::remove);
     }
     
     private void remove(DatasetLock lock) {

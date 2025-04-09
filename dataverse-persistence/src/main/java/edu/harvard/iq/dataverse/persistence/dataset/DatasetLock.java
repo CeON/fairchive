@@ -207,16 +207,15 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
 
     @Override
     public boolean equals(final Object object) {
-        if (object instanceof DatasetLock) {
+        if (object == this) {
+            return true;
+        } else if (object instanceof DatasetLock) {
             final DatasetLock other = (DatasetLock) object;
-            if (this.id != null && this.id.equals(other.id)) {
-                return this.reason.equals(other.reason) && 
-                        this.startTime.equals(other.startTime) &&
-                        this.dataset.equals(other.dataset) &&
-                        this.user.equals(other.user);
-            }
+            return (id == null && other.id == null)
+                    || (id != null && id.equals(other.getId()));
+        } else {
+            return false;
         }
-        return false;
     }
 
     @Override
