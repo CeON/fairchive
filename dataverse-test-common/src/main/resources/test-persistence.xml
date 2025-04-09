@@ -11,6 +11,13 @@
             <property name="eclipselink.ddl-generation" value="none"/>
             <property name="eclipselink.logging.level.sql" value="FINE"/>
             <property name="eclipselink.logging.parameters" value="true"/>
+            <!-- Enable batch writing -->
+        <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
+        <!-- Set batch size -->
+        <property name="eclipselink.jdbc.batch-writing.size" value="100" />
+        <!-- Optional: Improve insert ordering -->
+        <property name="eclipselink.order-inserts" value="true" />
+        <property name="eclipselink.order-updates" value="true" />
         </properties>
     </persistence-unit>
 </persistence>

@@ -4,7 +4,7 @@ package edu.harvard.iq.dataverse.persistence.dataset;
  * The set of possible metatypes of the field. Used for validation and layout.
  */
 public enum FieldType {
-    TEXT, TEXTBOX, DATE, EMAIL, URL, FLOAT, INT, CHECKBOX, NONE, GEOBOX, PERIODO;
+    TEXT, TEXTBOX, DATE, EMAIL, URL, FLOAT, INT, CHECKBOX, NONE, GEOBOX, PERIODO, GEONAME;
 
     public boolean sanitizeHtml() {
         return this.equals(URL) | this.equals(TEXTBOX);
@@ -29,5 +29,9 @@ public enum FieldType {
     
     public boolean isPeriodo() {
         return this.equals(PERIODO);
+    }
+    
+    public boolean isGeoName() {
+        return this.equals(GEONAME);
     }
 }
