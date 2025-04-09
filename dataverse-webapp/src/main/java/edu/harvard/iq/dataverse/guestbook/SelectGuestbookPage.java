@@ -15,6 +15,9 @@ import org.omnifaces.cdi.ViewScoped;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -86,7 +89,7 @@ public class SelectGuestbookPage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (dataset.isLockedFor(InReview) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 

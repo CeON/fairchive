@@ -20,15 +20,19 @@
 
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import static java.util.Objects.requireNonNull;
+import static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.TemporalType.TIMESTAMP;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -37,23 +41,21 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import java.io.Serializable;
-import java.util.Date;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 /**
- * Holds the reason a dataset is locked, and possibly the user that created the lock.
+ * Holds the reason a dataset is locked, and possibly the user that created the
+ * lock.
  *
  * @author Leonid Andreev
  * @author Michael Bar-Sinai
  */
 @Entity
-@Table(indexes = {@Index(columnList = "user_id"), @Index(columnList = "dataset_id")})
+@Table(indexes = { @Index(columnList = "user_id"), @Index(columnList = "dataset_id") })
 @NamedQueries({
-        @NamedQuery(name = "DatasetLock.getLocksByDatasetId",
-                query = "SELECT lock FROM DatasetLock lock WHERE lock.dataset.id=:datasetId"),
-        @NamedQuery(name = "DatasetLock.getLocksByAuthenticatedUserId",
-                query = "SELECT lock FROM DatasetLock lock WHERE lock.user.id=:authenticatedUserId")
+        @NamedQuery(name = "DatasetLock.getLocksByAuthenticatedUserId", query = "SELECT lock FROM DatasetLock lock WHERE lock.user.id=:authenticatedUserId")
 })
 public class DatasetLock implements Serializable, JpaEntity<Long> {
 
@@ -64,7 +66,8 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
         Ingest,
 
         /**
-         * Waits for a {@link edu.harvard.iq.dataverse.persistence.workflow.Workflow Workflow} to end
+         * Waits for a {@link edu.harvard.iq.dataverse.persistence.workflow.Workflow
+         * Workflow} to end
          */
         Workflow,
 
@@ -78,17 +81,17 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
          */
         DcmUpload,
 
-        //** Registering PIDs for DS and DFs
+        // ** Registering PIDs for DS and DFs
         pidRegister
     }
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     private Date startTime;
 
     @ManyToOne
@@ -108,81 +111,77 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
     /**
      * Constructing a lock for the given reason.
      *
-     * @param aReason Why the dataset gets locked.  Cannot be {@code null}.
-     * @param aUser   The user causing the lock. Cannot be {@code null}.
+     * @param reason Why the dataset gets locked. Cannot be {@code null}.
+     * @param user   The user causing the lock. Cannot be {@code null}.
      * @throws IllegalArgumentException if any of the parameters are null. That's
-     *                                  because JPA would throw an exception later anyway.
+     *                                  because JPA would throw an exception later
+     *                                  anyway.
      */
-    public DatasetLock(Reason aReason, AuthenticatedUser aUser) {
-        this(aReason, aUser, null);
+    public DatasetLock(final Reason reason, final AuthenticatedUser user) {
+        this(reason, null, user, null);
     }
-
+    
     /**
-     * Constructing a lock for the given reason, with the specified descriptive info message.
+     * Constructing a lock for the given reason, with the specified descriptive info
+     * message.
      *
-     * @param aReason     Why the dataset gets locked.  Cannot be {@code null}.
-     * @param aUser       The user causing the lock. Cannot be {@code null}.
+     * @param reason      Why the dataset gets locked. Cannot be {@code null}.
+     * @param dataset     Dataset to be locked
+     * @param user        The user causing the lock. Cannot be {@code null}.
      * @param infoMessage Descriptive message.
      * @throws IllegalArgumentException if any of the parameters are null. That's
-     *                                  because JPA would throw an exception later anyway.
+     *                                  because JPA would throw an exception later
+     *                                  anyway.
      */
-    public DatasetLock(Reason aReason, AuthenticatedUser aUser, String infoMessage) {
-        if (aReason == null) {
-            throw new IllegalArgumentException("Cannot lock a dataset for a null reason");
-        }
-        if (aUser == null) {
-            throw new IllegalArgumentException("Cannot lock a dataset for a null user");
-        }
-        reason = aReason;
-        startTime = new Date();
-        user = aUser;
-        info = infoMessage;
-
+    public DatasetLock(final Reason reason, final Dataset dataset, final AuthenticatedUser user,
+            final String infoMessage) {
+        requireNonNull(reason, "Cannot lock a dataset for a null reason");
+        this.reason = reason;
+        this.dataset = dataset;
+        this.startTime = new Date();
+        user.getDatasetLocks().add(this);
+        this.user = user;
+        this.info = infoMessage;
     }
 
-    /**
-     * JPA no-args constructor. Client code should use the public constructor
-     * and not this one.
-     *
-     * @see #DatasetLock(edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason)
-     */
     protected DatasetLock() {
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public Date getStartTime() {
-        return startTime;
+        return this.startTime;
     }
 
-    public void setStartTime(Date startTime) {
+    public void setStartTime(final Date startTime) {
         this.startTime = startTime;
     }
 
     public Dataset getDataset() {
-        return dataset;
+        return this.dataset;
     }
 
-    public void setDataset(Dataset dataset) {
+    public void setDataset(final Dataset dataset) {
         this.dataset = dataset;
     }
 
     public AuthenticatedUser getUser() {
-        return user;
+        return this.user;
     }
 
-    public void setUser(AuthenticatedUser user) {
+    public void setUser(final AuthenticatedUser user) {
+        user.getDatasetLocks().add(this);
         this.user = user;
     }
 
     public String getInfo() {
-        return info;
+        return this.info;
     }
 
     public void setInfo(String info) {
@@ -190,33 +189,33 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
     }
 
     public Reason getReason() {
-        return reason;
+        return this.reason;
     }
 
-    public void setReason(Reason reason) {
+    public void setReason(final Reason reason) {
         this.reason = reason;
+    }
+    
+    public void removeFromDataset() {
+        getDataset().removeLock(this);
     }
 
     @Override
     public int hashCode() {
-        return (id != null ? id.hashCode() : 0);
+        return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (object == null) {
-            return false;
-        }
+    public boolean equals(final Object object) {
         if (object == this) {
             return true;
-        }
-
-        if (!(object instanceof DatasetLock)) {
+        } else if (object instanceof DatasetLock) {
+            final DatasetLock other = (DatasetLock) object;
+            return (id == null && other.id == null)
+                    || (id != null && id.equals(other.getId()));
+        } else {
             return false;
         }
-        DatasetLock other = (DatasetLock) object;
-
-        return (id == null && other.id == null) || (id != null && id.equals(other.getId()));
     }
 
     @Override
