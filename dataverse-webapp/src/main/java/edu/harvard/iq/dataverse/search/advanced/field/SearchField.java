@@ -1,15 +1,15 @@
 package edu.harvard.iq.dataverse.search.advanced.field;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.search.advanced.SearchFieldType;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
 import io.vavr.control.Option;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public abstract class SearchField implements Serializable, ValidatableField {
     public static final SearchField EMPTY = new SearchField(null, null, null, null) {

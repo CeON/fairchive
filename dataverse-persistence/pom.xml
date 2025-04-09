@@ -50,7 +50,12 @@
             <groupId>io.vavr</groupId>
             <artifactId>vavr</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.github.openjson</groupId>
+            <artifactId>openjson</artifactId>
+            <version>1.0.10</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>pl.edu.icm.dataverse</groupId>
             <artifactId>dataverse-test-common</artifactId>

@@ -41,6 +41,17 @@
             <ui:param name="operation" value="#{operation}" />
         </ui:include>
     </p:fragment>
+    
+    <p:fragment rendered="#{inputRenderer.getType() eq inputRendererTypeEnum.PERIODO}">
+        <ui:include src="/WEB-INF/templates/dataset/inputRenderer/periodoInputField.xhtml" >
+            <ui:param name="inputRenderer" value="#{inputRenderer}" />
+            <ui:param name="datasetField" value="#{datasetField}" />
+            <ui:param name="hiddenLabel" value="#{hiddenLabel}" />
+            <ui:param name="labelFieldNumber" value="#{labelFieldNumber}" />
+            <ui:param name="allBlockfields" value="#{allBlockfields}" />
+            <ui:param name="operation" value="#{operation}" />
+        </ui:include>
+    </p:fragment>
 
     <p:fragment rendered="#{inputRenderer.getType() eq inputRendererTypeEnum.TEXTBOX and not isGeospatial}">
         <ui:include src="/WEB-INF/templates/dataset/inputRenderer/textboxInputField.xhtml">

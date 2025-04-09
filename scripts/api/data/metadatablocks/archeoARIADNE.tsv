@@ -2,6 +2,7 @@
 	archeoAriadne		Archaeological Metadata
 #datasetField	name	title	description	watermark	fieldType	displayOrder	displayFormat	advancedSearchField	allowControlledVocabulary	allowmultiples	facetable	displayoncreate	required	parent	inputRendererType	inputRendererOptions	metadatablock_id	termURI	validation	metadata	visibleThroughAnonymizedUrl
 	ariadneSubject	ARIADNE Subject Category of the Resource	Fundamental archaeological categories defined byARIADNE.		text	0		TRUE	TRUE	TRUE	TRUE	TRUE	FALSE		VOCABULARY_SELECT	{}	archeoAriadne		[{"name":"standard_input"}]		TRUE
+	periodo	Periodization (Periodo Vocabulary)	Periodization (Periodo Vocabulary).	Period Identifier	PERIODO	1	#VALUE	TRUE	FALSE	FALSE	TRUE	TRUE	FALSE		PERIODO	{}	archeoAriadne		[{"name":"standard_input"}]		TRUE
 #controlledVocabulary	DatasetField	Value	identifier	displayOrder
 	ariadneSubject	Site/monument		0
 	ariadneSubject	Fieldwork		1
