@@ -55,7 +55,8 @@ public class GeoNameRenderer implements InputFieldRenderer {
         final String query = SuggestionAutocompleteHelper.processSuggestionQuery("periodo")
                 .orElseThrow(() -> new IllegalStateException("Autocomplete query was not found."));
 
-        return this.geoNameRepo.find(query);
+        List<GeoName> result = this.geoNameRepo.find(query);
+        return result;
     }
 
     public boolean displayDetails() {
@@ -71,8 +72,8 @@ public class GeoNameRenderer implements InputFieldRenderer {
     }
 
     public void processValueChange(final ValueChangeEvent event) {
-        final String url = Objects.toString(event.getNewValue(), "");
-        this.selectedGeoName = this.geoNameRepo.findById(null);
+        final String text = Objects.toString(event.getNewValue(), "");
+        this.selectedGeoName = this.geoNameRepo.find(text).stream().findAny();
     }
 
     private class CapturingConverter implements Converter {
