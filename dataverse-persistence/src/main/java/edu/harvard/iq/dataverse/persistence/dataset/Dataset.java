@@ -1,5 +1,40 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import static java.util.stream.Collectors.toList;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedStoredProcedureQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
+import javax.persistence.ParameterMode;
+import javax.persistence.StoredProcedureParameter;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import org.apache.commons.lang3.StringUtils;
+
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.AlternativePersistentIdentifier;
 import edu.harvard.iq.dataverse.persistence.DvObject;
@@ -15,48 +50,10 @@ import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.NamedStoredProcedureQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.OrderBy;
-import javax.persistence.ParameterMode;
-import javax.persistence.StoredProcedureParameter;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author skraffmiller
  */
-@NamedQueries({
-        @NamedQuery(name = "Dataset.findByIdentifier",
-                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier"),
-        @NamedQuery(name = "Dataset.findByIdentifierAuthorityProtocol",
-                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier AND d.protocol=:protocol AND d.authority=:authority"),
-})
 
 /*
     Below is the stored procedure for getting a numeric value from a database
@@ -193,13 +190,8 @@ public class Dataset extends DvObjectContainer {
      * @param reason the reason we test for.
      * @return {@code true} if the data set is locked for {@code reason}.
      */
-    public boolean isLockedFor(DatasetLock.Reason reason) {
-        for (DatasetLock lock : getLocks()) {
-            if (lock.getReason() == reason) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isLockedFor(final DatasetLock.Reason reason) {
+        return getLocks().stream().anyMatch(lock -> lock.getReason().equals(reason));
     }
 
     /**
@@ -208,13 +200,8 @@ public class Dataset extends DvObjectContainer {
      * @param reason the reason we test for.
      * @return {@code true} if the data set is locked for {@code reason}.
      */
-    public boolean isLockedFor(String reason) {
-        for (DatasetLock lock : getLocks()) {
-            if (lock.getReason().name().equals(reason)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isLockedFor(final String reason) {
+        return getLocks().stream().anyMatch(lock -> lock.getReason().name().equals(reason));
     }
 
     /**
@@ -222,13 +209,16 @@ public class Dataset extends DvObjectContainer {
      *
      * @return the dataset lock, or {@code null}.
      */
-    public DatasetLock getLockFor(DatasetLock.Reason reason) {
-        for (DatasetLock lock : getLocks()) {
-            if (lock.getReason() == reason) {
-                return lock;
-            }
-        }
-        return null;
+    public Optional<DatasetLock> getLockFor(final DatasetLock.Reason reason) {
+        return streamLocksFor(reason).findAny();
+    }
+    
+    public List<DatasetLock> getAllLocksFor(final DatasetLock.Reason reason) {
+        return streamLocksFor(reason).collect(toList());
+    }
+    
+    private Stream<DatasetLock> streamLocksFor(final DatasetLock.Reason reason) {
+        return getLocks().stream().filter(lock -> lock.getReason().equals(reason));
     }
 
     public Set<DatasetLock> getLocks() {

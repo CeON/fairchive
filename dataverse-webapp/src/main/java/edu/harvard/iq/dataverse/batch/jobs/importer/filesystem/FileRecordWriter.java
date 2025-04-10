@@ -19,6 +19,30 @@
 
 package edu.harvard.iq.dataverse.batch.jobs.importer.filesystem;
 
+import java.io.File;
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.batch.api.BatchProperty;
+import javax.batch.api.chunk.AbstractItemWriter;
+import javax.batch.operations.JobOperator;
+import javax.batch.runtime.BatchRuntime;
+import javax.batch.runtime.context.JobContext;
+import javax.batch.runtime.context.StepContext;
+import javax.ejb.EJB;
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -37,28 +61,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileUtil;
-
-import javax.annotation.PostConstruct;
-import javax.batch.api.BatchProperty;
-import javax.batch.api.chunk.AbstractItemWriter;
-import javax.batch.operations.JobOperator;
-import javax.batch.runtime.BatchRuntime;
-import javax.batch.runtime.context.JobContext;
-import javax.batch.runtime.context.StepContext;
-import javax.ejb.EJB;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Dependent
 public class FileRecordWriter extends AbstractItemWriter {
@@ -158,12 +160,12 @@ public class FileRecordWriter extends AbstractItemWriter {
                     jobContext.setExitStatus("FAILED");
                     return;
                 }
-                DatasetLock dcmLock = dataset.getLockFor(DatasetLock.Reason.DcmUpload);
-                if (dcmLock == null) {
-                    getJobLogger().log(Level.WARNING, "Dataset not locked for DCM upload");
-                } else {
+                Optional<DatasetLock> dcmLock = dataset.getLockFor(DatasetLock.Reason.DcmUpload);
+                if (dcmLock.isPresent()) {
                     datasetDao.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
-                    dataset.removeLock(dcmLock);
+                    dataset.removeLock(dcmLock.get());
+                } else {
+                    getJobLogger().log(Level.WARNING, "Dataset not locked for DCM upload");
                 }
                 updateDatasetVersion(dataset.getLatestVersion());
             } else {

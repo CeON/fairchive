@@ -50,5 +50,6 @@ public enum InputRendererType {
      * checkboxes with auto selected all
      * values defined in renderer options
      */
-    HIDDEN_VOCABULARY
+    HIDDEN_VOCABULARY,
+    PERIODO;
 }

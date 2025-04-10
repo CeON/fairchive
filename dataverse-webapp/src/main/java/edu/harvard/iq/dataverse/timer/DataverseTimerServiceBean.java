@@ -1,26 +1,15 @@
 package edu.harvard.iq.dataverse.timer;
 
-import com.google.api.client.util.Preconditions;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.datafile.FileIntegrityChecker;
-import edu.harvard.iq.dataverse.datafile.pojo.FilesIntegrityReport;
-import edu.harvard.iq.dataverse.dataset.DatasetCitationsCountUpdater;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.harvest.client.HarvesterParams;
-import edu.harvard.iq.dataverse.harvest.client.HarvestTimerInfo;
-import edu.harvard.iq.dataverse.harvest.client.HarvesterServiceBean;
-import edu.harvard.iq.dataverse.harvest.client.HarvestingClientDao;
-import edu.harvard.iq.dataverse.harvest.server.OAISetServiceBean;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang3.StringUtils;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -36,16 +25,30 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.api.client.util.Preconditions;
+
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.datafile.FileIntegrityChecker;
+import edu.harvard.iq.dataverse.datafile.pojo.FilesIntegrityReport;
+import edu.harvard.iq.dataverse.dataset.DatasetCitationsCountUpdater;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
+import edu.harvard.iq.dataverse.harvest.client.HarvestTimerInfo;
+import edu.harvard.iq.dataverse.harvest.client.HarvesterParams;
+import edu.harvard.iq.dataverse.harvest.client.HarvesterServiceBean;
+import edu.harvard.iq.dataverse.harvest.client.HarvestingClientDao;
+import edu.harvard.iq.dataverse.harvest.server.OAISetServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 
 /**
@@ -85,7 +88,7 @@ public class DataverseTimerServiceBean implements Serializable {
     FeaturedDataverseServiceBean featuredDataverseServiceBean;
 
     @Inject
-    DatasetDao datasetDao;
+    DatasetRepository datasetRepo;
     
     @Inject
     IndexServiceBean indexServiceBean;
@@ -236,7 +239,7 @@ public class DataverseTimerServiceBean implements Serializable {
     }
 
     private void reindexAfterEmbargo() {
-        List<Dataset> datasetsAfterEmbargo = datasetDao.findNotIndexedAfterEmbargo();
+        List<Dataset> datasetsAfterEmbargo = this.datasetRepo.findNotIndexedAfterEmbargo();
         for (Dataset dataset:datasetsAfterEmbargo) {
             indexServiceBean.indexDataset(dataset, true);
         }

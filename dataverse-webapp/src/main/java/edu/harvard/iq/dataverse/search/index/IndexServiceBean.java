@@ -1,5 +1,59 @@
 package edu.harvard.iq.dataverse.search.index;
 
+import static edu.harvard.iq.dataverse.search.SearchConstants.PUBLIC;
+import static edu.harvard.iq.dataverse.search.SearchConstants.RESTRICTED;
+import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_AUTHORITY_TITLE;
+import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_COVERAGE_NAME;
+import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_ID;
+import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_LABEL;
+import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_LOCATIONS;
+import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_START;
+import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_STOP;
+import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import javax.ejb.AsyncResult;
+import javax.ejb.Asynchronous;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.inject.Inject;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.tika.io.IOUtils;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.sax.BodyContentHandler;
+import org.xml.sax.ContentHandler;
+
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetLinkingServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
@@ -24,10 +78,10 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import edu.harvard.iq.dataverse.search.SearchConstants;
 import edu.harvard.iq.dataverse.search.SearchException;
 import edu.harvard.iq.dataverse.search.SearchFields;
 import edu.harvard.iq.dataverse.search.SolrField;
@@ -38,51 +92,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.SolrInputField;
-import org.apache.tika.io.IOUtils;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.sax.BodyContentHandler;
-import org.xml.sax.ContentHandler;
-
-import javax.ejb.AsyncResult;
-import javax.ejb.Asynchronous;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import static edu.harvard.iq.dataverse.search.SearchConstants.PUBLIC;
-import static edu.harvard.iq.dataverse.search.SearchConstants.RESTRICTED;
-import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 
 @Stateless
 public class IndexServiceBean {
@@ -896,6 +905,17 @@ public class IndexServiceBean {
                             if (dsfSolrField.isFacetable()) {
                                 solrInputDocument.addField(solrFieldFacetable, htmlFreeText);
                             }
+                        } else if (FieldType.PERIODO.equals(dsfType.getFieldType())) {
+                            final String url = dsf.getValue();
+                            solrInputDocument.addField(PERIODO_ID, url);
+                            PeriodoDictionary.getByUrl(url).ifPresent(period -> {
+                                solrInputDocument.addField(PERIODO_LABEL, period.getLabel());
+                                solrInputDocument.addField(PERIODO_START, period.getStart());
+                                solrInputDocument.addField(PERIODO_STOP, period.getStop());
+                                solrInputDocument.addField(PERIODO_AUTHORITY_TITLE, period.getAuthorityTitle());
+                                solrInputDocument.addField(PERIODO_COVERAGE_NAME, period.getCoverageName());
+                                solrInputDocument.addField(PERIODO_LOCATIONS, period.getLocations());
+                            });
                         } else {
                             // do not strip HTML
                             solrInputDocument.addField(solrFieldSearchable, dsf.getValuesWithoutNaValues());

@@ -36,26 +36,6 @@ public class ControlledVocabularySuggestionHandler implements SuggestionHandler 
     /**
      * {@inheritDoc}
      * <p>
-     * This implementation always returns class name.
-     */
-    @Override
-    public String getName() {
-        return getClass().getSimpleName();
-    }
-
-
-    /**
-     * This is not dependent on siblings input values. All values will be taken
-     * to build matching suggestions list.
-     */
-    @Override
-    public boolean isDependentOnSiblings() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
      * This implementation filers out base on controlled vocabulary (input) name,
      * a.k.a. dictionary name
      */

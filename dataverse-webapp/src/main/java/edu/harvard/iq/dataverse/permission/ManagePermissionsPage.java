@@ -41,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static java.util.stream.Collectors.toList;
 
 
@@ -118,7 +119,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
 
         if(dvObject instanceof Dataset || dvObject instanceof DataFile) {
             Dataset dataset = dvObject instanceof Dataset ? (Dataset) dvObject : ((DataFile) dvObject).getOwner();
-            if (datasetDao.isInReview(dataset)
+            if (dataset.isLockedFor(InReview)
                     && !(permissionsWrapper.canIssuePublishDatasetCommand(dataset)
                     && permissionsWrapper.canManageDatasetOrMinorDatasetPermissions(dataset))) {
                 return permissionsWrapper.notAuthorized();

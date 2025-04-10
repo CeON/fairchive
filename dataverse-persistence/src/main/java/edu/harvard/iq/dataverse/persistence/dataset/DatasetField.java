@@ -1,14 +1,15 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import com.google.common.collect.ImmutableMap;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.common.MarkupChecker;
-import edu.harvard.iq.dataverse.persistence.dataset.formatter.AuthorIdentifierUrlProvider;
-import edu.harvard.iq.dataverse.persistence.dataset.formatter.DatasetFieldFormattedValueDecorator;
-import edu.harvard.iq.dataverse.persistence.dataset.formatter.LinkFormattedValueDecorator;
-import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -25,16 +26,18 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.collect.ImmutableMap;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.common.MarkupChecker;
+import edu.harvard.iq.dataverse.persistence.dataset.formatter.AuthorIdentifierUrlProvider;
+import edu.harvard.iq.dataverse.persistence.dataset.formatter.DatasetFieldFormattedValueDecorator;
+import edu.harvard.iq.dataverse.persistence.dataset.formatter.LinkFormattedValueDecorator;
+import io.vavr.control.Option;
 
 /**
  * @author skraffmiller
@@ -472,6 +475,13 @@ public class DatasetField implements Serializable, ValidatableField {
     }
 
     private String getFieldDisplayValue(String value, DatasetFieldType fieldType) {
+        
+        if (fieldType.getFieldType().equals(FieldType.PERIODO)) {
+            return  "<a href=\"" + this.fieldValue + "\" target=\"_blank\">" + this.fieldValue +
+                    "</a><br>" + PeriodoDictionary.getByUrl(this.fieldValue).get()
+                            .getDetails("<br>");
+        }
+        
         String retVal = "";
         if (!StringUtils.isBlank(value) && !DatasetField.NA_VALUE.equals(value)) {
             String format = fieldType.getDisplayFormat();

@@ -28,6 +28,9 @@ import javax.ejb.EJBException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.ValidationException;
+
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
@@ -127,7 +130,7 @@ public class EditDatasetMetadataPage implements Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (dataset.isLockedFor(InReview) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 
