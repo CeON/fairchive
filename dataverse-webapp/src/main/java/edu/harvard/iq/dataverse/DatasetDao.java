@@ -247,7 +247,7 @@ public class DatasetDao implements java.io.Serializable {
     public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason,
             Long userId, String info) {
         final Dataset dataset = this.datasetRepo.getById(datasetId);
-        final AuthenticatedUser user = em.find(AuthenticatedUser.class, userId);
+        final AuthenticatedUser user = this.authentication.findByID(userId);
 
         // Check if the dataset is already locked for this reason:
         // (to prevent multiple, duplicate locks on the dataset!)
