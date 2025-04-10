@@ -16,6 +16,7 @@ import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDe
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 public class DatasetDaoIT extends WebappArquillianDeployment {
@@ -40,27 +41,42 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         Dataset dataset = this.datasetDao.find(52L);
 
         assertThat(dataset.isLockedFor(InReview)).isFalse();
-        
+
         AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
 
         this.datasetDao.addDatasetLock(dataset, new DatasetLock(InReview, user));
 
         dataset = this.datasetDao.find(52L);
         assertThat(dataset.isLockedFor(InReview)).isTrue();
-        
+
         List<DatasetLock> locks = this.datasetDao.getDatasetLocksByUser(user);
-        
+
         assertThat(locks.size()).isEqualTo(1);
         assertThat(locks.get(0).getReason()).isEqualTo(InReview);
         assertThat(locks.get(0).getUser()).isEqualTo(user);
     }
-    
+
     @Test
     void getTitleFromLatestVersion() {
         Dataset dataset = this.datasetDao.find(52L);
         assertThat(this.datasetDao.getTitleFromLatestVersion(52L))
                 .isEqualTo(dataset.getLatestVersion().getTitle());
     }
+
+    @Test
+    void getDatasetVersionUsersByAuthenticatedUser() {
+        AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
+        List<DatasetVersionUser> versions = this.datasetDao
+                .getDatasetVersionUsersByAuthenticatedUser(user);
+        
+        assertThat(versions.size()).isEqualTo(2);
+        assertThat(versions.get(0).getAuthenticatedUser()).isEqualTo(user);
+        assertThat(versions.get(0).getDatasetVersion().getId()).isEqualTo(41L);
+        assertThat(versions.get(0).getId()).isEqualTo(44L);
+        
+        assertThat(versions.get(1).getAuthenticatedUser()).isEqualTo(user);
+        assertThat(versions.get(1).getDatasetVersion().getId()).isEqualTo(36L);
+        assertThat(versions.get(1).getId()).isEqualTo(39L);
+
+    }
 }
-
-
