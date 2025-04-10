@@ -1,8 +1,12 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 import javax.ejb.Singleton;
+import javax.persistence.TypedQuery;
+
+import java.util.List;
 import java.util.Optional;
 
 @Singleton
@@ -42,5 +46,14 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
                 .setParameter("versionNumber", versionIdentifier.getVersionNumber())
                 .setParameter("minorVersionNumber",
                         versionIdentifier.getMinorVersionNumber()));
+    }
+    
+    public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(
+            final long userId) {
+        return this.em.createQuery(
+                "SELECT u from DatasetVersionUser u where u.authenticatedUser.id = :id",
+                DatasetVersionUser.class)
+                .setParameter("id", userId)
+                .getResultList();
     }
 }
