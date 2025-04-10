@@ -1,13 +1,12 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-
-import javax.ejb.Singleton;
-import javax.persistence.TypedQuery;
-
 import java.util.List;
 import java.util.Optional;
+
+import javax.ejb.Singleton;
+import javax.persistence.NoResultException;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Singleton
 public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion> {
@@ -47,7 +46,7 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
                 .setParameter("minorVersionNumber",
                         versionIdentifier.getMinorVersionNumber()));
     }
-    
+
     public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(
             final long userId) {
         return this.em.createQuery(
@@ -55,5 +54,21 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
                 DatasetVersionUser.class)
                 .setParameter("id", userId)
                 .getResultList();
+    }
+
+    public DatasetVersionUser getDatasetVersionUser(final Long versionId,
+            final Long userId) {
+        try {
+            return this.em.createQuery(
+                    "select dvu from DatasetVersionUser dvu " +
+                            "where dvu.datasetVersion.id =:versionId " +
+                            "and dvu.authenticatedUser.id =:userId",
+                    DatasetVersionUser.class)
+                    .setParameter("versionId", versionId)
+                    .setParameter("userId", userId)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 }

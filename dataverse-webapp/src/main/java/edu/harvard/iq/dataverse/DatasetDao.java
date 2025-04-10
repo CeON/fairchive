@@ -22,7 +22,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
-import javax.persistence.TypedQuery;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
@@ -208,18 +207,10 @@ public class DatasetDao implements java.io.Serializable {
 
 
     public DatasetVersionUser getDatasetVersionUser(DatasetVersion version, User user) {
-
-        TypedQuery<DatasetVersionUser> query = em.createNamedQuery("DatasetVersionUser.findByVersionIdAndUserId", DatasetVersionUser.class);
-        query.setParameter("versionId", version.getId());
         String identifier = user.getIdentifier();
         identifier = identifier.startsWith("@") ? identifier.substring(1) : identifier;
         AuthenticatedUser au = authentication.getAuthenticatedUser(identifier);
-        query.setParameter("userId", au.getId());
-        try {
-            return query.getSingleResult();
-        } catch (javax.persistence.NoResultException e) {
-            return null;
-        }
+        return this.datasetVersionRepo.getDatasetVersionUser(version.getId(), au.getId());
     }
 
     public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(

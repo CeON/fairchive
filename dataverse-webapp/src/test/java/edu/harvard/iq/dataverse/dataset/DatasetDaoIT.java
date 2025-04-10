@@ -16,6 +16,7 @@ import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDe
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
@@ -59,13 +60,14 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
     @Test
     void getTitleFromLatestVersion() {
         Dataset dataset = this.datasetDao.find(52L);
+        
         assertThat(this.datasetDao.getTitleFromLatestVersion(52L))
                 .isEqualTo(dataset.getLatestVersion().getTitle());
     }
 
     @Test
     void getDatasetVersionUsersByAuthenticatedUser() {
-        AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
+        AuthenticatedUser user = (AuthenticatedUser) this.dataverseSession.getUser();
         List<DatasetVersionUser> versions = this.datasetDao
                 .getDatasetVersionUsersByAuthenticatedUser(user);
         
@@ -78,5 +80,17 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         assertThat(versions.get(1).getDatasetVersion().getId()).isEqualTo(36L);
         assertThat(versions.get(1).getId()).isEqualTo(39L);
 
+    }
+    
+    @Test
+    void getDatasetVersionUser() {
+        DatasetVersion version = this.datasetDao.find(52L).getLatestVersion();
+        AuthenticatedUser user = (AuthenticatedUser) this.dataverseSession.getUser();
+
+        DatasetVersionUser versionUser = this.datasetDao
+                .getDatasetVersionUser(version, user);
+        
+        assertThat(versionUser.getAuthenticatedUser().getId()).isEqualTo(user.getId());
+        assertThat(versionUser.getDatasetVersion().getId()).isEqualTo(version.getId());
     }
 }
