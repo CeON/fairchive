@@ -5,7 +5,6 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -237,16 +236,8 @@ public class DatasetDao implements java.io.Serializable {
 
 
 
-    public List<DatasetLock> getDatasetLocksByUser( AuthenticatedUser user) {
-
-        TypedQuery<DatasetLock> query =
-                em.createNamedQuery("DatasetLock.getLocksByAuthenticatedUserId", DatasetLock.class);
-        query.setParameter("authenticatedUserId", user.getId());
-        try {
-            return query.getResultList();
-        } catch (javax.persistence.NoResultException e) {
-            return Collections.emptyList();
-        }
+    public List<DatasetLock> getDatasetLocksByUser(final AuthenticatedUser user) {
+        return this.datasetLockRepo.findByUser(user);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)

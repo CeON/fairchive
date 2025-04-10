@@ -37,8 +37,6 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
@@ -54,9 +52,6 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
  */
 @Entity
 @Table(indexes = { @Index(columnList = "user_id"), @Index(columnList = "dataset_id") })
-@NamedQueries({
-        @NamedQuery(name = "DatasetLock.getLocksByAuthenticatedUserId", query = "SELECT lock FROM DatasetLock lock WHERE lock.user.id=:authenticatedUserId")
-})
 public class DatasetLock implements Serializable, JpaEntity<Long> {
 
     public enum Reason {
