@@ -520,6 +520,7 @@ function initDvJS() {
     function initializeMapSearchResults(key, data) {
       data.leafMap = L.map(key, INIT_MAP_OPTS);
       let map = data.leafMap;
+      data.polygonLayer = L.layerGroup().addTo(map);
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
     }
 
@@ -527,6 +528,17 @@ function initDvJS() {
     function render(key, data) {
       let map = data.leafMap
       map.invalidateSize();
+    }
+
+    function onMarkerMouseOver(evt ,data, dataset) {
+      data.polygonLayer.clearLayers();
+      cords = dataset.coordinates.map(a => [a.latitude, a.longitude] )
+
+      if (cords.length == 2) {
+          L.polyline(cords).addTo(data.polygonLayer)
+      } else if (cords.length >= 3) {
+          L.polygon(cords).addTo(data.polygonLayer);
+      }
     }
 
     let searchResults = {
@@ -561,7 +573,13 @@ function initDvJS() {
 
         for (const dataset of value) {
             var marker = L.marker([dataset.marker.latitude, dataset.marker.longitude])
-                    .bindPopup(renderTemplate(mapData.markerDialogTemplate, dataset));
+                .bindPopup(renderTemplate(mapData.markerDialogTemplate, dataset))
+                .on('mouseover', function (evt) {
+                    onMarkerMouseOver(evt, mapData, dataset);
+                 })
+                .on('mouseout', function (evt) {
+                    mapData.polygonLayer.clearLayers();
+                });
             markers.addLayer(marker);
         }
 
