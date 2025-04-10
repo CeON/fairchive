@@ -94,6 +94,7 @@ public class GeoName implements JpaEntity<Integer> {
     
     public String getDetails(final String separator) {
         final StringBuilder result = new StringBuilder(80);
+        result.append("Nazwa: ").append(this.name);
 //        result.append(getStringFromBundle("periodo.label")).append(": ")
 //                .append(this.label).append(separator);
 //        result.append(getStringFromBundle("periodo.location")).append(": ");

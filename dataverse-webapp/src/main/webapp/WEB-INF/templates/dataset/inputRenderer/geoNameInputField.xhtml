@@ -10,7 +10,7 @@
 
     <div class="control-label-with-tooltip">
         <p:outputLabel styleClass="control-label #{hiddenLabel ? 'sr-only' : ''}"
-                       for="periodo"
+                       for="geoname"
                        escape="false"
                        value="#{datasetField.datasetFieldType.localeTitle}">
             <h:outputText rendered="#{not (labelFieldNumber eq 0)}" 
@@ -28,7 +28,7 @@
     </div>
 
     <p:autoComplete
-            id="periodo"
+            id="geoname"
             value="#{datasetField.value}"
             converter="#{inputRenderer.converter}"
             completeMethod="#{inputRenderer.processSuggestionQuery(datasetField)}"
@@ -39,12 +39,12 @@
             emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
             var="suggestion" 
             itemLabel="#{suggestion}" 
-            itemValue="#{suggestion.value}"
+            itemValue="#{suggestion.name}"
             autoSelection="false"
             autoHighlight="false">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  
-                update="details"/>
+                update="geoNameDetails"/>
 
         <p:column>
             <h:outputText value="#{suggestion.value}"/>
@@ -54,10 +54,10 @@
         </p:column>
     </p:autoComplete>
 
-    <p:watermark for="periodo"
+    <p:watermark for="geoname"
                  value="#{datasetField.datasetFieldType.localeWatermark}"/>
 
-    <div jsf:id="details">
+    <div jsf:id="geoNameDetails">
         <h:outputText rendered="#{inputRenderer.displayDetails()}" 
                       value="#{inputRenderer.getDetails()}" escape="false"/>
     </div>

@@ -44,7 +44,7 @@
             autoHighlight="false">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  
-                update="details"/>
+                update="periodoDetails"/>
 
         <p:column>
             <h:outputText value="#{suggestion.value}"/>
@@ -57,7 +57,7 @@
     <p:watermark for="periodo"
                  value="#{datasetField.datasetFieldType.localeWatermark}"/>
 
-    <div jsf:id="details">
+    <div jsf:id="periodoDetails">
         <h:outputText rendered="#{inputRenderer.displayDetails()}" 
                       value="#{inputRenderer.getDetails()}" escape="false"/>
     </div>
