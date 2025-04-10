@@ -302,7 +302,7 @@ public class DatasetDao implements java.io.Serializable {
         return getTitleFromLatestVersion(datasetId, true);
     }
 
-    public String getTitleFromLatestVersion(Long datasetId, boolean includeDraft) {
+    private String getTitleFromLatestVersion(Long datasetId, boolean includeDraft) {
 
         String whereDraft = "";
         //This clause will exclude draft versions from the select

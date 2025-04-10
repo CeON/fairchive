@@ -1,18 +1,19 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
-
-import javax.ejb.Singleton;
-import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TypedQuery;
-
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.logging.Level;
+
+import javax.ejb.Singleton;
+import javax.persistence.StoredProcedureQuery;
+
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Singleton
 public class DatasetRepository extends JpaRepository<Long, Dataset> {
@@ -25,7 +26,7 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
 
     // -------------------- LOGIC --------------------
 
-    public List<Dataset> findByOwnerId(Long ownerId) {
+    public List<Dataset> findByOwnerId(final Long ownerId) {
         return this.em
                 .createQuery("SELECT o FROM Dataset o WHERE o.owner.id=:ownerId",
                         Dataset.class)
@@ -135,4 +136,36 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
         query.execute();
         return query.getOutputParameterValue(1).toString();
     }
+    
+//    public String getTitleFromLatestVersion(final Long datasetId) {
+//        return (String) this.em.createNativeQuery(
+//                        "select df.fieldvalue  from dataset d "
+//                        + " join datasetversion v on d.id = v.dataset_id "
+//                        + " join datasetfield df on v.id = df.datasetversion_id "
+//                        + " join datasetfieldtype dft on df.datasetfieldtype_id  = dft.id "
+//                        + " where dft.name = '" + DatasetFieldConstant.title
+//                        + "' and  v.dataset_id =" + datasetId
+//                        + " and df.source = '" + DatasetField.DEFAULT_SOURCE + "'"
+//                        + " and v.versionstate !='DRAFT' "
+//                        + " order by v.versionnumber desc, v.minorVersionNumber desc limit 1")
+//                .getSingleResult();
+//    }
+//    
+//    public String getTitleFromLatestVersion2(Long datasetId, boolean includeDraft) {
+//
+//        String whereDraft = "";
+//        //This clause will exclude draft versions from the select
+//        if (!includeDraft) {
+//            whereDraft = " and v.versionstate !='DRAFT' ";
+//        }
+//            return (String) em.createNativeQuery("select df.fieldvalue  from dataset d "
+//                                                         + " join datasetversion v on d.id = v.dataset_id "
+//                                                         + " join datasetfield df on v.id = df.datasetversion_id "
+//                                                         + " join datasetfieldtype dft on df.datasetfieldtype_id  = dft.id "
+//                                                         + " where dft.name = '" + DatasetFieldConstant.title + "' and  v.dataset_id =" + datasetId
+//                                                         + " and df.source = '" + DatasetField.DEFAULT_SOURCE + "'"
+//                                                         + whereDraft
+//                                                         + " order by v.versionnumber desc, v.minorVersionNumber desc limit 1 "
+//                                                         + ";").getSingleResult();
+//    }
 }

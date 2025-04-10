@@ -30,12 +30,12 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
     private DatasetDao datasetDao;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         dataverseSession.logIn(authenticationServiceBean.getAdminUser());
     }
 
     @Test
-    public void test_inReview() {
+    void test_inReview() {
 
         Dataset dataset = this.datasetDao.find(52L);
 
@@ -54,4 +54,13 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         assertThat(locks.get(0).getReason()).isEqualTo(InReview);
         assertThat(locks.get(0).getUser()).isEqualTo(user);
     }
+    
+    @Test
+    void getTitleFromLatestVersion() {
+        Dataset dataset = this.datasetDao.find(52L);
+        assertThat(this.datasetDao.getTitleFromLatestVersion(52L))
+                .isEqualTo(dataset.getLatestVersion().getTitle());
+    }
 }
+
+
