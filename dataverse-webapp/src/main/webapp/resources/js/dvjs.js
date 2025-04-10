@@ -520,7 +520,7 @@ function initDvJS() {
     function initializeMapSearchResults(key, data) {
       data.leafMap = L.map(key, INIT_MAP_OPTS);
       let map = data.leafMap;
-        data.polygonLayer = L.layerGroup().addTo(map);
+      data.polygonLayer = L.layerGroup().addTo(map);
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
     }
 
