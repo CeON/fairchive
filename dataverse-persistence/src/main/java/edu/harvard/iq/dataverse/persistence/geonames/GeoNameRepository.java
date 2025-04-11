@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.geonames;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 
 import javax.ejb.Singleton;
@@ -14,11 +16,17 @@ public class GeoNameRepository  extends JpaRepository<Integer, GeoName> {
     }
     
     public List<GeoName> find(final String text) {
-        return this.em.createQuery("SELECT gn FROM GeoName gn "+
-                "WHERE LOWER(ng.name) LIKE LOWER(CONCAT('%', :text, '%'))",
-                GeoName.class)
-                .setParameter("text", text)
-                .getResultList();
+        final String trimmedText = text.trim();
+        if (trimmedText.isEmpty()) {
+            return emptyList();
+        } else {
+            return this.em.createQuery("SELECT gn FROM GeoName gn " +
+                    "WHERE LOWER(gn.name) LIKE LOWER(CONCAT('%', :text, '%')) " +
+                    "OR LOWER(gn.alternateNames) LIKE LOWER(CONCAT('%', :text, '%'))",
+                    GeoName.class)
+                    .setParameter("text", trimmedText)
+                    .getResultList();
+        }
     }
 
     @Override
