@@ -434,3 +434,17 @@ SELECT setval('ingestreport_id_seq', COALESCE((SELECT MAX(id)+1 FROM ingestrepor
 SELECT setval('roleassignment_id_seq', COALESCE((SELECT MAX(id)+1 FROM roleassignment), 1), false);
 SELECT setval('rordata_id_seq', COALESCE((SELECT MAX(id)+1 FROM rordata), 1), false);
 SELECT setval('usernotification_id_seq', COALESCE((SELECT MAX(id)+1 FROM usernotification), 1), false);
+
+
+INSERT INTO geoname
+(id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
+VALUES(462259, 'Zodenen', 'Gospodskiy Dvor Zodenen,Sodehnen', 'PPLQ', 'PL', '85', '2801', '280105', '');
+INSERT INTO geoname
+(id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
+VALUES(477032, 'Variazhanka', 'Mlynski Potok,Młyński Potok,Varenzhanka,Varezhanka,Variazhanka,Varjazhanka,Varyazhanka,Warezanka,Warężanka,Варяжанка', 'STM', 'PL', '00', '', '', '');
+INSERT INTO geoname
+(id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
+VALUES(490932, 'Sołokija', 'Fluss Solokija,Fluss Sołokija,Reka Solokiya,River Solokija,River Sołokija,Solokija,Solokiya,Solokiya River,Sołokija', 'STM', 'PL', '00', '', '', '');
+INSERT INTO geoname
+(id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
+VALUES(502656, 'Rata', 'Rata,Рата', 'STM', 'PL', '00', '', '', '');
