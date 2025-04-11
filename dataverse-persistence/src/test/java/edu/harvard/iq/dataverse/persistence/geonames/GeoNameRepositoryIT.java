@@ -1,9 +1,11 @@
 package edu.harvard.iq.dataverse.persistence.geonames;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -47,5 +49,15 @@ public class GeoNameRepositoryIT extends PersistenceArquillianDeployment {
         assertThat(results.size()).isEqualTo(1);
         assertThat(results.get(0).getId()).isEqualTo(477032);
         assertThat(results.get(0).getName()).isEqualTo("Variazhanka");
+    }
+    
+    @Test
+    void findMultiple_byAlternateNames() {
+        List<GeoName> results = this.repository.find("Powiat");
+
+        assertThat(results.size()).isEqualTo(2);
+        assertThat(results.stream().map(GeoName::getName).collect(toList()))
+                .containsExactlyInAnyOrder("Powiat strzelecki", "Powiat krapkowicki");
+
     }
 }

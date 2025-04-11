@@ -435,7 +435,18 @@ SELECT setval('roleassignment_id_seq', COALESCE((SELECT MAX(id)+1 FROM roleassig
 SELECT setval('rordata_id_seq', COALESCE((SELECT MAX(id)+1 FROM rordata), 1), false);
 SELECT setval('usernotification_id_seq', COALESCE((SELECT MAX(id)+1 FROM usernotification), 1), false);
 
-
+INSERT INTO geoname
+(id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
+VALUES(3337495, 'Opole Voivodeship', 'OP,Opol''skoe voevodstvo,Opole,Opole Voivodeship,Opole vojevoodkond,Opole vojvodskap,Opoles vaivadija,Opolio,Opolscze wojewodztwo,Opolske vojvodstvi,Opolske vojvodstvo,Opolskie,Opolské vojvodstvo,Opolské vojvodství,Opolės vaivadija,Opplen,Provincia de Opole,Provinsi Opole,Província de Opole,Voievodatul Opole,Voivodat d''Opole,Voivodato di Opole,Voivodia de Opole,Voivodie d''Opole,Voïvodie d''Opole,Woiwodschaft Oppeln,Wojewodztwo Opolskie,Wojewodztwo opolskie,Województwo Opolskie,Województwo opolskie,opore xian,Òpòlsczé wòjewództwò,Опольское воеводство,オポーレ県', 'ADM1', 'PL', '79', '', '', '');
+INSERT INTO public.geoname
+(id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
+VALUES(7531052, 'Powiat strzelecki', 'Powiat strzelecki),Strzelce County', 'ADM2', 'PL', '79', '1611', '', '');
+INSERT INTO public.geoname
+(id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
+VALUES(7531296, 'Jemielnica', 'Jemielnica', 'ADM3', 'PL', '79', '1611', '161102', '');
+INSERT INTO public.geoname
+(id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
+VALUES(7531051, 'Powiat krapkowicki', 'Krapkowice County,Powiat krapkowicki', 'ADM2', 'PL', '79', '1605', '', '');
 INSERT INTO geoname
 (id, "name", alternatenames, featurecode, countrycode, admin1code, admin2code, admin3code, admin4code)
 VALUES(462259, 'Zodenen', 'Gospodskiy Dvor Zodenen,Sodehnen', 'PPLQ', 'PL', '85', '2801', '280105', '');

@@ -18,6 +18,7 @@ public class GeoName implements JpaEntity<Integer> {
     private String admin2Code;
     private String admin3Code;
     private String admin4Code;
+    
 
     @Override
     public Integer getId() {
