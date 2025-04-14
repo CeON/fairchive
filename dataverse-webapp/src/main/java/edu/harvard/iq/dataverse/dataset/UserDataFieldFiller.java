@@ -57,14 +57,18 @@ public class UserDataFieldFiller {
     }
 
     protected void fillUserDataInContactField(DatasetField contactField, AuthenticatedUser user, String userFullName) {
-        contactField.streamChildrenByTypeName(DatasetFieldConstant.datasetContactName)
-            .forEach(f -> f.setFieldValue(userFullName));
 
-        contactField.streamChildrenByTypeName(DatasetFieldConstant.datasetContactAffiliation)
-            .forEach(f -> f.setFieldValue(user.getAffiliation()));
-
-        contactField.streamChildrenByTypeName(DatasetFieldConstant.datasetContactEmail)
-            .forEach(f -> f.setFieldValue(user.getEmail()));
+        for (DatasetField subField : contactField.getDatasetFieldsChildren()) {
+            if (subField.getTypeName().equals(DatasetFieldConstant.datasetContactName)) {
+                subField.setFieldValue(userFullName);
+            }
+            if (subField.getTypeName().equals(DatasetFieldConstant.datasetContactAffiliation)) {
+                subField.setFieldValue(user.getAffiliation());
+            }
+            if (subField.getTypeName().equals(DatasetFieldConstant.datasetContactEmail)) {
+                subField.setFieldValue(user.getEmail());
+            }
+        }
 
     }
 
