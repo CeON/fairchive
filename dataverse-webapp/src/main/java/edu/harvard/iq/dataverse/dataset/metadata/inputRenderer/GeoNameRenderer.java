@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 import static edu.harvard.iq.dataverse.persistence.dataset.InputRendererType.GEONAME;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.faces.component.UIComponent;

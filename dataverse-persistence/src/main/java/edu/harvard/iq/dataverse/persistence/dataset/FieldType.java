@@ -30,4 +30,8 @@ public enum FieldType {
     public boolean isPeriodo() {
         return this.equals(PERIODO);
     }
+    
+    public boolean isGeoName() {
+        return this.equals(GEONAME);
+    }
 }

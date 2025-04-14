@@ -5,8 +5,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-import org.apache.commons.lang3.StringUtils;
-
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 @Entity
@@ -104,28 +102,6 @@ public class GeoName implements JpaEntity<Integer> {
         if(isNotBlank(this.alternateNames)) {
             result.append("Nazwy alternatywne: ").append(this.alternateNames);
         }
-//        result.append(getStringFromBundle("periodo.label")).append(": ")
-//                .append(this.label).append(separator);
-//        result.append(getStringFromBundle("periodo.location")).append(": ");
-//        String coma = "";
-//        for (final String location : this.locations) {
-//            result.append(coma).append(location);
-//            coma = ", ";
-//        }
-//        result.append(separator);
-//        result.append(getStringFromBundle("periodo.location.desc")).append(": ")
-//                .append(this.coverageName).append(separator);
-//        result.append(getStringFromBundle("periodo.start")).append(": ")
-//                .append(this.start).append(separator);
-//        result.append(getStringFromBundle("periodo.end")).append(": ");
-//        if (this.stop == MAX_VALUE) {
-//            result.append(getStringFromBundle("periodo.present"));
-//        } else {
-//            result.append(this.stop);
-//        }
-//        result.append(separator);
-//        result.append(getStringFromBundle("periodo.authority")).append(": ")
-//                .append(this.authorityTitle);
         return result.toString();
     }
 

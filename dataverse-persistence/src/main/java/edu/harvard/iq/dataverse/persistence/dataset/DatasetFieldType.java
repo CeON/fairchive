@@ -463,6 +463,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     public boolean isPeriodo() {
         return this.fieldType.isPeriodo();
     }
+    
+    public boolean isGeoName() {
+        return this.fieldType.isGeoName();
+    }
 
     @Override
     public int compareTo(DatasetFieldType o) {
