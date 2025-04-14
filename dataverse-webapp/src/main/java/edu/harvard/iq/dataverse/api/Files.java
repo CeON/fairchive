@@ -44,6 +44,7 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -282,7 +283,7 @@ public class Files extends AbstractApiBean {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response reingest(@PathParam("id") String id, ReingestOptionDTO options) throws WrappedResponse {
 
-        AuthenticatedUser u = findSuperuserOrDie();
+        AuthenticatedUser user = findSuperuserOrDie();
         DataFile dataFile = findDataFileOrDie(id);
 
         Dataset dataset = dataFile.getOwner();
@@ -317,7 +318,7 @@ public class Files extends AbstractApiBean {
         dataFile = fileService.save(dataFile);
 
         // queue the data ingest job for asynchronous execution:
-        StartIngestResult result = ingestService.startIngestJobs(new ArrayList<>(Arrays.asList(dataFile)), u);
+        StartIngestResult result = ingestService.startIngestJobs(Collections.singletonList(dataFile), user);
 
         if (result.hasSkippedExceedingSizeDataFiles()) {
             // This indicates a problem because of the size of the file. But

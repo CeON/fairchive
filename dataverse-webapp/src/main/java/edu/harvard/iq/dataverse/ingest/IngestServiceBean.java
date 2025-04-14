@@ -361,7 +361,8 @@ public class IngestServiceBean {
     }
 
     public StartIngestResult startIngestJobs(List<DataFile> dataFiles, AuthenticatedUser user) {
-        Preconditions.checkState(dataFiles.stream().allMatch(DataFile::isIngestScheduled), "DataFile(s) must be scheduled for ingest to queue them for ingesting");
+        Preconditions.checkState(dataFiles.stream().allMatch(DataFile::isIngestScheduled),
+                "DataFile(s) must be scheduled for ingest to queue them for ingesting");
 
         IngestMessage ingestMessage;
         StartIngestResult startIngestResult = new StartIngestResult();
@@ -379,10 +380,11 @@ public class IngestServiceBean {
                 dataFile.setIngestDone();
                 long sizeLimit = getIngestSizeLimit(dataFile);
                 startIngestResult.addSkippedExceedingSizeInfo(new DataFileExceededSizeInfo(dataFile.getFileMetadata().getLabel(), sizeLimit));
-                logger.info("Skipping tabular ingest of the file " + dataFile.getFileMetadata().getLabel() + ", because of the size limit (set to " + sizeLimit + " bytes)");
+                logger.info("Skipping tabular ingest of the file " + dataFile.getFileMetadata().getLabel()
+                            + ", because of the size limit (set to " + sizeLimit + " bytes)");
             }
             dataFile = fileService.save(dataFile);
-    }
+        }
 
         int count = scheduledFiles.size();
 
