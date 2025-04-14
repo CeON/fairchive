@@ -1,7 +1,11 @@
 package edu.harvard.iq.dataverse.persistence.geonames;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
+
+import org.apache.commons.lang3.StringUtils;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
@@ -95,7 +99,11 @@ public class GeoName implements JpaEntity<Integer> {
     
     public String getDetails(final String separator) {
         final StringBuilder result = new StringBuilder(80);
-        result.append("Nazwa: ").append(this.name);
+        result.append("Identyfikator: ").append(this.id).append(separator);
+        result.append("Nazwa: ").append(this.name).append(separator);
+        if(isNotBlank(this.alternateNames)) {
+            result.append("Nazwy alternatywne: ").append(this.alternateNames);
+        }
 //        result.append(getStringFromBundle("periodo.label")).append(": ")
 //                .append(this.label).append(separator);
 //        result.append(getStringFromBundle("periodo.location")).append(": ");
@@ -123,6 +131,11 @@ public class GeoName implements JpaEntity<Integer> {
 
     public String getDetails() {
         return getDetails(" ");
+    }
+    
+    @Override
+    public String toString() {
+        return this.id.toString();
     }
     
 }

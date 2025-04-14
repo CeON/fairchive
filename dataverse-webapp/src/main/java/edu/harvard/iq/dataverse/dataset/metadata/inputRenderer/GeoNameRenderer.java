@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
 import static edu.harvard.iq.dataverse.persistence.dataset.InputRendererType.GEONAME;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,8 +10,6 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.event.ValueChangeEvent;
-
-import org.apache.commons.lang3.StringUtils;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
@@ -58,8 +55,7 @@ public class GeoNameRenderer implements InputFieldRenderer {
         final String query = SuggestionAutocompleteHelper.processSuggestionQuery("geoname")
                 .orElseThrow(() -> new IllegalStateException("Autocomplete query was not found."));
 
-        List<GeoName> result = this.geoNameRepo.find(query);
-        return result;
+        return this.geoNameRepo.find(query);
     }
 
     public boolean displayDetails() {
@@ -75,9 +71,8 @@ public class GeoNameRenderer implements InputFieldRenderer {
     }
 
     public void processValueChange(final ValueChangeEvent event) {
-        final String text = Objects.toString(event.getNewValue(), "");
-        List<GeoName> results =  this.geoNameRepo.find(text);
-        this.selectedGeoName = results.stream().findAny();
+        final int id = Integer.parseInt(event.getNewValue().toString());
+        this.selectedGeoName = geoNameRepo.findById(id);
     }
 
     private class CapturingConverter implements Converter {
@@ -93,7 +88,8 @@ public class GeoNameRenderer implements InputFieldRenderer {
         public String getAsString(final FacesContext context,
                 final UIComponent component,
                 final Object value) { 
-            //selectedGeoName = geoNameRepo.find(Objects.toString(value, EMPTY));
+            final int id = Integer.parseInt(value.toString());
+            selectedGeoName = geoNameRepo.findById(id);
             return value.toString();
         }
     }

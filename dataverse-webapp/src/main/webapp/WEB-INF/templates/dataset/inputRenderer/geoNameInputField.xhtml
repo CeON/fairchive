@@ -39,7 +39,7 @@
             emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
             var="suggestion" 
             itemLabel="#{suggestion}" 
-            itemValue="#{suggestion.name}"
+            itemValue="#{suggestion.id}"
             autoSelection="false"
             autoHighlight="false">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 

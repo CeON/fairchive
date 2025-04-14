@@ -22,7 +22,7 @@ public class GeoNameRepository  extends JpaRepository<Integer, GeoName> {
         } else {
             return this.em.createQuery("SELECT gn FROM GeoName gn " +
                     "WHERE LOWER(gn.name) LIKE LOWER(CONCAT('%', :text, '%')) " +
-                    "OR LOWER(gn.alternateNames) LIKE LOWER(CONCAT('%', :text, '%'))",
+                    "OR LOWER(gn.alternateNames) LIKE LOWER(CONCAT('%', :text, '%')) ",
                     GeoName.class)
                     .setParameter("text", trimmedText)
                     .getResultList();
