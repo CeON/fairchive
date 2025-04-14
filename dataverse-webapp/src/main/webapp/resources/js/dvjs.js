@@ -344,11 +344,24 @@ function initDvJS() {
         return [];
       }
 
-      return textCoordinates
+      const cords = textCoordinates
         .trim()
         .split("\n")
         .map(line => line.trim().split(/\s+/).map(Number))
         .map(coord => [coord[1], coord[0]]);
+
+        // validation
+        const hasTwoNumericPoints = cords.every(cord =>
+          Array.isArray(cord) &&
+          cord.length === 2 &&
+          cord.every(point => !isNaN(point)) &&
+          cord.every(point => point >= -180 && point <= 180 )
+        );
+        if (cords.length == 0 || !hasTwoNumericPoints) {
+            return [];
+        }
+
+        return cords
     }
 
     // Draw on map: marker, line, polygon using list of coordinates
@@ -366,14 +379,7 @@ function initDvJS() {
       }
 
       var cords = parseCoordinates(coordinates);
-      // validation
-      const hasTwoNumericPoints = cords.every(cord =>
-        Array.isArray(cord) &&
-        cord.length === 2 &&
-        cord.every(point => !isNaN(point)) &&
-        cord.every(point => point >= -180 && point <= 180 )
-      );
-      if (cords.length == 0 || !hasTwoNumericPoints) {
+      if (cords.length == 0) {
           return;
       }
 
@@ -411,6 +417,10 @@ function initDvJS() {
      // Checks if the given points form a rectangle or square
      // This method works only for axis-aligned rectangles (rectangles that are not rotated)
     function isRectangleAxisAligned(coordinates) {
+      if (coordinates.length === 0) {
+        return false;
+      }
+
       coordinates = removeRedundantPoints(coordinates);
       if (coordinates.length !== 4) {
         return false;
