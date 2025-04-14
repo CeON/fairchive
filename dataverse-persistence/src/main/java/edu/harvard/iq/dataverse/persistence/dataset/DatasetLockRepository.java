@@ -19,14 +19,14 @@ public class DatasetLockRepository extends JpaRepository<Long, DatasetLock> {
     // -------------------- LOGIC --------------------
 
     public List<DatasetLock> findByDatasetId(final long datasetId) {
-        return find("select l from DatasetLock l where l.dataset.id = :id", datasetId);
+        return executeQueryWithId("select l from DatasetLock l where l.dataset.id = :id", datasetId);
     }
 
     public List<DatasetLock> findByUser(final AuthenticatedUser user) {      
-        return find("SELECT lock FROM DatasetLock lock WHERE lock.user.id=:id", user.getId());
+        return executeQueryWithId("SELECT lock FROM DatasetLock lock WHERE lock.user.id=:id", user.getId());
     }
     
-    private List<DatasetLock> find(final String query, final Long id) {
+    private List<DatasetLock> executeQueryWithId(final String query, final Long id) {
         return this.em.createQuery(query, DatasetLock.class)
                 .setParameter("id", id)
                 .getResultList();

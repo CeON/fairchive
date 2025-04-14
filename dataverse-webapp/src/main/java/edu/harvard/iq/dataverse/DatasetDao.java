@@ -210,7 +210,7 @@ public class DatasetDao implements java.io.Serializable {
         String identifier = user.getIdentifier();
         identifier = identifier.startsWith("@") ? identifier.substring(1) : identifier;
         AuthenticatedUser au = authentication.getAuthenticatedUser(identifier);
-        return this.datasetVersionRepo.getDatasetVersionUser(version.getId(), au.getId());
+        return this.datasetVersionRepo.getDatasetVersionUser(version.getId(), au.getId()).orElse(null);
     }
 
     public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(

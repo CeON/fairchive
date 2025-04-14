@@ -56,19 +56,14 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
                 .getResultList();
     }
 
-    public DatasetVersionUser getDatasetVersionUser(final Long versionId,
+    public Optional<DatasetVersionUser> getDatasetVersionUser(final Long versionId,
             final Long userId) {
-        try {
-            return this.em.createQuery(
-                    "select dvu from DatasetVersionUser dvu " +
-                            "where dvu.datasetVersion.id =:versionId " +
-                            "and dvu.authenticatedUser.id =:userId",
-                    DatasetVersionUser.class)
-                    .setParameter("versionId", versionId)
-                    .setParameter("userId", userId)
-                    .getSingleResult();
-        } catch (NoResultException e) {
-            return null;
-        }
+        return getSingleResult(this.em.createQuery(
+                "select dvu from DatasetVersionUser dvu " +
+                        "where dvu.datasetVersion.id =:versionId " +
+                        "and dvu.authenticatedUser.id =:userId",
+                DatasetVersionUser.class)
+                .setParameter("versionId", versionId)
+                .setParameter("userId", userId));
     }
 }
