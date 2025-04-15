@@ -65,8 +65,7 @@ public class GeoPoint {
             return points;
         }
 
-        // Normalize line breaks, trim, and split by whitespace
-        String[] geoValues = coords.trim().replace("\n", " ").replace("\r", " ").split("\\s+");
+        String[] geoValues = coords.trim().split("\\s+");
 
         if (geoValues.length % 2 != 0) {
             throw new IllegalArgumentException("Invalid coordinate string, must be even number of values.");
