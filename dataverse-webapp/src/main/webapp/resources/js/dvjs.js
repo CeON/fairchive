@@ -344,6 +344,11 @@ function initDvJS() {
         return [];
       }
 
+      const hasLetters = /[a-zA-Z]/.test(textCoordinates);
+      if (hasLetters) {
+        return [];
+      }
+
       const cords = textCoordinates
         .trim()
         .split("\n")
@@ -354,10 +359,13 @@ function initDvJS() {
         const hasTwoNumericPoints = cords.every(cord =>
           Array.isArray(cord) &&
           cord.length === 2 &&
-          cord.every(point => !isNaN(point)) &&
-          cord.every(point => point >= -180 && point <= 180 )
+          cord.every(point => !isNaN(point))
         );
-        if (cords.length == 0 || !hasTwoNumericPoints) {
+        const allPointsWithinBounds = cords.every(([lat, lon]) =>
+          lat >= -90 && lat <= 90 &&
+          lon >= -180 && lon <= 180
+        );
+        if (cords.length == 0 || !hasTwoNumericPoints || !allPointsWithinBounds) {
             return [];
         }
 
@@ -370,11 +378,12 @@ function initDvJS() {
     // 1.112 41.12
     // 2.12 15.21
     function updateMapCoordinates(data, coordinates) {
-      if (!coordinates || coordinates.trim() === '') {
+      if (!data.polygonLayer) {
         return;
       }
 
-      if (!data.polygonLayer) {
+      data.polygonLayer.clearLayers();
+      if (!coordinates || coordinates.trim() === '') {
         return;
       }
 
@@ -383,7 +392,6 @@ function initDvJS() {
           return;
       }
 
-      data.polygonLayer.clearLayers();
       var shape;
       if (cords.length == 1) {
           shape = L.marker(cords[0]).addTo(data.polygonLayer)
