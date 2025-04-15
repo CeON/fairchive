@@ -8,5 +8,6 @@ CREATE TABLE public.geoname (
     admin2code varchar NULL,
     admin3code varchar NULL,
     admin4code varchar NULL,
+    "hierarchy" varchar NULL,
     CONSTRAINT geoname_pk PRIMARY KEY (id)
 );
