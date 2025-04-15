@@ -9,12 +9,12 @@ import javax.ejb.Singleton;
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Singleton
-public class GeoNameRepository  extends JpaRepository<Integer, GeoName> {
+public class GeoNameRepository extends JpaRepository<Integer, GeoName> {
 
     public GeoNameRepository() {
         super(GeoName.class);
     }
-    
+
     public List<GeoName> find(final String text) {
         final String trimmedText = text.trim();
         if (trimmedText.isEmpty()) {
@@ -29,38 +29,8 @@ public class GeoNameRepository  extends JpaRepository<Integer, GeoName> {
         }
     }
 
-    @Override
-    public GeoName save(final GeoName entity) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public GeoName saveAndFlush(final GeoName entity) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public GeoName saveFlushAndClear(final GeoName entity) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void saveAll(final Iterable<GeoName> entities) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void deleteById(final Integer id) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void delete(final GeoName entity) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void mergeAndDelete(final GeoName entity) {
-        throw new UnsupportedOperationException();
+    public void deleteAll() {
+        this.em.createNativeQuery("TRUNCATE TABLE geoname CONTINUE IDENTITY RESTRICT")
+                .executeUpdate();
     }
 }
