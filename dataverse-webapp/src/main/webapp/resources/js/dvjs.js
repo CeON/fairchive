@@ -339,6 +339,31 @@ function initDvJS() {
       centerMap(data, data.selection.getBounds());
     }
 
+    function parseCoordinates(textCoordinates) {
+      if (!textCoordinates) {
+        return [];
+      }
+
+      const cords = textCoordinates
+        .trim()
+        .split("\n")
+        .map(line => line.trim().split(/\s+/).map(Number))
+        .map(coord => [coord[1], coord[0]]);
+
+        // validation
+        const hasTwoNumericPoints = cords.every(cord =>
+          Array.isArray(cord) &&
+          cord.length === 2 &&
+          cord.every(point => !isNaN(point)) &&
+          cord.every(point => point >= -180 && point <= 180 )
+        );
+        if (cords.length == 0 || !hasTwoNumericPoints) {
+            return [];
+        }
+
+        return cords
+    }
+
     // Draw on map: marker, line, polygon using list of coordinates
     // coordinates - excepted format, each line represent pair of longitude, latitude
     // e.q.
@@ -353,19 +378,8 @@ function initDvJS() {
         return;
       }
 
-      var cords = coordinates
-                .trim() // Remove extra spaces/newlines
-                .split("\n") // Split by new lines
-                .map(line => line.trim().split(/\s+/).map(Number))
-                .map(coord => [coord[1], coord[0]]); // Reverse the order (longitude, latitude) -> (latitude, longitude)
-      // validation
-      const hasTwoNumericPoints = cords.every(cord =>
-        Array.isArray(cord) &&
-        cord.length === 2 &&
-        cord.every(point => !isNaN(point)) &&
-        cord.every(point => point >= -180 && point <= 180 )
-      );
-      if (cords.length == 0 || !hasTwoNumericPoints) {
+      var cords = parseCoordinates(coordinates);
+      if (cords.length == 0) {
           return;
       }
 
@@ -376,7 +390,11 @@ function initDvJS() {
       } else if (cords.length == 2) {
           shape = L.polyline(cords).addTo(data.polygonLayer)
       } else if (cords.length >= 3) {
-          shape = L.polygon(cords).addTo(data.polygonLayer);
+          if (isRectangleAxisAligned(cords)) {
+            shape = L.rectangle(cords).addTo(data.polygonLayer);
+          } else {
+            shape = L.polygon(cords).addTo(data.polygonLayer);
+          }
       }
 
       const bounds = L.latLngBounds(cords);
@@ -394,6 +412,37 @@ function initDvJS() {
             // allow support nested placeholder {{test.test}}
             return keys.reduce((obj, k) => (obj && obj[k] !== undefined ? obj[k] : ''), data);
         });
+    }
+
+     // Checks if the given points form a rectangle or square
+     // This method works only for axis-aligned rectangles (rectangles that are not rotated)
+    function isRectangleAxisAligned(coordinates) {
+      if (coordinates.length === 0) {
+        return false;
+      }
+
+      coordinates = removeRedundantPoints(coordinates);
+      if (coordinates.length !== 4) {
+        return false;
+      }
+
+      // Order coordinates: [0] Top-left, [1] Top-right, [2] Bottom-left, [3] Bottom-right
+      coordinates.sort((a, b) => b[0] - a[0] || a[1] - b[1]);
+      const [topLeft, topRight, bottomLeft, bottomRight] = coordinates;
+
+      const topSide = topRight.y === topLeft.y;  // Top side should be horizontal
+      const bottomSide = bottomRight.y === bottomLeft.y; // Bottom side should be horizontal
+      const leftSide = topLeft.x === bottomLeft.x; // Left side should be vertical
+      const rightSide = topRight.x === bottomRight.x; // Right side should be vertical
+
+      return topSide && bottomSide && leftSide && rightSide;
+    }
+
+    function removeRedundantPoints(coordinates) {
+      // Convert each point to a string format (e.g., "x,y") and use a Set to remove duplicates
+      const uniqueSet = new Set(coordinates.map(point => `${point[0]},${point[1]}`));
+      // Convert the Set back to an array
+      return Array.from(uniqueSet).map(point => point.split(',').map(Number));
     }
 
     function createEmptyEntry() {
@@ -478,7 +527,15 @@ function initDvJS() {
 
       updateMap: function (key) {
         let data = searchMapsData.get(key);
-        updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
+        let coordinates = parseCoordinates(data.values[TEXT_AREA_COORDINATES]);
+        if (isRectangleAxisAligned(coordinates)) {
+          updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES]);
+          data.polygonLayer.eachLayer(function (shape) {
+            shape.enableEdit();
+          });
+        } else {
+          data.polygonLayer.clearLayers();
+        }
       },
 
       prepare: function(key) {
@@ -492,8 +549,11 @@ function initDvJS() {
         searchMapsData.set(key, options);
       },
 
-      putValue: function (key, field, value) {
-        putValue(searchMapsData, key, field, value);
+      storeCoordinates: function(key, value) {
+        let data = searchMapsData.get(key);
+        if (data.polygonSupport) {
+          data.values[TEXT_AREA_COORDINATES] = value;
+        }
       },
 
       putWidgetVar: function (key, field, widgetVar) {

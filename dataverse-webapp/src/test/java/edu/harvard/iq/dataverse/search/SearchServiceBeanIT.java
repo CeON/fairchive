@@ -1,6 +1,32 @@
 package edu.harvard.iq.dataverse.search;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.aMapWithSize;
+import static org.hamcrest.Matchers.anEmptyMap;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.assertj.core.api.Assertions;
+import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
+import org.jboss.arquillian.transaction.api.annotation.Transactional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.arquillian.facesmock.FacesContextMocker;
@@ -15,34 +41,11 @@ import edu.harvard.iq.dataverse.search.query.SearchObjectType;
 import edu.harvard.iq.dataverse.search.response.DvObjectCounts;
 import edu.harvard.iq.dataverse.search.response.FacetCategory;
 import edu.harvard.iq.dataverse.search.response.FacetLabel;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import edu.harvard.iq.dataverse.search.response.PublicationStatusCounts;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
-import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
-import edu.harvard.iq.dataverse.search.response.GeoPoint;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
-import org.jboss.arquillian.transaction.api.annotation.Transactional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 
 /**
  * @author madryk
@@ -332,10 +335,11 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 .orElseThrow(IllegalArgumentException::new);
     }
 
-    private void assertSearchResultIds(SolrQueryResponse queryResponse, String ... expectedSolrDocIds) {
-
-        assertThat(queryResponse.getSolrSearchResults().stream().map(SolrSearchResult::getId).collect(Collectors.toList()),
-                contains(expectedSolrDocIds));
-
+    private void assertSearchResultIds(SolrQueryResponse queryResponse,
+            String... expectedSolrDocIds) {
+        Assertions
+                .assertThat(queryResponse.getSolrSearchResults().stream()
+                        .map(SolrSearchResult::getId).collect(Collectors.toList()))
+                .containsExactlyInAnyOrder(expectedSolrDocIds);
     }
 }
