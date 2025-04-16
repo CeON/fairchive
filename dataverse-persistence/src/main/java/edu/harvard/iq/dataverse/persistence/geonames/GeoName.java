@@ -20,6 +20,7 @@ public class GeoName implements JpaEntity<Integer> {
     private String admin2Code;
     private String admin3Code;
     private String admin4Code;
+    private String hierarchy;
 
     @Override
     public Integer getId() {
@@ -94,13 +95,63 @@ public class GeoName implements JpaEntity<Integer> {
         this.admin4Code = admin4Code;
     }
     
+    boolean isTier0() {
+        return this.admin1Code == null;
+    }
+    
+    boolean isTier1() {
+        return this.admin1Code != null & this.admin2Code == null;
+    }
+    
+    boolean isTier2() {
+        return this.admin2Code != null & this.admin3Code == null;
+    }
+    
+    boolean isTier3() {
+        return this.admin3Code != null & this.admin4Code == null;
+    }
+    
+    boolean isTier4() {
+        return this.admin4Code != null;
+    }
+    
+    boolean isAdm1() {
+        return this.featureCode.startsWith("ADM1");
+    }
+    
+    boolean isAdm2() {
+        return this.featureCode.startsWith("ADM2");
+    }
+    
+    boolean isAdm3() {
+        return this.featureCode.startsWith("ADM3");
+    }
+    
+    boolean isAdm4() {
+        return this.featureCode.startsWith("ADM4");
+    }
+    
+    boolean isAdm5() {
+        return this.featureCode.startsWith("ADM5");
+    }
+    
+    public String getHierarchy() {
+        return this.hierarchy;
+    }
+
+    public void setHierarchy(final String hierarchy) {
+        this.hierarchy = hierarchy;
+    }
+
     public String getDetails(final String separator) {
         final StringBuilder result = new StringBuilder(80);
         result.append("Identyfikator: ").append(this.id).append(separator);
         result.append("Nazwa: ").append(this.name).append(separator);
-        if(isNotBlank(this.alternateNames)) {
-            result.append("Nazwy alternatywne: ").append(this.alternateNames);
+        if (isNotBlank(this.alternateNames)) {
+            result.append("Nazwy alternatywne: ").append(this.alternateNames)
+                    .append(separator);
         }
+        result.append("Rodzaj: ").append(this.featureCode);
         return result.toString();
     }
 
