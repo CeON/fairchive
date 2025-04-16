@@ -170,7 +170,7 @@
 
     <session-config>
         <session-timeout>
-            1440
+            180
         </session-timeout>
         <!-- Uncomment the line below to disble `;jsessionid=` in URLs -->
 	    <tracking-mode>COOKIE</tracking-mode>
