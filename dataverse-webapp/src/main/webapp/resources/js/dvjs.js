@@ -8,22 +8,23 @@ function initDvJS() {
     const Y2 = 'N';
     const TEXT_AREA_COORDINATES = 'textAreaCoordinates'
 
-    const RECT_COLOR = '#e3276f';
     const MAX_ZOOM = 19;
-    const INIT_MAP_OPTS = { center: [52.1145028, 19.4235611], zoom: 4 };
+    var bounds = [
+      [-85, -180], // Southwest corner (near Antarctica)
+      [85, 180]    // Northeast corner (near the Arctic)
+    ];
+    const INIT_MAP_OPTS = {
+      center: [52.1145028, 19.4235611],
+      zoom: 4,
+      minZoom: 2,
+      editable: true,
+      bounds: bounds,
+      maxBounds:  bounds, // Restrict view to these bounds
+      maxBoundsViscosity: 1.0 // Prevents dragging outside
+    };
 
     const TILE_LAYER_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const TILE_LAYER_COPYRIGHT = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-
-    // Checks whether geobox is properly defined
-    function isValidGeobox(values) {
-      return values && Object.keys(values).length === 4 && values[Y2] >= values[Y1];
-    }
-
-    // Checks whether we should wrap geobox around antimeridian
-    function shouldWrapGeobox(values) {
-      return values[X1] > values[X2];
-    }
 
     // Store value from input field
     function putValue(dataMap, key, field, value) {
@@ -52,25 +53,9 @@ function initDvJS() {
       let leafMap = data.leafMap;
       leafMap.invalidateSize();
 
-      if (data.polygonSupport) {
-        data.polygonLayer = L.layerGroup().addTo(leafMap);
-        updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
-      } else {
-        let values = data.values;
-        if (!isValidGeobox(values)) {
-          return;
-        }
-        let bounds = L.latLngBounds([
-          [values[Y1], values[X1]],
-          [values[Y2], values[X2] + (shouldWrapGeobox(values) ? 1 : 0) * 360.0]
-        ]);
-        ((values[X1] === values[X2] && values[Y1] === values[Y2])
-          ? L.marker([values[Y1], values[X1]]).addTo(leafMap)
-          : L.rectangle(bounds, { color: RECT_COLOR, weight: 1 }))
-          .addTo(leafMap);
-        leafMap.fitBounds(bounds.pad(0.1));
-      }
-
+      data.polygonLayer = L.layerGroup().addTo(leafMap);
+      updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
+      
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(leafMap);
     }
 
@@ -81,7 +66,6 @@ function initDvJS() {
         metadataMapsData.set(key, {
           leafMap: undefined,
           leafMapInitialized: false,
-          polygonSupport: false,
           values: {}
         });
       },
@@ -91,14 +75,7 @@ function initDvJS() {
       },
       storeCoordinates: function(key, value) {
         let data = metadataMapsData.get(key);
-        if (data.polygonSupport) {
-          data.values[TEXT_AREA_COORDINATES] = value;
-        }
-      },
-      // Enable to draw markers, rectangles, polygons
-      enablePolygonSupport: function(key) {
-        let data = metadataMapsData.get(key);
-        data.polygonSupport = true;
+        data.values[TEXT_AREA_COORDINATES] = value;
       },
       initializeAll: function (keyPrefix) {
         initializeAll(metadataMapsData, keyPrefix, initializeMapInMetadataView);
@@ -124,16 +101,6 @@ function initDvJS() {
       data.leafMap.fitBounds(extendedBounds);
     }
 
-    function updateInputs(data) {
-      let bounds = data.selection.getBounds();
-      let sw = bounds.getSouthWest().wrap();
-      updateInputAndValue(data, X1, sw.lng);
-      updateInputAndValue(data, Y1, sw.lat);
-      let ne = bounds.getNorthEast().wrap();
-      updateInputAndValue(data, X2, ne.lng);
-      updateInputAndValue(data, Y2, ne.lat);
-    }
-
     function updateInputAndValue(data, coord, value) {
       if (!PF(data.widgetVars[coord])) {
         throw new Error('Missing dataset field supporting rectangles edit: ' +
@@ -144,78 +111,45 @@ function initDvJS() {
       data.values[coord] = Number(value);
     }
 
-    function onMapClicked(evt, data) {
-      if (!data.markerA) {
-        data.markerA = addMarker(evt.latlng, data);
-      } else if (!data.markerB) {
-        data.markerB = addMarker(evt.latlng, data);
-        data.selection = addSelection(data);
-        updateInputs(data);
-        centerMap(data, data.selection.getBounds());
-        data.leafMap.off('click'); // Unregister this handler after adding second marker
-      } else {
-        data.leafMap.off('click'); // Unregister this handler if all markers are already present
-      }
-    }
-
-    function addMarker(latLng, data) {
-      return L.marker(latLng, { draggable: true, autoPan: true, autoPanPadding: L.point(10, 10), autoPanSpeed: 1 })
-              .addTo(data.leafMap)
-              .on('dragend', function() { onMarkerDragged(data) });
-    }
-
-    function addSelection(data) {
-      return L.rectangle([data.markerA.getLatLng(), data.markerB.getLatLng()], 
-                          { color: RECT_COLOR, weight: 1 })
-              .addTo(data.leafMap);
-    }
-
     function initializeMapInView(key, data) {
-      if (data.polygonSupport) {
-        INIT_MAP_OPTS.minZoom = 2;
-        INIT_MAP_OPTS.editable = true;
-        var bounds = [
-          [-85, -180], // Southwest corner (near Antarctica)
-          [85, 180]    // Northeast corner (near the Arctic)
-        ];
-        INIT_MAP_OPTS.bounds = bounds;
-        INIT_MAP_OPTS.maxBounds =  bounds;      // Restrict view to these bounds
-        INIT_MAP_OPTS.maxBoundsViscosity = 1.0; // Prevents dragging outside
-      }
       data.leafMap = L.map(key, INIT_MAP_OPTS);
       let map = data.leafMap;
       map.invalidateSize();
-      if (data.polygonSupport) {
-        data.polygonLayer = L.layerGroup().addTo(map);
-        map.on('editable:drawing:commit', function (e) {
-          createdShape(e ,data);
-        });
-        map.on('editable:edited', function (e) {
-          updateTextArea(e.layer, data.widgetVars);
-        });
-        map.on('editable:vertex:new', function (e) {
-          updateTextArea(e.layer, data.widgetVars);
-        });
-        map.on('editable:vertex:deleted', function (e) {
-          updateTextArea(e.layer, data.widgetVars);
-        });
 
-        createBaseEditControls()
-        if (data.drawTools.allowMarker) {
-          createNewMarkerControl(map, data.polygonLayer);
-        }
-        if (data.drawTools.allowPolygon) {
-          createNewPolygonControl(map, data.polygonLayer);
-        }
-        if (data.drawTools.allowRectangle) {
-          createNewRectangleControl(map, data.polygonLayer);
-        }
-      } else {
-        map.on('click', function (evt) { onMapClicked(evt, data) });
-      }
+      data.polygonLayer = L.layerGroup().addTo(map);
+      setupMapEventsHandlers(map, data);
+      createBaseEditControls();
+      activateDrawingTools(map, data)
 
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       this.updateMap(key);
+    }
+
+    function setupMapEventsHandlers(map, data) {
+      map.on('editable:drawing:commit', function (e) {
+        createdShape(e ,data);
+      });
+      map.on('editable:edited', function (e) {
+        updateTextArea(e.layer, data.widgetVars);
+      });
+      map.on('editable:vertex:new', function (e) {
+        updateTextArea(e.layer, data.widgetVars);
+      });
+      map.on('editable:vertex:deleted', function (e) {
+        updateTextArea(e.layer, data.widgetVars);
+      });
+    }
+
+    function activateDrawingTools(map, data) {
+      if (data.drawTools.allowMarker) {
+        createNewMarkerControl(map, data.polygonLayer);
+      }
+      if (data.drawTools.allowPolygon) {
+        createNewPolygonControl(map, data.polygonLayer);
+      }
+      if (data.drawTools.allowRectangle) {
+        createNewRectangleControl(map, data.polygonLayer);
+      }
     }
 
     function createBaseEditControls() {
@@ -319,24 +253,6 @@ function initDvJS() {
         result = geometry.join(" ");
       }
       PF(widgetVars['polygonGeo']).jq.val(result);
-    }
-
-    function updateEditableMap(dataMap, key) {
-      let data = dataMap.get(key);
-      if (!data || !isValidGeobox(data.values)) {
-        return;
-      }
-      let wrap = shouldWrapGeobox(data.values);
-      data.markerA = !data.markerA
-        ? addMarker([data.values[Y1], data.values[X1]], data)
-        : data.markerA.setLatLng([data.values[Y1], data.values[X1]]);
-      data.markerB = !data.markerB
-        ? addMarker([data.values[Y2], data.values[X2] + wrap * 360.0], data)
-        : data.markerB.setLatLng([data.values[Y2], data.values[X2] + wrap * 360.0]);
-      data.selection = !data.selection
-        ? addSelection(data)
-        : data.selection.setBounds([data.markerA.getLatLng(), data.markerB.getLatLng()]);
-      centerMap(data, data.selection.getBounds());
     }
 
     function parseCoordinates(textCoordinates) {
@@ -457,7 +373,6 @@ function initDvJS() {
       return {
         leafMap: undefined,
         leafMapInitialized: false,
-        polygonSupport: false,
         drawTools: {
           allowMarker: false,
           allowRectangle: false,
@@ -475,14 +390,10 @@ function initDvJS() {
       // Update position of markers and selection rectangle using the stored values
       updateMap: function(key) {
         let data = editMapsData.get(key);
-        if (data.polygonSupport) {
-          updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
-          data.polygonLayer.eachLayer(function (shape) {
-            shape.enableEdit();
-          });
-        } else {
-          updateEditableMap(editMapsData, key);
-        }
+        updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
+        data.polygonLayer.eachLayer(function (shape) {
+          shape.enableEdit();
+        });
       },
 
       prepare: function(key) {
@@ -490,7 +401,11 @@ function initDvJS() {
           // remove existing map on partial page update
           editMapsData.get(key).leafMap.remove();
         }
-        editMapsData.set(key, createEmptyEntry());
+        var options = createEmptyEntry();
+        options.drawTools.allowMarker = true
+        options.drawTools.allowRectangle = true
+        options.drawTools.allowPolygon = true
+        editMapsData.set(key, options);
       },
 
       remove: function(key) {
@@ -509,17 +424,7 @@ function initDvJS() {
 
       storeCoordinates: function(key, value) {
         let data = editMapsData.get(key);
-        if (data.polygonSupport) {
-          data.values[TEXT_AREA_COORDINATES] = value;
-        }
-      },
-      // Enable advanced map edit mode. Allow to draw markers, rectangles, polygons
-      enablePolygonSupport: function(key) {
-        let data = editMapsData.get(key);
-        data.polygonSupport = true;
-        data.drawTools.allowMarker = true
-        data.drawTools.allowRectangle = true
-        data.drawTools.allowPolygon = true
+        data.values[TEXT_AREA_COORDINATES] = value;
       },
 
       initializeAll: function(keyPrefix) {
@@ -552,16 +457,13 @@ function initDvJS() {
         }
 
         let options = createEmptyEntry();
-        options.polygonSupport = true;
         options.drawTools.allowRectangle = true;
         searchMapsData.set(key, options);
       },
 
       storeCoordinates: function(key, value) {
         let data = searchMapsData.get(key);
-        if (data.polygonSupport) {
-          data.values[TEXT_AREA_COORDINATES] = value;
-        }
+        data.values[TEXT_AREA_COORDINATES] = value;
       },
 
       putWidgetVar: function (key, field, widgetVar) {
