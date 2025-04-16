@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.geonames;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import javax.persistence.Entity;
@@ -145,13 +146,19 @@ public class GeoName implements JpaEntity<Integer> {
 
     public String getDetails(final String separator) {
         final StringBuilder result = new StringBuilder(80);
-        result.append("Identyfikator: ").append(this.id).append(separator);
-        result.append("Nazwa: ").append(this.name).append(separator);
+        result.append(getStringFromBundle("geoname.id")).append(": ").append(this.id)
+                .append(separator);
+        result.append(getStringFromBundle("geoname.name")).append(": ")
+                .append(this.name).append(separator);
+        result.append(getStringFromBundle("geoname.hierarchy")).append(": ")
+                .append(this.hierarchy).append(separator);
         if (isNotBlank(this.alternateNames)) {
-            result.append("Nazwy alternatywne: ").append(this.alternateNames)
+            result.append(getStringFromBundle("geoname.altnames")).append(": ")
+                    .append(this.alternateNames)
                     .append(separator);
         }
-        result.append("Rodzaj: ").append(this.featureCode);
+        result.append(getStringFromBundle("geonames.featurecode")).append(": ")
+                .append(this.featureCode);
         return result.toString();
     }
 
