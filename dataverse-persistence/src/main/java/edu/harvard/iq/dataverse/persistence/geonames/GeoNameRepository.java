@@ -44,7 +44,7 @@ public class GeoNameRepository extends JpaRepository<Integer, GeoName> {
     public void importNames(final InputStream in) throws Exception {
 
         final Stream<GeoName> stream = GeoNamesImporter.readNames(in);
-        
+        log.info("Storing geo names.");
         final long begin = currentTimeMillis();
         stream.forEach(this::store);
         log.info("Geo names stored in DB in " + (currentTimeMillis() - begin) / 1000 + " seconds.");
