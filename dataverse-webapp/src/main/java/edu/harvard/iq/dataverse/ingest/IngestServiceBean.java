@@ -383,7 +383,7 @@ public class IngestServiceBean {
                 logger.info("Skipping tabular ingest of the file " + dataFile.getFileMetadata().getLabel()
                             + ", because of the size limit (set to " + sizeLimit + " bytes)");
             }
-            dataFile = fileService.save(dataFile);
+            fileService.save(dataFile);
         }
 
         int count = scheduledFiles.size();
