@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.persistence.geonames;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +67,13 @@ public class GeoNameRepositoryIT extends PersistenceArquillianDeployment {
         
         assertThat(this.repository.countAll()).isZero();
         
+//        try (final InputStream in = new FileInputStream("C:\\prj\\dariah\\geonames\\PL.txt")) {
+//            this.repository.importNames(in);
+//        }
+//        try (final InputStream in = new FileInputStream("C:\\prj\\dariah\\geonames\\allCountries.txt")) {
+//            this.repository.importNames(in);
+//        }
+        
         try (final InputStream in = getClass().getResourceAsStream("/PL.txt")) {
             this.repository.importNames(in);
         }
@@ -81,6 +89,7 @@ public class GeoNameRepositoryIT extends PersistenceArquillianDeployment {
         
         GeoName tr1 = this.repository.getById(858787);
         assertThat(tr1.getName()).isEqualTo("Masovian Voivodeship");
+        assertThat(tr1.isAdm1()).isTrue();
         assertThat(tr1.isTier0()).isFalse();
         assertThat(tr1.isTier1()).isTrue();
         assertThat(tr1.isTier2()).isFalse();
@@ -90,6 +99,7 @@ public class GeoNameRepositoryIT extends PersistenceArquillianDeployment {
         
         GeoName tr2 = this.repository.getById(3079850);
         assertThat(tr2.getName()).isEqualTo("Powiat będziński");
+        assertThat(tr2.isAdm2()).isTrue();
         assertThat(tr2.isTier0()).isFalse();
         assertThat(tr2.isTier1()).isFalse();
         assertThat(tr2.isTier2()).isTrue();
@@ -99,6 +109,7 @@ public class GeoNameRepositoryIT extends PersistenceArquillianDeployment {
         
         GeoName tr3 = this.repository.getById(7532923);
         assertThat(tr3.getName()).isEqualTo("Będzin");
+        assertThat(tr3.isAdm3()).isTrue();
         assertThat(tr3.isTier0()).isFalse();
         assertThat(tr3.isTier1()).isFalse();
         assertThat(tr3.isTier2()).isFalse();

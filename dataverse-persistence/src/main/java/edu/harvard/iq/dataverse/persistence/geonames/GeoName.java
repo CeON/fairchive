@@ -9,8 +9,8 @@ import javax.persistence.Id;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 @Entity
-public class GeoName implements JpaEntity<Integer> {
-
+public class GeoName implements JpaEntity<Integer> {    
+    
     @Id
     private Integer id;
     private String name;
