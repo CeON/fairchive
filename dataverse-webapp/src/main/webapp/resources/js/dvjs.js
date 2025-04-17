@@ -354,10 +354,10 @@ function initDvJS() {
       coordinates.sort((a, b) => b[0] - a[0] || a[1] - b[1]);
       const [topLeft, topRight, bottomLeft, bottomRight] = coordinates;
 
-      const topSide = topRight.y === topLeft.y;  // Top side should be horizontal
-      const bottomSide = bottomRight.y === bottomLeft.y; // Bottom side should be horizontal
-      const leftSide = topLeft.x === bottomLeft.x; // Left side should be vertical
-      const rightSide = topRight.x === bottomRight.x; // Right side should be vertical
+      const topSide = topRight[0] === topLeft[0];  // Top side should be horizontal
+      const bottomSide = bottomRight[0] === bottomLeft[0]; // Bottom side should be horizontal
+      const leftSide = topLeft[1] === bottomLeft[1]; // Left side should be vertical
+      const rightSide = topRight[1] === bottomRight[1]; // Right side should be vertical
 
       return topSide && bottomSide && leftSide && rightSide;
     }
