@@ -101,16 +101,6 @@ function initDvJS() {
       data.leafMap.fitBounds(extendedBounds);
     }
 
-    function updateInputAndValue(data, coord, value) {
-      if (!PF(data.widgetVars[coord])) {
-        throw new Error('Missing dataset field supporting rectangles edit: ' +
-        'westLongitude, eastLongitude, northLongitude, southLongitude');
-      }
-
-      PF(data.widgetVars[coord]).jq.val(value.toFixed(5));
-      data.values[coord] = Number(value);
-    }
-
     function initializeMapInView(key, data) {
       data.leafMap = L.map(key, INIT_MAP_OPTS);
       let map = data.leafMap;
