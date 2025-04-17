@@ -160,12 +160,14 @@ final class GeoNamesImporter {
                     && tier3.get(gn.getAdmin1Code()).containsKey(gn.getAdmin2Code())) {
                 final List<GeoName> list = tier3.get(gn.getAdmin1Code())
                         .get(gn.getAdmin2Code()).get(gn.getAdmin3Code());
-                final GeoName tr = find(list, GeoName::isAdm3);
-                if (tr != null) {
-                    builder.setLength(0);
-                    builder.append(tr.getHierarchy()).append(SEP)
-                            .append(gn.getName());
-                    gn.setHierarchy(builder.toString());
+                if (list != null) {
+                    final GeoName tr = find(list, GeoName::isAdm3);
+                    if (tr != null) {
+                        builder.setLength(0);
+                        builder.append(tr.getHierarchy()).append(SEP)
+                                .append(gn.getName());
+                        gn.setHierarchy(builder.toString());
+                    }
                 }
             }
         }

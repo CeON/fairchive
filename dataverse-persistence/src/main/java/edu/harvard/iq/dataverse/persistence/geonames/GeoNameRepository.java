@@ -1,9 +1,12 @@
 package edu.harvard.iq.dataverse.persistence.geonames;
 
+import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.emptyList;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import javax.ejb.Singleton;
 import javax.transaction.Transactional;
@@ -13,6 +16,8 @@ import edu.harvard.iq.dataverse.persistence.JpaRepository;
 @Singleton
 public class GeoNameRepository extends JpaRepository<Integer, GeoName> {
 
+    private static final Logger log = Logger.getLogger(GeoNameRepository.class.getName());
+    
     public GeoNameRepository() {
         super(GeoName.class);
     }
@@ -38,7 +43,11 @@ public class GeoNameRepository extends JpaRepository<Integer, GeoName> {
 
     public void importNames(final InputStream in) throws Exception {
 
-        GeoNamesImporter.readNames(in).forEach(this::store);
+        final Stream<GeoName> stream = GeoNamesImporter.readNames(in);
+        
+        final long begin = currentTimeMillis();
+        stream.forEach(this::store);
+        log.info("Geo names stored in DB in " + (currentTimeMillis() - begin) / 1000 + " seconds.");
     }
 
     @Transactional

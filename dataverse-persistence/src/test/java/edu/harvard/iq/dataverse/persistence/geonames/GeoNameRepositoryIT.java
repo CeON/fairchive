@@ -70,13 +70,13 @@ public class GeoNameRepositoryIT extends PersistenceArquillianDeployment {
 //        try (final InputStream in = new FileInputStream("C:\\prj\\dariah\\geonames\\PL.txt")) {
 //            this.repository.importNames(in);
 //        }
-//        try (final InputStream in = new FileInputStream("C:\\prj\\dariah\\geonames\\allCountries.txt")) {
-//            this.repository.importNames(in);
-//        }
-        
-        try (final InputStream in = getClass().getResourceAsStream("/PL.txt")) {
+        try (final InputStream in = new FileInputStream("C:\\prj\\dariah\\geonames\\allCountries.txt")) {
             this.repository.importNames(in);
         }
+        
+//        try (final InputStream in = getClass().getResourceAsStream("/PL.txt")) {
+//            this.repository.importNames(in);
+//        }
         
         GeoName tr0 = this.repository.getById(6285565);
         assertThat(tr0.getName()).isEqualTo("Pilsko");
