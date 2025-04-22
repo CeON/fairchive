@@ -38,15 +38,8 @@
                             </ui:repeat>
                     </div>
                     <script jsf:rendered="#{isGeospatial}">
-                        var geoboxCoord = '#{childField.datasetFieldType.metadata["geoboxCoord"]}';
-                        var polygonSupport = geoboxCoord == null || geoboxCoord === '';
                         var escapedCoordinates = "#{of:escapeJS(childField.value)}";
-                        if (polygonSupport) {
-                          DvJS.Geo.MetadataView.enablePolygonSupport('#{currentGsIndex}');
-                          DvJS.Geo.MetadataView.storeCoordinates('#{currentGsIndex}', escapedCoordinates);
-                        } else {
-                          DvJS.Geo.MetadataView.putValue('#{currentGsIndex}', geoboxCoord, escapedCoordinates);
-                        }
+                        DvJS.Geo.MetadataView.storeCoordinates('#{currentGsIndex}', escapedCoordinates);
                     </script>
                     <h:outputText value="#{childField.parentDisplayFormat} " rendered="#{!childLoop.first and !childField.parentDisplayFormatIsNewLine}" escape="false" />
                     <ui:repeat value="#{childField.values}" var="value" varStatus="valuesLoop">
