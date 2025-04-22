@@ -131,9 +131,6 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     // -------------------- GETTERS --------------------
 
     public List<DatasetLock> getDatasetLocks() {
-        if(this.datasetLocks == null) {
-            this.datasetLocks = new ArrayList<>();
-        }
         return datasetLocks;
     }
 

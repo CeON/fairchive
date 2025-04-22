@@ -51,7 +51,8 @@ public class DatasetLockServiceBean {
     public void lockDataset(long datasetId, AuthenticatedUser user, DatasetLock.Reason reason)  {
         Dataset dataset = datasets.findById(datasetId)
                 .orElseThrow(() -> new IllegalStateException("Dataset " + datasetId + " not found"));
-        DatasetLock datasetLock = new DatasetLock(reason, dataset, user, null);
+        DatasetLock datasetLock = new DatasetLock(reason, user);
+        datasetLock.setDataset(dataset);
         locks.saveAndFlush(datasetLock);
     }
 

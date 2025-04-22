@@ -23,9 +23,6 @@ import org.omnifaces.cdi.ViewScoped;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
@@ -170,7 +167,7 @@ public class EditSingleFilePage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (dataset.isLockedFor(InReview) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 
