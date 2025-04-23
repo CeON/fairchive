@@ -620,6 +620,7 @@ public class SearchServiceBean {
         List<DatasetFieldType> datasetFields = datasetFieldService.findAllOrderedById();
         query = querySanitizer.sanitizeQuery(query, datasetFields);
         solrQuery.setQuery(query);
+        solrQuery.setRows(2000);
 
         setSolrParametersForDatasetLocations(solrQuery);
         setSolrFiltersForDatasetLocations(solrQuery, dataverseRequest, filterQueries);

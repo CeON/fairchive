@@ -1,25 +1,14 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import edu.harvard.iq.dataverse.engine.command.AbstractVoidCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissionsMap;
-import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.engine.command.exception.move.AdditionalMoveStatus;
 import edu.harvard.iq.dataverse.engine.command.exception.move.DatasetMoveStatus;
 import edu.harvard.iq.dataverse.engine.command.exception.move.MoveException;
+import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
 import edu.harvard.iq.dataverse.notification.NotificationParametersUtil;
@@ -32,6 +21,16 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.UserNotification;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Moves Dataset from one dataverse to another
@@ -174,7 +173,7 @@ public class MoveDatasetCommand extends AbstractVoidCommand {
 
     private Map<String, String> createParams(CommandContext ctxt) {
         UserNotification lastSubmitNotification;
-        Optional<DatasetLock> submitLock;
+        DatasetLock submitLock;
         Map<String, String> parameters = new HashMap<>();
         if ((lastSubmitNotification = ctxt.notifications().findLastSubmitNotificationForDataset(moved)) != null) {
             Map<String, String> lastSubmitParams = new NotificationParametersUtil().getParameters(lastSubmitNotification);
@@ -182,8 +181,8 @@ public class MoveDatasetCommand extends AbstractVoidCommand {
                     lastSubmitParams.get(NotificationParameter.REQUESTOR_ID.key()));
             parameters.put(NotificationParameter.MESSAGE.key(),
                     lastSubmitParams.get(NotificationParameter.MESSAGE.key()));
-        } else if ((submitLock = moved.getLockFor(DatasetLock.Reason.InReview)).isPresent()) {
-            AuthenticatedUser requestor = submitLock.get().getUser();
+        } else if ((submitLock = moved.getLockFor(DatasetLock.Reason.InReview)) != null) {
+            AuthenticatedUser requestor = submitLock.getUser();
             parameters.put(NotificationParameter.REQUESTOR_ID.key(), requestor.getId().toString());
         }
         return parameters;

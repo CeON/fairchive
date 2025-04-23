@@ -109,13 +109,6 @@ public class SubmitDatasetForReviewCommandTest {
                     public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason, Long userId, String info) {
                         return null;
                     }
-                    
-                    @Override
-                    public DatasetLock addDatasetLock(Dataset dataset, DatasetLock lock) {
-                        lock.setDataset(dataset);
-                        dataset.addLock(lock);
-                        return lock;
-                    }
 
                 };
             }

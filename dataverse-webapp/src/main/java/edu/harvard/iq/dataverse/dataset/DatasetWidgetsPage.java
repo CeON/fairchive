@@ -18,9 +18,6 @@ import org.primefaces.model.file.UploadedFile;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -78,7 +75,7 @@ public class DatasetWidgetsPage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (dataset.isLockedFor(InReview) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 

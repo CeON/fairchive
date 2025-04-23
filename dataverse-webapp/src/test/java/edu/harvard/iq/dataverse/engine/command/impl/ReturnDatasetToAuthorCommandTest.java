@@ -1,21 +1,5 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Future;
-
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
@@ -30,8 +14,6 @@ import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetLockRepository;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
@@ -42,6 +24,20 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Future;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ReturnDatasetToAuthorCommandTest {
 
@@ -85,7 +81,7 @@ public class ReturnDatasetToAuthorCommandTest {
             }
 
             @Override
-            public DatasetDao datasets() {              
+            public DatasetDao datasets() {
                 return new DatasetDao() {
                     {
                         em = new NoOpTestEntityManager();
@@ -103,14 +99,6 @@ public class ReturnDatasetToAuthorCommandTest {
 
                     @Override
                     public void removeDatasetLocks(Dataset dataset, DatasetLock.Reason aReason) { }
-                    
-                    @Override
-                    public DatasetLock addDatasetLock(Dataset dataset, DatasetLock lock) {
-                        lock.setDataset(dataset);
-                        dataset.addLock(lock);
-                        return lock;
-                    }
-                    
                 };
             }
 
