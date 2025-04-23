@@ -18,6 +18,7 @@ public class GeoboxPolygonComponentValidator extends FieldValidatorBase {
     private static FieldValidator[] INTERNAL_VALIDATORS = new FieldValidator[] {
             new GeoboxFillValidator(),
             new GeoboxPolygonValueValidator(),
+            new GeoboxRectangleValueValidator()
     };
 
     // -------------------- LOGIC --------------------
