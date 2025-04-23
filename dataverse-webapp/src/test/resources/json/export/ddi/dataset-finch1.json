@@ -345,32 +345,14 @@
                         "multiple": true,
                         "typeClass": "compound",
                         "value": [
-                            {
-                                "westLongitude": {
-                                    "typeName": "westLongitude",
-                                    "multiple": false,
-                                    "typeClass": "primitive",
-                                    "value": "60.3"
-                                },
-                                "eastLongitude": {
-                                    "typeName": "eastLongitude",
-                                    "multiple": false,
-                                    "typeClass": "primitive",
-                                    "value": "59.8"
-                                },
-                                "southLongitude": {
-                                    "typeName": "southLongitude",
-                                    "multiple": false,
-                                    "typeClass": "primitive",
-                                    "value": "41.6"
-                                },
-                                "northLongitude": {
-                                    "typeName": "northLongitude",
-                                    "multiple": false,
-                                    "typeClass": "primitive",
-                                    "value": "43.8"
-                                }
+                          {
+                            "geographicCoordinates":{
+                              "typeName":"geographicCoordinates",
+                              "multiple":false,
+                              "typeClass":"primitive",
+                              "value": "60.3 41.6\n59.8 41.6\n59.8 43.8\n60.3 43.8\n60.3 41.6"
                             }
+                          }
                         ]
                     }
                 ]
