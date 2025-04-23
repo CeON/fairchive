@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.search.response;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -75,6 +76,25 @@ public class GeoPoint {
             double lon = Double.parseDouble(geoValues[i]);
             double lat = Double.parseDouble(geoValues[i + 1]);
             points.add(new GeoPoint(lat, lon));
+        }
+
+        return points;
+    }
+
+    public static List<GeoPoint> fromBoundingBoxToCoordinates(BigDecimal west,BigDecimal east,BigDecimal south,BigDecimal north) {
+        List<GeoPoint> points = new ArrayList<>();
+        if (south.compareTo(north) < 0) {
+            points.add(new GeoPoint(south.stripTrailingZeros().toPlainString(), west.stripTrailingZeros().toPlainString()));
+            points.add(new GeoPoint(north.stripTrailingZeros().toPlainString(), west.stripTrailingZeros().toPlainString()));
+            points.add(new GeoPoint(north.stripTrailingZeros().toPlainString(), east.stripTrailingZeros().toPlainString()));
+            points.add(new GeoPoint(south.stripTrailingZeros().toPlainString(), east.stripTrailingZeros().toPlainString()));
+            points.add(new GeoPoint(south.stripTrailingZeros().toPlainString(), west.stripTrailingZeros().toPlainString()));
+        } else {
+            points.add(new GeoPoint(north.stripTrailingZeros().toPlainString(), west.stripTrailingZeros().toPlainString()));
+            points.add(new GeoPoint(south.stripTrailingZeros().toPlainString(), west.stripTrailingZeros().toPlainString()));
+            points.add(new GeoPoint(south.stripTrailingZeros().toPlainString(), east.stripTrailingZeros().toPlainString()));
+            points.add(new GeoPoint(north.stripTrailingZeros().toPlainString(), east.stripTrailingZeros().toPlainString()));
+            points.add(new GeoPoint(north.stripTrailingZeros().toPlainString(), west.stripTrailingZeros().toPlainString()));
         }
 
         return points;

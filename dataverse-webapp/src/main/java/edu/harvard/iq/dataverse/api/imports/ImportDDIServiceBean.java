@@ -16,6 +16,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.CustomFieldMap;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static edu.harvard.iq.dataverse.export.ddi.DdiConstants.NOTE_TYPE_CONTENTTYPE;
 import static edu.harvard.iq.dataverse.export.ddi.DdiConstants.NOTE_TYPE_TERMS_OF_ACCESS;
@@ -957,22 +959,13 @@ public class ImportDDIServiceBean {
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
                 if (xmlr.getLocalName().equals("geoBndBox")) {
-                    StringBuilder sb = new StringBuilder();
-                    if (south.compareTo(north) < 0) {
-                        sb.append(west).append(" ").append(south).append("\n");
-                        sb.append(west).append(" ").append(north).append("\n");
-                        sb.append(east).append(" ").append(north).append("\n");
-                        sb.append(east).append(" ").append(south).append("\n");
-                        sb.append(west).append(" ").append(south);
-                    } else {
-                        sb.append(west).append(" ").append(north).append("\n");
-                        sb.append(west).append(" ").append(south).append("\n");
-                        sb.append(east).append(" ").append(south).append("\n");
-                        sb.append(east).append(" ").append(north).append("\n");
-                        sb.append(west).append(" ").append(north);
-                    }
-
-                    addToSet(set, DatasetFieldConstant.geographicCoordinates, sb.toString());
+                    List<GeoPoint> coordinates = GeoPoint.fromBoundingBoxToCoordinates(west, east, south, north);
+                    addToSet(set, DatasetFieldConstant.geographicCoordinates, coordinates.stream()
+                            .map(p ->
+                                    BigDecimal.valueOf(p.getLongitude()).stripTrailingZeros().toPlainString() +
+                                    " " +
+                                    BigDecimal.valueOf(p.getLatitude()).stripTrailingZeros().toPlainString())
+                            .collect(Collectors.joining("\n")));
                     break;
                 }
             }
