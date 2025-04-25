@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * In advance search we can only select rectangles so we must validate this special case
+ * In advanced search we can only select rectangles so we must validate this special case
  * Valid coordinates have 4 or 5 point. For 5 points first and last point must be equal
  * This method works only for axis-aligned rectangles (rectangles that are not rotated)
  */
@@ -36,8 +36,10 @@ class GeoboxRectangleValueValidator implements FieldValidator {
             return FieldValidationResult.ok();
         }
 
-        List<GeoPoint> coordinates = GeoPoint.fromCoordinateString(value);
-        coordinates = coordinates.stream().distinct().collect(Collectors.toList());
+        List<GeoPoint> coordinates = GeoPoint.fromCoordinateString(value)
+                .stream()
+                .distinct()
+                .collect(Collectors.toList());
 
         if (coordinates.size() != 4) {
             return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.polygon.invalid.coordiantes.length"));
