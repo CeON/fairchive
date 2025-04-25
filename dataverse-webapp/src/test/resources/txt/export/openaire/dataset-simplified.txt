@@ -292,29 +292,11 @@
                             "typeName": "geographicBoundingBox",
                             "value":
                                 {
-                                    "eastLongitude": {
+                                    "geographicCoordinates": {
                                         "multiple": false,
                                         "typeClass": "primitive",
-                                        "typeName": "eastLongitude",
-                                        "value": "23"
-                                    },
-                                    "northLongitude": {
-                                        "multiple": false,
-                                        "typeClass": "primitive",
-                                        "typeName": "northLongitude",
-                                        "value": "89"
-                                    },
-                                    "southLongitude": {
-                                        "multiple": false,
-                                        "typeClass": "primitive",
-                                        "typeName": "southLongitude",
-                                        "value": "34"
-                                    },
-                                    "westLongitude": {
-                                        "multiple": false,
-                                        "typeClass": "primitive",
-                                        "typeName": "westLongitude",
-                                        "value": "45"
+                                        "typeName": "geographicCoordinates",
+                                        "value": "23 89\n23 34\n45 34\n45 89\n23 89"
                                     }
                                 }
 
@@ -325,14 +307,13 @@
                             "typeName": "geographicBoundingBox",
                             "value":
                                 {
-                                    "eastLongitude": {
+                                    "geographicCoordinates": {
                                         "multiple": false,
                                         "typeClass": "primitive",
-                                        "typeName": "eastLongitude",
-                                        "value": "invalid"
+                                        "typeName": "geographicCoordinates",
+                                        "value": "999 999\n999 999\n999 999\n999 999\n999 999"
                                     }
                                 }
-
                         },
                         {
                             "multiple": false,
@@ -340,32 +321,13 @@
                             "typeName": "geographicBoundingBox",
                             "value":
                                 {
-                                    "eastLongitude": {
+                                    "geographicCoordinates": {
                                         "multiple": false,
                                         "typeClass": "primitive",
-                                        "typeName": "eastLongitude",
-                                        "value": "999"
-                                    },
-                                    "northLongitude": {
-                                        "multiple": false,
-                                        "typeClass": "primitive",
-                                        "typeName": "northLongitude",
-                                        "value": "999"
-                                    },
-                                    "southLongitude": {
-                                        "multiple": false,
-                                        "typeClass": "primitive",
-                                        "typeName": "southLongitude",
-                                        "value": "999"
-                                    },
-                                    "westLongitude": {
-                                        "multiple": false,
-                                        "typeClass": "primitive",
-                                        "typeName": "westLongitude",
-                                        "value": "999"
+                                        "typeName": "geographicCoordinates",
+                                        "value": "23.1 45.21"
                                     }
                                 }
-
                         }
                     ]
                 },
