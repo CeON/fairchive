@@ -18,6 +18,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.DeleteMapLayerMetadataComman
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.ingest.StartIngestResult;
 import edu.harvard.iq.dataverse.ingest.UningestService;
+import edu.harvard.iq.dataverse.ingest.StartIngestResult.DataFileExceededSizeInfo;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -321,14 +322,9 @@ public class Files extends AbstractApiBean {
         StartIngestResult result = ingestService.startIngestJobs(Collections.singletonList(dataFile), user);
 
         if (result.hasSkippedExceedingSizeDataFiles()) {
-            // This indicates a problem because of the size of the file. But
-            // we are still returning the OK status - because from the point of
-            // view of the API, it's a success - we have successfully gone
-            // through the process of trying to schedule the ingest job...
-            String message = result.getSkippedExceedingSizeDataFiles().stream()
-                .map(df ->  "Skipping tabular ingest of the file " + df.getLabel() + ", because of the size limit (set to " + df.getMaxSize() + " bytes)")
-                .collect(Collectors.joining("; "));
-            return ok(message);
+            DataFileExceededSizeInfo exceededSizeInfo = result.getSkippedExceedingSizeDataFiles().get(0);
+            return badRequest("Failed to queue file " + exceededSizeInfo.getLabel() +
+                    " for ingest becaise of the size limit (set to " + exceededSizeInfo.getMaxSize() + " bytes)");
         }
         return ok("Datafile " + id + " queued for ingest");
 
