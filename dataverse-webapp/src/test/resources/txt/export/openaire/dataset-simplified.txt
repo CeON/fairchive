@@ -328,6 +328,20 @@
                                         "value": "23.1 45.21"
                                     }
                                 }
+                        },
+                        {
+                            "multiple": false,
+                            "typeClass": "compound",
+                            "typeName": "geographicBoundingBox",
+                            "value":
+                                {
+                                    "geographicCoordinates": {
+                                        "multiple": false,
+                                        "typeClass": "primitive",
+                                        "typeName": "geographicCoordinates",
+                                        "value": "15.996607 58.101105\n19.544609 58.140271\n20.247441 59.460431\n18.314654 60.773914\n13.074418 61.132629\n14.976203 58.783862\n15.996607 58.101105"
+                                    }
+                                }
                         }
                     ]
                 },

@@ -797,6 +797,9 @@ public class OpenAireExportUtilTest {
                         + "<geoLocation>"
                         + "<geoLocationPoint>45.21 23.1</geoLocationPoint>"
                         + "</geoLocation>"
+                        + "<geoLocation>"
+                        + "<geoLocationBox>58.101105 13.074418 61.132629 20.247441</geoLocationBox>"
+                        + "</geoLocation>"
                         + "</geoLocations>",
                 writer.toString());
     }
