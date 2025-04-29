@@ -174,8 +174,11 @@ public class DatasetFieldsInitializerTest {
         datasetVersion.setDataset(dataset);
 
         MetadataBlock citationBlock = makeCitationMetadataBlock();
+        citationBlock.setDisplayOrder(10);
         MetadataBlock socialScienceBlock = makeSocialScienceMetadataBlock();
+        socialScienceBlock.setDisplayOrder(30);
         MetadataBlock geospatialBlock = makeGeospatialMetadataBlock();
+        geospatialBlock.setDisplayOrder(20);
 
         DatasetField titleField = DatasetField.createNewEmptyDatasetField(makeTitleFieldType(citationBlock), null);
         fillTitle(titleField, "Some Title");
@@ -196,7 +199,7 @@ public class DatasetFieldsInitializerTest {
 
         // then
         assertEquals(3, retMetadataBlocks.size());
-        assertThat(retMetadataBlocks.keySet(), contains(citationBlock, socialScienceBlock, geospatialBlock));
+        assertThat(retMetadataBlocks.keySet(), contains(citationBlock, geospatialBlock, socialScienceBlock));
 
         assertTrue(citationBlock.isHasRequired());
         assertFalse(citationBlock.isEmpty());
