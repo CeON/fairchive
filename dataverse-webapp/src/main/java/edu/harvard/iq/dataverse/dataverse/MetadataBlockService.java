@@ -15,10 +15,12 @@ import javax.ejb.Stateless;
 import javax.faces.model.SelectItem;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Stateless
 public class MetadataBlockService {
@@ -191,9 +193,9 @@ public class MetadataBlockService {
     }
 
     private Set<MetadataBlock> prepareMetadataBlocks(Dataverse dataverse) {
-        Set<MetadataBlock> availableBlocks = new HashSet<>(this.metadataBlockRepo.findSystemMetadataBlocks());
-        Set<MetadataBlock> metadataBlocks = retriveAllDataverseParentsMetaBlocks(dataverse);
-        availableBlocks.addAll(metadataBlocks);
+        Set<MetadataBlock> availableBlocks = new TreeSet<>(Comparator.comparingInt(MetadataBlock::getDisplayOrder));
+        availableBlocks.addAll(this.metadataBlockRepo.findSystemMetadataBlocks());
+        availableBlocks.addAll(retriveAllDataverseParentsMetaBlocks(dataverse));
 
         return availableBlocks;
     }

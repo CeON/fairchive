@@ -46,6 +46,9 @@ public class MetadataBlock implements JpaEntity<Long>, Serializable {
     @Column(name = "namespaceuri", columnDefinition = "TEXT")
     private String namespaceUri;
 
+    @Column(nullable = false)
+    private int displayOrder;
+
     @Override
     public Long getId() {
         return id;
@@ -69,6 +72,14 @@ public class MetadataBlock implements JpaEntity<Long>, Serializable {
 
     public void setNamespaceUri(String namespaceUri) {
         this.namespaceUri = namespaceUri;
+    }
+
+    public int getDisplayOrder() {
+        return displayOrder;
+    }
+
+    public void setDisplayOrder(int displayOrder) {
+        this.displayOrder = displayOrder;
     }
 
     @OneToMany(mappedBy = "metadataBlock", cascade = {REMOVE, MERGE, PERSIST})

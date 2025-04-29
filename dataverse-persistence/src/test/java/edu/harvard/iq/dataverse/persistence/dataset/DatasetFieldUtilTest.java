@@ -95,7 +95,9 @@ public class DatasetFieldUtilTest {
     public void groupByBlock() {
         // given
         MetadataBlock block1 = MocksFactory.makeMetadataBlock("block1", "Block 1");
+        block1.setDisplayOrder(10);
         MetadataBlock block2 = MocksFactory.makeMetadataBlock("block2", "Block 2");
+        block2.setDisplayOrder(5);
 
         DatasetFieldType fieldType1 = MocksFactory.makeDatasetFieldType("field1", FieldType.TEXT, false, block1);
         DatasetFieldType fieldType2 = MocksFactory.makeDatasetFieldType("field2", FieldType.TEXT, false, block1);
@@ -112,7 +114,7 @@ public class DatasetFieldUtilTest {
 
         // then
         assertEquals(2, retBlocks.size());
-        assertThat(retBlocks.keySet(), contains(block1, block2));
+        assertThat(retBlocks.keySet(), contains(block2, block1));
 
         assertThat(retBlocks.get(block1), contains(field1, field2));
         assertThat(retBlocks.get(block2), contains(field3));
