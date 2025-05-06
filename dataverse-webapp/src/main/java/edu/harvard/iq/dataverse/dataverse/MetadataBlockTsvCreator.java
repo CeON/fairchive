@@ -133,7 +133,8 @@ public class MetadataBlockTsvCreator {
         NAME("name", MetadataBlock::getName),
         DATAVERSE_ALIAS("dataverseAlias", m -> m.getOwner() != null ? m.getOwner().getAlias() : ""),
         DISPLAY_NAME("displayName", MetadataBlock::getDisplayName),
-        BLOCK_URI("blockURI", MetadataBlock::getNamespaceUri);
+        BLOCK_URI("blockURI", MetadataBlock::getNamespaceUri),
+        DISPLAY_ORDER("displayOrder", MetadataBlock::getDisplayOrder);
 
         MetadataBlockRecord(String columnName, Function<MetadataBlock, Object> valueGetter) {
             this.columnName = columnName;

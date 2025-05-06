@@ -250,6 +250,7 @@ public class Dataverse extends DvObjectContainer {
     private List<DataverseContact> dataverseContacts = new ArrayList<>();
 
     @ManyToMany(cascade = {MERGE})
+    @OrderBy("displayOrder")
     private List<MetadataBlock> metadataBlocks = new ArrayList<>();
 
     @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)

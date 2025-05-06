@@ -18,8 +18,8 @@ import static org.assertj.core.api.Assertions.fail;
 
 class MetadataBlockTsvCreatorTest {
 
-    private static String EXPECTED = "#metadataBlock\tname\tdataverseAlias\tdisplayName\tblockURI\n" +
-            "\tMetadataBlock 1\t\tMetadata Block 1\thttp:\\\\metadatablock.uri\n" +
+    private static String EXPECTED = "#metadataBlock\tname\tdataverseAlias\tdisplayName\tblockURI\tdisplayOrder\n" +
+            "\tMetadataBlock 1\t\tMetadata Block 1\thttp:\\\\metadatablock.uri\t15\n" +
             "#datasetField\tname\ttitle\tdescription\twatermark\tfieldType\tdisplayOrder\tdisplayFormat\tadvancedSearchField\tallowControlledVocabulary\tallowmultiples\tfacetable\tdisplayoncreate\trequired\tparent\tinputRendererType\tinputRendererOptions\tmetadatablock_id\ttermURI\tvalidation\tmetadata\n" +
             "\tType 1\tDatasetFieldType 1\tLorem ipsum dolor sit amet\tEnter value…\ttext\t7\t#NAME: #VALUE\tFALSE\tTRUE\tFALSE\tTRUE\tTRUE\tFALSE\t\tVOCABULARY_SELECT\t{\"sortByLocalisedStringsOrder\" : \"true\"}\tMetadataBlock 1\thttp:\\\\test.test\t[{\"name\":\"standard_input\",\"parameters\":[\"format:https://ror.org/0[a-hjkmnp-z0-9]{6}[0-9]{2}\"]}]\t{}\n" +
             "#controlledVocabulary\tDatasetField\tValue\tidentifier\tdisplayOrder\n" +
@@ -54,6 +54,7 @@ class MetadataBlockTsvCreatorTest {
         metadataBlock.setOwner(null);
         metadataBlock.setDisplayName("Metadata Block 1");
         metadataBlock.setNamespaceUri("http:\\metadatablock.uri");
+        metadataBlock.setDisplayOrder(15);
         metadataBlock.setDatasetFieldTypes(new ArrayList<>());
 
         DatasetFieldType type1 = new DatasetFieldType();
