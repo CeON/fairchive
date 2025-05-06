@@ -62,8 +62,8 @@ public class DatasetFieldUtilTest {
     @Test
     public void copyDatasetFields() {
         // given
-        MetadataBlock block1 = MocksFactory.makeMetadataBlock("block1", "Block 1");
-        MetadataBlock block2 = MocksFactory.makeMetadataBlock("block2", "Block 2");
+        MetadataBlock block1 = MocksFactory.makeMetadataBlock("block1", "Block 1", 1);
+        MetadataBlock block2 = MocksFactory.makeMetadataBlock("block2", "Block 2", 2);
 
         DatasetFieldType fieldType1 = MocksFactory.makeDatasetFieldType("field1", FieldType.TEXT, false, block1);
         DatasetFieldType fieldType2 = MocksFactory.makeDatasetFieldType("field2", FieldType.TEXT, false, block1);
@@ -94,10 +94,8 @@ public class DatasetFieldUtilTest {
     @Test
     public void groupByBlock() {
         // given
-        MetadataBlock block1 = MocksFactory.makeMetadataBlock("block1", "Block 1");
-        block1.setDisplayOrder(10);
-        MetadataBlock block2 = MocksFactory.makeMetadataBlock("block2", "Block 2");
-        block2.setDisplayOrder(5);
+        MetadataBlock block1 = MocksFactory.makeMetadataBlock("block1", "Block 1", 10);
+        MetadataBlock block2 = MocksFactory.makeMetadataBlock("block2", "Block 2", 5);
 
         DatasetFieldType fieldType1 = MocksFactory.makeDatasetFieldType("field1", FieldType.TEXT, false, block1);
         DatasetFieldType fieldType2 = MocksFactory.makeDatasetFieldType("field2", FieldType.TEXT, false, block1);
