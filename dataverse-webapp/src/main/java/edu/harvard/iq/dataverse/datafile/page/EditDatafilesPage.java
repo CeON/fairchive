@@ -1063,6 +1063,26 @@ public class EditDatafilesPage implements java.io.Serializable {
         setTagsForTabularData(selectedDataFileTags, selectedFile);
     }
 
+    public boolean exceedsIngestSizeLimit(DataFile dataFile) {
+        return ingestService.exceedsIngestSizeLimit(dataFile);
+    }
+
+    public boolean supportsAdvancedIngestOptions(DataFile file) {
+        return supportsPickingEncoding(file) || supportsInclusionOfLabelsFile(file);
+    }
+
+    public boolean supportsPickingEncoding(DataFile file) {
+        return ingestService.supportsPickingEncoding(file);
+    }
+
+    public boolean supportsInclusionOfLabelsFile(DataFile file) {
+        return ingestService.supportsInclusionOfLabelsFile(file);
+    }
+
+    public boolean isSelectivelyIngestableFile(DataFile file) {
+        return ingestService.isSelectivelyIngestableFile(file);
+    }
+
     public void clearFileMetadataSelectedForIngestOptionsPopup() {
         fileMetadataSelectedForIngestOptionsPopup = null;
     }
