@@ -13,6 +13,7 @@ public class SolrSearchLocationResult {
     private final String doi;
     private final boolean draft;
     private final GeoPoint marker;
+    private final List<GeoPoint> coordinates;
     private final Map<String, String> customData;
 
     // -------------------- CONSTRUCTORS --------------------
@@ -25,6 +26,7 @@ public class SolrSearchLocationResult {
         this.name = name;
         this.doi = doi;
         this.draft = draft;
+        this.coordinates = coordinates;
         this.marker = calculateCenter(coordinates);
         this.customData = customData;
     }
@@ -37,6 +39,10 @@ public class SolrSearchLocationResult {
 
     public String getDoi() {
         return doi;
+    }
+
+    public List<GeoPoint> getCoordinates() {
+        return coordinates;
     }
 
     public GeoPoint getMarker() {

@@ -11,7 +11,7 @@ import edu.harvard.iq.dataverse.common.MarkupChecker;
 import edu.harvard.iq.dataverse.export.RelatedIdentifierTypeConstants;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,6 +21,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,8 +30,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static java.util.stream.Collectors.toList;
 
 public class OpenAireExportUtil {
 
@@ -1191,32 +1192,30 @@ public class OpenAireExportUtil {
         String southLatitude = StringUtils.EMPTY;
         String eastLongitude = StringUtils.EMPTY;
         String westLongitude = StringUtils.EMPTY;
+        GeoPoint point = null;
 
-        for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-            DatasetFieldDTO next = iterator.next();
-
-            String value = next.getSinglePrimitive().trim();
-
-            Pattern pattern = Pattern.compile("([a-z]+)(Longitude|Latitude)");
-            Matcher matcher = pattern.matcher(next.getTypeName());
-            if (matcher.find()) {
-                switch (matcher.group(1)) {
-                    case "south":
-                        southLatitude = value;
-                        break;
-                    case "north":
-                        northLatitude = value;
-                        break;
-                    case "west":
-                        westLongitude = value;
-                        break;
-                    case "east":
-                        eastLongitude = value;
-                        break;
+        for (DatasetFieldDTO next : foo) {
+            if (DatasetFieldConstant.geographicCoordinates.equals(next.getTypeName())) {
+                List<GeoPoint> coordinates = GeoPoint.fromCoordinateString(next.getSinglePrimitive());
+                if (coordinates.size() == 1) {
+                    point = coordinates.get(0);
+                } else if (coordinates.size() > 1) {
+                    List<Double> latitude = coordinates.stream().map(GeoPoint::getLatitude).collect(toList());
+                    List<Double> longitude = coordinates.stream().map(GeoPoint::getLongitude).collect(toList());
+                    westLongitude = BigDecimal.valueOf(Collections.min(longitude)).stripTrailingZeros().toPlainString();
+                    eastLongitude = BigDecimal.valueOf(Collections.max(longitude)).stripTrailingZeros().toPlainString();
+                    southLatitude = BigDecimal.valueOf(Collections.min(latitude)).stripTrailingZeros().toPlainString();
+                    northLatitude = BigDecimal.valueOf(Collections.max(latitude)).stripTrailingZeros().toPlainString();
                 }
             }
         }
 
+        if (point != null) {
+            writeOpenTag(xmlw, "geoLocation", false);
+            writeFullElement(xmlw, null, "geoLocationPoint", null, point.getLatitude() + " " + point.getLongitude(), language);
+            writeEndTag(xmlw, true);
+            return true;
+        }
 
         if (hasValidLocationBox(northLatitude, southLatitude, eastLongitude, westLongitude)) {
             String locationBoxValue = southLatitude + " " + westLongitude + " " + northLatitude + " " + eastLongitude;
@@ -1230,6 +1229,7 @@ public class OpenAireExportUtil {
 
             return true;
         }
+
         return false;
     }
 

@@ -196,7 +196,7 @@ public class DatasetFieldsInitializerTest {
 
         // then
         assertEquals(3, retMetadataBlocks.size());
-        assertThat(retMetadataBlocks.keySet(), contains(citationBlock, socialScienceBlock, geospatialBlock));
+        assertThat(retMetadataBlocks.keySet(), contains(citationBlock, geospatialBlock, socialScienceBlock));
 
         assertTrue(citationBlock.isHasRequired());
         assertFalse(citationBlock.isEmpty());

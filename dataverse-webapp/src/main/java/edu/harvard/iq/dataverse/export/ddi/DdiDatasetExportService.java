@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import edu.harvard.iq.dataverse.util.xml.XmlAttribute;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,6 +19,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -445,11 +447,19 @@ public class DdiDatasetExportService {
         if (!childrenOfFirstGeographicBoundingBox.isEmpty()) {
 
             xmlw.writeStartElement("geoBndBox");
+            String coordinates = extractFieldWithTypeAsString(childrenOfFirstGeographicBoundingBox, DatasetFieldConstant.geographicCoordinates);
+            List<GeoPoint> geoPoints = GeoPoint.fromCoordinateString(coordinates);
+            List<Double> latitude = geoPoints.stream().map(GeoPoint::getLatitude).collect(toList());
+            List<Double> longitude = geoPoints.stream().map(GeoPoint::getLongitude).collect(toList());
+            BigDecimal westBL = BigDecimal.valueOf(Collections.min(longitude));
+            BigDecimal eastBL = BigDecimal.valueOf(Collections.max(longitude));
+            BigDecimal southBL = BigDecimal.valueOf(Collections.min(latitude));
+            BigDecimal northBL = BigDecimal.valueOf(Collections.max(latitude));
 
-            writeFullElement(xmlw, "westBL", extractFieldWithTypeAsString(childrenOfFirstGeographicBoundingBox, DatasetFieldConstant.westLongitude));
-            writeFullElement(xmlw, "eastBL", extractFieldWithTypeAsString(childrenOfFirstGeographicBoundingBox, DatasetFieldConstant.eastLongitude));
-            writeFullElement(xmlw, "southBL", extractFieldWithTypeAsString(childrenOfFirstGeographicBoundingBox, DatasetFieldConstant.southLatitude));
-            writeFullElement(xmlw, "northBL", extractFieldWithTypeAsString(childrenOfFirstGeographicBoundingBox, DatasetFieldConstant.northLatitude));
+            writeFullElement(xmlw, "westBL", westBL.stripTrailingZeros().toPlainString());
+            writeFullElement(xmlw, "eastBL", eastBL.stripTrailingZeros().toPlainString());
+            writeFullElement(xmlw, "southBL", southBL.stripTrailingZeros().toPlainString());
+            writeFullElement(xmlw, "northBL", northBL.stripTrailingZeros().toPlainString());
 
             xmlw.writeEndElement();
 

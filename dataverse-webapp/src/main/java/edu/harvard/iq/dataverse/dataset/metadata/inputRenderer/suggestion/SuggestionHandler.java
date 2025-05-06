@@ -2,6 +2,8 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion;
 
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +12,9 @@ public interface SuggestionHandler {
     /**
      * Returns unique name of action handler.
      */
-    String getName();
+    default String getName() {
+        return getClass().getSimpleName();
+    }
 
     /**
      * @return true if this handler is dependent on siblings input values.
@@ -24,7 +28,9 @@ public interface SuggestionHandler {
      *
      * @see this#getAllowedFilters()
      */
-    boolean isDependentOnSiblings();
+    default boolean isDependentOnSiblings() {
+        return false;
+    }
 
     /**
      * Returns name of filters that this handler understands
@@ -33,7 +39,9 @@ public interface SuggestionHandler {
      * Returned values can be used as keys in <code>filteredBy</code>
      * map param of {@link #generateSuggestions(Map, String)}
      */
-    List<String> getAllowedFilters();
+    default List<String> getAllowedFilters() {
+        return emptyList();
+    }
 
     /**
      * Returns suggested values based on the given params
@@ -43,4 +51,8 @@ public interface SuggestionHandler {
      * @return suggestions
      */
     List<Suggestion> generateSuggestions(Map<String, String> filteredBy, String query);
+    
+    
+
+
 }

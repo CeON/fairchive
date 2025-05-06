@@ -19,15 +19,15 @@ public class MockMetadataFactory {
 
 
     public static MetadataBlock makeCitationMetadataBlock() {
-        return makeMetadataBlock("citation", "Citation Metadata");
+        return makeMetadataBlock("citation", "Citation Metadata", 10);
     }
 
     public static MetadataBlock makeGeospatialMetadataBlock() {
-        return makeMetadataBlock("geospatial", "Geospatial Metadata");
+        return makeMetadataBlock("geospatial", "Geospatial Metadata", 20);
     }
 
     public static MetadataBlock makeSocialScienceMetadataBlock() {
-        return makeMetadataBlock("socialscience", "Social Science and Humanities Metadata");
+        return makeMetadataBlock("socialscience", "Social Science and Humanities Metadata", 30);
     }
 
     // -------------------- Citation fields --------------------

@@ -1,16 +1,15 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion;
 
-import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
-import edu.harvard.iq.dataverse.persistence.dataset.suggestion.GrantSuggestion;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+import java.util.Map;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.stream.Collectors.toList;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
+import edu.harvard.iq.dataverse.persistence.dataset.suggestion.GrantSuggestion;
 
 @Stateless
 public class GrantAgencySuggestionHandler implements SuggestionHandler {
@@ -31,33 +30,12 @@ public class GrantAgencySuggestionHandler implements SuggestionHandler {
     // -------------------- LOGIC --------------------
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * This implementation always returns class name.
-     */
-    @Override
-    public String getName() {
-        return getClass().getSimpleName();
-    }
-
-    /**
      * This suggestion is not dependent on siblings.
      * All values will be taken to mach the suggestion string.
      */
     @Override
     public boolean isDependentOnSiblings() {
         return !getAllowedFilters().isEmpty();
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * This implementation doesn't support filters. Always
-     * returns empty map.
-     */
-    @Override
-    public List<String> getAllowedFilters() {
-        return Collections.emptyList();
     }
 
     @Override
