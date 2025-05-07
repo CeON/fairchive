@@ -474,7 +474,7 @@
                                 </ui:fragment>
                             </div>
                             <div id="ingestControl"
-                                 jsf:rendered="#{isUploadPermited and dataFileServiceBean.isSelectivelyIngestableFile(fileMetadata.dataFile)}">
+                                 jsf:rendered="#{isUploadPermited and EditDatafilesPage.isSelectivelyIngestableFile(fileMetadata.dataFile) and not EditDatafilesPage.exceedsIngestSizeLimit(fileMetadata.dataFile)}">
                                 <p:outputLabel styleClass="control-label" for="includeInIngest"
                                                style="margin-right:1em; margin-top:.5em"
                                                value="#{bundle['file.ingest.control.label']}"/>
@@ -614,9 +614,7 @@
                                     </li>
                                     <li>
                                         <p:commandLink id="advancedIngestOptionsButton"
-                                                       rendered="#{((empty fileMetadata.dataFile.id) and dataFileServiceBean.isSpssPorFile(fileMetadata.dataFile))
-                                                               or ((empty fileMetadata.dataFile.id) and dataFileServiceBean.isSpssSavFile(fileMetadata.dataFile))
-                                                               or ((empty fileMetadata.dataFile.id) and dataFileServiceBean.isCsvFile(fileMetadata.dataFile))}"
+                                                       rendered="#{(empty fileMetadata.dataFile.id) and EditDatafilesPage.supportsAdvancedIngestOptions(fileMetadata.dataFile)}"
                                                        actionListener="#{EditDatafilesPage.setFileMetadataSelectedForIngestOptionsPopup(fileMetadata)}"
                                                        update=":datasetForm:fileAdvancedOptions"
                                                        oncomplete="primeFacesShowModal('fileAdvancedOptions', this)">
@@ -756,9 +754,7 @@
             <!-- select text encoding, for SPSS-SAV (and, and possibly, other) (this option is only available during ingest) data files; not implemented yet -->
             <div class="form-group" jsf:rendered="#{!(empty EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup)
                                         and (empty EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup.id)
-                                        and (dataFileServiceBean.isSpssSavFile(EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup.dataFile)
-                                            or dataFileServiceBean.isSpssPorFile(EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup.dataFile)
-                                            or dataFileServiceBean.isCsvFile(EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup.dataFile))}">
+                                        and (EditDatafilesPage.supportsPickingEncoding(EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup.dataFile))}">
                 <label for="spssSavEncodingLanguage" class="col-sm-4 control-label">
                     #{bundle['file.encoding']}
                 </label>
@@ -969,7 +965,7 @@
             <!-- ODUM-style extra variable labels for SPSS-POR files (this option is only available during ingest) -->
             <div class="form-group" jsf:rendered="#{!(empty EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup)
                                         and (empty EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup.id)
-                                        and dataFileServiceBean.isSpssPorFile(EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup.dataFile)}">
+                                        and EditDatafilesPage.supportsInclusionOfLabelsFile(EditDatafilesPage.fileMetadataSelectedForIngestOptionsPopup.dataFile)}">
                 <label for="labelsFileUpload" class="col-sm-4 control-label">
                     #{bundle['file.spss-porExtraLabels']}
                 </label>

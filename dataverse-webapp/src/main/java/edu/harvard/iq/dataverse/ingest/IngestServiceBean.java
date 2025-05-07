@@ -33,6 +33,7 @@ import edu.harvard.iq.dataverse.dataaccess.ingest.InMemoryIngestDataProvider;
 import edu.harvard.iq.dataverse.dataaccess.ingest.IngestDataProvider;
 import edu.harvard.iq.dataverse.datafile.FileTypeDetector;
 import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
+import edu.harvard.iq.dataverse.ingest.StartIngestResult.DataFileExceededSizeInfo;
 import edu.harvard.iq.dataverse.ingest.metadataextraction.FileMetadataExtractor;
 import edu.harvard.iq.dataverse.ingest.metadataextraction.FileMetadataIngest;
 import edu.harvard.iq.dataverse.ingest.metadataextraction.impl.plugins.fits.FITSFileMetadataExtractor;
@@ -78,6 +79,8 @@ import io.vavr.Tuple;
 import io.vavr.control.Option;
 import org.apache.commons.lang3.StringUtils;
 import org.dataverse.unf.UnfException;
+
+import com.google.api.client.util.Preconditions;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
@@ -357,41 +360,30 @@ public class IngestServiceBean {
         startIngestJobs(scheduledFiles, user);
     }
 
-    public String startIngestJobs(List<DataFile> dataFiles, AuthenticatedUser user) {
+    public StartIngestResult startIngestJobs(List<DataFile> dataFiles, AuthenticatedUser user) {
+        Preconditions.checkState(dataFiles.stream().allMatch(DataFile::isIngestScheduled),
+                "DataFile(s) must be scheduled for ingest to queue them for ingesting");
 
         IngestMessage ingestMessage;
-        StringBuilder sb = new StringBuilder();
+        StartIngestResult startIngestResult = new StartIngestResult();
 
         List<DataFile> scheduledFiles = new ArrayList<>();
         for (DataFile dataFile : dataFiles) {
-            if (dataFile.isIngestScheduled()) {
 
-                // refresh the copy of the DataFile:
-                dataFile = fileService.find(dataFile.getId());
+            // refresh the copy of the DataFile:
+            dataFile = fileService.find(dataFile.getId());
 
-                long ingestSizeLimit = -1;
-                try {
-                    ingestSizeLimit = systemConfig.getTabularIngestSizeLimit(getTabDataReaderByMimeType(dataFile.getContentType()).getFormatName());
-                } catch (IOException ioex) {
-                    logger.warning(
-                            "IO Exception trying to retrieve the ingestable format identifier from the plugin for type " + dataFile.getContentType() + " (non-fatal);");
-                }
-
-                if (ingestSizeLimit == -1 || dataFile.getFilesize() < ingestSizeLimit) {
-                    dataFile.setIngestInProgress();
-                    scheduledFiles.add(dataFile);
-                } else {
-                    dataFile.setIngestDone();
-                    String message = "Skipping tabular ingest of the file " + dataFile.getFileMetadata().getLabel() + ", because of the size limit (set to " + ingestSizeLimit + " bytes); ";
-                    logger.info(message);
-                    sb.append(message);
-                }
-                dataFile = fileService.save(dataFile);
+            if (!exceedsIngestSizeLimit(dataFile)) {
+                dataFile.setIngestInProgress();
+                scheduledFiles.add(dataFile);
             } else {
-                String message = "(Re)ingest queueing request submitted on a file not scheduled for ingest! (" + dataFile.getFileMetadata().getLabel() + "); ";
-                logger.warning(message);
-                sb.append(message);
+                dataFile.setIngestDone();
+                long sizeLimit = getIngestSizeLimit(dataFile);
+                startIngestResult.addSkippedExceedingSizeInfo(new DataFileExceededSizeInfo(dataFile.getFileMetadata().getLabel(), sizeLimit));
+                logger.info("Skipping tabular ingest of the file " + dataFile.getFileMetadata().getLabel()
+                            + ", because of the size limit (set to " + sizeLimit + " bytes)");
             }
+            fileService.save(dataFile);
         }
 
         int count = scheduledFiles.size();
@@ -418,7 +410,7 @@ public class IngestServiceBean {
             ingestMessageSendEventEvent.fire(new IngestMessageSendEvent(ingestMessage));
         }
 
-        return sb.toString();
+        return startIngestResult;
     }
 
     public void produceFrequencyStatistics(IngestDataProvider dataProvider, DataFile dataFile) throws IOException {
@@ -601,6 +593,29 @@ public class IngestServiceBean {
                 : new FileIngestDataProvider();
         provider.initialize(dataTable, dataFile);
         return provider;
+    }
+
+    public long getIngestSizeLimit(DataFile dataFile) {
+        return systemConfig.getTabularIngestSizeLimit(getTabDataReaderByMimeType(dataFile.getContentType()).getFormatName());
+    }
+
+    public boolean exceedsIngestSizeLimit(DataFile dataFile) {
+        long ingestSizeLimit = getIngestSizeLimit(dataFile);
+        return ingestSizeLimit != -1 && dataFile.getFilesize() > ingestSizeLimit;
+    }
+
+    public boolean supportsPickingEncoding(DataFile file) {
+        return file.hasMimeType(ApplicationMimeType.SPSS_POR, ApplicationMimeType.SPSS_SAV,
+                TextMimeType.CSV, TextMimeType.CSV_ALT);
+    }
+
+    public boolean supportsInclusionOfLabelsFile(DataFile file) {
+        return file.hasMimeType(ApplicationMimeType.SPSS_POR);
+    }
+
+    public boolean isSelectivelyIngestableFile(DataFile file) {
+        return file.hasMimeType(ApplicationMimeType.XLSX, TextMimeType.TSV, TextMimeType.TSV_ALT,
+                TextMimeType.CSV, TextMimeType.CSV_ALT);
     }
 
     public TabularDataFileReader getTabDataReaderByMimeType(String mimeType) {

@@ -284,6 +284,10 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
             mdb.setNamespaceUri(values[4]);
         }
 
+        if (values.length > 5 && !StringUtils.isEmpty(values[5])) {
+            mdb.setDisplayOrder(parseInt(values[5]));
+        }
+
         metadataBlockRepo.save(mdb);
         return mdb.getName();
     }
