@@ -241,9 +241,31 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     public boolean isFacetable() {
         return facetable;
     }
+    
+    public boolean isNumberic() {
+        return this.fieldType.isNumberic();
+    }
+    
+    public boolean isTextual() {
+        return !isGeoboxField() && this.fieldType.isTextual();
+    }
+    
+    public boolean isDate() {
+        return this.fieldType.isDate();
+    }
+    
+    public boolean isGeoboxField() {
+        return this.parentDatasetFieldType != null
+                && this.parentDatasetFieldType.getFieldType().isGeospatial()
+                && fieldType.isTextbox();
+    }
 
     public boolean isDisplayOnCreate() {
         return displayOnCreate;
+    }
+    
+    public boolean containsControlledVocabularyValues() {
+        return this.controlledVocabularyValues.size() > 0;
     }
 
     public MetadataBlock getMetadataBlock() {
@@ -421,7 +443,11 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     
     
     public boolean isGeospatial() {
-        return this.fieldType == FieldType.GEOBOX;
+        return this.fieldType.isGeospatial();
+    }
+    
+    public boolean isPeriodo() {
+        return this.fieldType.isPeriodo();
     }
 
     @Override

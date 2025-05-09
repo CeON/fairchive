@@ -38,13 +38,12 @@
                  styleClass="form-control"/>
 
     <script>
-        DvJS.Geo.EditView.enablePolygonSupport('#{mapId}');
         DvJS.Geo.EditView.putWidgetVar('#{mapId}', 'polygonGeo', '#{widgetVar}');
         var escapedCoordinates = "#{of:escapeJS(datasetField.value)}";
         DvJS.Geo.EditView.storeCoordinates('#{mapId}', escapedCoordinates);
     </script>
 
-    <p:watermark for="geoInputTextBox" value="#{bundle['dataset.geobox.text.area.watermakr']}"></p:watermark>
+    <p:watermark for="geoInputTextBox" value="#{datasetField.datasetFieldType.localeWatermark}"></p:watermark>
 
     <div class="ui-message ui-message-error ui-widget ui-corner-all" aria-live="polite" jsf:rendered="#{!empty datasetField.validationMessage}">
         <span class="ui-message-error-detail">

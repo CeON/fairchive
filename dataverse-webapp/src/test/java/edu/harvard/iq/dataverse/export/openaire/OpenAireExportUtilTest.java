@@ -765,11 +765,11 @@ public class OpenAireExportUtilTest {
         writer.close();
         Assertions.assertEquals("<geoLocations>" +
                         "<geoLocation>" +
-                        "<geoLocationBox>40 10 30 20</geoLocationBox>" +
+                        "<geoLocationBox>30 10 40 20</geoLocationBox>" +
                         "<geoLocationPlace>ProductionPlace</geoLocationPlace>" +
                         "</geoLocation>" +
                         "<geoLocation>" +
-                        "<geoLocationBox>80 50 70 60</geoLocationBox>" +
+                        "<geoLocationBox>70 50 80 60</geoLocationBox>" +
                         "<geoLocationPlace>ProductionPlace</geoLocationPlace>" +
                         "</geoLocation>" +
                         "</geoLocations>",
@@ -792,8 +792,15 @@ public class OpenAireExportUtilTest {
         writer.close();
         Assertions.assertEquals("<geoLocations>"
                         + "<geoLocation>"
-                        + "<geoLocationBox>34 45 89 23</geoLocationBox>"
-                        + "</geoLocation></geoLocations>",
+                        + "<geoLocationBox>34 23 89 45</geoLocationBox>"
+                        + "</geoLocation>"
+                        + "<geoLocation>"
+                        + "<geoLocationPoint>45.21 23.1</geoLocationPoint>"
+                        + "</geoLocation>"
+                        + "<geoLocation>"
+                        + "<geoLocationBox>58.101105 13.074418 61.132629 20.247441</geoLocationBox>"
+                        + "</geoLocation>"
+                        + "</geoLocations>",
                 writer.toString());
     }
 

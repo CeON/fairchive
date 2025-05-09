@@ -328,12 +328,14 @@ public class ImportDDIServiceBeanTest {
         assertThat(getField(DatasetFieldConstant.geographicBoundingBox, geospatialBlock)).isEqualTo(
                 createMultipleCompound(DatasetFieldConstant.geographicBoundingBox,
                                                ImmutableList.of(
-                                                       ImmutableSet.of(
-                                                               createPrimitive(DatasetFieldConstant.northLatitude, "12"),
-                                                               createPrimitive(DatasetFieldConstant.southLatitude, "-12"),
-                                                               createPrimitive(DatasetFieldConstant.eastLongitude, "98"),
-                                                               createPrimitive(DatasetFieldConstant.westLongitude, "90"))
-                                               )));
+                                                  ImmutableSet.of(
+                                                          createPrimitive(
+                                                                  DatasetFieldConstant.geographicCoordinates,
+                                                                  "90 -12\n90 12\n98 12\n98 -12\n90 -12")
+                                                  )
+                                               )
+                )
+        );
 
         assertThat(getField(DatasetFieldConstant.unitOfAnalysis, socialBlock)).isEqualTo(
                 createMultiplePrimitive(DatasetFieldConstant.unitOfAnalysis, ImmutableList.of("Family", "EventOrProcess")));

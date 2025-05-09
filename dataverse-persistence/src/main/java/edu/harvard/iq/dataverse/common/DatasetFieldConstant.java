@@ -25,6 +25,7 @@ public class DatasetFieldConstant {
     public final static String keyword = "keyword";
     public final static String topicClassification = "topicClassification";
     public final static String geographicBoundingBox = "geographicBoundingBox";
+    public final static String geographicCoordinates = "geographicCoordinates";
 
     public final static String note = "note";
 

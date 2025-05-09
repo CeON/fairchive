@@ -127,28 +127,26 @@
                                                 <c:set var="mapId" value="#{item.parent.isDefined()
                                                     ? (mdb.blockName).concat('_').concat(item.getParent().get().getDisplayId()) : ''}"/>
                                                 <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
-                                                <p:inputText id="geoboxSearchValue" styleClass="form-control coord-marker"
+
+                                                <div id="#{mapId}" class="form-col-container geo-map">
+                                                </div>
+
+                                                <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker margin-top"
                                                              value="#{item.fieldValue}"
-                                                             onchange="DvJS.Geo.SearchView.putValue('#{mapId}', '#{item.datasetFieldType.metadata['geoboxCoord']}', $(this).val()); DvJS.Geo.SearchView.updateMap('#{mapId}')"
+                                                             onchange="
+                                                                this.value = this.value.replace(/,/g, '.');
+                                                                DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
+                                                                DvJS.Geo.SearchView.updateMap('#{mapId}');"
+                                                             rows="5"
                                                              widgetVar="#{widgetVar}"
                                                              pt:data-handler="#{widgetVar}"/>
+
+                                                <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
+
                                                 <script>
                                                     DvJS.Geo.SearchView.prepare('#{mapId}');
-                                                    DvJS.Geo.SearchView.putValue('#{mapId}', '#{item.datasetFieldType.metadata["geoboxCoord"]}', '#{item.fieldValue}');
-                                                    DvJS.Geo.SearchView.putWidgetVar('#{mapId}', '#{item.datasetFieldType.metadata["geoboxCoord"]}', '#{widgetVar}');
-                                                    if (DvJS.Geo.SearchView.canCreateMap('#{mapId}')) {
-                                                        let left = document.createElement('div');
-                                                        left.classList.add('col-sm-4');
-                                                        let right = document.createElement('div');
-                                                        right.classList.add('col-sm-6');
-                                                        right.classList.add('geo-map');
-                                                        right.id = '#{mapId}';
-                                                        let container = document.createElement('div');
-                                                        container.classList.add('form-group');
-                                                        container.appendChild(left);
-                                                        container.appendChild(right);
-                                                        $('.coord-marker').last().closest('.form-group').after(container);
-                                                    }
+                                                    DvJS.Geo.SearchView.putWidgetVar('#{mapId}', 'polygonGeo', '#{widgetVar}');
+                                                    DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
                                                 </script>
                                             </div>
                                             <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">
@@ -224,6 +222,98 @@
                                                                    itemLabel="#{selectOneTuple._1()}"
                                                                    itemValue="#{selectOneTuple._2()}"/>
                                                 </p:selectOneMenu>
+                                            </div>
+                                            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.PERIODO}">
+                                                <div class="form-group"
+                                                     style="display: flex">
+                                                <p:outputLabel for="periodIdentifier"
+                                                               value="#{bundle['periodo.id']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:inputText id="periodIdentifier" 
+                                                             style="flex: 1;"
+                                                             value="#{item.id}"/>
+                                                </div>
+                                                <div class="form-group"
+                                                     style="display: flex">
+                                                <p:outputLabel for="periodLabel"
+                                                               value="#{bundle['periodo.label']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:inputText id="periodLabel" 
+                                                             style="flex: 1;"
+                                                             value="#{item.label}"/>
+                                                </div>
+                                                <div class="form-group"
+                                                     style="display: flex">
+                                                <p:outputLabel for="periodCoverageName"
+                                                               value="#{bundle['periodo.location.desc']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:inputText id="periodCoverageName" 
+                                                             style="flex: 1;"
+                                                             value="#{item.coverageName}"/>
+                                                </div>
+                                                <div class="form-group"
+                                                     style="display: flex">
+                                                <p:outputLabel for="periodLocation"
+                                                               value="#{bundle['periodo.location']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                             <!--    <p:inputText id="periodLocation" 
+                                                             style="flex: 1;"
+                                                             value="#{item.locations}"/> -->           
+                                                <p:selectCheckboxMenu 
+                                                              id="periodLocation"
+                                                              value="#{item.locations}"
+                                                              style="width: 100%" 
+                                                              panelStyleClass="without-select-all"
+                                                              multiple="true" 
+                                                              label="#{bundle.select}"
+                                                              updateLabel="true"
+                                                              filter="true" 
+                                                              filterMatchMode="contains">
+	                                                <f:selectItems value="#{item.allLocations}"
+	                                                            var="l"
+	                                                           itemLabel="#{l}"
+	                                                           itemValue="#{l}"/>
+                                                </p:selectCheckboxMenu>            
+                                                </div>
+                                                <div class="form-group"
+                                                     style="display: flex">  
+                                                <p:outputLabel value="#{bundle['periodo.start']}"
+                                                               style="white-space: pre; margin-right: 4px"/>  
+                                                <p:outputLabel for="periodStartEarliest"
+                                                               value="#{bundle['periodo.from']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:inputText id="periodStartEarliest"
+                                                             value="#{item.startEarliest}"/> 
+                                                <p:outputLabel for="periodStartLatest"
+                                                               value="#{bundle['periodo.to']}"
+                                                               style="white-space: pre; margin-left: 5px; margin-right: 4px"/>
+                                                <p:inputText id="periodStartLatest"
+                                                             value="#{item.startLatest}"/>   
+                                                </div>
+                                                <div class="form-group"
+                                                     style="display: flex">
+                                                <p:outputLabel value="#{bundle['periodo.end']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:outputLabel for="periodStopEarliest"
+                                                               value="#{bundle['periodo.from']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:inputText id="periodStopEarliest"
+                                                             value="#{item.stopEarliest}"/> 
+                                                <p:outputLabel for="periodStopLatest"
+                                                               value="#{bundle['periodo.to']}"
+                                                               style="white-space: pre; margin-left: 5px; margin-right: 4px"/>
+                                                <p:inputText id="periodStopLatest"
+                                                             value="#{item.stopLatest}"/>   
+                                                </div>
+                                                <div class="form-group"
+                                                     style="display: flex">             
+                                                <p:outputLabel for="periodAutorityTitle"
+                                                               value="#{bundle['periodo.authority']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:inputText id="periodAutorityTitle" 
+                                                             style="flex: 1;"
+                                                             value="#{item.authorityTitle}"/>
+                                                </div>
                                             </div>
                                             <div class="ui-message ui-message-error ui-widget ui-corner-all" aria-live="polite"
                                                  jsf:rendered="#{not empty item.getValidationMessage()}">

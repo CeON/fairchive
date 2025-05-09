@@ -1,0 +1,20 @@
+<metadata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:qdc="http://worldcat.org/xmlschemas/qdc-1.0/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:dcterms="http://purl.org/dc/terms/"
+	xmlns="http://dublincore.org/documents/dcmi-terms/"
+	xsi:schemaLocation="http://worldcat.org/xmlschemas/qdc-1.0/ 
+                        http://worldcat.org/xmlschemas/qdc-1.0/qdc.xsd">
+	<qdc:qualifieddc>
+		<dc:title>Export test</dc:title>
+		<dc:creator>Admin, Dataverse</dc:creator>
+		<dc:contributor>Kowalski, Jan</dc:contributor>
+		<dc:identifier>https://doi.org/10.5072/FK2/05NAR1</dc:identifier>
+		<dc:description>EXPORT</dc:description>
+		<dc:relation>https://localhost/api/access/datafile/1</dc:relation>
+		<dc:relation>https://localhost/api/access/datafile/2</dc:relation>
+		<dcterms:license>Unknown</dcterms:license>
+		<dcterms:created>2019-07-10</dcterms:created>
+		<dcterms:issued>2019-07-10</dcterms:issued>
+	</qdc:qualifieddc>
+</metadata>

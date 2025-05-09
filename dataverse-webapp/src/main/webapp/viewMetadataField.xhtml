@@ -7,6 +7,7 @@
                 xmlns:c="http://java.sun.com/jsp/jstl/core"
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:o="http://omnifaces.org/ui"
+                xmlns:of="http://omnifaces.org/functions"
                 xmlns:jsf="http://xmlns.jcp.org/jsf">
 
     <!--@elvariable id="fieldsByType" type="edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType"-->
@@ -37,7 +38,8 @@
                             </ui:repeat>
                     </div>
                     <script jsf:rendered="#{isGeospatial}">
-                        DvJS.Geo.MetadataView.putValue('#{currentGsIndex}', '#{childField.datasetFieldType.metadata["geoboxCoord"]}', '#{childField.value}');
+                        var escapedCoordinates = "#{of:escapeJS(childField.value)}";
+                        DvJS.Geo.MetadataView.storeCoordinates('#{currentGsIndex}', escapedCoordinates);
                     </script>
                     <h:outputText value="#{childField.parentDisplayFormat} " rendered="#{!childLoop.first and !childField.parentDisplayFormatIsNewLine}" escape="false" />
                     <ui:repeat value="#{childField.values}" var="value" varStatus="valuesLoop">

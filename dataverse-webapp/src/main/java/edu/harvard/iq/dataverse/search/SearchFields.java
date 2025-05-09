@@ -260,5 +260,17 @@ public class SearchFields {
     public static final String FULL_TEXT = "_text_";
     public static final String LICENSE = "license";
     public static final String EMBARGO_UNTIL = "embargoUntil";
+    /**
+     * Fields from perio.do distionary
+     */
+    public static final String PERIODO_ID = "periodo_id_s";
+    public static final String PERIODO_LABEL = "periodo_label_txt";
+    public static final String PERIODO_START = "periodo_start_l";
+    public static final String PERIODO_STOP = "periodo_stop_l";
+    public static final String PERIODO_AUTHORITY_TITLE = "periodo_authority_title_txt";
+    public static final String PERIODO_COVERAGE_NAME = "periodo_coverage_name_txt";
+    public static final String PERIODO_LOCATIONS = "periodo_locations_ss";
+
+    public static final String GEOGRAPHIC_COORDINATES = SearchDynamicFieldPrefix.TEXT.getPrefix() + "geographicCoordinates";
 
 }

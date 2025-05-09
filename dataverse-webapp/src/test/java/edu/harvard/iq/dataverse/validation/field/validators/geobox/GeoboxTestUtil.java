@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.geographicCoordinates;
+
 public class GeoboxTestUtil {
 
     // -------------------- LOGIC --------------------
@@ -26,6 +28,19 @@ public class GeoboxTestUtil {
             field.setDatasetFieldParent(geobox);
             children.add(field);
         }
+        return geobox;
+    }
+
+    public DatasetField buildPolygonGeobox(String coordinates) {
+        DatasetField geobox = buildSingle(null, null);
+        List<DatasetField> children = geobox.getDatasetFieldsChildren();
+        DatasetField field = new DatasetField();
+        DatasetFieldType type = new DatasetFieldType(geographicCoordinates, FieldType.TEXT, true);
+        field.setDatasetFieldType(type);
+        field.setValue(coordinates);
+        field.setDatasetFieldParent(geobox);
+        children.add(field);
+
         return geobox;
     }
 
@@ -47,29 +62,19 @@ public class GeoboxTestUtil {
         return field;
     }
 
-    public SearchField buildGeoboxSearchField(String x1, String y1, String x2, String y2) {
+    public SearchField buildGeoboxSearchField(String coordinates) {
         DatasetFieldType parentType = new DatasetFieldType();
         parentType.setName("GoespatialBox");
         parentType.setFieldType(FieldType.GEOBOX);
         GroupingSearchField parent = new GroupingSearchField("Geobox", "Geobox Field", "Description", null, parentType);
         List<SearchField> children = parent.getChildren();
-        Stream.of(Tuple.of(GeoboxFields.X1, x1), Tuple.of(GeoboxFields.Y1, y1),
-                Tuple.of(GeoboxFields.X2, x2), Tuple.of(GeoboxFields.Y2, y2))
-                .filter(t -> t._2() != null)
-                .forEach(t -> {
-                    DatasetFieldType fieldType = new DatasetFieldType() {
-                        @Override public String getDisplayName() {
-                            return t._1().name();
-                        }
-                    };
-                    fieldType.setName("Coord – " + t._1().name());
-                    fieldType.setDescription("Coord descr.");
-                    fieldType.setMetadata(Collections.singletonMap("geoboxCoord", t._1().fieldType()));
-                    GeoboxCoordSearchField coordField = new GeoboxCoordSearchField(fieldType);
-                    coordField.setFieldValue(t._2());
-                    coordField.setParent(parent);
-                    children.add(coordField);
-                });
+        DatasetFieldType fieldType = new DatasetFieldType();
+        fieldType.setName("Coord");
+        fieldType.setDescription("Coord descr.");
+        GeoboxCoordSearchField coordField = new GeoboxCoordSearchField(fieldType);
+        coordField.setFieldValue(coordinates);
+        coordField.setParent(parent);
+        children.add(coordField);
         return parent;
     }
 }

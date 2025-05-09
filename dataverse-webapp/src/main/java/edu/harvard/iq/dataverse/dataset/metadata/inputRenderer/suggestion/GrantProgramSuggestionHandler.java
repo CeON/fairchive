@@ -31,16 +31,6 @@ public class GrantProgramSuggestionHandler implements SuggestionHandler {
     // -------------------- LOGIC --------------------
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * This implementation always returns class name.
-     */
-    @Override
-    public String getName() {
-        return getClass().getSimpleName();
-    }
-
-    /**
      * This suggestion is dependent on sibling input value.
      * Only values that match pointed out sibling input value will be taken
      * to create suggestion.

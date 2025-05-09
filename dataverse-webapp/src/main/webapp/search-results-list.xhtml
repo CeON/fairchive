@@ -8,16 +8,22 @@
                 xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
                 xmlns:dv="http://dataverse.org/facelets">
-    <h:form>
-        <p:commandButton id="downloadLink"
-                         value="#{bundle['dataverse.results.btn.saveToFile']}"
-                         ajax="false"
-                         actionListener="#{SearchIncludeFragment.prepareSearchResults}">
-            <p:fileDownload value="#{SearchIncludeFragment.searchResultsFile}" />
-        </p:commandButton>
-    </h:form>
 
-    <div id="resultsCountPaginatorBlock" class="row" jsf:rendered="#{SearchIncludeFragment.searchResultsCount > 0}">
+	<h:form style="display: inline;"
+	       rendered="#{SearchIncludeFragment.displaySaveToFileButton()}">
+		<p:commandButton id="downloadLink"
+			value="#{bundle['dataverse.results.btn.saveToFile']}" ajax="false"
+			action="#{SearchIncludeFragment.prepareSearchResults}">
+			<p:fileDownload value="#{SearchIncludeFragment.searchResultsFile}" />
+		</p:commandButton>
+	</h:form>
+	<div jsf:rendered="#{!SearchIncludeFragment.displaySaveToFileButton()}">
+	   <h:outputFormat value="#{bundle['dataverse.results.msg.tooManyResults']}">
+	       <f:param value="#{SearchIncludeFragment.getMaxResultsCountSavedToFile()}"/>
+	   </h:outputFormat>
+	</div>
+
+	<div id="resultsCountPaginatorBlock" class="row" jsf:rendered="#{SearchIncludeFragment.searchResultsCount > 0}">
     <!-- RESULTS COUNT -->
     <div class="results-count col-sm-6">
         <h:outputFormat value="#{bundle['dataverse.results.count.toofresults']}">
@@ -25,12 +31,12 @@
             <f:param value="#{SearchIncludeFragment.paginationGuiEnd}"/>
             <f:param value="#{SearchIncludeFragment.searchResultsCount}"/>
         </h:outputFormat>
-    </div>
+	</div>
     <!-- SORT + PAGINATOR -->
     <div class="results-sort-pagination col-sm-6">
         <!-- SORT BY -->
         <div class="btn-group pull-right">
-            <button id="sortResults" type="button" class="btn btn-default btn-access dropdown-toggle" data-toggle="dropdown"
+				<button id="sortResults" type="button" class="btn btn-default btn-access dropdown-toggle" data-toggle="dropdown"
                     aria-haspopup="true" aria-controls="sortResultsMenu" aria-expanded="false">
                 <span class="glyphicon glyphicon-sort"/> #{bundle['dataverse.results.btn.sort']} <span class="caret"/>
             </button>

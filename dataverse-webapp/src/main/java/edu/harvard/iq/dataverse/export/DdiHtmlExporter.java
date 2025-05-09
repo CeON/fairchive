@@ -61,11 +61,6 @@ public class DdiHtmlExporter extends ExporterBase {
     }
 
     @Override
-    public String getProviderName() {
-        return ExporterType.DDI_HTML.getPrefix();
-    }
-
-    @Override
     public ExporterType getExporterType() {
         return ExporterType.DDI_HTML;
     }

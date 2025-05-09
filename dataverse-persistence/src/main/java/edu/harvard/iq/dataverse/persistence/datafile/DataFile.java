@@ -42,8 +42,8 @@ import com.google.gson.annotations.Expose;
 
 import edu.harvard.iq.dataverse.common.FileSizeUtil;
 import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
+import edu.harvard.iq.dataverse.common.files.mime.MimeType;
 import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
@@ -437,6 +437,15 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         return PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(contentType);
     }
 
+    public boolean hasMimeType(MimeType... mimeTypes) {
+        for (MimeType mimeType : mimeTypes) {
+            if (mimeType.getMimeValue().equalsIgnoreCase(getContentType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isIngestScheduled() {
         return ingestStatus == INGEST_STATUS_SCHEDULED;
     }
@@ -527,7 +536,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     public String getCreateDateFormattedYYYYMMDD() {
         return getCreateDate() != null ? format(getCreateDate()) : null;
     }
-    
+
     private static String format(final Timestamp ts) {
         return new SimpleDateFormat("yyyy-MM-dd").format(ts);
     }

@@ -327,7 +327,7 @@ public class FileMetadataDTO {
             converted.setDirectoryLabel(metadata.getDirectoryLabel());
             converted.setVersion(metadata.getVersion());
             converted.setDatasetVersionId(metadata.getDatasetVersion().getId());
-            converted.setCategories(metadata.getCategoriesByName());
+            converted.setCategories(metadata.getCategoryNames());
             converted.setDataFile(convert(metadata.getLabel(), metadata.getDataFile()));
             return converted;
         }

@@ -49,8 +49,8 @@
         <geogCover>MA</geogCover>
         <geogCover>Other Geographic Coverage</geogCover>
         <geoBndBox>
-          <westBL>60.3</westBL>
-          <eastBL>59.8</eastBL>
+          <westBL>59.8</westBL>
+          <eastBL>60.3</eastBL>
           <southBL>41.6</southBL>
           <northBL>43.8</northBL>
         </geoBndBox>

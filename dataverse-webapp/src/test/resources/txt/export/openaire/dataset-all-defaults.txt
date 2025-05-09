@@ -964,55 +964,19 @@
             "typeClass": "compound",
             "value": [
               {
-                "westLongitude": {
-                  "typeName": "westLongitude",
+                "geographicCoordinates": {
+                  "typeName": "geographicCoordinates",
                   "multiple": false,
                   "typeClass": "primitive",
-                  "value": "10"
-                },
-                "eastLongitude": {
-                  "typeName": "eastLongitude",
-                  "multiple": false,
-                  "typeClass": "primitive",
-                  "value": "20"
-                },
-                "northLongitude": {
-                  "typeName": "northLongitude",
-                  "multiple": false,
-                  "typeClass": "primitive",
-                  "value": "30"
-                },
-                "southLongitude": {
-                  "typeName": "southLongitude",
-                  "multiple": false,
-                  "typeClass": "primitive",
-                  "value": "40"
+                  "value": "10 30\n10 40\n20 40\n20 30\n10 30"
                 }
               },
               {
-                "westLongitude": {
-                  "typeName": "westLongitude",
+                "geographicCoordinates": {
+                  "typeName": "geographicCoordinates",
                   "multiple": false,
                   "typeClass": "primitive",
-                  "value": "50"
-                },
-                "eastLongitude": {
-                  "typeName": "eastLongitude",
-                  "multiple": false,
-                  "typeClass": "primitive",
-                  "value": "60"
-                },
-                "northLongitude": {
-                  "typeName": "northLongitude",
-                  "multiple": false,
-                  "typeClass": "primitive",
-                  "value": "70"
-                },
-                "southLongitude": {
-                  "typeName": "southLongitude",
-                  "multiple": false,
-                  "typeClass": "primitive",
-                  "value": "80"
+                  "value": "50 70\n50 80\n60 80\n60 70\n50 70"
                 }
               }
             ]

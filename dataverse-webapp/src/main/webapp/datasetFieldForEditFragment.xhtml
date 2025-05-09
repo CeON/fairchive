@@ -8,7 +8,7 @@
             type="edu.harvard.iq.dataverse.persistence.dataset.InputRendererType"
             var="inputRendererTypeEnum"/>
 
-    <p:fragment rendered="#{inputRenderer.getType() eq inputRendererTypeEnum.TEXT and not isGeospatial}">
+    <p:fragment rendered="#{inputRenderer.getType() eq inputRendererTypeEnum.TEXT}">
         <ui:include src="/WEB-INF/templates/dataset/inputRenderer/textInputField.xhtml" >
             <ui:param name="inputRenderer" value="#{inputRenderer}" />
             <ui:param name="datasetField" value="#{datasetField}" />
@@ -19,20 +19,19 @@
         </ui:include>
     </p:fragment>
 
-    <p:fragment rendered="#{inputRenderer.getType() eq inputRendererTypeEnum.TEXT and isGeospatial}">
-        <ui:include src="/WEB-INF/templates/dataset/inputRenderer/geoboxTextInputField.xhtml" >
+    <p:fragment rendered="#{inputRenderer.getType() eq inputRendererTypeEnum.SUGGESTION_TEXT}">
+        <ui:include src="/WEB-INF/templates/dataset/inputRenderer/suggestionInputField.xhtml" >
             <ui:param name="inputRenderer" value="#{inputRenderer}" />
             <ui:param name="datasetField" value="#{datasetField}" />
             <ui:param name="hiddenLabel" value="#{hiddenLabel}" />
             <ui:param name="labelFieldNumber" value="#{labelFieldNumber}" />
             <ui:param name="allBlockfields" value="#{allBlockfields}" />
             <ui:param name="operation" value="#{operation}" />
-            <ui:param name="mapId" value="#{mapId}" />
         </ui:include>
     </p:fragment>
-
-    <p:fragment rendered="#{inputRenderer.getType() eq inputRendererTypeEnum.SUGGESTION_TEXT}">
-        <ui:include src="/WEB-INF/templates/dataset/inputRenderer/suggestionInputField.xhtml" >
+    
+    <p:fragment rendered="#{inputRenderer.getType() eq inputRendererTypeEnum.PERIODO}">
+        <ui:include src="/WEB-INF/templates/dataset/inputRenderer/periodoInputField.xhtml" >
             <ui:param name="inputRenderer" value="#{inputRenderer}" />
             <ui:param name="datasetField" value="#{datasetField}" />
             <ui:param name="hiddenLabel" value="#{hiddenLabel}" />
