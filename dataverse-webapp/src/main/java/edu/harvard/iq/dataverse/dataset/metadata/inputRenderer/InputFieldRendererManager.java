@@ -70,7 +70,12 @@ public class InputFieldRendererManager {
      * the given {@link DatasetFieldType}
      */
     public InputFieldRenderer obtainRenderer(final DatasetFieldType fieldType) {
-        return  this.inputRendererFactories.get(fieldType.getInputRendererType())
-            .createRenderer(fieldType, fieldType.getInputRendererOptionsAsJson());
+        try {
+            return this.inputRendererFactories.get(fieldType.getInputRendererType())
+                    .createRenderer(fieldType,
+                            fieldType.getInputRendererOptionsAsJson());
+        } catch (final Exception e) {
+            throw new InputRendererInvalidConfigException(e.getMessage(), e);
+        }
     }
 }
