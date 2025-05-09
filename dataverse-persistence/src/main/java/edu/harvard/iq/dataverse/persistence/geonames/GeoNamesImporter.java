@@ -28,7 +28,7 @@ final class GeoNamesImporter {
     
     private static final Logger log = Logger.getLogger(GeoNamesImporter.class.getName());
     private static final String SEP = " - ";
-    
+
     /** 
      * Consumes unzipped text files published on https://download.geonames.org/export/dump/
      */

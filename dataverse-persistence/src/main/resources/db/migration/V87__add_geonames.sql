@@ -13,3 +13,4 @@ CREATE TABLE geoname (
     CONSTRAINT geonames_pk PRIMARY KEY (id)
 );
 CREATE INDEX idx_fullText_geoname ON geoname USING gin (fullText);
+
