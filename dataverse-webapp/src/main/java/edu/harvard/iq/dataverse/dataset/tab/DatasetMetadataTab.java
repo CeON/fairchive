@@ -131,7 +131,7 @@ public class DatasetMetadataTab implements Serializable {
         return datasetDao.find(dataset.getId()).getAlternativePersistentIdentifier();
     }
     
-    public ValueRenderer getRerdererFor(final DatasetField field) {
+    public ValueRenderer getRendererFor(final DatasetField field) {
         if (field.isGeoName()) {
             return value -> this.geoNameRepo.findById(parseInt(value))
                     .map(gn -> gn.getDetails("<br/>")).orElse("");
