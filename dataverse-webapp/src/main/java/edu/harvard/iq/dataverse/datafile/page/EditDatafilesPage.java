@@ -89,7 +89,6 @@ import java.util.stream.Collectors;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
-import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
@@ -439,7 +438,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (dataset.isLockedFor(InReview) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 
@@ -1062,6 +1061,26 @@ public class EditDatafilesPage implements java.io.Serializable {
         selectedFile.getCategories().clear();
         selectedFileMetadataTags.forEach(selectedFile::addCategoryByName);
         setTagsForTabularData(selectedDataFileTags, selectedFile);
+    }
+
+    public boolean exceedsIngestSizeLimit(DataFile dataFile) {
+        return ingestService.exceedsIngestSizeLimit(dataFile);
+    }
+
+    public boolean supportsAdvancedIngestOptions(DataFile file) {
+        return supportsPickingEncoding(file) || supportsInclusionOfLabelsFile(file);
+    }
+
+    public boolean supportsPickingEncoding(DataFile file) {
+        return ingestService.supportsPickingEncoding(file);
+    }
+
+    public boolean supportsInclusionOfLabelsFile(DataFile file) {
+        return ingestService.supportsInclusionOfLabelsFile(file);
+    }
+
+    public boolean isSelectivelyIngestableFile(DataFile file) {
+        return ingestService.isSelectivelyIngestableFile(file);
     }
 
     public void clearFileMetadataSelectedForIngestOptionsPopup() {

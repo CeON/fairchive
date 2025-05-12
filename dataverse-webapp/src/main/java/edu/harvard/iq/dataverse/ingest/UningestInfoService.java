@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.ingest;
 
-import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -13,15 +12,15 @@ import java.util.List;
 
 @Stateless
 public class UningestInfoService {
-    private DataFileServiceBean dataFileService;
+    private IngestServiceBean ingestService;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public UningestInfoService() { }
 
     @Inject
-    public UningestInfoService(DataFileServiceBean dataFileService) {
-        this.dataFileService = dataFileService;
+    public UningestInfoService(IngestServiceBean ingestService) {
+        this.ingestService = ingestService;
     }
 
     // -------------------- LOGIC --------------------
@@ -60,7 +59,7 @@ public class UningestInfoService {
         // (2) is of XLSX, CSV or TSV type;
         // (3) has been ingested (successfully or not).
         return file.getFileMetadatas().size() == 1 // 1
-                && dataFileService.isSelectivelyIngestableFile(file) // 2
+                && ingestService.isSelectivelyIngestableFile(file) // 2
                 && (file.getIngestStatus() != DataFile.INGEST_STATUS_NONE || file.isTabularData()); // 3
     }
 }

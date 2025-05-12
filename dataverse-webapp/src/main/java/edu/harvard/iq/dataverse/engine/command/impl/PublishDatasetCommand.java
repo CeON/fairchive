@@ -17,7 +17,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.pidRegister;
 import static edu.harvard.iq.dataverse.workflow.execution.WorkflowContext.TriggerType.PrePublishDataset;
 import static java.util.stream.Collectors.joining;
 
@@ -132,7 +131,9 @@ public class PublishDatasetCommand extends AbstractPublishDatasetCommand<Publish
                 String info = "Adding File PIDs asynchronously";
                 AuthenticatedUser user = request.getAuthenticatedUser();
 
-                DatasetLock lock = new DatasetLock(pidRegister, theDataset, user, info);
+                DatasetLock lock = new DatasetLock(DatasetLock.Reason.pidRegister, user);
+                lock.setDataset(theDataset);
+                lock.setInfo(info);
                 ctxt.datasets().addDatasetLock(theDataset, lock);
                 ctxt.datasets().callFinalizePublishCommandAsynchronously(theDataset.getId(),
                                                                          ctxt,

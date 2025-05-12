@@ -18,6 +18,10 @@ public enum FieldType {
         return this.equals(TEXT) | this.equals(TEXTBOX) | this.equals(EMAIL)
                 | this.equals(URL);
     }
+
+    public boolean isTextbox() {
+        return this.equals(TEXTBOX);
+    }
     
     public boolean isGeospatial() {
         return this.equals(GEOBOX);

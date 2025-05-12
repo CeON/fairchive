@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.ingest;
 
-import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
@@ -17,8 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class UningestInfoServiceTest {
 
-    private DataFileServiceBean dataFileService = new DataFileServiceBean();
-    private UningestInfoService service = new UningestInfoService(dataFileService);
+    private IngestServiceBean ingestService = new IngestServiceBean();
+    private UningestInfoService service = new UningestInfoService(ingestService);
 
 
     @ParameterizedTest

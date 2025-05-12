@@ -128,19 +128,25 @@
                                                     ? (mdb.blockName).concat('_').concat(item.getParent().get().getDisplayId()) : ''}"/>
                                                 <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
 
-                                                <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker" style="display:none"
-                                                             value="#{item.fieldValue}"
-                                                             onchange="DvJS.Geo.SearchView.putValue('#{mapId}', '#{item.datasetFieldType.metadata['geoboxCoord']}', $(this).val()); DvJS.Geo.SearchView.updateMap('#{mapId}')"
-                                                             widgetVar="#{widgetVar}"
-                                                              pt:data-handler="#{widgetVar}"/>
-
                                                 <div id="#{mapId}" class="form-col-container geo-map">
                                                 </div>
 
+                                                <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker margin-top"
+                                                             value="#{item.fieldValue}"
+                                                             onchange="
+                                                                this.value = this.value.replace(/,/g, '.');
+                                                                DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
+                                                                DvJS.Geo.SearchView.updateMap('#{mapId}');"
+                                                             rows="5"
+                                                             widgetVar="#{widgetVar}"
+                                                             pt:data-handler="#{widgetVar}"/>
+
+                                                <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
+
                                                 <script>
                                                     DvJS.Geo.SearchView.prepare('#{mapId}');
-                                                    DvJS.Geo.SearchView.putValue('#{mapId}', 'polygonGeo', '#{item.fieldValue}');
                                                     DvJS.Geo.SearchView.putWidgetVar('#{mapId}', 'polygonGeo', '#{widgetVar}');
+                                                    DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
                                                 </script>
                                             </div>
                                             <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">

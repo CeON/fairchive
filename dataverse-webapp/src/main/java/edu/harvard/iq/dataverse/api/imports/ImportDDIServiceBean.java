@@ -16,6 +16,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.CustomFieldMap;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -27,6 +28,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static edu.harvard.iq.dataverse.export.ddi.DdiConstants.NOTE_TYPE_CONTENTTYPE;
 import static edu.harvard.iq.dataverse.export.ddi.DdiConstants.NOTE_TYPE_TERMS_OF_ACCESS;
@@ -820,7 +823,7 @@ public class ImportDDIServiceBean {
         List<String> unitOfAnalysis = new ArrayList<>();
         List<String> universe = new ArrayList<>();
         List<String> kindOfData = new ArrayList<>();
-        List<Set<DatasetFieldDTO>> geoBoundBox = new ArrayList<>();
+        List<Set<DatasetFieldDTO>> geoCoordinates = new ArrayList<>();
         List<Set<DatasetFieldDTO>> geoCoverages = new ArrayList<>();
         List<DatasetFieldDTO> timePeriod = new ArrayList<>();
         List<DatasetFieldDTO> dateOfCollection = new ArrayList<>();
@@ -876,7 +879,7 @@ public class ImportDDIServiceBean {
                 } else if (xmlr.getLocalName().equals("geogUnit")) {
                     geoUnit.add(parseText(xmlr));
                 } else if (xmlr.getLocalName().equals("geoBndBox")) {
-                    geoBoundBox.add(processGeoBndBox(xmlr));
+                    geoCoordinates.add(processGeoCoordinates(xmlr));
                 } else if (xmlr.getLocalName().equals("anlyUnit")) {
                     unitOfAnalysis.add(parseHtmlAwareText(xmlr));
                 } else if (xmlr.getLocalName().equals("universe")) {
@@ -924,9 +927,9 @@ public class ImportDDIServiceBean {
                                 DatasetFieldDTOFactory.createMultipleCompound(DatasetFieldConstant.geographicCoverage, geoCoverages),
                                 getGeospatial(dvDTO));
                     }
-                    if (!geoBoundBox.isEmpty()) {
+                    if (!geoCoordinates.isEmpty()) {
                         DatasetFieldDTOFactory.embedInMetadataBlock(
-                                DatasetFieldDTOFactory.createMultipleCompound(DatasetFieldConstant.geographicBoundingBox, geoBoundBox),
+                                DatasetFieldDTOFactory.createMultipleCompound(DatasetFieldConstant.geographicBoundingBox, geoCoordinates),
                                 getGeospatial(dvDTO));
                     }
                     return;
@@ -936,22 +939,33 @@ public class ImportDDIServiceBean {
     }
 
 
-    private Set<DatasetFieldDTO> processGeoBndBox(XMLStreamReader xmlr) throws XMLStreamException {
+    private Set<DatasetFieldDTO> processGeoCoordinates(XMLStreamReader xmlr) throws XMLStreamException {
         Set<DatasetFieldDTO> set = new HashSet<>();
+        BigDecimal west = BigDecimal.ZERO,
+                east = BigDecimal.ZERO,
+                south = BigDecimal.ZERO,
+                north = BigDecimal.ZERO;
 
         for (int event = xmlr.next(); event != XMLStreamConstants.END_DOCUMENT; event = xmlr.next()) {
             if (event == XMLStreamConstants.START_ELEMENT) {
                 if (xmlr.getLocalName().equals("westBL")) {
-                    addToSet(set, DatasetFieldConstant.westLongitude, parseText(xmlr));
+                    west = new BigDecimal(parseText(xmlr));
                 } else if (xmlr.getLocalName().equals("eastBL")) {
-                    addToSet(set, DatasetFieldConstant.eastLongitude, parseText(xmlr));
+                    east = new BigDecimal(parseText(xmlr));
                 } else if (xmlr.getLocalName().equals("southBL")) {
-                    addToSet(set, DatasetFieldConstant.southLatitude, parseText(xmlr));
+                    south = new BigDecimal(parseText(xmlr));
                 } else if (xmlr.getLocalName().equals("northBL")) {
-                    addToSet(set, DatasetFieldConstant.northLatitude, parseText(xmlr));
+                    north = new BigDecimal(parseText(xmlr));
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT) {
                 if (xmlr.getLocalName().equals("geoBndBox")) {
+                    List<GeoPoint> coordinates = GeoPoint.fromBoundingBoxToCoordinates(west, east, south, north);
+                    addToSet(set, DatasetFieldConstant.geographicCoordinates, coordinates.stream()
+                            .map(p ->
+                                    BigDecimal.valueOf(p.getLongitude()).stripTrailingZeros().toPlainString() +
+                                    " " +
+                                    BigDecimal.valueOf(p.getLatitude()).stripTrailingZeros().toPlainString())
+                            .collect(Collectors.joining("\n")));
                     break;
                 }
             }

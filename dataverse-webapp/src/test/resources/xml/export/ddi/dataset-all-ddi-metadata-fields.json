@@ -944,55 +944,19 @@
                   "typeClass":"compound",
                   "value":[
                      {
-                        "westLongitude":{
-                           "typeName":"westLongitude",
+                        "geographicCoordinates":{
+                           "typeName":"geographicCoordinates",
                            "multiple":false,
                            "typeClass":"primitive",
-                           "value":"90"
-                        },
-                        "eastLongitude":{
-                           "typeName":"eastLongitude",
-                           "multiple":false,
-                           "typeClass":"primitive",
-                           "value":"98"
-                        },
-                        "northLongitude":{
-                           "typeName":"northLongitude",
-                           "multiple":false,
-                           "typeClass":"primitive",
-                           "value":"12"
-                        },
-                        "southLongitude":{
-                           "typeName":"southLongitude",
-                           "multiple":false,
-                           "typeClass":"primitive",
-                           "value":"-12"
+                           "value": "90 -12\n98 -12\n98 12\n90 12\n90 -12"
                         }
                      },
                      {
-                        "westLongitude":{
-                           "typeName":"westLongitude",
+                        "geographicCoordinates":{
+                           "typeName":"geographicCoordinates",
                            "multiple":false,
                            "typeClass":"primitive",
-                           "value":"99"
-                        },
-                        "eastLongitude":{
-                           "typeName":"eastLongitude",
-                           "multiple":false,
-                           "typeClass":"primitive",
-                           "value":"102"
-                        },
-                        "northLongitude":{
-                           "typeName":"northLongitude",
-                           "multiple":false,
-                           "typeClass":"primitive",
-                           "value":"9"
-                        },
-                        "southLongitude":{
-                           "typeName":"southLongitude",
-                           "multiple":false,
-                           "typeClass":"primitive",
-                           "value":"-2"
+                           "value": "99 -2\n102 -2\n102 9\n99 9\n99 -2"
                         }
                      }
                   ]

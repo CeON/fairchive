@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse;
 import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.ImageMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.MimePrefix;
-import edu.harvard.iq.dataverse.common.files.mime.MimeType;
 import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
@@ -418,23 +417,6 @@ public class DataFileServiceBean implements java.io.Serializable {
         return em.createQuery(qr, DataFile.class)
                  .setParameter("harvestingClientId", harvestingClient.getId())
                  .getResultList();
-    }
-
-    public boolean isSpssPorFile(DataFile file) {
-        return hasMimeType(file, ApplicationMimeType.SPSS_POR);
-    }
-
-    public boolean isSpssSavFile(DataFile file) {
-        return hasMimeType(file, ApplicationMimeType.SPSS_SAV);
-    }
-
-    public boolean isCsvFile(DataFile file) {
-        return hasMimeType(file, TextMimeType.CSV, TextMimeType.CSV_ALT);
-    }
-
-    public boolean isSelectivelyIngestableFile(DataFile file) {
-        return hasMimeType(file, ApplicationMimeType.XLSX, TextMimeType.TSV, TextMimeType.TSV_ALT,
-                TextMimeType.CSV, TextMimeType.CSV_ALT);
     }
 
     /**
@@ -861,18 +843,6 @@ public class DataFileServiceBean implements java.io.Serializable {
     }
 
     // -------------------- PRIVATE --------------------
-
-    private boolean hasMimeType(DataFile file, MimeType... mimeTypes) {
-        if (file == null) {
-            return false;
-        }
-        for (MimeType mimeType : mimeTypes) {
-            if (mimeType.getMimeValue().equalsIgnoreCase(file.getContentType())) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     private String generateIdentifierAsRandomString(DataFile datafile, GlobalIdServiceBean idServiceBean, String prepend) {
         String identifier = null;

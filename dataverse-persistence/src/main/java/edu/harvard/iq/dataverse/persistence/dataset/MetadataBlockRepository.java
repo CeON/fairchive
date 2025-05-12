@@ -23,7 +23,7 @@ public class MetadataBlockRepository extends JpaRepository<Long, MetadataBlock> 
     
     public List<MetadataBlock> findSystemMetadataBlocks() {
         return this.em.createQuery(
-                "select object(o) from MetadataBlock as o where o.owner.id=null  order by o.id",
+                "select object(o) from MetadataBlock as o where o.owner.id=null  order by o.displayOrder",
                 MetadataBlock.class)
                 .getResultList();
     }
