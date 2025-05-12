@@ -8,6 +8,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 import java.io.InputStreamReader;
@@ -200,35 +201,49 @@ public final class PeriodoDictionary {
             return getValue();
         }
 
-        public String getDetails(final String separator) {
+        public String getDetails(final String beginDecorator,
+                final String endDecorator, final String separator) {
             final StringBuilder result = new StringBuilder(80);
-            result.append(getStringFromBundle("periodo.label")).append(": ")
+            result.append(beginDecorator).append(getStringFromBundle("periodo.label"))
+                    .append(endDecorator).append(": ")
                     .append(this.label).append(separator);
-            result.append(getStringFromBundle("periodo.location")).append(": ");
+            result.append(beginDecorator)
+                    .append(getStringFromBundle("periodo.location"))
+                    .append(endDecorator).append(": ");
             String coma = "";
             for (final String location : this.locations) {
                 result.append(coma).append(location);
                 coma = ", ";
             }
             result.append(separator);
-            result.append(getStringFromBundle("periodo.location.desc")).append(": ")
+            result.append(beginDecorator)
+                    .append(getStringFromBundle("periodo.location.desc"))
+                    .append(endDecorator).append(": ")
                     .append(this.coverageName).append(separator);
-            result.append(getStringFromBundle("periodo.start")).append(": ")
+            result.append(beginDecorator).append(getStringFromBundle("periodo.start"))
+                    .append(endDecorator).append(": ")
                     .append(this.start).append(separator);
-            result.append(getStringFromBundle("periodo.end")).append(": ");
+            result.append(beginDecorator).append(getStringFromBundle("periodo.end"))
+                    .append(endDecorator).append(": ");
             if (this.stop == MAX_VALUE) {
                 result.append(getStringFromBundle("periodo.present"));
             } else {
                 result.append(this.stop);
             }
             result.append(separator);
-            result.append(getStringFromBundle("periodo.authority")).append(": ")
+            result.append(beginDecorator)
+                    .append(getStringFromBundle("periodo.authority"))
+                    .append(endDecorator).append(": ")
                     .append(this.authorityTitle);
             return result.toString();
         }
 
         public String getDetails() {
-            return getDetails(" ");
+            return getDetails(EMPTY, EMPTY, " ");
+        }
+        
+        public String getDetailsHTML() {
+            return getDetails("<b>", "</b>", " ");
         }
 
         public String getId() {
