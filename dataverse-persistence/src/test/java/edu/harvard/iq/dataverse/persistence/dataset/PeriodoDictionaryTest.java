@@ -48,9 +48,16 @@ public class PeriodoDictionaryTest {
     @Test
     void findingByImproperUrl_returnsEmptyList() {
         // totally wrong url
-        assertThat(find("http://google.com/xyz")).isEmpty();
+        assertThat(find("http://google.com/x1z")).isEmpty();
         // url with proper prefix but missing period identifier
         assertThat(find("http://google.com/")).isEmpty();
+    }
+    
+    @Test
+    void findingByLabel_returnsRasults_andIsCaseInsensitive() {
+        
+        assertThat(find("Romania")).isNotEmpty();
+        assertThat(find("romania")).isNotEmpty();
     }
 
     @Test

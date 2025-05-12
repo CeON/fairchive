@@ -8,6 +8,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -40,7 +41,7 @@ public final class PeriodoDictionary {
             throw new RuntimeException(e);
         }
     }
-    
+
     public static List<Period> find(final String query) {
         return stream(query).collect(toList());
     }
@@ -48,7 +49,7 @@ public final class PeriodoDictionary {
     public static Optional<Period> getByUrl(final String url) {
         return url.startsWith(base) ? stream(url).findAny() : empty();
     }
-    
+
     public static List<String> locations() {
         return new ArrayList<String>(locations);
     }
@@ -136,9 +137,10 @@ public final class PeriodoDictionary {
             return result;
         }
     }
-    
+
     private static String getLabel(final JSONObject json) {
-        // locations often repeat, so interning them reduces size of the dictionary in memory
+        // locations often repeat, so interning them reduces size of the dictionary in
+        // memory
         final String label = json.getString("label").intern();
         locations.add(label);
         return label;
@@ -181,11 +183,12 @@ public final class PeriodoDictionary {
         }
 
         private boolean matches(final String query) {
-            return this.id.contains(query) ||
-                    this.label.contains(query) ||
-                    this.coverageName.contains(query) ||
-                    this.authorityTitle.contains(query) ||
-                    this.locations.stream().anyMatch(location -> location.contains(query));
+            return containsIgnoreCase(this.id, query) ||
+                    containsIgnoreCase(this.label, query) ||
+                    containsIgnoreCase(this.coverageName, query) ||
+                    containsIgnoreCase(this.authorityTitle, query) ||
+                    this.locations.stream()
+                            .anyMatch(location -> containsIgnoreCase(location, query));
         }
 
         public String getValue() {
