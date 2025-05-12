@@ -55,9 +55,18 @@ public class PeriodoDictionaryTest {
     
     @Test
     void findingByLabel_returnsRasults_andIsCaseInsensitive() {
-        
         assertThat(find("Romania")).isNotEmpty();
         assertThat(find("romania")).isNotEmpty();
+    }
+    
+    @Test
+    void findingBySeparateWords_returnsPeriodsContainingAllWords() {
+        assertThat(find("Early\tMinoan")).isNotEmpty();
+        
+        List<PeriodoDictionary.Period> periods = find("Early\tMinoan III Period");
+        
+        assertThat(periods).hasSize(1);
+        assertThat(periods.get(0).getLabel()).isEqualTo("Early Minoan III Period");
     }
 
     @Test

@@ -14,12 +14,15 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -148,7 +151,7 @@ public final class PeriodoDictionary {
     }
 
     private static Stream<Period> stream(final String query) {
-        final String sanitizedQuery = sanitizeQuery(query);
+        final List<String> sanitizedQuery = parseQuery(query);
         if (sanitizedQuery.isEmpty()) {
             return Stream.empty();
         } else {
@@ -160,6 +163,13 @@ public final class PeriodoDictionary {
         final int indexOfLastSlash = query.lastIndexOf('/');
         return indexOfLastSlash > -1 ? query.substring(indexOfLastSlash + 1).trim()
                 : query.trim();
+    }
+    
+    private static List<String> parseQuery(final String query) {
+        return Arrays.stream(sanitizeQuery(query).split("\\s"))
+                .map(PeriodoDictionary::sanitizeQuery)
+                .filter(StringUtils::isNoneEmpty)
+                .collect(toList());
     }
 
     public static final class Period {
@@ -183,13 +193,17 @@ public final class PeriodoDictionary {
             this.locations = locations;
         }
 
-        private boolean matches(final String query) {
-            return containsIgnoreCase(this.id, query) ||
-                    containsIgnoreCase(this.label, query) ||
-                    containsIgnoreCase(this.coverageName, query) ||
-                    containsIgnoreCase(this.authorityTitle, query) ||
+        private boolean matches(final List<String> query) {
+            return contains(this.id, query) ||
+                    contains(this.label, query) ||
+                    contains(this.coverageName, query) ||
+                    contains(this.authorityTitle, query) ||
                     this.locations.stream()
-                            .anyMatch(location -> containsIgnoreCase(location, query));
+                            .anyMatch(location -> contains(location, query));
+        }
+        
+        private static boolean contains(final String source, final List<String> query) {
+            return query.stream().allMatch(q -> containsIgnoreCase(source, q));
         }
 
         public String getValue() {
