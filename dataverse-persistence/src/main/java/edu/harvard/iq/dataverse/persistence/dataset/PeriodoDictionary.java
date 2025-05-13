@@ -154,6 +154,10 @@ public final class PeriodoDictionary {
         final List<String> sanitizedQuery = parseQuery(query);
         if (sanitizedQuery.isEmpty()) {
             return Stream.empty();
+        } else if (sanitizedQuery.size() == 1) {
+            // choose performance implementation if there is only one word
+            final String queryWord = sanitizedQuery.get(0);
+            return periods.stream().filter(period -> period.matches(queryWord));
         } else {
             return periods.stream().filter(period -> period.matches(sanitizedQuery));
         }
@@ -191,6 +195,15 @@ public final class PeriodoDictionary {
             this.authorityTitle = authorityTitle;
             this.coverageName = coverageName;
             this.locations = locations;
+        }
+        
+        private boolean matches(final String query) {
+            return containsIgnoreCase(this.id, query) ||
+                    containsIgnoreCase(this.label, query) ||
+                    containsIgnoreCase(this.coverageName, query) ||
+                    containsIgnoreCase(this.authorityTitle, query) ||
+                    this.locations.stream()
+                            .anyMatch(location -> containsIgnoreCase(location, query));
         }
 
         private boolean matches(final List<String> query) {

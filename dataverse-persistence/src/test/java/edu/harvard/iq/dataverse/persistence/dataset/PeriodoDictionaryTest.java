@@ -83,7 +83,6 @@ public class PeriodoDictionaryTest {
     void findingAndGettingByTheSameUrl_returnsTheSameResult() {
         assertThat(assertThat(find(EARLY_BRONZE_URL).get(0))
                 .isEqualTo(getByUrl(EARLY_BRONZE_URL).get()));
-
     }
 
     @Test
