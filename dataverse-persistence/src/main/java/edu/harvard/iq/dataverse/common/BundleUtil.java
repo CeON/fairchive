@@ -13,12 +13,10 @@ import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.MissingResourceException;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class BundleUtil {
@@ -26,6 +24,8 @@ public class BundleUtil {
     private static final Logger logger = Logger.getLogger(BundleUtil.class.getCanonicalName());
 
     private static final String DEFAULT_BUNDLE_FILE = "Bundle";
+
+    private static final String EXTENSION_PREFIX = "extension";
 
     private static final Set<String> INTERNAL_BUNDLE_NAMES = Sets.newHashSet(
             DEFAULT_BUNDLE_FILE, "BuiltInRoles", "MimeTypeDisplay", "MimeTypeFacets", "ValidationMessages");
@@ -107,7 +107,21 @@ public class BundleUtil {
     }
 
     private static String getStringFromInternalBundle(String bundleKey, String bundleName, Locale locale) {
+        String displayNameFromExtensionBundle = getStringFromInternalBundle(bundleKey, bundleName, EXTENSION_PREFIX, locale);
+        if (StringUtils.isNotBlank(displayNameFromExtensionBundle)) {
+            return  displayNameFromExtensionBundle;
+        }
+
+        return getStringFromInternalBundle(bundleKey, bundleName, "", locale);
+    }
+
+    private static String getStringFromInternalBundle(String bundleKey, String bundleName, String extension, Locale locale) {
         String key = bundleName + "_" + locale.getLanguage();
+        if (StringUtils.isNotBlank(extension)) {
+            key = bundleName + "_" + extension + "_" + locale.getLanguage();
+            bundleName = bundleName + "_" + extension;
+        }
+
         ResourceBundle resourceBundle = bundleCache.get(key);
         if (resourceBundle == null) {
             try {
