@@ -435,6 +435,16 @@ public class DatasetPage implements Serializable {
     public boolean displayVersionsTab() {
         return ! isViewedFromAnonymizedPrivateUrl();
     }
+    
+    public boolean displayGeustbookTab() {
+        return !isViewedFromAnonymizedPrivateUrl()
+                && !this.workingVersion.isDeaccessioned();
+    }
+    
+    public boolean displayMetadataTab() {
+        return !this.workingVersion.isDeaccessioned()
+                || (this.workingVersion.isDeaccessioned() && canUpdateDataset());
+    }
 
     public Dataset getDataset() {
         return dataset;
