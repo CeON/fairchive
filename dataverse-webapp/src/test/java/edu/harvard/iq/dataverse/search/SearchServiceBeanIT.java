@@ -172,7 +172,7 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 2, 1, false),
                 "dataset_72");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 9, 100, false),
-                "datafile_55_draft", "datafile_53_draft", "datafile_58_draft", "dataset_52_draft", "dataset_66_draft",
+                "dataset_71_draft", "datafile_55_draft", "datafile_53_draft", "datafile_58_draft", "dataset_52_draft",
                 "dataverse_51", "dataverse_68", "dataverse_21", "dataverse_20", "dataverse_22", "dataverse_23",
                 "dataverse_19", "dataverse_67");
     }
