@@ -62,11 +62,16 @@ public class PeriodoDictionaryTest {
     @Test
     void findingBySeparateWords_returnsPeriodsContainingAllWords() {
         assertThat(find("Early\tMinoan")).isNotEmpty();
-        
+
         List<PeriodoDictionary.Period> periods = find("Early\tMinoan III Period");
-        
-        assertThat(periods).hasSize(1);
-        assertThat(periods.get(0).getLabel()).isEqualTo("Early Minoan III Period");
+
+        assertThat(periods).hasSize(2);
+        assertThat(periods.stream().map(PeriodoDictionary.Period::getId))
+                .containsExactly("p0mn2ndsr5z", "p0ds9qjvfn5");
+
+        assertThat(find("Minoan")).isNotEmpty();
+        assertThat(find("Minoan Aegean")).isNotEmpty();
+        assertThat(find("Minoan Poland")).isEmpty();
     }
 
     @Test

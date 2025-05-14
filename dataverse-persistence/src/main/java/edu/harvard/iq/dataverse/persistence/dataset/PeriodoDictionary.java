@@ -154,10 +154,6 @@ public final class PeriodoDictionary {
         final List<String> sanitizedQuery = parseQuery(query);
         if (sanitizedQuery.isEmpty()) {
             return Stream.empty();
-        } else if (sanitizedQuery.size() == 1) {
-            // choose performance implementation if there is only one word
-            final String queryWord = sanitizedQuery.get(0);
-            return periods.stream().filter(period -> period.matches(queryWord));
         } else {
             return periods.stream().filter(period -> period.matches(sanitizedQuery));
         }
@@ -168,7 +164,7 @@ public final class PeriodoDictionary {
         return indexOfLastSlash > -1 ? query.substring(indexOfLastSlash + 1).trim()
                 : query.trim();
     }
-    
+
     private static List<String> parseQuery(final String query) {
         return Arrays.stream(sanitizeQuery(query).split("\\s"))
                 .map(PeriodoDictionary::sanitizeQuery)
@@ -196,7 +192,7 @@ public final class PeriodoDictionary {
             this.coverageName = coverageName;
             this.locations = locations;
         }
-        
+
         private boolean matches(final String query) {
             return containsIgnoreCase(this.id, query) ||
                     containsIgnoreCase(this.label, query) ||
@@ -207,16 +203,11 @@ public final class PeriodoDictionary {
         }
 
         private boolean matches(final List<String> query) {
-            return contains(this.id, query) ||
-                    contains(this.label, query) ||
-                    contains(this.coverageName, query) ||
-                    contains(this.authorityTitle, query) ||
-                    this.locations.stream()
-                            .anyMatch(location -> contains(location, query));
-        }
-        
-        private static boolean contains(final String source, final List<String> query) {
-            return query.stream().allMatch(q -> containsIgnoreCase(source, q));
+            boolean result = true;
+            for (final String word : query) {
+                result &= matches(word);
+            }
+            return result;
         }
 
         public String getValue() {
@@ -268,7 +259,7 @@ public final class PeriodoDictionary {
         public String getDetails() {
             return getDetails(EMPTY, EMPTY, " ");
         }
-        
+
         public String getDetailsHTML() {
             return getDetails("<b>", "</b>", " ");
         }
