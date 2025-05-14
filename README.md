@@ -1,7 +1,7 @@
-Dataverse&#174; 
+Fairchive&#174; 
 ===============
 
-Dataverse is an [open source][] web application for sharing, citing, analyzing, and preserving research data 
+Fairchive is an [open source][] web application for sharing, citing, analyzing, and preserving FAIR research data 
 developed by the [ICM development team][] at the [University of Warsaw][].
 
 It is a detached fork from [IQSS Dataverse][] developed by the [Data Science and Products team](http://www.iq.harvard.edu/people/people/data-science-products) at 
@@ -17,13 +17,13 @@ the [Institute for Quantitative Social Science](http://iq.harvard.edu/) and the 
 
 # Building
 
-Build dataverse with running all the tests (unit and integration tests):
+Build fairchive with running all the tests (unit and integration tests):
 
 ```bash
 $ ./mvnw clean install
 ```
 
-Build dataverse without running tests:
+Build fairchive without running tests:
 
 ```bash
 $ ./mvnw clean install -DskipTests -Ddocker.skip
@@ -37,14 +37,14 @@ The recommended development environment is based on docker. The first time the d
 $ ./dev install
 ```
 
-This will create all the required docker images and containers and run the dataverse installer. Installed services and their ports:
+This will create all the required docker images and containers and run the fairchive installer. Installed services and their ports:
 
 * smtp, UI: 8025 smtp: 1025
 * postgres: 5432
 * solr: 8983
 * keycloak: 7070 (admin dns: local.admin.keycloak non-admin: local.keycloak)
 * glassfish:
-  * 8080: Dataverse
+  * 8080: Fairchive
   * 4848: Admin console
   * 9009: Debug
 
