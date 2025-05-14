@@ -57,7 +57,7 @@ public class PeriodoRenderer implements InputFieldRenderer {
     }
     
     public String getDetails() {
-        return this.selectedPeriod.map(p -> p.getDetails("<br>")).orElse("");
+        return this.selectedPeriod.map(p -> p.getDetails("<b>", "</b>", "<br>")).orElse("");
     }
     
     public Converter getConverter() {

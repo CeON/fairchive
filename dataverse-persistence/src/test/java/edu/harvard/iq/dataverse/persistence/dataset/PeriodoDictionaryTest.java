@@ -48,9 +48,25 @@ public class PeriodoDictionaryTest {
     @Test
     void findingByImproperUrl_returnsEmptyList() {
         // totally wrong url
-        assertThat(find("http://google.com/xyz")).isEmpty();
+        assertThat(find("http://google.com/x1z")).isEmpty();
         // url with proper prefix but missing period identifier
         assertThat(find("http://google.com/")).isEmpty();
+    }
+    
+    @Test
+    void findingByLabel_returnsRasults_andIsCaseInsensitive() {
+        assertThat(find("Romania")).isNotEmpty();
+        assertThat(find("romania")).isNotEmpty();
+    }
+    
+    @Test
+    void findingBySeparateWords_returnsPeriodsContainingAllWords() {
+        assertThat(find("Early\tMinoan")).isNotEmpty();
+        
+        List<PeriodoDictionary.Period> periods = find("Early\tMinoan III Period");
+        
+        assertThat(periods).hasSize(1);
+        assertThat(periods.get(0).getLabel()).isEqualTo("Early Minoan III Period");
     }
 
     @Test
@@ -67,7 +83,6 @@ public class PeriodoDictionaryTest {
     void findingAndGettingByTheSameUrl_returnsTheSameResult() {
         assertThat(assertThat(find(EARLY_BRONZE_URL).get(0))
                 .isEqualTo(getByUrl(EARLY_BRONZE_URL).get()));
-
     }
 
     @Test
