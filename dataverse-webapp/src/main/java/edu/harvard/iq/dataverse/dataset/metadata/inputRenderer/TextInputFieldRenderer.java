@@ -14,6 +14,7 @@ public class TextInputFieldRenderer implements InputFieldRenderer {
     private FieldButtonActionHandler actionButtonHandler;
     private List<MetadataOperationSource> enableActionForOperations;
     private String actionButtonTextKey;
+    private String conditonalRendering;
 
 
     // -------------------- CONSTRUCTORS --------------------

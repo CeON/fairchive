@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 
 /**
@@ -34,4 +35,13 @@ public interface InputFieldRenderer {
      * any visible content on page
      */
     boolean isHidden();
+
+    /**
+     * Returns true if input field does not produce
+     * any visible content on page
+     */
+    default boolean showOnCondition(DatasetField dsf) {
+        String s = dsf.getValue();
+        return true;
+    }
 }
