@@ -13,12 +13,10 @@ import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.MissingResourceException;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class BundleUtil {
@@ -26,6 +24,8 @@ public class BundleUtil {
     private static final Logger logger = Logger.getLogger(BundleUtil.class.getCanonicalName());
 
     private static final String DEFAULT_BUNDLE_FILE = "Bundle";
+
+    private static final String EXTENSION_SUFFIX = "extension";
 
     private static final Set<String> INTERNAL_BUNDLE_NAMES = Sets.newHashSet(
             DEFAULT_BUNDLE_FILE, "BuiltInRoles", "MimeTypeDisplay", "MimeTypeFacets", "ValidationMessages");
@@ -107,16 +107,22 @@ public class BundleUtil {
     }
 
     private static String getStringFromInternalBundle(String bundleKey, String bundleName, Locale locale) {
-        String key = bundleName + "_" + locale.getLanguage();
-        ResourceBundle resourceBundle = bundleCache.get(key);
-        if (resourceBundle == null) {
-            try {
-                resourceBundle = ResourceBundle.getBundle(bundleName, locale);
-            } catch (MissingResourceException mre) {
-                resourceBundle = EMPTY_BUNDLE;
-            }
-            bundleCache.putIfAbsent(key, resourceBundle);
+        String displayNameFromExtensionBundle = getStringFromInternalBundle(bundleKey, bundleName, EXTENSION_SUFFIX, locale);
+        if (StringUtils.isNotBlank(displayNameFromExtensionBundle)) {
+            return  displayNameFromExtensionBundle;
         }
+
+        return getStringFromInternalBundle(bundleKey, bundleName, "", locale);
+    }
+
+    private static String getStringFromInternalBundle(String bundleKey, String bundleName, String extension, Locale locale) {
+        String bundleNameToUse = StringUtils.isNotBlank(extension)
+                ? bundleName + "_" + extension
+                : bundleName;
+
+        String cacheKey = bundleNameToUse + "_" + locale.getLanguage();
+        ResourceBundle resourceBundle = getCachedBundle(cacheKey, bundleNameToUse, locale);
+
         try {
             return !EMPTY_BUNDLE.equals(resourceBundle)
                     ? resourceBundle.getString(bundleKey)
@@ -125,6 +131,19 @@ public class BundleUtil {
             logger.finest("Could not find key \"" + bundleKey + "\" in bundle file: " + bundleName);
             return StringUtils.EMPTY;
         }
+    }
+
+    private static ResourceBundle getCachedBundle(String cacheKey, String bundleName, Locale locale) {
+        ResourceBundle resourceBundle = bundleCache.get(cacheKey);
+        if (resourceBundle == null) {
+            try {
+                resourceBundle = ResourceBundle.getBundle(bundleName, locale);
+            } catch (MissingResourceException mre) {
+                resourceBundle = EMPTY_BUNDLE;
+            }
+            bundleCache.putIfAbsent(cacheKey, resourceBundle);
+        }
+        return resourceBundle;
     }
 
     // IMPORTANT: this method is nearly exact copy of getStringFromInternalBundle(…), however
