@@ -390,12 +390,19 @@
                                 <div id="fileDescriptionBlock" class="col-xs-12" jsf:rendered="#{!empty FilePage.fileMetadata.description}">
                                      #{FilePage.fileMetadata.description}
                                 </div>
-                                <div id="fileCategoriesBlock" class="col-xs-12" jsf:rendered="#{!(empty FilePage.fileMetadata.categoryNames) or !(empty FilePage.fileMetadata.dataFile.tags)}">
-                                    <ui:repeat value="#{FilePage.fileMetadata.categoryNames}" var="tag" rendered="#{!(empty FilePage.fileMetadata.categoryNames)}">
-                                        <h:outputText value="#{tag}" styleClass="label label-default"/>
+                                <div id="fileCategoriesBlock" 
+                                     class="col-xs-12" 
+                                     jsf:rendered="#{!(empty FilePage.fileMetadata.categoryNames) or !(empty FilePage.fileMetadata.dataFile.tags)}">
+                                    <ui:repeat value="#{FilePage.fileMetadata.categoryNames}" 
+                                               var="tag" 
+                                               rendered="#{!(empty FilePage.fileMetadata.categoryNames)}">
+                                        <h:outputText value="#{tag}" 
+                                                      styleClass="label label-default"/>
                                     </ui:repeat>
-                                    <ui:repeat value="#{FilePage.fileMetadata.dataFile.tags}" var="tag">
-                                        <h:outputText value="#{tag.typeLabel}" styleClass="label label-info"/>
+                                    <ui:repeat value="#{FilePage.fileMetadata.dataFile.tags}" 
+                                               var="tag">
+                                        <h:outputText value="#{tag.typeLabel}" 
+                                                      styleClass="label label-info"/>
                                     </ui:repeat>
                                 </div>
 
