@@ -389,7 +389,7 @@
                                 </div>
                                 <div id="fileDescriptionBlock" 
                                      class="col-xs-12" 
-                                     jsf:rendered="#{!empty FilePage.fileMetadata.description}">
+                                     jsf:rendered="#{FilePage.displayFileDescriptionBlock()}">
                                      #{FilePage.fileMetadata.description}
                                 </div>
                                 <div id="fileCategoriesBlock" 
