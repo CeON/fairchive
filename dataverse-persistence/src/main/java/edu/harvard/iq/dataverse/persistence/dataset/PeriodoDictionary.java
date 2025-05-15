@@ -8,6 +8,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
@@ -151,8 +152,8 @@ public final class PeriodoDictionary {
     }
 
     private static Stream<Period> stream(final String query) {
-        final List<String> sanitizedQuery = parseQuery(query);
-        if (sanitizedQuery.isEmpty()) {
+        final String[] sanitizedQuery = parseQuery(query);
+        if (sanitizedQuery.length == 0) {
             return Stream.empty();
         } else {
             return periods.stream().filter(period -> period.matches(sanitizedQuery));
@@ -165,11 +166,12 @@ public final class PeriodoDictionary {
                 : query.trim();
     }
 
-    private static List<String> parseQuery(final String query) {
+    private static String[] parseQuery(final String query) {
         return Arrays.stream(sanitizeQuery(query).split("\\s"))
                 .map(PeriodoDictionary::sanitizeQuery)
-                .filter(StringUtils::isNoneEmpty)
-                .collect(toList());
+                .filter(StringUtils::isNotEmpty)
+                .collect(toList())
+                .toArray(EMPTY_STRING_ARRAY);
     }
 
     public static final class Period {
@@ -202,7 +204,7 @@ public final class PeriodoDictionary {
                             .anyMatch(location -> containsIgnoreCase(location, query));
         }
 
-        private boolean matches(final List<String> query) {
+        private boolean matches(final String[] query) {
             boolean result = true;
             for (final String word : query) {
                 result &= matches(word);
