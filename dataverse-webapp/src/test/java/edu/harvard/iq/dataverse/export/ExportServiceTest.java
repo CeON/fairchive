@@ -200,7 +200,7 @@ public class ExportServiceTest {
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/cdterms_pbi_all_rights_reserved.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_all_rights_reserved.xml"));
     }
     
     @Test
@@ -211,7 +211,7 @@ public class ExportServiceTest {
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/cdterms_pbi_restricted.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_restricted.xml"));
     }
     
     @Test
@@ -222,7 +222,7 @@ public class ExportServiceTest {
         // when
         String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
         // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/cdterms_pbi_unknown.xml"));
+        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_unknown.xml"));
     }
 
     @Test
