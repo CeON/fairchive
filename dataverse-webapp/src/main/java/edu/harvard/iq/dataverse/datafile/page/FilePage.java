@@ -258,6 +258,11 @@ public class FilePage implements java.io.Serializable {
         return null;
     }
     
+    public boolean displayCategoriesBlock() {
+        return !this.fileMetadata.getCategoryNames().isEmpty()
+                || !this.fileMetadata.getDataFile().getTags().isEmpty();
+    }
+    
     public boolean displayPreviewTab() {
         return this.previewTools.size() > 0
                 && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata)
