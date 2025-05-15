@@ -28,7 +28,7 @@ public class SearchFieldFactory {
             return new DateSearchField(fieldType);
         } else if (fieldType.isNumberic()) {
             return new NumberSearchField(fieldType);
-        } else if (fieldType.isGeoBox()) {
+        } else if (fieldType.isGeoboxField()) {
             return new GeoboxCoordSearchField(fieldType);
         } else if(fieldType.isPeriodo()) {
             return new PeriodoSearchField(fieldType);

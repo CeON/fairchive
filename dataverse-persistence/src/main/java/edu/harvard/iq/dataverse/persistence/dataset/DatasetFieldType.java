@@ -251,16 +251,17 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     }
     
     public boolean isTextual() {
-        return !hasGeospatialAsParent() && this.fieldType.isTextual();
+        return !isGeoboxField() && this.fieldType.isTextual();
     }
     
     public boolean isDate() {
         return this.fieldType.isDate();
     }
     
-    public boolean hasGeospatialAsParent() {
+    public boolean isGeoboxField() {
         return this.parentDatasetFieldType != null
-                && this.parentDatasetFieldType.getFieldType().isGeospatial();
+                && this.parentDatasetFieldType.getFieldType().isGeospatial()
+                && fieldType.isTextbox();
     }
 
     public boolean isDisplayOnCreate() {
