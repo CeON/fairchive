@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.search.advanced.field;
 
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.search.advanced.SearchFieldType;
@@ -45,6 +46,7 @@ public class GeoboxCoordSearchField extends SearchField {
         }
         List<SearchField> children = parent.getChildren();
         String coords = children.stream()
+                .filter(field -> DatasetFieldConstant.geographicCoordinates.equals(field.getName()))
                 .map(ValidatableField::getSingleValue)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining("|"));

@@ -49,7 +49,7 @@ function initDvJS() {
 
     // Draw map with geobox rectangle (must be called only when the target div is visible!)
     function initializeMapInMetadataView(key, data) {
-      data.leafMap = L.map(key);
+      data.leafMap = L.map(key, INIT_MAP_OPTS);
       let leafMap = data.leafMap;
       leafMap.invalidateSize();
 
