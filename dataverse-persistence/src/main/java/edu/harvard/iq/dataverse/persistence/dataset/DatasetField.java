@@ -379,6 +379,10 @@ public class DatasetField implements Serializable, ValidatableField {
         return this.datasetFieldType.isGeospatial();
     }
     
+    public boolean isGeoName() {
+        return this.datasetFieldType.isGeoName();
+    }
+    
     public boolean isVisibleThroughAnonymizedUrl() {
         return this.datasetFieldType.isVisibleThroughAnonymizedUrl();
     }
@@ -480,6 +484,9 @@ public class DatasetField implements Serializable, ValidatableField {
             return  "<a href=\"" + this.fieldValue + "\" target=\"_blank\">" + this.fieldValue +
                     "</a><br>" + PeriodoDictionary.getByUrl(this.fieldValue).get()
                             .getDetails("<b>", "</b>", "<br>");
+        }
+        if (fieldType.getFieldType().equals(FieldType.GEONAME)) {
+            return  this.fieldValue;
         }
         
         String retVal = "";
