@@ -387,15 +387,24 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div id="fileDescriptionBlock" class="col-xs-12" jsf:rendered="#{!empty FilePage.fileMetadata.description}">
+                                <div id="fileDescriptionBlock" 
+                                     class="col-xs-12" 
+                                     jsf:rendered="#{FilePage.displayFileDescriptionBlock()}">
                                      #{FilePage.fileMetadata.description}
                                 </div>
-                                <div id="fileCategoriesBlock" class="col-xs-12" jsf:rendered="#{!(empty FilePage.fileMetadata.categoriesByName) or !(empty FilePage.fileMetadata.dataFile.tags)}">
-                                    <ui:repeat value="#{FilePage.fileMetadata.categoriesByName}" var="tag" rendered="#{!(empty FilePage.fileMetadata.categoriesByName)}">
-                                        <h:outputText value="#{tag}" styleClass="label label-default"/>
+                                <div id="fileCategoriesBlock" 
+                                     class="col-xs-12" 
+                                     jsf:rendered="#{FilePage.displayCategoriesBlock()}">
+                                    <ui:repeat value="#{FilePage.fileMetadata.categoryNames}" 
+                                               var="tag" 
+                                               rendered="#{!(empty FilePage.fileMetadata.categoryNames)}">
+                                        <h:outputText value="#{tag}" 
+                                                      styleClass="label label-default"/>
                                     </ui:repeat>
-                                    <ui:repeat value="#{FilePage.fileMetadata.dataFile.tags}" var="tag">
-                                        <h:outputText value="#{tag.typeLabel}" styleClass="label label-info"/>
+                                    <ui:repeat value="#{FilePage.fileMetadata.dataFile.tags}" 
+                                               var="tag">
+                                        <h:outputText value="#{tag.typeLabel}" 
+                                                      styleClass="label label-info"/>
                                     </ui:repeat>
                                 </div>
 

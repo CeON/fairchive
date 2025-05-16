@@ -16,7 +16,6 @@ import edu.harvard.iq.dataverse.engine.command.exception.UpdateDatasetException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateNewDatasetCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.export.ExportService;
-import edu.harvard.iq.dataverse.export.ExporterType;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.externaltools.ExternalToolHandler;
 import edu.harvard.iq.dataverse.externaltools.ExternalToolServiceBean;
@@ -48,12 +47,12 @@ import javax.inject.Named;
 import javax.validation.ValidationException;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -256,6 +255,15 @@ public class FilePage implements java.io.Serializable {
         exploreTools = externalToolService.findExternalTools(ExternalTool.Type.EXPLORE, contentType, file, version);
         previewTools = externalToolService.findExternalTools(ExternalTool.Type.PREVIEW, contentType, file, version);
         return null;
+    }
+    
+    public boolean displayFileDescriptionBlock() {
+        return isNotEmpty(this.fileMetadata.getDescription());
+    }
+    
+    public boolean displayCategoriesBlock() {
+        return !this.fileMetadata.getCategoryNames().isEmpty()
+                || !this.fileMetadata.getDataFile().getTags().isEmpty();
     }
     
     public boolean displayPreviewTab() {
