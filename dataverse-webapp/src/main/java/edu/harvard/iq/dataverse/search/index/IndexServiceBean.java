@@ -934,9 +934,7 @@ public class IndexServiceBean {
                     }
                 }
                 if (dsfType.getFieldType() == FieldType.GEOBOX) {
-                    if (geoboxIndexUtil.isIndexable(dsf)) {
-                        solrInputDocument.addField(solrFieldSearchable, geoboxIndexUtil.geoboxFieldToSolr(dsf));
-                    } else if (geoboxIndexUtil.isIndexablePolygon(dsf)) {
+                    if (geoboxIndexUtil.isIndexablePolygon(dsf)) {
                         solrInputDocument.addField(solrFieldSearchable, geoboxIndexUtil.geoboxPolygonFieldToSolr(dsf));
                     }
 
