@@ -42,5 +42,7 @@
                   value="#{DatasetMetadataTab.dataset.publicationDateFormattedYYYYMMDD}"/>
         <ui:param name="isViewedFromAnonymizedPrivateUrl" 
                   value="#{DatasetPage.isViewedFromAnonymizedPrivateUrl()}"/>
+        <ui:param name="rendererFactory"
+                  value="#{DatasetMetadataTab}"/>
     </ui:include>
 </ui:composition>

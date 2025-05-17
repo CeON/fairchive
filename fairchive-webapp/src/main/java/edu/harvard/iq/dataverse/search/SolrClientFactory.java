@@ -43,6 +43,15 @@ public class SolrClientFactory {
         return new HttpSolrClient.Builder(urlString).build();
     }
     
+    @Produces
+    @GeoNameSolrClient
+    public SolrClient produceGeoNameSolrClient() {
+        String urlString = "http://" + settingsService.getValueForKey(Key.SolrHostColonPort) + "/solr/geonames";
+        LOGGER.fine("Creating SolrClient at url: " + urlString);
+
+        return new HttpSolrClient.Builder(urlString).build();
+    }
+    
     public void disposeSolrClient(@Disposes SolrClient solrClient) throws IOException {
         solrClient.close();
     }
