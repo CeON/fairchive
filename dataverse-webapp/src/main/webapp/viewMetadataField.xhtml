@@ -22,7 +22,8 @@
             <div style="#{fieldsLoop.last ? '': 'padding-bottom: 10px;'}" 
                  class="datasetfield-value #{datasetField.datasetFieldType.separableOnGui ? 'datasetfield-separable' : ''}">
                 <ui:repeat var="value" value="#{datasetField.values}" varStatus="valuesLoop">
-                        <h:outputText value="#{valuesLoop.first?'':'; '}#{ value }"
+                        <c:set var="valueToDisplay" value="#{rendererFactory.getRerdererFor(datasetField).render(value)}"/>
+                        <h:outputText value="#{valuesLoop.first?'':'; '}#{ valueToDisplay }"
                                 escape="false"/>
                 </ui:repeat>
                 <c:set var="isGeospatial" value="#{datasetField.isGeospatial()}"/>
@@ -33,13 +34,21 @@
                 <ui:repeat var="childField" value="#{datasetField.datasetFieldsChildren}" varStatus="childLoop">
                     <div jsf:rendered="#{childField.parentDisplayFormatIsNewLine}">
                             <ui:repeat value="#{childField.values}" var="value" varStatus="valuesLoop">
-                                <h:outputText value="#{valuesLoop.first?'':'; '}#{ value }"
+                                <c:set var="valueToDisplay" value="#{rendererFactory.getRerdererFor(childField).render(value)}"/>
+                                <h:outputText value="#{valuesLoop.first?'':'; '}#{ valueToDisplay }"
                                         escape="false"/>
                             </ui:repeat>
                     </div>
                     <script jsf:rendered="#{isGeospatial}">
+                        var geoboxCoord = '#{childField.datasetFieldType.metadata["geoboxCoord"]}';
+                        var polygonSupport = geoboxCoord == null || geoboxCoord === '';
                         var escapedCoordinates = "#{of:escapeJS(childField.value)}";
-                        DvJS.Geo.MetadataView.storeCoordinates('#{currentGsIndex}', escapedCoordinates);
+                        if (polygonSupport) {
+                          DvJS.Geo.MetadataView.enablePolygonSupport('#{currentGsIndex}');
+                          DvJS.Geo.MetadataView.storeCoordinates('#{currentGsIndex}', escapedCoordinates);
+                        } else {
+                          DvJS.Geo.MetadataView.putValue('#{currentGsIndex}', geoboxCoord, escapedCoordinates);
+                        }
                     </script>
                     <h:outputText value="#{childField.parentDisplayFormat} " rendered="#{!childLoop.first and !childField.parentDisplayFormatIsNewLine}" escape="false" />
                     <ui:repeat value="#{childField.values}" var="value" varStatus="valuesLoop">

@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.dataset.tab;
 
+import static java.lang.Integer.parseInt;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.geonames.GeoNameRepository;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -36,6 +39,7 @@ public class DatasetMetadataTab implements Serializable {
     private DatasetFieldsInitializer datasetFieldsInitializer;
     private DatasetDao datasetDao;
     private DataverseSession session;
+    private GeoNameRepository geoNameRepo;
 
     private Dataset dataset;
     private boolean isDatasetLocked;
@@ -53,13 +57,15 @@ public class DatasetMetadataTab implements Serializable {
                               ExportService exportService,
                               SystemConfig systemConfig,
                               DatasetFieldsInitializer datasetVersionUI,
-                              DatasetDao datasetDao) {
+                              DatasetDao datasetDao,
+                              GeoNameRepository geoNameRepo) {
         this.permissionsWrapper = permissionsWrapper;
         this.session = session;
         this.exportService = exportService;
         this.systemConfig = systemConfig;
         this.datasetFieldsInitializer = datasetVersionUI;
         this.datasetDao = datasetDao;
+        this.geoNameRepo = geoNameRepo;
     }
 
     // -------------------- GETTERS --------------------
@@ -124,10 +130,24 @@ public class DatasetMetadataTab implements Serializable {
     public String getAlternativePersistentIdentifier() {
         return datasetDao.find(dataset.getId()).getAlternativePersistentIdentifier();
     }
+    
+    public ValueRenderer getRerdererFor(final DatasetField field) {
+        if (field.isGeoName()) {
+            return value -> this.geoNameRepo.findById(parseInt(value))
+                    .map(gn -> gn.getDetails("<br/>")).orElse("");
+        } else {
+            return value -> value;
+        }
+    }
+    
+    public interface ValueRenderer {
+        String render(final String fieldValue);
+    }
 
     // -------------------- PRIVATE --------------------
 
     private String createExporterURL(Exporter exporter, String myHostURL) {
-        return myHostURL + "/api/datasets/export?exporter=" + exporter.getProviderName() + "&persistentId=" + dataset.getGlobalIdString();
+        return myHostURL + "/api/datasets/export?exporter=" + exporter.getProviderName()
+            + "&persistentId=" + dataset.getGlobalIdString();
     }
 }
