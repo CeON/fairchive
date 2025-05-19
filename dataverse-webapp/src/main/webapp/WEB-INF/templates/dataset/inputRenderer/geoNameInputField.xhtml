@@ -46,11 +46,11 @@
                 event="focus"  
                 update="geoNameDetails"/>
 
-        <p:column>
+        <p:column style="width: 12em;">
             <h:outputText value="#{suggestion.name}"/>
         </p:column>
         <p:column>
-            <h:outputText value="#{suggestion.details}"/>
+            <h:outputText value="#{suggestion.detailsHTML}" escape="false"/>
         </p:column>
     </p:autoComplete>
 

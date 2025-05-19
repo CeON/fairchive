@@ -1,10 +1,13 @@
 package edu.harvard.iq.dataverse.persistence.geonames;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+
+import org.apache.commons.lang3.StringUtils;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
@@ -153,26 +156,38 @@ public class GeoName implements JpaEntity<Integer> {
         this.fullText = fullText;
     }
 
-    public String getDetails(final String separator) {
+    public String getDetails(final String beginDecorator, final String endDecorator,
+            final String separator) {
         final StringBuilder result = new StringBuilder(80);
-        result.append(getStringFromBundle("geoname.id")).append(": ").append(this.id)
+        result.append(beginDecorator).append(getStringFromBundle("geoname.id"))
+                .append(endDecorator).append(": ").append(this.id)
                 .append(separator);
-        result.append(getStringFromBundle("geoname.name")).append(": ")
+        result.append(beginDecorator).append(getStringFromBundle("geoname.name"))
+                .append(endDecorator).append(": ")
                 .append(this.name).append(separator);
-        result.append(getStringFromBundle("geoname.hierarchy")).append(": ")
+        result.append(beginDecorator).append(getStringFromBundle("geoname.hierarchy"))
+                .append(endDecorator).append(": ")
                 .append(this.hierarchy).append(separator);
         if (isNotBlank(this.alternateNames)) {
-            result.append(getStringFromBundle("geoname.altnames")).append(": ")
+            result.append(beginDecorator)
+                    .append(getStringFromBundle("geoname.altnames"))
+                    .append(endDecorator).append(": ")
                     .append(this.alternateNames)
                     .append(separator);
         }
-        result.append(getStringFromBundle("geonames.featurecode")).append(": ")
+        result.append(beginDecorator)
+                .append(getStringFromBundle("geonames.featurecode"))
+                .append(endDecorator).append(": ")
                 .append(this.featureCode);
         return result.toString();
     }
 
     public String getDetails() {
-        return getDetails(" ");
+        return getDetails(EMPTY, EMPTY, " ");
+    }
+    
+    public String getDetailsHTML() {
+        return getDetails("<b>", "</b>", " ");
     }
     
     @Override

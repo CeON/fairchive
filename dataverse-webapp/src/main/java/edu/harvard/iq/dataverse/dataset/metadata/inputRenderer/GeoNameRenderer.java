@@ -63,7 +63,8 @@ public class GeoNameRenderer implements InputFieldRenderer {
     }
 
     public String getDetails() {
-        return this.selectedGeoName.map(gn -> gn.getDetails("<br/>")).orElse("");
+        return this.selectedGeoName.map(gn -> gn.getDetails("<b>", "</b>", "<br/>"))
+                .orElse("");
     }
 
     public Converter getConverter() {
