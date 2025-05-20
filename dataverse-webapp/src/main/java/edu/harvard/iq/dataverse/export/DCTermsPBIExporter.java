@@ -68,7 +68,7 @@ public class DCTermsPBIExporter implements Exporter {
     private void writeDocument(final DatasetVersion version,
             final XMLStreamWriter xmlw)
             throws ExportException, XMLStreamException {
-        xmlw.writeStartElement("metadata");
+        xmlw.writeStartElement("qdc:qualifieddc");
         xmlw.writeAttribute("xmlns:xsi", XSI_NAMESPACE);
         xmlw.writeAttribute("xmlns:qdc", QDC_NAMESPACE);
         xmlw.writeAttribute("xmlns:dc", DC_XML_NAMESPACE);
@@ -76,7 +76,6 @@ public class DCTermsPBIExporter implements Exporter {
         xmlw.writeDefaultNamespace(DCTERMS_DEFAULT_NAMESPACE);
         xmlw.writeAttribute("xsi:schemaLocation",
                 QDC_NAMESPACE + " " + QDC_SCHEMALOCATION);
-        xmlw.writeStartElement("qdc:qualifieddc");
 
         writeElement(xmlw, "dc:title", version.extractFieldValues(title).get(0));
         String tag = "dc:creator";
@@ -113,9 +112,7 @@ public class DCTermsPBIExporter implements Exporter {
                 version.getDataset().getPublicationDateFormattedYYYYMMDD());
 
         xmlw.writeEndElement();
-        xmlw.writeEndElement(); // <metadata> or <oai_dc:dc>
         xmlw.flush();
-
     }
     
     private static void writeElement(final XMLStreamWriter xmlw,
