@@ -26,22 +26,6 @@ public class GeoboxIndexUtil {
 
     // -------------------- LOGIC --------------------
 
-    public List<String> geoboxFieldToSolr(DatasetField field) {
-        Map<String, String> values = new HashMap<>();
-        for (DatasetField subfield : field.getDatasetFieldsChildren()) {
-             String label = (String) subfield.getDatasetFieldType().getMetadata("geoboxCoord");
-             values.put(label, subfield.getValue());
-        }
-        Rectangle rectangle = new Rectangle(
-                values.get(GeoboxFields.X1.fieldType()),
-                values.get(GeoboxFields.Y1.fieldType()),
-                values.get(GeoboxFields.X2.fieldType()),
-                values.get(GeoboxFields.Y2.fieldType()));
-        return rectangle.cutIfNeeded().stream()
-                .map(converter::toSolrPolygon)
-                .collect(Collectors.toList());
-    }
-
     public List<String> geoboxPolygonFieldToSolr(DatasetField field) {
         Optional<DatasetField> polygonGeo = field.getDatasetFieldsChildren().stream()
                 .filter(f -> DatasetFieldConstant.geographicCoordinates.equals(f.getTypeName())).findFirst();
