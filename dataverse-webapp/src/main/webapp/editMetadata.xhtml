@@ -81,7 +81,7 @@
                                                         aria-label="#{fieldsByType.datasetFieldType.allowMultiples ? datasetField.datasetFieldType.localeTitle.concat(' ').concat(valCount.index + 1) : ''}">
                                                 <ui:repeat id="subfields" value="#{datasetField.datasetFieldsChildren}" var="subdsf">
                                                     <c:set var="firstCompoundField" value="#{datasetField.datasetFieldsChildren[0]}"/>
-                                                    <ui:fragment rendered="#{inputRenderersByFieldType.get(subdsf.datasetFieldType).showOnCondition(firstCompoundField)}">
+                                                    <ui:fragment rendered="#{inputRenderersByFieldType.get(subdsf.datasetFieldType).showOnCondition(datasetField.datasetFieldsChildren)}">
                                                         <div class="form-col-container
                                                                 #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).renderInTwoColumns()) ? 'col-sm-6' : 'col-sm-12'}
                                                                 #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).isHidden()) ? 'form-hidden-col-container' : ''}">

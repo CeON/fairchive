@@ -3,6 +3,8 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 
+import java.util.List;
+
 /**
  * Interface that contains instructions on how
  * to render dataset fields while editing metadata on ui.
@@ -40,8 +42,8 @@ public interface InputFieldRenderer {
      * Returns true if input field does not produce
      * any visible content on page
      */
-    default boolean showOnCondition(DatasetField dsf) {
-        String s = dsf.getValue();
+    default boolean showOnCondition(List<DatasetField> dsf) {
+        //String s = dsf.getValue();
         return true;
     }
 }
