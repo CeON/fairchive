@@ -46,6 +46,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.dspace.xoai.model.oaipmh.OAIPMH.NAMESPACE_URI;
 import static org.dspace.xoai.model.oaipmh.OAIPMH.SCHEMA_LOCATION;
 import static org.dspace.xoai.xml.XmlWriter.defaultContext;
@@ -219,7 +220,9 @@ public class OAIServlet extends HttpServlet {
         // need to be configurable!
 
         String dataverseName = dataverseDao.findRootDataverse().getName();
-        String repositoryName = StringUtils.isEmpty(dataverseName) || "Root".equals(dataverseName) ? "Test Dataverse OAI Archive" : dataverseName + " Dataverse OAI Archive";
+        String repositoryName = isEmpty(dataverseName) || "Root".equals(dataverseName) 
+                ? "Test Dataverse OAI Archive" 
+                : dataverseName + " Dataverse OAI Archive";
         Date earliestDate = recordService.findEarliestDate();
 
         RepositoryConfiguration repositoryConfiguration = new RepositoryConfiguration()
@@ -233,9 +236,23 @@ public class OAIServlet extends HttpServlet {
                 .withMaxListIdentifiers(100)
                 .withMaxListRecords(100)
                 .withMaxListSets(100)
-                .withEarliestDate(earliestDate != null ? earliestDate : new Date());
+                .withEarliestDate(earliestDate != null ? earliestDate : new Date())
+                .withDescription(createDescription());
 
         return repositoryConfiguration;
+    }
+    
+    private String createDescription() {
+        return "<description>" 
+                + "<oai-identifier xmlns=\"http://www.openarchives.org/OAI/2.0/oai-identifier\">"
+                + "<scheme>oai</scheme>"
+                + "<repositoryIdentifier>"
+                + this.systemConfig.getDataverseServer()
+                + "</repositoryIdentifier>" 
+                + "<delimiter>:</delimiter>" 
+                + "<sampleIdentifier>oai:example.org:doi%3A10.18150%2FAB1CD2</sampleIdentifier>"
+                + "</oai-identifier>"
+                + "</description>";
     }
 
     private void processRequest(HttpServletRequest request, HttpServletResponse response)
