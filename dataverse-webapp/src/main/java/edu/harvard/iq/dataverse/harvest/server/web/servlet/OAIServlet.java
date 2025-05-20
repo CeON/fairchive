@@ -129,7 +129,7 @@ public class OAIServlet extends HttpServlet {
         }
 
         setRepository = new XsetRepository(setService);
-        itemRepository = new XitemRepository(recordService, datasetDao);
+        itemRepository = new XitemRepository(recordService, datasetDao, systemConfig);
 
         repositoryConfiguration = createRepositoryConfiguration();
 
