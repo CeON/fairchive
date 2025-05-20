@@ -13,10 +13,13 @@ function initDvJS() {
       [-85, -180], // Southwest corner (near Antarctica)
       [85, 180]    // Northeast corner (near the Arctic)
     ];
-    const INIT_MAP_OPTS = {
+    const READ_ONLY_INIT_MAP_OPTS = {
       center: [52.1145028, 19.4235611],
       zoom: 4,
       minZoom: 2,
+    }
+    const INIT_MAP_OPTS = {
+      ...READ_ONLY_INIT_MAP_OPTS,
       editable: true,
       bounds: bounds,
       maxBounds:  bounds, // Restrict view to these bounds
@@ -49,7 +52,7 @@ function initDvJS() {
 
     // Draw map with geobox rectangle (must be called only when the target div is visible!)
     function initializeMapInMetadataView(key, data) {
-      data.leafMap = L.map(key);
+      data.leafMap = L.map(key, READ_ONLY_INIT_MAP_OPTS);
       let leafMap = data.leafMap;
       leafMap.invalidateSize();
 

@@ -22,13 +22,7 @@ class GeoboxFillValidator implements FieldValidator {
         if (field.hasNonUniqueValue()) {
             return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("validation.nonunique"));
         }
-        List<? extends ValidatableField> allGeoboxFields = field.getParent()
-                .map(ValidatableField::getChildren)
-                .getOrElse(Collections.emptyList());
 
-        return allGeoboxFields.stream().allMatch(f -> StringUtils.isBlank(f.getSingleValue()))
-                || StringUtils.isNotBlank(field.getSingleValue())
-                ? FieldValidationResult.ok()
-                : FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.invalid.empty"));
+        return FieldValidationResult.ok();
     }
 }
