@@ -103,7 +103,7 @@ public class XitemRepositoryTest {
         assertThat(items.get(0).getIdentifier()).isEqualTo(record.getGlobalId());
 
         // swich setting
-        when(this.systemConfig.useNewPBIIdentifierScheme()).thenReturn(true);
+        when(this.systemConfig.useOAIStrictIdentifierScheme()).thenReturn(true);
         when(this.systemConfig.getDataverseServer()).thenReturn("test.pl");
 
         items = this.xitemRepository.getItems(emptyList(), 0, 1).getResults();
