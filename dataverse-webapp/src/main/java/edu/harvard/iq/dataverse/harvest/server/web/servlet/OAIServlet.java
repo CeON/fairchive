@@ -1,21 +1,30 @@
 package edu.harvard.iq.dataverse.harvest.server.web.servlet;
 
-import com.lyncode.xml.exceptions.XmlWriteException;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.export.ExportService;
-import edu.harvard.iq.dataverse.export.ExporterType;
-import edu.harvard.iq.dataverse.export.spi.Exporter;
-import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
-import edu.harvard.iq.dataverse.harvest.server.OAISetServiceBean;
-import edu.harvard.iq.dataverse.harvest.server.xoai.XdataProvider;
-import edu.harvard.iq.dataverse.harvest.server.xoai.XgetRecord;
-import edu.harvard.iq.dataverse.harvest.server.xoai.XitemRepository;
-import edu.harvard.iq.dataverse.harvest.server.xoai.XlistRecords;
-import edu.harvard.iq.dataverse.harvest.server.xoai.XsetRepository;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang.StringUtils;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OAIServerEnabled;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SystemEmail;
+import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.dspace.xoai.dataprovider.model.MetadataFormat.metadataFormat;
+import static org.dspace.xoai.model.oaipmh.OAIPMH.NAMESPACE_URI;
+import static org.dspace.xoai.model.oaipmh.OAIPMH.SCHEMA_LOCATION;
+import static org.dspace.xoai.model.oaipmh.Verb.Type.GetRecord;
+import static org.dspace.xoai.model.oaipmh.Verb.Type.ListRecords;
+import static org.dspace.xoai.xml.XmlWriter.defaultContext;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.logging.Logger;
+
+import javax.inject.Inject;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamException;
+
 import org.dspace.xoai.dataprovider.builder.OAIRequestParametersBuilder;
 import org.dspace.xoai.dataprovider.exceptions.OAIException;
 import org.dspace.xoai.dataprovider.model.Context;
@@ -32,23 +41,21 @@ import org.dspace.xoai.services.impl.SimpleResumptionTokenFormat;
 import org.dspace.xoai.xml.XSISchema;
 import org.dspace.xoai.xml.XmlWriter;
 
-import javax.inject.Inject;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.Map;
-import java.util.logging.Logger;
+import com.lyncode.xml.exceptions.XmlWriteException;
 
-import static org.dspace.xoai.model.oaipmh.OAIPMH.NAMESPACE_URI;
-import static org.dspace.xoai.model.oaipmh.OAIPMH.SCHEMA_LOCATION;
-import static org.dspace.xoai.xml.XmlWriter.defaultContext;
+import edu.harvard.iq.dataverse.DatasetDao;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.export.ExportService;
+import edu.harvard.iq.dataverse.export.spi.Exporter;
+import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
+import edu.harvard.iq.dataverse.harvest.server.OAISetServiceBean;
+import edu.harvard.iq.dataverse.harvest.server.xoai.XdataProvider;
+import edu.harvard.iq.dataverse.harvest.server.xoai.XgetRecord;
+import edu.harvard.iq.dataverse.harvest.server.xoai.XitemRepository;
+import edu.harvard.iq.dataverse.harvest.server.xoai.XlistRecords;
+import edu.harvard.iq.dataverse.harvest.server.xoai.XsetRepository;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 /**
  * @author Leonid Andreev
@@ -129,7 +136,7 @@ public class OAIServlet extends HttpServlet {
         }
 
         setRepository = new XsetRepository(setService);
-        itemRepository = new XitemRepository(recordService, datasetDao);
+        itemRepository = new XitemRepository(recordService, datasetDao, systemConfig);
 
         repositoryConfiguration = createRepositoryConfiguration();
 
@@ -175,7 +182,7 @@ public class OAIServlet extends HttpServlet {
     }
 
     public boolean isHarvestingServerEnabled() {
-        return settingsService.isTrueForKey(SettingsServiceBean.Key.OAIServerEnabled);
+        return settingsService.isTrueForKey(OAIServerEnabled);
     }
 
     // -------------------- PRIVATE --------------------
@@ -191,8 +198,9 @@ public class OAIServlet extends HttpServlet {
             if (!exporter.isXMLFormat() || !exporter.isHarvestable()) {
                 continue;
             }
-            MetadataFormat metadataFormat = MetadataFormat.metadataFormat(exporter.getProviderName());
-            if (exporter.getXMLNameSpace().isEmpty() && exporter.getXMLSchemaLocation().isEmpty()) {
+            MetadataFormat metadataFormat = metadataFormat(exporter.getProviderName());
+            if (exporter.getXMLNameSpace().isEmpty() 
+                    && exporter.getXMLSchemaLocation().isEmpty()) {
                 continue;
             }
             metadataFormat.withNamespace(exporter.getXMLNameSpace());
@@ -219,7 +227,9 @@ public class OAIServlet extends HttpServlet {
         // need to be configurable!
 
         String dataverseName = dataverseDao.findRootDataverse().getName();
-        String repositoryName = StringUtils.isEmpty(dataverseName) || "Root".equals(dataverseName) ? "Test Dataverse OAI Archive" : dataverseName + " Dataverse OAI Archive";
+        String repositoryName = isEmpty(dataverseName) || "Root".equals(dataverseName) 
+                ? "Test Dataverse OAI Archive" 
+                : dataverseName + " Dataverse OAI Archive";
         Date earliestDate = recordService.findEarliestDate();
 
         RepositoryConfiguration repositoryConfiguration = new RepositoryConfiguration()
@@ -227,15 +237,31 @@ public class OAIServlet extends HttpServlet {
                 .withBaseUrl(systemConfig.getDataverseSiteUrl() + "/oai")
                 .withCompression("gzip")        // ?
                 .withCompression("deflate")     // ?
-                .withAdminEmail(settingsService.getValueForKey(SettingsServiceBean.Key.SystemEmail))
+                .withAdminEmail(settingsService.getValueForKey(SystemEmail))
                 .withDeleteMethod(DeletedRecord.TRANSIENT)
                 .withGranularity(Granularity.Second)
                 .withMaxListIdentifiers(100)
                 .withMaxListRecords(100)
                 .withMaxListSets(100)
-                .withEarliestDate(earliestDate != null ? earliestDate : new Date());
+                .withEarliestDate(earliestDate != null ? earliestDate : new Date())
+                .withDescription(createDescription());
 
         return repositoryConfiguration;
+    }
+    
+    private String createDescription() {
+        return "<description>" 
+                + "<oai-identifier xmlns=\"http://www.openarchives.org/OAI/2.0/oai-identifier\">"
+                + "<scheme>oai</scheme>"
+                + "<repositoryIdentifier>"
+                + this.systemConfig.getDataverseServer()
+                + "</repositoryIdentifier>" 
+                + "<delimiter>:</delimiter>" 
+                + "<sampleIdentifier>oai:"
+                + this.systemConfig.getDataverseServer() 
+                +":doi%3A10.18150%2FAB1CD2</sampleIdentifier>"
+                + "</oai-identifier>"
+                + "</description>";
     }
 
     private void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -243,8 +269,7 @@ public class OAIServlet extends HttpServlet {
 
         try {
             if (!isHarvestingServerEnabled()) {
-                response.sendError(
-                        HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+                response.sendError(SC_SERVICE_UNAVAILABLE,
                         "Sorry. OAI Service is disabled on this Dataverse node.");
                 return;
             }
@@ -300,14 +325,15 @@ public class OAIServlet extends HttpServlet {
             throw new IOException("An error or a valid response must be set");
         }
 
-        if (!verb.getType().equals(Verb.Type.ListRecords)) {
+        if (!verb.getType().equals(ListRecords)) {
             throw new IOException("writeListRecords() called on a non-ListRecords verb");
         }
 
         outputStream.write(("<" + verb.getType().displayName() + ">").getBytes());
         outputStream.flush();
 
-        ((XlistRecords) verb).writeToStream(outputStream, exportService, systemConfig.getDataverseSiteUrl());
+        ((XlistRecords) verb).writeToStream(outputStream, exportService, 
+                systemConfig.getDataverseSiteUrl());
 
         outputStream.write(("</" + verb.getType().displayName() + ">").getBytes());
         outputStream.write(("</" + OAI_PMH + ">\n").getBytes());
@@ -326,14 +352,15 @@ public class OAIServlet extends HttpServlet {
             throw new IOException("An error or a valid response must be set");
         }
 
-        if (!verb.getType().equals(Verb.Type.GetRecord)) {
+        if (!verb.getType().equals(GetRecord)) {
             throw new IOException("writeListRecords() called on a non-GetRecord verb");
         }
 
         outputStream.write(("<" + verb.getType().displayName() + ">").getBytes());
         outputStream.flush();
 
-        ((XgetRecord) verb).writeToStream(outputStream, exportService, systemConfig.getDataverseSiteUrl());
+        ((XgetRecord) verb).writeToStream(outputStream, exportService, 
+                systemConfig.getDataverseSiteUrl());
 
         outputStream.write(("</" + verb.getType().displayName() + ">").getBytes());
         outputStream.write(("</" + OAI_PMH + ">\n").getBytes());

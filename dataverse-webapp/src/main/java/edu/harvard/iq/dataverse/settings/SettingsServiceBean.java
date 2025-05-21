@@ -766,8 +766,17 @@ public class SettingsServiceBean {
          * Default value: empty.
          */
         CustomSearchLocationsSolrFields,
-        
-        MaxResultsCountSavedToFile;
+        /**
+         * Specifies maximum number of search results axported to CSV file
+         */
+        MaxResultsCountSavedToFile,
+        /**
+         * If true, OAI-PMH exporters will use identifier scheme specified in 
+         * https://www.openarchives.org/OAI/openarchivesprotocol.html#UniqueIdentifier
+         * https://www.openarchives.org/OAI/2.0/guidelines-oai-identifier.htm.
+         * eg (oai:www.wbc.poznan.pl:568432).
+         */
+        UseOAIStrictIdentifierScheme;
 
 
 
