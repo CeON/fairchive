@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
 import static edu.harvard.iq.dataverse.persistence.dataset.InputRendererType.GEONAME;
 import static java.lang.Integer.parseInt;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +11,8 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.event.ValueChangeEvent;
+
+import org.apache.commons.lang3.StringUtils;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
@@ -73,8 +76,12 @@ public class GeoNameRenderer implements InputFieldRenderer {
 
     public void processValueChange(final ValueChangeEvent event) {
         if (event.getNewValue() != null) {
-            final int id = parseInt(event.getNewValue().toString());
-            this.selectedGeoName = geoNameRepo.findById(id);
+            try {
+                final int id = parseInt(event.getNewValue().toString());
+                this.selectedGeoName = geoNameRepo.findById(id);
+            } catch (final NumberFormatException e) {
+                this.selectedGeoName = Optional.empty();
+            }
         }
     }
 
@@ -91,9 +98,14 @@ public class GeoNameRenderer implements InputFieldRenderer {
         public String getAsString(final FacesContext context,
                 final UIComponent component,
                 final Object value) { 
-            final int id = parseInt(value.toString());
-            selectedGeoName = geoNameRepo.findById(id);
-            return value.toString();
+            try {
+                final int id = parseInt(value.toString());
+                selectedGeoName = geoNameRepo.findById(id);
+                return value.toString();
+            } catch (final NumberFormatException e) {
+                selectedGeoName = Optional.empty();
+                return EMPTY;
+            }
         }
     }
-}
+} 

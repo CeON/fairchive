@@ -7,7 +7,7 @@
 	artefact	Artefact/Ecofact	The kind of artifact or ecofact covered by this dataset, and information about the raw material from which it was made (if applicable).		none	3		FALSE	FALSE	TRUE	FALSE	TRUE	FALSE		TEXT	{}	archeoAriadne		[]		TRUE
 	artefactKind	Kind	Select the kind of artifact or ecofact.		text	4	#NAME: #VALUE	TRUE	TRUE	FALSE	TRUE	TRUE	FALSE	artefact	VOCABULARY_SELECT	{}	archeoAriadne		[{"name":"standard_input"}]		TRUE
 	artefactRawMaterial	Raw Material	Choose the material of the artifact or ecofact.		text	5	 – #NAME: #VALUE	TRUE	TRUE	FALSE	TRUE	TRUE	FALSE	artefact	VOCABULARY_SELECT	{}	archeoAriadne		[{"name":"standard_input"}]		TRUE
-	geoname	Geographic name (GeoName Vocabulary)	Geographic name (GeoName Vocabulary)	Geographic name	GEONAME	6	#VALUE	TRUE	FALSE	FALSE	TRUE	TRUE	FALSE		GEONAME	{}	archeoAriadne		[{"name":"standard_input"}]		TRUE
+	geoname	Geographic name (GeoName Vocabulary)	Geographic name (GeoName Vocabulary)	Geographic name	GEONAME	6	#VALUE	TRUE	FALSE	FALSE	TRUE	TRUE	FALSE		GEONAME	{}	archeoAriadne		[{"name":"standard_number"}]		TRUE
 #controlledVocabulary	DatasetField	Value	identifier	displayOrder
 	ariadneSubject	Site/monument		0
 	ariadneSubject	Fieldwork		1
