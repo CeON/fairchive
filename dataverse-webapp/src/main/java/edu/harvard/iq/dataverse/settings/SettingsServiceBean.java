@@ -776,7 +776,7 @@ public class SettingsServiceBean {
          * https://www.openarchives.org/OAI/2.0/guidelines-oai-identifier.htm.
          * eg (oai:www.wbc.poznan.pl:568432).
          */
-        UseNewPBIIdentifierScheme;
+        UseOAIStrictIdentifierScheme;
 
 
 

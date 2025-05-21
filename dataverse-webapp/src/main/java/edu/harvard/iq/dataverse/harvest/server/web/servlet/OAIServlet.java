@@ -257,7 +257,9 @@ public class OAIServlet extends HttpServlet {
                 + this.systemConfig.getDataverseServer()
                 + "</repositoryIdentifier>" 
                 + "<delimiter>:</delimiter>" 
-                + "<sampleIdentifier>oai:example.org:doi%3A10.18150%2FAB1CD2</sampleIdentifier>"
+                + "<sampleIdentifier>oai:"
+                + this.systemConfig.getDataverseServer() 
+                +":doi%3A10.18150%2FAB1CD2</sampleIdentifier>"
                 + "</oai-identifier>"
                 + "</description>";
     }

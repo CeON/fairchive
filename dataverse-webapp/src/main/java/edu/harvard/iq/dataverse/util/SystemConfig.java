@@ -16,7 +16,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UseNewPBIIdentifierScheme;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UseOAIStrictIdentifierScheme;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -123,8 +123,8 @@ public class SystemConfig {
         return appVersion;
     }
     
-    public boolean useNewPBIIdentifierScheme() {
-        return this.settingsService.isTrueForKey(UseNewPBIIdentifierScheme);
+    public boolean useOAIStrictIdentifierScheme() {
+        return this.settingsService.isTrueForKey(UseOAIStrictIdentifierScheme);
     }
 
     public int getMinutesUntilPasswordResetTokenExpires() {

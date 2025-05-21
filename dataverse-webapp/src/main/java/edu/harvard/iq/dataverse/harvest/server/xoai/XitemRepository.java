@@ -51,6 +51,7 @@ public class XitemRepository implements ItemRepository {
     @Override
     public Item getItem(String identifier) throws IdDoesNotExistException, OAIException {
         logger.fine("getItem; calling findOaiRecordsByGlobalId, identifier " + identifier);
+        identifier = parseIdetifier(identifier);
         List<OAIRecord> oaiRecords = recordService.findOaiRecordsByGlobalId(identifier);
         if (oaiRecords.isEmpty()) {
             throw new IdDoesNotExistException();
@@ -68,7 +69,7 @@ public class XitemRepository implements ItemRepository {
                 .map(OAIRecord::getLastUpdateTime)
                 .orElse(oaiRecords.get(0).getLastUpdateTime());
 
-        Xitem xoaiItem = new Xitem(identifier, lastUpdateTimestamp, removed)
+        Xitem xoaiItem = new Xitem(prepareId(identifier), lastUpdateTimestamp, removed)
                 .withDataset(dataset);
 
         oaiRecords.forEach(record -> xoaiItem.addSet(record.getSetName()));
@@ -123,7 +124,7 @@ public class XitemRepository implements ItemRepository {
         }
         for (int i = offset; i < offset + length && i < oaiRecords.size(); i++) {
             OAIRecord record = oaiRecords.get(i);
-            Xitem xItem = new Xitem(record.getGlobalId(), record.getLastUpdateTime(), record.isRemoved());
+            Xitem xItem = new Xitem(getIdOf(record), record.getLastUpdateTime(), record.isRemoved());
             xoaiItems.add(xItem);
         }
 
@@ -206,11 +207,25 @@ public class XitemRepository implements ItemRepository {
     // -------------------- PRIATE --------------------
     
     private String getIdOf(final OAIRecord record) {
-        if (this.systemConfig.useNewPBIIdentifierScheme()) {
+        return prepareId(record.getGlobalId());
+    }
+    
+    private String prepareId(final String id) {
+        if (this.systemConfig.useOAIStrictIdentifierScheme()) {
             return "oai:" + this.systemConfig.getDataverseServer() + ':'
-                    + URLEncoder.encode(record.getGlobalId());
+                    + URLEncoder.encode(id);
         } else {
-            return record.getGlobalId();
+            return id;
+        }
+    }
+    
+    private String parseIdetifier(String id) {
+        if (id.startsWith("oai:")) {
+            id = id.substring(4);
+            final int index = id.indexOf(':');
+            return id.substring(index + 1);
+        } else {
+            return id;
         }
     }
 
