@@ -2,6 +2,8 @@ package edu.harvard.iq.dataverse.search.index;
 
 import static edu.harvard.iq.dataverse.search.SearchConstants.PUBLIC;
 import static edu.harvard.iq.dataverse.search.SearchConstants.RESTRICTED;
+import static edu.harvard.iq.dataverse.search.SearchFields.GEONAME_ID;
+import static edu.harvard.iq.dataverse.search.SearchFields.GEONAME_NAME;
 import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_AUTHORITY_TITLE;
 import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_COVERAGE_NAME;
 import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_ID;
@@ -16,7 +18,6 @@ import java.io.InputStream;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Year;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -81,6 +82,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
+import edu.harvard.iq.dataverse.persistence.geonames.GeoNameRepository;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.search.SearchException;
 import edu.harvard.iq.dataverse.search.SearchFields;
@@ -118,6 +120,7 @@ public class IndexServiceBean {
     private SettingsServiceBean settingsService;
     private SolrClient solrServer;
     private CitationFactory citationFactory;
+    private GeoNameRepository geoNameRepo;
 
     private DataAccess dataAccess = DataAccess.dataAccess();
     private GeoboxIndexUtil geoboxIndexUtil = new GeoboxIndexUtil();
@@ -131,7 +134,7 @@ public class IndexServiceBean {
                             DatasetDao datasetDao, SystemConfig systemConfig,
                             SolrIndexServiceBean solrIndexService, DatasetLinkingServiceBean dsLinkingService,
                             DataverseLinkingService dvLinkingService, SettingsServiceBean settingsService,
-                            SolrClient solrServer, CitationFactory citationFactory) {
+                            SolrClient solrServer, CitationFactory citationFactory, GeoNameRepository geoNameRepo) {
         this.dvObjectService = dvObjectService;
         this.dataverseDao = dataverseDao;
         this.datasetDao = datasetDao;
@@ -142,6 +145,7 @@ public class IndexServiceBean {
         this.settingsService = settingsService;
         this.solrServer = solrServer;
         this.citationFactory = citationFactory;
+        this.geoNameRepo = geoNameRepo;
     }
 
     // -------------------- LOGIC --------------------
@@ -915,6 +919,12 @@ public class IndexServiceBean {
                                 solrInputDocument.addField(PERIODO_AUTHORITY_TITLE, period.getAuthorityTitle());
                                 solrInputDocument.addField(PERIODO_COVERAGE_NAME, period.getCoverageName());
                                 solrInputDocument.addField(PERIODO_LOCATIONS, period.getLocations());
+                            });
+                        } else if (FieldType.GEONAME.equals(dsfType.getFieldType())) {
+                            final String id = dsf.getValue();
+                            solrInputDocument.addField(GEONAME_ID, id);
+                            this.geoNameRepo.findById(Integer.parseInt(id)).ifPresent(gn -> {
+                                solrInputDocument.addField(GEONAME_NAME, gn.getName());
                             });
                         } else {
                             // do not strip HTML
