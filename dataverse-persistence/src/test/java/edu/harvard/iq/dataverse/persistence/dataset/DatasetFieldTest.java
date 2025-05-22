@@ -95,4 +95,36 @@ public class DatasetFieldTest {
         // when & then
         assertFalse(field.getParentDisplayFormatIsNewLine());
     }
+
+    @Test
+    public void clearValue__controlledVocabDatasetField() {
+        // given
+        DatasetField field = new DatasetField();
+        field.setDatasetFieldType(MocksFactory.makeControlledVocabDatasetFieldType("test",
+                false,
+                new MetadataBlock(),
+                "testValue"));
+
+        // when
+        field.clearValue();
+
+        // then
+        assertTrue(field.getControlledVocabularyValues().isEmpty());
+    }
+
+    @Test
+    public void clearValue__textDatasetField() {
+        // given
+        DatasetFieldType fieldType = MocksFactory.makeDatasetFieldType("text_field",
+                FieldType.TEXT,
+                false,
+                new MetadataBlock());
+        DatasetField field = MocksFactory.makeEmptyDatasetField(fieldType, 1);
+
+        // when
+        field.clearValue();
+
+        // then
+        assertTrue(field.getFieldValue().isEmpty());
+    }
 }

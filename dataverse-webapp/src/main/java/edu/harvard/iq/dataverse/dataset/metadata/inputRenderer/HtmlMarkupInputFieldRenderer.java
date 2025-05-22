@@ -1,8 +1,19 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 
+import java.util.List;
+
 public class HtmlMarkupInputFieldRenderer implements InputFieldRenderer {
+
+    private final ConditionalRendering conditionalRendering;
+
+    // -------------------- CONSTRUCTORS --------------------
+
+    public HtmlMarkupInputFieldRenderer(ConditionalRendering conditionalRendering) {
+        this.conditionalRendering = conditionalRendering;
+    }
 
     // -------------------- GETTERS --------------------
     
@@ -34,6 +45,11 @@ public class HtmlMarkupInputFieldRenderer implements InputFieldRenderer {
     @Override
     public boolean isHidden() {
         return false;
+    }
+
+    @Override
+    public boolean showOnCondition(List<DatasetField> subfields) {
+        return ConditionalRenderingHelper.shouldRender(subfields, this.conditionalRendering);
     }
 
 }

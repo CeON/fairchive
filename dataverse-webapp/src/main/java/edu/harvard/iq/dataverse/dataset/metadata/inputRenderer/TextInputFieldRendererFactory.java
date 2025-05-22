@@ -54,7 +54,7 @@ public class TextInputFieldRendererFactory implements InputFieldRendererFactory<
             return createRendererWithActionHandler(rendererOptions);
         }
 
-        return new TextInputFieldRenderer(rendererOptions.isRenderInTwoColumns());
+        return new TextInputFieldRenderer(rendererOptions.isRenderInTwoColumns(), rendererOptions.getConditionalRendering());
     }
 
     // -------------------- PRIVATE --------------------
@@ -66,7 +66,7 @@ public class TextInputFieldRendererFactory implements InputFieldRendererFactory<
             throw new InputRendererInvalidConfigException("Action handler with name: " + options.getButtonActionHandler() + " doesn't exist.");
         }
         
-        return new TextInputFieldRenderer(options.isRenderInTwoColumns(), actionHandler, options.getButtonActionTextKey(), options.getActionForOperations());
+        return new TextInputFieldRenderer(options.isRenderInTwoColumns(), actionHandler, options.getButtonActionTextKey(), options.getActionForOperations(), options.getConditionalRendering());
     }
     
     // -------------------- INNER CLASSES --------------------
@@ -79,6 +79,7 @@ public class TextInputFieldRendererFactory implements InputFieldRendererFactory<
         private String buttonActionHandler;
         private String buttonActionTextKey;
         private List<MetadataOperationSource> actionForOperations;
+        private ConditionalRendering conditionalRendering;
 
         
         // -------------------- GETTERS --------------------
@@ -95,6 +96,9 @@ public class TextInputFieldRendererFactory implements InputFieldRendererFactory<
         public List<MetadataOperationSource> getActionForOperations() {
             return actionForOperations;
         }
+        public ConditionalRendering getConditionalRendering() {
+            return conditionalRendering;
+        }
         // -------------------- SETTERS --------------------
         
         public void setRenderInTwoColumns(boolean renderInTwoColumns) {
@@ -108,6 +112,9 @@ public class TextInputFieldRendererFactory implements InputFieldRendererFactory<
         }
         public void setActionForOperations(List<MetadataOperationSource> actionForOperations) {
             this.actionForOperations = actionForOperations;
+        }
+        public void setConditionalRendering(ConditionalRendering conditionalRendering) {
+            this.conditionalRendering = conditionalRendering;
         }
     }
 }

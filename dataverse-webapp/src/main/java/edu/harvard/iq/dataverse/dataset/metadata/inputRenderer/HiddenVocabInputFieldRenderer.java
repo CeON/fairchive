@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 
 import java.util.ArrayList;
@@ -46,6 +47,11 @@ public class HiddenVocabInputFieldRenderer implements InputFieldRenderer {
     @Override
     public boolean isHidden() {
         return true;
+    }
+
+    @Override
+    public boolean showOnCondition(List<DatasetField> dsf) {
+        return false;
     }
 
     /**

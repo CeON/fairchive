@@ -41,7 +41,8 @@ class SuggestionInputFieldRendererTest {
         suggestionInputFieldRenderer = new SuggestionInputFieldRenderer(suggestionHandler,
                 new HashMap<>(),
                 SuggestionDisplayType.SIMPLE,
-                "fieldTypeName", "blockName");
+                "fieldTypeName", "blockName",
+                new ConditionalRendering("test", "test"));
         DatasetField datasetField = new DatasetField();
         String testQuery = "testQuery";
         ArrayList<Suggestion> suggestionsFromHandler = Lists.newArrayList(
@@ -66,7 +67,8 @@ class SuggestionInputFieldRendererTest {
         suggestionInputFieldRenderer = new SuggestionInputFieldRenderer(suggestionHandler,
                 ImmutableMap.of(dsftName, suggestionFilterName),
                 SuggestionDisplayType.SIMPLE,
-                "fieldTypeName", "blockName");
+                "fieldTypeName", "blockName",
+                new ConditionalRendering("test", "test"));
 
         DatasetField datasetField = generateDsfFamily(dsftName, "testValue");
         ArrayList<Suggestion> suggestionsFromHandler = Lists.newArrayList(
