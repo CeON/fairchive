@@ -1,9 +1,57 @@
 package edu.harvard.iq.dataverse.search;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.search.SearchFields.DATASET_CITATION;
+import static edu.harvard.iq.dataverse.search.SearchFields.DATASET_PERSISTENT_ID;
+import static edu.harvard.iq.dataverse.search.SearchFields.DATASET_PUBLICATION_DATE;
+import static edu.harvard.iq.dataverse.search.SearchFields.DATAVERSE_AFFILIATION;
+import static edu.harvard.iq.dataverse.search.SearchFields.DATAVERSE_ALIAS;
+import static edu.harvard.iq.dataverse.search.SearchFields.DATAVERSE_DESCRIPTION;
+import static edu.harvard.iq.dataverse.search.SearchFields.DATAVERSE_NAME;
+import static edu.harvard.iq.dataverse.search.SearchFields.DATAVERSE_SUBJECT;
+import static edu.harvard.iq.dataverse.search.SearchFields.FILE_DESCRIPTION;
+import static edu.harvard.iq.dataverse.search.SearchFields.FILE_EXTENSION;
+import static edu.harvard.iq.dataverse.search.SearchFields.FILE_NAME;
+import static edu.harvard.iq.dataverse.search.SearchFields.FILE_PERSISTENT_ID;
+import static edu.harvard.iq.dataverse.search.SearchFields.LICENSE;
+import static edu.harvard.iq.dataverse.search.SearchFields.VARIABLE_LABEL;
+import static edu.harvard.iq.dataverse.search.SearchFields.VARIABLE_NAME;
+import static edu.harvard.iq.dataverse.validation.field.ValidationDescriptor.CONTEXT_PARAM;
+import static edu.harvard.iq.dataverse.validation.field.ValidationDescriptor.SEARCH_CONTEXT;
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.logging.Level.WARNING;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.IntStream;
+
+import javax.annotation.PostConstruct;
+import javax.faces.model.SelectItem;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.lang3.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.WidgetWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.license.TermsOfUseSelectItemsFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.license.License;
@@ -24,37 +72,15 @@ import edu.harvard.iq.dataverse.search.advanced.query.QueryWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.validation.SearchFormValidationService;
 import edu.harvard.iq.dataverse.validation.ValidationEnhancer;
-import edu.harvard.iq.dataverse.validation.field.ValidationDescriptor;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import edu.harvard.iq.dataverse.validation.field.validators.DateRangeValidator;
 import io.vavr.Tuple;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.annotation.PostConstruct;
-import javax.faces.model.SelectItem;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * Page class responsible for showing search fields for Metadata blocks, files/dataverses blocks
  * and redirecting to search results.
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("AdvancedSearchPage")
 public class AdvancedSearchPage implements Serializable {
@@ -87,8 +113,10 @@ public class AdvancedSearchPage implements Serializable {
     @Inject
     public AdvancedSearchPage(DataverseDao dataverseDao, DatasetFieldServiceBean datasetFieldService,
                               WidgetWrapper widgetWrapper, QueryWrapperCreator queryWrapperCreator,
-                              TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory, SearchFormValidationService validationService,
-                              SearchFieldFactory searchFieldFactory, LicenseRepository licenseRepository) {
+                              TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory, 
+                              SearchFormValidationService validationService,
+                              SearchFieldFactory searchFieldFactory, 
+                              LicenseRepository licenseRepository) {
         this.dataverseDao = dataverseDao;
         this.datasetFieldService = datasetFieldService;
         this.widgetWrapper = widgetWrapper;
@@ -117,7 +145,7 @@ public class AdvancedSearchPage implements Serializable {
         List<FieldValidationResult> fieldValidationResults
                 = validationService.validateSearchForm(searchFieldIndex, nonSearchFieldIndex);
         if (!fieldValidationResults.isEmpty()) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("advanced.search.validation"), StringUtils.EMPTY);
+            JsfHelper.addErrorMessage(getStringFromBundle("advanced.search.validation"), EMPTY);
             return StringUtils.EMPTY;
         }
 
@@ -145,16 +173,18 @@ public class AdvancedSearchPage implements Serializable {
                 .collect(toList());
         Map<Long, List<DatasetFieldType>> metadataFieldListByBlock
                 = datasetFieldService.findAllAdvancedSearchFieldTypesByMetadataBlockIds(metadataBlockIds).stream()
-                .collect(Collectors.groupingBy(f -> f.getMetadataBlock().getId()));
+                .collect(groupingBy(f -> f.getMetadataBlock().getId()));
         for (MetadataBlock block : metadataBlocks) {
             List<SearchField> searchFields
-                    = metadataFieldListByBlock.getOrDefault(block.getId(), Collections.emptyList()).stream()
+                    = metadataFieldListByBlock.getOrDefault(block.getId(), emptyList())
+                    .stream()
                     .map(searchFieldFactory::create)
                     .filter(f -> !SearchField.EMPTY.equals(f))
                     .collect(toList());
             searchFieldIndex.putAll(searchFields.stream()
-                    .collect(Collectors.toMap(SearchField::getName, f -> f, (prev, next) -> next)));
-            metadataSearchBlocks.add(new SearchBlock(block.getName(), block.getLocaleDisplayName(), searchFields));
+                    .collect(toMap(SearchField::getName, f -> f, (prev, next) -> next)));
+            metadataSearchBlocks.add(new SearchBlock(block.getName(), 
+                    block.getLocaleDisplayName(), searchFields));
         }
         addExtraFieldsToCitationMetadataBlock();
     }
@@ -177,7 +207,8 @@ public class AdvancedSearchPage implements Serializable {
             SearchField parentField = searchFieldIndex.get(parentKey);
             parentField = parentField == null ? nonSearchFieldIndex.get(parentKey) : parentField;
             if (parentField == null) {
-                parentField = new GroupingSearchField(parentKey, parentType.getDisplayName(), parentType.getDescription(),
+                parentField = new GroupingSearchField(parentKey, 
+                        parentType.getDisplayName(), parentType.getDescription(),
                         null, parentType);
                 parentField.setDisplayId(parentKey + "_" + (i++));
                 nonSearchFieldIndex.put(parentKey, parentField);
@@ -189,21 +220,24 @@ public class AdvancedSearchPage implements Serializable {
 
     private void createDataversesAndFilesBlocks() {
         dataversesSearchBlock = new SearchBlock("dataverses",
-                BundleUtil.getStringFromBundle("advanced.search.header.dataverses"), constructDataversesSearchFields());
+                getStringFromBundle("advanced.search.header.dataverses"), 
+                constructDataversesSearchFields());
         filesSearchBlock = new SearchBlock("files",
-                BundleUtil.getStringFromBundle("advanced.search.header.files"), constructFilesSearchFields());
+                getStringFromBundle("advanced.search.header.files"), 
+                constructFilesSearchFields());
     }
 
     private void addExtraFieldsToCitationMetadataBlock() {
         for (SearchBlock b : metadataSearchBlocks) {
-            if (SearchFields.DATASET_CITATION.equals(b.getBlockName())) {
+            if (DATASET_CITATION.equals(b.getBlockName())) {
                 ValidationEnhancer enhancer = new ValidationEnhancer();
-                TextSearchField persistentIdField = textFieldFromBundle(SearchFields.DATASET_PERSISTENT_ID, "dataset.metadata.persistentId", "dataset.metadata.persistentId.tip");
-                DatasetFieldType publicationDateType = enhancer.createDatasetFieldType(SearchFields.DATASET_PUBLICATION_DATE,
-                        BundleUtil.getStringFromBundle("dataset.metadata.publicationYear"),
-                        BundleUtil.getStringFromBundle("dataset.metadata.publicationYear.tip"),
+                TextSearchField persistentIdField = textFieldFromBundle(DATASET_PERSISTENT_ID, 
+                        "dataset.metadata.persistentId", "dataset.metadata.persistentId.tip");
+                DatasetFieldType publicationDateType = enhancer.createDatasetFieldType(DATASET_PUBLICATION_DATE,
+                        getStringFromBundle("dataset.metadata.publicationYear"),
+                        getStringFromBundle("dataset.metadata.publicationYear.tip"),
                         enhancer.createValidation(new DateRangeValidator(),
-                                Collections.singletonMap(ValidationDescriptor.CONTEXT_PARAM, Collections.singletonList(ValidationDescriptor.SEARCH_CONTEXT))));
+                                singletonMap(CONTEXT_PARAM, singletonList(SEARCH_CONTEXT))));
                 DateSearchField publicationDateField = new DateSearchField(publicationDateType);
                 b.addSearchField(persistentIdField);
                 b.addSearchField(publicationDateField);
@@ -217,21 +251,28 @@ public class AdvancedSearchPage implements Serializable {
     private List<SearchField> constructFilesSearchFields() {
         List<SearchField> fields = new ArrayList<>();
 
-        fields.add(textFieldFromBundle(SearchFields.FILE_NAME, "name", "advanced.search.files.name.tip"));
-        fields.add(textFieldFromBundle(SearchFields.FILE_DESCRIPTION, "description", "advanced.search.files.description.tip"));
-        fields.add(textFieldFromBundle(SearchFields.FILE_EXTENSION, "advanced.search.files.fileExtension", "advanced.search.files.fileExtension.tip"));
-        fields.add(textFieldFromBundle(SearchFields.FILE_PERSISTENT_ID, "advanced.search.files.persistentId", "advanced.search.files.persistentId.tip"));
-        fields.add(textFieldFromBundle(SearchFields.VARIABLE_NAME, "advanced.search.files.variableName", "advanced.search.files.variableName.tip"));
-        fields.add(textFieldFromBundle(SearchFields.VARIABLE_LABEL, "advanced.search.files.variableLabel", "advanced.search.files.variableLabel.tip"));
+        fields.add(textFieldFromBundle(FILE_NAME, "name", 
+                "advanced.search.files.name.tip"));
+        fields.add(textFieldFromBundle(FILE_DESCRIPTION, 
+                "description", "advanced.search.files.description.tip"));
+        fields.add(textFieldFromBundle(FILE_EXTENSION, 
+                "advanced.search.files.fileExtension", "advanced.search.files.fileExtension.tip"));
+        fields.add(textFieldFromBundle(FILE_PERSISTENT_ID, 
+                "advanced.search.files.persistentId", "advanced.search.files.persistentId.tip"));
+        fields.add(textFieldFromBundle(VARIABLE_NAME, 
+                "advanced.search.files.variableName", "advanced.search.files.variableName.tip"));
+        fields.add(textFieldFromBundle(VARIABLE_LABEL, 
+                "advanced.search.files.variableLabel", "advanced.search.files.variableLabel.tip"));
 
         Map<Long, String> licenseNames = licenseRepository.findAll().stream()
-                .collect(Collectors.toMap(License::getId, License::getName, (prev, next) -> next));
-        CheckboxSearchField licenseSearchField = new LicenseCheckboxSearchField(SearchFields.LICENSE,
-                BundleUtil.getStringFromBundle("advanced.search.files.license"),
-                BundleUtil.getStringFromBundle("advanced.search.files.license.tip"), licenseNames);
+                .collect(toMap(License::getId, License::getName, (prev, next) -> next));
+        CheckboxSearchField licenseSearchField = new LicenseCheckboxSearchField(LICENSE,
+                getStringFromBundle("advanced.search.files.license"),
+                getStringFromBundle("advanced.search.files.license.tip"), licenseNames);
 
         for (SelectItem selectItem : termsOfUseSelectItemsFactory.buildLicenseSelectItems()) {
-            licenseSearchField.getCheckboxLabelAndValue().add(Tuple.of(selectItem.getLabel(), selectItem.getValue().toString()));
+            licenseSearchField.getCheckboxLabelAndValue()
+                .add(Tuple.of(selectItem.getLabel(), selectItem.getValue().toString()));
         }
         fields.add(licenseSearchField);
         return fields;
@@ -240,14 +281,18 @@ public class AdvancedSearchPage implements Serializable {
     private List<SearchField> constructDataversesSearchFields() {
         List<SearchField> fields = new ArrayList<>();
 
-        fields.add(textFieldFromBundle(SearchFields.DATAVERSE_NAME, "name", "advanced.search.dataverses.name.tip"));
-        fields.add(textFieldFromBundle(SearchFields.DATAVERSE_ALIAS, "identifier","dataverse.identifier.title"));
-        fields.add(textFieldFromBundle(SearchFields.DATAVERSE_AFFILIATION, "affiliation", "advanced.search.dataverses.affiliation.tip"));
-        fields.add(textFieldFromBundle(SearchFields.DATAVERSE_DESCRIPTION, "description", "advanced.search.dataverses.description.tip"));
+        fields.add(textFieldFromBundle(DATAVERSE_NAME, 
+                "name", "advanced.search.dataverses.name.tip"));
+        fields.add(textFieldFromBundle(DATAVERSE_ALIAS, 
+                "identifier","dataverse.identifier.title"));
+        fields.add(textFieldFromBundle(DATAVERSE_AFFILIATION, 
+                "affiliation", "advanced.search.dataverses.affiliation.tip"));
+        fields.add(textFieldFromBundle(DATAVERSE_DESCRIPTION, 
+                "description", "advanced.search.dataverses.description.tip"));
 
-        CheckboxSearchField checkboxSearchField = new CheckboxSearchField(SearchFields.DATAVERSE_SUBJECT,
-                BundleUtil.getStringFromBundle("subject"),
-                BundleUtil.getStringFromBundle("advanced.search.dataverses.subject.tip"));
+        CheckboxSearchField checkboxSearchField = new CheckboxSearchField(DATAVERSE_SUBJECT,
+                getStringFromBundle("subject"),
+                getStringFromBundle("advanced.search.dataverses.subject.tip"));
         datasetFieldService.findByName(DatasetFieldConstant.subject)
                 .getControlledVocabularyValues()
                 .forEach(v -> checkboxSearchField.getCheckboxLabelAndValue()
@@ -257,19 +302,21 @@ public class AdvancedSearchPage implements Serializable {
         return fields;
     }
 
-    private TextSearchField textFieldFromBundle(String name, String displayNameKey, String descriptionKey) {
-        return new TextSearchField(name, BundleUtil.getStringFromBundle(displayNameKey), BundleUtil.getStringFromBundle(descriptionKey));
+    private TextSearchField textFieldFromBundle(String name, 
+            String displayNameKey, String descriptionKey) {
+        return new TextSearchField(name, getStringFromBundle(displayNameKey), 
+                getStringFromBundle(descriptionKey));
     }
 
     private String buildSearchUrl(QueryWrapper queryWrapper) {
         List<String> filters = queryWrapper.getFilters();
         String filtersPart = IntStream.range(0, filters.size())
                 .mapToObj(i -> "&fq" + i + "=" + safeEncode(filters.get(i)))
-                .collect(Collectors.joining());
+                .collect(joining());
 
-        return widgetWrapper.wrapURL(String.format("/dataverse.xhtml?q=%s&alias=%s",
+        return widgetWrapper.wrapURL(format("/dataverse.xhtml?q=%s&alias=%s",
                 safeEncode(queryWrapper.getQuery()), dataverse.getAlias())
-                + (StringUtils.isNotBlank(filtersPart) ? filtersPart : StringUtils.EMPTY)
+                + (isNotBlank(filtersPart) ? filtersPart : EMPTY)
                 + "&faces-redirect=true");
     }
 
@@ -277,7 +324,7 @@ public class AdvancedSearchPage implements Serializable {
         try {
             return URLEncoder.encode(toEncode, "UTF-8");
         } catch (UnsupportedEncodingException uee) {
-            logger.log(Level.WARNING, "Encoding problem: ", uee);
+            logger.log(WARNING, "Encoding problem: ", uee);
             throw new RuntimeException(uee);
         }
     }
