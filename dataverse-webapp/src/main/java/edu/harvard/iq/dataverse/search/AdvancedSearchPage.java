@@ -168,9 +168,7 @@ public class AdvancedSearchPage implements Serializable {
 
     private void extractSearchableFieldsForMetadataBlocks() {
         List<MetadataBlock> metadataBlocks = dataverse.getRootMetadataBlocks();
-        List<Long> metadataBlockIds = metadataBlocks.stream()
-                .map(MetadataBlock::getId)
-                .collect(toList());
+        List<Long> metadataBlockIds = dataverse.getRootMetadataBlockIDs();
         Map<Long, List<DatasetFieldType>> metadataFieldListByBlock
                 = datasetFieldService.findAllAdvancedSearchFieldTypesByMetadataBlockIds(metadataBlockIds).stream()
                 .collect(groupingBy(f -> f.getMetadataBlock().getId()));

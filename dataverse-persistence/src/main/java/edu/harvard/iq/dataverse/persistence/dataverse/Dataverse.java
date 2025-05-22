@@ -43,6 +43,7 @@ import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
 import static java.util.Collections.emptyList;
 import static java.util.Locale.ENGLISH;
+import static java.util.stream.Collectors.toList;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
@@ -499,6 +500,12 @@ public class Dataverse extends DvObjectContainer {
 
     public List<MetadataBlock> getRootMetadataBlocks() {
         return getMetadataBlockRootDataverse().getMetadataBlocks();
+    }
+    
+    public List<Long> getRootMetadataBlockIDs() {
+        return getMetadataBlocks().stream()
+                .map(MetadataBlock::getId)
+                .collect(toList());
     }
 
     public List<MetadataBlock> getMetadataBlocks() {
