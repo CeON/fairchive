@@ -15,7 +15,7 @@ import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
 public class GeoNameSearchField extends SearchField {
 
     private String id;
-    private String name;
+    private String label;
 
     public GeoNameSearchField(final String name, final String displayName,
             final String description) {
@@ -38,8 +38,8 @@ public class GeoNameSearchField extends SearchField {
         if (this.id != null) {
             result.add(this.id);
         }
-        if (this.name != null) {
-            result.add(this.name);
+        if (this.label != null) {
+            result.add(this.label);
         }
         return result;
     }
@@ -49,21 +49,25 @@ public class GeoNameSearchField extends SearchField {
         final String queryFragment = createQueryFramgment();
         return queryFragment.isEmpty()
                 ? QueryPart.EMPTY
-                : new QueryPart(QUERY, createQueryFramgment()); 
+                : new QueryPart(QUERY, queryFragment); 
     }
     
     private String createQueryFramgment() {
-        final StringBuilder result = new StringBuilder(150);
-        if (this.id != null) {
-            result.append(SearchFields.GEONAME_ID).append(":\"").append(this.id.trim())
-                    .append('"');
+        if (this.id == null & this.label == null) {
+            return "";
+        } else {
+            final StringBuilder result = new StringBuilder(150);
+            if (this.id != null) {
+                result.append(SearchFields.GEONAME_ID).append(":\"")
+                        .append(this.id.trim()).append('"');
+            }
+            if (this.label != null) {
+                appendAndTo(result);
+                result.append(SearchFields.GEONAME_NAME).append(":\"")
+                        .append(this.label.trim()).append('"');
+            }
+            return result.toString();
         }
-        if (this.name != null) {
-            appendAndTo(result);
-            result.append(SearchFields.GEONAME_NAME).append(":\"")
-                    .append(this.name.trim()).append('"');
-        }
-        return result.toString();
     }
     
     private static void appendAndTo(final StringBuilder builder) {
@@ -80,11 +84,11 @@ public class GeoNameSearchField extends SearchField {
         this.id = id;
     }
 
-    public String getName() {
-        return this.name;
+    public String getLabel() {
+        return this.label;
     }
 
-    public void setName(final String name) {
-        this.name = name;
+    public void setLabel(final String label) {
+        this.label = label;
     }
 }
