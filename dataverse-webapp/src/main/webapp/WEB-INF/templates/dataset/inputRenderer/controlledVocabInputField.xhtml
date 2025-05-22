@@ -35,7 +35,7 @@
         <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
         <!-- NEED to find a way to get parent Id to see changes in hide/show -->
         <p:ajax event="change"
-                update="editMetadataForm:metadataBlocks:1:fieldsByType:1:fieldsByTypeFragment"/>
+                update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}" />
     </p:selectOneMenu>
 
     <p:selectCheckboxMenu id="multiVocabularySelect" rendered="#{datasetField.datasetFieldType.allowMultiples}"
