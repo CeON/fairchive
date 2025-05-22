@@ -1,20 +1,28 @@
 package edu.harvard.iq.dataverse.validation.field;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
-import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
-import org.apache.commons.lang3.StringUtils;
+import static edu.harvard.iq.dataverse.validation.field.ValidationDescriptor.CONTEXT_PARAM;
+import static edu.harvard.iq.dataverse.validation.field.ValidationDescriptor.RUN_ON_EMPTY_PARAM;
+import static edu.harvard.iq.dataverse.validation.field.ValidationDescriptor.SEARCH_CONTEXT;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
+import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
 
 public class SearchFormValidationDispatcher {
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -37,11 +45,11 @@ public class SearchFormValidationDispatcher {
         fieldIndex = Stream.of(searchFields, nonSearchFields)
                 .map(Map::entrySet)
                 .flatMap(Collection::stream)
-                .collect(Collectors.groupingBy(Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+                .collect(groupingBy(Map.Entry::getKey,
+                        mapping(Map.Entry::getValue, toList())));
         fieldsToValidate = searchFields.entrySet().stream()
-                .collect(Collectors.groupingBy(Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+                .collect(groupingBy(Map.Entry::getKey,
+                        mapping(Map.Entry::getValue, toList())));
         return this;
     }
 
@@ -50,7 +58,7 @@ public class SearchFormValidationDispatcher {
                 .flatMap(Collection::stream)
                 .map(this::validateField)
                 .filter(r -> !r.isOk())
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     // -------------------- PRIVATE --------------------
@@ -60,9 +68,10 @@ public class SearchFormValidationDispatcher {
                 .allMatch(StringUtils::isBlank);
         for (ValidationDescriptor descriptor : retrieveDescriptors(field)) {
             Map<String, Object> parameters = descriptor.getParameters();
-            @SuppressWarnings("unchecked") List<String> contexts = (List<String>) parameters.get(ValidationDescriptor.CONTEXT_PARAM);
-            boolean properContext = contexts == null || contexts.contains(ValidationDescriptor.SEARCH_CONTEXT);
-            if (!properContext || (effectivelyEmptyValue && !parameters.containsKey(ValidationDescriptor.RUN_ON_EMPTY_PARAM))) {
+            @SuppressWarnings("unchecked") 
+            List<String> contexts = (List<String>) parameters.get(CONTEXT_PARAM);
+            boolean properContext = contexts == null || contexts.contains(SEARCH_CONTEXT);
+            if (!properContext || (effectivelyEmptyValue && !parameters.containsKey(RUN_ON_EMPTY_PARAM))) {
                 continue;
             }
             FieldValidator validator = registry.getOrThrow(descriptor.getName());
@@ -78,7 +87,7 @@ public class SearchFormValidationDispatcher {
         String configJson = Optional.ofNullable(field.getDatasetFieldType())
                 .map(DatasetFieldType::getValidation).orElse(null);
         if (configJson == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
         List<ValidationDescriptor> existing = descriptorsCache.get(configJson);
         if (existing != null) {
@@ -86,7 +95,8 @@ public class SearchFormValidationDispatcher {
         }
         try {
             List<ValidationDescriptor> descriptors = objectMapper.readValue(configJson,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, ValidationDescriptor.class));
+                    objectMapper.getTypeFactory().
+                    constructCollectionType(List.class, ValidationDescriptor.class));
             descriptorsCache.put(configJson, descriptors);
             return descriptors;
         } catch (IOException e) {
