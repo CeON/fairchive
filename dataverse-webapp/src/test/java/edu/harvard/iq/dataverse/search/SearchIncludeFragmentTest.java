@@ -72,6 +72,8 @@ public class SearchIncludeFragmentTest {
 
     private DatasetFieldType type1 = new DatasetFieldType();
     private DatasetFieldType type2 = new DatasetFieldType();
+    private DatasetFieldType type3 = new DatasetFieldType();
+    private DatasetFieldType compoundType = new DatasetFieldType();
     private MetadataBlock metaBlock = new MetadataBlock();
 
     private Dataset dataset = new Dataset();
@@ -102,17 +104,34 @@ public class SearchIncludeFragmentTest {
         this.type1.setExportToFile(true);
         this.type2.setId(2L);
         this.type2.setTitle("abc");
+        this.type3.setId(3L);
+        this.type3.setTitle("ghi");
+        this.type3.setExportToFile(true);
+        this.type3.setParentDatasetFieldType(this.compoundType);
+        this.compoundType.setId(4L);
+        this.compoundType.setTitle("compound");
+        this.compoundType.getChildDatasetFieldTypes().add(this.type3);
+        
         
         this.metaBlock.setName("Block1");
-        this.metaBlock.setDatasetFieldTypes(asList(this.type1, this.type2));
+        this.metaBlock.setDatasetFieldTypes(asList(this.type1, this.type2, this.compoundType));
         this.type1.setMetadataBlock(this.metaBlock);
         this.type2.setMetadataBlock(this.metaBlock);
+        this.type3.setMetadataBlock(this.metaBlock);
+        this.compoundType.setMetadataBlock(this.metaBlock);
 
         DatasetVersion dsv = new DatasetVersion();
-        DatasetField df = new DatasetField();
-        df.setDatasetFieldType(this.type1);
-        df.setValue("one");
-        dsv.setDatasetFields(asList(df));
+        DatasetField df1 = new DatasetField();
+        df1.setDatasetFieldType(this.type1);
+        df1.setValue("one"); 
+        DatasetField df2 = new DatasetField();
+        df2.setDatasetFieldType(this.type3);
+        df2.setValue("two");
+        DatasetField compoundField = new DatasetField();
+        compoundField.setDatasetFieldType(this.compoundType);
+        compoundField.getChildren().add(df2);
+        
+        dsv.setDatasetFields(asList(df1, compoundField));
         this.dataset.setVersions(asList(dsv));
     }
 
@@ -156,8 +175,8 @@ public class SearchIncludeFragmentTest {
 
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(2);
-        assertThat(lines.get(0)).isEqualTo("Id,Name,Title,Block1->def");
-        assertThat(lines.get(1)).isEqualTo("id1,name1,title1,one");
+        assertThat(lines.get(0)).isEqualTo("Id,Name,Title,Block1->def,Block1->compound->ghi");
+        assertThat(lines.get(1)).isEqualTo("id1,name1,title1,one,two");
     }
 
     @Test
@@ -168,7 +187,7 @@ public class SearchIncludeFragmentTest {
                 any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
         when(this.searchService.search(any(SolrQuery.class))).thenReturn(asList());
         when(this.datasetFieldTypeRepo.findAll())
-                .thenReturn(asList(this.type1, this.type2));
+                .thenReturn(asList(this.type1, this.type2, this.type3));
         when(this.metadataBlockRepo.findSystemMetadataBlocks())
                 .thenReturn(asList(this.metaBlock));
 
@@ -178,11 +197,11 @@ public class SearchIncludeFragmentTest {
         assertThat(file.getContentEncoding()).isEqualTo("utf-8");
         assertThat(file.getContentType()).isEqualTo("text/csv");
         assertThat(file.getName()).isEqualTo("searchResults.csv");
-        assertThat(file.getContentLength()).isEqualTo(27);
+        assertThat(file.getContentLength()).isEqualTo(49);
 
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(1);
-        assertThat(lines.get(0)).isEqualTo("Id,Name,Title,Block1->def");
+        assertThat(lines.get(0)).isEqualTo("Id,Name,Title,Block1->def,Block1->compound->ghi");
     }
 
     @Test
