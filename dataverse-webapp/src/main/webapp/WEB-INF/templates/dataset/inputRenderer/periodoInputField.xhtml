@@ -41,7 +41,9 @@
             itemLabel="#{suggestion}" 
             itemValue="#{suggestion.value}"
             autoSelection="false"
-            autoHighlight="false">
+            autoHighlight="false"
+            maxResults="50"
+            queryDelay="700">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  
                 update="details"/>
