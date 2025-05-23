@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.search.advanced.field;
 
+import static edu.harvard.iq.dataverse.search.SearchFields.GEONAME_ID;
+import static edu.harvard.iq.dataverse.search.SearchFields.GEONAME_NAME;
 import static edu.harvard.iq.dataverse.search.advanced.SearchFieldType.GEONAME;
 import static edu.harvard.iq.dataverse.search.advanced.query.QueryPartType.QUERY;
 
@@ -56,14 +58,14 @@ public class GeoNameSearchField extends SearchField {
         if (this.id == null & this.label == null) {
             return "";
         } else {
-            final StringBuilder result = new StringBuilder(150);
+            final StringBuilder result = new StringBuilder(40);
             if (this.id != null) {
-                result.append(SearchFields.GEONAME_ID).append(":\"")
+                result.append(GEONAME_ID).append(":\"")
                         .append(this.id.trim()).append('"');
             }
             if (this.label != null) {
                 appendAndTo(result);
-                result.append(SearchFields.GEONAME_NAME).append(":\"")
+                result.append(GEONAME_NAME).append(":\"")
                         .append(this.label.trim()).append('"');
             }
             return result.toString();
