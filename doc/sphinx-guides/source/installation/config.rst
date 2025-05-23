@@ -622,7 +622,7 @@ File Settings
 -------------
 Database settings and most JVM options were moved to the file based configuration in order to simplify usage.
 
-In order to edit the options you should move dataverse.default.properties file located in {PROJECT_DIR}/dataverse/dataverse-webapp/src/main/resources/config/dataverse.default.properties
+In order to edit the options you should move dataverse.default.properties file located in {PROJECT_DIR}/dataverse/fairchive-webapp/src/main/resources/config/dataverse.default.properties
 to {HOME_DIR}/.dataverse and rename it to dataverse.properties.
 Now you can edited the desired options and you need to restart the application in order to apply them.
 

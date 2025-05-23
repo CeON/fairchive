@@ -13,9 +13,9 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     "conf/glassfish/run-install.sh"
     "conf/prometheus/prometheus_exporter.yaml"
   )
-  export DATAVERSE_LOCAL_WORKING_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/container"
-  export DATAVERSE_CONTAINER_WORKING_DIR="/dataverse/dataverse-dist/target/container"
-  export DATAVERSE_DIST_DIR="${DATAVERSE_SOURCE_DIR}/dataverse-dist/target/dist"
+  export DATAVERSE_LOCAL_WORKING_DIR="${DATAVERSE_SOURCE_DIR}/fairchive-dist/target/container"
+  export DATAVERSE_CONTAINER_WORKING_DIR="/fairchive/fairchive-dist/target/container"
+  export DATAVERSE_DIST_DIR="${DATAVERSE_SOURCE_DIR}/fairchive-dist/target/dist"
   export COMPOSE_CMD="docker compose -f dev.yml"
 
   cd "${DATAVERSE_SOURCE_DIR}/conf"
@@ -48,9 +48,9 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
       echo "Commands:"
       echo "  start                        Start glassfish"
       echo "  stop                         Stop glassfish"
-      echo "  undeploy                     Undeploy dataverse WAR"
-      echo "  deploy                       Deploy the dataverse WAR"
-      echo "  redeploy                     Undeploy and deploy the dataverse WAR"
+      echo "  undeploy                     Undeploy fairchive WAR"
+      echo "  deploy                       Deploy the fairchive WAR"
+      echo "  redeploy                     Undeploy and deploy the fairchive WAR"
       echo "  apps                         Show the currently deployed applications"
       echo "  logging                      Show the currently set logging levels"
       echo "  set-logging <logger>=<level> Set the logging level for the provided logger (eg. org.apache.activemq=INFO)"
@@ -85,7 +85,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
       copy_to_dv_container_with_fallback "${EXTENSION_SOURCE_DIR}" "${DATAVERSE_SOURCE_DIR}" "${DATAVERSE_CONFIG_FILES[$i]}"
     done
 
-    copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "dataverse.war"
+    copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "fairchive.war"
     copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "activemq"
     copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "glassfish"
 
@@ -112,8 +112,8 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
 
   deploy() {
     mkdir -p ${DATAVERSE_LOCAL_WORKING_DIR}
-    copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "dataverse.war"
-    asadmin deploy ${DATAVERSE_CONTAINER_WORKING_DIR}/dataverse.war
+    copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "*.war" "fairchive.war"
+    asadmin deploy ${DATAVERSE_CONTAINER_WORKING_DIR}/fairchive.war
   }
 
   glassfish() {
@@ -138,7 +138,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
           ;;
         undeploy)
           shift
-          asadmin undeploy dataverse
+          asadmin undeploy fairchive
           exit
           ;;
         deploy)
@@ -148,7 +148,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
           ;;
         redeploy)
           shift
-          asadmin undeploy dataverse
+          asadmin undeploy fairchive
           deploy
           exit
           ;;

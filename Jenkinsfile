@@ -1,7 +1,7 @@
 GIT_USER_NAME = "jenkinsci"
 GIT_USER_EMAIL = "jenkinsci@icm.edu.pl"
-SOLR_CONTAINER_ALIAS="dataverse-solr-ittest"
-POSTGRES_CONTAINER_ALIAS="dataverse-postgres-ittest"
+SOLR_CONTAINER_ALIAS="fairchive-solr-ittest"
+POSTGRES_CONTAINER_ALIAS="fairchive-postgres-ittest"
 MAIN_BRANCH="develop"
 RELEASE_BRANCH_PREFIX="release/"
 
@@ -9,7 +9,7 @@ pipeline {
     agent {
         dockerfile {
             dir 'conf/jenkins-build-dockercli-image'
-            additionalBuildArgs '-t drodb-dockercli'
+            additionalBuildArgs '-t fairchive-dockercli'
         }
     }
 
@@ -40,7 +40,7 @@ pipeline {
             agent {
                 dockerfile {
                     dir 'conf/jenkins-build-image'
-                    additionalBuildArgs '-t drodb-build'
+                    additionalBuildArgs '-t fairchive-build'
                     reuseNode true
                 }
             }
@@ -53,13 +53,13 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'drodb-build:latest'
+                    image 'fairchive-build:latest'
                     reuseNode true
                 }
             }
 
             steps {
-               echo 'Building dataverse.'
+               echo 'Building fairchive.'
                sh './mvnw package -DskipTests'
             }
 
@@ -73,7 +73,7 @@ pipeline {
         stage('Unit tests') {
             agent {
                 docker {
-                    image 'drodb-build:latest'
+                    image 'fairchive-build:latest'
                     reuseNode true
                 }
             }
@@ -99,7 +99,7 @@ pipeline {
                         IT_TEST_OPTS="-P integration-tests-only,ci-jenkins -Dtest.network.name=${env.DOCKER_NETWORK_NAME} -Ddocker.host=${env.DOCKER_HOST_EXT} -Ddocker.certPath=${env.DOCKER_CERT_EXT}"
 
                         echo 'Starting containers.'
-                        sh "./mvnw docker:start -pl dataverse-webapp ${IT_TEST_OPTS}"
+                        sh "./mvnw docker:start -pl fairchive-webapp ${IT_TEST_OPTS}"
 
                         echo 'Executing integration tests.'
                         sh "./mvnw verify -Ddocker.skip ${IT_TEST_OPTS}"
@@ -121,7 +121,7 @@ pipeline {
 
             agent {
                 docker {
-                    image 'drodb-build:latest'
+                    image 'fairchive-build:latest'
                     reuseNode true
                 }
             }
@@ -140,7 +140,7 @@ pipeline {
 
             agent {
                 docker {
-                    image 'drodb-build:latest'
+                    image 'fairchive-build:latest'
                     reuseNode true
                 }
             }
@@ -166,7 +166,7 @@ void withinContainer(body) {
         sh "docker network inspect ${networkId} >/dev/null 2>&1 || docker network create --driver bridge ${networkId}"
         env.DOCKER_NETWORK_NAME = "${networkId}"
 
-        docker.image('drodb-build:latest').inside("--network ${networkId}") { c ->
+        docker.image('fairchive-build:latest').inside("--network ${networkId}") { c ->
             body()
         }
     } finally {

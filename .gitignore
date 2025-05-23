@@ -34,7 +34,7 @@ derby.log
 
 /src/main/webapp/oauth2/newAccount.html
 scripts/api/setup-all.sh*
-dataverse-webapp/overlays
+fairchive-webapp/overlays
 
 # dependencies I'm not sure we're allowed to redistribute / have in version control
 conf/docker-aio/dv/deps/
@@ -56,6 +56,6 @@ scripts/installer/default.config
 .project
 .settings
 .tern-project
-/dataverse-test-common/.factorypath
-/dataverse-webapp/.factorypath
+/fairchive-test-common/.factorypath
+/fairchive-webapp/.factorypath
 /switchTo8.bat

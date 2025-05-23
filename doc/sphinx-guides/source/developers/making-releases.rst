@@ -23,9 +23,9 @@ Make the following changes in the release branch:
 Increment the version number to the milestone (e.g. 4.6.2) in the following files:
 
 - pom.xml
-- dataverse-webapp/pom.xml
-- dataverse-test-common/pom.xml
-- dataverse-persistence/pom.xml
+- fairchive-webapp/pom.xml
+- fairchive-test-common/pom.xml
+- fairchive-persistence/pom.xml
 - doc/sphinx-guides/source/conf.py (two places)
 
 Add the version being released to the lists in the following two files:

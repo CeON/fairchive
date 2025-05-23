@@ -40,7 +40,7 @@ msgstr ""
 
 #: ../../source/developers/sql-upgrade-scripts.rst:13
 msgid ""
-"``dataverse-persistence/src/main/resources/db/migration`` is the "
+"``fairchive-persistence/src/main/resources/db/migration`` is the "
 "directory where we keep SQLs for Flyway to find."
 msgstr ""
 

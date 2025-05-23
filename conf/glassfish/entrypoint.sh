@@ -6,7 +6,7 @@ source ~/.bashrc
 echo "------------------------------------------------"
 
 if [ ! -d "/root/.dataverse" ]; then
-  echo "Dataverse has not been installed yet."
+  echo "Fairchive has not been installed yet."
   tail -f /dev/null
 else
   echo "------------------------------------------------"

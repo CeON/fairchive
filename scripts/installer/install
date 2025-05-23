@@ -355,10 +355,10 @@ unless ($postgresonly)
     print "\nChecking if the application .war file is available... ";
 
 # if this installer section is running out of the installer zip bundle directory,
-# the war file will be sitting right here, named "dataverse-webapp-*.war":
+# the war file will be sitting right here, named "fairchive-webapp-*.war":
 
     my $WARFILE_BASEDIR = ".";
-    my $WARFILE_NAME = "dataverse-webapp-*.war";
+    my $WARFILE_NAME = "fairchive-webapp-*.war";
 
     foreach (glob "$WARFILE_BASEDIR/$WARFILE_NAME") {
         $WARFILE_LOCATION = "$_";
@@ -368,7 +368,7 @@ unless ($postgresonly)
 # setup, so their build should be up in their source tree:
 
     unless (defined $WARFILE_LOCATION) {
-        $WARFILE_BASEDIR = cwd . "/../../dataverse-dist/target/dist";
+        $WARFILE_BASEDIR = cwd . "/../../fairchive-dist/target/dist";
         foreach (glob "$WARFILE_BASEDIR/$WARFILE_NAME") {
             $WARFILE_LOCATION = "$_";
         }
@@ -418,10 +418,10 @@ unless ($postgresonly)
 
 # 2. INTERACTIVE CONFIG SECTION: 
 
-print "\nWelcome to the Dataverse installer.\n";
+print "\nWelcome to the Fairchive installer.\n";
 unless ($postgresonly) {
     print "You will be guided through the process of setting up a NEW\n";
-    print "instance of the dataverse application\n";
+    print "instance of the fairchive application\n";
 }
 else {
     print "You will be guided through the process of configuring your\n";
@@ -584,7 +584,7 @@ if ( $yesno eq "n" ) {
 
 # 3. SET UP POSTGRES USER AND DATABASE
 
-unless($pod_name eq "start-glassfish" || $pod_name eq "dataverse-glassfish-0" || $skipdatabasesetup) {
+unless($pod_name eq "start-glassfish" || $pod_name eq "fairchive-glassfish-0" || $skipdatabasesetup) {
     &setup_postgres(); 
 # (there's no return code - if anything goes wrong, the method will exit the script, with some diagnostic messages for the user)
     print "\nOK, done.\n";
@@ -609,7 +609,7 @@ my $done = &setup_glassfish();
 
 unless ((
      my $exit_code =
-     system( $glassfish_dir . "/bin/asadmin list-applications | grep -q '^dataverse'" )
+     system( $glassfish_dir . "/bin/asadmin list-applications | grep -q '^fairchive'" )
     ) == 0 )
 {
     # If the "asadmin list-applications" has failed, it may only mean that an earlier
@@ -663,7 +663,7 @@ if ($WARFILE_LOCATION =~/([0-9]\.[0-9]\.[0-9])\.war$/)
     my $version = $1;
     print "If this is a personal development installation, we recommend that you undeploy the currently-running copy \n"; 
     print "of the application, with the following asadmin command:\n\n";
-    print "\t" . $CONFIG_DEFAULTS{'GLASSFISH_DIRECTORY'} . '/bin/asadmin undeploy dataverse-' . $version . "\n\n";
+    print "\t" . $CONFIG_DEFAULTS{'GLASSFISH_DIRECTORY'} . '/bin/asadmin undeploy fairchive-' . $version . "\n\n";
     print "before attempting to deploy from your development environment in NetBeans.\n\n";
 }
     
@@ -778,7 +778,7 @@ sub setup_glassfish {
         # as much memory (512 MB) and allow $sys_mem_total to
         # be set below, you should see the following:
         # "Setting the heap limit for Glassfish to 192MB."
-        # FIXME: dataverse.war will not deploy with only 512 MB of memory.
+        # FIXME: fairchive.war will not deploy with only 512 MB of memory.
         # Again, the goal is 1 GB total (512MB + 256MB + 256MB) for
         # Glassfish, PostgreSQL, and Solr to fit in the free OpenShift tier.
         #print "setting sys_mem_total to: $limit_in_kb\n";
@@ -943,7 +943,7 @@ sub setup_glassfish {
     }
 
 
-    print "Finished configuring Glassfish and deploying the dataverse application.  \n";
+    print "Finished configuring Glassfish and deploying the fairchive application.  \n";
 
 
     return $success;

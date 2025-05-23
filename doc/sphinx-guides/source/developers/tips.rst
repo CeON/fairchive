@@ -22,9 +22,9 @@ Assuming you installed Glassfish in ``/usr/local/glassfish4.1.2``, run the follo
 
     /usr/local/glassfish4.1.2/bin/asadmin list-applications
 
-You will probably see something like ``dataverse-webapp-4.11 <ejb, web>`` as the output. To undeploy, use whichever version you see like this::
+You will probably see something like ``fairchive-webapp-4.11 <ejb, web>`` as the output. To undeploy, use whichever version you see like this::
 
-    /usr/local/glassfish4.1.2/bin/asadmin undeploy dataverse-webapp-4.11
+    /usr/local/glassfish4.1.2/bin/asadmin undeploy fairchive-webapp-4.11
 
 Now that Glassfish doesn't have anything deployed, we can proceed with getting Netbeans set up to deploy the code.
 
