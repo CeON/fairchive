@@ -699,6 +699,10 @@
                                     </ui:fragment>
                                 </div>
                             </div>
+
+                            <ui:include src="pluggable/dataset-extra-summary.xhtml">
+                                <ui:param name="datasetVersion" value="#{DatasetPage.workingVersion}"/>
+                            </ui:include>
                             <!-- END: DATASET SUMMARY -->
                         </div>
                     </div>
