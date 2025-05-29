@@ -1,8 +1,10 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import io.vavr.control.Try;
 
 import javax.ejb.Stateless;
 
@@ -26,6 +28,30 @@ public class VocabSelectEnhancedInputFieldRendererFactory implements InputFieldR
      */
     @Override
     public VocabSelectEnhancedInputFieldRenderer createRenderer(DatasetFieldType fieldType, JsonObject jsonOptions) {
-        return new VocabSelectEnhancedInputFieldRenderer();
+        VocabSelectEnhancedInputFieldRendererOptions rendererOptions = Try.of(() -> new Gson().fromJson(jsonOptions, VocabSelectEnhancedInputFieldRendererOptions.class))
+                .getOrElseThrow((e) -> new InputRendererInvalidConfigException("Invalid syntax of input renderer options " + jsonOptions + ")", e));
+
+        return new VocabSelectEnhancedInputFieldRenderer(rendererOptions.getConditionalRendering());
+    }
+
+    // -------------------- INNER CLASSES --------------------
+
+    /**
+     * Class representing allowed options for {@link VocabSelectEnhancedInputFieldRenderer}
+     */
+    public static class VocabSelectEnhancedInputFieldRendererOptions {
+        private ConditionalRendering conditionalRendering;
+
+        // -------------------- GETTERS --------------------
+
+        public ConditionalRendering getConditionalRendering() {
+            return conditionalRendering;
+        }
+
+        // -------------------- SETTERS --------------------
+
+        public void setConditionalRendering(ConditionalRendering conditionalRendering) {
+            this.conditionalRendering = conditionalRendering;
+        }
     }
 }

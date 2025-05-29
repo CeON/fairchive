@@ -1,8 +1,19 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 
+import java.util.List;
+
 public class TextboxInputFieldRenderer implements InputFieldRenderer {
+
+    private final ConditionalRendering conditionalRendering;
+
+    // -------------------- CONSTRUCTORS --------------------
+
+    public TextboxInputFieldRenderer(ConditionalRendering conditionalRendering) {
+        this.conditionalRendering = conditionalRendering;
+    }
 
     // -------------------- GETTERS --------------------
     
@@ -36,4 +47,8 @@ public class TextboxInputFieldRenderer implements InputFieldRenderer {
         return false;
     }
 
+    @Override
+    public boolean showOnCondition(List<DatasetField> subfields) {
+        return ConditionalRenderingHelper.shouldRender(subfields, conditionalRendering);
+    }
 }

@@ -14,6 +14,7 @@ public class TextInputFieldRenderer implements InputFieldRenderer {
     private FieldButtonActionHandler actionButtonHandler;
     private List<MetadataOperationSource> enableActionForOperations;
     private String actionButtonTextKey;
+    private ConditionalRendering conditionalRendering;
 
 
     // -------------------- CONSTRUCTORS --------------------
@@ -21,18 +22,24 @@ public class TextInputFieldRenderer implements InputFieldRenderer {
     /**
      * Constructs simple renderer (without additional action button)
      */
-    public TextInputFieldRenderer(boolean renderInTwoColumns) {
+    public TextInputFieldRenderer(boolean renderInTwoColumns, ConditionalRendering conditionalRendering) {
         this.renderInTwoColumns = renderInTwoColumns;
+        this.conditionalRendering = conditionalRendering;
     }
-
     /**
      * Constructs renderer with support for action button.
      */
-    public TextInputFieldRenderer(boolean renderInTwoColumns, FieldButtonActionHandler actionButtonHandler, String actionButtonTextKey, List<MetadataOperationSource> enableActionForOperations) {
+    public TextInputFieldRenderer(
+            boolean renderInTwoColumns,
+            FieldButtonActionHandler actionButtonHandler,
+            String actionButtonTextKey,
+            List<MetadataOperationSource> enableActionForOperations,
+            ConditionalRendering conditionalRendering) {
         this.renderInTwoColumns = renderInTwoColumns;
         this.actionButtonHandler = actionButtonHandler;
         this.enableActionForOperations = enableActionForOperations;
         this.actionButtonTextKey = actionButtonTextKey;
+        this.conditionalRendering = conditionalRendering;
     }
 
     // -------------------- GETTERS --------------------
@@ -65,6 +72,11 @@ public class TextInputFieldRenderer implements InputFieldRenderer {
     @Override
     public boolean isHidden() {
         return false;
+    }
+
+    @Override
+    public boolean showOnCondition(List<DatasetField> subfields) {
+        return ConditionalRenderingHelper.shouldRender(subfields, this.conditionalRendering);
     }
 
     // -------------------- LOGIC --------------------

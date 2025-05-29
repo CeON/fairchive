@@ -422,6 +422,14 @@ public class DatasetField implements Serializable, ValidatableField {
         return getDatasetFieldType().getName();
     }
 
+    public void clearValue() {
+        if (this.datasetFieldType.isControlledVocabulary()) {
+            this.controlledVocabularyValues.clear();
+        } else {
+            this.fieldValue = null;
+        }
+    }
+
     // -------------------- PRIVATE --------------------
 
     private static DatasetField createNewEmptyDatasetField(DatasetFieldType dsfType) {

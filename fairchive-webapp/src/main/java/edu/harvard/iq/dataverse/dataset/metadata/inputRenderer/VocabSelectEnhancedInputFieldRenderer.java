@@ -12,7 +12,14 @@ public class VocabSelectEnhancedInputFieldRenderer implements InputFieldRenderer
 
     private Collection<ControlledVocabularyValue> all = new ArrayList<>();
     private int numberOfResults = 100;
+    private final ConditionalRendering conditionalRendering;
     private static final int RESULTS_INCREMENT_STEP = 100;
+
+    // -------------------- CONSTRUCTORS --------------------
+
+    public VocabSelectEnhancedInputFieldRenderer(ConditionalRendering conditionalRendering) {
+        this.conditionalRendering = conditionalRendering;
+    }
 
     // -------------------- GETTERS --------------------
 
@@ -44,6 +51,11 @@ public class VocabSelectEnhancedInputFieldRenderer implements InputFieldRenderer
     @Override
     public boolean isHidden() {
         return false;
+    }
+
+    @Override
+    public boolean showOnCondition(List<DatasetField> subfields) {
+        return ConditionalRenderingHelper.shouldRender(subfields, conditionalRendering);
     }
 
     public Integer getNumberOfResults() {
