@@ -67,7 +67,7 @@ msgstr ""
 
 #: ../../source/developers/tips.rst:25
 msgid ""
-"You will probably see something like ``dataverse-webapp-4.11 <ejb, web>``"
+"You will probably see something like ``fairchive-webapp-4.11 <ejb, web>``"
 " as the output. To undeploy, use whichever version you see like this::"
 msgstr ""
 

@@ -66,15 +66,15 @@ msgid "pom.xml"
 msgstr ""
 
 #: ../../source/developers/making-releases.rst:26
-msgid "dataverse-webapp/pom.xml"
+msgid "fairchive-webapp/pom.xml"
 msgstr ""
 
 #: ../../source/developers/making-releases.rst:27
-msgid "dataverse-test-common/pom.xml"
+msgid "fairchive-test-common/pom.xml"
 msgstr ""
 
 #: ../../source/developers/making-releases.rst:28
-msgid "dataverse-persistence/pom.xml"
+msgid "fairchive-persistence/pom.xml"
 msgstr ""
 
 #: ../../source/developers/making-releases.rst:29

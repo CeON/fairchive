@@ -51,7 +51,7 @@ function preliminary_setup()
 {
     # undeploy the app, if running: 
 
-  ./asadmin $ASADMIN_OPTS undeploy dataverse-4.0
+  ./asadmin $ASADMIN_OPTS undeploy fairchive-4.0
 
   # avoid OutOfMemoryError: PermGen per http://eugenedvorkin.com/java-lang-outofmemoryerror-permgen-space-error-during-deployment-to-glassfish/
   #./asadmin $ASADMIN_OPTS list-jvm-options
@@ -412,7 +412,7 @@ if [ -z "$MY_POD_NAME" ]
     final_setup
  else
     echo $MY_POD_NAME
-    if [ $MY_POD_NAME == "dataverse-glassfish-0" ]
+    if [ $MY_POD_NAME == "fairchive-glassfish-0" ]
       then
         echo "I am in a container so I am doing much less"
         final_setup
