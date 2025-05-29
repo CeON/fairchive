@@ -26,7 +26,8 @@
     <span id="pre-input-#{datasetField.datasetFieldType.name}" class="pre-input-tag"/>
 
     <p:inputText value="#{datasetField.value}" id="inputText"
-                 styleClass="form-control"/>
+                 styleClass="form-control"
+                 pt:data-field-type="#{datasetField.datasetFieldType.name}" />
 
 
     <p:watermark for="inputText" value="#{datasetField.datasetFieldType.localeWatermark}"></p:watermark>
