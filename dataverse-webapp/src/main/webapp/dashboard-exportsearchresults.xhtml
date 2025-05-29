@@ -48,7 +48,8 @@
 										  <p:selectBooleanCheckbox 
 												value="#{fieldType.exportToFile}"
 												itemLabel="#{fieldType.displayName}" 
-												escape="false"/>
+												escape="false"
+												disabled="#{not fieldType.isExportableToFile()}"/>
 										</li>
 									</ui:repeat>
 								</ul>

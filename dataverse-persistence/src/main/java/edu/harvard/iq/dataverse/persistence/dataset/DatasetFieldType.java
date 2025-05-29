@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.EMAIL;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.NONE;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXT;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXTBOX;
@@ -194,6 +195,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public String getDisplayFormat() {
         return displayFormat;
+    }
+    
+    public boolean isExportableToFile() {
+        return !this.fieldType.equals(EMAIL);
     }
     
 

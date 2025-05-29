@@ -1,13 +1,13 @@
 package edu.harvard.iq.dataverse.search;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
@@ -34,12 +34,7 @@ public final class CSVResultPrinter {
     public CSVResultPrinter(final DatasetRepository datasetRepo,
             final MetadataBlockRepository metadataBlockRepo) {
         this.datasetRepo = datasetRepo;
-        this.exportedFields = metadataBlockRepo.findSystemMetadataBlocks()
-            .stream()
-            .map(MetadataBlock::getDatasetFieldTypes)
-            .flatMap(List::stream)
-            .filter(DatasetFieldType::isExportToFile)
-            .collect(toList()); 
+        this.exportedFields = findFieldsToExportIn(metadataBlockRepo);
     }
 
     public StreamedContent print(final List<SolrSearchResult> results) {
@@ -81,7 +76,7 @@ public final class CSVResultPrinter {
                         + type.getParentDatasetFieldType().getTitle() + "->"
                         + type.getTitle());
             } else {
-                printer.print(type.getMetadataBlock().getName() 
+                printer.print(type.getMetadataBlock().getName()
                         + "->" + type.getTitle());
             }
         }
@@ -106,14 +101,42 @@ public final class CSVResultPrinter {
 
     private static String getFieldValueOfType(final List<DatasetField> fields,
             final DatasetFieldType type) {
-        return fields.stream()
-                .filter(f -> f.isOfType(type))
-                .findAny()
-                .map(DatasetField::getDisplayValue)
-                .orElse(null);
+        for(final DatasetField field : fields) {
+            for(final DatasetField childField : field.getChildren()){
+                if(childField.isOfType(type)) {
+                    return childField.getDisplayValue();
+                }
+            }
+            if(field.isOfType(type)) {
+                return field.getDisplayValue();
+            }
+        }
+        return null;
     }
 
     private CSVPrinter newPrinter(final OutputStream output) throws IOException {
         return new CSVPrinter(new OutputStreamWriter(output, "utf-8"), format);
+    }
+
+    private static List<DatasetFieldType> findFieldsToExportIn(
+            final MetadataBlockRepository metadataBlockRepo) {
+        final ArrayList<DatasetFieldType> result = new ArrayList<>();
+
+        for (final MetadataBlock block : metadataBlockRepo
+                .findSystemMetadataBlocks()) {
+            for (final DatasetFieldType type : block.getDatasetFieldTypes()) {
+                if (type.isCompound()) {
+                    for (final DatasetFieldType childType : type
+                            .getChildDatasetFieldTypes()) {
+                        if (childType.isExportToFile()) {
+                            result.add(childType);
+                        }
+                    }
+                } else if (type.isExportToFile()) {
+                    result.add(type);
+                }
+            }
+        }
+        return result;
     }
 }
