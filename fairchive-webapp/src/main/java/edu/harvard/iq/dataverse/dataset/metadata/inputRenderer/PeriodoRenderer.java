@@ -20,6 +20,13 @@ public class PeriodoRenderer implements InputFieldRenderer {
 
     private Optional<Period> selectedPeriod = Optional.empty();
     private final CapturingConverter converter = new CapturingConverter();
+    private final ConditionalRendering conditionalRendering;
+
+    // -------------------- CONSTRUCTORS --------------------
+
+    public PeriodoRenderer(ConditionalRendering conditionalRendering) {
+        this.conditionalRendering = conditionalRendering;
+    }
 
     // -------------------- GETTERS --------------------
 
@@ -37,7 +44,12 @@ public class PeriodoRenderer implements InputFieldRenderer {
     public boolean isHidden() {
         return false;
     }
-    
+
+    @Override
+    public boolean showOnCondition(List<DatasetField> subfields) {
+        return ConditionalRenderingHelper.shouldRender(subfields, conditionalRendering);
+    }
+
     // -------------------- LOGIC --------------------
 
     /**

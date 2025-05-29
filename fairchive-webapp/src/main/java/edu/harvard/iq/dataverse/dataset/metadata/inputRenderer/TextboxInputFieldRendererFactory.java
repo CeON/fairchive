@@ -1,8 +1,10 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import io.vavr.control.Try;
 
 import javax.ejb.Stateless;
 
@@ -26,7 +28,30 @@ public class TextboxInputFieldRendererFactory implements InputFieldRendererFacto
      */
     @Override
     public TextboxInputFieldRenderer createRenderer(DatasetFieldType fieldType, JsonObject jsonOptions) {
-        return new TextboxInputFieldRenderer();
+        TextboxInputFieldRendererOptions rendererOptions = Try.of(() -> new Gson().fromJson(jsonOptions, TextboxInputFieldRendererOptions.class))
+                .getOrElseThrow((e) -> new InputRendererInvalidConfigException("Invalid syntax of input renderer options " + jsonOptions + ")", e));
+
+        return new TextboxInputFieldRenderer(rendererOptions.getConditionalRendering());
     }
 
+    // -------------------- INNER CLASSES --------------------
+
+    /**
+     * Class representing allowed options for {@link TextboxInputFieldRenderer}
+     */
+    public static class TextboxInputFieldRendererOptions {
+        private ConditionalRendering conditionalRendering;
+
+        // -------------------- GETTERS --------------------
+
+        public ConditionalRendering getConditionalRendering() {
+            return conditionalRendering;
+        }
+
+        // -------------------- SETTERS --------------------
+
+        public void setConditionalRendering(ConditionalRendering conditionalRendering) {
+            this.conditionalRendering = conditionalRendering;
+        }
+    }
 }

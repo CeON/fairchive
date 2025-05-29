@@ -80,22 +80,25 @@
                                                         role="#{fieldsByType.datasetFieldType.allowMultiples ? 'group' : 'presentation'}"
                                                         aria-label="#{fieldsByType.datasetFieldType.allowMultiples ? datasetField.datasetFieldType.localeTitle.concat(' ').concat(valCount.index + 1) : ''}">
                                                 <ui:repeat id="subfields" value="#{datasetField.datasetFieldsChildren}" var="subdsf">
-                                                    <div class="form-col-container
-                                                            #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).renderInTwoColumns()) ? 'col-sm-6' : 'col-sm-12'}
-                                                            #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).isHidden()) ? 'form-hidden-col-container' : ''}">
+                                                    <c:set var="firstCompoundField" value="#{datasetField.datasetFieldsChildren[0]}"/>
+                                                    <ui:fragment rendered="#{inputRenderersByFieldType.get(subdsf.datasetFieldType).showOnCondition(datasetField.datasetFieldsChildren)}">
+                                                        <div class="form-col-container
+                                                                #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).renderInTwoColumns()) ? 'col-sm-6' : 'col-sm-12'}
+                                                                #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).isHidden()) ? 'form-hidden-col-container' : ''}">
 
-                                                        <ui:include src="datasetFieldForEditFragment.xhtml">
-                                                            <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(subdsf.datasetFieldType)}" />
-                                                            <ui:param name="datasetField" value="#{subdsf}" />
-                                                            <ui:param name="hiddenLabel" value="false" />
-                                                            <ui:param name="labelFieldNumber" value="0" />
-                                                            <ui:param name="allBlockfields" value="#{metadataBlockVal.value}" />
-                                                            <ui:param name="operation" value="#{operation}" />
-                                                            <ui:param name="isGeobox" value="#{isGeobox}" />
-                                                            <ui:param name="mapId" value="#{currentMap}" />
-                                                        </ui:include>
+                                                            <ui:include src="datasetFieldForEditFragment.xhtml">
+                                                                <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(subdsf.datasetFieldType)}" />
+                                                                <ui:param name="datasetField" value="#{subdsf}" />
+                                                                <ui:param name="hiddenLabel" value="false" />
+                                                                <ui:param name="labelFieldNumber" value="0" />
+                                                                <ui:param name="allBlockfields" value="#{metadataBlockVal.value}" />
+                                                                <ui:param name="operation" value="#{operation}" />
+                                                                <ui:param name="isGeobox" value="#{isGeobox}" />
+                                                                <ui:param name="mapId" value="#{currentMap}" />
+                                                            </ui:include>
 
-                                                    </div>
+                                                        </div>
+                                                    </ui:fragment>
                                                 </ui:repeat>
                                             </div>
 
