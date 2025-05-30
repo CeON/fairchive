@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 import com.google.gson.Gson;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.primefaces.PrimeFaces;
 
@@ -73,8 +74,8 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
     }
 
     @Override
-    public boolean showOnCondition(List<DatasetField> subfields) {
-        return ConditionalRenderingHelper.shouldRender(subfields, this.conditionalRendering);
+    public Option<ConditionalRendering> getConditionalRendering() {
+        return Option.of(conditionalRendering);
     }
 
     public boolean isSortByLocalisedStringsOrder() {

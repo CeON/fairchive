@@ -15,6 +15,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary;
 import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary.Period;
+import io.vavr.control.Option;
 
 public class PeriodoRenderer implements InputFieldRenderer {
 
@@ -46,8 +47,8 @@ public class PeriodoRenderer implements InputFieldRenderer {
     }
 
     @Override
-    public boolean showOnCondition(List<DatasetField> subfields) {
-        return ConditionalRenderingHelper.shouldRender(subfields, conditionalRendering);
+    public Option<ConditionalRendering> getConditionalRendering() {
+        return Option.of(conditionalRendering);
     }
     
     // -------------------- LOGIC --------------------

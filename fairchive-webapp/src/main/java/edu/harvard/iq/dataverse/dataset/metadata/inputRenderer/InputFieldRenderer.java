@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import io.vavr.control.Option;
 
 import java.util.List;
 
@@ -41,5 +42,13 @@ public interface InputFieldRenderer {
     /**
      * Returns true if conditional rendering is set for field and match condition
      */
-    boolean showOnCondition(List<DatasetField> subfields);
+    default Option<ConditionalRendering> getConditionalRendering() {
+        return Option.none();
+    }
+
+    default boolean showOnCondition(List<DatasetField> subfields) {
+        return getConditionalRendering()
+                .map(cr -> cr.shouldRender(subfields))
+                .getOrElse(true);
+    }
 }

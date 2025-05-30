@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.control.Option;
 import org.apache.commons.lang.StringUtils;
 
 import javax.faces.context.FacesContext;
@@ -84,8 +85,8 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
     }
 
     @Override
-    public boolean showOnCondition(List<DatasetField> subfields) {
-        return ConditionalRenderingHelper.shouldRender(subfields, conditionalRendering);
+    public Option<ConditionalRendering> getConditionalRendering() {
+        return Option.of(conditionalRendering);
     }
 
     public SuggestionDisplayType getSuggestionDisplayType() {

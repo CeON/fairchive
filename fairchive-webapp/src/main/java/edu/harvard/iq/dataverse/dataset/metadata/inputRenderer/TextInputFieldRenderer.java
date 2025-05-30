@@ -5,6 +5,7 @@ import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.buttonaction.Fiel
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import io.vavr.control.Option;
 
 import java.util.List;
 
@@ -75,8 +76,8 @@ public class TextInputFieldRenderer implements InputFieldRenderer {
     }
 
     @Override
-    public boolean showOnCondition(List<DatasetField> subfields) {
-        return ConditionalRenderingHelper.shouldRender(subfields, this.conditionalRendering);
+    public Option<ConditionalRendering> getConditionalRendering() {
+        return Option.of(conditionalRendering);
     }
 
     // -------------------- LOGIC --------------------

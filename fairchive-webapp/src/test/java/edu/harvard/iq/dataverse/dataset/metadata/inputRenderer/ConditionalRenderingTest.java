@@ -16,18 +16,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class ConditionalRenderingHelperTest {
+class ConditionalRenderingTest {
 
-    @Test
-    public void shouldRender__withEmptyConditionalRendering() {
-        // given
-        List<DatasetField> subfields = new ArrayList<>();
-        subfields.add(new DatasetField());
-        // when
-        boolean result = ConditionalRenderingHelper.shouldRender(subfields, null);
-        // then
-        assertThat(result).isTrue();
-    }
 
     @Test
     public void shouldRender__withConditionalRendering() {
@@ -38,10 +28,8 @@ class ConditionalRenderingHelperTest {
         subfields.add(createDatasetField(fieldName, fieldValue));
         subfields.add(createDatasetField("aaa", ""));
         // when
-        boolean result = ConditionalRenderingHelper.shouldRender(
-                subfields,
-                new ConditionalRendering(fieldName, fieldValue)
-        );
+        ConditionalRendering cr = new ConditionalRendering(fieldName, fieldValue);
+        boolean result = cr.shouldRender(subfields);
         // then
         assertThat(result).isTrue();
     }
@@ -55,10 +43,8 @@ class ConditionalRenderingHelperTest {
         subfields.add(createDatasetField(fieldName, fieldValue));
         subfields.add(createDatasetField("aaa", ""));
         // when
-        boolean result = ConditionalRenderingHelper.shouldRender(
-                subfields,
-                new ConditionalRendering(fieldName, "different_value")
-        );
+        ConditionalRendering cr = new ConditionalRendering(fieldName, "different_value");
+        boolean result = cr.shouldRender(subfields);
         // then
         assertThat(result).isFalse();
     }

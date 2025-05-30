@@ -49,11 +49,6 @@ public class HiddenVocabInputFieldRenderer implements InputFieldRenderer {
         return true;
     }
 
-    @Override
-    public boolean showOnCondition(List<DatasetField> dsf) {
-        return false;
-    }
-
     /**
      * Returns {@link ControlledVocabularyValue}s that should
      * be assigned to dataset field by default
