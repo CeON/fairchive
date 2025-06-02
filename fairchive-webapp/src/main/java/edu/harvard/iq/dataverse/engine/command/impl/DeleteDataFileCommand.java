@@ -139,14 +139,13 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
         }
         DataFile doomedAndMerged = ctxt.em().merge(doomed);
         ctxt.em().remove(doomedAndMerged);
-        logger.log(Level.WARNING, "DataFile removed with id=" + doomedAndMerged.getId());
         /**
          * @todo consider adding an em.flush here (despite the performance
          * impact) if you need to operate on the dataset below. Without the
          * flush, the dataset still thinks it has the file that was just
          * deleted.
          */
-        ctxt.em().flush();
+        //ctxt.em().flush();
 
         /**
          * We *could* re-index the entire dataset but it's more efficient to
