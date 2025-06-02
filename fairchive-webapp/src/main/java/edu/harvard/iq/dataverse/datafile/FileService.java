@@ -153,8 +153,9 @@ public class FileService {
 
         if (fileStorageLocation != null) {
             Try.run(() -> dataFileService.finalizeFileDelete(fileToDelete.getId(), fileStorageLocation))
-                    .onFailure(throwable -> logger.warn("Failed to delete the physical file associated with the deleted datafile id="
-                                                                   + fileToDelete.getId() + ", storage location: " + fileStorageLocation));
+                    .onFailure(throwable ->
+                            logger.warn("Failed to delete the physical file associated with the deleted datafile id={}, storage location: {}",
+                                    fileToDelete.getId(), fileStorageLocation, throwable));
         } else {
             throw new IllegalStateException("DataFile with id: " + fileToDelete.getId() + " doesn't have storage location");
         }
