@@ -746,7 +746,6 @@ public class DataFileServiceBean implements java.io.Serializable {
      */
     public void finalizeFileDelete(Long dataFileId, String storageLocation) throws IOException {
         // Verify that the DataFile no longer exists:
-        em.flush();
         if (find(dataFileId) != null) {
             throw new IOException("Attempted to permanently delete a physical file still associated with an existing DvObject "
                                           + "(id: " + dataFileId + ", location: " + storageLocation);
