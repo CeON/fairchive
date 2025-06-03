@@ -35,6 +35,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -748,10 +749,7 @@ public class DataFileServiceBean implements java.io.Serializable {
      */
     public void finalizeFileDelete(Long dataFileId, String storageLocation) throws IOException {
         // Verify that the DataFile no longer exists:
-        DataFile dataFile = find(dataFileId);
-        if (dataFile != null) {
-            logger.info("DataFile found: {} refreshing", dataFile);
-            em.refresh(dataFile);
+        if (em.find(DataFile.class, dataFileId, LockModeType.PESSIMISTIC_READ) != null) {
             throw new IOException("Attempted to permanently delete a physical file still associated with an existing DvObject "
                                           + "(id: " + dataFileId + ", location: " + storageLocation + " em:" + em.hashCode());
         }
