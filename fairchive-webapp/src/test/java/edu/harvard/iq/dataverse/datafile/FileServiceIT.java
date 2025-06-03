@@ -98,7 +98,7 @@ public class FileServiceIT extends WebappArquillianDeployment {
                 fileToDelete, not(in(updatedFiles))); // DataFile#equals(…) is based only on file's id
         Awaitility.await().atMost(1, TimeUnit.MINUTES).until(() -> {
             DataFile df = dataFileServiceBean.find(fileToDelete.getId());
-            log.info("Fetched file: {}", df);
+            log.info("Fetched file:{}/{} oldReference:{}/{}", df, (df != null ? df.hashCode() : null), fileToDelete, fileToDelete.hashCode());
             assertThat("File (" + (df != null ? "" + df.getId() : "null") + ") should be physically deleted", deletedFile.exists(), is(false));
             return true;
         });

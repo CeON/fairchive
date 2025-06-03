@@ -15,6 +15,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -35,6 +36,7 @@ import java.util.logging.Logger;
 @RequiredPermissions(Permission.EditDataset)
 public class DeleteDataFileCommand extends AbstractVoidCommand {
     private static final Logger logger = Logger.getLogger(DeleteDataFileCommand.class.getCanonicalName());
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(DeleteDataFileCommand.class);
 
     private final DataFile doomed;
     private final boolean destroy;
@@ -139,6 +141,7 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
         }
         DataFile doomedAndMerged = ctxt.em().merge(doomed);
         ctxt.em().remove(doomedAndMerged);
+        log.info("Removed DataFile with id: {} from the database. em:{} lookup:{}", doomed.getId(), ctxt.em().hashCode(), ctxt.em().find(DataFile.class, doomed.getId()));
         /**
          * @todo consider adding an em.flush here (despite the performance
          * impact) if you need to operate on the dataset below. Without the

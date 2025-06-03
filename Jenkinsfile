@@ -94,6 +94,8 @@ pipeline {
         stage('Integration tests') {
             steps {
                 sh 'docker ps'
+                echo "Workspace: ${WORKSPACE}"
+                sh "pwd"
                 script {
                     withinContainer {
                         IT_TEST_OPTS="-P integration-tests-only,ci-jenkins -Dtest.network.name=${env.DOCKER_NETWORK_NAME} -Ddocker.host=${env.DOCKER_HOST_EXT} -Ddocker.certPath=${env.DOCKER_CERT_EXT}"
@@ -102,7 +104,8 @@ pipeline {
                         sh "./mvnw docker:start -pl fairchive-webapp ${IT_TEST_OPTS}"
 
                         echo 'Executing integration tests.'
-                        sh "./mvnw verify -Ddocker.skip ${IT_TEST_OPTS}"
+                        sh 'pwd'
+                        sh "./mvnw verify -Ddocker.skip -Djava.util.logging.config.file=${WORKSPACE}/fairchive-test-common/src/main/resources/logging.properties ${IT_TEST_OPTS}"
                     }
                 }
             }
