@@ -34,11 +34,8 @@
     >
         <f:selectItem itemLabel="#{bundle.select}" itemValue="" noSelectionOption="true"/>
         <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
-        <f:attribute name="datasetField" value="#{datasetField}" />
-        <f:attribute name="inputRenderersByFieldType" value="#{inputRenderersByFieldType}" />
-
         <p:ajax event="change"
-                listener="#{inputRenderer.processValueChange}"
+                listener="#{inputRenderer.processValueChange(datasetField, inputRenderersByFieldType)}"
                 disabled="#{not inputRenderer.hasChangeListener(datasetField)}"
                 update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}"
         />

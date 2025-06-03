@@ -5,9 +5,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import io.vavr.control.Option;
 
-import javax.faces.component.UIComponent;
-import javax.faces.event.AjaxBehaviorEvent;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -80,12 +77,7 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
 
     // -------------------- LOGIC --------------------
 
-    public void processValueChange(AjaxBehaviorEvent event) {
-        UIComponent component = event.getComponent();
-        DatasetField datasetField = (DatasetField) component.getAttributes().get("datasetField");
-        Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType = new HashMap<>();
-            component.getAttributes().put("inputRenderersByFieldType", inputRenderersByFieldType);
-
+    public void processValueChange(DatasetField datasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
         clearSiblingsDatasetFieldValue(datasetField, inputRenderersByFieldType);
     }
 
@@ -102,8 +94,6 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
                 .filter(df -> !df.getDatasetFieldType().getName().equals(vocabDatasetField.getDatasetFieldType().getName()))
                 .collect(Collectors.toList());
 
-        // Assume that all subfield will be used in conditional rendering(excluding main vocab)
-        // If we will need more fields visible all the time this clearing will not work properly
         for (DatasetField sibling : siblingsFields) {
             InputFieldRenderer renderer = inputRenderersByFieldType.get(sibling.getDatasetFieldType());
             if (renderer.getConditionalRendering().isDefined()) {
