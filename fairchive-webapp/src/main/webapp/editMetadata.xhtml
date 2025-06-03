@@ -87,6 +87,7 @@
 
                                                             <ui:include src="datasetFieldForEditFragment.xhtml">
                                                                 <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(subdsf.datasetFieldType)}" />
+                                                                <ui:param name="inputRenderersByFieldType" value="#{inputRenderersByFieldType}" />
                                                                 <ui:param name="datasetField" value="#{subdsf}" />
                                                                 <ui:param name="hiddenLabel" value="false" />
                                                                 <ui:param name="labelFieldNumber" value="0" />

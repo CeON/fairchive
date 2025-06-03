@@ -1,12 +1,15 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import io.vavr.control.Option;
 
 import javax.faces.component.UIComponent;
 import javax.faces.event.AjaxBehaviorEvent;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
@@ -80,14 +83,17 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
     public void processValueChange(AjaxBehaviorEvent event) {
         UIComponent component = event.getComponent();
         DatasetField datasetField = (DatasetField) component.getAttributes().get("datasetField");
-        clearSiblingsDatasetFieldValue(datasetField);
+        Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType = new HashMap<>();
+            component.getAttributes().put("inputRenderersByFieldType", inputRenderersByFieldType);
+
+        clearSiblingsDatasetFieldValue(datasetField, inputRenderersByFieldType);
     }
 
     public boolean hasChangeListener(DatasetField datasetField) {
         return this.conditionalRendering != null && this.conditionalRendering.controlledBy(datasetField);
     }
 
-    private void clearSiblingsDatasetFieldValue(DatasetField vocabDatasetField) {
+    private void clearSiblingsDatasetFieldValue(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
         List<DatasetField> siblingsFields = vocabDatasetField.getDatasetFieldParent()
                 .getOrElseThrow(() -> new NullPointerException("datasetfield with type: " + vocabDatasetField.getTypeName()
                         + " didn't have any parent required for conditional rendering"))
@@ -99,7 +105,10 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
         // Assume that all subfield will be used in conditional rendering(excluding main vocab)
         // If we will need more fields visible all the time this clearing will not work properly
         for (DatasetField sibling : siblingsFields) {
-            sibling.clearValue();
+            InputFieldRenderer renderer = inputRenderersByFieldType.get(sibling.getDatasetFieldType());
+            if (renderer.getConditionalRendering().isDefined()) {
+                sibling.clearValue();
+            }
         }
     }
 }
