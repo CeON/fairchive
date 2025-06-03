@@ -77,7 +77,9 @@ public class DataFileServiceBean implements java.io.Serializable {
     // -------------------- LOGIC --------------------
 
     public DataFile find(Object pk) {
-        return em.find(DataFile.class, pk);
+        DataFile dataFile = em.find(DataFile.class, pk);
+        logger.info("find({}):{} em:{}", pk, dataFile, em.hashCode());
+        return dataFile;
     }
 
     public DataFile findByGlobalId(String globalId) {
@@ -746,7 +748,10 @@ public class DataFileServiceBean implements java.io.Serializable {
      */
     public void finalizeFileDelete(Long dataFileId, String storageLocation) throws IOException {
         // Verify that the DataFile no longer exists:
-        if (find(dataFileId) != null) {
+        DataFile dataFile = find(dataFileId);
+        if (dataFile != null) {
+            logger.info("DataFile found: {} refreshing", dataFile);
+            em.refresh(dataFile);
             throw new IOException("Attempted to permanently delete a physical file still associated with an existing DvObject "
                                           + "(id: " + dataFileId + ", location: " + storageLocation + " em:" + em.hashCode());
         }
