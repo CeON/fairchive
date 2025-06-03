@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.datafile;
 
+import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
@@ -17,6 +18,8 @@ import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.inject.Inject;
@@ -47,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 @Transactional(TransactionMode.ROLLBACK)
 public class FileServiceIT extends WebappArquillianDeployment {
 
+    private static final Logger log = LoggerFactory.getLogger(FileServiceIT.class);
     @EJB
     private FileService fileService;
 
@@ -58,6 +62,9 @@ public class FileServiceIT extends WebappArquillianDeployment {
 
     @Inject
     private DataverseSession dataverseSession;
+
+    @Inject
+    private DataFileServiceBean dataFileServiceBean;
 
     // -------------------- TESTS --------------------
 
@@ -90,7 +97,9 @@ public class FileServiceIT extends WebappArquillianDeployment {
         assertThat("File list in updated draft should not contain deleted file",
                 fileToDelete, not(in(updatedFiles))); // DataFile#equals(…) is based only on file's id
         Awaitility.await().atMost(1, TimeUnit.MINUTES).until(() -> {
-            assertThat("File should be physically deleted", deletedFile.exists(), is(false));
+            DataFile df = dataFileServiceBean.find(fileToDelete.getId());
+            log.info("Fetched file: {}", df);
+            assertThat("File (" + (df != null ? "" + df.getId() : "null") + ") should be physically deleted", deletedFile.exists(), is(false));
             return true;
         });
     }
