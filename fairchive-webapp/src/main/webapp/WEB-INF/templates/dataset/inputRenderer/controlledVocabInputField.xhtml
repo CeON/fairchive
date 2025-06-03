@@ -22,39 +22,26 @@
               data-original-title="#{datasetField.datasetFieldType.localeDescription}"></span>
     </div>
 
-    <ui:fragment rendered="#{inputRenderer.isConditionalRenderingParent()}">
-        <p:selectOneMenu id="singleVocabularySelectAjax"
-                         value="#{datasetField.singleControlledVocabularyValue}"
-                         converter="controlledVocabularyValueConverter"
-                         style="width: auto !important; max-width:100%; min-width:200px;"
-                         styleClass="form-control primitive"
-                         rendered="#{!datasetField.datasetFieldType.allowMultiples}"
-                         filter="true"
-                         filterMatchMode="contains"
-        >
-            <f:selectItem itemLabel="#{bundle.select}" itemValue="" noSelectionOption="true"/>
-            <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
-            <f:attribute name="updateClientId" value=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}" />
-            <f:attribute name="datasetField" value="#{datasetField}" />
-            <p:ajax event="change"
-                    listener="#{inputRenderer.processValueChange}"
-            />
-        </p:selectOneMenu>
-    </ui:fragment>
-    <ui:fragment rendered="#{not inputRenderer.isConditionalRenderingParent()}">
-        <p:selectOneMenu id="singleVocabularySelect"
-                         value="#{datasetField.singleControlledVocabularyValue}"
-                         converter="controlledVocabularyValueConverter"
-                         style="width: auto !important; max-width:100%; min-width:200px;"
-                         styleClass="form-control primitive"
-                         rendered="#{!datasetField.datasetFieldType.allowMultiples}"
-                         filter="true"
-                         filterMatchMode="contains"
-        >
-            <f:selectItem itemLabel="#{bundle.select}" itemValue="" noSelectionOption="true"/>
-            <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
-        </p:selectOneMenu>
-    </ui:fragment>
+
+    <p:selectOneMenu id="singleVocabularySelect"
+                     value="#{datasetField.singleControlledVocabularyValue}"
+                     converter="controlledVocabularyValueConverter"
+                     style="width: auto !important; max-width:100%; min-width:200px;"
+                     styleClass="form-control primitive"
+                     rendered="#{!datasetField.datasetFieldType.allowMultiples}"
+                     filter="true"
+                     filterMatchMode="contains"
+    >
+        <f:selectItem itemLabel="#{bundle.select}" itemValue="" noSelectionOption="true"/>
+        <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
+        <f:attribute name="datasetField" value="#{datasetField}" />
+        <p:ajax event="change"
+                listener="#{inputRenderer.processValueChange}"
+                disabled="#{not inputRenderer.hasChangeListener(datasetField)}"
+                update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}"
+        />
+    </p:selectOneMenu>
+
 
     <p:selectCheckboxMenu id="multiVocabularySelect" rendered="#{datasetField.datasetFieldType.allowMultiples}"
                 value="#{datasetField.controlledVocabularyValues}" converter="controlledVocabularyValueConverter"

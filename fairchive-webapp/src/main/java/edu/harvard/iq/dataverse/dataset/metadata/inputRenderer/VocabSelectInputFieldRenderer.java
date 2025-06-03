@@ -1,15 +1,13 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
-import com.google.gson.Gson;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
-import org.primefaces.PrimeFaces;
 
 import javax.faces.component.UIComponent;
 import javax.faces.event.AjaxBehaviorEvent;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
 
@@ -20,10 +18,6 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
      */
     private boolean sortByLocalisedStringsOrder = false;
 
-    /**
-     * If true event is attached to refresh div containing this vocab select
-     */
-    private boolean conditionalRenderingParent = false;
 
     private final ConditionalRendering conditionalRendering;
 
@@ -33,11 +27,9 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
     public VocabSelectInputFieldRenderer(
             boolean renderInTwoColumns,
             boolean sortByLocalisedStringsOrder,
-            boolean conditionalRenderingParent,
             ConditionalRendering conditionalRendering) {
         this.renderInTwoColumns = renderInTwoColumns;
         this.sortByLocalisedStringsOrder = sortByLocalisedStringsOrder;
-        this.conditionalRenderingParent = conditionalRenderingParent;
         this.conditionalRendering = conditionalRendering;
     }
 
@@ -83,47 +75,31 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
     }
 
 
-    public boolean isConditionalRenderingParent() {
-        return conditionalRenderingParent;
-    }
-
     // -------------------- LOGIC --------------------
 
     public void processValueChange(AjaxBehaviorEvent event) {
         UIComponent component = event.getComponent();
-        String updateClientId = (String) component.getAttributes().get("updateClientId");
         DatasetField datasetField = (DatasetField) component.getAttributes().get("datasetField");
-
         clearSiblingsDatasetFieldValue(datasetField);
-        // partial refresh of web page
-        PrimeFaces.current().ajax().update(updateClientId);
+    }
+
+    public boolean hasChangeListener(DatasetField datasetField) {
+        return this.conditionalRendering != null && this.conditionalRendering.controlledBy(datasetField);
     }
 
     private void clearSiblingsDatasetFieldValue(DatasetField vocabDatasetField) {
         List<DatasetField> siblingsFields = vocabDatasetField.getDatasetFieldParent()
                 .getOrElseThrow(() -> new NullPointerException("datasetfield with type: " + vocabDatasetField.getTypeName()
                         + " didn't have any parent required for conditional rendering"))
-                .getDatasetFieldsChildren();
+                .getDatasetFieldsChildren()
+                .stream()
+                .filter(df -> !df.getDatasetFieldType().getName().equals(vocabDatasetField.getDatasetFieldType().getName()))
+                .collect(Collectors.toList());
 
+        // Assume that all subfield will be used in conditional rendering(excluding main vocab)
+        // If we will need more fields visible all the time this clearing will not work properly
         for (DatasetField sibling : siblingsFields) {
-            VocabSelectInputFieldRendererFactory.VocabularyInputRendererOptions siblingRendererOptions = parseRendererOptions(sibling);
-            if (hasMatchingConditionalRendering(vocabDatasetField, siblingRendererOptions)) {
-                sibling.clearValue();
-            }
+            sibling.clearValue();
         }
-    }
-
-    private VocabSelectInputFieldRendererFactory.VocabularyInputRendererOptions parseRendererOptions(DatasetField field) {
-        String jsonOptions = field.getDatasetFieldType().getInputRendererOptions();
-        return Try.of(() -> new Gson().fromJson(jsonOptions,
-                        VocabSelectInputFieldRendererFactory.VocabularyInputRendererOptions.class))
-                .getOrElseThrow(e -> new InputRendererInvalidConfigException("Invalid syntax of input renderer options: " + jsonOptions, e));
-    }
-
-    private boolean hasMatchingConditionalRendering(
-            DatasetField current,
-            VocabSelectInputFieldRendererFactory.VocabularyInputRendererOptions options) {
-        return options.hasConditionalRendering() &&
-                current.getDatasetFieldType().getName().equals(options.getConditionalRendering().getDatasetFieldName());
     }
 }

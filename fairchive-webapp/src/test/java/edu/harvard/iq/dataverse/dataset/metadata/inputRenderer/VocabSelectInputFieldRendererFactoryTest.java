@@ -57,17 +57,6 @@ public class VocabSelectInputFieldRendererFactoryTest {
         assertTrue(renderer.isSortByLocalisedStringsOrder());
     }
 
-
-    @Test
-    public void createRenderer__withConditionalRenderingParentOption() {
-        // given
-        JsonObject rendererOptions = TestJsonCreator.stringAsJsonElement("{'conditionalRenderingParent':true}").getAsJsonObject();
-        // when
-        VocabSelectInputFieldRenderer renderer = inputFieldRendererFactory.createRenderer(fieldType, rendererOptions);
-        // then
-        assertTrue(renderer.isConditionalRenderingParent());
-    }
-
     @Test
     public void createRenderer__withConditionalRenderingOption() {
         // given

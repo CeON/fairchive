@@ -35,7 +35,6 @@ public class VocabSelectInputFieldRendererFactory implements InputFieldRendererF
         return new VocabSelectInputFieldRenderer(
                 rendererOptions.isRenderInTwoColumns(),
                 rendererOptions.isSortByLocalisedStringsOrder(),
-                rendererOptions.isConditionalRenderingParent(),
                 rendererOptions.getConditionalRendering());
     }
 
@@ -47,7 +46,6 @@ public class VocabSelectInputFieldRendererFactory implements InputFieldRendererF
     public static class VocabularyInputRendererOptions {
         private boolean sortByLocalisedStringsOrder = false;
         private boolean renderInTwoColumns = true;
-        private boolean conditionalRenderingParent = false;
         private ConditionalRendering conditionalRendering;
 
 
@@ -67,10 +65,6 @@ public class VocabSelectInputFieldRendererFactory implements InputFieldRendererF
 
         public boolean hasConditionalRendering() {
             return conditionalRendering != null;
-        }
-
-        public boolean isConditionalRenderingParent() {
-            return conditionalRenderingParent;
         }
 
         // -------------------- SETTERS --------------------

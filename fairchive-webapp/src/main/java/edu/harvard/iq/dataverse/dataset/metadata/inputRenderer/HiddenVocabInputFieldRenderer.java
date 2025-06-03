@@ -56,5 +56,10 @@ public class HiddenVocabInputFieldRenderer implements InputFieldRenderer {
     public List<ControlledVocabularyValue> getDefaultVocabValues() {
         return defaultVocabValues;
     }
+
+    @Override
+    public boolean showOnCondition(List<DatasetField> subfields) {
+        return false;
+    }
     
 }
