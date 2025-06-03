@@ -126,15 +126,21 @@ public class UpdateDatasetVersionCommand extends AbstractDatasetCommand<Dataset>
 
             if (!dataFileToDelete.isReleased()) {
                 // if file is draft (ie. new to this version, delete; otherwise just remove filemetadata object)
+                logger.info("******** before DeleteDataFileCommand");
                 ctxt.engine().submit(new DeleteDataFileCommand(dataFileToDelete, getRequest()));
+                logger.info("******** after DeleteDataFileCommand");
                 tempDataset.getFiles().remove(dataFileToDelete);
+                logger.info("******** after tempDataset.getFiles().remove");
                 tempDataset.getEditVersion().getFileMetadatas()
                     .removeIf(fileMetadata -> fileMetadata.getDataFile().equals(dataFileToDelete));
+                logger.info("******** after tempDataset.getEditVersion().getFileMetadatas()");
                 // added this check to handle issue where you could not deleter a file that shared a category with a new file
                 // the relation ship does not seem to cascade, yet somehow it was trying to merge the filemetadata
                 // todo: clean this up some when we clean the create / update dataset methods
                 for (DataFileCategory cat : tempDataset.getCategories()) {
+                    logger.info("******** before removeIf");
                     cat.getFileMetadatas().removeIf(fileMetadata -> fileMetadata.getDataFile().equals(dataFileToDelete));
+                    logger.info("******** after removeIf");
                 }
             } else {
                 if (fileMetadataInEditVersion != null) {
@@ -153,11 +159,16 @@ public class UpdateDatasetVersionCommand extends AbstractDatasetCommand<Dataset>
         tempDataset.getEditVersion().setLastUpdateTime(getTimestamp());
         tempDataset.setModificationTime(getTimestamp());
 
+        logger.info("******** merge tempDataset");
         Dataset savedDataset = ctxt.em().merge(tempDataset);
+        logger.info("******** before Flush");
         ctxt.em().flush();
+        logger.info("******** after Flush");
 
         updateDatasetUser(ctxt);
+        logger.info("******** before indexDataset");
         ctxt.index().indexDataset(savedDataset, true);
+        logger.info("******** after indexDataset");
         if (clone != null) {
             DatasetVersionDifference dvd = new DatasetVersionDifference(savedDataset.getEditVersion(), clone);
             AuthenticatedUser au = (AuthenticatedUser) getUser();

@@ -89,10 +89,14 @@ public class FileService {
             datasetFileOwner.setThumbnailFile(null);
         }
 
+        logger.info("******** before updateDatasetVersion");
         Dataset updatedDataset = updateDatasetVersion(Lists.newArrayList(fileToDelete.getDataFile()), datasetFileOwner);
+        logger.info("******** after updateDatasetVersion");
 
         if (!fileToDelete.getDataFile().isReleased()) {
+            logger.info("******** before deleteFilePhysically");
             deleteFilePhysically(fileToDelete.getDataFile());
+            logger.info("******** after deleteFilePhysically");
         }
 
         return updatedDataset;

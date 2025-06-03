@@ -139,7 +139,9 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
         } catch (Exception e) {
             logger.log(Level.WARNING, "Identifier deletion was not successfull:", e.getMessage());
         }
+        log.info("******** before merge doomed");
         DataFile doomedAndMerged = ctxt.em().merge(doomed);
+        log.info("******** after merge doomed");
         ctxt.em().remove(doomedAndMerged);
         log.info("Removed DataFile with id: {} from the database. em:{} lookup:{}", doomed.getId(), ctxt.em().hashCode(), ctxt.em().find(DataFile.class, doomed.getId()));
         /**
