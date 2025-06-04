@@ -3,7 +3,7 @@ services:
 
   smtp:
     image: "mailhog/mailhog:v1.0.1"
-    container_name: "dataverse-dev-smtp"
+    container_name: "fairchive-dev-smtp"
     ports:
       - "8025:8025"
       - "1025:1025"
@@ -15,7 +15,7 @@ services:
 
   postgres:
     image: "postgres:12-alpine"
-    container_name: "dataverse-dev-postgres"
+    container_name: "fairchive-dev-postgres"
     ports:
       - "5432:5432"
     volumes:
@@ -33,7 +33,7 @@ services:
   solr:
     build: "./solr/7.3.1"
     image: "solr:${BUILD_VERSION}"
-    container_name: "dataverse-dev-solr"
+    container_name: "fairchive-dev-solr"
     ports:
       - "8983:8983"
     healthcheck:
@@ -46,7 +46,7 @@ services:
   keycloak:
     hostname: "local.keycloak"
     image: "quay.io/keycloak/keycloak:24.0.2"
-    container_name: "dataverse-dev-keycloak"
+    container_name: "fairchive-dev-keycloak"
     ports:
       - "7070:7070"
     environment:
@@ -59,7 +59,7 @@ services:
   glassfish:
     build: "./glassfish"
     image: "glassfish:${BUILD_VERSION}"
-    container_name: "dataverse-dev-glassfish"
+    container_name: "fairchive-dev-glassfish"
     ports:
       - "8080:8080"
       - "4848:4848"
@@ -68,7 +68,7 @@ services:
       - "8786:8786"
       - "1099:1099"
     volumes:
-      - "${DATAVERSE_SOURCE_DIR}:/dataverse:rw"
+      - "${DATAVERSE_SOURCE_DIR}:/fairchive:rw"
       - "gl-domain-data:/usr/local/glassfish4/glassfish/domains/domain1:rw"
       - "gl-server-data:/srv/glassfish:rw"
       - "gl-home:/root:rw"
@@ -82,7 +82,7 @@ services:
 
   prometheus:
     image: "prom/prometheus:v3.1.0"
-    container_name: "dataverse-dev-prometheus"
+    container_name: "fairchive-dev-prometheus"
     ports:
       - "9090:9090"
     volumes:
@@ -90,7 +90,7 @@ services:
 
   grafana:
     image: "grafana/grafana:11.4.0"
-    container_name: "dataverse-dev-grafana"
+    container_name: "fairchive-dev-grafana"
     ports:
       - "3000:3000"
     environment:

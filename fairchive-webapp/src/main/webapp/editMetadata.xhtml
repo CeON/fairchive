@@ -1,0 +1,198 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:o="http://omnifaces.org/ui"
+                xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+
+    <!--@elvariable id="metadataBlocks" type="java.util.Set< java.util.Map.Entry<edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock, java.util.List<edu.harvard.iq.dataverse.persistence.dataset.DatasetField>>"-->
+    <!-- Edit Mode -->
+    <o:importConstants type="edu.harvard.iq.dataverse.persistence.dataset.FieldType"/>
+    <p:fragment id="editMetadataFragement">
+    <div class="panel-group">
+        <ui:repeat id="metadataBlocks" value="#{metadataBlocks}" var="metadataBlockVal" varStatus="block">
+            <div class="panel panel-default" jsf:rendered="#{(showAllBlocks or metadataBlockVal.key.displayOnCreate or !metadataBlockVal.key.isEmpty()
+                                                             or metadataBlockVal.key.isHasRequired())}">
+                <a data-toggle="collapse" href="#panelCollapse#{block.index}" class="panel-heading text-info" tabindex="0"
+                        aria-expanded="#{block.first || expandAllBlocks}">
+                    <h3>
+                        #{metadataBlockVal.key.localeDisplayName} <span class="glyphicon #{block.first || expandAllBlocks  ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
+                    </h3>
+                </a>
+                <div id="panelCollapse#{block.index}" class="collapse #{block.first || expandAllBlocks ? 'in' : ''}"
+                     data-map-prefix="map_#{metadataBlockVal.key.name}_">
+                    <div class="panel-body">
+                        <ui:repeat id="fieldsByType" value="#{metadataBlockVal.value}" var="fieldsByType" varStatus="fieldsByTypeStatus">
+                            <c:set var="isGeospatial" value="#{fieldsByType.datasetFieldType.fieldType eq FieldType.GEOBOX}"/>
+                            <p:outputPanel id="fieldsByTypeFragment" rendered="#{((showAllFields
+                                                            or fieldsByType.datasetFieldType.displayOnCreate
+                                                            or !fieldsByType.areAllFieldsEmpty()
+                                                            or fieldsByType.datasetFieldType.requiredInDataverse)
+                                                     and fieldsByType.include)}"
+                                        styleClass="form-group #{inputRenderersByFieldType.get(fieldsByType.datasetFieldType).isHidden() ? 'hidden-form-group' : ''}">
+
+                            <div role="#{((fieldsByType.datasetFieldType.compound or fieldsByType.datasetFieldType.allowMultiples) and !fieldsByType.datasetFieldType.controlledVocabulary)
+                                                ? 'group' : 'presentation'}"
+                                aria-label="#{((fieldsByType.datasetFieldType.compound or fieldsByType.datasetFieldType.allowMultiples) and !fieldsByType.datasetFieldType.controlledVocabulary)
+                                                ? fieldsByType.datasetFieldType.localeTitle : ''}">
+
+                                <div class="col-sm-3 control-label section-title"
+                                        jsf:rendered="#{not inputRenderersByFieldType.get(fieldsByType.datasetFieldType).isHidden()}">
+                                    <h:outputText value="#{fieldsByType.datasetFieldType.localeTitle}" escape="false" />
+                                    <h:outputText styleClass="glyphicon glyphicon-asterisk text-danger" value="" rendered="#{fieldsByType.datasetFieldType.requiredInDataverse }" />
+
+                                    <span class="glyphicon glyphicon-question-sign tooltip-icon"
+                                          jsf:rendered="#{not empty fieldsByType.datasetFieldType.localeDescription}"
+                                          tabindex="0" role="button"
+                                          aria-label="#{bundle['common.forms.field.tooltip.ariaLabel']} #{fieldsByType.datasetFieldType.localeTitle}"
+                                          data-toggle="tooltip" data-placement="auto right"
+                                          data-original-title="#{fieldsByType.datasetFieldType.localeDescription}"></span>
+                                </div>
+
+
+
+                                <div class="col-sm-9 form-group">
+                                    <ui:fragment rendered="#{!fieldsByType.datasetFieldType.controlledVocabulary}">
+                                    <ui:repeat id="datasetFields" value="#{fieldsByType.datasetFields}" var="datasetField" varStatus="valCount" >
+                                        <c:set var="currentMap" value="map_#{metadataBlockVal.key.name}_#{fieldsByTypeStatus.index}_#{valCount.index}"/>
+                                        <div class="form-col-container form-group
+                                                #{fieldsByType.datasetFieldType.compound ? 'edit-compound-field form-field-group':'edit-field'}">
+
+                                            <!-- Main field -->
+                                            <div class="col-xs-9 form-col-container" jsf:rendered="#{fieldsByType.datasetFieldType.primitive}">
+                                                <ui:include src="datasetFieldForEditFragment.xhtml">
+                                                    <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(datasetField.datasetFieldType)}" />
+                                                    <ui:param name="datasetField" value="#{datasetField}" />
+                                                    <ui:param name="hiddenLabel" value="true" />
+                                                    <ui:param name="labelFieldNumber" value="#{datasetField.datasetFieldType.allowMultiples ? valCount.index + 1 : 0}" />
+                                                    <ui:param name="allBlockfields" value="#{metadataBlockVal.value}" />
+                                                    <ui:param name="operation" value="#{operation}" />
+                                                </ui:include>
+                                            </div>
+                                            <script jsf:rendered="#{isGeospatial}">
+                                                    DvJS.Geo.EditView.prepare('#{currentMap}');
+                                            </script>
+                                            <!-- Sub Fields -->
+                                            <div class="col-xs-9 form-col-container field-add-delete-input" jsf:rendered="#{fieldsByType.datasetFieldType.compound}"
+                                                        role="#{fieldsByType.datasetFieldType.allowMultiples ? 'group' : 'presentation'}"
+                                                        aria-label="#{fieldsByType.datasetFieldType.allowMultiples ? datasetField.datasetFieldType.localeTitle.concat(' ').concat(valCount.index + 1) : ''}">
+                                                <ui:repeat id="subfields" value="#{datasetField.datasetFieldsChildren}" var="subdsf">
+                                                    <ui:fragment rendered="#{inputRenderersByFieldType.get(subdsf.datasetFieldType).showOnCondition(datasetField.datasetFieldsChildren)}">
+                                                        <div class="form-col-container
+                                                            #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).renderInTwoColumns()) ? 'col-sm-6' : 'col-sm-12'}
+                                                            #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).isHidden()) ? 'form-hidden-col-container' : ''}">
+
+                                                            <ui:include src="datasetFieldForEditFragment.xhtml">
+                                                                <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(subdsf.datasetFieldType)}" />
+                                                                <ui:param name="inputRenderersByFieldType" value="#{inputRenderersByFieldType}" />
+                                                                <ui:param name="datasetField" value="#{subdsf}" />
+                                                                <ui:param name="hiddenLabel" value="false" />
+                                                                <ui:param name="labelFieldNumber" value="0" />
+                                                                <ui:param name="allBlockfields" value="#{metadataBlockVal.value}" />
+                                                                <ui:param name="operation" value="#{operation}" />
+                                                                <ui:param name="isGeobox" value="#{isGeobox}" />
+                                                                <ui:param name="mapId" value="#{currentMap}" />
+                                                            </ui:include>
+
+                                                        </div>
+                                                    </ui:fragment>
+                                                </ui:repeat>
+                                            </div>
+
+                                            <!-- Add / Remove buttons -->
+                                            <div class="col-xs-3 field-add-delete" jsf:rendered="#{fieldsByType.datasetFieldType.allowMultiples and !fieldsByType.datasetFieldType.controlledVocabulary}">
+                                                <p:commandLink title="#{bundle.add}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                               actionListener="#{fieldsByType.addEmptyDatasetField(valCount.index + 1)}"
+                                                               update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
+                                                    <span class="glyphicon glyphicon-plus no-text"/>
+                                                    <o:skipValidators />
+                                                </p:commandLink>
+                                                <p:commandLink title="#{bundle.delete}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                               rendered="#{isGeospatial and fieldsByType.datasetFields.size() > 1}"
+                                                               actionListener="#{fieldsByType.removeDatasetField(valCount.index)}"
+                                                               update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}"
+                                                               onclick="DvJS.Geo.EditView.remove($(this).attr('data-map'))"
+                                                               pt:data-map="#{currentMap}">
+                                                    <span class="glyphicon glyphicon-minus no-text"/>
+                                                    <o:skipValidators />
+                                                </p:commandLink>
+                                                <p:commandLink title="#{bundle.delete}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                               rendered="#{not isGeospatial and fieldsByType.datasetFields.size() > 1}"
+                                                               actionListener="#{fieldsByType.removeDatasetField(valCount.index)}"
+                                                               update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
+                                                    <span class="glyphicon glyphicon-minus no-text"/>
+                                                    <o:skipValidators />
+                                                </p:commandLink>
+                                                <br/>
+                                                <p:commandLink title="#{bundle['dataset.edit.divideBySemicolons.hint']}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                               rendered="#{fieldsByType.datasetFieldType.hasMetadata('divider')}"
+                                                               actionListener="#{fieldsByType.divide(valCount.index, ';')}"
+                                                               update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
+                                                    <span class="icon-text no-text">;</span>
+                                                    <o:skipValidators/>
+                                                </p:commandLink>
+                                                <p:commandLink title="#{bundle['dataset.edit.divideByCommas.hint']}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                               rendered="#{fieldsByType.datasetFieldType.hasMetadata('divider')}"
+                                                               actionListener="#{fieldsByType.divide(valCount.index, ',')}"
+                                                               update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
+                                                    <span class="icon-text no-text">,</span>
+                                                    <o:skipValidators/>
+                                                </p:commandLink>
+                                            </div>
+
+                                            <!-- Map -->
+                                            <div id="#{currentMap}" class="col-xs-9 form-col-container geo-map"
+                                                 jsf:rendered="#{isGeospatial}">
+                                            </div>
+                                        </div>
+
+                                    </ui:repeat>
+                                    </ui:fragment>
+
+                                    <!-- Controlled vocabulary field -->
+                                    <ui:fragment rendered="#{fieldsByType.datasetFieldType.controlledVocabulary}">
+                                        <ui:include src="datasetFieldForEditFragment.xhtml">
+                                            <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(fieldsByType.datasetFieldType)}" />
+                                            <ui:param name="datasetField" value="#{fieldsByType.datasetFields.get(0)}" />
+                                            <ui:param name="hiddenLabel" value="true" />
+                                            <ui:param name="labelFieldNumber" value="0" />
+                                            <ui:param name="allBlockfields" value="#{metadataBlockVal.value}" />
+                                            <ui:param name="operation" value="#{operation}" />
+                                        </ui:include>
+                                    </ui:fragment>
+
+                                </div>
+                            </div>
+                            </p:outputPanel>
+                        </ui:repeat>
+                    </div>
+                    <script>
+                    if ($('#panelCollapse#{block.index}').hasClass('in')) {
+                        DvJS.Geo.EditView.initializeAll('map_#{metadataBlockVal.key.name}');
+                    } else {
+                        $('#panelCollapse#{block.index}').on('shown.bs.collapse', function() {
+                            DvJS.Geo.EditView.initializeAll('map_#{metadataBlockVal.key.name}');
+                        });
+                    }
+                    </script>
+                </div>
+            </div>
+        </ui:repeat>
+        <script>
+            $(document).on('pfAjaxComplete', function() {
+                for (const tab of $('.in[id^=panelCollapse]')) {
+                    DvJS.Geo.EditView.initializeAll($(tab).attr('data-map-prefix'));
+                }
+            });
+        </script>
+    </div>
+    </p:fragment>
+</ui:composition>

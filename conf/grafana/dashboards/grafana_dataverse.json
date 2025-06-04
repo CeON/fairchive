@@ -1641,19 +1641,19 @@
       },
       {
         "current": {
-          "text": "dataverse",
-          "value": "dataverse"
+          "text": "fairchive",
+          "value": "fairchive"
         },
         "label": "job",
         "name": "job",
         "options": [
           {
             "selected": true,
-            "text": "dataverse",
-            "value": "dataverse"
+            "text": "fairchive",
+            "value": "fairchive"
           }
         ],
-        "query": "dataverse",
+        "query": "fairchive",
         "type": "textbox"
       },
       {
@@ -1733,8 +1733,8 @@
     ]
   },
   "timezone": "",
-  "title": "Dataverse dashboard",
-  "uid": "dataverse-dashboard",
+  "title": "Fairchive dashboard",
+  "uid": "fairchive-dashboard",
   "version": 4,
   "weekStart": ""
 }

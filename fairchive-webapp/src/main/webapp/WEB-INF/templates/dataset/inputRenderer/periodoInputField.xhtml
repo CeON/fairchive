@@ -1,0 +1,75 @@
+<ui:composition
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:jsf="http://xmlns.jcp.org/jsf"
+        xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+    <!--@elvariable id="datasetField" type="edu.harvard.iq.dataverse.persistence.dataset.DatasetField"-->
+    <!--@elvariable id="inputRenderer" type="edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.SuggestionInputFieldRenderer"-->
+
+    <div class="control-label-with-tooltip">
+        <p:outputLabel styleClass="control-label #{hiddenLabel ? 'sr-only' : ''}"
+                       for="periodo"
+                       escape="false"
+                       value="#{datasetField.datasetFieldType.localeTitle}">
+            <h:outputText rendered="#{not (labelFieldNumber eq 0)}" 
+                          value=" #{labelFieldNumber}"/>
+            <h:outputText rendered="#{datasetField.datasetFieldType.requiredInDataverse}"
+                          styleClass="glyphicon glyphicon-asterisk text-danger" 
+                          value=""/>
+        </p:outputLabel>
+        <span class="glyphicon glyphicon-question-sign tooltip-icon"
+              jsf:rendered="#{(not empty datasetField.datasetFieldType.localeDescription) and !hiddenLabel}"
+              tabindex="0" role="button"
+              aria-label="#{bundle['common.forms.field.tooltip.ariaLabel']} #{datasetField.datasetFieldType.localeTitle}"
+              data-toggle="tooltip" data-placement="auto right"
+              data-original-title="#{datasetField.datasetFieldType.localeDescription}"></span>
+    </div>
+
+    <p:autoComplete
+            id="periodo"
+            value="#{datasetField.value}"
+            converter="#{inputRenderer.converter}"
+            completeMethod="#{inputRenderer.processSuggestionQuery(datasetField)}"
+            valueChangeListener="#{inputRenderer.processValueChange}"
+            styleClass="autocomplete-form-control"
+            panelStyleClass="autocomplete-panel-maxwidth"
+            resultsMessage="#{bundle['common.forms.autocomplete.resultsMessage']}"
+            emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
+            var="suggestion" 
+            itemLabel="#{suggestion}" 
+            itemValue="#{suggestion.value}"
+            autoSelection="false"
+            autoHighlight="false"
+            maxResults="50"
+            queryDelay="700">
+        <p:ajax process="@form:@id(fieldsByTypeFragment)" 
+                event="focus"  
+                update="details"/>
+
+        <p:column>
+            <h:outputText value="#{suggestion.value}"/>
+        </p:column>
+        <p:column>
+            <h:outputText value="#{suggestion.detailsHTML}" escape="false"/>
+        </p:column>
+    </p:autoComplete>
+
+    <p:watermark for="periodo"
+                 value="#{datasetField.datasetFieldType.localeWatermark}"/>
+
+    <div jsf:id="details">
+        <h:outputText rendered="#{inputRenderer.displayDetails()}" 
+                      value="#{inputRenderer.getDetails()}" escape="false"/>
+    </div>
+
+    <div class="ui-message ui-message-error ui-widget ui-corner-all" 
+         aria-live="polite"
+         jsf:rendered="#{!empty datasetField.validationMessage}">
+        <span class="ui-message-error-detail">
+            <h:outputText value="#{datasetField.validationMessage}" escape="false"/>
+        </span>
+    </div>
+
+</ui:composition>

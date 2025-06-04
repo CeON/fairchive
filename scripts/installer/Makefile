@@ -27,7 +27,7 @@ ${INSTALL_SCRIPT}: install
 ${DISTRIBUTION_FILE}:
 	@echo copying distribution file...
 	@mkdir -p ${INSTALLER_ZIP_DIR}
-	@BUILT_DIST_DIR=../../dataverse-dist/target/dist; export BUILT_DIST_DIR; \
+	@BUILT_DIST_DIR=../../fairchive-dist/target/dist; export BUILT_DIST_DIR; \
 	if [ -d $$BUILT_DIST_DIR ]; \
 	then \
 		/bin/cp -r $$BUILT_DIST_DIR/* ${INSTALLER_ZIP_DIR}; \

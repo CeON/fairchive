@@ -6,7 +6,7 @@ INSTALL_DIR="/opt/prometheus_javagent"
 GLASSFISH_DIR="/opt/glassfish"
 METRICS_EXPORT_PORT=9999
 PROMETHEUS_JAVAAGENT_DOWNLOAD_URL=https://github.com/prometheus/jmx_exporter/releases/download/1.1.0/jmx_prometheus_javaagent-1.1.0.jar
-PROMETHEUS_EXPORTER_CONFIG_URL=https://raw.githubusercontent.com/CeON/dataverse/refs/heads/develop/conf/prometheus/prometheus_exporter.yaml
+PROMETHEUS_EXPORTER_CONFIG_URL=https://raw.githubusercontent.com/CeON/fairchive/refs/heads/develop/conf/prometheus/prometheus_exporter.yaml
 
 GLASSFISH_JAVAAGENT="\-javaagent\:${INSTALL_DIR}/$(basename ${PROMETHEUS_JAVAAGENT_DOWNLOAD_URL})=${METRICS_EXPORT_PORT}\:${INSTALL_DIR}/$(basename ${PROMETHEUS_EXPORTER_CONFIG_URL})"
 

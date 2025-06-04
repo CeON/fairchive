@@ -1,0 +1,54 @@
+package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
+
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import io.vavr.control.Option;
+
+import java.util.List;
+
+/**
+ * Interface that contains instructions on how
+ * to render dataset fields while editing metadata on ui.
+ * 
+ * @author madryk
+ */
+public interface InputFieldRenderer {
+    
+    /**
+     * Returns {@link InputRendererType} associated
+     * with this renderer.
+     * <p>
+     * It is important that each
+     * implementation of {@link InputFieldRenderer} returns
+     * different {@link InputRendererType} in whole application.
+     */
+    InputRendererType getType();
+    
+    /**
+     * Returns true if input field should render in a
+     * way that enables other input field to render
+     * on the second column.
+     * Otherwise input field should render in
+     * full width.
+     */
+    boolean renderInTwoColumns();
+    
+    /**
+     * Returns true if input field does not produce
+     * any visible content on page
+     */
+    boolean isHidden();
+
+    /**
+     * Returns true if conditional rendering is set for field and match condition
+     */
+    default Option<ConditionalRendering> getConditionalRendering() {
+        return Option.none();
+    }
+
+    default boolean showOnCondition(List<DatasetField> subfields) {
+        return getConditionalRendering()
+                .map(cr -> cr.shouldRender(subfields))
+                .getOrElse(true);
+    }
+}

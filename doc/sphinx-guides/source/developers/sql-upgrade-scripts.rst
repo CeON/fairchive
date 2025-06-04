@@ -10,7 +10,7 @@ The database schema for Dataverse is constantly evolving and we have adopted a t
 Location of SQL Upgrade Scripts
 -------------------------------
 
-``dataverse-persistence/src/main/resources/db/migration`` is the directory where we keep SQLs for Flyway to find.
+``fairchive-persistence/src/main/resources/db/migration`` is the directory where we keep SQLs for Flyway to find.
 
 How to Determine if You Need to Create a SQL migration
 ------------------------------------------------------
@@ -22,7 +22,7 @@ How to Create a SQL
 
 We assume you have already read the :doc:`version-control` section and have been keeping your feature branch up to date with the "develop" branch.
 
-Create a new file called something like ``V{NEXT_NUMBER}__renamedTermsOfUse.sql`` in the ``dataverse-persistence/src/main/resources/db/migration`` directory. Use a next number compared to the previous sql, ensuring that the number is unique. To read more about Flyway file naming conventions, see https://flywaydb.org/documentation/migrations#naming
+Create a new file called something like ``V{NEXT_NUMBER}__renamedTermsOfUse.sql`` in the ``fairchive-persistence/src/main/resources/db/migration`` directory. Use a next number compared to the previous sql, ensuring that the number is unique. To read more about Flyway file naming conventions, see https://flywaydb.org/documentation/migrations#naming
 
 The SQL migration script you wrote will be part of the war file and executed when the war file is deployed. To see a history of Flyway database migrations that have been applied, look at the ``flyway_schema_history`` table.
 

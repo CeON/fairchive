@@ -73,7 +73,7 @@ $ # start the glassfish server
 $ ./dev glassfish start
 $ # list all the deployed applications
 $ ./dev glassfish apps
-$ # re-deploy dataverse (uses the war located in dataverse-dist/target/dist)
+$ # re-deploy dataverse (uses the war located in fairchive-dist/target/dist)
 $ ./dev glassfish redeploy
 $ # show glassfish commands 
 $ ./dev glassfish help
@@ -92,20 +92,20 @@ All tests:
 Single test:
 
 ```bash
-./mvnw verify -Dit.test=UserNotificationRepositoryIT -pl dataverse-persistence
+./mvnw verify -Dit.test=UserNotificationRepositoryIT -pl fairchive-persistence
 ```
 
 
 Integration test dependencies can be started manually in order to execute integration tests through the IDE:
 
 ```bash
-./mvnw docker:start -pl dataverse-webapp
+./mvnw docker:start -pl fairchive-webapp
 ```
 
 Once started, all the integration tests can be run through the IDE. When finished, containers can be stopped with:
 
 ```bash
-./mvnw docker:stop -pl dataverse-webapp
+./mvnw docker:stop -pl fairchive-webapp
 ```
 
 # CI builds

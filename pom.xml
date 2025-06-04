@@ -5,16 +5,16 @@
     If you are doing more than bumping the version number, please read
     doc/sphinx-guides/source/developers/dependencies.rst
     -->
-    <groupId>pl.edu.icm.dataverse</groupId>
-    <artifactId>dataverse-parent</artifactId>
+    <groupId>pl.edu.icm.fairchive</groupId>
+    <artifactId>fairchive-parent</artifactId>
     <version>1.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>dataverse-parent</name>
+    <name>fairchive-parent</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <dataverse.repo.dir>${project.basedir}</dataverse.repo.dir>
+        <fairchive.repo.dir>${project.basedir}</fairchive.repo.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
         <!-- Needed to avoid IDEA IDE compilation failures. See commits in GH #5059 -->
@@ -87,13 +87,13 @@
             <url>file://${project.basedir}/local_lib</url>
         </repository>
         <repository>
-            <id>dataverse-releases</id>
+            <id>fairchive-releases</id>
             <url>https://maven.ceon.pl/repository/drodb-releases</url>
             <snapshots><enabled>false</enabled></snapshots>
             <releases><enabled>true</enabled></releases>
         </repository>
         <repository>
-            <id>dataverse-snapshots</id>
+            <id>fairchive-snapshots</id>
             <url>https://maven.ceon.pl/repository/drodb-snapshots</url>
             <snapshots><enabled>true</enabled></snapshots>
             <releases><enabled>false</enabled></releases>
@@ -101,10 +101,10 @@
     </repositories>
 
     <modules>
-        <module>dataverse-test-common</module>
-        <module>dataverse-persistence</module>
-        <module>dataverse-webapp</module>
-        <module>dataverse-dist</module>
+        <module>fairchive-test-common</module>
+        <module>fairchive-persistence</module>
+        <module>fairchive-webapp</module>
+        <module>fairchive-dist</module>
     </modules>
 
     <!-- Please keep alphabetical order of added dependencies -->
@@ -801,7 +801,7 @@
                         <images>
                             <image>
                                 <name>postgres:12-alpine</name>
-                                <alias>dataverse-postgres-ittest</alias>
+                                <alias>fairchive-postgres-ittest</alias>
                                 <run>
                                     <containerNamePattern>%a-%i</containerNamePattern>
                                     <ports>
@@ -829,9 +829,9 @@
                             </image>
                             <image>
                                 <name>solr:7.3.1</name>
-                                <alias>dataverse-solr-ittest</alias>
+                                <alias>fairchive-solr-ittest</alias>
                                 <build>
-                                    <dockerFile>${dataverse.repo.dir}/dataverse-webapp/src/test/resources/docker/test_solr/Dockerfile</dockerFile>
+                                    <dockerFile>${fairchive.repo.dir}/fairchive-webapp/src/test/resources/docker/test_solr/Dockerfile</dockerFile>
                                 </build>
                                 <run>
                                     <containerNamePattern>%a-%i</containerNamePattern>
@@ -989,7 +989,7 @@
                 <test.solr.docker.port>8984</test.solr.docker.port>
                 <test.solr.port>${test.solr.docker.port}</test.solr.port>
                 <test.solr.host>localhost</test.solr.host>
-                <test.network.name>dataverse-local</test.network.name>
+                <test.network.name>fairchive-local</test.network.name>
             </properties>
         </profile>
         <profile>
@@ -1030,19 +1030,19 @@
     </profiles>
 
     <scm>
-        <url>https://github.com/CeON/dataverse.git</url>
-        <connection>scm:git:git@github.com:CeON/dataverse.git</connection>
-        <developerConnection>scm:git:git@github.com:CeON/dataverse.git</developerConnection>
+        <url>https://github.com/CeON/fairchive.git</url>
+        <connection>scm:git:git@github.com:CeON/fairchive.git</connection>
+        <developerConnection>scm:git:git@github.com:CeON/fairchive.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
         <repository>
-            <id>dataverse-releases</id>
+            <id>fairchive-releases</id>
             <url>https://maven.ceon.pl/artifactory/drodb-releases</url>
         </repository>
         <snapshotRepository>
-            <id>dataverse-snapshots</id>
+            <id>fairchive-snapshots</id>
             <url>https://maven.ceon.pl/artifactory/drodb-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
