@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.control.Option;
 import org.apache.commons.lang.StringUtils;
 
 import javax.faces.context.FacesContext;
@@ -25,6 +26,7 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
     private SuggestionDisplayType suggestionDisplayType;
     private String datasetFieldTypeName;
     private String metadataBlockName;
+    private ConditionalRendering conditionalRendering;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -38,13 +40,16 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
             SuggestionHandler suggestionHandler,
             Map<String, String> datasetFieldTypeToSuggestionFilterMapping,
             SuggestionDisplayType suggestionDisplayType,
-            String datasetFieldTypeName, String metadataBlockName) {
+            String datasetFieldTypeName,
+            String metadataBlockName,
+            ConditionalRendering conditionalRendering) {
 
         this.suggestionHandler = suggestionHandler;
         this.datasetFieldTypeToSuggestionFilterMapping = datasetFieldTypeToSuggestionFilterMapping;
         this.suggestionDisplayType = suggestionDisplayType;
         this.datasetFieldTypeName = datasetFieldTypeName;
         this.metadataBlockName = metadataBlockName;
+        this.conditionalRendering = conditionalRendering;
     }
 
     // -------------------- GETTERS --------------------
@@ -77,6 +82,11 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
     @Override
     public boolean isHidden() {
         return false;
+    }
+
+    @Override
+    public Option<ConditionalRendering> getConditionalRendering() {
+        return Option.of(conditionalRendering);
     }
 
     public SuggestionDisplayType getSuggestionDisplayType() {

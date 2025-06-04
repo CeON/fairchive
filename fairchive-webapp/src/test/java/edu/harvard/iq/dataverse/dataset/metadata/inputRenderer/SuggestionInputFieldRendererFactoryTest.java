@@ -4,10 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.SuggestionInputFieldRendererFactory.SuggestionDisplayType;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion.SuggestionHandler;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.MocksFactory;
+import edu.harvard.iq.dataverse.persistence.dataset.*;
 import edu.harvard.iq.dataverse.util.json.TestJsonCreator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +20,11 @@ import org.mockito.quality.Strictness;
 
 import javax.enterprise.inject.Instance;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -148,5 +150,25 @@ public class SuggestionInputFieldRendererFactoryTest {
 
         // then
         assertThrows(InputRendererInvalidConfigException.class, createRendererOperation);
+    }
+
+    @Test
+    public void createRenderer__withConditionalRenderingOption() {
+        // given
+        String json = "{'conditionalRendering': {'datasetFieldName':'country', 'renderOnValue':'Poland'}, 'suggestionSourceClass':'handler1'}";
+        JsonObject rendererOptions = TestJsonCreator.stringAsJsonElement(json).getAsJsonObject();
+        List<DatasetField> subfields = new ArrayList<>();
+        DatasetField field = new DatasetField();
+        field.setDatasetFieldType(MocksFactory.makeControlledVocabDatasetFieldType("country",
+                false,
+                new MetadataBlock(),
+                "Poland"));
+        field.setSingleControlledVocabularyValue(new ControlledVocabularyValue(0L, "Poland", null));
+        subfields.add(field);
+        // when
+        SuggestionInputFieldRenderer renderer = suggestionInputFieldRendererFactory
+                .createRenderer(datasetFieldType, rendererOptions);
+        // then
+        assertTrue(renderer.showOnCondition(subfields));
     }
 }

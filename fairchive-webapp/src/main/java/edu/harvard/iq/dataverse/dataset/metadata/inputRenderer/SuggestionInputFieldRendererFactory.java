@@ -58,7 +58,8 @@ public class SuggestionInputFieldRendererFactory implements InputFieldRendererFa
                 datasetFieldTypeToSuggestionFilterMapping,
                 rendererOptions.getSuggestionDisplayType() == null ? SuggestionDisplayType.SIMPLE : rendererOptions.getSuggestionDisplayType(),
                 fieldType.getName(),
-                fieldType.getMetadataBlock().getName());
+                fieldType.getMetadataBlock().getName(),
+                rendererOptions.getConditionalRendering());
     }
 
     // -------------------- PRIVATE --------------------
@@ -101,6 +102,7 @@ public class SuggestionInputFieldRendererFactory implements InputFieldRendererFa
         private String suggestionSourceClass;
         private List<String> suggestionFilteredBy;
         private SuggestionDisplayType suggestionDisplayType;
+        private ConditionalRendering conditionalRendering;
 
         // -------------------- GETTERS --------------------
 
@@ -135,6 +137,10 @@ public class SuggestionInputFieldRendererFactory implements InputFieldRendererFa
          */
         public SuggestionDisplayType getSuggestionDisplayType() {
             return suggestionDisplayType;
+        }
+
+        public ConditionalRendering getConditionalRendering() {
+            return conditionalRendering;
         }
     }
 

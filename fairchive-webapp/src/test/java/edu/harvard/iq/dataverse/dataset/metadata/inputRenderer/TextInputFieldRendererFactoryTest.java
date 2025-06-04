@@ -2,9 +2,8 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
 import com.google.gson.JsonObject;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.buttonaction.FieldButtonActionHandler;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.MocksFactory;
+import edu.harvard.iq.dataverse.persistence.dataset.*;
 import edu.harvard.iq.dataverse.util.json.TestJsonCreator;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +19,7 @@ import org.mockito.quality.Strictness;
 
 import javax.enterprise.inject.Instance;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -155,5 +155,25 @@ public class TextInputFieldRendererFactoryTest {
         // then
         verify(actionHandler1, never()).handleAction(any(), any());
         verify(actionHandler2).handleAction(datasetField, allBlockFields);
+    }
+
+
+    @Test
+    public void createRenderer__withConditionalRenderingOption() {
+        // given
+        String json = "{'conditionalRendering': {'datasetFieldName':'country', 'renderOnValue':'Poland'}}";
+        JsonObject rendererOptions = TestJsonCreator.stringAsJsonElement(json).getAsJsonObject();
+        List<DatasetField> subfields = new ArrayList<>();
+        DatasetField field = new DatasetField();
+        field.setDatasetFieldType(MocksFactory.makeControlledVocabDatasetFieldType("country",
+                false,
+                new MetadataBlock(),
+                "Poland"));
+        field.setSingleControlledVocabularyValue(new ControlledVocabularyValue(0L, "Poland", null));
+        subfields.add(field);
+        // when
+        TextInputFieldRenderer renderer = inputFieldRendererFactory.createRenderer(fieldType, rendererOptions);
+        // then
+        assertTrue(renderer.showOnCondition(subfields));
     }
 }

@@ -21,7 +21,8 @@
               data-toggle="tooltip" data-placement="auto right"
               data-original-title="#{datasetField.datasetFieldType.localeDescription}"></span>
     </div>
-    
+
+
     <p:selectOneMenu id="singleVocabularySelect"
                      value="#{datasetField.singleControlledVocabularyValue}"
                      converter="controlledVocabularyValueConverter"
@@ -33,7 +34,13 @@
     >
         <f:selectItem itemLabel="#{bundle.select}" itemValue="" noSelectionOption="true"/>
         <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
+        <p:ajax event="change"
+                listener="#{inputRenderer.processValueChange(datasetField, inputRenderersByFieldType)}"
+                disabled="#{not inputRenderer.hasChangeListener(datasetField, inputRenderersByFieldType)}"
+                update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}"
+        />
     </p:selectOneMenu>
+
 
     <p:selectCheckboxMenu id="multiVocabularySelect" rendered="#{datasetField.datasetFieldType.allowMultiples}"
                 value="#{datasetField.controlledVocabularyValues}" converter="controlledVocabularyValueConverter"

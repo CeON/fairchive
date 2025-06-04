@@ -15,11 +15,19 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary;
 import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary.Period;
+import io.vavr.control.Option;
 
 public class PeriodoRenderer implements InputFieldRenderer {
 
     private Optional<Period> selectedPeriod = Optional.empty();
     private final CapturingConverter converter = new CapturingConverter();
+    private final ConditionalRendering conditionalRendering;
+
+    // -------------------- CONSTRUCTORS --------------------
+
+    public PeriodoRenderer(ConditionalRendering conditionalRendering) {
+        this.conditionalRendering = conditionalRendering;
+    }
 
     // -------------------- GETTERS --------------------
 
@@ -36,6 +44,11 @@ public class PeriodoRenderer implements InputFieldRenderer {
     @Override
     public boolean isHidden() {
         return false;
+    }
+
+    @Override
+    public Option<ConditionalRendering> getConditionalRendering() {
+        return Option.of(conditionalRendering);
     }
     
     // -------------------- LOGIC --------------------

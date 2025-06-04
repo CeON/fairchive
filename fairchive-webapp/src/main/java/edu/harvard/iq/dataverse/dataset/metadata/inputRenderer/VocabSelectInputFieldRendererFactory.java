@@ -31,9 +31,11 @@ public class VocabSelectInputFieldRendererFactory implements InputFieldRendererF
     public VocabSelectInputFieldRenderer createRenderer(DatasetFieldType fieldType, JsonObject jsonOptions) {
         VocabularyInputRendererOptions rendererOptions = Try.of(() -> new Gson().fromJson(jsonOptions, VocabularyInputRendererOptions.class))
                 .getOrElseThrow((e) -> new InputRendererInvalidConfigException("Invalid syntax of input renderer options " + jsonOptions + ")", e));
-        
-        return new VocabSelectInputFieldRenderer(rendererOptions.isRenderInTwoColumns(),
-                rendererOptions.isSortByLocalisedStringsOrder());
+
+        return new VocabSelectInputFieldRenderer(
+                rendererOptions.isRenderInTwoColumns(),
+                rendererOptions.isSortByLocalisedStringsOrder(),
+                rendererOptions.getConditionalRendering());
     }
 
     // -------------------- INNER CLASSES --------------------
@@ -44,6 +46,8 @@ public class VocabSelectInputFieldRendererFactory implements InputFieldRendererF
     public static class VocabularyInputRendererOptions {
         private boolean sortByLocalisedStringsOrder = false;
         private boolean renderInTwoColumns = true;
+        private ConditionalRendering conditionalRendering;
+
 
         // -------------------- GETTERS --------------------
 
@@ -55,6 +59,14 @@ public class VocabSelectInputFieldRendererFactory implements InputFieldRendererF
             return renderInTwoColumns;
         }
 
+        public ConditionalRendering getConditionalRendering() {
+            return conditionalRendering;
+        }
+
+        public boolean hasConditionalRendering() {
+            return conditionalRendering != null;
+        }
+
         // -------------------- SETTERS --------------------
 
         public void setBySortLocalisedStringsOrder(boolean sortByLocalisedStringsOrder) {
@@ -63,6 +75,11 @@ public class VocabSelectInputFieldRendererFactory implements InputFieldRendererF
 
         public void setRenderInTwoColumns(boolean renderInTwoColumns) {
             this.renderInTwoColumns = renderInTwoColumns;
+        }
+
+
+        public void setConditionalRendering(ConditionalRendering conditionalRendering) {
+            this.conditionalRendering = conditionalRendering;
         }
     }
 }

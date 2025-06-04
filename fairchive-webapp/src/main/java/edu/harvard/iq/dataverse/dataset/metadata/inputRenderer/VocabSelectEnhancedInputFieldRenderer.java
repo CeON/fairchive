@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import io.vavr.control.Option;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,7 +13,14 @@ public class VocabSelectEnhancedInputFieldRenderer implements InputFieldRenderer
 
     private Collection<ControlledVocabularyValue> all = new ArrayList<>();
     private int numberOfResults = 100;
+    private final ConditionalRendering conditionalRendering;
     private static final int RESULTS_INCREMENT_STEP = 100;
+
+    // -------------------- CONSTRUCTORS --------------------
+
+    public VocabSelectEnhancedInputFieldRenderer(ConditionalRendering conditionalRendering) {
+        this.conditionalRendering = conditionalRendering;
+    }
 
     // -------------------- GETTERS --------------------
 
@@ -44,6 +52,11 @@ public class VocabSelectEnhancedInputFieldRenderer implements InputFieldRenderer
     @Override
     public boolean isHidden() {
         return false;
+    }
+
+    @Override
+    public Option<ConditionalRendering> getConditionalRendering() {
+        return Option.of(conditionalRendering);
     }
 
     public Integer getNumberOfResults() {
