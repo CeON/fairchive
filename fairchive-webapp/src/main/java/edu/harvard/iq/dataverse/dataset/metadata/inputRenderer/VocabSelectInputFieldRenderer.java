@@ -83,19 +83,22 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
     }
 
     public boolean hasChangeListener(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
-        Optional<DatasetField> siblingField = vocabDatasetField.getDatasetFieldParent()
-                .getOrElseThrow(() -> new NullPointerException("datasetfield with type: " + vocabDatasetField.getTypeName()
-                        + " didn't have any parent required for conditional rendering"))
-                .getDatasetFieldsChildren()
-                .stream()
-                .filter(df -> !df.getDatasetFieldType().getName().equals(vocabDatasetField.getDatasetFieldType().getName()))
-                .findFirst();
+        String typeName = vocabDatasetField.getDatasetFieldType().getName();
+        return vocabDatasetField
+                .getDatasetFieldParent()
+                .map(parent ->
+                        parent.getDatasetFieldsChildren().stream()
+                                .filter(df -> !df.getDatasetFieldType().getName().equals(typeName))
+                                .map(df -> inputRenderersByFieldType.get(df.getDatasetFieldType()))
+                                .anyMatch(renderer -> hasConditionalRenderingFor(typeName, renderer)))
+                .getOrElse(false);
+    }
 
-        return siblingField
-                .map(s -> inputRenderersByFieldType.get(s.getDatasetFieldType()))
-                .flatMap(rr -> rr.getConditionalRendering().toJavaOptional())
-                .map(cr -> cr.getDatasetFieldName().equals(vocabDatasetField.getDatasetFieldType().getName()))
-                .orElse(false);
+    private boolean hasConditionalRenderingFor(String fieldTypeName, InputFieldRenderer renderer) {
+        return Option.of(renderer)
+                .flatMap(InputFieldRenderer::getConditionalRendering)
+                .map(cr -> cr.getDatasetFieldName().equals(fieldTypeName))
+                .getOrElse(false);
     }
 
     private void clearSiblingsDatasetFieldValue(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
