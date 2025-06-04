@@ -145,7 +145,7 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
          * flush, the dataset still thinks it has the file that was just
          * deleted.
          */
-        // ctxt.em().flush();
+        //ctxt.em().flush();
 
         /**
          * We *could* re-index the entire dataset but it's more efficient to
