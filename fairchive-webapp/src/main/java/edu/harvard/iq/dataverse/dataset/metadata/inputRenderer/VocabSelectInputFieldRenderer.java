@@ -7,6 +7,7 @@ import io.vavr.control.Option;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
@@ -81,8 +82,20 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
         clearSiblingsDatasetFieldValue(datasetField, inputRenderersByFieldType);
     }
 
-    public boolean hasChangeListener(DatasetField datasetField) {
-        return this.conditionalRendering != null && this.conditionalRendering.controlledBy(datasetField);
+    public boolean hasChangeListener(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
+        Optional<DatasetField> siblingField = vocabDatasetField.getDatasetFieldParent()
+                .getOrElseThrow(() -> new NullPointerException("datasetfield with type: " + vocabDatasetField.getTypeName()
+                        + " didn't have any parent required for conditional rendering"))
+                .getDatasetFieldsChildren()
+                .stream()
+                .filter(df -> !df.getDatasetFieldType().getName().equals(vocabDatasetField.getDatasetFieldType().getName()))
+                .findFirst();
+
+        return siblingField
+                .map(s -> inputRenderersByFieldType.get(s.getDatasetFieldType()))
+                .flatMap(rr -> rr.getConditionalRendering().toJavaOptional())
+                .map(cr -> cr.getDatasetFieldName().equals(vocabDatasetField.getDatasetFieldType().getName()))
+                .orElse(false);
     }
 
     private void clearSiblingsDatasetFieldValue(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
@@ -96,7 +109,7 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
 
         for (DatasetField sibling : siblingsFields) {
             InputFieldRenderer renderer = inputRenderersByFieldType.get(sibling.getDatasetFieldType());
-            if (renderer.getConditionalRendering().isDefined()) {
+            if (renderer != null && renderer.getConditionalRendering().isDefined()) {
                 sibling.clearValue();
             }
         }

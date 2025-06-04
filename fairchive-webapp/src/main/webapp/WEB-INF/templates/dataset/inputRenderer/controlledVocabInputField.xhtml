@@ -36,7 +36,7 @@
         <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
         <p:ajax event="change"
                 listener="#{inputRenderer.processValueChange(datasetField, inputRenderersByFieldType)}"
-                disabled="#{not inputRenderer.hasChangeListener(datasetField)}"
+                disabled="#{not inputRenderer.hasChangeListener(datasetField, inputRenderersByFieldType)}"
                 update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}"
         />
     </p:selectOneMenu>
