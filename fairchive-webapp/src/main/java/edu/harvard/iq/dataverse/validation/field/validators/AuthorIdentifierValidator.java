@@ -19,6 +19,7 @@ import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 public abstract class AuthorIdentifierValidator extends MultiValueValidatorBase {
 
     public static final String IDENTIFIER_SCHEME_PARAM = "authorIdentifierScheme";
+        public static final String AUTHOR_TYPE_FIELD = "authorTypeField";
 
     // -------------------- LOGIC --------------------
 
@@ -45,8 +46,9 @@ public abstract class AuthorIdentifierValidator extends MultiValueValidatorBase 
             final Map<String, Object> params) {
 
         final Object idType = params.get(IDENTIFIER_SCHEME_PARAM);
+        final String authorTypeField = (String)params.getOrDefault(AUTHOR_TYPE_FIELD, authorIdType);
 
-        return field.getFirstSiblingOfType(authorIdType)
+        return field.getFirstSiblingOfType(authorTypeField)
                 .map(ValidatableField::getSingleValue)
                 .filter(Objects::nonNull)
                 .filter(value -> value.equals(idType))
