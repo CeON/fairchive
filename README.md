@@ -1,4 +1,4 @@
-Fairchive&#174; 
+Fairchive
 ===============
 
 Fairchive is an [open source][] web application for sharing, citing, analyzing, and preserving FAIR research data 
