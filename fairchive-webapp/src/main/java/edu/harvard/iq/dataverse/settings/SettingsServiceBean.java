@@ -776,7 +776,13 @@ public class SettingsServiceBean {
          * https://www.openarchives.org/OAI/2.0/guidelines-oai-identifier.htm.
          * eg (oai:www.wbc.poznan.pl:568432).
          */
-        UseOAIStrictIdentifierScheme;
+        UseOAIStrictIdentifierScheme,
+
+        /**
+         * Session length, in minutes, of an authenticated user
+         */
+        AuthenticatedSessionTimeout
+        ;
 
 
 
@@ -879,6 +885,11 @@ public class SettingsServiceBean {
     
     public Long getValueForKeyAsLong(final Key key, final Long defaultValue) {
         final Long value = getValueForKeyAsLong(key);
+        return value != null ? value : defaultValue;
+    }
+
+    public Integer getValueForKeyAsInt(final Key key, final Integer defaultValue) {
+        final Integer value = getValueForKeyAsInt(key);
         return value != null ? value : defaultValue;
     }
 

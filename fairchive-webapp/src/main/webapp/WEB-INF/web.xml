@@ -169,10 +169,9 @@
     </servlet-mapping>
 
     <session-config>
-        <session-timeout>
-            1440
-        </session-timeout>
-        <!-- Uncomment the line below to disble `;jsessionid=` in URLs -->
+        <!-- Default session timeout for anonymous users -->
+        <session-timeout>15</session-timeout>
+        <!-- Uncomment the line below to disable `;jsessionid=` in URLs -->
 	    <tracking-mode>COOKIE</tracking-mode>
     </session-config>
     <!-- Listener to override defaults values -->
