@@ -57,6 +57,7 @@
         <script src="#{resource['leaflet-markercluster/leaflet.markercluster.js']}?version=#{systemConfig.getVersionWithBuild()}"></script>
         <script src="#{resource['leaflet-editable/Leaflet.Editable.min.js']}?version=#{systemConfig.getVersionWithBuild()}"></script>
         <script src="#{resource['js/dvjs.js']}?version=#{systemConfig.getVersionWithBuild()}"></script>
+        <script src="#{resource['js/extra_scripts.js']}?version=#{systemConfig.getVersionWithBuild()}"></script>
         <script>
             window.DvJS = window.DvJS || initDvJS()
         </script>
@@ -77,7 +78,7 @@
                 <ui:param name="widgetView" value="#{widgetWrapper.widgetView}"/>
                 <ui:param name="loginRedirectPage" value="#{loginRedirectPage != null ? '?redirectPage='.concat(loginRedirectPage) : navigationWrapper.redirectPage}"/>
             </ui:include>
-            <p:ajaxStatus id="ajaxStatusPanel">
+            <p:ajaxStatus id="ajaxStatusPanel" widgetVar="ajaxStatusPanel">
                 <f:facet name="start">
                     <h:graphicImage value="/resources/images/ajax-loading.gif" alt="Loading" />
                 </f:facet>
