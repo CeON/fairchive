@@ -31,6 +31,7 @@
                      rendered="#{!datasetField.datasetFieldType.allowMultiples}"
                      filter="true"
                      filterMatchMode="contains"
+                     pt:data-field-type="#{datasetField.datasetFieldType.name}"
     >
         <f:selectItem itemLabel="#{bundle.select}" itemValue="" noSelectionOption="true"/>
         <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
@@ -47,7 +48,8 @@
                 style="width: 100%" panelStyleClass="without-select-all"
                 multiple="true" label="#{bundle.select}" updateLabel="true"
                 filter="true" filterMatchMode="contains"
-                pt:aria-label="#{datasetField.datasetFieldType.localeTitle.concat(datasetField.datasetFieldType.requiredInDataverse ? ' *': '')}">
+                pt:aria-label="#{datasetField.datasetFieldType.localeTitle.concat(datasetField.datasetFieldType.requiredInDataverse ? ' *': '')}"
+                pt:data-field-type="#{datasetField.datasetFieldType.name}">
         
         <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(inputRenderer.isSortByLocalisedStringsOrder())}" />
     </p:selectCheckboxMenu>

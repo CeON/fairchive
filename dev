@@ -6,7 +6,7 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
 (
   cd "${DATAVERSE_SOURCE_DIR}"
 
-  export BUILD_VERSION="dv-1.0"
+  export BUILD_VERSION="dv-1.1"
   export DATAVERSE_CONFIG_FILES=(
     "conf/glassfish/dataverse.properties"
     "conf/glassfish/default.config"

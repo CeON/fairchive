@@ -28,15 +28,18 @@ public class TestSolrClientFactory extends SolrClientFactory {
     private static final String DEFAULT_SOLR_TEST_HOST = "localhost";
     private static final String DOCUMENT_INDEX_ENDPOINT = "/solr/collection1";
     private static final String ROR_INDEX_ENDPOINT = "/solr/rorSuggestions";
+    private static final String GEONAMES_INDEX_ENDPOINT = "/solr/geonames";
 
     private final String solrClientUrl;
     private final String rorSolrClientUrl;
+    private final String geoNamesSolrClientUrl;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public TestSolrClientFactory() {
         solrClientUrl = resolveSolrURL() + DOCUMENT_INDEX_ENDPOINT;
         rorSolrClientUrl = resolveSolrURL() + ROR_INDEX_ENDPOINT;
+        geoNamesSolrClientUrl = resolveSolrURL() + GEONAMES_INDEX_ENDPOINT;
     }
 
     // -------------------- LOGIC --------------------
@@ -54,6 +57,14 @@ public class TestSolrClientFactory extends SolrClientFactory {
     public SolrClient produceRorSolrClient() {
         LOGGER.fine("Creating test SolrClient at url: " + rorSolrClientUrl);
         return new HttpSolrClient.Builder(rorSolrClientUrl).build();
+    }
+    
+    @Produces
+    @Specializes
+    @GeoNameSolrClient
+    public SolrClient produceGeoNameSolrClient() {
+        LOGGER.fine("Creating test SolrClient at url: " + geoNamesSolrClientUrl);
+        return new HttpSolrClient.Builder(geoNamesSolrClientUrl).build();
     }
 
 

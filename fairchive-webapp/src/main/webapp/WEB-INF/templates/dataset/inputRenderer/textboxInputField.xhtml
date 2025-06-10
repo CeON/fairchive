@@ -6,6 +6,7 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:o="http://omnifaces.org/ui"
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
                 >
 
     <div class="control-label-with-tooltip">
@@ -22,8 +23,9 @@
     </div>
 
     <p:inputTextarea value="#{datasetField.value}" id="textbox"
-                     rows="5" cols="60" styleClass="form-control" />
-                     
+                     rows="5" cols="60" styleClass="form-control"
+                     pt:data-field-type="#{datasetField.datasetFieldType.name}" />
+
 
     <p:watermark for="textbox" value="#{datasetField.datasetFieldType.localeWatermark}"></p:watermark>
 

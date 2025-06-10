@@ -2,7 +2,8 @@
         xmlns:h="http://java.sun.com/jsf/html"
         xmlns:ui="http://java.sun.com/jsf/facelets"
         xmlns:p="http://primefaces.org/ui"
-        xmlns:jsf="http://xmlns.jcp.org/jsf">
+        xmlns:jsf="http://xmlns.jcp.org/jsf"
+        xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
 
     <!--@elvariable id="datasetField" type="edu.harvard.iq.dataverse.persistence.dataset.DatasetField"-->
     <!--@elvariable id="inputRenderer" type="edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.SuggestionInputFieldRenderer"-->
@@ -36,6 +37,7 @@
             var="suggestion" itemLabel="#{suggestion}" itemValue="#{suggestion.value}"
             autoSelection="false"
             autoHighlight="false"
+            pt:data-field-type="#{datasetField.datasetFieldType.name}"
             rendered="#{inputRenderer.suggestionDisplayType eq 'SIMPLE'}"
     >
         <p:ajax process="@form:@id(fieldsByTypeFragment)" event="focus" />
@@ -53,6 +55,7 @@
             var="suggestion" itemLabel="#{suggestion}" itemValue="#{suggestion.value}"
             autoSelection="false"
             autoHighlight="false"
+            pt:data-field-type="#{datasetField.datasetFieldType.name}"
             rendered="#{inputRenderer.suggestionDisplayType eq 'TWO_COLUMNS'}"
     >
         <p:ajax process="@form:@id(fieldsByTypeFragment)" event="focus" />

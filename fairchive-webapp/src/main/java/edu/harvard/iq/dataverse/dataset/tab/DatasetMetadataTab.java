@@ -14,6 +14,8 @@ import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
+import edu.harvard.iq.dataverse.dataset.metadata.valueRenderer.ValueRenderer;
+import edu.harvard.iq.dataverse.dataset.metadata.valueRenderer.ValueRendererRepository;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -22,6 +24,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.search.geonames.GeoNameDataFinder;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -36,6 +39,7 @@ public class DatasetMetadataTab implements Serializable {
     private DatasetFieldsInitializer datasetFieldsInitializer;
     private DatasetDao datasetDao;
     private DataverseSession session;
+    private ValueRendererRepository valueRenderes;
 
     private Dataset dataset;
     private boolean isDatasetLocked;
@@ -53,13 +57,15 @@ public class DatasetMetadataTab implements Serializable {
                               ExportService exportService,
                               SystemConfig systemConfig,
                               DatasetFieldsInitializer datasetVersionUI,
-                              DatasetDao datasetDao) {
+                              DatasetDao datasetDao,
+                              ValueRendererRepository valueRenderes) {
         this.permissionsWrapper = permissionsWrapper;
         this.session = session;
         this.exportService = exportService;
         this.systemConfig = systemConfig;
         this.datasetFieldsInitializer = datasetVersionUI;
         this.datasetDao = datasetDao;
+        this.valueRenderes = valueRenderes;
     }
 
     // -------------------- GETTERS --------------------
@@ -124,10 +130,15 @@ public class DatasetMetadataTab implements Serializable {
     public String getAlternativePersistentIdentifier() {
         return datasetDao.find(dataset.getId()).getAlternativePersistentIdentifier();
     }
+    
+    public ValueRenderer getRendererFor(final DatasetField field) {
+        return this.valueRenderes.getRendererFor(field);
+    }
 
     // -------------------- PRIVATE --------------------
 
     private String createExporterURL(Exporter exporter, String myHostURL) {
-        return myHostURL + "/api/datasets/export?exporter=" + exporter.getProviderName() + "&persistentId=" + dataset.getGlobalIdString();
+        return myHostURL + "/api/datasets/export?exporter=" + exporter.getProviderName()
+            + "&persistentId=" + dataset.getGlobalIdString();
     }
 }
