@@ -30,6 +30,16 @@ services:
       retries: 3
       start_period: 10s
 
+  postgres-setup:
+    build: "./postgres-setup"
+    image: "fairchive-postgres-setup:${BUILD_VERSION}"
+    container_name: "fairchive-dev-postgres-setup"
+    volumes:
+      - "${DATAVERSE_SOURCE_DIR}:/fairchive:rw"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   solr:
     build: "./solr/7.3.1"
     image: "solr:${BUILD_VERSION}"
@@ -56,10 +66,10 @@ services:
       - "KC_HOSTNAME_ADMIN=local.admin.keycloak"
     command: ["start-dev", "--http-port=7070"]
 
-  glassfish:
-    build: "./glassfish"
-    image: "glassfish:${BUILD_VERSION}"
-    container_name: "fairchive-dev-glassfish"
+  payara:
+    build: "./payara"
+    image: "fairchive-payara:${BUILD_VERSION}"
+    container_name: "fairchive-dev-payara"
     ports:
       - "8080:8080"
       - "4848:4848"
@@ -69,9 +79,14 @@ services:
       - "1099:1099"
     volumes:
       - "${DATAVERSE_SOURCE_DIR}:/fairchive:rw"
-      - "gl-domain-data:/usr/local/glassfish4/glassfish/domains/domain1:rw"
-      - "gl-server-data:/srv/glassfish:rw"
-      - "gl-home:/root:rw"
+      - "gl-payara-domain-data:/opt/payara/appserver/glassfish/domains/domain1:rw"
+      - "gl-payara-server-data:/srv/glassfish:rw"
+      - "gl-payara-home:/opt/payara:rw"
+    environment:
+      - "CONTAINER_WORKING_DIR=${DATAVERSE_CONTAINER_WORKING_DIR}"
+    post_start:
+      - command: ["/opt/payara/scripts/postboot_setup.sh"]
+        user: "payara"
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,6 +117,6 @@ services:
 
 volumes:
   postgres-data:
-  gl-domain-data:
-  gl-server-data:
-  gl-home:
+  gl-payara-domain-data:
+  gl-payara-server-data:
+  gl-payara-home:
