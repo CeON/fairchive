@@ -45,7 +45,7 @@ public class GeoNameSearchField extends SearchField {
         final String queryFragment = createQueryFragment();
         return queryFragment.isEmpty()
                 ? QueryPart.EMPTY
-                : new QueryPart(QUERY, createQueryFragment()); 
+                : new QueryPart(QUERY, queryFragment); 
     }
     
     private String createQueryFragment() {
