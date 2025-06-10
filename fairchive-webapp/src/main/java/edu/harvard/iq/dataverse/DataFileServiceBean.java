@@ -747,7 +747,8 @@ public class DataFileServiceBean implements java.io.Serializable {
      */
     public void finalizeFileDelete(Long dataFileId, String storageLocation) throws IOException {
         // Verify that the DataFile no longer exists:
-        // force a read from the database, to make the entity manager doesn't have it in his local cache
+        // force a read from the database, to make the entity manager not use the potentially obsolete local cache
+        // https://github.com/CeON/fairchive/issues/2810
         if (em.find(DataFile.class, dataFileId, LockModeType.PESSIMISTIC_READ) != null) {
             throw new IOException("Attempted to permanently delete a physical file still associated with an existing DvObject "
                                           + "(id: " + dataFileId + ", location: " + storageLocation);
