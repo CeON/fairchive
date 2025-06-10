@@ -315,6 +315,26 @@
                                                              value="#{item.authorityTitle}"/>
                                                 </div>
                                             </div>
+                                            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.GEONAME}">
+                                                <div class="form-group"
+                                                     style="display: flex">
+                                                <p:outputLabel for="geoNameIdentifier"
+                                                               value="#{bundle['geoname.id']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:inputText id="geoNameIdentifier" 
+                                                             style="flex: 1;"
+                                                             value="#{item.id}"/>
+                                                </div>
+                                                <div class="form-group"
+                                                     style="display: flex">
+                                                <p:outputLabel for="geoNameLabel"
+                                                               value="#{bundle['geoname.name']}"
+                                                               style="white-space: pre; margin-right: 4px"/>
+                                                <p:inputText id="geoNameLabel" 
+                                                             style="flex: 1;"
+                                                             value="#{item.label}"/>
+                                                </div>
+                                            </div>
                                             <div class="ui-message ui-message-error ui-widget ui-corner-all" aria-live="polite"
                                                  jsf:rendered="#{not empty item.getValidationMessage()}">
                                                 <span class="ui-message-error-detail">
