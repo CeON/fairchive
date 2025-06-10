@@ -379,6 +379,14 @@ public class DatasetField implements Serializable, ValidatableField {
         return this.datasetFieldType.isGeospatial();
     }
     
+    public boolean isGeoName() {
+        return this.datasetFieldType.isGeoName();
+    }
+    
+    public boolean isPeriodo() {
+        return this.datasetFieldType.isPeriodo();
+    }
+    
     public boolean isVisibleThroughAnonymizedUrl() {
         return this.datasetFieldType.isVisibleThroughAnonymizedUrl();
     }
@@ -484,12 +492,11 @@ public class DatasetField implements Serializable, ValidatableField {
 
     private String getFieldDisplayValue(String value, DatasetFieldType fieldType) {
         
-        if (fieldType.getFieldType().equals(FieldType.PERIODO)) {
+        if (fieldType.isPeriodo()) {
             return  "<a href=\"" + this.fieldValue + "\" target=\"_blank\">" + this.fieldValue +
                     "</a><br>" + PeriodoDictionary.getByUrl(this.fieldValue).get()
                             .getDetails("<b>", "</b>", "<br>");
         }
-        
         String retVal = "";
         if (!StringUtils.isBlank(value) && !DatasetField.NA_VALUE.equals(value)) {
             String format = fieldType.getDisplayFormat();

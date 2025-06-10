@@ -51,5 +51,6 @@ public enum InputRendererType {
      * values defined in renderer options
      */
     HIDDEN_VOCABULARY,
-    PERIODO;
+    PERIODO,
+    GEONAME;
 }
