@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_NO_PRIMARY_SOURCE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_WITH_PRIMARY_SOURCE;
@@ -546,13 +548,12 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public String getTitle() {
-        String result = EMPTY;
-        for (DatasetField dsfv : datasetFields) {
-            if (DatasetFieldConstant.title.equals(dsfv.getTypeName())) {
-                result = dsfv.getDisplayValue();
+        for (final DatasetField field : this.datasetFields) {
+            if (title.equals(field.getTypeName())) {
+                return field.getDisplayValue();
             }
         }
-        return result;
+        return EMPTY;
     }
 
     public String getParsedTitle() {
@@ -560,13 +561,12 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public String getProductionDate() {
-        String retVal = null;
-        for (DatasetField dsfv : datasetFields) {
-            if (DatasetFieldConstant.productionDate.equals(dsfv.getTypeName())) {
-                retVal = dsfv.getDisplayValue();
+        for (final DatasetField field : this.datasetFields) {
+            if (productionDate.equals(field.getTypeName())) {
+                return field.getDisplayValue();
             }
         }
-        return retVal;
+        return null;
     }
 
     /**

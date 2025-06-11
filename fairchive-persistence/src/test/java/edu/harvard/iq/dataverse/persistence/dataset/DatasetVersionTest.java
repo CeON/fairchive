@@ -198,6 +198,40 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
                         tuple("publication-citation", "publication-id-number", "publication-id-type", "publication-url"),
                         tuple(null, "publication-id-number", null, "publication-url"));
     }
+	
+    @Test
+    void getTitle() {
+        assertThat(this.datasetVersion.getTitle()).isEmpty();
+
+        DatasetField df = new DatasetField();
+        df.setDatasetFieldType(new DatasetFieldType());
+        df.getDatasetFieldType().setName(DatasetFieldConstant.author);
+        df.setFieldValue("abc");
+        this.datasetVersion.getDatasetFields().add(df);
+        
+        assertThat(this.datasetVersion.getTitle()).isEmpty();
+        
+        df.getDatasetFieldType().setName(DatasetFieldConstant.title);
+
+        assertThat(this.datasetVersion.getTitle()).isEqualTo("abc");
+    }
+    
+    @Test
+    void getProductionDate() {
+        assertThat(this.datasetVersion.getProductionDate()).isNull();
+
+        DatasetField df = new DatasetField();
+        df.setDatasetFieldType(new DatasetFieldType());
+        df.getDatasetFieldType().setName(DatasetFieldConstant.author);
+        df.setFieldValue("abc");
+        this.datasetVersion.getDatasetFields().add(df);
+        
+        assertThat(this.datasetVersion.getProductionDate()).isNull();
+        
+        df.getDatasetFieldType().setName(DatasetFieldConstant.productionDate);
+
+        assertThat(this.datasetVersion.getProductionDate()).isEqualTo("abc");
+    }
 
     // -------------------- PRIVATE --------------------
 
