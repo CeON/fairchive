@@ -294,11 +294,13 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
     // -------------------- PRIVATE --------------------
 
-    private void verifySortOrder(List<FileMetadata> metadatas, String label, int expectedOrderIndex) {
+    private void verifySortOrder(List<FileMetadata> metadatas, String label, 
+            int expectedOrderIndex) {
         assertThat(metadatas.get(expectedOrderIndex).getLabel()).isEqualTo(label);
     }
 
-    private void verifyDisplayOrder(List<FileMetadata> metadatas, int index, String label, int displayOrder) {
+    private void verifyDisplayOrder(List<FileMetadata> metadatas, int index, 
+            String label, int displayOrder) {
         assertThat(metadatas.get(index).getLabel()).isEqualTo(label);
         assertThat(metadatas.get(index).getDisplayOrder()).isEqualTo(displayOrder);
     }

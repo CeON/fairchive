@@ -549,9 +549,8 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public String getTitle() {
-        return streamFieldsNamed(title)
+        return getDatasetFieldByTypeName(title)
                 .map(DatasetField::getDisplayValue)
-                .findFirst()
                 .orElse(EMPTY);
     }
 
@@ -560,16 +559,9 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public String getProductionDate() {       
-        return streamFieldsNamed(productionDate)
+        return getDatasetFieldByTypeName(productionDate)
                 .map(DatasetField::getDisplayValue)
-                .findFirst()
                 .orElse(null);
-    }
-    
-    private Stream<DatasetField> streamFieldsNamed(final String typeName) {
-        return this.datasetFields
-                .stream()
-                .filter(field -> field.isNamed(typeName));
     }
 
     /**
@@ -577,7 +569,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
      * has been passed through the stripAllTags method to remove all HTML tags.
      */
     public String getDescriptionPlainText() {        
-        return streamFieldsNamed(description)
+        return streamDatasetFieldsByTypeName(description)
                 .map(DatasetField::getDatasetFieldsChildren)
                 .flatMap(List::stream)
                 .filter(subField -> subField.isNamed(descriptionText))
@@ -648,7 +640,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public List<String> extractFieldValues(String fieldName) {
-        return streamFieldsNamed(fieldName)
+        return streamDatasetFieldsByTypeName(fieldName)
                 .map(DatasetField::getValues)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
@@ -688,14 +680,15 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
                 .collect(Collectors.toList());
     }
 
-    public Optional<DatasetField> getDatasetFieldByTypeName(String datasetFieldTypeName) {
-        return streamDatasetFieldsByTypeName(datasetFieldTypeName)
+    public Optional<DatasetField> getDatasetFieldByTypeName(final String name) {
+        return streamDatasetFieldsByTypeName(name)
                 .findFirst();
     }
 
-    public Stream<DatasetField> streamDatasetFieldsByTypeName(String datasetFieldTypeName) {
-        return getFlatDatasetFields().stream()
-                .filter(f -> datasetFieldTypeName.equals(f.getTypeName()));
+    public Stream<DatasetField> streamDatasetFieldsByTypeName(final String name) {
+        return this.datasetFields
+                .stream()
+                .filter(field -> field.isNamed(name));
     }
 
     public String getDistributionDate() {
