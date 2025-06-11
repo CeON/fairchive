@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.author;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionText;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeFileMetadata;
 import static org.assertj.core.api.Assertions.tuple;
@@ -203,15 +207,15 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
     void getTitle() {
         assertThat(this.datasetVersion.getTitle()).isEmpty();
 
-        DatasetField df = new DatasetField();
-        df.setDatasetFieldType(new DatasetFieldType());
-        df.getDatasetFieldType().setName(DatasetFieldConstant.author);
-        df.setFieldValue("abc");
-        this.datasetVersion.getDatasetFields().add(df);
+        DatasetField field = new DatasetField();
+        field.setDatasetFieldType(new DatasetFieldType());
+        field.getDatasetFieldType().setName(DatasetFieldConstant.author);
+        field.setFieldValue("abc");
+        this.datasetVersion.getDatasetFields().add(field);
         
         assertThat(this.datasetVersion.getTitle()).isEmpty();
         
-        df.getDatasetFieldType().setName(DatasetFieldConstant.title);
+        field.getDatasetFieldType().setName(DatasetFieldConstant.title);
 
         assertThat(this.datasetVersion.getTitle()).isEqualTo("abc");
     }
@@ -220,17 +224,53 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
     void getProductionDate() {
         assertThat(this.datasetVersion.getProductionDate()).isNull();
 
-        DatasetField df = new DatasetField();
-        df.setDatasetFieldType(new DatasetFieldType());
-        df.getDatasetFieldType().setName(DatasetFieldConstant.author);
-        df.setFieldValue("abc");
-        this.datasetVersion.getDatasetFields().add(df);
+        DatasetField field = new DatasetField();
+        field.setDatasetFieldType(new DatasetFieldType());
+        field.getDatasetFieldType().setName(author);
+        field.setFieldValue("abc");
+        this.datasetVersion.getDatasetFields().add(field);
         
         assertThat(this.datasetVersion.getProductionDate()).isNull();
         
-        df.getDatasetFieldType().setName(DatasetFieldConstant.productionDate);
+        field.getDatasetFieldType().setName(productionDate);
 
         assertThat(this.datasetVersion.getProductionDate()).isEqualTo("abc");
+    }
+    
+    @Test
+    void getDescriptionPlainText() {
+        assertThat(this.datasetVersion.getDescriptionPlainText()).isEmpty();
+        
+        DatasetField field = new DatasetField();
+        field.setDatasetFieldType(new DatasetFieldType());
+        field.getDatasetFieldType().setName(author);
+        this.datasetVersion.getDatasetFields().add(field);
+        
+        assertThat(this.datasetVersion.getDescriptionPlainText()).isEmpty();
+        
+        field.getDatasetFieldType().setName(description);
+        
+        assertThat(this.datasetVersion.getDescriptionPlainText()).isEmpty();
+        
+        DatasetField childField = new DatasetField();
+        childField.setDatasetFieldType(new DatasetFieldType());
+        childField.getDatasetFieldType().setName(author);
+        this.datasetVersion.getDatasetFields().add(childField);
+        field.getDatasetFieldsChildren().add(childField);
+        
+        assertThat(this.datasetVersion.getDescriptionPlainText()).isEmpty();
+        
+        childField.getDatasetFieldType().setName(descriptionText);
+        
+        assertThat(this.datasetVersion.getDescriptionPlainText()).isEmpty();
+        
+        childField.setValue("abc");
+        
+        assertThat(this.datasetVersion.getDescriptionPlainText()).isEqualTo("abc");
+        
+        childField.setValue("<b>abc</b>");
+        
+        assertThat(this.datasetVersion.getDescriptionPlainText()).isEqualTo("abc");
     }
 
     // -------------------- PRIVATE --------------------

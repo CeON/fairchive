@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionText;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
@@ -11,7 +12,6 @@ import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.Versio
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DEACCESSIONED;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DRAFT;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
-import static java.util.logging.Level.FINE;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
@@ -549,11 +549,11 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
 
     public String getTitle() {
         for (final DatasetField field : this.datasetFields) {
-            if (title.equals(field.getTypeName())) {
+            if (field.isNamed(title)) {
                 return field.getDisplayValue();
             }
         }
-        return EMPTY;
+        return EMPTY;    
     }
 
     public String getParsedTitle() {
@@ -562,7 +562,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
 
     public String getProductionDate() {
         for (final DatasetField field : this.datasetFields) {
-            if (productionDate.equals(field.getTypeName())) {
+            if (field.isNamed(productionDate)) {
                 return field.getDisplayValue();
             }
         }
@@ -574,19 +574,15 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
      * has been passed through the stripAllTags method to remove all HTML tags.
      */
     public String getDescriptionPlainText() {
-        for (DatasetField dsf : datasetFields) {
-            if (!DatasetFieldConstant.description.equals(dsf.getTypeName())) {
-                continue;
-            }
-            String descriptionString = EMPTY;
-            for (DatasetField subField : dsf.getDatasetFieldsChildren()) {
-                if (DatasetFieldConstant.descriptionText.equals(subField.getTypeName())
-                        && !subField.isEmptyForDisplay()) {
-                    descriptionString = subField.getValue();
+        for (final DatasetField field : this.datasetFields) {
+            if (field.isNamed(DatasetFieldConstant.description)) {
+                for (final DatasetField subField : field.getDatasetFieldsChildren()) {
+                    if (subField.isNamed(descriptionText)
+                            && !subField.isEmptyForDisplay()) {
+                        return MarkupChecker.stripAllTags(subField.getValue());
+                    }
                 }
             }
-            logger.log(FINE, "pristine description: {0}", descriptionString);
-            return MarkupChecker.stripAllTags(descriptionString);
         }
         return EMPTY;
     }
