@@ -19,6 +19,7 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.author;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionText;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeFileMetadata;
 import static org.assertj.core.api.Assertions.tuple;
@@ -209,13 +210,13 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
         DatasetField field = new DatasetField();
         field.setDatasetFieldType(new DatasetFieldType());
-        field.getDatasetFieldType().setName(DatasetFieldConstant.author);
+        field.getDatasetFieldType().setName(author);
         field.setFieldValue("abc");
         this.datasetVersion.getDatasetFields().add(field);
         
         assertThat(this.datasetVersion.getTitle()).isEmpty();
         
-        field.getDatasetFieldType().setName(DatasetFieldConstant.title);
+        field.getDatasetFieldType().setName(title);
 
         assertThat(this.datasetVersion.getTitle()).isEqualTo("abc");
     }
@@ -271,6 +272,24 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
         childField.setValue("<b>abc</b>");
         
         assertThat(this.datasetVersion.getDescriptionPlainText()).isEqualTo("abc");
+    }
+    
+    @Test
+    void extractFieldValues() {
+        assertThat(this.datasetVersion.extractFieldValues(title)).isEmpty();
+
+        DatasetField field = new DatasetField();
+        field.setDatasetFieldType(new DatasetFieldType());
+        field.getDatasetFieldType().setName(DatasetFieldConstant.author);
+        field.setFieldValue("abc");
+        this.datasetVersion.getDatasetFields().add(field);
+
+        assertThat(this.datasetVersion.extractFieldValues(title)).isEmpty();
+
+        field.getDatasetFieldType().setName(DatasetFieldConstant.title);
+
+        assertThat(this.datasetVersion.extractFieldValues(title))
+                .containsExactly("abc");
     }
 
     // -------------------- PRIVATE --------------------

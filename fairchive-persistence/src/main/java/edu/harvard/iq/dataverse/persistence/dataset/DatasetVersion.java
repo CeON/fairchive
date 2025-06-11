@@ -648,13 +648,10 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public List<String> extractFieldValues(String fieldName) {
-        List<String> values = new ArrayList<>();
-        for (DatasetField field : datasetFields) {
-            if (fieldName.equals(field.getTypeName())) {
-                values.addAll(field.getValues());
-            }
-        }
-        return values;
+        return streamFieldsNamed(fieldName)
+                .map(DatasetField::getValues)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     public List<String> getDatasetSubjects() {
