@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionText;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
@@ -548,43 +549,43 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public String getTitle() {
-        for (final DatasetField field : this.datasetFields) {
-            if (field.isNamed(title)) {
-                return field.getDisplayValue();
-            }
-        }
-        return EMPTY;    
+        return streamFieldsNamed(title)
+                .map(DatasetField::getDisplayValue)
+                .findFirst()
+                .orElse(EMPTY);
     }
 
     public String getParsedTitle() {
         return Jsoup.parse(getTitle()).text();
     }
 
-    public String getProductionDate() {
-        for (final DatasetField field : this.datasetFields) {
-            if (field.isNamed(productionDate)) {
-                return field.getDisplayValue();
-            }
-        }
-        return null;
+    public String getProductionDate() {       
+        return streamFieldsNamed(productionDate)
+                .map(DatasetField::getDisplayValue)
+                .findFirst()
+                .orElse(null);
+    }
+    
+    private Stream<DatasetField> streamFieldsNamed(final String typeName) {
+        return this.datasetFields
+                .stream()
+                .filter(field -> field.isNamed(typeName));
     }
 
     /**
      * @return Strip out all A string with the description of the dataset that
      * has been passed through the stripAllTags method to remove all HTML tags.
      */
-    public String getDescriptionPlainText() {
-        for (final DatasetField field : this.datasetFields) {
-            if (field.isNamed(DatasetFieldConstant.description)) {
-                for (final DatasetField subField : field.getDatasetFieldsChildren()) {
-                    if (subField.isNamed(descriptionText)
-                            && !subField.isEmptyForDisplay()) {
-                        return MarkupChecker.stripAllTags(subField.getValue());
-                    }
-                }
-            }
-        }
-        return EMPTY;
+    public String getDescriptionPlainText() {        
+        return streamFieldsNamed(description)
+                .map(DatasetField::getDatasetFieldsChildren)
+                .flatMap(List::stream)
+                .filter(subField -> subField.isNamed(descriptionText))
+                .filter(subField -> !subField.isEmptyForDisplay())
+                .findFirst()
+                .map(DatasetField::getValue)
+                .map(MarkupChecker::stripAllTags)
+                .orElse(EMPTY);
     }
 
     /**
