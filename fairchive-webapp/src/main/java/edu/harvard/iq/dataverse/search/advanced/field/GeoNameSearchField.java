@@ -1,0 +1,86 @@
+package edu.harvard.iq.dataverse.search.advanced.field;
+
+import static edu.harvard.iq.dataverse.search.SearchFields.GEONAME_ID;
+import static edu.harvard.iq.dataverse.search.SearchFields.GEONAME_NAME;
+import static edu.harvard.iq.dataverse.search.advanced.SearchFieldType.GEONAME;
+import static edu.harvard.iq.dataverse.search.advanced.query.QueryPartType.QUERY;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
+
+@SuppressWarnings("serial")
+public class GeoNameSearchField extends SearchField {
+
+    private String id;
+    private String label;
+
+    public GeoNameSearchField(final String name, final String displayName,
+            final String description) {
+        super(name, displayName, description, GEONAME);
+    }
+
+    public GeoNameSearchField(final DatasetFieldType datasetFieldType) {
+        super(datasetFieldType.getName(), datasetFieldType.getDisplayName(),
+                datasetFieldType.getDescription(),
+                GEONAME, datasetFieldType);
+    }
+
+    @Override
+    public List<String> getValidatableValues() {
+        final ArrayList<String> result = new ArrayList<>();
+        if (this.id != null) {
+            result.add(this.id);
+        }
+        if (this.label != null) {
+            result.add(this.label);
+        }
+        return result;
+    }
+
+    @Override
+    public QueryPart getQueryPart() {
+        final String queryFragment = createQueryFragment();
+        return queryFragment.isEmpty()
+                ? QueryPart.EMPTY
+                : new QueryPart(QUERY, queryFragment); 
+    }
+    
+    private String createQueryFragment() {
+        final StringBuilder result = new StringBuilder(40);
+        if (this.id != null) {
+            result.append(GEONAME_ID).append(":\"").append(this.id.trim())
+                    .append('"');
+        }
+        if (this.label != null) {
+            appendAndTo(result);
+            result.append(GEONAME_NAME).append(":\"")
+                    .append(this.label.trim()).append('"');
+        }
+        return result.toString();
+    }
+    
+    private static void appendAndTo(final StringBuilder builder) {
+        if(builder.length() > 0) {
+            builder.append(" AND ");
+        }
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    public String getLabel() {
+        return this.label;
+    }
+
+    public void setLabel(final String label) {
+        this.label = label;
+    }
+}
