@@ -18,6 +18,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.author;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionText;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributionDate;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
@@ -236,6 +237,23 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
         field.getDatasetFieldType().setName(productionDate);
 
         assertThat(this.datasetVersion.getProductionDate()).isEqualTo("abc");
+    }
+    
+    @Test
+    void getDistributionDate() {
+        assertThat(this.datasetVersion.getDistributionDate()).isNull();
+
+        DatasetField field = new DatasetField();
+        field.setDatasetFieldType(new DatasetFieldType());
+        field.getDatasetFieldType().setName(author);
+        field.setFieldValue("abc");
+        this.datasetVersion.getDatasetFields().add(field);
+        
+        assertThat(this.datasetVersion.getDistributionDate()).isNull();
+        
+        field.getDatasetFieldType().setName(distributionDate);
+
+        assertThat(this.datasetVersion.getDistributionDate()).isEqualTo("abc");
     }
     
     @Test

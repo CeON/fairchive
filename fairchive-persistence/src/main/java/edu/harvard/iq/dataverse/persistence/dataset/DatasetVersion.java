@@ -3,7 +3,9 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 import static com.google.common.collect.Lists.newArrayList;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionText;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributionDate;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.subject;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_NO_PRIMARY_SOURCE;
@@ -647,7 +649,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public List<String> getDatasetSubjects() {
-        return extractFieldValues(DatasetFieldConstant.subject);
+        return extractFieldValues(subject);
     }
 
     public List<String> getKeywords() {
@@ -691,13 +693,10 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
                 .filter(field -> field.isNamed(name));
     }
 
-    public String getDistributionDate() {
-        for (DatasetField dsf : datasetFields) {
-            if (DatasetFieldConstant.distributionDate.equals(dsf.getTypeName())) {
-                return dsf.getValue();
-            }
-        }
-        return null;
+    public String getDistributionDate() {      
+        return getDatasetFieldByTypeName(distributionDate)
+                .map(DatasetField::getValue)
+                .orElse(null);
     }
 
     // TODO: Consider renaming this method since it's also used for getting the "provider" for Schema.org JSON-LD.
