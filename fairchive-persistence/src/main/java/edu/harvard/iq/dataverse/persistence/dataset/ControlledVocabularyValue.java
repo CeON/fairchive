@@ -83,6 +83,10 @@ public class ControlledVocabularyValue implements Serializable {
         return this.displayOrder;
     }
 
+    public String getValue() {
+        return this.identifier;
+    }
+
     public DatasetFieldType getDatasetFieldType() {
         return datasetFieldType;
     }
