@@ -29,7 +29,7 @@
 
     <p:autoComplete
             id="periodo"
-            value="#{datasetField.value}"
+            value="#{datasetField.controlledVocabularyValues}"
             converter="#{inputRenderer.converter}"
             completeMethod="#{inputRenderer.processSuggestionQuery(datasetField)}"
             valueChangeListener="#{inputRenderer.processValueChange}"
@@ -43,6 +43,7 @@
             autoSelection="false"
             autoHighlight="false"
             maxResults="50"
+            multiple="true"
             queryDelay="700">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  

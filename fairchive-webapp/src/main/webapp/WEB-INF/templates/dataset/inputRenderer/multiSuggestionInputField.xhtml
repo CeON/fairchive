@@ -27,58 +27,17 @@
 
     <!-- input text start -->
     <span id="pre-input-#{datasetField.datasetFieldType.name}" class="pre-input-tag"/>
-    <p:autoComplete
-            id="suggestionTextSimple"
-            value="#{datasetField.value}"
-            completeMethod="#{inputRenderer.processSuggestionQuery(datasetField, 'suggestionTextSimple')}"
-            styleClass="autocomplete-form-control"
-            resultsMessage="#{bundle['common.forms.autocomplete.resultsMessage']}"
-            emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
-            var="suggestion" itemLabel="#{suggestion}" itemValue="#{suggestion.value}"
-            autoSelection="false"
-            autoHighlight="false"
-            pt:data-field-type="#{datasetField.datasetFieldType.name}"
-            rendered="#{inputRenderer.suggestionDisplayType eq 'SIMPLE'}"
-    >
-        <p:ajax process="@form:@id(fieldsByTypeFragment)" event="focus" />
-        #{suggestion.value}
-    </p:autoComplete>
 
     <p:autoComplete
-            id="suggestionTextTwoColumns"
-            value="#{datasetField.value}"
-            completeMethod="#{inputRenderer.processSuggestionQuery(datasetField, 'suggestionTextTwoColumns')}"
-            styleClass="autocomplete-form-control"
-            panelStyleClass="autocomplete-panel-maxwidth"
-            resultsMessage="#{bundle['common.forms.autocomplete.resultsMessage']}"
-            emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
-            var="suggestion" itemLabel="#{suggestion}" itemValue="#{suggestion.value}"
-            autoSelection="false"
-            autoHighlight="false"
-            pt:data-field-type="#{datasetField.datasetFieldType.name}"
-            rendered="#{inputRenderer.suggestionDisplayType eq 'TWO_COLUMNS' and !datasetField.datasetFieldType.allowMultiples}"
-    >
-        <p:ajax process="@form:@id(fieldsByTypeFragment)" event="focus" />
-
-        <p:column headerText="#{inputRenderer.valueHeaderText}">
-            <h:outputText value="#{suggestion.value}"/>
-        </p:column>
-        <p:column headerText="#{inputRenderer.detailsHeaderText}">
-            <h:outputText value="#{suggestion.details}"/>
-        </p:column>
-    </p:autoComplete>
-
-
-    <p:autoComplete
-            id="suggestionTextTwoColumnsSSS"
+            id="multiSuggestionTextTwoColumns"
             value="#{datasetField.controlledVocabularyValues}"
             converter="culturalTypeValueConverter"
-            completeMethod="#{inputRenderer.processSuggestionQuery(datasetField, 'suggestionTextTwoColumnsSSS')}"
+            completeMethod="#{inputRenderer.processSuggestionQuery(datasetField, 'multiSuggestionTextTwoColumns')}"
             styleClass="autocomplete-form-control"
             panelStyleClass="autocomplete-panel-maxwidth"
             resultsMessage="#{bundle['common.forms.autocomplete.resultsMessage']}"
             emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
-            var="suggestion" itemLabel="#{suggestion.value}" itemValue="#{suggestion.value}"
+            var="suggestion" itemLabel="#{suggestion}" itemValue="#{suggestion.value}"
             autoSelection="false"
             autoHighlight="false"
             pt:data-field-type="#{datasetField.datasetFieldType.name}"
@@ -91,7 +50,7 @@
             <h:outputText value="#{suggestion.value}"/>
         </p:column>
         <p:column headerText="#{inputRenderer.detailsHeaderText}">
-            <h:outputText value="#{suggestion.details}" escape="false"/>
+            <h:outputText value="#{suggestion.details}"/>
         </p:column>
     </p:autoComplete>
 

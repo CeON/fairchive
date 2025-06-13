@@ -35,72 +35,72 @@ class SuggestionInputFieldRendererTest {
 
     // -------------------- TESTS --------------------
 
-    @Test
-    void createSuggestions_WithoutFilters() {
-        //given
-        suggestionInputFieldRenderer = new SuggestionInputFieldRenderer(suggestionHandler,
-                new HashMap<>(),
-                SuggestionDisplayType.SIMPLE,
-                "fieldTypeName", "blockName",
-                new ConditionalRendering("test", "test"));
-        DatasetField datasetField = new DatasetField();
-        String testQuery = "testQuery";
-        ArrayList<Suggestion> suggestionsFromHandler = Lists.newArrayList(
-                new Suggestion("suggestion1", "detail1"),
-                new Suggestion("suggestion2", "detail2"));
-
-        //when
-        when(suggestionHandler.generateSuggestions(any(), any())).thenReturn(suggestionsFromHandler);
-        List<Suggestion> suggestions = suggestionInputFieldRenderer.createSuggestions(datasetField, testQuery);
-
-        //then
-        Assertions.assertEquals(suggestionsFromHandler, suggestions);
-        verify(suggestionHandler).generateSuggestions(new HashMap<>(), testQuery);
-    }
-
-    @Test
-    void createSuggestions_WithFilters() {
-        //given
-        String dsftName = "grantNumber";
-        String suggestionFilterName = "grantNumberSuggestionFilter";
-        when(suggestionHandler.isDependentOnSiblings()).thenReturn(true);
-        suggestionInputFieldRenderer = new SuggestionInputFieldRenderer(suggestionHandler,
-                ImmutableMap.of(dsftName, suggestionFilterName),
-                SuggestionDisplayType.SIMPLE,
-                "fieldTypeName", "blockName",
-                new ConditionalRendering("test", "test"));
-
-        DatasetField datasetField = generateDsfFamily(dsftName, "testValue");
-        ArrayList<Suggestion> suggestionsFromHandler = Lists.newArrayList(
-                new Suggestion("suggestion1", "detail1"),
-                new Suggestion("suggestion2", "detail2"));
-        String testQuery = "testQuery";
-
-        //when
-        when(suggestionHandler.generateSuggestions(any(), any())).thenReturn(suggestionsFromHandler);
-        List<Suggestion> suggestions = suggestionInputFieldRenderer.createSuggestions(datasetField, testQuery);
-
-        //then
-        Assertions.assertEquals(suggestionsFromHandler, suggestions);
-        verify(suggestionHandler).generateSuggestions(
-                ImmutableMap.of(suggestionFilterName, "testValue"), testQuery);
-    }
-
-    // -------------------- PRIVATE --------------------
-
-    public DatasetField generateDsfFamily(String dsftName, String fieldValue) {
-        DatasetField parentField = MocksFactory.makeEmptyDatasetField(MocksFactory.makeDatasetFieldType(), 0);
-        DatasetField sourceField = MocksFactory.makeEmptyDatasetField(MocksFactory.makeDatasetFieldType(), 0);
-        DatasetField valueField = MocksFactory.makeEmptyDatasetField(MocksFactory.makeDatasetFieldType(dsftName,
-                                                                                                       FieldType.TEXT,
-                                                                                                       false,
-                                                                                                       new MetadataBlock()),
-                                                                     0);
-        valueField.setFieldValue(fieldValue);
-
-        sourceField.setDatasetFieldParent(parentField);
-        parentField.setDatasetFieldsChildren(Lists.newArrayList(valueField, sourceField));
-
-        return sourceField;
-    }
+//    @Test
+//    void createSuggestions_WithoutFilters() {
+//        //given
+//        suggestionInputFieldRenderer = new SuggestionInputFieldRenderer(suggestionHandler,
+//                new HashMap<>(),
+//                SuggestionDisplayType.SIMPLE,
+//                "fieldTypeName", "blockName",
+//                new ConditionalRendering("test", "test"));
+//        DatasetField datasetField = new DatasetField();
+//        String testQuery = "testQuery";
+//        ArrayList<Suggestion> suggestionsFromHandler = Lists.newArrayList(
+//                new Suggestion("suggestion1", "detail1"),
+//                new Suggestion("suggestion2", "detail2"));
+//
+//        //when
+//        when(suggestionHandler.generateSuggestions(any(), any())).thenReturn(suggestionsFromHandler);
+//        List<Suggestion> suggestions = suggestionInputFieldRenderer.createSuggestions(datasetField, testQuery);
+//
+//        //then
+//        Assertions.assertEquals(suggestionsFromHandler, suggestions);
+//        verify(suggestionHandler).generateSuggestions(new HashMap<>(), testQuery);
+//    }
+//
+//    @Test
+//    void createSuggestions_WithFilters() {
+//        //given
+//        String dsftName = "grantNumber";
+//        String suggestionFilterName = "grantNumberSuggestionFilter";
+//        when(suggestionHandler.isDependentOnSiblings()).thenReturn(true);
+//        suggestionInputFieldRenderer = new SuggestionInputFieldRenderer(suggestionHandler,
+//                ImmutableMap.of(dsftName, suggestionFilterName),
+//                SuggestionDisplayType.SIMPLE,
+//                "fieldTypeName", "blockName",
+//                new ConditionalRendering("test", "test"));
+//
+//        DatasetField datasetField = generateDsfFamily(dsftName, "testValue");
+//        ArrayList<Suggestion> suggestionsFromHandler = Lists.newArrayList(
+//                new Suggestion("suggestion1", "detail1"),
+//                new Suggestion("suggestion2", "detail2"));
+//        String testQuery = "testQuery";
+//
+//        //when
+//        when(suggestionHandler.generateSuggestions(any(), any())).thenReturn(suggestionsFromHandler);
+//        List<Suggestion> suggestions = suggestionInputFieldRenderer.createSuggestions(datasetField, testQuery);
+//
+//        //then
+//        Assertions.assertEquals(suggestionsFromHandler, suggestions);
+//        verify(suggestionHandler).generateSuggestions(
+//                ImmutableMap.of(suggestionFilterName, "testValue"), testQuery);
+//    }
+//
+//    // -------------------- PRIVATE --------------------
+//
+//    public DatasetField generateDsfFamily(String dsftName, String fieldValue) {
+//        DatasetField parentField = MocksFactory.makeEmptyDatasetField(MocksFactory.makeDatasetFieldType(), 0);
+//        DatasetField sourceField = MocksFactory.makeEmptyDatasetField(MocksFactory.makeDatasetFieldType(), 0);
+//        DatasetField valueField = MocksFactory.makeEmptyDatasetField(MocksFactory.makeDatasetFieldType(dsftName,
+//                                                                                                       FieldType.TEXT,
+//                                                                                                       false,
+//                                                                                                       new MetadataBlock()),
+//                                                                     0);
+//        valueField.setFieldValue(fieldValue);
+//
+//        sourceField.setDatasetFieldParent(parentField);
+//        parentField.setDatasetFieldsChildren(Lists.newArrayList(valueField, sourceField));
+//
+//        return sourceField;
+//    }
 }

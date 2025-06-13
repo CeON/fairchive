@@ -1,23 +1,31 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
+import edu.harvard.iq.dataverse.ControlledVocabularyValueServiceBean;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.SuggestionInputFieldRendererFactory.SuggestionDisplayType;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion.MultiSuggestionHandler;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion.SuggestionHandler;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import edu.harvard.iq.dataverse.persistence.dataset.*;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
 import org.apache.commons.lang.StringUtils;
+import org.primefaces.event.SelectEvent;
+import org.primefaces.event.UnselectEvent;
 
+import javax.ejb.EJB;
+import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.faces.convert.Converter;
+import javax.faces.event.AjaxBehaviorEvent;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SuggestionInputFieldRenderer implements InputFieldRenderer {
+
+    //private ControlledVocabularyValueServiceBean controlledVocabularyValueServiceBean;
+    public static final String CONTROLLED_VOCABULARY_NAME_COLUMN = "controlledVocabularyName";
+
     private static final String VALUE_HEADER_KEY_FORMAT = "datasetfieldtype.%s.suggestionDisplay.valueHeader";
     private static final String DETAILS_HEADER_KEY_FORMAT = "datasetfieldtype.%s.suggestionDisplay.detailsHeader";
 
@@ -27,6 +35,8 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
     private String datasetFieldTypeName;
     private String metadataBlockName;
     private ConditionalRendering conditionalRendering;
+    private final CapturingConverter converter = new CapturingConverter();
+    private DatasetField df = null;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -37,6 +47,7 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
      * Constructs renderer with support for suggestions.
      */
     public SuggestionInputFieldRenderer(
+            //ControlledVocabularyValueServiceBean controlledVocabularyValueServiceBean,
             SuggestionHandler suggestionHandler,
             Map<String, String> datasetFieldTypeToSuggestionFilterMapping,
             SuggestionDisplayType suggestionDisplayType,
@@ -44,6 +55,7 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
             String metadataBlockName,
             ConditionalRendering conditionalRendering) {
 
+        //this.controlledVocabularyValueServiceBean = controlledVocabularyValueServiceBean;
         this.suggestionHandler = suggestionHandler;
         this.datasetFieldTypeToSuggestionFilterMapping = datasetFieldTypeToSuggestionFilterMapping;
         this.suggestionDisplayType = suggestionDisplayType;
@@ -102,6 +114,10 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
                 String.format(DETAILS_HEADER_KEY_FORMAT, datasetFieldTypeName), metadataBlockName);
     }
 
+    public Converter getConverter() {
+        return this.converter;
+    }
+
     // -------------------- LOGIC --------------------
 
     /**
@@ -110,6 +126,7 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
      * the query will not work since it will take previously binded value, so we are taking it from {@link FacesContext} directly.
      */
     public List<Suggestion> processSuggestionQuery(DatasetField datasetField, String autoCompleteId) {
+        this.df = datasetField;
         return createSuggestions(
                 datasetField,
                 SuggestionAutocompleteHelper.processSuggestionQuery(autoCompleteId)
@@ -136,6 +153,42 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
         }
 
         return suggestionHandler.generateSuggestions(suggestionFilteredFields, query);
+    }
+
+
+    public void handleAutocompleteSelect(AjaxBehaviorEvent event) {
+        // event.getObject() will contain the object from your completeMethod's list
+        // In your case, it will be an instance of AutocompleteClass (or whatever your completeMethod returns).
+//        Suggestion selectedSuggestion = null;//(Suggestion) event.getObject();
+
+//        this.df.setSingleControlledVocabularyValue(((SelectEvent<ControlledVocabularyValue>)event).getObject());
+        // Now, convert this AutocompleteClass to your ControlledVocabularyClass
+        // and add it to your controlledVocabularyValues list.
+        // This is where you implement the conversion logic (as discussed in previous answers).
+
+      //  Optional<ControlledVocabularyValue> controlledVocabularyValues = controlledVocabularyValueServiceBean.findByIdentifier(selectedSuggestion.value).stream().findFirst();
+
+//        controlledVocabularyValues.ifPresent(c ->
+//
+//        );
+//
+//        // Add to your main list, handling duplicates if multiple="true"
+//        if (!controlledVocabularyValues.contains(convertedValue)) {
+//            controlledVocabularyValues.add(convertedValue);
+//        }
+
+        //System.out.println("Selected: " + selectedSuggestion.getDisplayString());
+        // You might log or perform other business logic here
+    }
+
+    // Optional: If you use itemUnselect for multiple="true"
+    public void handleAutocompleteUnselect(UnselectEvent event) {
+//        AutocompleteClass unselectedSuggestion = (AutocompleteClass) event.getObject();
+//
+//        // Find and remove the corresponding ControlledVocabularyClass from your list
+//        controlledVocabularyValues.removeIf(cv -> cv.getId().equals(unselectedSuggestion.getAutocompleteId()));
+//
+//        System.out.println("Unselected: " + unselectedSuggestion.getDisplayString());
     }
 
     // -------------------- PRIVATE --------------------
@@ -178,5 +231,28 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
                     return filterValues;
                 })
                 .orElseGet(HashMap::new);
+    }
+
+    private class CapturingConverter implements Converter {
+
+        @Override
+        public Object getAsObject(final FacesContext context,
+                                                     final UIComponent component,
+                                                     final String value) {
+            System.out.print("Value: " + value);
+            return new ControlledVocabularyValue(2592L, "warszawa", new DatasetFieldType());
+        }
+
+        @Override
+        public String getAsString(final FacesContext context,
+                                  final UIComponent component,
+                                  final Object value) {
+            if (value == null || "".equals(value)) {
+                return "";
+            }
+            return value instanceof ControlledVocabularyValue ?
+                    String.valueOf(((ControlledVocabularyValue) value).getIdentifier()):
+                    String.valueOf(value);
+        }
     }
 }

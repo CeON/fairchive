@@ -20,45 +20,35 @@ import java.util.List;
 import java.util.Map;
 
 @Stateless
-public class SuggestionInputFieldRendererFactory implements InputFieldRendererFactory<SuggestionInputFieldRenderer>{
+public class MultiSuggestionInputFieldRendererFactory implements InputFieldRendererFactory<MultiSuggestionInputFieldRenderer>{
 
-    private final Map<String, SuggestionHandler> suggestionHandlers = new HashMap<>();
-    private final Instance<SuggestionHandler> suggestionHandlerInstance;
-    ControlledVocabularyValueServiceBean controlledVocabularyValueServiceBean;
+    private final ControlledVocabularyValueServiceBean controlledVocabularyValueServiceBean;
 
     // -------------------- CONSTRUCTORS --------------------
 
     @Inject
-    public SuggestionInputFieldRendererFactory(Instance<SuggestionHandler> suggestionHandlerInstance) {
-        this.suggestionHandlerInstance = suggestionHandlerInstance;
-        //this.controlledVocabularyValueServiceBean = controlledVocabularyValueServiceBean;
+    public MultiSuggestionInputFieldRendererFactory(ControlledVocabularyValueServiceBean controlledVocabularyValueServiceBean) {
+        this.controlledVocabularyValueServiceBean = controlledVocabularyValueServiceBean;
     }
 
-    @PostConstruct
-    public void postConstruct() {
-
-        IteratorUtils.toList(suggestionHandlerInstance.iterator())
-                .forEach(factory -> suggestionHandlers.put(factory.getName(), factory));
-    }
 
     @Override
     public InputRendererType isFactoryForType() {
-        return InputRendererType.SUGGESTION_TEXT;
+        return InputRendererType.MULTI_SUGGESTION_TEXT;
     }
 
     @Override
-    public SuggestionInputFieldRenderer createRenderer(DatasetFieldType fieldType, JsonObject jsonOptions) {
+    public MultiSuggestionInputFieldRenderer createRenderer(DatasetFieldType fieldType, JsonObject jsonOptions) {
 
         SuggestionInputRendererOptions rendererOptions = parseRendererOptions(jsonOptions);
 
-        SuggestionHandler suggestionHandler = obtainSuggestionHandlerByName(rendererOptions.getSuggestionSourceClass());
+
 
         Map<String, String> datasetFieldTypeToSuggestionFilterMapping = parseFilteredBy(
-                rendererOptions.getSuggestionFilteredBy(), suggestionHandler);
+                rendererOptions.getSuggestionFilteredBy());
 
-        return new SuggestionInputFieldRenderer(
-                //controlledVocabularyValueServiceBean,
-                suggestionHandler,
+        return new MultiSuggestionInputFieldRenderer(
+                this.controlledVocabularyValueServiceBean,
                 datasetFieldTypeToSuggestionFilterMapping,
                 rendererOptions.getSuggestionDisplayType() == null ? SuggestionDisplayType.SIMPLE : rendererOptions.getSuggestionDisplayType(),
                 fieldType.getName(),
@@ -73,13 +63,8 @@ public class SuggestionInputFieldRendererFactory implements InputFieldRendererFa
                 .getOrElseThrow((e) -> new InputRendererInvalidConfigException("Invalid syntax of input renderer options " + jsonOptions + ")", e));
     }
 
-    private SuggestionHandler obtainSuggestionHandlerByName(String suggestionSourceClass) {
-        return Option.of(this.suggestionHandlers.get(suggestionSourceClass))
-                .getOrElseThrow(() -> new InputRendererInvalidConfigException(
-                        "Suggestion handler with name: " + suggestionSourceClass + " doesn't exist."));
-    }
 
-    private Map<String, String> parseFilteredBy(List<String> suggestionFilteredBy, SuggestionHandler suggestionHandler) {
+    private Map<String, String> parseFilteredBy(List<String> suggestionFilteredBy) {
         Map<String, String> datasetFieldTypeToSuggestionFilterMapping = Maps.newHashMap();
         if (suggestionFilteredBy == null) {
             return datasetFieldTypeToSuggestionFilterMapping;
@@ -90,9 +75,9 @@ public class SuggestionInputFieldRendererFactory implements InputFieldRendererFa
             if (dftToSuggestionFilter.length != 2) {
                 throw new InputRendererInvalidConfigException("Invalid value for suggestionFilteredBy: " + filter);
             }
-            if (!suggestionHandler.getAllowedFilters().contains(dftToSuggestionFilter[1])) {
-                throw new InputRendererInvalidConfigException("Suggestion handler: " + suggestionHandler.getName() + " does not support filtering by: : " + dftToSuggestionFilter[1]);
-            }
+//            if (!suggestionHandler.getAllowedFilters().contains(dftToSuggestionFilter[1])) {
+//                throw new InputRendererInvalidConfigException("Suggestion handler: " + suggestionHandler.getName() + " does not support filtering by: : " + dftToSuggestionFilter[1]);
+//            }
 
             datasetFieldTypeToSuggestionFilterMapping.put(
                     dftToSuggestionFilter[0], dftToSuggestionFilter[1]);

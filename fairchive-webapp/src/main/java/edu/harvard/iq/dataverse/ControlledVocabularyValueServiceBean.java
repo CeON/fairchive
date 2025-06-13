@@ -25,11 +25,21 @@ public class ControlledVocabularyValueServiceBean implements java.io.Serializabl
 
     public List<ControlledVocabularyValue> findByDatasetFieldTypeId(Long dsftId) {
 
-        String queryString = "select o from ControlledVocabularyValue as o where o.datasetFieldType.id = " + dsftId + " ";
+        String queryString = "select o from ControlledVocabularyValue as o where o.datasetFieldType.id = :dsftId";
         TypedQuery<ControlledVocabularyValue> query = em.createQuery(queryString, ControlledVocabularyValue.class);
+        query.setParameter("dsftId", dsftId);
         return query.getResultList();
-
     }
+
+
+    public List<ControlledVocabularyValue> findByIdentifier(String identifier) {
+
+        String queryString = "select o from ControlledVocabularyValue as o where o.identifier = :identifier";
+        TypedQuery<ControlledVocabularyValue> query = em.createQuery(queryString, ControlledVocabularyValue.class);
+        query.setParameter("identifier", identifier);
+        return query.getResultList();
+    }
+
     public List<ControlledVocabularyValue> findByDatasetFieldTypeNameAndValueLike(String datasetFieldTypeName, String suggestionSourceFieldValue, int queryLimit) {
 
         String queryString = "select DISTINCT v from ControlledVocabularyValue as v " +
