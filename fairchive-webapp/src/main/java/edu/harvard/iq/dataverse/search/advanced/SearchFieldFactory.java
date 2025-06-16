@@ -5,6 +5,7 @@ import javax.ejb.Stateless;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.search.advanced.field.CheckboxSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.DateSearchField;
+import edu.harvard.iq.dataverse.search.advanced.field.GeoNameSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.GeoboxCoordSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.NumberSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.PeriodoSearchField;
@@ -30,6 +31,8 @@ public class SearchFieldFactory {
             return new NumberSearchField(fieldType);
         } else if (fieldType.isGeoboxField()) {
             return new GeoboxCoordSearchField(fieldType);
+        } else if(fieldType.isGeoName()) {
+            return new GeoNameSearchField(fieldType);
         } else if(fieldType.isPeriodo()) {
             return new PeriodoSearchField(fieldType);
         } else {

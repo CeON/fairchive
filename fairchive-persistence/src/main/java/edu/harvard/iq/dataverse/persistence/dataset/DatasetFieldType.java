@@ -9,6 +9,7 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -41,6 +42,9 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
@@ -332,6 +336,17 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     public String getInputRendererOptions() {
         return inputRendererOptions;
     }
+    
+    public JsonObject getInputRendererOptionsAsJson() {
+        try {
+            return isNotBlank(this.inputRendererOptions)
+                    ? new JsonParser().parse(this.inputRendererOptions).getAsJsonObject()
+                    : new JsonObject();
+        } catch (final Exception e) {
+            throw new RuntimeException(
+                    "Unable to parse input renderer options for field " + this.fieldType, e);
+        }
+    }
 
     public String getValidation() {
         return validation;
@@ -453,6 +468,14 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     
     public boolean isPeriodo() {
         return this.fieldType.isPeriodo();
+    }
+    
+    public boolean isGeoBox() {
+        return this.fieldType.isGeoBox();
+    }
+    
+    public boolean isGeoName() {
+        return this.fieldType.isGeoName();
     }
 
     @Override

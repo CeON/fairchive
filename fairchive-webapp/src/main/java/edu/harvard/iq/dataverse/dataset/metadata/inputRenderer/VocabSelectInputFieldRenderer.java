@@ -7,7 +7,6 @@ import io.vavr.control.Option;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
@@ -79,7 +78,7 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
     // -------------------- LOGIC --------------------
 
     public void processValueChange(DatasetField datasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
-        clearSiblingsDatasetFieldValue(datasetField, inputRenderersByFieldType);
+        clearSiblingsDatasetField(datasetField, inputRenderersByFieldType);
     }
 
     public boolean hasChangeListener(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
@@ -101,7 +100,7 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
                 .getOrElse(false);
     }
 
-    private void clearSiblingsDatasetFieldValue(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
+    private void clearSiblingsDatasetField(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
         List<DatasetField> siblingsFields = vocabDatasetField.getDatasetFieldParent()
                 .getOrElseThrow(() -> new NullPointerException("datasetfield with type: " + vocabDatasetField.getTypeName()
                         + " didn't have any parent required for conditional rendering"))
@@ -114,6 +113,7 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
             InputFieldRenderer renderer = inputRenderersByFieldType.get(sibling.getDatasetFieldType());
             if (renderer != null && renderer.getConditionalRendering().isDefined()) {
                 sibling.clearValue();
+                sibling.setValidationMessage(null);
             }
         }
     }

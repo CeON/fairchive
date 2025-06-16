@@ -18,10 +18,18 @@ RUN cp -r server/solr/configsets/_default server/solr/rorSuggestions \
     && mv solrconfig.xml server/solr/rorSuggestions/conf/ \
     && echo "Configured rorSuggestions"
 
+ADD geonames/schema.xml ./
+ADD geonames/solrconfig.xml ./    
+RUN cp -r server/solr/configsets/_default server/solr/geonames \
+    && mv schema.xml server/solr/geonames/conf/ \
+    && mv solrconfig.xml server/solr/geonames/conf/ \
+    && echo "Configured geonames"  
+    
 USER solr
 
 RUN ./bin/solr start \
     && ./bin/solr create_core -c collection1 -d server/solr/collection1/conf \
     && ./bin/solr create_core -c rorSuggestions -d server/solr/rorSuggestions/conf \
+    && ./bin/solr create_core -c geonames -d server/solr/geonames/conf \
     && echo "Done creating collections"
 
