@@ -44,6 +44,8 @@ public class SystemConfig {
 
     public static final String DATAVERSE_PATH = "/dataverse/";
 
+    private static final Integer DEFAULT_AUTHENTICATED_SESSION_TIMEOUT_MINUTES = 1440;
+
     /**
      * A JVM option for where files are stored on the file system.
      */
@@ -369,6 +371,10 @@ public class SystemConfig {
             return settingReturned;
         }
         return saneDefault;
+    }
+
+    public Integer getAuthenticatedSessionTimeoutMinutes() {
+        return settingsService.getValueForKeyAsInt(Key.AuthenticatedSessionTimeout, DEFAULT_AUTHENTICATED_SESSION_TIMEOUT_MINUTES);
     }
 
     /**
