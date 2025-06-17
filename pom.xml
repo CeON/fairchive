@@ -819,7 +819,7 @@
                                     </env>
                                     <wait>
                                         <log>(?s)database system is ready to accept connections.*database system is ready to accept connections</log>
-                                        <time>10000</time>
+                                        <time>100000</time>
                                     </wait>
                                     <log>
                                         <enabled>true</enabled>
@@ -845,7 +845,7 @@
                                     </network>
                                     <wait>
                                         <log>Opening new SolrCore</log>
-                                        <time>10000</time>
+                                        <time>100000</time>
                                     </wait>
                                     <log>
                                         <enabled>true</enabled>
