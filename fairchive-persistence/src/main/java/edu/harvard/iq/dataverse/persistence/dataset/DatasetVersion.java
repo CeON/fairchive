@@ -1,25 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.author;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorAffiliation;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorAffiliationIdentifier;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorIdType;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorIdValue;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorName;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionText;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributionDate;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.keyword;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.keywordValue;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.publication;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.publicationCitation;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.publicationIDNumber;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.publicationIDType;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.publicationURL;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.subject;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_NO_PRIMARY_SOURCE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_WITH_PRIMARY_SOURCE;
@@ -43,8 +24,6 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
@@ -568,7 +547,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public String getTitle() {
-        return getDatasetFieldByTypeName(title)
+        return getDatasetFieldByTypeName(DatasetFieldConstant.title)
                 .map(DatasetField::getDisplayValue)
                 .orElse(EMPTY);
     }
@@ -578,7 +557,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public String getProductionDate() {       
-        return getDatasetFieldByTypeName(productionDate)
+        return getDatasetFieldByTypeName(DatasetFieldConstant.productionDate)
                 .map(DatasetField::getDisplayValue)
                 .orElse(null);
     }
@@ -588,10 +567,10 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
      * has been passed through the stripAllTags method to remove all HTML tags.
      */
     public String getDescriptionPlainText() {        
-        return streamDatasetFieldsByTypeName(description)
+        return streamDatasetFieldsByTypeName(DatasetFieldConstant.description)
                 .map(DatasetField::getDatasetFieldsChildren)
                 .flatMap(List::stream)
-                .filter(subField -> subField.isNamed(descriptionText))
+                .filter(subField -> subField.isNamed(DatasetFieldConstant.descriptionText))
                 .filter(subField -> !subField.isEmptyForDisplay())
                 .findFirst()
                 .map(DatasetField::getValue)
@@ -635,23 +614,26 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public List<DatasetAuthor> getDatasetAuthors() {
-        return extractFieldWithSubfields(author,
-                asList(authorName, authorAffiliation,  authorAffiliationIdentifier,
-                        authorIdType, authorIdValue))
+        return extractFieldWithSubfields(DatasetFieldConstant.author,
+                asList(DatasetFieldConstant.authorName,
+                        DatasetFieldConstant.authorAffiliation,
+                        DatasetFieldConstant.authorAffiliationIdentifier,
+                        DatasetFieldConstant.authorIdType,
+                        DatasetFieldConstant.authorIdValue))
                 .stream()
                 .filter(e -> {
-                    DatasetField name = e.get(authorName);
+                    DatasetField name = e.get(DatasetFieldConstant.authorName);
                     return name != null && !name.isEmptyForDisplay();
                 })
                 .map(e -> {
                     DatasetAuthor author = new DatasetAuthor(e.get(DatasetFieldConstant.author).getDisplayOrder());
-                    author.setName(e.get(authorName));
-                    author.setAffiliation(e.get(authorAffiliation));
-                    author.setAffiliationIdentifier(e.get(authorAffiliationIdentifier));
-                    DatasetField idType = e.get(authorIdType);
+                    author.setName(e.get(DatasetFieldConstant.authorName));
+                    author.setAffiliation(e.get(DatasetFieldConstant.authorAffiliation));
+                    author.setAffiliationIdentifier(e.get(DatasetFieldConstant.authorAffiliationIdentifier));
+                    DatasetField idType = e.get(DatasetFieldConstant.authorIdType);
                     author.setIdType(idType != null && !idType.getControlledVocabularyValues().isEmpty()
                             ? idType.getControlledVocabularyValues().get(0).getStrValue() : null);
-                    author.setIdValue(mapIfNotNull(e.get(authorIdValue), DatasetField::getValue));
+                    author.setIdValue(mapIfNotNull(e.get(DatasetFieldConstant.authorIdValue), DatasetField::getValue));
                     return author;
                 })
                 .collect(toList());
@@ -665,24 +647,25 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public List<String> getDatasetSubjects() {
-        return extractFieldValues(subject);
+        return extractFieldValues(DatasetFieldConstant.subject);
     }
 
     public List<String> getKeywords() {
-        return getCompoundChildFieldValues(keyword, singletonList(keywordValue));
+        return getCompoundChildFieldValues(DatasetFieldConstant.keyword, 
+                singletonList(DatasetFieldConstant.keywordValue));
     }
 
     public List<DatasetRelPublication> getRelatedPublications() {
-        return extractFieldWithSubfields(publication, asList(
-                    publicationCitation, publicationURL,
-                    publicationIDNumber, publicationIDType))
+        return extractFieldWithSubfields(DatasetFieldConstant.publication, asList(
+                DatasetFieldConstant.publicationCitation, DatasetFieldConstant.publicationURL,
+                DatasetFieldConstant.publicationIDNumber, DatasetFieldConstant.publicationIDType))
                 .stream()
                 .map(m -> {
                     DatasetRelPublication publication = new DatasetRelPublication();
-                    publication.setText(mapIfNotNull(m.get(publicationCitation), DatasetField::getDisplayValue));
-                    publication.setUrl(mapIfNotNull(m.get(publicationURL), DatasetField::getValue));
-                    publication.setIdNumber(mapIfNotNull(m.get(publicationIDNumber), DatasetField::getValue));
-                    publication.setIdType(mapIfNotNull(m.get(publicationIDType), DatasetField::getValue));
+                    publication.setText(mapIfNotNull(m.get(DatasetFieldConstant.publicationCitation), DatasetField::getDisplayValue));
+                    publication.setUrl(mapIfNotNull(m.get(DatasetFieldConstant.publicationURL), DatasetField::getValue));
+                    publication.setIdNumber(mapIfNotNull(m.get(DatasetFieldConstant.publicationIDNumber), DatasetField::getValue));
+                    publication.setIdType(mapIfNotNull(m.get(DatasetFieldConstant.publicationIDType), DatasetField::getValue));
                     return publication;
                 })
                 .collect(toList());
@@ -703,13 +686,13 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public Stream<DatasetField> streamDatasetFieldsByTypeName(final String name) {
-        return this.datasetFields
-                .stream()
+        return getFlatDatasetFields().
+                stream()
                 .filter(field -> field.isNamed(name));
     }
 
     public String getDistributionDate() {      
-        return getDatasetFieldByTypeName(distributionDate)
+        return getDatasetFieldByTypeName(DatasetFieldConstant.distributionDate)
                 .map(DatasetField::getValue)
                 .orElse(null);
     }
