@@ -5,7 +5,6 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import java.io.StringReader;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,20 +46,6 @@ public class ExternalToolServiceBean {
                 .filter(tool -> tool.getContentType().equals(contentType))
                 .filter(tool -> tool.getFileExtention() == null)
                 .collect(toList());
-    }
-    
-    public List<ExternalTool> findBy(final Type type,
-            final String contentType, final String fileExtention) {
-        final List<ExternalTool> result = findAll().stream()
-                    .filter(tool -> tool.getType().equals(type))
-                    .filter(tool -> tool.getContentType().equals(contentType))
-                    .filter(tool -> fileExtention.equalsIgnoreCase(tool.getFileExtention()))
-                    .collect(toList());
-        if(result.size() > 0) {
-            return result;
-        } else {
-            return findBy(type, contentType);
-        }
     }
     
     public boolean delete(final long id) {
@@ -115,9 +100,17 @@ public class ExternalToolServiceBean {
                     .collect(toList());
         }
     }
+    
+    public List<ExternalTool> findExternalTools(final Type type,
+            final String contentType, final DataFile file,
+            final DatasetVersion version) {
 
-    public List<ExternalTool> findExternalTools(Type type, String contentType, DataFile file, DatasetVersion version) {
-        return findExternalToolsByFileAndVersion(findBy(type, contentType, file.getFileMetadata().getFileNameExtention()), file, version);
+        if (file.isNonPublicOrNotIngestedTsvFile(version)) {
+            return emptyList();
+        } else {
+            return findBy(type, contentType,
+                    file.getFileMetadata().getFileNameExtention());
+        }
     }
 
     public ExternalTool parseAddExternalToolManifest(String manifest) {
@@ -161,7 +154,34 @@ public class ExternalToolServiceBean {
     }
 
     // -------------------- PRIVATE --------------------
+    
+    private List<ExternalTool> findBy(final Type type,
+            final String contentType, final String fileExtention) {
+        List<ExternalTool> result = findAll().stream()
+                .filter(tool -> tool.getType().equals(type))
+                .filter(tool -> tool.getContentType().equals(contentType))
+                .filter(tool -> fileExtention
+                        .equalsIgnoreCase(tool.getFileExtention()))
+                .collect(toList());
+        if (result.size() > 0) {
+            return result;
+        } else {
+            result = findByExtention(type, fileExtention);
+            if (result.size() > 0) {
+                return result;
+            } else {
+                return findBy(type, contentType);
+            }
+        }
+    }
 
+    
+    private List<ExternalTool> findByExtention(final Type type, final String fileExtention) {
+        return findAll().stream()
+                .filter(tool -> tool.getType().equals(type))
+                .filter(tool -> fileExtention.equalsIgnoreCase(tool.getFileExtention()))
+                .collect(toList());
+    }
 
     private String getRequiredTopLevelField(JsonObject jsonObject, String key) {
         try {
