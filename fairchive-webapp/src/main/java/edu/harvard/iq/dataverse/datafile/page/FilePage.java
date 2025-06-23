@@ -128,6 +128,12 @@ public class FilePage implements java.io.Serializable {
     }
 
     // -------------------- GETTERS --------------------
+    
+    public String getPageTitle() {
+        return this.fileMetadata.getDataFile().getDisplayName() 
+                + " - " +  
+                this.file.getOwner().getOwner().getDisplayName();
+    }
 
     public FileMetadata getFileMetadata() {
         return fileMetadata;
@@ -255,6 +261,14 @@ public class FilePage implements java.io.Serializable {
         exploreTools = externalToolService.findExternalTools(ExternalTool.Type.EXPLORE, contentType, file, version);
         previewTools = externalToolService.findExternalTools(ExternalTool.Type.PREVIEW, contentType, file, version);
         return null;
+    }
+    
+    public boolean displayEditButtonGroup() throws Exception {
+        return canUpdateDataset()
+                && (this.datafileService
+                        .hasReplacement(this.fileMetadata.getDataFile())
+                        || this.datafileService
+                                .hasBeenDeleted(this.fileMetadata.getDataFile()));
     }
     
     public boolean displayFileDescriptionBlock() {

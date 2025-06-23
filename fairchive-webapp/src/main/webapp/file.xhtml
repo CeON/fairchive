@@ -17,7 +17,7 @@
     <h:body>
         <ui:composition template="/dataverse_template.xhtml">
             <ui:param name="pageTitle" 
-                      value="#{FilePage.fileMetadata.dataFile.displayName} - #{FilePage.file.owner.owner.displayName}"/>
+                      value="#{FilePage.pageTitle}"/>
             <ui:param name="dataverse" 
                       value="#{FilePage.file.owner.owner}"/>
             <ui:param name="showMessagePanel" 
@@ -149,8 +149,7 @@
 
                                     <!-- Edit Button Group -->
                                     <div class="btn-group" 
-                                         jsf:rendered="#{FilePage.canUpdateDataset()
-                                                             and (dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile))}">
+                                         jsf:rendered="#{FilePage.displayEditButtonGroup()}">
                                         <p:commandLink styleClass="btn btn-default btn-access" 
                                                        onclick="primeFacesShowModal('fileAlreadyReplacedPrevious', this)">
                                             <span class="glyphicon glyphicon-pencil" 
