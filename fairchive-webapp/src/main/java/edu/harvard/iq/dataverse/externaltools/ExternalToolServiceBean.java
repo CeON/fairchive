@@ -14,8 +14,6 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
-import com.google.api.client.repackaged.com.google.common.base.Objects;
-
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
@@ -103,7 +101,7 @@ public class ExternalToolServiceBean {
 
         return allExternalTools.stream()
                 .filter(t -> t.getContentType().equals(contentType))
-                .filter(t -> !isNonPublicOrNotIngestedTsvFile(file, datasetVersion))
+                .filter(t -> !file.isNonPublicOrNotIngestedTsvFile(datasetVersion))
                 .collect(Collectors.toList());
     }
 
@@ -152,13 +150,6 @@ public class ExternalToolServiceBean {
     }
 
     // -------------------- PRIVATE --------------------
-
-    private boolean isNonPublicOrNotIngestedTsvFile(DataFile file, DatasetVersion datasetVersion) {
-        boolean isTsvAltContentType = TextMimeType.TSV_ALT.getMimeValue()
-                .equals(file.isTabularData() ? TextMimeType.TSV_ALT.getMimeValue() : file.getContentType());
-
-        return isTsvAltContentType && (!file.isPublicIn(datasetVersion) || !file.isTabularData());
-    }
 
 
     private String getRequiredTopLevelField(JsonObject jsonObject, String key) {

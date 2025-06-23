@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType.SHAPEFILE_FILE_TYPE;
+import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
@@ -333,6 +334,13 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         } else {
             return false;
         }
+    }
+    
+    public boolean isNonPublicOrNotIngestedTsvFile(final DatasetVersion datasetVersion) {
+        final boolean isTsvAltContentType = TSV_ALT.getMimeValue()
+                .equals(isTabularData() ? TSV_ALT.getMimeValue() : getContentType());
+
+        return isTsvAltContentType && (!isPublicIn(datasetVersion) || !isTabularData());
     }
 
     /**
