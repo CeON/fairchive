@@ -8,6 +8,7 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -35,15 +36,11 @@ public class ExternalToolServiceBean {
     }
 
     public List<ExternalTool> findBy(final Type type) {
-        return findAll().stream()
-                .filter(tool -> tool.getType().equals(type))
-                .collect(toList());
+        return streamBy(type).collect(toList());
     }
 
     private List<ExternalTool> findBy(final Type type, final String contentType) {
-        return findAll().stream()
-                .filter(tool -> tool.getType().equals(type))
-                .filter(tool -> tool.getContentType().equals(contentType))
+        return streamBy(type, contentType)
                 .filter(tool -> tool.getFileExtention() == null)
                 .collect(toList());
     }
@@ -72,7 +69,7 @@ public class ExternalToolServiceBean {
 
         return allExternalTools.stream()
                 .filter(t -> t.getContentType().equals(contentType))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
@@ -157,9 +154,7 @@ public class ExternalToolServiceBean {
     
     private List<ExternalTool> findBy(final Type type,
             final String contentType, final String fileExtention) {
-        List<ExternalTool> result = findAll().stream()
-                .filter(tool -> tool.getType().equals(type))
-                .filter(tool -> tool.getContentType().equals(contentType))
+        List<ExternalTool> result = streamBy(type, contentType)
                 .filter(tool -> fileExtention
                         .equalsIgnoreCase(tool.getFileExtention()))
                 .collect(toList());
@@ -177,12 +172,19 @@ public class ExternalToolServiceBean {
 
     
     private List<ExternalTool> findByExtention(final Type type, final String fileExtention) {
-        return findAll().stream()
-                .filter(tool -> tool.getType().equals(type))
+        return streamBy(type)
                 .filter(tool -> fileExtention.equalsIgnoreCase(tool.getFileExtention()))
                 .collect(toList());
     }
-
+    
+    public Stream<ExternalTool> streamBy(final Type type) {
+        return findAll().stream().filter(tool -> tool.getType().equals(type));
+    }
+    
+    private Stream<ExternalTool> streamBy(final Type type, final String contentType) {
+        return streamBy(type).filter(tool -> tool.getContentType().equals(contentType));
+    }
+    
     private String getRequiredTopLevelField(JsonObject jsonObject, String key) {
         try {
             return jsonObject.getString(key);
