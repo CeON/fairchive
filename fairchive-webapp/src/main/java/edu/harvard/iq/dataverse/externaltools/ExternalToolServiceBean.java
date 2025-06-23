@@ -1,8 +1,11 @@
 package edu.harvard.iq.dataverse.externaltools;
 
+import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -93,16 +96,24 @@ public class ExternalToolServiceBean {
      * so it doesn't query the database each time
      */
     public List<ExternalTool> findExternalToolsByFileAndVersion(
-            List<ExternalTool> allExternalTools, DataFile file, DatasetVersion datasetVersion) {
+            final List<ExternalTool> allExternalTools, final DataFile file,
+            final DatasetVersion datasetVersion) {
 
-        // Map tabular data to it's mimetype (the isTabularData() check assures that this code works the same as before,
-        // but it may need to change if tabular data is split into subtypes with differing mimetypes)
-        final String contentType = file.isTabularData() ? TextMimeType.TSV_ALT.getMimeValue() : file.getContentType();
+        if (file.isNonPublicOrNotIngestedTsvFile(datasetVersion)) {
+            return emptyList();
+        } else {
+            // Map tabular data to it's mimetype (the isTabularData() check assures
+            // that this code works the same as before,
+            // but it may need to change if tabular data is split into subtypes with
+            // differing mimetypes)
+            final String contentType = file.isTabularData()
+                    ? TSV_ALT.getMimeValue()
+                    : file.getContentType();
 
-        return allExternalTools.stream()
-                .filter(t -> t.getContentType().equals(contentType))
-                .filter(t -> !file.isNonPublicOrNotIngestedTsvFile(datasetVersion))
-                .collect(Collectors.toList());
+            return allExternalTools.stream()
+                    .filter(t -> t.getContentType().equals(contentType))
+                    .collect(toList());
+        }
     }
 
     public List<ExternalTool> findExternalTools(Type type, String contentType, DataFile file, DatasetVersion version) {
