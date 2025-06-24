@@ -50,7 +50,7 @@
                         <div id="actionButtonBlock" class="col-xs-12">
                             <!-- Metrics -->
                             <div id="metrics-block" class="col-sm-4" 
-                                 jsf:rendered="#{!(widgetWrapper.widgetView or FilePage.fileMetadata.dataFile.filePackage or FilePage.fileMetadata.datasetVersion.deaccessioned)}">
+                                 jsf:rendered="#{!(widgetWrapper.widgetView or FilePage.fileMetadata.dataFile.filePackage or FilePage.datasetDeaccesioned)}">
                                 <div id="metrics-label" class="col-xs-4 small text-center">
                                     <span class="glyphicon glyphicon-stats"/> #{bundle['metrics.title']}
                                 </div>
@@ -78,7 +78,7 @@
                                               aria-hidden="true"/> #{bundle['contact.contact']}
                                     </p:commandLink>
                                     <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip" 
-                                                   rendered="#{!FilePage.fileMetadata.datasetVersion.deaccessioned}"
+                                                   rendered="#{!FilePage.datasetDeaccesioned}"
                                                    title="#{bundle['dataset.share.datasetShare']}"
                                                    oncomplete="primeFacesShowModal('shareDialog', this);sharrre();">
                                         <span class="glyphicon glyphicon-share" 
@@ -89,7 +89,7 @@
                                           header="#{bundle['dataset.share.datasetShare']}" 
                                           widgetVar="shareDialog" 
                                           modal="true"
-                                          rendered="#{!FilePage.fileMetadata.datasetVersion.deaccessioned}">
+                                          rendered="#{!FilePage.datasetDeaccesioned}">
                                     <p class="help-block">#{bundle['dataset.share.datasetShare.tip']}</p>
 
                                         <div id="sharrre-widget"
@@ -235,8 +235,8 @@
 
 
                                 <!-- Explore/Download/Request Button Block -->
-                                <div class="button-container btn-group" jsf:rendered="#{(!FilePage.fileMetadata.datasetVersion.deaccessioned or
-                                                                                            (FilePage.fileMetadata.datasetVersion.deaccessioned and FilePage.canUpdateDataset()))
+                                <div class="button-container btn-group" jsf:rendered="#{(!FilePage.datasetDeaccesioned or
+                                                                                            (FilePage.datasetDeaccesioned and FilePage.canUpdateDataset()))
                                                                                              and (!FilePage.fileMetadata.dataFile.filePackage or
                                                                                                    FilePage.fileMetadata.dataFile.filePackage and systemConfig.HTTPDownload)}">
                                     <iqbs:fileDownloadButtons
@@ -272,7 +272,7 @@
                                 <div id="file-title-block" class="col-xs-12">
                                     <!-- Restricted File Icon -->
                                     <span class="glyphicon glyphicon-lock text-danger" 
-                                          jsf:rendered="#{FilePage.fileMetadata.termsOfUse.termsOfUseType eq termsOfUseTypeEnum.RESTRICTED and !(fileDownloadHelper.canUserDownloadFile(FilePage.fileMetadata))}" />
+                                          jsf:rendered="#{FilePage.displayRestrictedIcon()}" />
                                     <span class="icon-unlock text-success" 
                                           jsf:rendered="#{FilePage.fileMetadata.termsOfUse.termsOfUseType eq termsOfUseTypeEnum.RESTRICTED  and fileDownloadHelper.canUserDownloadFile(FilePage.fileMetadata) }" />
 
@@ -289,7 +289,7 @@
                                                   rendered="#{!FilePage.fileMetadata.datasetVersion.dataset.released}"/>
                                     <h:outputText value="#{bundle['dataset.versionUI.deaccessioned']}" 
                                                   styleClass="label label-danger" 
-                                                  rendered="#{FilePage.fileMetadata.datasetVersion.deaccessioned}"/>
+                                                  rendered="#{FilePage.datasetDeaccesioned}"/>
                                     <!-- DATASET VERSION NUMBER -->
                                     <h:outputText styleClass="label label-default" 
                                                   rendered="#{FilePage.fileMetadata.datasetVersion.released and !(FilePage.fileMetadata.datasetVersion.draft or FilePage.fileMetadata.datasetVersion.inReview)}"
@@ -312,9 +312,9 @@
                                 </div>
 
                                 <div class="col-xs-12 citation-block no-margin-bottom">
-                                    <div class="col-xs-12 #{FilePage.fileMetadata.datasetVersion.deaccessioned ? 'alert alert-danger bg-danger' : 'alert alert-info bg-citation'}">
+                                    <div class="col-xs-12 #{FilePage.datasetDeaccesioned ? 'alert alert-danger bg-danger' : 'alert alert-info bg-citation'}">
                                         <div class="row">
-                                            <div class="#{FilePage.fileMetadata.datasetVersion.deaccessioned ? 'col-xs-12' : 'col-xs-12 col-md-7'} citation">
+                                            <div class="#{FilePage.datasetDeaccesioned ? 'col-xs-12' : 'col-xs-12 col-md-7'} citation">
                                                 <span class="citation-select" 
                                                       onclick="if (event.target) { selectText(event.target); } else{ selectText(this); }">
                                                     <h:outputText value="#{FilePage.createCitationFromFileDatasetVersion()}" 
@@ -336,13 +336,13 @@
                                                       data-original-title="#{bundle['dataset.cite.title.draft']}"/>
                                                 <span class="glyphicon glyphicon-question-sign text-primary" 
                                                       tabindex="0" role="button" 
-                                                      jsf:rendered="#{FilePage.fileMetadata.datasetVersion.deaccessioned}"
+                                                      jsf:rendered="#{FilePage.datasetDeaccesioned}"
                                                       data-toggle="tooltip" 
                                                       data-placement="top" 
                                                       data-original-title="#{bundle['dataset.cite.title.deassessioned']}"/>
                                             </div>
                                             <div class="col-xs-12 col-md-5 text-right citation-download" 
-                                                 jsf:rendered="#{!FilePage.fileMetadata.datasetVersion.deaccessioned}">
+                                                 jsf:rendered="#{!FilePage.datasetDeaccesioned}">
                                                 <div class="dropdown">
                                                     <button id="downloadDatasetCitation" 
                                                             type="button" 
@@ -395,9 +395,9 @@
                                 </div>
 
                                 <div class="col-xs-12 citation-block">
-                                     <div class="col-xs-12 #{FilePage.fileMetadata.datasetVersion.deaccessioned ? 'alert alert-danger bg-danger' : 'alert alert-info bg-citation bg-citation-file'}">
+                                     <div class="col-xs-12 #{FilePage.datasetDeaccesioned ? 'alert alert-danger bg-danger' : 'alert alert-info bg-citation bg-citation-file'}">
                                         <div class="row">
-                                            <div class="#{FilePage.fileMetadata.datasetVersion.deaccessioned ? 'col-xs-12' : 'col-xs-12 col-md-7'} citation">
+                                            <div class="#{FilePage.datasetDeaccesioned ? 'col-xs-12' : 'col-xs-12 col-md-7'} citation">
                                                 <span id="citation-select-2" 
                                                       onclick="if (event.target) { selectText(event.target); } else{ selectText(this); }">
                                                     <h:outputText value="#{FilePage.createCitation()}" 
@@ -418,7 +418,7 @@
                                                       data-original-title="#{bundle['dataset.cite.title.draft']}"/>
                                             </div>
                                             <div class="col-xs-12 col-md-5 text-right citation-download" 
-                                                 jsf:rendered="#{!FilePage.fileMetadata.datasetVersion.deaccessioned}">
+                                                 jsf:rendered="#{!FilePage.datasetDeaccesioned}">
                                                 <div class="dropdown">
                                                     <button id="downloadFileCitation" 
                                                             type="button" 
@@ -466,7 +466,8 @@
                                     </div>
                                 </div>
 
-                                <div id="deaccession-reason-block" class="col-xs-12" jsf:rendered="#{FilePage.fileMetadata.datasetVersion.deaccessioned}">
+                                <div id="deaccession-reason-block" class="col-xs-12" 
+                                     jsf:rendered="#{FilePage.datasetDeaccesioned}">
                                     <div class="col-xs-12 bg-danger">
                                         <h5 class="margin-top-half">#{bundle['dataset.deaccession.reason']}</h5>
                                         <p>#{FilePage.fileMetadata.datasetVersion.versionNote}</p>
@@ -582,8 +583,8 @@
                                 </ui:include>
                             </p:tab>
                             <p:tab id="metadataMapTab" class="padding-none" title="#{bundle['file.dataFilesTab.metadata.header']}"
-                                   rendered="#{(!FilePage.fileMetadata.datasetVersion.deaccessioned or
-                                                              (FilePage.fileMetadata.datasetVersion.deaccessioned and FilePage.canUpdateDataset()))}">
+                                   rendered="#{(!FilePage.datasetDeaccesioned or
+                                                              (FilePage.datasetDeaccesioned and FilePage.canUpdateDataset()))}">
 
                                 <!-- Add + Edit Metadata Button -->
                                 <div class="button-block tab-header margin-bottom text-right">
@@ -712,8 +713,8 @@
                                 </div>
                             </p:tab>
                             <ui:remove>
-                                <p:tab id="provenanceTab" title="Provenance" rendered="#{(!FilePage.fileMetadata.datasetVersion.deaccessioned or
-                                                              (FilePage.fileMetadata.datasetVersion.deaccessioned and FilePage.canUpdateDataset()))}">
+                                <p:tab id="provenanceTab" title="Provenance" rendered="#{(!FilePage.datasetDeaccesioned or
+                                                              (FilePage.datasetDeaccesioned and FilePage.canUpdateDataset()))}">
                                     <!-- Placeholder -->
                                     <em>Coming soon...</em>
                                 </p:tab>
