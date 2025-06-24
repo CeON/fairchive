@@ -59,8 +59,8 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Try;
 
 
@@ -88,6 +88,7 @@ public class FilePage implements java.io.Serializable {
     private CitationFactory citationFactory;
     private DataverseSession session;
     private ExternalToolHandler externalToolHandler;
+    private UIMessages ui;
 
     private FileMetadata fileMetadata;
     private Long fileId;
@@ -117,7 +118,7 @@ public class FilePage implements java.io.Serializable {
                     PermissionsWrapper permissionsWrapper, FileDownloadHelper fileDownloadHelper,
                     ExportService exportService, FileService fileService,
                     GuestbookResponseDialog guestbookResponseDialog, CitationFactory citationFactory,
-                    DataverseSession session, ExternalToolHandler externalToolHandler) {
+                    DataverseSession session, ExternalToolHandler externalToolHandler, UIMessages ui) {
         this.datafileService = datafileService;
         this.datasetVersionService = datasetVersionService;
         this.permissionService = permissionService;
@@ -132,6 +133,7 @@ public class FilePage implements java.io.Serializable {
         this.citationFactory = citationFactory;
         this.session = session;
         this.externalToolHandler = externalToolHandler;
+        this.ui = ui;
     }
 
     // -------------------- GETTERS --------------------
@@ -348,7 +350,7 @@ public class FilePage implements java.io.Serializable {
         if (saveProvOperation.isFailure()){
             return "";
         }
-        JsfHelper.addFlashSuccessMessage(getStringFromBundle("file.message.editSuccess"));
+        this.ui.addFlashSuccessMessage(getStringFromBundle("file.message.editSuccess"));
         return returnToDraftVersion();
     }
 
@@ -373,7 +375,7 @@ public class FilePage implements java.io.Serializable {
             return "";
         }
 
-        JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("file.message.deleteSuccess"));
+        this.ui.addFlashSuccessMessage(BundleUtil.getStringFromBundle("file.message.deleteSuccess"));
         return returnToDatasetOnly(fileMetadata.getDataFile().getOwner());
     }
 
@@ -522,7 +524,7 @@ public class FilePage implements java.io.Serializable {
     //Provenance fragment bean calls this to show error dialogs after popup failure
     //This can probably be replaced by calling JsfHelper from the provpopup bean
     public void showProvError() {
-        JsfHelper.addErrorMessage(getStringFromBundle("file.metadataTab.provenance.error"), "");
+        this.ui.addErrorMessage(getStringFromBundle("file.metadataTab.provenance.error"), "");
     }
 
     public String getPreviewUrl() {
@@ -547,14 +549,14 @@ public class FilePage implements java.io.Serializable {
         throwable = throwable instanceof EJBException ? throwable.getCause() : throwable;
 
         if (throwable instanceof ValidationException){
-            JsfHelper.addErrorMessage(
+            this.ui.addErrorMessage(
                     getStringFromBundle("dataset.message.validationError"), "");
         } else if (throwable instanceof UpdateDatasetException){
-            JsfHelper.addErrorMessage(
+            this.ui.addErrorMessage(
                     getStringFromBundle("dataset.save.fail"),
                     throwable.toString());
         } else {
-            JsfHelper.addErrorMessage(
+            this.ui.addErrorMessage(
                     getStringFromBundle("dataset.save.fail"), "");
         }
     }
@@ -563,14 +565,14 @@ public class FilePage implements java.io.Serializable {
         throwable = throwable instanceof EJBException ? throwable.getCause() : throwable;
 
         if (throwable instanceof ValidationException){
-            JsfHelper.addErrorMessage(
+            this.ui.addErrorMessage(
                     getStringFromBundle("dataset.message.validationError"), "");
         } else if (throwable instanceof UpdateDatasetException){
-            JsfHelper.addErrorMessage(
+            this.ui.addErrorMessage(
                     getStringFromBundle("dataset.delete.fail"),
                     throwable.toString());
         } else {
-            JsfHelper.addErrorMessage(getStringFromBundle("dataset.delete.fail"), "");
+            this.ui.addErrorMessage(getStringFromBundle("dataset.delete.fail"), "");
         }
     }
 
