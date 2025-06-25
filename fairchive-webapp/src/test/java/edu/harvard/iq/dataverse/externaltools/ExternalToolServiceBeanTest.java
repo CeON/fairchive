@@ -59,10 +59,11 @@ public class ExternalToolServiceBeanTest {
     private final ExternalTool tool2 = new ExternalTool("tool2", "", PREVIEW, "", "{}", APPLICATION_PDF);
     private final ExternalTool tool3 = new ExternalTool("tool3", "", PREVIEW, "", "{}", TEXT_PLAIN);
     private final ExternalTool tool4 = new ExternalTool("tool4", "", PREVIEW, "", "{}", TEXT_PLAIN, "obj");
+    private final ExternalTool tool5 = new ExternalTool("tool5", "", PREVIEW, "", "{}", "application/x-nintendo-3ds-rom", "3ds");
     
     @BeforeEach
     public void setUp() {
-        when(repository.findAll()).thenReturn(asList(tool1, tool2, tool3, tool4));
+        when(repository.findAll()).thenReturn(asList(tool1, tool2, tool3, tool4, tool5));
     }
 
     // -------------------- TESTS --------------------
@@ -167,6 +168,33 @@ public class ExternalToolServiceBeanTest {
 
         assertThat(this.service.findExternalTools(PREVIEW, TEXT_PLAIN, dataFile,
                 datasetVersion)).containsExactly(tool4);
+    }
+    
+    @Test
+    public void findExternalTools_returnToolsBasedOnFileExtention_ifSearchingByContentTypeAndExtentionFails() {
+        // given
+        DataFile dataFile = new DataFile();
+        dataFile.setId(42l);
+        dataFile.setContentType(TEXT_PLAIN);
+        DatasetVersion datasetVersion = new DatasetVersion();
+        datasetVersion.setVersionState(RELEASED);
+        Dataset dataset = new Dataset();
+        datasetVersion.setDataset(dataset);
+
+        FileMetadata metadata = new FileMetadata();
+        metadata.setDatasetVersion(datasetVersion);
+        metadata.setLabel("abc.3ds");
+        List<FileMetadata> metadataList = new ArrayList<>();
+        metadataList.add(metadata);
+        dataFile.setOwner(dataset);
+
+        FileTermsOfUse termsOfUse = new FileTermsOfUse();
+        metadata.setTermsOfUse(termsOfUse);
+
+        dataFile.setFileMetadatas(metadataList);
+
+        assertThat(this.service.findExternalTools(PREVIEW, TEXT_PLAIN, dataFile,
+                datasetVersion)).containsExactly(tool5);
     }
 
     @Test
@@ -369,7 +397,7 @@ public class ExternalToolServiceBeanTest {
     @Test
     public void findAll_returnsproperResults() {
         
-        assertThat(this.service.findAll()).containsExactly(tool1, tool2, tool3, tool4);
+        assertThat(this.service.findAll()).containsExactly(tool1, tool2, tool3, tool4, tool5);
     }
     
     @Test
@@ -377,15 +405,6 @@ public class ExternalToolServiceBeanTest {
         
         assertThat(this.service.findBy(EXPLORE)).isEmpty();
         assertThat(this.service.findBy(CONFIGURE)).containsExactly(tool1);
-        assertThat(this.service.findBy(PREVIEW)).containsExactly(tool2, tool3, tool4);
-    }
-    
-    @Test
-    public void findBy_withTypeAndExtention_returnsproperResults() {
-        
-        assertThat(this.service.findBy(PREVIEW, TEXT_PLAIN, "obj")).containsExactly(tool4);
-        assertThat(this.service.findBy(PREVIEW, TEXT_PLAIN, "")).containsExactly(tool3);
-        assertThat(this.service.findBy(PREVIEW, APPLICATION_PDF, "obj")).containsExactly(tool2);
-        
+        assertThat(this.service.findBy(PREVIEW)).containsExactly(tool2, tool3, tool4, tool5);
     }
 }
