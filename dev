@@ -6,11 +6,8 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
 (
   cd "${DATAVERSE_SOURCE_DIR}"
 
-  export BUILD_VERSION="dv-1.1"
+  export BUILD_VERSION="dv-2.0"
   export DATAVERSE_CONFIG_FILES=(
-    "conf/glassfish/dataverse.properties"
-    "conf/glassfish/default.config"
-    "conf/glassfish/run-install.sh"
     "conf/prometheus/prometheus_exporter.yaml"
   )
   export DATAVERSE_LOCAL_WORKING_DIR="${DATAVERSE_SOURCE_DIR}/fairchive-dist/target/container"
@@ -30,31 +27,31 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
       echo " restart <service>        Restart the container of the given service"
       echo " logs <service>           Show container logs for the given service"
       echo " console <service>        Open a bash console inside the service container"
-      echo " glassfish <command>      Run a command on the glassfish container"
+      echo " payara <command>         Run a command on the payara container"
       echo " -h|help"
       echo " -v|version]"
       echo
       echo "Services:"
       echo " postgres"
       echo " solr"
-      echo " glassfish"
+      echo " payara"
       echo " smtp"
       echo " keycloak"
       exit
   }
 
-  usage_glassfish() {
-      echo "Usage: $(basename $0) glassfish  [command] [-h|--help]"
+  usage_payara() {
+      echo "Usage: $(basename $0) payara  [command] [-h|--help]"
       echo "Commands:"
-      echo "  start                        Start glassfish"
-      echo "  stop                         Stop glassfish"
+      echo "  start                        Start payara"
+      echo "  stop                         Stop payara"
       echo "  undeploy                     Undeploy fairchive WAR"
       echo "  deploy                       Deploy the fairchive WAR"
       echo "  redeploy                     Undeploy and deploy the fairchive WAR"
       echo "  apps                         Show the currently deployed applications"
       echo "  logging                      Show the currently set logging levels"
       echo "  set-logging <logger>=<level> Set the logging level for the provided logger (eg. org.apache.activemq=INFO)"
-      echo "  asadmin <cmd>                Run glassfish asadmin command"
+      echo "  asadmin <cmd>                Run payara asadmin command"
       echo " -h|help"
       exit
   }
@@ -72,9 +69,6 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
 
   install() {
 
-    echo "* Starting dev environment services."
-    ${COMPOSE_CMD} up -d
-
     echo "* Configuring dev environment."
     rm -rf "${DATAVERSE_LOCAL_WORKING_DIR}"
     mkdir -p "${DATAVERSE_LOCAL_WORKING_DIR}"
@@ -89,8 +83,8 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "activemq"
     copy_to_dv_container_with_fallback "${EXTENSION_DIST_DIR}" "${DATAVERSE_DIST_DIR}" "glassfish"
 
-    echo "* Running installation script inside the container."
-    exec_script_in_dv_container "run-install.sh"
+    echo "* Starting dev environment services."
+    ${COMPOSE_CMD} up -d
 
     if [[ $(type -t extension_post_install) == function ]]; then
       echo "* Extension post install."
@@ -101,13 +95,9 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     ${COMPOSE_CMD} stop
   }
 
-  exec_script_in_dv_container() {
-    SCRIPT_TO_EXECUTE="$1"
-    ${COMPOSE_CMD} exec -T glassfish /bin/bash -c "${DATAVERSE_CONTAINER_WORKING_DIR}/${SCRIPT_TO_EXECUTE}"
-  }
-
   asadmin() {
-    ${COMPOSE_CMD} exec -T glassfish /usr/local/glassfish4/bin/asadmin "$@"
+    ARGS="$*"
+    ${COMPOSE_CMD} exec -T payara /bin/bash -c "asadmin \$ASADMIN_OPTS $ARGS"
   }
 
   deploy() {
@@ -116,9 +106,9 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
     asadmin deploy ${DATAVERSE_CONTAINER_WORKING_DIR}/fairchive.war
   }
 
-  glassfish() {
+  payara() {
     if [ $# -eq 0 ]; then
-      usage_glassfish
+      usage_payara
       exit
     fi
 
@@ -173,11 +163,11 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
           exit
           ;;
         -h|--help)
-          usage_glassfish
+          usage_payara
           exit
           ;;
         *)
-          usage_glassfish
+          usage_payara
           exit
           ;;
       esac
@@ -263,9 +253,9 @@ export DATAVERSE_SOURCE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P
         ${COMPOSE_CMD} exec "$@" /bin/bash
         exit
         ;;
-      glassfish)
+      payara)
         shift
-        glassfish "$@"
+        payara "$@"
         exit
         ;;
       -h|--help)
