@@ -272,7 +272,7 @@ public class FilePage implements java.io.Serializable {
     }
     
     public boolean displayMetadataMapTab() {
-        return isDatasetDeaccesioned() || canUpdateDataset();
+        return !isDatasetDeaccesioned() || canUpdateDataset();
     }
     
     public boolean displayEditButtonGroup() throws Exception {
