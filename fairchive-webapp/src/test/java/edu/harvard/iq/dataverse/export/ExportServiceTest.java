@@ -3,16 +3,12 @@ package edu.harvard.iq.dataverse.export;
 import static edu.harvard.iq.dataverse.UnitTestUtils.readFileToString;
 import static edu.harvard.iq.dataverse.export.ExporterType.DATACITE;
 import static edu.harvard.iq.dataverse.export.ExporterType.DCTERMS;
-import static edu.harvard.iq.dataverse.export.ExporterType.DCTERMS_PBI;
 import static edu.harvard.iq.dataverse.export.ExporterType.DUBLINCORE;
 import static edu.harvard.iq.dataverse.export.ExporterType.JSON;
 import static edu.harvard.iq.dataverse.export.ExporterType.OAIORE;
 import static edu.harvard.iq.dataverse.export.ExporterType.OPENAIRE;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
-import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType.ACADEMIC_PURPOSE;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExcludeEmailFromExport;
-import static java.util.Arrays.asList;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,10 +48,6 @@ import edu.harvard.iq.dataverse.citation.StandardCitationFormatsConverter;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.datafile.license.License;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
@@ -68,7 +60,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
-
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = LENIENT)
@@ -111,7 +102,6 @@ public class ExportServiceTest {
                 new DCTermsExporter(settingsService, citationFactory),
                 new DublinCoreExporter(settingsService, citationFactory),
                 new OAI_OREExporter(settingsService, systemConfig, clock),
-                new DCTermsPBIExporter(systemConfig),
                 new SchemaDotOrgExporter(jsonLdBuilder),
                 new OpenAireExporter(settingsService, citationFactory),
                 new JSONExporter(settingsService, citationFactory)));
@@ -159,71 +149,6 @@ public class ExportServiceTest {
         // then
         assertThat(exportedDataset).isEqualTo(readFileToString("exportdata/oai_ore_authors.json"));
     }
-    
-    @Test
-    public void exportToString_forDcTermsPBI_noFiles() throws Exception {
-        // given
-        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
-        // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_no_files.xml"));
-    }
-    
-    @Test
-    public void exportToString_forDcTermsPBI_varousLicenses() throws Exception {
-        // given
-        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion, newRestricted(), newCustomLicense(1L));
-        // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
-        // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_various_licenses.xml"));
-    }
-    
-    @Test
-    public void exportToString_forDcTermsPBI_sameLicense() throws Exception {
-        // given
-        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion, newCustomLicense(1L), newCustomLicense(1L));
-        // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
-        // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_same_license.xml"));
-    }
-    
-    @Test
-    public void exportToString_forDcTermsPBI_allRightsReserved() throws Exception {
-        // given
-        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion, newAllRightsReserved(), newAllRightsReserved());
-        // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
-        // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_all_rights_reserved.xml"));
-    }
-    
-    @Test
-    public void exportToString_forDcTermsPBI_restricted() throws Exception {
-        // given
-        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion, newRestricted(), newRestricted());
-        // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
-        // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_restricted.xml"));
-    }
-    
-    @Test
-    public void exportToString_forDcTermsPBI_termsUnknown() throws Exception {
-        // given
-        DatasetVersion datasetVersion = prepareDataFrom("json/testDatasetMultipleAuthors.json");
-        prepareFiles(datasetVersion, newUnknown(), newUnknown());
-        // when
-        String exportedDataset = this.exportService.exportToString(datasetVersion, DCTERMS_PBI);
-        // then
-        assertThat(exportedDataset).isEqualToIgnoringWhitespace(readFileToString("exportdata/dcterms_pbi_unknown.xml"));
-    }
 
     @Test
     public void exportToString_forSchemaOrg() throws Exception {
@@ -262,11 +187,6 @@ public class ExportServiceTest {
         
         assertThatThrownBy(() -> this.exportService.exportToString(datasetVersion, null))
             .isInstanceOf(Exception.class);
-    }
-    
-    @Test
-    public void getMediaType()  throws Exception { 
-        assertThat(this.exportService.getMediaType(DCTERMS_PBI)).isEqualTo(APPLICATION_XML);
     }
 
     // -------------------- PRIVATE --------------------
@@ -312,47 +232,6 @@ public class ExportServiceTest {
     private DatasetVersion prepareDataFrom(final String classpath)
             throws IOException, JsonParseException {
         return prepareDataForExport(parseDatasetVersionFromClasspath(classpath));
-    }
-    
-    private void prepareFiles(final DatasetVersion datasetVersion,
-            final FileTermsOfUse terms1, final FileTermsOfUse terms2) {
-
-        FileMetadata file1 = new FileMetadata();
-        file1.setDataFile(new DataFile());
-        file1.getDataFile().setId(1L);
-        file1.setTermsOfUse(terms1);
-
-        FileMetadata file2 = new FileMetadata();
-        file2.setDataFile(new DataFile());
-        file2.getDataFile().setId(2L);
-        file2.setTermsOfUse(terms2);
-
-        datasetVersion.setFileMetadatas(asList(file1, file2));
-    }
-    
-    private FileTermsOfUse newRestricted() {
-        FileTermsOfUse fileTermsOfUse = new FileTermsOfUse();
-        fileTermsOfUse.setRestrictType(ACADEMIC_PURPOSE);
-        fileTermsOfUse.setRestrictCustomText("For academic use only");
-        return fileTermsOfUse;
-    }
-    
-    private FileTermsOfUse newAllRightsReserved() {
-        FileTermsOfUse fileTermsOfUse = new FileTermsOfUse();
-        fileTermsOfUse.setAllRightsReserved(true);
-        return fileTermsOfUse;
-    }
-
-    private FileTermsOfUse newCustomLicense(Long id) {
-        FileTermsOfUse fileTermsOfUse = new FileTermsOfUse();
-        fileTermsOfUse.setLicense(new License());
-        fileTermsOfUse.getLicense().setId(id);
-        fileTermsOfUse.getLicense().setName("License " + fileTermsOfUse.getLicense().getId());
-        return fileTermsOfUse;
-    }
-    
-    private FileTermsOfUse newUnknown() {
-        return new FileTermsOfUse();
     }
 
     private void prepareDatasetFieldValues(DatasetVersion datasetVersion) {
