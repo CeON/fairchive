@@ -37,6 +37,15 @@ public class ExportService {
             throws ExportException {
         return getExporterOf(type).exportDataset(datasetVersion);
     }
+    
+    public boolean isExporterAvailableFor(final ExporterType type) {
+        try {
+            getExporterOf(type);
+            return true;
+        } catch(final ExportException e) {
+            return false;
+        }
+    }
 
     /**
      * @return MediaType of given exporter or {@link Exporter#getMediaType()}
