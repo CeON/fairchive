@@ -139,9 +139,8 @@ public class FilePage implements java.io.Serializable {
     // -------------------- GETTERS --------------------
     
     public String getPageTitle() {
-        return this.fileMetadata.getDataFile().getDisplayName() 
-                + " - " +  
-                this.file.getOwner().getOwner().getDisplayName();
+        return this.file.getDisplayName() + " - " +
+                this.dataset.getOwner().getDisplayName();
     }
 
     public FileMetadata getFileMetadata() {
@@ -272,12 +271,14 @@ public class FilePage implements java.io.Serializable {
         return null;
     }
     
+    public boolean displayMetadataMapTab() {
+        return isDatasetDeaccesioned() || canUpdateDataset();
+    }
+    
     public boolean displayEditButtonGroup() throws Exception {
         return canUpdateDataset()
-                && (this.datafileService
-                        .hasReplacement(this.fileMetadata.getDataFile())
-                        || this.datafileService
-                                .hasBeenDeleted(this.fileMetadata.getDataFile()));
+                && (this.datafileService.hasReplacement(this.file)
+                        || this.datafileService.hasBeenDeleted(this.file));
     }
     
     public boolean displayRestrictedIcon() {

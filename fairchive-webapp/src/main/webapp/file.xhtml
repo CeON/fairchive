@@ -610,8 +610,7 @@
                             <p:tab id="metadataMapTab" 
                                    class="padding-none" 
                                    title="#{bundle['file.dataFilesTab.metadata.header']}"
-                                   rendered="#{(!FilePage.datasetDeaccesioned or
-                                                              (FilePage.datasetDeaccesioned and FilePage.canUpdateDataset()))}">
+                                   rendered="#{FilePage.displayMetadataMapTab()}">
 
                                 <!-- Add + Edit Metadata Button -->
                                 <div class="button-block tab-header margin-bottom text-right">
@@ -747,15 +746,6 @@
                                     </div>
                                 </div>
                             </p:tab>
-                            <ui:remove>
-                                <p:tab id="provenanceTab" 
-                                       title="Provenance" 
-                                       rendered="#{(!FilePage.datasetDeaccesioned or
-                                                              (FilePage.datasetDeaccesioned and FilePage.canUpdateDataset()))}">
-                                    <!-- Placeholder -->
-                                    <em>Coming soon...</em>
-                                </p:tab>
-                            </ui:remove>
                             <p:tab id="versionsTab" 
                                    title="#{bundle['file.dataFilesTab.versions']}">
                                 <ui:include src="file-versions.xhtml"></ui:include>
