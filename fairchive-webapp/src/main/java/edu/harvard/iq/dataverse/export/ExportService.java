@@ -39,13 +39,13 @@ public class ExportService {
     }
     
     public boolean isExporterAvailableFor(final ExporterType type) {
-        try {
-            getExporterOf(type);
-            return true;
-        } catch(final ExportException e) {
-            return false;
+        for (final Exporter exporter : this.exporters) {
+            if (exporter.getExporterType() == type) {
+                return true;
+            }
         }
-    }
+        return false;
+     }
 
     /**
      * @return MediaType of given exporter or {@link Exporter#getMediaType()}
