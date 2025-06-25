@@ -17,7 +17,7 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
     // -------------------- LOGIC --------------------
 
     public Optional<DatasetVersion> findByDatasetIdAndVersionNumber(long datasetId, long majorVersionNumber) {
-        return getSingleResult(em.createQuery(
+        return getSingleResult(this.em.createQuery(
                         "select v " +
                                 "from DatasetVersion v " +
                                 "where v.dataset.id = :datasetId " +
@@ -30,7 +30,7 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
     }
 
     public Optional<DatasetVersion> findByDatasetIdAndVersionNumber(DatasetVersionIdentifier versionIdentifier) {
-        return getSingleResult(em.createQuery(
+        return getSingleResult(this.em.createQuery(
                         "select v " +
                                 "from DatasetVersion v " +
                                 "where v.dataset.id = :datasetId " +
