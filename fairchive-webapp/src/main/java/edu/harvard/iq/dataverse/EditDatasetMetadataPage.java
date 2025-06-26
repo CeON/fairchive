@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRenderer;
@@ -17,7 +16,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
-import edu.harvard.iq.dataverse.util.JsfHelper;
+import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Try;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
@@ -28,18 +27,22 @@ import javax.ejb.EJBException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.ValidationException;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Logger.getLogger;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @ViewScoped
 @Named("editDatasetMetadataPage")
 public class EditDatasetMetadataPage implements Serializable {
 
-    private static final Logger logger = Logger.getLogger(EditDatasetMetadataPage.class.getCanonicalName());
+    private static final Logger logger = getLogger(EditDatasetMetadataPage.class.getCanonicalName());
 
     @Inject
     private ImporterRegistry importerRegistry;
@@ -54,6 +57,8 @@ public class EditDatasetMetadataPage implements Serializable {
     private PermissionsWrapper permissionsWrapper;
     @Inject
     private DataverseSession session;
+    @Inject
+    private UIMessages ui;
 
     @Inject
     private DatasetFieldsInitializer datasetFieldsInitializer;
@@ -174,25 +179,22 @@ public class EditDatasetMetadataPage implements Serializable {
         if (workingVersion.isDeaccessioned() && dataset.getReleasedVersion() != null) {
             workingVersion = dataset.getReleasedVersion();
         }
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + 
+                "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
     }
 
     private void handleUpdateDatasetExceptions(Throwable throwable) {
         if (throwable instanceof EJBException) {
             throwable = throwable.getCause();
         }
-
         if (throwable instanceof ValidationException) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.validationError"), "");
-
+            this.ui.addErrorMessage(getStringFromBundle("dataset.message.validationError"), "");
         } else if (throwable instanceof CommandException) {
-
-            logger.log(Level.SEVERE, "CommandException, when attempting to update the dataset: " + throwable.getMessage(), throwable);
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.metadataFailure"));
+            logger.log(SEVERE, "CommandException, when attempting to update the dataset: " + throwable.getMessage(), throwable);
+            this.ui.addErrorMessage(getStringFromBundle("dataset.message.metadataFailure"));
         } else {
-
-            logger.log(Level.SEVERE, "Couldn't edit dataset metadata: " + throwable.getMessage(), throwable);
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.metadataFailure"));
+            logger.log(SEVERE, "Couldn't edit dataset metadata: " + throwable.getMessage(), throwable);
+            this.ui.addErrorMessage(getStringFromBundle("dataset.message.metadataFailure"));
         }
     }
 
