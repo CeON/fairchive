@@ -151,7 +151,7 @@ pipeline {
                         echo "Performing the release of current SNAPSHOT version."
                         sh "git config user.email ${GIT_USER_EMAIL}"
                         sh "git config user.name ${GIT_USER_NAME}"
-                        sh "./release.sh ${nextDevVersion(params.branch, params.nextMajor)}"
+                        sh "./release.sh perform-release ${nextDevVersion(params.branch, params.nextMajor)}"
                     }
                 }
             }
