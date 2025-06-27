@@ -21,7 +21,6 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssigneeDisplayInfo;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
-import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Try;
 import org.omnifaces.cdi.ViewScoped;
@@ -43,6 +42,7 @@ import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRol
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.DV_CONTRIBUTOR;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.EDITOR;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.FULL_CONTRIBUTOR;
+import static edu.harvard.iq.dataverse.util.StringUtil.isEmpty;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 import static java.util.stream.Collectors.toList;
@@ -327,7 +327,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
                 .map(builtInRole -> builtInRole.getAlias())
                 .collect(toList());
 
-        if (!StringUtil.isEmpty(authenticatedUsersContributorRoleAlias)) {
+        if (!isEmpty(authenticatedUsersContributorRoleAlias)) {
             roleToAssign = roleService.findBuiltinRoleByAlias(BuiltInRole.fromAlias(authenticatedUsersContributorRoleAlias));
         }
 
