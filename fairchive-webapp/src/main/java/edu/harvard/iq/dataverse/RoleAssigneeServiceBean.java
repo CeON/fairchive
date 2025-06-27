@@ -16,13 +16,18 @@ import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
-import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+
+import static java.util.logging.Logger.getLogger;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang.StringUtils.join;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +35,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * The place to obtain {@link RoleAssignee}s, based on their identifiers.
@@ -40,7 +44,7 @@ import java.util.stream.Collectors;
 @Stateless
 public class RoleAssigneeServiceBean {
 
-    private static final Logger logger = Logger.getLogger(RoleAssigneeServiceBean.class.getName());
+    private static final Logger logger = getLogger(RoleAssigneeServiceBean.class.getName());
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
 
@@ -88,7 +92,8 @@ public class RoleAssigneeServiceBean {
             case '#':
                 return PrivateUrlUtil.identifier2roleAssignee(identifier);
             default:
-                throw new IllegalArgumentException("Unsupported assignee identifier '" + identifier + "'");
+                throw new IllegalArgumentException("Unsupported assignee identifier '"
+                                                    + identifier + "'");
         }
     }
 
@@ -98,7 +103,8 @@ public class RoleAssigneeServiceBean {
                 .getResultList();
     }
 
-    public Optional<RoleAssignment> getAssignmentFor(String roleAssigneeIdentifier, Long definitionPointId, long roleId) {
+    public Optional<RoleAssignment> getAssignmentFor(String roleAssigneeIdentifier, 
+            Long definitionPointId, long roleId) {
         RoleAssignment roleAssignment = em.createQuery("SELECT r FROM RoleAssignment r WHERE "
                 + "r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId and r.role.id=:roleId",
                 RoleAssignment.class)
@@ -137,7 +143,7 @@ public class RoleAssigneeServiceBean {
         if (outputList.isEmpty()) {
             return "";
         }
-        return " AND r.role_id IN (" + StringUtils.join(outputList, ",") + ")";
+        return " AND r.role_id IN (" + join(outputList, ",") + ")";
     }
 
     public List<DataverseRole> getAssigneeDataverseRoleFor(DataverseRequest dataverseRequest) {
@@ -155,10 +161,12 @@ public class RoleAssigneeServiceBean {
         roleAssigneeIdentifier = roleAssigneeIdentifier.replaceAll("\\s", "");   // remove spaces from string
         List<String> userGroups = getUserExplicitGroups(au);
         List<String> userRunTimeGroups = getUserRuntimeGroups(dataverseRequest);
-        String identifierClause = " WHERE r.assigneeIdentifier= '" + roleAssigneeIdentifier + "'";
+        String identifierClause = " WHERE r.assigneeIdentifier= '" 
+                                    + roleAssigneeIdentifier + "'";
         if (userGroups != null || userRunTimeGroups != null) {
 
-            identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, userGroups, userRunTimeGroups);
+            identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, 
+                    userGroups, userRunTimeGroups);
         }
 
         String qstr = "SELECT distinct r.role_id"
@@ -173,15 +181,12 @@ public class RoleAssigneeServiceBean {
     }
 
     public List<Object[]> getAssigneeAndRoleIdListFor(MyDataFilterParams filterParams) {
-
         if (filterParams == null) {
             throw new NullPointerException("Cannot be null! filterParams must be an instance of MyDataFilterParams");
         }
 
         AuthenticatedUser au = filterParams.getAuthenticatedUser();
         List<Long> roleIdList = filterParams.getRoleIds();
-        //filterParams.getAuthenticatedUser()
-        //                       , this.filterParams.getRoleIds());
 
         if (au.getUserIdentifier() == null) {
             return null;
@@ -193,7 +198,8 @@ public class RoleAssigneeServiceBean {
         List<String> userRunTimeGroups = getUserRuntimeGroups(filterParams.getDataverseRequest());
         String identifierClause = " WHERE r.assigneeIdentifier= '" + roleAssigneeIdentifier + "'";
         if (userExplicitGroups != null || userRunTimeGroups != null) {
-            identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, userExplicitGroups, userRunTimeGroups);
+            identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, 
+                    userExplicitGroups, userRunTimeGroups);
         }
 
         String qstr = "SELECT r.definitionpoint_id, r.role_id"
@@ -205,7 +211,8 @@ public class RoleAssigneeServiceBean {
 
     }
 
-    public List<Long> getRoleIdListForGivenAssigneeDvObject(DataverseRequest dataverseRequest, List<Long> roleIdList, Long defPointId) {
+    public List<Long> getRoleIdListForGivenAssigneeDvObject(DataverseRequest dataverseRequest, 
+            List<Long> roleIdList, Long defPointId) {
         if (dataverseRequest == null) {
             throw new NullPointerException("dataverseRequest cannot be null!");
         }
@@ -233,7 +240,8 @@ public class RoleAssigneeServiceBean {
 
     }
 
-    private String getGroupIdentifierClause(String roleAssigneeIdentifier, List<String> userExplicitGroups, List<String> userRunTimeGroups) {
+    private String getGroupIdentifierClause(String roleAssigneeIdentifier, 
+            List<String> userExplicitGroups, List<String> userRunTimeGroups) {
 
         if (userExplicitGroups == null && userRunTimeGroups == null) {
             return "";
@@ -249,7 +257,7 @@ public class RoleAssigneeServiceBean {
             }
 
             if (!outputExplicitList.isEmpty()) {
-                explicitString = ",'&explicit/" + StringUtils.join(outputExplicitList, "','&explicit/") + "'";
+                explicitString = ",'&explicit/" + join(outputExplicitList, "','&explicit/") + "'";
             }
 
         }
@@ -265,15 +273,17 @@ public class RoleAssigneeServiceBean {
             }
 
             if (!outputRuntimeList.isEmpty()) {
-                runTimeString = ",'" + StringUtils.join(outputRuntimeList, "','") + "'";
+                runTimeString = ",'" + join(outputRuntimeList, "','") + "'";
             }
 
         }
-        return " WHERE r.assigneeIdentifier in ( '" + roleAssigneeIdentifier + "'" + explicitString + runTimeString + ")";
+        return " WHERE r.assigneeIdentifier in ( '" + roleAssigneeIdentifier 
+                + "'" + explicitString + runTimeString + ")";
 
     }
 
-    public List<Object[]> getRoleIdsFor(DataverseRequest dataverseRequest, List<Long> dvObjectIdList) {
+    public List<Object[]> getRoleIdsFor(DataverseRequest dataverseRequest, 
+            List<Long> dvObjectIdList) {
         if (dataverseRequest == null) {
             throw new NullPointerException("dataverseRequest cannot be null!");
         }
@@ -288,7 +298,8 @@ public class RoleAssigneeServiceBean {
         List<String> userRunTimeGroups = getUserRuntimeGroups(dataverseRequest);
         String identifierClause = " WHERE r.assigneeIdentifier= '" + roleAssigneeIdentifier + "'";
         if (userGroups != null || userRunTimeGroups != null) {
-            identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, userGroups, userRunTimeGroups);
+            identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, 
+                    userGroups, userRunTimeGroups);
         }
 
         String qstr = "SELECT r.definitionpoint_id, r.role_id"
@@ -315,7 +326,7 @@ public class RoleAssigneeServiceBean {
         if (outputList.isEmpty()) {
             return "";
         }
-        return " AND r.definitionpoint_id IN (" + StringUtils.join(outputList, ",") + ")";
+        return " AND r.definitionpoint_id IN (" + join(outputList, ",") + ")";
     }
 
     /**
@@ -326,17 +337,15 @@ public class RoleAssigneeServiceBean {
     public List<String> getUserExplicitGroups(RoleAssignee ra) {
         return explicitGroupSvc.findGroups(ra).stream()
                 .map(g -> g.getAlias())
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private List<String> getUserRuntimeGroups(DataverseRequest dataverseRequest) {
         List<String> retVal = new ArrayList<>();
 
-        //Set<Group> groups = groupSvc.groupsFor(dataverseRequest, null);
         Set<Group> groups = groupSvc.collectAncestors(groupSvc.groupsFor(dataverseRequest));
         for (Group group : groups) {
             logger.fine("found group " + group.getIdentifier() + " with alias " + group.getAlias());
-            // if (group.getGroupProvider().getGroupProviderAlias().equals("shib") || group.getGroupProvider().getGroupProviderAlias().equals("ip")) {
             String groupAlias = group.getAlias();
             if (groupAlias != null && !groupAlias.isEmpty()) {
                 if (group instanceof ExplicitGroup) {
@@ -345,13 +354,13 @@ public class RoleAssigneeServiceBean {
                     retVal.add('&' + groupAlias);
                 }
             }
-            //}
         }
         logger.fine("retVal: " + retVal);
         return retVal;
     }
 
-    public List<RoleAssignee> filterRoleAssignees(String query, DvObject dvObject, List<RoleAssignee> roleAssignSelectedRoleAssignees) {
+    public List<RoleAssignee> filterRoleAssignees(String query, DvObject dvObject, 
+            List<RoleAssignee> roleAssignSelectedRoleAssignees) {
         List<RoleAssignee> roleAssigneeList = new ArrayList<>();
 
         // we get the users through a query that does the filtering through the db,
@@ -368,8 +377,8 @@ public class RoleAssigneeServiceBean {
         Set<Group> groups = groupSvc.findGlobalGroups();
         groups.addAll(explicitGroupSvc.findAvailableFor(dvObject));
         groups.stream()
-                .filter(ra -> StringUtils.containsIgnoreCase(ra.getDisplayInfo().getTitle(), query)
-                        || StringUtils.containsIgnoreCase(ra.getIdentifier(), query))
+                .filter(ra -> containsIgnoreCase(ra.getDisplayInfo().getTitle(), query)
+                        || containsIgnoreCase(ra.getIdentifier(), query))
                 .filter(ra -> roleAssignSelectedRoleAssignees == null || !roleAssignSelectedRoleAssignees.contains(ra))
                 .forEach((ra) -> {
                     roleAssigneeList.add(ra);
