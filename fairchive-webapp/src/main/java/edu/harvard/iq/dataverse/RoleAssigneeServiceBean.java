@@ -161,10 +161,10 @@ public class RoleAssigneeServiceBean {
             identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, userGroups, userRunTimeGroups);
         }
 
-        String qstr = "SELECT distinct r.role_id";
-        qstr += " FROM RoleAssignment r";
-        qstr += identifierClause;
-        qstr += ";";
+        String qstr = "SELECT distinct r.role_id"
+                + " FROM RoleAssignment r"
+                + identifierClause
+                + ";";
 
         for (Object o : em.createNativeQuery(qstr).getResultList()) {
             retList.add(dataverseRoleService.find((Long) o));
