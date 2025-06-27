@@ -11,7 +11,6 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignmentRepository;
 import edu.harvard.iq.dataverse.search.index.PermissionReindexEvent;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
@@ -29,6 +28,7 @@ import java.util.stream.Collectors;
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 @Stateless
 public class DataverseRoleServiceBean implements java.io.Serializable {
 
@@ -43,9 +43,11 @@ public class DataverseRoleServiceBean implements java.io.Serializable {
     public DataverseRoleServiceBean() { }
 
     @Inject
-    public DataverseRoleServiceBean(RoleAssigneeServiceBean roleAssigneeService, Event<PermissionReindexEvent> permissionReindexEvent,
-                                    DataverseRoleRepository dataverseRoleRepository, RoleAssignmentRepository roleAssignmentRepository,
-                                    DataverseRepository dataverseRepository) {
+    public DataverseRoleServiceBean(RoleAssigneeServiceBean roleAssigneeService, 
+            Event<PermissionReindexEvent> permissionReindexEvent,
+            DataverseRoleRepository dataverseRoleRepository, 
+            RoleAssignmentRepository roleAssignmentRepository,
+            DataverseRepository dataverseRepository) {
         this.roleAssigneeService = roleAssigneeService;
         this.permissionReindexEvent = permissionReindexEvent;
         this.dataverseRoleRepository = dataverseRoleRepository;
@@ -98,13 +100,15 @@ public class DataverseRoleServiceBean implements java.io.Serializable {
 
     public DataverseRole findBuiltinRoleByAlias(BuiltInRole builtInRole) {
         return dataverseRoleRepository.findByAlias(builtInRole.getAlias())
-                .orElseThrow(() -> new IllegalStateException("Builtin role is not present in database: " + builtInRole));
+                .orElseThrow(() -> new IllegalStateException("Builtin role is not present in database: " 
+                                                                + builtInRole));
     }
 
     public DataverseRole findRoleByAliasAssignableInDataverse(String alias, Long dataverseId) {
         return dataverseRoleRepository.findByAlias(alias)
                 .filter(r -> r.getOwner() == null || Objects.equals(r.getOwner().getId(), dataverseId))
-                .orElseThrow(() -> new EntityNotFoundException("No such role: " + alias + " that can be assigned in dataverse: " + dataverseId));
+                .orElseThrow(() -> new EntityNotFoundException("No such role: " 
+                        + alias + " that can be assigned in dataverse: " + dataverseId));
     }
 
     public void revoke(RoleAssignment assignment) {
