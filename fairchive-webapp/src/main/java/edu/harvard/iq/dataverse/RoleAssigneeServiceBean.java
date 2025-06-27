@@ -196,11 +196,11 @@ public class RoleAssigneeServiceBean {
             identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, userExplicitGroups, userRunTimeGroups);
         }
 
-        String qstr = "SELECT r.definitionpoint_id, r.role_id";
-        qstr += " FROM RoleAssignment r";
-        qstr += identifierClause;
-        qstr += getRoleIdListClause(roleIdList);
-        qstr += ";";
+        String qstr = "SELECT r.definitionpoint_id, r.role_id"
+                + " FROM RoleAssignment r"
+                + identifierClause
+                + getRoleIdListClause(roleIdList)
+                + ";";
         return em.createNativeQuery(qstr).getResultList();
 
     }
@@ -222,12 +222,12 @@ public class RoleAssigneeServiceBean {
             identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, userGroups, userRunTimeGroups);
         }
 
-        String qstr = "SELECT r.role_id";
-        qstr += " FROM RoleAssignment r";
-        qstr += identifierClause;
-        qstr += getRoleIdListClause(roleIdList);
-        qstr += " and r.definitionpoint_id = " + defPointId;
-        qstr += ";";
+        String qstr = "SELECT r.role_id"
+                + " FROM RoleAssignment r"
+                + identifierClause
+                + getRoleIdListClause(roleIdList)
+                + " and r.definitionpoint_id = " + defPointId
+                + ";";
 
         return em.createNativeQuery(qstr).getResultList();
 
@@ -291,12 +291,11 @@ public class RoleAssigneeServiceBean {
             identifierClause = getGroupIdentifierClause(roleAssigneeIdentifier, userGroups, userRunTimeGroups);
         }
 
-        String qstr = "SELECT r.definitionpoint_id, r.role_id";
-        qstr += " FROM RoleAssignment r";
-        qstr += identifierClause;
-        qstr += getDvObjectIdListClause(dvObjectIdList);
-        qstr += ";";
-        //msg("qstr: " + qstr);
+        String qstr = "SELECT r.definitionpoint_id, r.role_id"
+                + " FROM RoleAssignment r"
+                + identifierClause
+                + getDvObjectIdListClause(dvObjectIdList)
+                + ";";
 
         return em.createNativeQuery(qstr).getResultList();
 
