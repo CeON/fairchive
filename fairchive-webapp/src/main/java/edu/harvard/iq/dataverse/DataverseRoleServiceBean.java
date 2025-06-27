@@ -16,6 +16,8 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.persistence.EntityNotFoundException;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -23,7 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author michael
@@ -157,7 +158,7 @@ public class DataverseRoleServiceBean implements java.io.Serializable {
         List<RoleAssignment> assignments = roleAssignmentRepository.findByAssigneeIdentifier(assignee.getIdentifier());
         return assignments.stream()
                 .filter(a -> Objects.equals(a.getDefinitionPoint().getId(), dvObject.getId()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
@@ -177,11 +178,11 @@ public class DataverseRoleServiceBean implements java.io.Serializable {
         }
         List<String> assigneesIds = roleAssignees.stream()
                 .map(RoleAssignee::getIdentifier)
-                .collect(Collectors.toList());
+                .collect(toList());
         List<Long> objectsIds = dvObjects.stream()
                 .map(DvObject::getId)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(toList());
         return roleAssignmentRepository.findByAssigneeIdentifiersAndDefinitionPointIds(assigneesIds, objectsIds);
     }
 
