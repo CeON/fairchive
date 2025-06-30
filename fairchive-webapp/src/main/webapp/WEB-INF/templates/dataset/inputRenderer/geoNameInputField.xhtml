@@ -30,7 +30,6 @@
     <p:autoComplete
             id="geoname"
             value="#{datasetField.value}"
-            converter="#{inputRenderer.converter}"
             completeMethod="#{inputRenderer.processSuggestionQuery(datasetField)}"
             valueChangeListener="#{inputRenderer.processValueChange}"
             styleClass="autocomplete-form-control"
@@ -60,8 +59,8 @@
                  value="#{datasetField.datasetFieldType.localeWatermark}"/>
 
     <div jsf:id="geoNameDetails">
-        <h:outputText rendered="#{inputRenderer.displayDetails()}" 
-                      value="#{inputRenderer.getDetails()}" escape="false"/>
+        <h:outputText value="#{inputRenderer.getDetailsOf(datasetField)}" 
+                      escape="false"/>
     </div>
 
     <div class="ui-message ui-message-error ui-widget ui-corner-all" 
