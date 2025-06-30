@@ -90,7 +90,7 @@
         <p:ajax process="@form:@id(fieldsByTypeFragment)" event="focus" />
 
         <p:column headerText="#{inputRenderer.valueHeaderText}">
-            <h:outputText value="#{suggestion.value}"/>
+            <h:outputText value="#{datasetField.datasetFieldType.getLocaleVocab(suggestion.value)}" style="white-space: nowrap;"/>
         </p:column>
         <p:column headerText="#{inputRenderer.detailsHeaderText}">
             <h:outputText value="#{suggestion.details}" escape="false"/>

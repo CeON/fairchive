@@ -113,6 +113,12 @@ public class ControlledVocabularyValue implements Serializable {
             value = BundleUtil.getStringFromNonDefaultBundleWithLocale(
                     "controlledvocabulary." + this.datasetFieldType.getName() + "." + key,
                     getDatasetFieldType().getMetadataBlock().getName(), locale);
+            // is trnslation not found by strValue try with identifier
+            if (value.isEmpty() && !identifier.isEmpty()) {
+                value = BundleUtil.getStringFromNonDefaultBundleWithLocale(
+                        "controlledvocabulary." + this.datasetFieldType.getName() + "." + identifier,
+                        getDatasetFieldType().getMetadataBlock().getName(), locale);
+            }
         } catch (NullPointerException npe) {
             value = StringUtils.EMPTY;
         }
