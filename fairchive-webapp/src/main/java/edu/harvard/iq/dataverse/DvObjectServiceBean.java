@@ -5,7 +5,6 @@ import edu.harvard.iq.dataverse.persistence.DvObjectContainer;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import org.apache.commons.lang.StringUtils;
 import org.ocpsoft.common.util.Strings;
 
 import javax.ejb.Stateless;
@@ -18,16 +17,18 @@ import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.Collections.emptyList;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Logger.getLogger;
 import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
+import static org.apache.commons.lang.StringUtils.join;
 
 /**
  * Your goto bean for everything {@link DvObject}, that's not tied to any
@@ -35,13 +36,14 @@ import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Stateless
 public class DvObjectServiceBean implements java.io.Serializable {
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
 
-    private static final Logger logger = Logger.getLogger(DvObjectServiceBean.class.getCanonicalName());
+    private static final Logger logger = getLogger(DvObjectServiceBean.class.getCanonicalName());
 
     /**
      * @param dvoc The object we check
@@ -147,9 +149,9 @@ public class DvObjectServiceBean implements java.io.Serializable {
             .executeUpdate();
 
         if (rowsAffected == 1) {
-            logger.log(Level.FINE, "Updated permission index time for DvObject id {0}", dvObjectId);
+            logger.log(FINE, "Updated permission index time for DvObject id {0}", dvObjectId);
         } else {
-            logger.log(Level.FINE, "Unable to update permission index time on DvObject with id of {0}", dvObjectId);
+            logger.log(FINE, "Unable to update permission index time on DvObject with id of {0}", dvObjectId);
         }
         return rowsAffected;
     }
@@ -193,20 +195,20 @@ public class DvObjectServiceBean implements java.io.Serializable {
         if (outputList.isEmpty()) {
             return null;
         }
-        return " (" + StringUtils.join(outputList, ",") + ")";
+        return " (" + join(outputList, ",") + ")";
     }
 
     public List<Object[]> getDvObjectInfoForMyData(List<Long> dvObjectIdList) {
 
         String dvObjectClause = getDvObjectIdListClause(dvObjectIdList);
         if (dvObjectClause == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
 
-        String qstr = "SELECT dv.id, dv.dtype, dv.owner_id"; // dv.modificationtime,
-        qstr += " FROM dvobject dv";
-        qstr += " WHERE  dv.id IN " + dvObjectClause;
-        qstr += ";";
+        String qstr = "SELECT dv.id, dv.dtype, dv.owner_id"
+                 + " FROM dvobject dv"
+                 + " WHERE  dv.id IN " + dvObjectClause
+                 + ";";
 
         return em.createNativeQuery(qstr).getResultList();
 
@@ -225,13 +227,13 @@ public class DvObjectServiceBean implements java.io.Serializable {
 
         String dvObjectClause = getDvObjectIdListClause(dvObjectParentIdList);
         if (dvObjectClause == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
 
-        String qstr = "SELECT dv.id, dv.dtype, dv.owner_id"; // dv.modificationtime,
-        qstr += " FROM dvobject dv";
-        qstr += " WHERE  dv.owner_id IN " + dvObjectClause;
-        qstr += ";";
+        String qstr = "SELECT dv.id, dv.dtype, dv.owner_id"
+                + " FROM dvobject dv"
+                + " WHERE  dv.owner_id IN " + dvObjectClause
+                + ";";
 
         return em.createNativeQuery(qstr).getResultList();
 
