@@ -32,11 +32,11 @@ public class ControlledVocabularyValueServiceBean implements java.io.Serializabl
     }
 
 
-    public List<ControlledVocabularyValue> findByIdentifier(String identifier) {
+    public List<ControlledVocabularyValue> findByStrValue(String strValue) {
 
-        String queryString = "select o from ControlledVocabularyValue as o where o.identifier = :identifier";
+        String queryString = "select o from ControlledVocabularyValue as o where o.strValue = :strValue";
         TypedQuery<ControlledVocabularyValue> query = em.createQuery(queryString, ControlledVocabularyValue.class);
-        query.setParameter("identifier", identifier);
+        query.setParameter("strValue", strValue);
         return query.getResultList();
     }
 

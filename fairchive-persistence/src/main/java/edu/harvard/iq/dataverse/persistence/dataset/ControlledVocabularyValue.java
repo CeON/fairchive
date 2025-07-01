@@ -49,6 +49,9 @@ public class ControlledVocabularyValue implements Serializable {
 
     private int displayOrder;
 
+    @Column(name = "suggestion_details", columnDefinition = "TEXT")
+    private String suggestionDetails;
+
     @ManyToOne
     // @JoinColumn( nullable = false ) TODO this breaks for the N/A value. need to create an N/A type for that value.
     private DatasetFieldType datasetFieldType;
@@ -83,8 +86,13 @@ public class ControlledVocabularyValue implements Serializable {
         return this.displayOrder;
     }
 
+    /**
+     * Method used in suggestionInputField.xhtml for var=suggestion
+     * ControlledVocabularyValue and Suggestion must have getValue property to match definition in xhtml
+     * used in itemLabel, itemValue of p:autoComplete
+     */
     public String getValue() {
-        return this.identifier;
+        return this.strValue;
     }
 
     public DatasetFieldType getDatasetFieldType() {
@@ -97,6 +105,10 @@ public class ControlledVocabularyValue implements Serializable {
 
     public String getDisplayGroup() {
         return displayGroup;
+    }
+
+    public String getSuggestionDetails() {
+        return suggestionDetails;
     }
 
     // -------------------- LOGIC --------------------
@@ -113,12 +125,6 @@ public class ControlledVocabularyValue implements Serializable {
             value = BundleUtil.getStringFromNonDefaultBundleWithLocale(
                     "controlledvocabulary." + this.datasetFieldType.getName() + "." + key,
                     getDatasetFieldType().getMetadataBlock().getName(), locale);
-            // is trnslation not found by strValue try with identifier
-            if (value.isEmpty() && !identifier.isEmpty()) {
-                value = BundleUtil.getStringFromNonDefaultBundleWithLocale(
-                        "controlledvocabulary." + this.datasetFieldType.getName() + "." + identifier,
-                        getDatasetFieldType().getMetadataBlock().getName(), locale);
-            }
         } catch (NullPointerException npe) {
             value = StringUtils.EMPTY;
         }
@@ -150,6 +156,10 @@ public class ControlledVocabularyValue implements Serializable {
 
     public void setDisplayGroup(String displayGroup) {
         this.displayGroup = displayGroup;
+    }
+
+    public void setSuggestionDetails(String suggestionDetails) {
+        this.suggestionDetails = suggestionDetails;
     }
 
     // -------------------- hashCode & equals --------------------

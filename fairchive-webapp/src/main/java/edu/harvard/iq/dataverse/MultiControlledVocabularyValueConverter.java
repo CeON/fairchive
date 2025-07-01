@@ -24,7 +24,7 @@ public class MultiControlledVocabularyValueConverter implements Converter {
             return "";
         }
 
-        return controlledVocabularyValueServiceBean.findByIdentifier(submittedValue).stream().findFirst().orElse(null);
+        return controlledVocabularyValueServiceBean.findByStrValue(submittedValue).stream().findFirst().orElse(null);
     }
 
     @Override
