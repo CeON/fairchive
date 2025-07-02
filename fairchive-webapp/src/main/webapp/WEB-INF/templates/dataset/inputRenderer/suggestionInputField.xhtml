@@ -85,9 +85,10 @@
             autoHighlight="false"
             pt:data-field-type="#{datasetField.datasetFieldType.name}"
             multiple="true"
+            unique="true"
             rendered="#{inputRenderer.suggestionDisplayType eq 'TWO_COLUMNS' and datasetField.datasetFieldType.allowMultiples}"
     >
-        <p:ajax process="@form:@id(fieldsByTypeFragment)" event="focus" />
+        <p:ajax process="@form:@id(fieldsByTypeFragment)" event="blur" />
 
         <p:column headerText="#{inputRenderer.valueHeaderText}">
             <h:outputText value="#{datasetField.datasetFieldType.getLocaleVocab(suggestion.value)}" style="white-space: nowrap;"/>
