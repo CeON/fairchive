@@ -21,14 +21,11 @@ package edu.harvard.iq.dataverse.ingest;
 
 
 import static java.lang.Math.min;
-import static java.lang.System.err;
-import static java.lang.System.out;
 import static org.apache.commons.lang.builder.ToStringStyle.MULTI_LINE_STYLE;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -39,12 +36,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a virtually unchanged DVN v2-3 implementation by
@@ -56,7 +54,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  */
 public class IngestableDataChecker implements java.io.Serializable {
 
-    private static Logger dbgLog = Logger.getLogger(IngestableDataChecker.class.getPackage().getName());
+    private static Logger log = LoggerFactory.getLogger(IngestableDataChecker.class);
 
     // supported formats
     private static final String[] TABULAR_DATA_FORMAT_SET = {"POR", "SAV", "DTA", "RDA"};
@@ -69,8 +67,6 @@ public class IngestableDataChecker implements java.io.Serializable {
     // Map that returns a reader-implemented mime-type
     private static Set<String> readableFileTypes = new HashSet<String>();
     private static Map<String, Method> testMethods = new HashMap<String, Method>();
-    public static String SAS_XPT_HEADER_80 = "HEADER RECORD*******LIBRARY HEADER RECORD!!!!!!!000000000000000000000000000000  ";
-    public static String SAS_XPT_HEADER_11 = "SAS     SAS";
     public static int POR_MARK_POSITION_DEFAULT = 461;
     public static String POR_MARK = "SPSSPORT";
     private static int DEFAULT_BUFFER_SIZE = 500;
@@ -133,8 +129,6 @@ public class IngestableDataChecker implements java.io.Serializable {
     public String testSAVformat(ByteBuffer buff) {
         String result = null;
         buff.rewind();
-        boolean DEBUG = false;
-
 
         // -----------------------------------------
         // Avoid java.nio.BufferUnderflowException
@@ -143,26 +137,18 @@ public class IngestableDataChecker implements java.io.Serializable {
             return null;
         }
 
-        if (DEBUG) {
-            out.println("applying the sav test\n");
-        }
+        log.debug("applying the sav test");
 
         byte[] hdr4 = new byte[4];
         buff.get(hdr4, 0, 4);
         String hdr4sav = new String(hdr4);
 
-        if (DEBUG) {
-            out.println("from string=" + hdr4sav);
-        }
+        log.debug("from string={}", hdr4sav);
         if (hdr4sav.equals("$FL2")) {
-            if (DEBUG) {
-                out.println("this file is spss-sav type");
-            }
+            log.debug("this file is spss-sav type");
             result = "application/x-spss-sav";
         } else {
-            if (DEBUG) {
-                out.println("this file is NOT spss-sav type");
-            }
+            log.debug("this file is NOT spss-sav type");
         }
 
         return result;
@@ -175,11 +161,8 @@ public class IngestableDataChecker implements java.io.Serializable {
     public String testDTAformat(ByteBuffer buff) {
         String result = null;
         buff.rewind();
-        boolean DEBUG = false;
 
-        if (DEBUG) {
-            dbgLog.info("applying the dta test\n");
-        }
+        log.debug("applying the dta test");
 
         // -----------------------------------------
         // Avoid java.nio.BufferUnderflowException
@@ -194,33 +177,21 @@ public class IngestableDataChecker implements java.io.Serializable {
         byte[] hdr4 = new byte[4];
         buff.get(hdr4, 0, 4);
 
-        if (DEBUG) {
+        if (log.isDebugEnabled()) {
             for (int i = 0; i < hdr4.length; ++i) {
-                dbgLog.info(String.format("%d\t%02X\n", i, hdr4[i]));
+                log.debug(String.format("%d\t%02X\n", i, hdr4[i]));
             }
         }
 
         if (hdr4[2] != 1) {
-            if (DEBUG) {
-                dbgLog.info("3rd byte is not 1: given file is not stata-dta type");
-            }
-            //return result;
+            log.debug("3rd byte is not 1: given file is not stata-dta type");
         } else if ((hdr4[1] != 1) && (hdr4[1] != 2)) {
-            if (DEBUG) {
-                dbgLog.info("2nd byte is neither 0 nor 1: this file is not stata-dta type");
-            }
-            //return result;
+            log.debug("2nd byte is neither 0 nor 1: this file is not stata-dta type");
         } else if (!IngestableDataChecker.stataReleaseNumber.containsKey(hdr4[0])) {
-            if (DEBUG) {
-                dbgLog.info("1st byte (" + hdr4[0] +
-                                    ") is not within the ingestable range [rel. 3-10]: this file is NOT stata-dta type");
-            }
-            //return result;
+            log.debug("1st byte ({}) is not within the ingestable range [rel. 3-10]: this file is NOT stata-dta type", hdr4[0]);
         } else {
-            if (DEBUG) {
-                dbgLog.info("this file is stata-dta type: " +
-                                    IngestableDataChecker.stataReleaseNumber.get(hdr4[0]) +
-                                    "(No in HEX=" + hdr4[0] + ")");
+            if (log.isDebugEnabled()) {
+                log.debug("this file is stata-dta type: {} (No in HEX={})", IngestableDataChecker.stataReleaseNumber.get(hdr4[0]), hdr4[0]);
             }
             result = "application/x-stata";
         }
@@ -288,72 +259,20 @@ public class IngestableDataChecker implements java.io.Serializable {
     }
 
     /**
-     * test this byte buffer against SAS Transport(XPT) spec
-     */
-    public String testXPTformat(ByteBuffer buff) {
-        String result = null;
-        buff.rewind();
-        boolean DEBUG = false;
-
-        if (DEBUG) {
-            out.println("applying the sas-transport test\n");
-        }
-        // size test
-        if (buff.capacity() < 91) {
-            if (DEBUG) {
-                out.println("this file is NOT sas-exort type\n");
-            }
-
-            return result;
-        }
-
-        byte[] hdr1 = new byte[80];
-        byte[] hdr2 = new byte[11];
-        buff.get(hdr1, 0, 80);
-        buff.get(hdr2, 0, 11);
-
-        String hdr1st80 = new String(hdr1);
-        String hdrnxt11 = new String(hdr2);
-
-        if (DEBUG) {
-            out.println("1st-80  bytes=" + hdr1st80);
-            out.println("next-11 bytes=" + hdrnxt11);
-        }
-
-        if ((hdr1st80.equals(IngestableDataChecker.SAS_XPT_HEADER_80)) &&
-                (hdrnxt11.equals(IngestableDataChecker.SAS_XPT_HEADER_11))) {
-            if (DEBUG) {
-                out.println("this file is sas-export type\n");
-            }
-            result = "application/x-sas-xport";
-        } else {
-            if (DEBUG) {
-                out.println("this file is NOT sas-exort type\n");
-            }
-        }
-        return result;
-    }
-
-    /**
      * test this byte buffer against SPSS Portable (POR) spec
      */
     public String testPORformat(ByteBuffer buff) {
         String result = null;
         buff.rewind();
-        boolean DEBUG = false;
 
-        if (DEBUG) {
-            out.println("applying the spss-por test\n");
-        }
+        log.debug("applying the spss-por test");
 
         // size test
         int bufferCapacity = buff.capacity();
-        dbgLog.fine("Subsettable Checker: buffer capacity: " + bufferCapacity);
+        log.debug("Subsettable Checker: buffer capacity: {}", bufferCapacity);
 
         if (bufferCapacity < 491) {
-            if (DEBUG) {
-                out.println("this file is NOT spss-por type\n");
-            }
+            log.debug("this file is NOT spss-por type");
 
             return result;
         }
@@ -384,14 +303,12 @@ public class IngestableDataChecker implements java.io.Serializable {
             pos1 = baseBias + i;
 
             if (pos1 > bufferCapacity - 1) {
-                dbgLog.fine("Subsettable Checker: request to go beyond buffer capacity (" + pos1 + ")");
+                log.debug("Subsettable Checker: request to go beyond buffer capacity ({})", pos1);
                 return result;
             }
 
             buff.position(pos1);
-            if (DEBUG) {
-                out.println("\tposition(1)=" + buff.position());
-            }
+            log.debug("position(1)={}", buff.position());
             int j = 6 * i;
             nlch[j] = buff.get();
 
@@ -405,15 +322,13 @@ public class IngestableDataChecker implements java.io.Serializable {
             pos2 = baseBias + 2 * i;
 
             if (pos2 > bufferCapacity - 2) {
-                dbgLog.fine("Subsettable Checker: request to read 2 bytes beyond buffer capacity (" + pos2 + ")");
+                log.debug("Subsettable Checker: request to read 2 bytes beyond buffer capacity ({})", pos2);
                 return result;
             }
 
 
             buff.position(pos2);
-            if (DEBUG) {
-                out.println("\tposition(2)=" + buff.position());
-            }
+            log.debug("position(2)={}", buff.position());
             nlch[j + 1] = buff.get();
             nlch[j + 2] = buff.get();
 
@@ -421,23 +336,18 @@ public class IngestableDataChecker implements java.io.Serializable {
             pos3 = baseBias + 3 * i;
 
             if (pos3 > bufferCapacity - 3) {
-                dbgLog.fine("Subsettable Checker: request to read 3 bytes beyond buffer capacity (" + pos3 + ")");
+                log.debug("Subsettable Checker: request to read 3 bytes beyond buffer capacity ({})", pos3);
                 return result;
             }
 
 
             buff.position(pos3);
-            if (DEBUG) {
-                out.println("\tposition(3)=" + buff.position());
-            }
+            log.debug("position(3)={}", buff.position());
             nlch[j + 3] = buff.get();
             nlch[j + 4] = buff.get();
             nlch[j + 5] = buff.get();
+            log.debug("{}-th iteration position ={}\t{}\t{}\t{}\t{}\t{}", i, nlch[j], nlch[j + 1], nlch[j + 2], nlch[j + 3], nlch[j + 4], nlch[j + 5]);
 
-            if (DEBUG) {
-                out.println(i + "-th iteration position =" + nlch[j] + "\t" + nlch[j + 1] + "\t" + nlch[j + 2]);
-                out.println(i + "-th iteration position =" + nlch[j + 3] + "\t" + nlch[j + 4] + "\t" + nlch[j + 5]);
-            }
             if ((nlch[j + 3] == 13) && (nlch[j + 4] == 13) && (nlch[j + 5] == 10)) {
                 three++;
             } else if ((nlch[j + 1] == 13) && (nlch[j + 2] == 10)) {
@@ -447,23 +357,15 @@ public class IngestableDataChecker implements java.io.Serializable {
             buff.rewind();
         }
         if (three == nolines) {
-            if (DEBUG) {
-                out.println("0D0D0A case");
-            }
+            log.debug("0D0D0A case");
             windowsNewLine = false;
         } else if ((ucase == nolines) && (wcase < nolines)) {
-            if (DEBUG) {
-                out.println("0A case");
-            }
+            log.debug("0A case");
             windowsNewLine = false;
         } else if ((ucase < nolines) && (wcase == nolines)) {
-            if (DEBUG) {
-                out.println("0D0A case");
-            }
+            log.debug("0D0A case");
         } else if ((mcase == nolines) && (wcase < nolines)) {
-            if (DEBUG) {
-                out.println("0D case");
-            }
+            log.debug("0D case");
             windowsNewLine = false;
         }
 
@@ -481,19 +383,13 @@ public class IngestableDataChecker implements java.io.Serializable {
         buff.get(pormark, 0, 8);
         String pormarks = new String(pormark);
 
-        if (DEBUG) {
-            out.println("pormark =>" + pormarks + "<-");
-        }
+        log.debug("pormark =>{}<-", pormarks);
 
         if (pormarks.equals(POR_MARK)) {
-            if (DEBUG) {
-                out.println("this file is spss-por type");
-            }
+            log.debug("this file is spss-por type");
             result = "application/x-spss-por";
         } else {
-            if (DEBUG) {
-                out.println("this file is NOT spss-por type");
-            }
+            log.debug("this file is NOT spss-por type");
         }
 
         return result;
@@ -510,35 +406,32 @@ public class IngestableDataChecker implements java.io.Serializable {
             return null;
         }
 
-        boolean DEBUG = false;
-        if (DEBUG) {
-            out.println("applying the RData test\n");
-            out.println("buffer capacity=" + buff.capacity());
-        }
-        if (DEBUG) {
+        log.debug("applying the RData test. buffer capacity={}", buff.capacity());
+        if (log.isDebugEnabled()) {
             byte[] rawhdr = new byte[4];
             buff.get(rawhdr, 0, 4);
+            StringBuilder sb = new StringBuilder();
             for (int j = 0; j < 4; j++) {
-                out.printf("%02X ", rawhdr[j]);
+                sb.append(String.format("%02X ", rawhdr[j]));
             }
-            out.println();
+            log.debug("{}", sb);
             buff.rewind();
         }
         // get the first 4 bytes as an int and check its value; 
         // if it is 0x1F8B0800, then gunzip and its first 4 bytes
         int magicNumber = buff.getInt();
 
-        if (DEBUG) {
-            out.println("magicNumber in decimal =" + magicNumber);
-            out.println("in binary=" + Integer.toBinaryString(magicNumber));
-            out.println("in oct=" + Integer.toOctalString(magicNumber));
-            out.println("in hex=" + Integer.toHexString(magicNumber));
+        if (log.isDebugEnabled()) {
+            log.debug("magicNumber in decimal ={}\tin binary={}\tin oct={}\tin hex={}",
+                    magicNumber,
+                    Integer.toBinaryString(magicNumber),
+                    Integer.toOctalString(magicNumber),
+                    Integer.toHexString(magicNumber));
         }
+
         try {
             if (magicNumber == 0x1F8B0800) {
-                if (DEBUG) {
-                    out.println("magicNumber is GZIP");
-                }
+                log.debug("magicNumber is GZIP");
                 // gunzip the first 5 bytes and check their bye-pattern
 
                 // get gzip buffer size
@@ -559,10 +452,7 @@ public class IngestableDataChecker implements java.io.Serializable {
                 // end of compressed case
             } else {
                 // uncompressed case?
-                if (DEBUG) {
-                    out.println("magicNumber is not GZIP:" + magicNumber);
-                    out.println("test as an uncompressed RData file");
-                }
+                log.debug("magicNumber is not GZIP:{}\ttest as an uncompressed RData file", magicNumber);
 
                 buff.rewind();
                 byte[] uchdr = new byte[5];
@@ -577,24 +467,23 @@ public class IngestableDataChecker implements java.io.Serializable {
                 // end of uncompressed case
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            log.error("RDA format error", ex);
         }
         return result;
     }
 
     // public instance methods ------------------------------------------------
     public String detectTabularDataFormat(File fh) {
-        boolean DEBUG = false;
         String readableFormatType = null;
         
         
         try (final FileInputStream inp = new FileInputStream(fh)) {
 
-            final byte[] bytes = new byte[min((int)fh.length(), DEFAULT_BUFFER_SIZE)];
+            final byte[] bytes = new byte[(int) min(fh.length(), DEFAULT_BUFFER_SIZE)];
             inp.read(bytes);
             ByteBuffer buff = ByteBuffer.wrap(bytes);
 
-            dbgLog.fine("before the for loop");
+            log.trace("before the for loop");
             for (String fmt : TABULAR_DATA_FORMAT_SET) {
 
                 // get a test method
@@ -606,48 +495,25 @@ public class IngestableDataChecker implements java.io.Serializable {
                     String result = (String) retobj;
 
                     if (result != null) {
-                        dbgLog.fine("result for (" + fmt + ")=" + result);
-                        if (DEBUG) {
-                            out.println("result for (" + fmt + ")=" + result);
-                        }
+                        log.trace("result for ({})={}", fmt, result);
                         if (readableFileTypes.contains(result)) {
                             readableFormatType = result;
                         }
-                        dbgLog.fine("readableFormatType=" + readableFormatType);
+                        log.trace("readableFormatType={}", readableFormatType);
                         return readableFormatType;
                     } else {
-                        dbgLog.fine("null was returned for " + fmt + " test");
-                        if (DEBUG) {
-                            out.println("null was returned for " + fmt + " test");
-                        }
+                        log.trace("null was returned for {} test", fmt);
                     }
-                } catch (InvocationTargetException e) {
-                    Throwable cause = e.getCause();
-                    // added null check because of "homemade.zip" from https://redmine.hmdc.harvard.edu/issues/3273
-                    if (cause.getMessage() != null) {
-                        err.format(cause.getMessage());
-                        e.printStackTrace();
-                    } else {
-                        dbgLog.info("cause.getMessage() was null for " + e);
-                        e.printStackTrace();
-                    }
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (BufferUnderflowException e) {
-                    dbgLog.info("BufferUnderflowException " + e);
-                    e.printStackTrace();
+                } catch (InvocationTargetException | IllegalAccessException | BufferUnderflowException  e) {
+                    log.error("Tabular invocation error", e);
                 }
             }
 
             return readableFormatType;
 
-        } catch (FileNotFoundException fe) {
-            dbgLog.fine("exception detected: file was not foud");
-            fe.printStackTrace();
-        } catch (IOException ie) {
-            dbgLog.fine("other io exception detected");
-            ie.printStackTrace();
-        } 
+        } catch (IOException fe) {
+            log.error("Error occurred during processing of tabular format", fe);
+        }
         return readableFormatType;
     }
 
@@ -655,22 +521,15 @@ public class IngestableDataChecker implements java.io.Serializable {
      * identify the first 5 bytes
      */
     private String checkUncompressedFirst5bytes(String fisrt5bytes) {
-        boolean DEBUG = false;
         String result = null;
-        if (DEBUG) {
-            out.println("first5bytes=" + fisrt5bytes);
-        }
+        log.debug("first5bytes={}", fisrt5bytes);
         Matcher mtr = ptn.matcher(fisrt5bytes);
 
         if (mtr.matches()) {
-            if (DEBUG) {
-                out.println("RDATA type");
-            }
+            log.debug("RDATA type");
             result = "application/x-rlang-transport";
         } else {
-            if (DEBUG) {
-                out.println("not binary RDATA type");
-            }
+            log.debug("not binary RDATA type");
         }
 
         return result;
@@ -691,29 +550,6 @@ public class IngestableDataChecker implements java.io.Serializable {
         }
         buff.rewind();
         return GZIP_BUFFER_SIZE;
-    }
-
-    /**
-     * dump the data buffer in HEX
-     */
-    public void printHexDump(ByteBuffer buff, String hdr) {
-        int counter = 0;
-        if (hdr != null) {
-            out.println(hdr);
-        }
-        for (int i = 0; i < buff.capacity(); i++) {
-            counter = i + 1;
-            out.print(String.format("%02X ", buff.get()));
-            if (counter % 16 == 0) {
-                out.println();
-            } else {
-                if (counter % 8 == 0) {
-                    out.print(" ");
-                }
-            }
-        }
-        out.println();
-        buff.rewind();
     }
 
     @Override

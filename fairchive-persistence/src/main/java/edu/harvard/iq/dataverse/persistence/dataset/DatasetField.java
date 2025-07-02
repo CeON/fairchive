@@ -429,6 +429,11 @@ public class DatasetField implements Serializable, ValidatableField {
     public String getTypeName() {
         return getDatasetFieldType().getName();
     }
+    
+    public boolean isNamed(final String typeName) {
+        return typeName.equals(getTypeName());
+    }
+    
 
     public void clearValue() {
         if (this.datasetFieldType.isControlledVocabulary()) {

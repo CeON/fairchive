@@ -1,22 +1,42 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.common.MarkupChecker;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.config.EntityCustomizer;
-import edu.harvard.iq.dataverse.persistence.config.ValidateURL;
-import edu.harvard.iq.dataverse.persistence.config.annotations.CustomizeSelectionQuery;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.persistence.annotations.Customizer;
-import org.jsoup.Jsoup;
+import static com.google.common.collect.Lists.newArrayList;
+import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
+import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_NO_PRIMARY_SOURCE;
+import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_WITH_PRIMARY_SOURCE;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.ARCHIVED;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DEACCESSIONED;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DRAFT;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.TemporalType.TIMESTAMP;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import javax.persistence.CascadeType;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -32,7 +52,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
@@ -40,29 +59,21 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.persistence.annotations.Customizer;
+import org.jsoup.Jsoup;
+
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.common.MarkupChecker;
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.config.EntityCustomizer;
+import edu.harvard.iq.dataverse.persistence.config.ValidateURL;
+import edu.harvard.iq.dataverse.persistence.config.annotations.CustomizeSelectionQuery;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 
 /**
  * @author skraffmiller
@@ -127,36 +138,36 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     @ManyToOne
     private Dataset dataset;
 
-    @OneToMany(mappedBy = "datasetVersion", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    @OneToMany(mappedBy = "datasetVersion", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     @OrderBy("label")
     // this is not our preferred ordering, which is with the AlphaNumericComparator,
     // but does allow the files to be grouped by category
     private List<FileMetadata> fileMetadatas = new ArrayList<>();
 
     @OneToMany(mappedBy = "datasetVersion", orphanRemoval = true,
-            cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
-    @CustomizeSelectionQuery(EntityCustomizer.Customizations.DATASET_FIELDS_WITH_PRIMARY_SOURCE)
+            cascade = {REMOVE, MERGE, PERSIST})
+    @CustomizeSelectionQuery(DATASET_FIELDS_WITH_PRIMARY_SOURCE)
     @OrderBy("displayOrder ASC")
     private List<DatasetField> datasetFields = new ArrayList<>();
 
     @OneToMany(mappedBy = "datasetVersion", orphanRemoval = true,
-            cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
-    @CustomizeSelectionQuery(EntityCustomizer.Customizations.DATASET_FIELDS_NO_PRIMARY_SOURCE)
+            cascade = {REMOVE, MERGE, PERSIST})
+    @CustomizeSelectionQuery(DATASET_FIELDS_NO_PRIMARY_SOURCE)
     @OrderBy("displayOrder ASC")
     private List<DatasetField> datasetFieldsOptional = new ArrayList<>();
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     @Column(nullable = false)
     private Date createTime;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     @Column(nullable = false)
     private Date lastUpdateTime;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     private Date releaseTime;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     private Date archiveTime;
 
     @Size(min = 0, max = ARCHIVE_NOTE_MAX_LENGTH)
@@ -169,12 +180,12 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
 
     private String deaccessionLink;
 
-    @OneToMany(mappedBy = "datasetVersion", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "datasetVersion", cascade = {REMOVE, MERGE, PERSIST})
     private List<DatasetVersionUser> datasetVersionUsers;
 
     // Is this the right mapping and cascading for when the workflowcomments table
     // is being used for objects other than DatasetVersion?
-    @OneToMany(mappedBy = "datasetVersion", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "datasetVersion", cascade = {REMOVE, MERGE, PERSIST})
     private List<WorkflowComment> workflowComments;
 
     // -------------------- GETTERS --------------------
@@ -307,8 +318,10 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     public void setArchiveNote(String note) {
         // @todo should this be using bean validation for trsting note length?
         if (note != null && note.length() > ARCHIVE_NOTE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Error setting archiveNote: String length is greater than maximum (" + ARCHIVE_NOTE_MAX_LENGTH + ")."
-                    + "  StudyVersion id=" + id + ", archiveNote=" + note);
+            throw new IllegalArgumentException(
+                    "Error setting archiveNote: String length is greater than maximum (" 
+                            + ARCHIVE_NOTE_MAX_LENGTH + ")."
+                            + "  StudyVersion id=" + id + ", archiveNote=" + note);
         }
         this.archiveNote = note;
     }
@@ -342,7 +355,8 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
 
     public void setVersionNote(String note) {
         if (note != null && note.length() > VERSION_NOTE_MAX_LENGTH) {
-            throw new IllegalArgumentException("Error setting versionNote: String length is greater than maximum ("
+            throw new IllegalArgumentException(
+                    "Error setting versionNote: String length is greater than maximum ("
                     + VERSION_NOTE_MAX_LENGTH + ")."
                     + "  StudyVersion id=" + id + ", versionNote=" + note);
         }
@@ -399,7 +413,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
      * @return if the dataset is being reviewed
      */
     public boolean isInReview() {
-        return VersionState.DRAFT.equals(versionState) && dataset.isLockedFor(DatasetLock.Reason.InReview);
+        return DRAFT.equals(versionState) && dataset.isLockedFor(InReview);
     }
     
     public boolean hasSameTermsOfUseForAllFiles() {
@@ -431,7 +445,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public boolean isReleased() {
-        return VersionState.RELEASED.equals(versionState);
+        return RELEASED.equals(versionState);
     }
     
     public boolean wasReleased() {
@@ -439,19 +453,19 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public boolean isDraft() {
-        return VersionState.DRAFT.equals(versionState);
+        return DRAFT.equals(versionState);
     }
 
     public boolean isWorkingCopy() {
-        return VersionState.DRAFT.equals(versionState);
+        return DRAFT.equals(versionState);
     }
 
     public boolean isArchived() {
-        return VersionState.ARCHIVED.equals(versionState);
+        return ARCHIVED.equals(versionState);
     }
 
     public boolean isDeaccessioned() {
-        return VersionState.DEACCESSIONED.equals(versionState);
+        return DEACCESSIONED.equals(versionState);
     }
     
     public boolean isPubliclyAccessible() {
@@ -488,14 +502,17 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
         if (fileMetadatas.size() != 1) {
             return false;
         }
-        return PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0).getDataFile().getContentType());
+        return DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0)
+                .getDataFile().getContentType());
     }
 
     // XHTML
     public boolean isHasNonPackageFile() {
-        // The presence of any non-package file means that HTTP Upload was used (no mixing allowed) so we just check the first file.
+        // The presence of any non-package file means that HTTP Upload was used 
+        // (no mixing allowed) so we just check the first file.
         return !fileMetadatas.isEmpty()
-                && !PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0).getDataFile().getContentType());
+                && !DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0)
+                        .getDataFile().getContentType());
     }
     
     public boolean isNewerThan(final DatasetVersion other) {
@@ -530,49 +547,35 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public String getTitle() {
-        String result = StringUtils.EMPTY;
-        for (DatasetField dsfv : datasetFields) {
-            if (DatasetFieldConstant.title.equals(dsfv.getTypeName())) {
-                result = dsfv.getDisplayValue();
-            }
-        }
-        return result;
+        return getDatasetFieldByTypeName(DatasetFieldConstant.title)
+                .map(DatasetField::getDisplayValue)
+                .orElse(EMPTY);
     }
 
     public String getParsedTitle() {
         return Jsoup.parse(getTitle()).text();
     }
 
-    public String getProductionDate() {
-        String retVal = null;
-        for (DatasetField dsfv : datasetFields) {
-            if (DatasetFieldConstant.productionDate.equals(dsfv.getTypeName())) {
-                retVal = dsfv.getDisplayValue();
-            }
-        }
-        return retVal;
+    public String getProductionDate() {       
+        return getDatasetFieldByTypeName(DatasetFieldConstant.productionDate)
+                .map(DatasetField::getDisplayValue)
+                .orElse(null);
     }
 
     /**
      * @return Strip out all A string with the description of the dataset that
      * has been passed through the stripAllTags method to remove all HTML tags.
      */
-    public String getDescriptionPlainText() {
-        for (DatasetField dsf : datasetFields) {
-            if (!DatasetFieldConstant.description.equals(dsf.getTypeName())) {
-                continue;
-            }
-            String descriptionString = StringUtils.EMPTY;
-            for (DatasetField subField : dsf.getDatasetFieldsChildren()) {
-                if (DatasetFieldConstant.descriptionText.equals(subField.getTypeName())
-                        && !subField.isEmptyForDisplay()) {
-                    descriptionString = subField.getValue();
-                }
-            }
-            logger.log(Level.FINE, "pristine description: {0}", descriptionString);
-            return MarkupChecker.stripAllTags(descriptionString);
-        }
-        return StringUtils.EMPTY;
+    public String getDescriptionPlainText() {        
+        return streamDatasetFieldsByTypeName(DatasetFieldConstant.description)
+                .map(DatasetField::getDatasetFieldsChildren)
+                .flatMap(List::stream)
+                .filter(subField -> subField.isNamed(DatasetFieldConstant.descriptionText))
+                .filter(subField -> !subField.isEmptyForDisplay())
+                .findFirst()
+                .map(DatasetField::getValue)
+                .map(MarkupChecker::stripAllTags)
+                .orElse(EMPTY);
     }
 
     /**
@@ -582,16 +585,17 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
      * @param fieldName parent field name
      * @param subfields list of subfields to extract from parent field
      */
-    public List<Map<String, DatasetField>> extractFieldWithSubfields(String fieldName, List<String> subfields) {
+    public List<Map<String, DatasetField>> extractFieldWithSubfields(String fieldName, 
+            List<String> subfields) {
         Set<String> namesLookup = new HashSet<>(subfields);
         namesLookup.add(fieldName); // sometimes the main field will be also needed
         return datasetFields.stream()
                 .filter(f -> fieldName.equals(f.getTypeName()))
                 .map(f -> Stream.concat(f.getDatasetFieldsChildren().stream(), Stream.of(f))
                         .filter(s -> namesLookup.contains(s.getTypeName()))
-                        .collect(Collectors.toMap(DatasetField::getTypeName, s -> s, (prev, next) -> next)))
+                        .collect(toMap(DatasetField::getTypeName, s -> s, (prev, next) -> next)))
                 .filter(e -> e.size() > 1) // if there's only one element then we have only parent field with no subfields
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
@@ -606,13 +610,16 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
                 .map(f -> Stream.concat(f.getDatasetFieldsChildren().stream(), Stream.of(f))
                         .collect(Collectors.toMap(DatasetField::getTypeName, s -> s, (prev, next) -> next)))
                 .filter(e -> e.size() > 1) // omit fields with no children
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public List<DatasetAuthor> getDatasetAuthors() {
         return extractFieldWithSubfields(DatasetFieldConstant.author,
-                Arrays.asList(DatasetFieldConstant.authorName, DatasetFieldConstant.authorAffiliation, DatasetFieldConstant.authorAffiliationIdentifier,
-                        DatasetFieldConstant.authorIdType, DatasetFieldConstant.authorIdValue))
+                asList(DatasetFieldConstant.authorName,
+                        DatasetFieldConstant.authorAffiliation,
+                        DatasetFieldConstant.authorAffiliationIdentifier,
+                        DatasetFieldConstant.authorIdType,
+                        DatasetFieldConstant.authorIdValue))
                 .stream()
                 .filter(e -> {
                     DatasetField name = e.get(DatasetFieldConstant.authorName);
@@ -629,17 +636,14 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
                     author.setIdValue(mapIfNotNull(e.get(DatasetFieldConstant.authorIdValue), DatasetField::getValue));
                     return author;
                 })
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public List<String> extractFieldValues(String fieldName) {
-        List<String> values = new ArrayList<>();
-        for (DatasetField field : datasetFields) {
-            if (fieldName.equals(field.getTypeName())) {
-                values.addAll(field.getValues());
-            }
-        }
-        return values;
+        return streamDatasetFieldsByTypeName(fieldName)
+                .map(DatasetField::getValues)
+                .flatMap(List::stream)
+                .collect(toList());
     }
 
     public List<String> getDatasetSubjects() {
@@ -647,14 +651,14 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     }
 
     public List<String> getKeywords() {
-        return getCompoundChildFieldValues(DatasetFieldConstant.keyword,
-                Collections.singletonList(DatasetFieldConstant.keywordValue));
+        return getCompoundChildFieldValues(DatasetFieldConstant.keyword, 
+                singletonList(DatasetFieldConstant.keywordValue));
     }
 
     public List<DatasetRelPublication> getRelatedPublications() {
-        return extractFieldWithSubfields(DatasetFieldConstant.publication, Arrays.asList(
-                    DatasetFieldConstant.publicationCitation, DatasetFieldConstant.publicationURL,
-                    DatasetFieldConstant.publicationIDNumber, DatasetFieldConstant.publicationIDType))
+        return extractFieldWithSubfields(DatasetFieldConstant.publication, asList(
+                DatasetFieldConstant.publicationCitation, DatasetFieldConstant.publicationURL,
+                DatasetFieldConstant.publicationIDNumber, DatasetFieldConstant.publicationIDType))
                 .stream()
                 .map(m -> {
                     DatasetRelPublication publication = new DatasetRelPublication();
@@ -664,7 +668,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
                     publication.setIdType(mapIfNotNull(m.get(DatasetFieldConstant.publicationIDType), DatasetField::getValue));
                     return publication;
                 })
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public List<String> getCompoundChildFieldValues(String parentName, List<String> childNames) {
@@ -676,23 +680,21 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
                 .collect(Collectors.toList());
     }
 
-    public Optional<DatasetField> getDatasetFieldByTypeName(String datasetFieldTypeName) {
-        return streamDatasetFieldsByTypeName(datasetFieldTypeName)
+    public Optional<DatasetField> getDatasetFieldByTypeName(final String name) {
+        return streamDatasetFieldsByTypeName(name)
                 .findFirst();
     }
 
-    public Stream<DatasetField> streamDatasetFieldsByTypeName(String datasetFieldTypeName) {
-        return getFlatDatasetFields().stream()
-                .filter(f -> datasetFieldTypeName.equals(f.getTypeName()));
+    public Stream<DatasetField> streamDatasetFieldsByTypeName(final String name) {
+        return getFlatDatasetFields().
+                stream()
+                .filter(field -> field.isNamed(name));
     }
 
-    public String getDistributionDate() {
-        for (DatasetField dsf : datasetFields) {
-            if (DatasetFieldConstant.distributionDate.equals(dsf.getTypeName())) {
-                return dsf.getValue();
-            }
-        }
-        return null;
+    public String getDistributionDate() {      
+        return getDatasetFieldByTypeName(DatasetFieldConstant.distributionDate)
+                .map(DatasetField::getValue)
+                .orElse(null);
     }
 
     // TODO: Consider renaming this method since it's also used for getting the "provider" for Schema.org JSON-LD.
@@ -717,7 +719,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
             str.append(sa.getName().getValue());
             if (withAffiliation
                     && sa.getAffiliation() != null
-                    && StringUtils.isNotBlank(sa.getAffiliation().getValue())) {
+                    && isNotBlank(sa.getAffiliation().getValue())) {
                 str.append(" (").append(sa.getAffiliation().getValue()).append(")");
             }
         }
@@ -770,7 +772,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
         if (isReleased()) {
             return versionNumber + "." + minorVersionNumber;
         } else if (isDraft()) {
-            return VersionState.DRAFT.toString();
+            return DRAFT.toString();
         } else if (isDeaccessioned()) {
             return versionNumber + "." + minorVersionNumber;
         } else {

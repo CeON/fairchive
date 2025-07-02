@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,6 +12,7 @@ import javax.enterprise.context.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpSession;
 
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
@@ -21,6 +21,7 @@ import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+import io.vavr.control.Option;
 
 /**
  * @author gdurand
@@ -151,6 +152,21 @@ public class DataverseSession implements Serializable {
         return !this.systemConfig.isReadonlyMode() && getUser().isSuperuser();
     }
 
+    public void logIn(final User user) {
+        requireNonNull(user);
+        this.logSvc.log(new ActionLogRecord(SessionManagement, "login")
+                .setUserIdentifier(user.getIdentifier()));
+        this.user = user;
+
+        configureAuthenticatedSession();
+    }
+
+    public void logOut() {
+        this.logSvc.log(new ActionLogRecord(SessionManagement, "logout")
+                .setUserIdentifier(this.user.getIdentifier()));
+        this.user = GuestUser.get();
+    }
+
     // -------------------- PRIVATE --------------------
 
     /**
@@ -161,21 +177,16 @@ public class DataverseSession implements Serializable {
                 .getRequestLocale().getLanguage();
     }
 
-    // -------------------- SETTERS --------------------
-    
-    public void logIn(final User user) {
-        requireNonNull(user);
-        this.logSvc.log(new ActionLogRecord(SessionManagement, "login")
-                .setUserIdentifier(user.getIdentifier()));
-        this.user = user;
-    }
-    
-    public void logOut() {
-        this.logSvc.log(new ActionLogRecord(SessionManagement, "logout")
-                .setUserIdentifier(this.user.getIdentifier()));
-        this.user = GuestUser.get();
+    private void configureAuthenticatedSession() {
+        Option.of(FacesContext.getCurrentInstance())
+                .flatMap(fc -> Option.of(fc.getExternalContext()))
+                .flatMap(ec -> Option.of((HttpSession) ec.getSession(false)))
+                .forEach(httpSession ->
+                        httpSession.setMaxInactiveInterval(systemConfig.getAuthenticatedSessionTimeoutMinutes() * 60));
     }
 
+    // -------------------- SETTERS --------------------
+    
     public void setLocaleCode(String localeCode) {
         this.localeCode = localeCode;
     }

@@ -286,6 +286,8 @@ public class Datasets extends AbstractApiBean {
 
         if (!exporterConstant.isPresent()) {
             return error(BAD_REQUEST, exporter + " is not a valid exporter");
+        } else if(!this.exportService.isExporterAvailableFor(exporterConstant.get())) {
+            return error(BAD_REQUEST, exporter + " is not a valid exporter");
         }
 
         Dataset dataset = datasetDao.findByGlobalId(persistentId);

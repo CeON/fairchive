@@ -1,11 +1,14 @@
 package edu.harvard.iq.dataverse.externaltools;
 
+import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -13,8 +16,6 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-
-import com.google.api.client.repackaged.com.google.common.base.Objects;
 
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -35,31 +36,13 @@ public class ExternalToolServiceBean {
     }
 
     public List<ExternalTool> findBy(final Type type) {
-        return findAll().stream()
-                .filter(tool -> tool.getType().equals(type))
-                .collect(toList());
+        return streamBy(type).collect(toList());
     }
 
     private List<ExternalTool> findBy(final Type type, final String contentType) {
-        return findAll().stream()
-                .filter(tool -> tool.getType().equals(type))
-                .filter(tool -> tool.getContentType().equals(contentType))
+        return streamBy(type, contentType)
                 .filter(tool -> tool.getFileExtention() == null)
                 .collect(toList());
-    }
-    
-    public List<ExternalTool> findBy(final Type type,
-            final String contentType, final String fileExtention) {
-        final List<ExternalTool> result = findAll().stream()
-                    .filter(tool -> tool.getType().equals(type))
-                    .filter(tool -> tool.getContentType().equals(contentType))
-                    .filter(tool -> fileExtention.equalsIgnoreCase(tool.getFileExtention()))
-                    .collect(toList());
-        if(result.size() > 0) {
-            return result;
-        } else {
-            return findBy(type, contentType);
-        }
     }
     
     public boolean delete(final long id) {
@@ -86,7 +69,7 @@ public class ExternalToolServiceBean {
 
         return allExternalTools.stream()
                 .filter(t -> t.getContentType().equals(contentType))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
@@ -95,20 +78,36 @@ public class ExternalToolServiceBean {
      * so it doesn't query the database each time
      */
     public List<ExternalTool> findExternalToolsByFileAndVersion(
-            List<ExternalTool> allExternalTools, DataFile file, DatasetVersion datasetVersion) {
+            final List<ExternalTool> allExternalTools, final DataFile file,
+            final DatasetVersion datasetVersion) {
 
-        // Map tabular data to it's mimetype (the isTabularData() check assures that this code works the same as before,
-        // but it may need to change if tabular data is split into subtypes with differing mimetypes)
-        final String contentType = file.isTabularData() ? TextMimeType.TSV_ALT.getMimeValue() : file.getContentType();
+        if (file.isNonPublicOrNotIngestedTsvFile(datasetVersion)) {
+            return emptyList();
+        } else {
+            // Map tabular data to it's mimetype (the isTabularData() check assures
+            // that this code works the same as before,
+            // but it may need to change if tabular data is split into subtypes with
+            // differing mimetypes)
+            final String contentType = file.isTabularData()
+                    ? TSV_ALT.getMimeValue()
+                    : file.getContentType();
 
-        return allExternalTools.stream()
-                .filter(t -> t.getContentType().equals(contentType))
-                .filter(t -> !isNonPublicOrNotIngestedTsvFile(file, datasetVersion))
-                .collect(Collectors.toList());
+            return allExternalTools.stream()
+                    .filter(t -> t.getContentType().equals(contentType))
+                    .collect(toList());
+        }
     }
+    
+    public List<ExternalTool> findExternalTools(final Type type,
+            final String contentType, final DataFile file,
+            final DatasetVersion version) {
 
-    public List<ExternalTool> findExternalTools(Type type, String contentType, DataFile file, DatasetVersion version) {
-        return findExternalToolsByFileAndVersion(findBy(type, contentType, file.getFileMetadata().getFileNameExtention()), file, version);
+        if (file.isNonPublicOrNotIngestedTsvFile(version)) {
+            return emptyList();
+        } else {
+            return findBy(type, contentType,
+                    file.getFileMetadata().getFileNameExtention());
+        }
     }
 
     public ExternalTool parseAddExternalToolManifest(String manifest) {
@@ -152,15 +151,40 @@ public class ExternalToolServiceBean {
     }
 
     // -------------------- PRIVATE --------------------
-
-    private boolean isNonPublicOrNotIngestedTsvFile(DataFile file, DatasetVersion datasetVersion) {
-        boolean isTsvAltContentType = TextMimeType.TSV_ALT.getMimeValue()
-                .equals(file.isTabularData() ? TextMimeType.TSV_ALT.getMimeValue() : file.getContentType());
-
-        return isTsvAltContentType && (!file.isPublicIn(datasetVersion) || !file.isTabularData());
+    
+    private List<ExternalTool> findBy(final Type type,
+            final String contentType, final String fileExtention) {
+        List<ExternalTool> result = streamBy(type, contentType)
+                .filter(tool -> fileExtention
+                        .equalsIgnoreCase(tool.getFileExtention()))
+                .collect(toList());
+        if (result.size() > 0) {
+            return result;
+        } else {
+            result = findByExtention(type, fileExtention);
+            if (result.size() > 0) {
+                return result;
+            } else {
+                return findBy(type, contentType);
+            }
+        }
     }
 
-
+    
+    private List<ExternalTool> findByExtention(final Type type, final String fileExtention) {
+        return streamBy(type)
+                .filter(tool -> fileExtention.equalsIgnoreCase(tool.getFileExtention()))
+                .collect(toList());
+    }
+    
+    public Stream<ExternalTool> streamBy(final Type type) {
+        return findAll().stream().filter(tool -> tool.getType().equals(type));
+    }
+    
+    private Stream<ExternalTool> streamBy(final Type type, final String contentType) {
+        return streamBy(type).filter(tool -> tool.getContentType().equals(contentType));
+    }
+    
     private String getRequiredTopLevelField(JsonObject jsonObject, String key) {
         try {
             return jsonObject.getString(key);

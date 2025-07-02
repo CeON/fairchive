@@ -1,5 +1,35 @@
 package edu.harvard.iq.dataverse.datafile.page;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.CONFIGURE;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EXPLORE;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.ALL_RIGHTS_RESERVED;
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+
+import javax.ejb.EJBException;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.validation.ValidationException;
+
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.component.tabview.TabView;
+import org.primefaces.event.TabChangeEvent;
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
@@ -7,7 +37,6 @@ import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean.RetrieveDatasetVersionResponse;
@@ -30,31 +59,9 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.component.tabview.TabView;
-import org.primefaces.event.TabChangeEvent;
-import org.primefaces.model.DefaultStreamedContent;
-import org.primefaces.model.StreamedContent;
-
-import javax.ejb.EJBException;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.validation.ValidationException;
-
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
 
 
 /**
@@ -81,6 +88,7 @@ public class FilePage implements java.io.Serializable {
     private CitationFactory citationFactory;
     private DataverseSession session;
     private ExternalToolHandler externalToolHandler;
+    private UIMessages ui;
 
     private FileMetadata fileMetadata;
     private Long fileId;
@@ -110,7 +118,7 @@ public class FilePage implements java.io.Serializable {
                     PermissionsWrapper permissionsWrapper, FileDownloadHelper fileDownloadHelper,
                     ExportService exportService, FileService fileService,
                     GuestbookResponseDialog guestbookResponseDialog, CitationFactory citationFactory,
-                    DataverseSession session, ExternalToolHandler externalToolHandler) {
+                    DataverseSession session, ExternalToolHandler externalToolHandler, UIMessages ui) {
         this.datafileService = datafileService;
         this.datasetVersionService = datasetVersionService;
         this.permissionService = permissionService;
@@ -125,9 +133,15 @@ public class FilePage implements java.io.Serializable {
         this.citationFactory = citationFactory;
         this.session = session;
         this.externalToolHandler = externalToolHandler;
+        this.ui = ui;
     }
 
     // -------------------- GETTERS --------------------
+    
+    public String getPageTitle() {
+        return this.file.getDisplayName() + " - " +
+                this.dataset.getOwner().getDisplayName();
+    }
 
     public FileMetadata getFileMetadata() {
         return fileMetadata;
@@ -198,7 +212,7 @@ public class FilePage implements java.io.Serializable {
             // if so, we'll simply forward to the remote URL for the original
             // source of this harvested dataset:
             String originalSourceURL = file.getOwner().getRemoteArchiveURL();
-            if (StringUtils.isNotBlank(originalSourceURL)) {
+            if (isNotBlank(originalSourceURL)) {
                 logger.fine("redirecting to " + originalSourceURL);
                 try {
                     FacesContext.getCurrentInstance().getExternalContext().redirect(originalSourceURL);
@@ -250,11 +264,26 @@ public class FilePage implements java.io.Serializable {
         // isTabularData() works - true for tabular types where a .tab file has been
         // created and false for other mimetypes
         // For tabular data, indicate successful ingest by returning a contentType for the derived .tab file
-        String contentType = file.isTabularData() ? TextMimeType.TSV_ALT.getMimeValue() : file.getContentType();
-        configureTools = externalToolService.findExternalTools(ExternalTool.Type.CONFIGURE, contentType, file, version);
-        exploreTools = externalToolService.findExternalTools(ExternalTool.Type.EXPLORE, contentType, file, version);
-        previewTools = externalToolService.findExternalTools(ExternalTool.Type.PREVIEW, contentType, file, version);
+        String contentType = file.isTabularData() ? TSV_ALT.getMimeValue() : file.getContentType();
+        configureTools = externalToolService.findExternalTools(CONFIGURE, contentType, file, version);
+        exploreTools = externalToolService.findExternalTools(EXPLORE, contentType, file, version);
+        previewTools = externalToolService.findExternalTools(PREVIEW, contentType, file, version);
         return null;
+    }
+    
+    public boolean displayMetadataMapTab() {
+        return !isDatasetDeaccesioned() || canUpdateDataset();
+    }
+    
+    public boolean displayEditButtonGroup() throws Exception {
+        return canUpdateDataset()
+                && (this.datafileService.hasReplacement(this.file)
+                        || this.datafileService.hasBeenDeleted(this.file));
+    }
+    
+    public boolean displayRestrictedIcon() {
+        return this.fileMetadata.isFileUseRestricted()
+                && !this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata);
     }
     
     public boolean displayFileDescriptionBlock() {
@@ -305,7 +334,8 @@ public class FilePage implements java.io.Serializable {
                 String myHostURL = systemConfig.getDataverseSiteUrl();
                 String[] temp = new String[2];
                 temp[0] = exporter.getDisplayName();
-                temp[1] = myHostURL + "/api/datasets/export?exporter=" + exporter.getProviderName() + "&persistentId="
+                temp[1] = myHostURL + "/api/datasets/export?exporter=" 
+                        + exporter.getProviderName() + "&persistentId="
                         + dataset.getGlobalIdString();
                 retList.add(temp);
             }
@@ -321,7 +351,7 @@ public class FilePage implements java.io.Serializable {
         if (saveProvOperation.isFailure()){
             return "";
         }
-        JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("file.message.editSuccess"));
+        this.ui.addFlashSuccessMessage(getStringFromBundle("file.message.editSuccess"));
         return returnToDraftVersion();
     }
 
@@ -346,7 +376,7 @@ public class FilePage implements java.io.Serializable {
             return "";
         }
 
-        JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("file.message.deleteSuccess"));
+        this.ui.addFlashSuccessMessage(BundleUtil.getStringFromBundle("file.message.deleteSuccess"));
         return returnToDatasetOnly(fileMetadata.getDataFile().getOwner());
     }
 
@@ -389,14 +419,14 @@ public class FilePage implements java.io.Serializable {
     }
 
     public StreamedContent getOtherTermsIconContent(FileTermsOfUse.TermsOfUseType termsOfUseType) {
-        if (termsOfUseType.equals(FileTermsOfUse.TermsOfUseType.RESTRICTED)) {
+        if (termsOfUseType.equals(RESTRICTED)) {
             return DefaultStreamedContent.builder()
                     .stream(() -> new ByteArrayInputStream(FileUtil.getFileFromResources(
                             "/images/restrictedaccess.png")))
                     .build();
         }
 
-        if (termsOfUseType.equals(FileTermsOfUse.TermsOfUseType.ALL_RIGHTS_RESERVED)) {
+        if (termsOfUseType.equals(ALL_RIGHTS_RESERVED)) {
             return DefaultStreamedContent.builder()
                     .stream(() -> new ByteArrayInputStream(FileUtil.getFileFromResources(
                             "/images/allrightsreserved.png")))
@@ -453,6 +483,10 @@ public class FilePage implements java.io.Serializable {
     public boolean isPubliclyDownloadable() {
         return FileUtil.isPubliclyDownloadable(fileMetadata);
     }
+    
+    public boolean isDatasetDeaccesioned() {
+        return this.fileMetadata.getDatasetVersion().isDeaccessioned(); 
+    }
 
     /**
      * Authors are not allowed to edit but curators are allowed - when Dataset is inReview
@@ -491,7 +525,7 @@ public class FilePage implements java.io.Serializable {
     //Provenance fragment bean calls this to show error dialogs after popup failure
     //This can probably be replaced by calling JsfHelper from the provpopup bean
     public void showProvError() {
-        JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("file.metadataTab.provenance.error"), "");
+        this.ui.addErrorMessage(getStringFromBundle("file.metadataTab.provenance.error"), "");
     }
 
     public String getPreviewUrl() {
@@ -516,15 +550,15 @@ public class FilePage implements java.io.Serializable {
         throwable = throwable instanceof EJBException ? throwable.getCause() : throwable;
 
         if (throwable instanceof ValidationException){
-            JsfHelper.addErrorMessage(
-                    BundleUtil.getStringFromBundle("dataset.message.validationError"), "");
+            this.ui.addErrorMessage(
+                    getStringFromBundle("dataset.message.validationError"), "");
         } else if (throwable instanceof UpdateDatasetException){
-            JsfHelper.addErrorMessage(
-                    BundleUtil.getStringFromBundle("dataset.save.fail"),
+            this.ui.addErrorMessage(
+                    getStringFromBundle("dataset.save.fail"),
                     throwable.toString());
         } else {
-            JsfHelper.addErrorMessage(
-                    BundleUtil.getStringFromBundle("dataset.save.fail"), "");
+            this.ui.addErrorMessage(
+                    getStringFromBundle("dataset.save.fail"), "");
         }
     }
 
@@ -532,14 +566,14 @@ public class FilePage implements java.io.Serializable {
         throwable = throwable instanceof EJBException ? throwable.getCause() : throwable;
 
         if (throwable instanceof ValidationException){
-            JsfHelper.addErrorMessage(
-                    BundleUtil.getStringFromBundle("dataset.message.validationError"), "");
+            this.ui.addErrorMessage(
+                    getStringFromBundle("dataset.message.validationError"), "");
         } else if (throwable instanceof UpdateDatasetException){
-            JsfHelper.addErrorMessage(
-                    BundleUtil.getStringFromBundle("dataset.delete.fail"),
+            this.ui.addErrorMessage(
+                    getStringFromBundle("dataset.delete.fail"),
                     throwable.toString());
         } else {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.delete.fail"), "");
+            this.ui.addErrorMessage(getStringFromBundle("dataset.delete.fail"), "");
         }
     }
 
@@ -634,7 +668,8 @@ public class FilePage implements java.io.Serializable {
     }
 
     private String returnToDatasetOnly(Dataset draftDataset) {
-        return "/dataset.xhtml?persistentId=" + draftDataset.getGlobalIdString() + "&version=DRAFT&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + draftDataset.getGlobalIdString() 
+               + "&version=DRAFT&faces-redirect=true";
     }
 
     private String returnToDraftVersion() {
