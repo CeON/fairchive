@@ -72,6 +72,16 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
     private DataAccess dataAccess = DataAccess.dataAccess();
 
     // -------------------- CONSTRUCTORS --------------------
+    public DownloadInstanceWriter() {
+        
+    }
+    public DownloadInstanceWriter(DataConverter dataConverter,
+            WholeDatasetDownloadLogger datasetDownloadLogger,
+            ImageThumbConverter imageThumbConverter) {
+        this.dataConverter = dataConverter;
+        this.datasetDownloadLogger = datasetDownloadLogger;
+        this.imageThumbConverter = imageThumbConverter;
+    }
 
     @Override
     public boolean isWriteable(Class<?> clazz, Type type, Annotation[] annotation, 

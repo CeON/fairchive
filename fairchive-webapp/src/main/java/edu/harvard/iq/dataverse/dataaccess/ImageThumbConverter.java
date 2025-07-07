@@ -73,6 +73,10 @@ public class ImageThumbConverter {
 
     public ImageThumbConverter() {
     }
+    
+    public ImageThumbConverter(final SystemConfig sysConfig) {
+        this.systemConfig = sysConfig;
+    }
 
     public boolean isThumbnailAvailable(DataFile file) {
         return isThumbnailAvailable(file, DEFAULT_THUMBNAIL_SIZE);
