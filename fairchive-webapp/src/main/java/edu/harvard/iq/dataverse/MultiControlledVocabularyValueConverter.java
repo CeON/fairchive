@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse;
 
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 
 import javax.ejb.EJB;
@@ -33,8 +34,13 @@ public class MultiControlledVocabularyValueConverter implements Converter {
         if (value == null || "".equals(value)) {
             return "";
         }
-        return value instanceof ControlledVocabularyValue ?
-                String.valueOf(((ControlledVocabularyValue) value).getId()):
-                String.valueOf(value);
+
+        if (value instanceof ControlledVocabularyValue)
+            return String.valueOf(((ControlledVocabularyValue) value).getStrValue());
+
+        if (value instanceof Suggestion)
+            return String.valueOf(((Suggestion) value).getValue());
+
+        return String.valueOf(value);
     }
 }
