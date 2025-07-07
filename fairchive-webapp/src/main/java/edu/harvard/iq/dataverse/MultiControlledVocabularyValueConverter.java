@@ -24,7 +24,8 @@ public class MultiControlledVocabularyValueConverter implements Converter {
             return "";
         }
 
-        return controlledVocabularyValueServiceBean.findByStrValue(submittedValue).stream().findFirst().orElse(null);
+        Long dataFieldTypeId = (Long)component.getAttributes().get("data-field-id");
+        return controlledVocabularyValueServiceBean.findByStrValue(dataFieldTypeId, submittedValue).stream().findFirst().orElse(null);
     }
 
     @Override
