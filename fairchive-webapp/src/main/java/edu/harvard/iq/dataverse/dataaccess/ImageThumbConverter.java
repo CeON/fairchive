@@ -283,13 +283,15 @@ public class ImageThumbConverter {
             return false;
         }
 
+
         int width = fullSizeImage.getWidth(null);
         int height = fullSizeImage.getHeight(null);
 
         logger.fine("image dimensions: " + width + "x" + height + "(" + storageIO.getStorageLocation() + ")");
 
         OutputStream outputStream = null;
-
+        Channel outputChannel = null;
+        try {
         // With some storage drivers, we can open a WritableChannel, or OutputStream 
         // to directly write the generated thumbnail that we want to cache; 
         // Some drivers (like Swift) do not support that, and will give us an
@@ -300,7 +302,7 @@ public class ImageThumbConverter {
         File tempFile = null;
 
         try {
-            Channel outputChannel = storageIO.openAuxChannel(THUMBNAIL_SUFFIX + size, DataAccessOption.WRITE_ACCESS);
+            outputChannel = storageIO.openAuxChannel(THUMBNAIL_SUFFIX + size, DataAccessOption.WRITE_ACCESS);
             outputStream = Channels.newOutputStream((WritableByteChannel) outputChannel);
             logger.fine("Opened an auxiliary channel/output stream " + THUMBNAIL_SUFFIX + size + " on " + storageIO.getStorageLocation());
         } catch (Exception ioex) {
@@ -340,7 +342,10 @@ public class ImageThumbConverter {
             logger.warning("Failed to rescale and/or save the image: " + ioex.getMessage());
             return false;
         }
-
+        } finally {
+        IOUtils.closeQuietly(inputStream);
+        IOUtils.closeQuietly(outputChannel);
+        }
         return true;
 
     }
