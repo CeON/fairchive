@@ -121,7 +121,7 @@ public class ImageThumbConverterTest {
     }
 
     @Test
-    void getImageThumbnailAsInputStream_canBeCalledBefore_isThumbNailAvailable()
+    void getImageThumbnailAsInputStream_canBeCalledBefore_isThumbnailAvailable()
             throws Exception {
         prepareFile("images/coffeeshop.png");
         InputStreamIO streamIO = null;
@@ -183,6 +183,19 @@ public class ImageThumbConverterTest {
         assertThat(this.converter.getImageThumbnailAsInputStream(this.dataFile, -64))
                 .isNull();
         assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, -64))
+                .isNull();
+    }
+    
+    @Test
+    void thumbnails_areNotAvaileble_whenDisabledInConfig()
+            throws Exception {
+        prepareFile("images/coffeeshop.png");
+        when(this.config.isThumbnailGenerationDisabledForImages()).thenReturn(true);
+        
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, 48)).isFalse();
+        assertThat(this.converter.getImageThumbnailAsInputStream(this.dataFile, 48))
+                .isNull();
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, 48))
                 .isNull();
     }
 

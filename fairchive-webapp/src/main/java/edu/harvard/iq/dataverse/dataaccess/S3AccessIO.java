@@ -46,6 +46,7 @@ import java.net.URLEncoder;
 import java.nio.channels.Channel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -240,6 +241,12 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
         }
 
         return Channels.newChannel(fin);
+    }
+    
+    @Override
+    public OutputStream openAuxOutput(final String auxItemTag) 
+            throws IOException {
+        throw new UnsupportedDataAccessOperationException("S3AccessIO: write mode openAuxChannel() not yet implemented in this storage driver.");
     }
 
     @Override

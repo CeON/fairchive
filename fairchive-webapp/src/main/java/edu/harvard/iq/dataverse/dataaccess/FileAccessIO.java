@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.DirectoryStream;
@@ -150,28 +151,28 @@ public class FileAccessIO<T extends DvObject> extends StorageIO<T> {
     }
 
     @Override
-    public Channel openAuxChannel(String auxItemTag, DataAccessOption... options) throws IOException {
+    public Channel openAuxChannel(final String auxItemTag,
+            final DataAccessOption... options)
+            throws IOException {
 
-        Path auxPath = getAuxObjectAsPath(auxItemTag);
-
+        final Path auxPath = getAuxObjectAsPath(auxItemTag);
         if (isWriteAccessRequested(options)) {
-            FileOutputStream auxOut = new FileOutputStream(auxPath.toFile());
-
-            return auxOut.getChannel();
+            return new FileOutputStream(auxPath.toFile()).getChannel();
+        } else if (auxPath.toFile().exists()) {
+            return new FileInputStream(auxPath.toFile()).getChannel();
+        } else {
+            throw new FileNotFoundException(
+                    "Auxiliary File " + dvObject.getStorageIdentifier() + "."
+                            + auxItemTag + " does not exist.");
         }
-
-        // Read access requested.
-        // Check if this Aux object is cached; and if so, open for reading:
-
-        if (!auxPath.toFile().exists()) {
-            throw new FileNotFoundException("Auxiliary File " + dvObject.getStorageIdentifier() + "." + auxItemTag + " does not exist.");
-        }
-
-        FileInputStream auxIn = new FileInputStream(auxPath.toFile());
-
-        return auxIn.getChannel();
-
     }
+    
+    @Override
+    public OutputStream openAuxOutput(final String auxItemTag) 
+            throws IOException {
+        return Files.newOutputStream(getAuxObjectAsPath(auxItemTag));
+    }
+    
 
     @Override
     public boolean isAuxObjectCached(String auxItemTag) throws IOException {

@@ -20,6 +20,7 @@
 package edu.harvard.iq.dataverse.dataaccess;
 
 import static edu.harvard.iq.dataverse.dataaccess.DataAccessOption.WRITE_ACCESS;
+import static java.io.File.createTempFile;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
@@ -75,7 +76,7 @@ public class ImageThumbConverter {
     public static final int DEFAULT_PREVIEW_SIZE = 400;
 
     @Inject
-    private SystemConfig systemConfig;
+    private SystemConfig config;
     
     private DataAccess dataAccess = DataAccess.dataAccess();
 
@@ -83,7 +84,7 @@ public class ImageThumbConverter {
     }
     
     public ImageThumbConverter(final SystemConfig sysConfig) {
-        this.systemConfig = sysConfig;
+        this.config = sysConfig;
     }
 
     public boolean isThumbnailAvailable(final DataFile file) {
@@ -163,14 +164,17 @@ public class ImageThumbConverter {
         }
 
         Optional<File> tempPdfFile = Optional.empty();
-        File tempThumbnailFile = new File(FileUtils.getTempDirectory(), UUID.randomUUID().toString());
+        File tempThumbnailFile = new File(FileUtils.getTempDirectory(), 
+                UUID.randomUUID().toString());
         Optional<File> sourcePdfFile = Optional.empty();
         try {
-            sourcePdfFile = Optional.of(StorageIOUtils.obtainAsLocalFile(storageIO, storageIO.isRemoteFile()));
+            sourcePdfFile = Optional.of(StorageIOUtils.obtainAsLocalFile(storageIO,
+                    storageIO.isRemoteFile()));
 
             tempPdfFile = storageIO.isRemoteFile() ? sourcePdfFile : Optional.empty();
 
-            generatePDFThumbnailFromFile(sourcePdfFile.get().getAbsolutePath(), size, tempThumbnailFile.getAbsolutePath());
+            generatePDFThumbnailFromFile(sourcePdfFile.get().getAbsolutePath(), 
+                    size, tempThumbnailFile.getAbsolutePath());
 
             if (!tempThumbnailFile.exists()) {
                 return false;
@@ -187,28 +191,23 @@ public class ImageThumbConverter {
         return true;
     }
 
-    private boolean generateImageThumbnail(StorageIO<DataFile> storageIO, int size, long fileSizeFromDatabase) {
+    private boolean generateImageThumbnail(final StorageIO<DataFile> storage,
+            final int size, final long fileSizeFromDatabase) {
 
         if (isImageOverSizeLimit(fileSizeFromDatabase)) {
             return false;
+        } else {
+            try {
+                storage.open();
+                try (final InputStream in = storage.getInputStream()) {
+                    return generateImageThumbnailFromInputStream(storage, size, in);
+                }
+            } catch (final IOException e) {
+                logger.warn("Failed to generate thumbnail for " 
+                            + storage.getFileName(), e);
+                return false;
+            }
         }
-        
-        try {
-            storageIO.open();
-        } catch (IOException e) {
-            logger.warn("caught IOException trying to open storage " 
-                        + storageIO.getStorageLocation() + e);
-            return false;
-        }
-
-        try (InputStream inputStream = storageIO.getInputStream()) {
-            return generateImageThumbnailFromInputStream(storageIO, size, inputStream);
-        } catch (IOException ioex) {
-            logger.warn("caught IOException trying to open an input stream for " 
-                        + storageIO.getStorageLocation() + ioex);
-            return false;
-        }
-
     }
 
     /*
@@ -254,79 +253,39 @@ public class ImageThumbConverter {
         }
     }
 
-    /*
-     * This is the actual workhorse method that does the rescaling of the full
-     * size image:
-     */
-    private boolean generateImageThumbnailFromInputStream(StorageIO<DataFile> storageIO, int size, InputStream inputStream) {
-
-        BufferedImage fullSizeImage;
-
+    private boolean generateImageThumbnailFromInputStream(
+            final StorageIO<DataFile> storageIO, final int size,
+            final InputStream inputStream) {
         try {
-            fullSizeImage = ImageIO.read(inputStream);
-        } catch (Exception ioex) {
-            logger.warn("Caught exception attempting to read the image file with ImageIO.read(InputStream)");
-            return false;
-        }
+            final BufferedImage fullSizeImage = ImageIO.read(inputStream);
+            requireNonNull(fullSizeImage, "Could not read image.");
+            final int width = fullSizeImage.getWidth(null);
+            final int height = fullSizeImage.getHeight(null);
 
-        if (fullSizeImage == null) {
-            logger.warn("could not read image with ImageIO.read()");
-            return false;
-        }
-
-
-        int width = fullSizeImage.getWidth(null);
-        int height = fullSizeImage.getHeight(null);
-
-        OutputStream outputStream = null;
-        Channel outputChannel = null;
-        try {
-        // With some storage drivers, we can open a WritableChannel, or OutputStream 
-        // to directly write the generated thumbnail that we want to cache; 
-        // Some drivers (like Swift) do not support that, and will give us an
-        // "operation not supported" exception. If that's the case, we'll have 
-        // to save the output into a temp file, and then copy it over to the 
-        // permanent storage using the DataAccess IO "save" command: 
-        boolean tempFileRequired = false;
-        File tempFile = null;
-
-        try {
-            outputChannel = storageIO.openAuxChannel(suffix(size), WRITE_ACCESS);
-            outputStream = Channels.newOutputStream((WritableByteChannel) outputChannel);
-        } catch (final Exception e) {
-            logger.warn("Failed to open an auxiliary channel/output stream.", e);
-            tempFileRequired = true;
-        }
-
-        if (tempFileRequired) {
-            try {
-                tempFile = File.createTempFile("tempFileToRescale", ".tmp");
-                outputStream = new FileOutputStream(tempFile);
-            } catch (IOException ioex) {
-                logger.warn("GenerateImageThumb: failed to open a temporary file.");
-                return false;
+            try (final OutputStream out = storageIO.openAuxOutput(suffix(size))) {
+                rescaleImage(fullSizeImage, width, height, size, out);
+            } catch (final Exception e) {
+                // With some storage drivers, we can open a WritableChannel, or
+                // OutputStream
+                // to directly write the generated thumbnail that we want to cache;
+                // Some drivers (like Swift) do not support that, and will give us an
+                // "operation not supported" exception. If that's the case, we'll have
+                // to save the output into a temp file, and then copy it over to the
+                // permanent storage using the DataAccess IO "save" command:
+                final File tempFile = createTempFile("tempFileToRescale", ".tmp");
+                try (final OutputStream out = new FileOutputStream(tempFile)) {
+                    rescaleImage(fullSizeImage, width, height, size, out);
+                    storageIO.savePathAsAux(Paths.get(tempFile.getAbsolutePath()),
+                            suffix(size));
+                } finally {
+                    tempFile.delete();
+                }
             }
-        }
-
-        try {
-
-            rescaleImage(fullSizeImage, width, height, size, outputStream);
-
-            if (tempFileRequired) {
-                storageIO.savePathAsAux(Paths.get(tempFile.getAbsolutePath()), suffix(size));
-                tempFile.delete();
-            }
-
+            return true;
         } catch (final Exception e) {
-            logger.warn("Failed to rescale and/or save the image.", e);
+            logger.warn("Faile to generate thumbnail.", e);
             return false;
         }
-        } finally {
-        closeQuietly(inputStream);
-        closeQuietly(outputChannel);
-        }
-        return true;
-
     }
 
     private boolean isThumbnailCached(StorageIO<DataFile> storageIO, int size) {
@@ -682,24 +641,24 @@ public class ImageThumbConverter {
         return false;
     }
 
-    private boolean isImageOverSizeLimit(long fileSize) {
-        if (systemConfig.isThumbnailGenerationDisabledForImages()) {
+    private boolean isImageOverSizeLimit(final long size) {
+        if (this.config.isThumbnailGenerationDisabledForImages()) {
             return true;
-        }
-        if (systemConfig.getThumbnailSizeLimitImage() == 0) {
+        } else if (this.config.getThumbnailSizeLimitImage() == 0) {
             return false;
+        } else {
+            return size == 0 || size > config.getThumbnailSizeLimitImage();
         }
-        return fileSize == 0 || fileSize > systemConfig.getThumbnailSizeLimitImage();
     }
 
     private boolean isPdfFileOverSizeLimit(long fileSize) {
-        if (systemConfig.isThumbnailGenerationDisabledForPDF()) {
+        if (config.isThumbnailGenerationDisabledForPDF()) {
             return true;
         }
-        if (systemConfig.getThumbnailSizeLimitPDF() == 0) {
+        if (config.getThumbnailSizeLimitPDF() == 0) {
             return false;
         }
-        return fileSize == 0 || fileSize > systemConfig.getThumbnailSizeLimitPDF();
+        return fileSize == 0 || fileSize > config.getThumbnailSizeLimitPDF();
     }
 
     private boolean isImageMagickInstalled() {
