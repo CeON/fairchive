@@ -1,12 +1,16 @@
 package edu.harvard.iq.dataverse.dataaccess;
 
+import static edu.harvard.iq.dataverse.UnitTestUtils.copyFileFromClasspath;
+import static edu.harvard.iq.dataverse.UnitTestUtils.readFileToByteArray;
 import static edu.harvard.iq.dataverse.util.SystemConfig.FILES_DIRECTORY;
 import static java.nio.file.Files.createDirectories;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,9 +21,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
-import edu.harvard.iq.dataverse.UnitTestUtils;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -27,7 +28,7 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @ExtendWith(MockitoExtension.class)
 public class ImageThumbConverterTest {
-    
+
     private static final String DATASET_STORAGE_ID = "file://10.1010/FK2/ABCD";
     private static final String DATAFILE_STORAGE_ID = "datafilestorageid";
 
@@ -37,7 +38,7 @@ public class ImageThumbConverterTest {
     private ImageThumbConverter converter;
     @Mock
     private SystemConfig config;
-    
+
     private final DataFile dataFile = new DataFile();
 
     @BeforeEach
@@ -50,122 +51,211 @@ public class ImageThumbConverterTest {
 
         this.dataFile.setOwner(dataset);
         this.dataFile.setStorageIdentifier(DATAFILE_STORAGE_ID);
+        this.dataFile.setContentType("image/png");
+        final FileMetadata fileMetadata = new FileMetadata();
+        fileMetadata.setLabel("image.png");
+        this.dataFile.setFileMetadatas(singletonList(fileMetadata));
     }
 
     // -------------------- TESTS --------------------
-
     @Test
-    void isThumbnailAvailable() throws IOException {
-        // given
-        this.dataFile.setContentType("image/png");
-        copyFromClasspath("images/coffeeshop.png", getDataFilePath());
-
-        // when
-        boolean thumbnailAvailable = this.converter.isThumbnailAvailable(this.dataFile);
-
-        // then
-        assertThat(thumbnailAvailable).isTrue();
-        assertThat(getDatasetDir().resolve("datafilestorageid.thumb64")).hasBinaryContent(
-                UnitTestUtils.readFileToByteArray("images/coffeeshop_thumbnail_64.png"));
+    void isThumbnailAvaileble_throwsNullPointer_whenGivenNull()
+            throws Exception {
+        assertThrows(NullPointerException.class,
+                () -> this.converter.isThumbnailAvailable(null));
     }
 
     @Test
-    void isThumbnailAvailable_different_size() throws IOException {
-        // given
-        this.dataFile.setContentType("image/png");
-        copyFromClasspath("images/coffeeshop.png", getDataFilePath());
-
-        // when
-        boolean thumbnailAvailable = this.converter.isThumbnailAvailable(this.dataFile, 48);
-
-        // then
-        assertThat(thumbnailAvailable).isTrue();
-        assertThat(getDatasetDir().resolve("datafilestorageid.thumb48")).hasBinaryContent(
-                UnitTestUtils.readFileToByteArray("images/coffeeshop_thumbnail_48.png"));
+    void getImageThumbnailAsInputStream_throwsNullPointer_whenGivenNull()
+            throws Exception {
+        assertThrows(NullPointerException.class,
+                () -> this.converter.getImageThumbnailAsInputStream(null, 48));
     }
 
     @Test
-    void isThumbnailAvailable__image_too_big() throws IOException {
-        // given
-        this.dataFile.setContentType("image/png");
+    void isThumbNailAvailable_and_getImageThumbnailAsInputStream_canBeCalledAlternately()
+            throws Exception {
+        prepareFile("images/coffeeshop.png");
+        InputStreamIO streamIO = null;
+
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, 48)).isTrue();
+
+        streamIO = this.converter.getImageThumbnailAsInputStream(this.dataFile, 48);
+
+        assertThat(streamIO.getInputStream()).hasBinaryContent(
+                readFileToByteArray("images/coffeeshop_thumbnail_48.png"));
+        assertThat(streamIO.getSize()).isEqualTo(4779);
+        assertThat(streamIO.getMimeType()).isEqualTo("image/png");
+        assertThat(streamIO.getFileName()).isEqualTo("image.png");
+
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, 48))
+                .startsWith("data:image/png;base64,");
+
+        // calling these methods again returns the same results
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, 48)).isTrue();
+
+        streamIO = this.converter.getImageThumbnailAsInputStream(this.dataFile, 48);
+
+        assertThat(streamIO.getInputStream()).hasBinaryContent(
+                readFileToByteArray("images/coffeeshop_thumbnail_48.png"));
+        assertThat(streamIO.getSize()).isEqualTo(4779);
+        assertThat(streamIO.getMimeType()).isEqualTo("image/png");
+        assertThat(streamIO.getFileName()).isEqualTo("image.png");
+
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, 48))
+                .startsWith("data:image/png;base64,");
+
+        // existence of thumbnails of different size does not impact other sizes
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, 64)).isTrue();
+
+        streamIO = this.converter.getImageThumbnailAsInputStream(this.dataFile, 64);
+
+        assertThat(streamIO.getInputStream()).hasBinaryContent(
+                readFileToByteArray("images/coffeeshop_thumbnail_64.png"));
+        assertThat(streamIO.getSize()).isEqualTo(8307);
+        assertThat(streamIO.getMimeType()).isEqualTo("image/png");
+        assertThat(streamIO.getFileName()).isEqualTo("image.png");
+
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, 64))
+                .startsWith("data:image/png;base64,");
+    }
+
+    @Test
+    void getImageThumbnailAsInputStream_canBeCalledBefore_isThumbNailAvailable()
+            throws Exception {
+        prepareFile("images/coffeeshop.png");
+        InputStreamIO streamIO = null;
+
+        streamIO = this.converter.getImageThumbnailAsInputStream(this.dataFile, 64);
+
+        assertThat(streamIO.getInputStream()).hasBinaryContent(
+                readFileToByteArray("images/coffeeshop_thumbnail_64.png"));
+        assertThat(streamIO.getSize()).isEqualTo(8307);
+        assertThat(streamIO.getMimeType()).isEqualTo("image/png");
+        assertThat(streamIO.getFileName()).isEqualTo("image.png");
+
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, 64))
+                .startsWith("data:image/png;base64,");
+
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, 64)).isTrue();
+    }
+
+    @Test
+    void thumbnails_areNotAvaileble_forTooBigImages()
+            throws Exception {
         this.dataFile.setFilesize(543938);
-        copyFromClasspath("images/coffeeshop.png", getDataFilePath());
         when(this.config.getThumbnailSizeLimitImage()).thenReturn(100L);
+        prepareFile("images/coffeeshop.png");
 
-        // when
-        boolean thumbnailAvailable = this.converter.isThumbnailAvailable(this.dataFile);
-
-        // then
-        assertThat(thumbnailAvailable).isFalse();
-        assertThat(getDatasetDir().resolve("datafilestorageid.thumb64")).doesNotExist();
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, 64)).isFalse();
+        assertThat(this.converter.getImageThumbnailAsInputStream(this.dataFile, 64))
+                .isNull();
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, 64))
+                .isNull();
     }
 
     @Test
-    void isThumbnailAvailable__not_supported_content_type() throws IOException {
-        // given
-        this.dataFile.setContentType("text/plain");
-        copyFromClasspath("images/sample.txt", getDataFilePath());
+    void thumbnails_areNotAvaileble_forNonImageFiles()
+            throws Exception {
+        this.dataFile.setContentType("text/json");
+        prepareFile("txt/util/jsondata.txt");
 
-        // when
-        boolean thumbnailAvailable = this.converter.isThumbnailAvailable(this.dataFile);
-
-        // then
-        assertThat(thumbnailAvailable).isFalse();
-        assertThat(getDatasetDir().resolve("datafilestorageid.thumb64")).doesNotExist();
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, 64)).isFalse();
+        assertThat(this.converter.getImageThumbnailAsInputStream(this.dataFile, 64))
+                .isNull();
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, 64))
+                .isNull();
     }
 
     @Test
-    void getImageThumbnailAsInputStream() throws IOException {
-        // given
-        this.dataFile.setContentType("image/png");
-        FileMetadata fileMetadata = new FileMetadata();
-        fileMetadata.setLabel("image.png");
-        this.dataFile.setFileMetadatas(Lists.newArrayList(fileMetadata));
-
-        copyFromClasspath("images/coffeeshop.png", getDataFilePath());
-
-        // when
-        InputStreamIO thumbnailStreamIO = this.converter.getImageThumbnailAsInputStream(this.dataFile, 48);
-
-        // then
-        assertThat(thumbnailStreamIO.getInputStream())
-            .hasBinaryContent(UnitTestUtils.readFileToByteArray("images/coffeeshop_thumbnail_48.png"));
-        assertThat(thumbnailStreamIO.getFileName()).isEqualTo("image.png");
-        assertThat(thumbnailStreamIO.getSize()).isEqualTo(4779);
-        assertThat(thumbnailStreamIO.getMimeType()).isEqualTo("image/png");
-        assertThat(getDatasetDir().resolve("datafilestorageid.thumb48")).hasBinaryContent(
-                UnitTestUtils.readFileToByteArray("images/coffeeshop_thumbnail_48.png"));
+    void thumbnails_areNotAvaileble_forZeroSizes()
+            throws Exception {
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, 0)).isFalse();
+        assertThat(this.converter.getImageThumbnailAsInputStream(this.dataFile, 0))
+                .isNull();
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, 0))
+                .isNull();
     }
 
     @Test
-    void getImageThumbnailAsBase64() throws IOException {
-        // given
-        this.dataFile.setContentType("image/png");
-        copyFromClasspath("images/coffeeshop.png", getDataFilePath());
-
-        // when
-        String thumbnailBase64 = this.converter.getImageThumbnailAsBase64(this.dataFile, 48);
-
-        // then
-        assertThat(thumbnailBase64)
-            .startsWith("data:image/png;base64,")
-            .hasSizeGreaterThan("data:image/png;base64,".length());
-        assertThat(getDatasetDir().resolve("datafilestorageid.thumb48")).hasBinaryContent(
-                UnitTestUtils.readFileToByteArray("images/coffeeshop_thumbnail_48.png"));
+    void thumbnails_areNotAvaileble_forNegativeSizes() throws Exception {
+        assertThat(this.converter.isThumbnailAvailable(this.dataFile, -48)).isFalse();
+        assertThat(this.converter.getImageThumbnailAsInputStream(this.dataFile, -64))
+                .isNull();
+        assertThat(this.converter.getImageThumbnailAsBase64(this.dataFile, -64))
+                .isNull();
     }
 
-    // -------------------- PRIVATE --------------------
+    @Test
+    void getImageAsBase64FromFile_throwsNullPointer_whenGivenNull() {
+        assertThrows(NullPointerException.class,
+                () -> this.converter.getImageAsBase64FromFile(null));
+    }
 
-    private void copyFromClasspath(final String classpath, final Path target) 
+    @Test
+    void getImageAsBase64FromFile_returnsNull_whenGivenInexistentFile()
             throws IOException {
-        Files.write(target, UnitTestUtils.readFileToByteArray(classpath));
+        assertThat(this.converter.getImageAsBase64FromFile(new File("inexistent")))
+                .isNull();
     }
-    
+
+//--
+    @Test
+    void getImageAsBase64FromFile_works_whenGivenImageFile()
+            throws Exception {
+        prepareFile("images/coffeeshop.png");
+
+        assertThat(this.converter.getImageAsBase64FromFile(getFilePath()))
+                .startsWith("data:image/png;base64,");
+    }
+
+    @Test
+    void generateImageThumbnailFromFileAsBase64_throwsNullPointer_whenGivenNull() {
+        assertThrows(NullPointerException.class,
+                () -> this.converter.generateImageThumbnailFromFileAsBase64(null, 48));
+    }
+
+    @Test
+    void generateImageThumbnailFromFileAsBase64_returnsNull_whenGivenInexistentFile()
+            throws IOException {
+        assertThat(this.converter
+                .generateImageThumbnailFromFileAsBase64(new File("inexistent"), 48))
+                .isNull();
+    }
+
+    @Test
+    void generateImageThumbnailFromFileAsBase64_returnsNull_whenGivenZeroSize()
+            throws IOException {
+        assertThat(this.converter.generateImageThumbnailFromFileAsBase64(getFilePath(), 0))
+                .isNull();
+    }
+
+    @Test
+    void generateImageThumbnailFromFileAsBase64_returnsNull_whenGivenNegativeSize()
+            throws IOException {
+        assertThat(this.converter.generateImageThumbnailFromFileAsBase64(getFilePath(), -1))
+                .isNull();
+    }
+
+    @Test
+    void generateImageThumbnailFromFileAsBase64_works_whenGivenImageFile()
+            throws Exception {
+        prepareFile("images/coffeeshop.png");
+
+        assertThat(this.converter.generateImageThumbnailFromFileAsBase64(getFilePath(), 48))
+                .startsWith("data:image/png;base64,");
+    }
+
+    // --------------------------------------------------------------------------
     private Path getDatasetDir() {
         return this.dir.resolve("10.1010").resolve("FK2").resolve("ABCD");
     }
-    
-    private Path getDataFilePath() {
-        return getDatasetDir().resolve(DATAFILE_STORAGE_ID);
+
+    private void prepareFile(final String name) throws Exception {
+        copyFileFromClasspath(name, getDatasetDir().resolve(DATAFILE_STORAGE_ID));
+    }
+
+    private File getFilePath() {
+        return getDatasetDir().resolve(DATAFILE_STORAGE_ID).toFile();
     }
 }
