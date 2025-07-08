@@ -20,6 +20,7 @@
 package edu.harvard.iq.dataverse.dataaccess;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -40,6 +41,7 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -84,14 +86,14 @@ public class ImageThumbConverter {
         this.systemConfig = sysConfig;
     }
 
-    public boolean isThumbnailAvailable(DataFile file) {
+    public boolean isThumbnailAvailable(final DataFile file) {
         return isThumbnailAvailable(file, DEFAULT_THUMBNAIL_SIZE);
     }
 
     public boolean isThumbnailAvailable(final DataFile file, final int size) {
         requireNonNull(file);
         if (FileUtil.isThumbnailSupported(file)) {
-            try (final StorageIO<DataFile> storageIO = this.dataAccess.getStorageIO(file)) {
+            try (final StorageIO<DataFile> storageIO = getStorage(file)) {
                 if (isThumbnailCached(storageIO, size)) {
                     return true;
                 } else if (isImage(file)) {
@@ -124,38 +126,26 @@ public class ImageThumbConverter {
     // Note that this method is mainly used by the data access API methods. 
     // Whenever a page needs a thumbnail, we prefer to rely on the Base64
     // string version.
-    public InputStreamIO getImageThumbnailAsInputStream(DataFile datafile, int size) {
+    public InputStreamIO getImageThumbnailAsInputStream(final DataFile datafile,
+            final int size) {
+        if (isThumbnailAvailable(datafile, size)) {
+            InputStream in = null;
+            try (final StorageIO<DataFile> storageIO = getStorage(datafile)) {
+                in = storageIO.getAuxFileAsInputStream(suffix(size));
+                requireNonNull(in, "Null input stream.");
+                final int fileSize = (int) storageIO.getAuxObjectSize(suffix(size));
 
-        if (!isThumbnailAvailable(datafile, size)) {
-            return null;
-        }
-
-        // If we got that far, it's now reasonable to expect that the thumbnail 
-        // has been generated cached. 
-        InputStream cachedThumbnailInputStream = null;
-
-        try (final StorageIO<DataFile> storageIO = dataAccess.getStorageIO(datafile)) {
-            storageIO.open();
-            cachedThumbnailInputStream = storageIO.getAuxFileAsInputStream(THUMBNAIL_SUFFIX + size);
-            if (cachedThumbnailInputStream == null) {
-                logger.warn("Null stream for aux object " + THUMBNAIL_SUFFIX + size);
+                String fileName = storageIO.getFileName();
+                if (fileName != null) {
+                    fileName = fileName.replaceAll("\\.[^\\.]*$", ".png");
+                }
+                return new InputStreamIO(in, fileSize, fileName, THUMBNAIL_MIME_TYPE);
+            } catch (Exception e) {
+                logger.warn("Thumbnail retrieval failed.", e);
+                closeQuietly(in);
                 return null;
             }
-            int cachedThumbnailSize = (int) storageIO.getAuxObjectSize(THUMBNAIL_SUFFIX + size);
-
-            String fileName = storageIO.getFileName();
-            if (fileName != null) {
-                fileName = fileName.replaceAll("\\.[^\\.]*$", ".png");
-            }
-
-            return new InputStreamIO(cachedThumbnailInputStream, cachedThumbnailSize, fileName, THUMBNAIL_MIME_TYPE);
-        } catch (Exception ioex) {
-            if (cachedThumbnailInputStream != null) {
-                try {
-                    cachedThumbnailInputStream.close();
-                } catch (IOException e) {
-                }
-            }
+        } else {
             return null;
         }
     }
@@ -751,6 +741,22 @@ public class ImageThumbConverter {
     private static boolean isShape(final DataFile file) {
         return file.getContentType().equalsIgnoreCase("application/zipped-shapefile")
                 || (file.isTabularData() && file.hasGeospatialTag());
+    }
+    
+    private StorageIO<DataFile> getStorage(final DataFile file)
+            throws IOException {
+        return this.dataAccess.getStorageIO(file);
+    }
+    
+    private static String suffix(final int size) {
+        switch (size) {
+        case 48:
+            return "thumb48";
+        case 64:
+            return "thumb64";
+        default:
+            return "thumb" + size;
+        }
     }
 
     private String findImageMagickConvert() {
