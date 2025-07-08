@@ -412,17 +412,13 @@ public class ImageThumbConverter {
      * a File; it's used for generating Dataverse and Dataset thumbnails
      * from usr-uploaded images (i.e., from files not associated with datafiles)
      */
-    public String getImageAsBase64FromFile(File imageFile) {
-
-        try (InputStream imageInputStream = new FileInputStream(imageFile)) {
-
-            return getImageAsBase64FromInputStream(imageInputStream); //, imageSize);
-        } catch (IOException ex) {
-            // too bad - but not fatal
-            logger.warn("getImageAsBase64FromFile: Failed to read data from thumbnail file");
+    public String getImageAsBase64FromFile(final File file) {
+        try (final InputStream in = new FileInputStream(file)) {
+            return getImageAsBase64FromInputStream(in);
+        } catch (final IOException e) {
+            logger.warn("Failed to read thumbnail for " + file, e);
+            return null;
         }
-
-        return null;
     }
 
     /*
