@@ -19,8 +19,12 @@
  */
 package edu.harvard.iq.dataverse.dataaccess;
 
-import static edu.harvard.iq.dataverse.dataaccess.DataAccessOption.WRITE_ACCESS;
+import static java.awt.Image.SCALE_FAST;
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static java.io.File.createTempFile;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.newInputStream;
+import static java.nio.file.Files.size;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
@@ -39,7 +43,8 @@ import java.io.OutputStream;
 import java.nio.channels.Channel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Iterator;
@@ -95,7 +100,7 @@ public class ImageThumbConverter {
         requireNonNull(file);
         if (FileUtil.isThumbnailSupported(file)) {
             try (final StorageIO<DataFile> storageIO = getStorage(file)) {
-                if (isThumbnailCached(storageIO, size)) {
+                if (storageIO.isAuxObjectCached(suffix(size))) {
                     return true;
                 } else if (isImage(file)) {
                     return generateImageThumbnail(storageIO, size,
@@ -265,6 +270,7 @@ public class ImageThumbConverter {
             try (final OutputStream out = storageIO.openAuxOutput(suffix(size))) {
                 rescaleImage(fullSizeImage, width, height, size, out);
             } catch (final Exception e) {
+                logger.warn("Exception during thumbnail generation.", e);
                 // With some storage drivers, we can open a WritableChannel, or
                 // OutputStream
                 // to directly write the generated thumbnail that we want to cache;
@@ -283,22 +289,9 @@ public class ImageThumbConverter {
             }
             return true;
         } catch (final Exception e) {
-            logger.warn("Faile to generate thumbnail.", e);
+            logger.warn("Faild to generate thumbnail.", e);
             return false;
         }
-    }
-
-    private boolean isThumbnailCached(StorageIO<DataFile> storageIO, int size) {
-        boolean cached;
-        try {
-            cached = storageIO.isAuxObjectCached(suffix(size));
-        } catch (final Exception e) {
-            logger.warn("caught Exception while checking for a cached thumbnail (file " 
-                        + storageIO.getStorageLocation() + ")", e);
-            return false;
-        }
-
-        return cached;
     }
 
     /**
@@ -439,44 +432,32 @@ public class ImageThumbConverter {
      * datafiles, etc.
      *
      */
-    public boolean generateImageThumbnailFromFile(String fileLocation, 
-            int size, String thumbFileLocation) {
-
-        // see if the thumb is already generated and saved:
-        if (new File(thumbFileLocation).exists()) {
-            return true;
-        }
-
-        // if not, let's attempt to generate the thumb:
-        // (but only if the size is below the limit, or there is no limit...
-        long fileSize = new File(fileLocation).length();
-
-        if (isImageOverSizeLimit(fileSize)) {
-            return false;
-        }
-
-        try {
-            BufferedImage fullSizeImage = ImageIO.read(new File(fileLocation));
-
-            if (fullSizeImage == null) {
-                logger.warn("could not read image with ImageIO.read()");
+    public boolean generateImageThumbnailFromFile(final String fileLocation,
+            final int size, final String thumbFileLocation) {
+        final Path thumb = Paths.get(thumbFileLocation);
+        if (exists(thumb)) {
+            return true; // already generated
+        } else {
+            try {
+                final Path image = Paths.get(fileLocation);
+                if (isImageOverSizeLimit(size(image))) {
+                    return false;
+                } else {
+                    try (final InputStream in = newInputStream(image)) {
+                        final BufferedImage fullSizeImage = ImageIO.read(in);
+                        requireNonNull(fullSizeImage, "Cannot read image.");
+                        final int width = fullSizeImage.getWidth(null);
+                        final int height = fullSizeImage.getHeight(null);
+                        rescaleImage(fullSizeImage, width, height, size,
+                                thumbFileLocation);
+                        return exists(thumb);
+                    }
+                }
+            } catch (final Exception e) {
+                logger.warn("Thumbnail creation failed for " + fileLocation, e);
                 return false;
             }
-
-            int width = fullSizeImage.getWidth(null);
-            int height = fullSizeImage.getHeight(null);
-
-            rescaleImage(fullSizeImage, width, height, size, thumbFileLocation);
-
-            if (new File(thumbFileLocation).exists()) {
-                return true;
-            }
-        } catch (Exception e) {
-            logger.warn("Failed to read in an image from " + 
-                    fileLocation + ": " + e.getMessage());
         }
-        return false;
-
     }
 
     /*
@@ -531,52 +512,49 @@ public class ImageThumbConverter {
         return true;
     }
 
-    private void rescaleImage(BufferedImage fullSizeImage, int width, 
-            int height, int size, OutputStream outputStream) throws IOException {
+    private void rescaleImage(final BufferedImage image, final int width,
+            final int height, final int size, final OutputStream out)
+            throws IOException {
 
-        double scaleFactor = 0.0;
         int thumbHeight = size;
         int thumbWidth = size;
 
         if (width > height) {
-            scaleFactor = ((double) size) / (double) width;
+            final double scaleFactor = ((double) size) / (double) width;
             thumbHeight = (int) (height * scaleFactor);
         } else {
-            scaleFactor = ((double) size) / (double) height;
+            final double scaleFactor = ((double) size) / (double) height;
             thumbWidth = (int) (width * scaleFactor);
         }
 
         // If we are willing to spend a few extra CPU cycles to generate
-        // better-looking thumbnails, we can the SCALE_SMOOTH flag. 
-        Image thumbImage = fullSizeImage.getScaledInstance(thumbWidth, thumbHeight, java.awt.Image.SCALE_FAST);
+        // better-looking thumbnails, we can the SCALE_SMOOTH flag.
+        final Image thumbImage = image.getScaledInstance(thumbWidth, thumbHeight,
+                SCALE_FAST);
+        final ImageWriter writer = getPNGWriter();
 
-        ImageWriter writer = null;
-        Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("png");
-        if (iter.hasNext()) {
-            writer =  iter.next();
-        } else {
-            throw new IOException("Failed to locatie ImageWriter plugin for image type PNG");
-        }
-
-        BufferedImage lowRes = new BufferedImage(thumbWidth, thumbHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = lowRes.createGraphics();
+        final BufferedImage lowRes = new BufferedImage(thumbWidth, thumbHeight,
+                TYPE_INT_ARGB);
+        final Graphics2D g2 = lowRes.createGraphics();
         g2.drawImage(thumbImage, 0, 0, null);
         g2.dispose();
-
         try {
-            ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream);
+            final ImageOutputStream ios = ImageIO.createImageOutputStream(out);
             writer.setOutput(ios);
-
-            // finally, save thumbnail image:
             writer.write(lowRes);
+        } finally {
             writer.dispose();
-
-            ios.close();
             thumbImage.flush();
             lowRes.flush();
-        } catch (Exception ex) {
-            logger.warn("Caught exception trying to generate thumbnail: " + ex.getMessage());
-            throw new IOException("Caught exception trying to generate thumbnail: " + ex.getMessage());
+        }
+    }
+    
+    private static ImageWriter getPNGWriter() throws IOException{
+        final Iterator<ImageWriter> it = ImageIO.getImageWritersByFormatName("png");
+        if (it.hasNext()) {
+            return it.next();
+        } else {
+            throw new IOException("Failed to locatie ImageWriter plugin for image type PNG");
         }
     }
 
