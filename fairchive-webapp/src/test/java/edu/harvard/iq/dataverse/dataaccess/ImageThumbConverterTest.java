@@ -256,7 +256,7 @@ public class ImageThumbConverterTest {
         prepareFile("images/coffeeshop.png");
 
         assertThat(this.converter.generateImageThumbnailFromFileAsBase64(getFilePath(), 48))
-                .startsWith("data:image/png;base64,");
+                .startsWith("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAA");
     }
 
     // --------------------------------------------------------------------------

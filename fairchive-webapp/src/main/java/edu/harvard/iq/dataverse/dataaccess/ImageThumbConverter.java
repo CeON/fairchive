@@ -27,6 +27,7 @@ import static java.nio.file.Files.newInputStream;
 import static java.nio.file.Files.size;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -43,7 +44,6 @@ import java.io.OutputStream;
 import java.nio.channels.Channel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
@@ -99,17 +99,17 @@ public class ImageThumbConverter {
     public boolean isThumbnailAvailable(final DataFile file, final int size) {
         requireNonNull(file);
         if (FileUtil.isThumbnailSupported(file)) {
-            try (final StorageIO<DataFile> storageIO = getStorage(file)) {
-                if (storageIO.isAuxObjectCached(suffix(size))) {
+            try (final StorageIO<DataFile> storage = getStorage(file)) {
+                if (storage.isAuxObjectCached(suffix(size))) {
                     return true;
                 } else if (isImage(file)) {
-                    return generateImageThumbnail(storageIO, size,
+                    return generateImageThumbnail(storage, size,
                             file.getFilesize());
                 } else if (isPDF(file)) {
-                    return generatePDFThumbnail(storageIO, size,
+                    return generatePDFThumbnail(storage, size,
                             file.getFilesize());
                 } else if (isShape(file)) {
-                    return generateWorldMapThumbnail(storageIO, size);
+                    return generateWorldMapThumbnail(storage, size);
                 } else {
                     return false;
                 }
@@ -134,21 +134,31 @@ public class ImageThumbConverter {
     // string version.
     public InputStreamIO getImageThumbnailAsInputStream(final DataFile datafile,
             final int size) {
-        if (isThumbnailAvailable(datafile, size)) {
-            InputStream in = null;
-            try (final StorageIO<DataFile> storageIO = getStorage(datafile)) {
-                in = storageIO.getAuxFileAsInputStream(suffix(size));
-                requireNonNull(in, "Null input stream.");
-                final int fileSize = (int) storageIO.getAuxObjectSize(suffix(size));
+        requireNonNull(datafile);
+        InputStream in = null;
+        try (final StorageIO<DataFile> storageIO = getStorage(datafile)) {
+            in = getThumbnailStream(datafile, size);
+            requireNonNull(in, "Null input stream.");
+            final int fileSize = (int) storageIO.getAuxObjectSize(suffix(size));
 
-                String fileName = storageIO.getFileName();
-                if (fileName != null) {
-                    fileName = fileName.replaceAll("\\.[^\\.]*$", ".png");
-                }
-                return new InputStreamIO(in, fileSize, fileName, THUMBNAIL_MIME_TYPE);
+            String fileName = storageIO.getFileName();
+            if (fileName != null) {
+                fileName = fileName.replaceAll("\\.[^\\.]*$", ".png");
+            }
+            return new InputStreamIO(in, fileSize, fileName, THUMBNAIL_MIME_TYPE);
+        } catch (Exception e) {
+            logger.warn("Thumbnail retrieval failed.", e);
+            closeQuietly(in);
+            return null;
+        }
+    }
+    
+    private InputStream getThumbnailStream(final DataFile datafile, final int size) {
+        if (isThumbnailAvailable(datafile, size)) {
+            try (final StorageIO<DataFile> storageIO = getStorage(datafile)) {
+                return storageIO.getAuxFileAsInputStream(suffix(size));
             } catch (Exception e) {
                 logger.warn("Thumbnail retrieval failed.", e);
-                closeQuietly(in);
                 return null;
             }
         } else {
@@ -300,105 +310,28 @@ public class ImageThumbConverter {
      * "data:image/png;base64," but it is not suitable for returning a
      * downloadable image via an API call.
      */
-    public String getImageThumbnailAsBase64(DataFile file, int size) {
-
-        // if thumbnails are not even supported on this file type, no need
-        // to check anything else:
-        if (!FileUtil.isThumbnailSupported(file)) {
+    public String getImageThumbnailAsBase64(final DataFile file, final int size) {
+        try(final InputStream in = getThumbnailStream(file, size)) {
+            requireNonNull(in);
+            return getImageAsBase64FromInputStream(in);
+        } catch (final Exception e) {
+            logger.warn("Faild to retrieve thumbnail.", e);
             return null;
         }
-
-        StorageIO<DataFile> storageIO = null;
-
-        try {
-            storageIO = DataAccess.dataAccess().getStorageIO(file);
-        } catch (Exception ioEx) {
-            logger.warn("Caught an exception while trying to obtain a thumbnail as Base64 string - could not open StorageIO on the datafile.");
-            return null;
-        }
-
-        // skip the "isAvailable()" check - and just try to open the cached object. 
-        // if we can't open it, then we'll try to generate it. In other words, we are doing it in 
-        // the reverse order - and his way we can save one extra lookup, for a thumbnail 
-        // that's already cached - and on some storage media (specifically, S3)
-        // lookups are actually more expensive than reads. 
-
-        Channel cachedThumbnailChannel = null;
-        try {
-            cachedThumbnailChannel = storageIO.openAuxChannel(suffix(size));
-        } catch (Exception ioEx) {
-            cachedThumbnailChannel = null;
-        }
-
-        if (cachedThumbnailChannel == null) {
-
-            // try to generate, if not available: 
-            boolean generated = false;
-            if (file.getContentType().substring(0, 6).equalsIgnoreCase("image/")) {
-                generated = generateImageThumbnail(storageIO, size, file.getFilesize());
-            } else if (file.getContentType().equalsIgnoreCase("application/pdf")) {
-                generated = generatePDFThumbnail(storageIO, size, file.getFilesize());
-            } else if (file.getContentType().equalsIgnoreCase("application/zipped-shapefile") 
-                    || (file.isTabularData() && file.hasGeospatialTag())) {
-                generated = generateWorldMapThumbnail(storageIO, size);
-            }
-
-            if (generated) {
-                // try to open again: 
-                try {
-                    cachedThumbnailChannel = storageIO.openAuxChannel(suffix(size));
-                } catch (Exception ioEx) {
-                    cachedThumbnailChannel = null;
-                }
-            }
-
-            // if still null - give up:
-            if (cachedThumbnailChannel == null) {
-                return null;
-            }
-        }
-
-        InputStream cachedThumbnailInputStream = 
-                Channels.newInputStream((ReadableByteChannel) cachedThumbnailChannel);
-
-        return getImageAsBase64FromInputStream(cachedThumbnailInputStream); 
-
     }
-
-    private String getImageAsBase64FromInputStream(InputStream inputStream) { 
-        try {
-            if (inputStream != null) {
-
-                byte[] buffer = new byte[8192];
-                ByteArrayOutputStream cachingByteStream = new ByteArrayOutputStream();
-                int bytes = 0;
-                int total = 0;
-
-                // No, you don't want to try and inputStream.read() the entire thumbSize
-                // bytes at once; it's a thumbnail, but it can still be several K in size. 
-                // And with some input streams - notably, with swift - you CANNOT read 
-                // more than 8192 bytes in one .read().
-
-                while ((bytes = inputStream.read(buffer)) > -1) {
-                    cachingByteStream.write(buffer, 0, bytes);
-                    total += bytes;
-                }
-
-                String imageDataBase64 = Base64.getEncoder().encodeToString(cachingByteStream.toByteArray());
-                return FileUtil.DATA_URI_SCHEME + imageDataBase64;
-            }
-        } catch (IOException ex) {
-            logger.warn("getImageAsBase64FromFile: Failed to read data from input stream.");
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (Exception e) {
-                }
-            }
-        }
-
-        return null;
+    
+    private String getImageAsBase64FromInputStream(final InputStream in)
+            throws IOException {
+        final ByteArrayOutputStream result = new ByteArrayOutputStream(10000);
+        result.write(FileUtil.DATA_URI_SCHEME.getBytes());
+        final OutputStream encoder = Base64.getEncoder().wrap(result);
+        // No, you don't want to try and inputStream.read() the entire thumbSize
+        // bytes at once; it's a thumbnail, but it can still be several K in size.
+        // And with some input streams - notably, with swift - you CANNOT read
+        // more than 8192 bytes in one .read().
+        copy(in, encoder, 8192);
+        encoder.flush();
+        return result.toString();
     }
 
     /**
