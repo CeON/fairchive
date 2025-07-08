@@ -41,9 +41,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.Channel;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
@@ -58,7 +55,6 @@ import javax.imageio.stream.ImageOutputStream;
 import javax.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -208,7 +204,6 @@ public class ImageThumbConverter {
 
     private boolean generateImageThumbnail(final StorageIO<DataFile> storage,
             final int size, final long fileSizeFromDatabase) {
-
         if (isImageOverSizeLimit(fileSizeFromDatabase)) {
             return false;
         } else {
@@ -415,30 +410,16 @@ public class ImageThumbConverter {
     // Public version of the rescaleImage() method; it takes the location of the output
     // file as a string argument. This method is used by external utilities for 
     // rescaling the non-datafile Dataverse and Dataset logos. 
-    public boolean rescaleImage(BufferedImage fullSizeImage, int width, 
-            int height, int size, String thumbFileLocation) {
-        File outputFile = new File(thumbFileLocation);
-        OutputStream outputFileStream = null;
-
-        try {
-            outputFileStream = new FileOutputStream(outputFile);
-        } catch (IOException ioex) {
-            logger.warn("caught IO exception trying to open output stream for " 
-        + thumbFileLocation);
+    public boolean rescaleImage(final BufferedImage fullSizeImage,
+            final int width, final int height, final int size,
+            final String thumbFileLocation) {
+        try (final OutputStream out = new FileOutputStream(thumbFileLocation)) {
+            rescaleImage(fullSizeImage, width, height, size, out);
+            return true;
+        } catch (final Exception e) {
+            logger.warn("Rescaling image failed.", e);
             return false;
         }
-
-        try {
-            rescaleImage(fullSizeImage, width, height, size, outputFileStream);
-        } catch (Exception ioex) {
-            logger.warn("caught Exceptiopn trying to create rescaled image " 
-        + thumbFileLocation);
-            return false;
-        } finally {
-            IOUtils.closeQuietly(outputFileStream);
-        }
-
-        return true;
     }
 
     private void rescaleImage(final BufferedImage image, final int width,
