@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.file.Path;
 
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -25,6 +26,7 @@ import edu.harvard.iq.dataverse.dataaccess.DataConverter;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.datafile.page.WholeDatasetDownloadLogger;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.rserve.RemoteDataFrameService;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -100,10 +102,48 @@ public class DownloadInstanceWriterTest {
         assertThrows(NotFoundException.class, () -> writeToOutput(),
                 "Datafile 1: Failed to locate and/or open physical file.");
     }
+    
+    @Test
+    void writingTabulatFile_withNoVarHeader_works() throws Exception {
+        prepareFile("tabular/example.xlsx");
+        this.downloadInstance.setConversionParam("noVarHeader");
+        this.dataFile.setDataTable(new DataTable());
+        
+        writeToOutput();
+
+        assertThatOutputStartsWith("PK");
+    }
+
+    @Test
+    void writingImageThumbnails_works() throws Exception {
+        prepareFile("images/coffeeshop.png");
+        this.downloadInstance.setConversionParam("imageThumb");
+        this.dataFile.setContentType("image/png");
+
+        writeToOutput();
+
+        assertThatOutputIsPNGFile();
+    }
+    
+    @Test
+    void writingImageThumbnailsWithWrongSize_throwsException() throws Exception {
+        prepareFile("images/coffeeshop.png");
+        this.downloadInstance.setConversionParam("imageThumb");
+        this.downloadInstance.setConversionParamValue("0");
+        this.dataFile.setContentType("image/png");
+
+        assertThrows(WebApplicationException.class, () -> writeToOutput());
+        assertThat(this.output.size()).isZero();
+    }
 
     // --------------------------------------------------------------------------
     private void assertThatOutputStartsWith(final String s) {
         assertThat(this.output.toString()).startsWith(s);
+    }
+    
+    private void assertThatOutputIsPNGFile() {
+        assertThat(this.output.toByteArray())
+                .startsWith(137, 80, 78, 71, 13, 10, 26, 10);
     }
 
     private void writeToOutput() throws Exception {
