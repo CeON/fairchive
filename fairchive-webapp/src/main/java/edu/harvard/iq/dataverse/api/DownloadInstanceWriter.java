@@ -98,77 +98,66 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
     }
 
     @Override
-    public void writeTo(DownloadInstance di, Class<?> clazz, Type type, 
-            Annotation[] annotation, MediaType mediaType, 
-            MultivaluedMap<String, Object> httpHeaders, OutputStream outstream) 
-                    throws IOException, WebApplicationException {
-        if (di.getDownloadInfo() == null || di.getDownloadInfo().getDataFile() == null) {
+    public void writeTo(DownloadInstance di, Class<?> clazz, Type type,
+            Annotation[] annotation, MediaType mediaType,
+            MultivaluedMap<String, Object> httpHeaders, OutputStream outstream)
+            throws IOException, WebApplicationException {
+        if (di.getDownloadInfo() == null
+                || di.getDownloadInfo().getDataFile() == null) {
             throw new WebApplicationException(NOT_FOUND);
         }
         final DataFile dataFile = di.getDownloadInfo().getDataFile();
-        StorageIO<DataFile> storageIO = dataAccess.getStorageIO(dataFile);
-
+        final StorageIO<DataFile> storageIO = dataAccess.getStorageIO(dataFile);
 
         try {
             storageIO.open();
         } catch (IOException ioex) {
-            //throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
-            logger.info("Datafile {}: Failed to locate and/or open physical file. Error message: {}", 
+            logger.info(
+                    "Datafile {}: Failed to locate and/or open physical file. Error message: {}",
                     dataFile.getId(), ioex.getLocalizedMessage());
-            throw new NotFoundException("Datafile " + dataFile.getId() 
+            throw new NotFoundException("Datafile " + dataFile.getId()
                     + ": Failed to locate and/or open physical file.");
         }
         try {
-        if (StringUtils.equals("imageThumb", di.getConversionParam())) {
-            writeThumbnail(di, httpHeaders, outstream, dataFile);
-            return;
-        }
-        if (StringUtils.equals("noVarHeader", di.getConversionParam()) 
-                && dataFile.isTabularData()) {
-            writeTabularWithNoVarHeader(di, httpHeaders, outstream, dataFile,
-                    storageIO);
-            return;
-        }
-        if (StringUtils.equals("format", di.getConversionParam()) 
-                && dataFile.isTabularData()) {
-            writeFormattedTabular(di, httpHeaders, outstream, dataFile, storageIO);
-            return;
-        }
-        if (StringUtils.equals("subset", di.getConversionParam()) 
-                && dataFile.isTabularData()) {
-            writeSubsetOfTabular(di, httpHeaders, outstream, dataFile, storageIO);
-            return;
-        }
-
-        // There's no conversion etc., so we should enable check
-        //                    checkForWholeDatasetDownload = true;
-
-        if (storageIO instanceof S3AccessIO 
-                && !(dataFile.isTabularData()) && isRedirectToS3()) {
-            // definitely close the (still open) S3 input stream,
-            // since we are not going to use it. The S3 documentation
-            // emphasizes that it is very important not to leave these
-            // lying around un-closed, since they are going to fill
-            // up the S3 connection pool!
-            try {
-                storageIO.getInputStream().close();
-            } catch (IOException ioex) {
-                logger.warn("Exception during closing input stream: ", ioex);
+            if (StringUtils.equals("imageThumb", di.getConversionParam())) {
+                writeThumbnail(di, httpHeaders, outstream, dataFile);
+                return;
             }
-            URI redirectUri = generateTemporaryS3URI((S3AccessIO<DataFile>) storageIO);
+            if (StringUtils.equals("noVarHeader", di.getConversionParam())
+                    && dataFile.isTabularData()) {
+                writeTabularWithNoVarHeader(di, httpHeaders, outstream, dataFile,
+                        storageIO);
+                return;
+            }
+            if (StringUtils.equals("format", di.getConversionParam())
+                    && dataFile.isTabularData()) {
+                writeFormattedTabular(di, httpHeaders, outstream, dataFile, storageIO);
+                return;
+            }
+            if (StringUtils.equals("subset", di.getConversionParam())
+                    && dataFile.isTabularData()) {
+                writeSubsetOfTabular(di, httpHeaders, outstream, dataFile, storageIO);
+                return;
+            }
+            if (storageIO instanceof S3AccessIO
+                    && !(dataFile.isTabularData()) && isRedirectToS3()) {
+                URI redirectUri = generateTemporaryS3URI(
+                        (S3AccessIO<DataFile>) storageIO);
+                // increment the download count, if necessary:
+                writeGuestbookResponse(di);
+                datasetDownloadLogger.incrementLogIfDownloadingWholeDataset(
+                        singletonList(dataFile));
 
-            // increment the download count, if necessary:
-            writeGuestbookResponse(di);
-            datasetDownloadLogger.incrementLogIfDownloadingWholeDataset(singletonList(dataFile));
-
-            // finally, issue the redirect:
-            Response response = Response.seeOther(redirectUri).build();
-            logger.info("Issuing redirect to the file location on S3.");
-            throw new RedirectionException(response);
-        }
-
-        writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, outstream, 
-                httpHeaders, di, dataFile);
+                // finally, issue the redirect:
+                Response response = Response.seeOther(redirectUri).build();
+                logger.info("Issuing redirect to the file location on S3.");
+                throw new RedirectionException(response);
+            } else {
+                // just write
+                writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO,
+                        outstream,
+                        httpHeaders, di, dataFile);
+            }
         } finally {
             storageIO.closeQuietly();
         }
@@ -479,19 +468,18 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
                 .replace("%7E", "~");
     }
 
-    private long getContentSize(StorageIO<?> accessObject) {
+    private long getContentSize(final StorageIO<?> accessObject) {
         try {
-            long contentSize = accessObject.getSize();
-
             if (accessObject.getVarHeader() != null) {
-                contentSize += accessObject.getVarHeader().getBytes().length;
+                return accessObject.getSize()
+                        + accessObject.getVarHeader().getBytes().length;
+            } else {
+                return accessObject.getSize();
             }
-            return contentSize;
-
-        } catch(IOException e) {
+        } catch (IOException e) {
             logger.warn("Unable to obtain content size", e);
+            return -1;
         }
-        return -1;
     }
 
     private boolean isRedirectToS3() {

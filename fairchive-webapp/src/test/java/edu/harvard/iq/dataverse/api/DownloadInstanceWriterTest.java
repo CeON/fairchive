@@ -158,8 +158,6 @@ public class DownloadInstanceWriterTest {
 
         writeToOutput();
 
-        System.out.println("!==============");
-        System.out.println(this.output.toString());
         assertThatOutputStartsWith("null\nPADS_ID");
     }
 
