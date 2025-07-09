@@ -47,11 +47,13 @@ import java.util.Optional;
 
 import static edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter.DEFAULT_THUMBNAIL_SIZE;
 import static java.io.File.createTempFile;
+import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static org.apache.commons.lang3.math.NumberUtils.toInt;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -120,21 +122,7 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         }
         try {
         if (StringUtils.equals("imageThumb", di.getConversionParam())) {
-            int thumbnailSize = NumberUtils.toInt(di.getConversionParamValue(), 
-                    DEFAULT_THUMBNAIL_SIZE);
-            InputStreamIO thumbnailStorageIO = Optional
-                    .ofNullable(imageThumbConverter.getImageThumbnailAsInputStream(dataFile, thumbnailSize))
-                    .orElseThrow(() -> new WebApplicationException(
-                            ApiErrorResponseDTO.errorResponse(404, "Image thumbnail not found")
-                            .asJaxRsResponse()));
-
-            // and, since we now have tabular data files that can
-            // have thumbnail previews... obviously, we don't want to
-            // add the variable header to the image stream!
-            thumbnailStorageIO.setNoVarHeader(Boolean.TRUE);
-            thumbnailStorageIO.setVarHeader(null);
-
-            writeStorageIOToOutputStream(thumbnailStorageIO, outstream, httpHeaders);
+            writeThumbnail(di, httpHeaders, outstream, dataFile);
             return;
         }
         if (StringUtils.equals("noVarHeader", di.getConversionParam()) 
@@ -282,11 +270,34 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, outstream, 
                 httpHeaders, di, dataFile);
         } finally {
+            storageIO.closeQuietly();
+        }
+    }
+    
+    private void writeThumbnail(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile)
+            throws IOException {
+        
+        final int size = toInt(di.getConversionParamValue(), DEFAULT_THUMBNAIL_SIZE);
+        final InputStreamIO storage = this.imageThumbConverter
+                .getImageThumbnailAsInputStream(dataFile, size);
+        if (storage != null) {
             try {
-                storageIO.close();
-            } catch(final Exception e) {
-                return;
+                // and, since we now have tabular data files that can
+                // have thumbnail previews... obviously, we don't want to
+                // add the variable header to the image stream!
+                storage.setNoVarHeader(TRUE);
+                storage.setVarHeader(null);
+                writeStorageIOToOutputStream(storage, outstream, httpHeaders);
+            } finally {
+                storage.closeQuietly();
             }
+        } else {
+            throw new WebApplicationException(
+                    ApiErrorResponseDTO.errorResponse(404, "Image thumbnail not found")
+                            .asJaxRsResponse());
         }
     }
 
