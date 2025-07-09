@@ -238,44 +238,57 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
             storageIO.closeQuietly();
         }
     }
-    private void writeFormattedTabular(DownloadInstance di,
-            MultivaluedMap<String, Object> httpHeaders, OutputStream outstream,
-            DataFile dataFile, StorageIO<DataFile> storageIO) throws IOException {
+
+    private void writeFormattedTabular(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile,
+            final StorageIO<DataFile> storageIO) throws IOException {
         // Conversions, and downloads of "stored originals" are
         // now supported on all DataFiles for which StorageIO
         // access drivers are available.
 
-        try {
         if ("original".equals(di.getConversionParamValue())) {
-            logger.debug("stored original of an ingested file requested");
-            storageIO = StoredOriginalFile.retreive(storageIO, dataFile.getDataTable());
-            if (storageIO == null) {
+            final StorageIO<DataFile> in = StoredOriginalFile.retreive(storageIO,
+                    dataFile.getDataTable());
+            if (in != null) {
+                try {
+                    if (StringUtils.equals("prep", di.getConversionParamValue())) {
+                        writeStorageIOToOutputStream(in, outstream, httpHeaders);
+                    } else {
+                        writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(
+                                in, outstream, httpHeaders, di, dataFile);
+                    }
+                } finally {
+                    in.closeQuietly();
+                }
+            } else {
                 throw new WebApplicationException(SERVICE_UNAVAILABLE);
             }
         } else {
             // Other format conversions:
-            logger.debug("format conversion on a tabular file requested (" + 
-                        di.getConversionParamValue() + ")");
-            String requestedMimeType = di.getServiceFormatType(di.getConversionParam(), 
+            String requestedMimeType = di.getServiceFormatType(
+                    di.getConversionParam(),
                     di.getConversionParamValue());
             if (requestedMimeType == null) {
-                // default mime type, in case real type is unknown;
-                // (this shouldn't happen in real life - but just in case):
                 requestedMimeType = "application/octet-stream";
             }
-            storageIO = Optional.ofNullable(dataConverter.performFormatConversion(dataFile, 
-                    storageIO,  di.getConversionParamValue(), requestedMimeType))
-                .orElseThrow(() -> new WebApplicationException(SERVICE_UNAVAILABLE));
-        }
-
-        if (StringUtils.equals("prep", di.getConversionParamValue())) {
-            writeStorageIOToOutputStream(storageIO, outstream, httpHeaders);
-        } else {
-            writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, 
-                    outstream, httpHeaders, di, dataFile);
-        }
-        } finally {
-            storageIO.closeQuietly();
+            final StorageIO<DataFile> in = dataConverter.performFormatConversion(
+                    dataFile, storageIO, di.getConversionParamValue(), requestedMimeType);
+            if (in != null) {
+                try {
+                    if (StringUtils.equals("prep", di.getConversionParamValue())) {
+                        writeStorageIOToOutputStream(in, outstream, httpHeaders);
+                    } else {
+                        writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(in,
+                                outstream, httpHeaders, di, dataFile);
+                    }
+                } finally {
+                    in.closeQuietly();
+                }
+            } else {
+                throw new WebApplicationException(SERVICE_UNAVAILABLE);
+            }
         }
     }
     

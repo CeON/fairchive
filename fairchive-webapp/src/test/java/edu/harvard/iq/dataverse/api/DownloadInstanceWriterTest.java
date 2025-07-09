@@ -128,6 +128,19 @@ public class DownloadInstanceWriterTest {
 
         assertThatOutputStartsWith("PK");
     }
+    
+    @Test
+    void writingTabularInTabFormat_works() throws Exception {
+        prepareFile("tabular/example.tab");
+        this.downloadInstance.setConversionParam("format");
+        this.downloadInstance.setConversionParamValue("tab");
+        this.dataFile.setDataTable(new DataTable());
+        this.dataFile.setContentType("text/tab-separated-values");
+        
+        writeToOutput();
+
+        assertThatOutputStartsWith("r1");
+    }
 
     @Test
     void writingImageThumbnails_works() throws Exception {
