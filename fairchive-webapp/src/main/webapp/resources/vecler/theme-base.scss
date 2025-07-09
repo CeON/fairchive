@@ -592,6 +592,10 @@ a[id$=advsearchlink] {
 	max-height: calc(100vh - 160px);
 }
 
+.form-col-container .geo-map {
+    margin-top: .5em;
+}
+
 @media screen and (max-width: $screen-xs-max) {
 	.geo-map {
 		max-width: calc((100vw - 90px) * 0.75);
