@@ -15,6 +15,8 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateGuestbookResponseCommand;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -116,7 +118,7 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
             throw new NotFoundException("Datafile " + dataFile.getId() 
                     + ": Failed to locate and/or open physical file.");
         }
-
+        try {
         if (StringUtils.equals("imageThumb", di.getConversionParam())) {
             int thumbnailSize = NumberUtils.toInt(di.getConversionParamValue(), 
                     DEFAULT_THUMBNAIL_SIZE);
@@ -279,6 +281,13 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
 
         writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, outstream, 
                 httpHeaders, di, dataFile);
+        } finally {
+            try {
+                storageIO.close();
+            } catch(final Exception e) {
+                return;
+            }
+        }
     }
 
     // -------------------- PRIVATE --------------------

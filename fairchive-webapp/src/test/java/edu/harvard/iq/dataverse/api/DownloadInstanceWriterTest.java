@@ -70,6 +70,9 @@ public class DownloadInstanceWriterTest {
         this.dataFile.setStorageIdentifier(DATAFILE_STORAGE_ID);
 
         this.downloadInstance.setDownloadInfo(new DownloadInfo(this.dataFile));
+        // prepare file system
+        System.setProperty(FILES_DIRECTORY, this.dir.toString());
+        createDirectories(getDatasetDir());
     };
 
     // --------------------------------------------------------------------------
@@ -85,16 +88,16 @@ public class DownloadInstanceWriterTest {
     @Test
     void writingOriginalFile_works() throws Exception {
         prepareFile("tabular/example.xlsx");
-        
-        writeTo();
-        
+
+        writeToOutput();
+
         assertThatOutputStartsWith("PK");
     }
 
     @Test
     void writingInexistentFile_throwsException() throws Exception {
         // do not prepare file
-        assertThrows(NotFoundException.class, () -> writeTo(),
+        assertThrows(NotFoundException.class, () -> writeToOutput(),
                 "Datafile 1: Failed to locate and/or open physical file.");
     }
 
@@ -103,15 +106,21 @@ public class DownloadInstanceWriterTest {
         assertThat(this.output.toString()).startsWith(s);
     }
 
-    private void writeTo() throws Exception {
+    private void writeToOutput() throws Exception {
         this.writer.writeTo(this.downloadInstance, null, null, null, null,
                 this.httpHeaders, this.output);
     }
 
     private void prepareFile(final String name) throws Exception {
-        System.setProperty(FILES_DIRECTORY, this.dir.toString());
-        final Path dir = this.dir.resolve("10.1010").resolve("FK2").resolve("ABCD");
-        createDirectories(dir);
-        copyFileFromClasspath(name, dir.resolve(DATAFILE_STORAGE_ID));
+        copyFileFromClasspath(name, getDatasetDir().resolve(DATAFILE_STORAGE_ID));
+    }
+    
+    private void prepareAuxFile(final String name, final String suffix) 
+            throws Exception {
+        copyFileFromClasspath(name, getDatasetDir().resolve(DATAFILE_STORAGE_ID.concat(suffix)));
+    }
+    
+    private Path getDatasetDir() {
+        return this.dir.resolve("10.1010").resolve("FK2").resolve("ABCD");
     }
 }
