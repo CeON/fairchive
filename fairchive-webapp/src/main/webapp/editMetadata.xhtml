@@ -11,6 +11,10 @@
     <!--@elvariable id="metadataBlocks" type="java.util.Set< java.util.Map.Entry<edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock, java.util.List<edu.harvard.iq.dataverse.persistence.dataset.DatasetField>>"-->
     <!-- Edit Mode -->
     <o:importConstants type="edu.harvard.iq.dataverse.persistence.dataset.FieldType"/>
+    <o:importConstants
+            type="edu.harvard.iq.dataverse.persistence.dataset.InputRendererType"
+            var="inputRendererTypeEnum"/>
+
     <p:fragment id="editMetadataFragement">
     <div class="panel-group">
         <ui:repeat id="metadataBlocks" value="#{metadataBlocks}" var="metadataBlockVal" varStatus="block">
@@ -81,6 +85,7 @@
                                                         aria-label="#{fieldsByType.datasetFieldType.allowMultiples ? datasetField.datasetFieldType.localeTitle.concat(' ').concat(valCount.index + 1) : ''}">
                                                 <ui:repeat id="subfields" value="#{datasetField.datasetFieldsChildren}" var="subdsf">
                                                     <ui:fragment rendered="#{inputRenderersByFieldType.get(subdsf.datasetFieldType).showOnCondition(datasetField.datasetFieldsChildren)}">
+
                                                         <div class="form-col-container
                                                             #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).renderInTwoColumns()) ? 'col-sm-6' : 'col-sm-12'}
                                                             #{(inputRenderersByFieldType.get(subdsf.datasetFieldType).isHidden()) ? 'form-hidden-col-container' : ''}">
@@ -146,11 +151,6 @@
                                                     <span class="icon-text no-text">,</span>
                                                     <o:skipValidators/>
                                                 </p:commandLink>
-                                            </div>
-
-                                            <!-- Map -->
-                                            <div id="#{currentMap}" class="col-xs-9 form-col-container geo-map"
-                                                 jsf:rendered="#{isGeospatial}">
                                             </div>
                                         </div>
 

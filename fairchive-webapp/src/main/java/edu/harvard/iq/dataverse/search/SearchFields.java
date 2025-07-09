@@ -273,7 +273,7 @@ public class SearchFields {
 
     public static final String GEOGRAPHIC_COORDINATES = SearchDynamicFieldPrefix.TEXT.getPrefix() + "geographicCoordinates";
     
-    public static final String GEONAME_ID = "geoname_id_s";
+    public static final String GEONAME_ID = "geoname_id_ss";
     public static final String GEONAME_NAME = "geoname_name_txt";
 
 }
