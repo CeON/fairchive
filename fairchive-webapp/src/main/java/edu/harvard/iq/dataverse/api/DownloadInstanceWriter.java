@@ -133,38 +133,8 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         }
         if (StringUtils.equals("format", di.getConversionParam()) 
                 && dataFile.isTabularData()) {
-            // Conversions, and downloads of "stored originals" are
-            // now supported on all DataFiles for which StorageIO
-            // access drivers are available.
-
-            if ("original".equals(di.getConversionParamValue())) {
-                logger.debug("stored original of an ingested file requested");
-                storageIO = StoredOriginalFile.retreive(storageIO, dataFile.getDataTable());
-                if (storageIO == null) {
-                    throw new WebApplicationException(SERVICE_UNAVAILABLE);
-                }
-            } else {
-                // Other format conversions:
-                logger.debug("format conversion on a tabular file requested (" + 
-                            di.getConversionParamValue() + ")");
-                String requestedMimeType = di.getServiceFormatType(di.getConversionParam(), 
-                        di.getConversionParamValue());
-                if (requestedMimeType == null) {
-                    // default mime type, in case real type is unknown;
-                    // (this shouldn't happen in real life - but just in case):
-                    requestedMimeType = "application/octet-stream";
-                }
-                storageIO = Optional.ofNullable(dataConverter.performFormatConversion(dataFile, 
-                        storageIO,  di.getConversionParamValue(), requestedMimeType))
-                    .orElseThrow(() -> new WebApplicationException(SERVICE_UNAVAILABLE));
-            }
-
-            if (StringUtils.equals("prep", di.getConversionParamValue())) {
-                writeStorageIOToOutputStream(storageIO, outstream, httpHeaders);
-            } else {
-                writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, 
-                        outstream, httpHeaders, di, dataFile);
-            }
+            storageIO = writeFormattedTabular(di, httpHeaders, outstream, dataFile,
+                    storageIO);
             return;
         }
         if (StringUtils.equals("subset", di.getConversionParam()) 
@@ -268,6 +238,43 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         } finally {
             storageIO.closeQuietly();
         }
+    }
+    private StorageIO<DataFile> writeFormattedTabular(DownloadInstance di,
+            MultivaluedMap<String, Object> httpHeaders, OutputStream outstream,
+            DataFile dataFile, StorageIO<DataFile> storageIO) throws IOException {
+        // Conversions, and downloads of "stored originals" are
+        // now supported on all DataFiles for which StorageIO
+        // access drivers are available.
+
+        if ("original".equals(di.getConversionParamValue())) {
+            logger.debug("stored original of an ingested file requested");
+            storageIO = StoredOriginalFile.retreive(storageIO, dataFile.getDataTable());
+            if (storageIO == null) {
+                throw new WebApplicationException(SERVICE_UNAVAILABLE);
+            }
+        } else {
+            // Other format conversions:
+            logger.debug("format conversion on a tabular file requested (" + 
+                        di.getConversionParamValue() + ")");
+            String requestedMimeType = di.getServiceFormatType(di.getConversionParam(), 
+                    di.getConversionParamValue());
+            if (requestedMimeType == null) {
+                // default mime type, in case real type is unknown;
+                // (this shouldn't happen in real life - but just in case):
+                requestedMimeType = "application/octet-stream";
+            }
+            storageIO = Optional.ofNullable(dataConverter.performFormatConversion(dataFile, 
+                    storageIO,  di.getConversionParamValue(), requestedMimeType))
+                .orElseThrow(() -> new WebApplicationException(SERVICE_UNAVAILABLE));
+        }
+
+        if (StringUtils.equals("prep", di.getConversionParamValue())) {
+            writeStorageIOToOutputStream(storageIO, outstream, httpHeaders);
+        } else {
+            writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, 
+                    outstream, httpHeaders, di, dataFile);
+        }
+        return storageIO;
     }
     
     private void writeTabularWithNoVarHeader(final DownloadInstance di,
