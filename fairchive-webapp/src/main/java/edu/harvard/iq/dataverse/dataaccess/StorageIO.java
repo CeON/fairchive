@@ -306,6 +306,7 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
 		if (this.in != null) {
 			this.in.close();
 		}
+		this.opened = false;
 	}
 	
     public void closeQuietly() {
