@@ -233,7 +233,7 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
             final DataFile dataFile,
             final StorageIO<DataFile> storage)
             throws IOException {
-        
+
         // TODO:
         // If there are parameters on the list that are
         // not valid variable ids, or if they do not belong to
@@ -241,60 +241,53 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         // perhaps I should throw an invalid argument exception
         // instead.
 
-        List<DataVariable> filteredVariables = filterToVariablesOfDataFile(di, dataFile);
+        final List<DataVariable> filteredVariables = filterToVariablesOfDataFile(di,
+                dataFile);
 
         if (filteredVariables.isEmpty()) {
-            writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storage, 
+            writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storage,
                     outstream, httpHeaders, di, dataFile);
-            return;
-        }
+        } else {
+            final List<Integer> variablePositionIndex = filteredVariables
+                    .stream()
+                    .map(DataVariable::getFileOrder)
+                    .collect(toList());
+            final String subsetVariableHeader = filteredVariables
+                    .stream()
+                    .map(DataVariable::getName)
+                    .collect(joining("\t")).concat("\n");
 
+            Optional<File> tempSubsetFile = Optional.empty();
+            try {
+                tempSubsetFile = Optional.of(createTempFile("tempSubsetFile", ".tmp"));
+                new TabularSubsetGenerator().subsetFile(storage.getInputStream(),
+                        tempSubsetFile.get().getAbsolutePath(), variablePositionIndex,
+                        dataFile.getDataTable().getCaseQuantity());
+                final long subsetSize = tempSubsetFile.get().length();
+                String tabularFileName = storage.getFileName();
+                if (tabularFileName != null && tabularFileName.endsWith(".tab")) {
+                    tabularFileName = tabularFileName.replaceAll("\\.tab$",
+                            "-subset.tab");
+                } else if (tabularFileName != null && !"".equals(tabularFileName)) {
+                    tabularFileName = tabularFileName.concat("-subset.tab");
+                } else {
+                    tabularFileName = "subset.tab";
+                }
 
-        List<Integer> variablePositionIndex = filteredVariables
-                .stream()
-                .map(DataVariable::getFileOrder)
-                .collect(toList());
-        String subsetVariableHeader = filteredVariables
-                .stream()
-                .map(DataVariable::getName)
-                .collect(joining("\t"));
-        subsetVariableHeader = subsetVariableHeader.concat("\n");
+                try (InputStreamIO subsetStreamIO = new InputStreamIO(
+                        new FileInputStream(tempSubsetFile.get()),
+                        subsetSize, tabularFileName, storage.getMimeType())) {
+                    subsetStreamIO.setVarHeader(subsetVariableHeader);
 
-        Optional<File> tempSubsetFile = Optional.empty();
-        try {
-            tempSubsetFile = Optional.of(createTempFile("tempSubsetFile", ".tmp"));
-            TabularSubsetGenerator tabularSubsetGenerator = new TabularSubsetGenerator();
-            tabularSubsetGenerator.subsetFile(storage.getInputStream(), 
-                    tempSubsetFile.get().getAbsolutePath(), variablePositionIndex, 
-                    dataFile.getDataTable().getCaseQuantity());
-
-            long subsetSize = tempSubsetFile.get().length();
-
-            String tabularFileName = storage.getFileName();
-
-            if (tabularFileName != null && tabularFileName.endsWith(".tab")) {
-                tabularFileName = tabularFileName.replaceAll("\\.tab$", "-subset.tab");
-            } else if (tabularFileName != null && !"".equals(tabularFileName)) {
-                tabularFileName = tabularFileName.concat("-subset.tab");
-            } else {
-                tabularFileName = "subset.tab";
+                    writeStorageIOToOutputStream(subsetStreamIO, outstream,
+                            httpHeaders);
+                    writeGuestbookResponse(di);
+                }
+            } catch (final Exception e) {
+                throw new WebApplicationException(SERVICE_UNAVAILABLE);
+            } finally {
+                tempSubsetFile.ifPresent(File::delete);
             }
-
-            InputStreamIO subsetStreamIO = new InputStreamIO(
-                    new FileInputStream(tempSubsetFile.get()), 
-                    subsetSize, tabularFileName, storage.getMimeType());
-            logger.debug("successfully created subset output stream.");
-
-            subsetStreamIO.setVarHeader(subsetVariableHeader);
-
-            writeStorageIOToOutputStream(subsetStreamIO, outstream, httpHeaders);
-            writeGuestbookResponse(di);
-
-            return;
-        } catch (IOException ioex) {
-            throw new WebApplicationException(SERVICE_UNAVAILABLE);
-        } finally {
-            tempSubsetFile.ifPresent(File::delete);
         }
     }
     
