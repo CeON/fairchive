@@ -3,11 +3,13 @@ package edu.harvard.iq.dataverse.api;
 import static edu.harvard.iq.dataverse.UnitTestUtils.copyFileFromClasspath;
 import static edu.harvard.iq.dataverse.util.SystemConfig.FILES_DIRECTORY;
 import static java.nio.file.Files.createDirectories;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Path;
+import java.util.Collections;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
@@ -27,6 +29,7 @@ import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.datafile.page.WholeDatasetDownloadLogger;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
+import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.rserve.RemoteDataFrameService;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -140,6 +143,24 @@ public class DownloadInstanceWriterTest {
         writeToOutput();
 
         assertThatOutputStartsWith("r1");
+    }
+    
+    @Test
+    void writingSubsetTabularFile_works() throws Exception {
+        prepareFile("tabular/example.tab");
+        this.downloadInstance.setConversionParam("subset");
+        this.dataFile.setDataTable(new DataTable());
+        this.dataFile.getDataTable().setDataFile(this.dataFile);
+        this.downloadInstance.setExtraArguments(
+                singletonList(new DataVariable(1, this.dataFile.getDataTable())));
+        this.dataFile.getDataTable().setCaseQuantity(10L);
+        
+
+        writeToOutput();
+
+        System.out.println("!==============");
+        System.out.println(this.output.toString());
+        assertThatOutputStartsWith("null\nPADS_ID");
     }
 
     @Test

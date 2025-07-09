@@ -16,9 +16,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.CreateGuestbookResponseComma
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
@@ -107,7 +105,7 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         if (di.getDownloadInfo() == null || di.getDownloadInfo().getDataFile() == null) {
             throw new WebApplicationException(NOT_FOUND);
         }
-        DataFile dataFile = di.getDownloadInfo().getDataFile();
+        final DataFile dataFile = di.getDownloadInfo().getDataFile();
         StorageIO<DataFile> storageIO = dataAccess.getStorageIO(dataFile);
 
 
@@ -138,71 +136,8 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         }
         if (StringUtils.equals("subset", di.getConversionParam()) 
                 && dataFile.isTabularData()) {
-            logger.debug("processing subset request.");
-
-            // TODO:
-            // If there are parameters on the list that are
-            // not valid variable ids, or if they do not belong to
-            // the datafile referenced - I simply skip them;
-            // perhaps I should throw an invalid argument exception
-            // instead.
-
-            List<DataVariable> filteredVariables = filterToVariablesOfDataFile(di, dataFile);
-
-            if (filteredVariables.isEmpty()) {
-                writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, 
-                        outstream, httpHeaders, di, dataFile);
-                return;
-            }
-
-
-            List<Integer> variablePositionIndex = filteredVariables
-                    .stream()
-                    .map(DataVariable::getFileOrder)
-                    .collect(toList());
-            String subsetVariableHeader = filteredVariables
-                    .stream()
-                    .map(DataVariable::getName)
-                    .collect(joining("\t"));
-            subsetVariableHeader = subsetVariableHeader.concat("\n");
-
-            Optional<File> tempSubsetFile = Optional.empty();
-            try {
-                tempSubsetFile = Optional.of(createTempFile("tempSubsetFile", ".tmp"));
-                TabularSubsetGenerator tabularSubsetGenerator = new TabularSubsetGenerator();
-                tabularSubsetGenerator.subsetFile(storageIO.getInputStream(), 
-                        tempSubsetFile.get().getAbsolutePath(), variablePositionIndex, 
-                        dataFile.getDataTable().getCaseQuantity());
-
-                long subsetSize = tempSubsetFile.get().length();
-
-                String tabularFileName = storageIO.getFileName();
-
-                if (tabularFileName != null && tabularFileName.endsWith(".tab")) {
-                    tabularFileName = tabularFileName.replaceAll("\\.tab$", "-subset.tab");
-                } else if (tabularFileName != null && !"".equals(tabularFileName)) {
-                    tabularFileName = tabularFileName.concat("-subset.tab");
-                } else {
-                    tabularFileName = "subset.tab";
-                }
-
-                InputStreamIO subsetStreamIO = new InputStreamIO(
-                        new FileInputStream(tempSubsetFile.get()), 
-                        subsetSize, tabularFileName, storageIO.getMimeType());
-                logger.debug("successfully created subset output stream.");
-
-                subsetStreamIO.setVarHeader(subsetVariableHeader);
-
-                storageIO = subsetStreamIO;
-                writeStorageIOToOutputStream(storageIO, outstream, httpHeaders);
-                writeGuestbookResponse(di);
-
-                return;
-            } catch (IOException ioex) {
-                throw new WebApplicationException(SERVICE_UNAVAILABLE);
-            } finally {
-                tempSubsetFile.ifPresent(File::delete);
-            }
+            writeSubsetOfTabular(di, httpHeaders, outstream, dataFile, storageIO);
+            return;
         }
 
         // There's no conversion etc., so we should enable check
@@ -289,6 +224,77 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
             } else {
                 throw new WebApplicationException(SERVICE_UNAVAILABLE);
             }
+        }
+    }
+    
+    private void writeSubsetOfTabular(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile,
+            final StorageIO<DataFile> storage)
+            throws IOException {
+        
+        // TODO:
+        // If there are parameters on the list that are
+        // not valid variable ids, or if they do not belong to
+        // the datafile referenced - I simply skip them;
+        // perhaps I should throw an invalid argument exception
+        // instead.
+
+        List<DataVariable> filteredVariables = filterToVariablesOfDataFile(di, dataFile);
+
+        if (filteredVariables.isEmpty()) {
+            writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storage, 
+                    outstream, httpHeaders, di, dataFile);
+            return;
+        }
+
+
+        List<Integer> variablePositionIndex = filteredVariables
+                .stream()
+                .map(DataVariable::getFileOrder)
+                .collect(toList());
+        String subsetVariableHeader = filteredVariables
+                .stream()
+                .map(DataVariable::getName)
+                .collect(joining("\t"));
+        subsetVariableHeader = subsetVariableHeader.concat("\n");
+
+        Optional<File> tempSubsetFile = Optional.empty();
+        try {
+            tempSubsetFile = Optional.of(createTempFile("tempSubsetFile", ".tmp"));
+            TabularSubsetGenerator tabularSubsetGenerator = new TabularSubsetGenerator();
+            tabularSubsetGenerator.subsetFile(storage.getInputStream(), 
+                    tempSubsetFile.get().getAbsolutePath(), variablePositionIndex, 
+                    dataFile.getDataTable().getCaseQuantity());
+
+            long subsetSize = tempSubsetFile.get().length();
+
+            String tabularFileName = storage.getFileName();
+
+            if (tabularFileName != null && tabularFileName.endsWith(".tab")) {
+                tabularFileName = tabularFileName.replaceAll("\\.tab$", "-subset.tab");
+            } else if (tabularFileName != null && !"".equals(tabularFileName)) {
+                tabularFileName = tabularFileName.concat("-subset.tab");
+            } else {
+                tabularFileName = "subset.tab";
+            }
+
+            InputStreamIO subsetStreamIO = new InputStreamIO(
+                    new FileInputStream(tempSubsetFile.get()), 
+                    subsetSize, tabularFileName, storage.getMimeType());
+            logger.debug("successfully created subset output stream.");
+
+            subsetStreamIO.setVarHeader(subsetVariableHeader);
+
+            writeStorageIOToOutputStream(subsetStreamIO, outstream, httpHeaders);
+            writeGuestbookResponse(di);
+
+            return;
+        } catch (IOException ioex) {
+            throw new WebApplicationException(SERVICE_UNAVAILABLE);
+        } finally {
+            tempSubsetFile.ifPresent(File::delete);
         }
     }
     
