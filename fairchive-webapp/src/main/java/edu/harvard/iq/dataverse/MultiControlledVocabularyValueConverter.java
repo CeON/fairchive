@@ -14,9 +14,6 @@ import javax.faces.convert.FacesConverter;
 public class MultiControlledVocabularyValueConverter implements Converter {
 
     @EJB
-    DatasetFieldServiceBean datasetFieldService;
-
-    @EJB
     ControlledVocabularyValueServiceBean controlledVocabularyValueServiceBean;
 
     @Override

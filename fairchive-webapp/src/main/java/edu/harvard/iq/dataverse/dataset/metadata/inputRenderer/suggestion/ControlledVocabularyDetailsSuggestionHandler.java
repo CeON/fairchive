@@ -4,7 +4,9 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import edu.harvard.iq.dataverse.ControlledVocabularyValueServiceBean;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
+import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import io.vavr.control.Try;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -12,7 +14,7 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
-public class MultiSuggestionHandler implements SuggestionHandler {
+public class ControlledVocabularyDetailsSuggestionHandler implements SuggestionHandler {
 
     public static final String CONTROLLED_VOCABULARY_NAME_COLUMN = "controlledVocabularyName";
     private ControlledVocabularyValueServiceBean vocabularyValueServiceBean;
@@ -20,11 +22,11 @@ public class MultiSuggestionHandler implements SuggestionHandler {
     // -------------------- CONSTRUCTORS --------------------
 
     @Deprecated
-    public MultiSuggestionHandler() {
+    public ControlledVocabularyDetailsSuggestionHandler() {
     }
 
     @Inject
-    public MultiSuggestionHandler(ControlledVocabularyValueServiceBean controlledVocabularySuggestionRepository) {
+    public ControlledVocabularyDetailsSuggestionHandler(ControlledVocabularyValueServiceBean controlledVocabularySuggestionRepository) {
         this.vocabularyValueServiceBean = controlledVocabularySuggestionRepository;
     }
 
@@ -44,10 +46,10 @@ public class MultiSuggestionHandler implements SuggestionHandler {
     @Override
     public List<Suggestion> generateSuggestions(Map<String, String> filters, String suggestionSourceFieldValue) {
         return vocabularyValueServiceBean
-                .findByDatasetFieldTypeNameAndSuggestionLike(filters.get(CONTROLLED_VOCABULARY_NAME_COLUMN), suggestionSourceFieldValue, 10)
+                .findByDatasetFieldTypeNameAndValueLike(filters.get(CONTROLLED_VOCABULARY_NAME_COLUMN), suggestionSourceFieldValue, 10)
                 .stream().map(
                         vocabulary ->
-                                new Suggestion(vocabulary.getStrValue(), getDetails(vocabulary.getSuggestionDetails()))
+                                new Suggestion(vocabulary.getStrValue(), getDetails(vocabulary))
                         )
                 .collect(toList());
     }
@@ -56,13 +58,17 @@ public class MultiSuggestionHandler implements SuggestionHandler {
      * Formatting of details can be changed for specific data field type.
      * Such specific implementation can be used in inputrendereroptions.suggestionSourceClass
      * Default implementation will not chang what is stored in database
-     * @param values json array
+     * @param controlledVocabularyValue - value of vocab
      * @return can return html
      */
-    public String getDetails(String values) {
-        List details = Try.of(() -> new Gson().fromJson(values, List.class))
-                .getOrElseThrow((e) -> new IllegalArgumentException("Invalid syntax of input renderer options " + values + ")", e));
+    public String getDetails(ControlledVocabularyValue controlledVocabularyValue) {
+        if (StringUtils.isNotBlank(controlledVocabularyValue.getSuggestionDetails())) {
+            List details = Try.of(() -> new Gson().fromJson(controlledVocabularyValue.getSuggestionDetails(), List.class))
+                .getOrElseThrow((e) -> new IllegalArgumentException("Invalid json of suggestion details " + controlledVocabularyValue.getSuggestionDetails() + ")", e));
 
-        return String.join(",", details);
+            return String.join(",", details);
+        }
+
+        return controlledVocabularyValue.getStrValue();
     }
 }
