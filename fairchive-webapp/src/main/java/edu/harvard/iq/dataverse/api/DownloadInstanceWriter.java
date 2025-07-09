@@ -127,12 +127,8 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         }
         if (StringUtils.equals("noVarHeader", di.getConversionParam()) 
                 && dataFile.isTabularData()) {
-            logger.debug("tabular data with no var header requested");
-            storageIO.setNoVarHeader(Boolean.TRUE);
-            storageIO.setVarHeader(null);
-
-            writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, 
-                    outstream, httpHeaders, di, dataFile);
+            writeTabularWithNoVarHeader(di, httpHeaders, outstream, dataFile,
+                    storageIO);
             return;
         }
         if (StringUtils.equals("format", di.getConversionParam()) 
@@ -272,6 +268,19 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         } finally {
             storageIO.closeQuietly();
         }
+    }
+    
+    private void writeTabularWithNoVarHeader(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile,
+            final StorageIO<DataFile> storage)
+            throws IOException {
+
+        storage.setNoVarHeader(TRUE);
+        storage.setVarHeader(null);
+        writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storage,
+                outstream, httpHeaders, di, dataFile);
     }
     
     private void writeThumbnail(final DownloadInstance di,
