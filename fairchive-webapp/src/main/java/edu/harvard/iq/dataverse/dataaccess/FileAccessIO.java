@@ -90,6 +90,9 @@ public class FileAccessIO<T extends DvObject> extends StorageIO<T> {
     @Override
     public void open(DataAccessOption... options) throws IOException {
 
+        if(this.opened) {
+            return;
+        }
         if (isWriteAccessRequested(options)) {
             isWriteAccess = true;
             isReadAccess = false;
@@ -123,7 +126,7 @@ public class FileAccessIO<T extends DvObject> extends StorageIO<T> {
                     Files.createDirectories(getDatasetDirectory());
                 }
             }
-
+            this.opened = true;
         } else if (dvObject instanceof Dataset) {
             //This case is for uploading a dataset related auxiliary file
             //e.g. image thumbnails/metadata exports
@@ -132,7 +135,7 @@ public class FileAccessIO<T extends DvObject> extends StorageIO<T> {
             if (isWriteAccess && !Files.exists(getDatasetDirectory())) {
                 Files.createDirectories(getDatasetDirectory());
             }
-
+            this.opened = true;
         } else if (dvObject instanceof Dataverse) {
             throw new IOException("Data Access: Storage driver does not support dvObject type Dataverse yet");
         } else {

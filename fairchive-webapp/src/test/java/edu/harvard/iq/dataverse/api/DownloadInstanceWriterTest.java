@@ -36,6 +36,7 @@ public class DownloadInstanceWriterTest {
 
     private static final String DATASET_STORAGE_ID = "file://10.1010/FK2/ABCD";
     private static final String DATAFILE_STORAGE_ID = "datafilestorageid";
+    private static final String XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     @TempDir
     Path dir;
@@ -104,10 +105,24 @@ public class DownloadInstanceWriterTest {
     }
     
     @Test
-    void writingTabulatFile_withNoVarHeader_works() throws Exception {
+    void writingTabularFile_withNoVarHeader_works() throws Exception {
         prepareFile("tabular/example.xlsx");
         this.downloadInstance.setConversionParam("noVarHeader");
         this.dataFile.setDataTable(new DataTable());
+        
+        writeToOutput();
+
+        assertThatOutputStartsWith("PK");
+    }
+    
+    @Test
+    void writingTabularInOriginalFormat_works() throws Exception {
+        prepareFile("tabular/example.xlsx");
+        prepareAuxFile("tabular/example.xlsx", ".orig");
+        this.downloadInstance.setConversionParam("format");
+        this.downloadInstance.setConversionParamValue("original");
+        this.dataFile.setDataTable(new DataTable());
+        this.dataFile.getDataTable().setOriginalFileFormat(XLSX);
         
         writeToOutput();
 

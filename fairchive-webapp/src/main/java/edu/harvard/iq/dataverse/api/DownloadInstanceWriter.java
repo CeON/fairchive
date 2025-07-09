@@ -133,8 +133,7 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         }
         if (StringUtils.equals("format", di.getConversionParam()) 
                 && dataFile.isTabularData()) {
-            storageIO = writeFormattedTabular(di, httpHeaders, outstream, dataFile,
-                    storageIO);
+            writeFormattedTabular(di, httpHeaders, outstream, dataFile, storageIO);
             return;
         }
         if (StringUtils.equals("subset", di.getConversionParam()) 
@@ -239,13 +238,14 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
             storageIO.closeQuietly();
         }
     }
-    private StorageIO<DataFile> writeFormattedTabular(DownloadInstance di,
+    private void writeFormattedTabular(DownloadInstance di,
             MultivaluedMap<String, Object> httpHeaders, OutputStream outstream,
             DataFile dataFile, StorageIO<DataFile> storageIO) throws IOException {
         // Conversions, and downloads of "stored originals" are
         // now supported on all DataFiles for which StorageIO
         // access drivers are available.
 
+        try {
         if ("original".equals(di.getConversionParamValue())) {
             logger.debug("stored original of an ingested file requested");
             storageIO = StoredOriginalFile.retreive(storageIO, dataFile.getDataTable());
@@ -274,7 +274,9 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
             writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, 
                     outstream, httpHeaders, di, dataFile);
         }
-        return storageIO;
+        } finally {
+            storageIO.closeQuietly();
+        }
     }
     
     private void writeTabularWithNoVarHeader(final DownloadInstance di,

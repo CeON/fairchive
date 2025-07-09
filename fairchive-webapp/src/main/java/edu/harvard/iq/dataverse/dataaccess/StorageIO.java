@@ -57,6 +57,7 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
 
     private boolean isLocalFile = false;
     private boolean noVarHeader = false;
+    protected boolean opened = false;
 
     public StorageIO() {
 

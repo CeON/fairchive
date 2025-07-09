@@ -46,7 +46,6 @@ import java.net.URLEncoder;
 import java.nio.channels.Channel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -118,6 +117,9 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
     @Override
     public void open(DataAccessOption... options) throws IOException {
 
+        if(this.opened) {
+            return;
+        }
         if (isWriteAccessRequested(options)) {
             isWriteAccess = true;
             isReadAccess = false;
@@ -146,8 +148,10 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
                 }
 
             }
+            this.opened = true;
         } else if (dvObject instanceof Dataset) {
             key = dvObject.getStorageIdentifier().substring(S3_STORAGE_IDENTIFIER_PREFIX.length());
+            this.opened = true;
         } else if (dvObject instanceof Dataverse) {
             throw new IOException("Data Access: Storage driver does not support dvObject type Dataverse yet");
         } else {
