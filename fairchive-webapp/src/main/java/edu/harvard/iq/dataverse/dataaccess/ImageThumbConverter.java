@@ -22,6 +22,7 @@ package edu.harvard.iq.dataverse.dataaccess;
 import static java.awt.Image.SCALE_FAST;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static java.io.File.createTempFile;
+import static java.lang.Runtime.getRuntime;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.newInputStream;
 import static java.nio.file.Files.size;
@@ -231,7 +232,8 @@ public class ImageThumbConverter {
      * Also note that it works the exact same way for tabular-mapped-as-worldmap
      * files as well.
      */
-    private boolean generateWorldMapThumbnail(StorageIO<DataFile> storageIO, int size) {
+    private boolean generateWorldMapThumbnail(final StorageIO<DataFile> storageIO, 
+            int size) {
 
         try {
             storageIO.open();
@@ -242,21 +244,21 @@ public class ImageThumbConverter {
                 return false;
             }
 
-            long worldMapImageSize = storageIO.getAuxObjectSize(WORLDMAP_IMAGE_SUFFIX);
+            final long worldMapImageSize = storageIO.getAuxObjectSize(WORLDMAP_IMAGE_SUFFIX);
 
             if (isImageOverSizeLimit(worldMapImageSize)) {
                 logger.warn("WorldMap image too large - skipping");
                 return false;
             }
-        } catch (IOException ioex) {
+        } catch (final IOException e) {
             logger.warn("caught IOException trying to open an input stream for worldmap .img file (" 
-                        + storageIO.getStorageLocation() + "). Original Error: " + ioex);
+                        + storageIO.getStorageLocation() + "). Original Error: " + e);
             return false;
         }
 
-        try (InputStream worldMapImageInputStream = storageIO.getAuxFileAsInputStream(WORLDMAP_IMAGE_SUFFIX)) {
-            return generateImageThumbnailFromInputStream(storageIO, size, worldMapImageInputStream);
-        } catch (IOException e) {
+        try (final InputStream in = storageIO.getAuxFileAsInputStream(WORLDMAP_IMAGE_SUFFIX)) {
+            return generateImageThumbnailFromInputStream(storageIO, size, in);
+        } catch (final IOException e) {
             logger.warn("caught IOException trying to open an input stream for WorldMap .img file (" 
                         + storageIO.getStorageLocation() + "). Original Error: " + e);
             return false;
@@ -468,14 +470,14 @@ public class ImageThumbConverter {
         }
     }
 
-    public boolean generatePDFThumbnailFromFile(String fileLocation, int size, String thumbFileLocation) {
-
+    public boolean generatePDFThumbnailFromFile(final String fileLocation, 
+            final int size, final String thumbFileLocation) {
         // see if the thumb is already generated and saved:
         if (new File(thumbFileLocation).exists()) {
             return true;
         }
 
-        long fileSize = new File(fileLocation).length();
+        final long fileSize = new File(fileLocation).length();
         if (isPdfFileOverSizeLimit(fileSize)) {
             return false;
         }
@@ -492,41 +494,29 @@ public class ImageThumbConverter {
         }
 
         if (new File(imageMagickExec).exists()) {
-
             // Based on the lessons recently learned in production: 
             //  - use "-thumbnail" instead of "-resize";
             //  - use "-flatten"
             //  - use "-strip"
             //  - (maybe?) use jpeg instead of png - ?
             return runImageMagick(imageMagickExec, fileLocation, thumbFileLocation, size);
+        } else {
+            return false;
         }
-
-        return false;
-
     }
 
-    private boolean runImageMagick(String imageMagickExec, String fileLocation, String thumbFileLocation, int size) {
-        String imageMagickCmd = null;
-
-        imageMagickCmd = imageMagickExec + " pdf:" + fileLocation 
-                + "[0] -thumbnail " + size + "x" + size + " -flatten -strip png:" 
-                + thumbFileLocation;
-
-        int exitValue = 1;
-
+    private boolean runImageMagick(final String imageMagickExec,
+            final String fileLocation,
+            final String thumbFileLocation, final int size) {
         try {
-            Runtime runtime = Runtime.getRuntime();
-            Process process = runtime.exec(imageMagickCmd);
-            exitValue = process.waitFor();
+            final String imageMagickCmd = imageMagickExec + " pdf:" + fileLocation
+                    + "[0] -thumbnail " + size + "x" + size + " -flatten -strip png:"
+                    + thumbFileLocation;
+            final Process process = getRuntime().exec(imageMagickCmd);
+            return process.waitFor() == 0 && new File(thumbFileLocation).exists();
         } catch (Exception e) {
-            exitValue = 1;
+            return false;
         }
-
-        if (exitValue == 0 && new File(thumbFileLocation).exists()) {
-            return true;
-        }
-
-        return false;
     }
 
     private boolean isImageOverSizeLimit(final long size) {
