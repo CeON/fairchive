@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.datafile;
 
 import static edu.harvard.iq.dataverse.dataaccess.DataAccess.dataAccess;
-import static edu.harvard.iq.dataverse.dataaccess.DataAccessOption.READ_ACCESS;
 import static edu.harvard.iq.dataverse.dataaccess.FileAccessIO.DATASET_STORAGE_PREFIX;
 import static edu.harvard.iq.dataverse.util.SystemConfig.FILES_DIRECTORY;
 import static java.nio.charset.Charset.defaultCharset;
@@ -33,7 +32,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -106,24 +104,11 @@ public class OcrServiceIT extends WebappArquillianDeployment {
 
         when(this.settings.getValueForKey(eq(Key.OcrCommand))).thenReturn(executable);
 
-        DataFile textFile = this.ocrSerivice.ocr(createImageFileObject(fileName));
-
-        assertThat(textFile.getDisplayName()).isEqualTo(fileName + ".txt");
-        assertThat(contentOf(textFile)).startsWith("Actors:");
-
-        assertThat(this.set.getLatestVersion().getFileMetadatas())
-                .anyMatch(fm -> fm.getDataFile().getDisplayName()
-                        .equals(textFile.getDisplayName()));
-
-        // verify that state has been saved to DB
-        Dataset ds = this.datasets.findById(72L).get();
-        assertThat(ds.getLatestVersion().getFileMetadatas())
-                .anyMatch(fm -> fm.getDataFile().getDisplayName()
-                        .equals(textFile.getDisplayName()));
-
-        DataFile savedFile = this.datafiles.getById(textFile.getId());
-        assertThat(savedFile.getDisplayName()).isEqualTo(textFile.getDisplayName());
-        assertThat(savedFile.getOwner().getId()).isEqualTo(this.set.getId());
+        DataFile image = createImageFileObject(fileName);
+        
+        this.ocrSerivice.ocr(image);
+        
+        assertThat(contentOf(image, "ocr")).startsWith("Actors:");
     }
 
     @Test
@@ -133,9 +118,11 @@ public class OcrServiceIT extends WebappArquillianDeployment {
 
         when(this.settings.getValueForKey(eq(Key.OcrCommand))).thenReturn("");
 
-        DataFile textFile = this.ocrSerivice.ocr(createImageFileObject(fileName));
-
-        assertThat(textFile).isNull();
+        DataFile image = createImageFileObject(fileName);
+        
+        this.ocrSerivice.ocr(image);
+        
+        assertThat(isPresent(image, "ocr")).isFalse();
     }
     
     @Test
@@ -145,32 +132,22 @@ public class OcrServiceIT extends WebappArquillianDeployment {
 
         when(this.settings.getValueForKey(eq(Key.OcrCommand))).thenReturn(executable);
 
-        DataFile textFile = this.ocrSerivice.ocr(createImageFileObject(fileNameNoText));
+        DataFile image = createImageFileObject(fileName);
+        
+        this.ocrSerivice.ocr(image);
 
-        assertThat(textFile.getDisplayName()).isEqualTo(fileNameNoText + ".txt");
-        assertThat(contentOf(textFile)).isEmpty();
-
-        assertThat(this.set.getLatestVersion().getFileMetadatas())
-                .anyMatch(fm -> fm.getDataFile().getDisplayName()
-                        .equals(textFile.getDisplayName()));
-
-        // verify that state has been saved to DB
-        Dataset ds = this.datasets.findById(72L).get();
-        assertThat(ds.getLatestVersion().getFileMetadatas())
-                .anyMatch(fm -> fm.getDataFile().getDisplayName()
-                        .equals(textFile.getDisplayName()));
-
-        DataFile savedFile = this.datafiles.getById(textFile.getId());
-        assertThat(savedFile.getDisplayName()).isEqualTo(textFile.getDisplayName());
-        assertThat(savedFile.getOwner().getId()).isEqualTo(this.set.getId());
+        assertThat(contentOf(image, "ocr")).isEmpty();
     }
-
-    private String contentOf(final DataFile file) throws Exception {
-        try (final StorageIO<DataFile> inputStorage = dataAccess()
-                .getStorageIO(file)) {
-            inputStorage.open(READ_ACCESS);
-            return IOUtils.toString(inputStorage.getInputStream(), defaultCharset());
+    
+    private String contentOf(final DataFile file, final String tag) throws Exception {
+        try (final InputStream in = dataAccess().getStorageIO(file)
+                .getAuxFileAsInputStream(tag)) {
+            return IOUtils.toString(in, defaultCharset());
         }
+    }
+    
+    private boolean isPresent(final DataFile file, final String tag) throws Exception {
+        return dataAccess().getStorageIO(file).isAuxObjectCached(tag);
     }
 
     private void copyResource(final String resourceName, final Path target)
