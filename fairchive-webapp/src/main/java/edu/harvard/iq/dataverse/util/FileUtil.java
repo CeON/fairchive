@@ -421,6 +421,9 @@ public class FileUtil implements java.io.Serializable {
         if (downloadType == ApiDownloadType.TAB) {
             fileDownloadUrl = "/api/access/datafile/" + fileId + "?format=tab";
         }
+        if (downloadType == ApiDownloadType.OCR) {
+            fileDownloadUrl = "/api/access/datafile/" + fileId + "?format=ocr";
+        }
         if (gbRecordsWritten) {
             if (fileDownloadUrl.contains("?")) {
                 fileDownloadUrl += "&gbrecs=true";
@@ -560,6 +563,7 @@ public class FileUtil implements java.io.Serializable {
         ORIGINAL,
         RDATA,
         VAR,
-        TAB
+        TAB,
+        OCR
     }
 }

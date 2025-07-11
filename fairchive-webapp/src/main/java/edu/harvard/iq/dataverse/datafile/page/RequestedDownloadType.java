@@ -85,6 +85,12 @@ public class RequestedDownloadType implements Serializable {
         this.fileFormat = DownloadType.PACKAGE;
     }
     
+    public void initDownloadTypeForOCR(FileMetadata fileMetadata) {
+        this.fileMetadatas = Lists.newArrayList(fileMetadata);
+        this.fileFormat = DownloadType.OCR;
+    }
+    
+    
     public void initDownloadTypeForTool(FileMetadata fileMetadata, ExternalTool tool) {
         this.fileMetadatas = Lists.newArrayList(fileMetadata);
         this.fileFormat = DownloadType.EXTERNALTOOL;

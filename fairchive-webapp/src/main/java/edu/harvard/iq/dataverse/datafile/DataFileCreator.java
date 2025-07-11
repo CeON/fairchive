@@ -27,6 +27,9 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 
+import static java.nio.file.Files.deleteIfExists;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,6 +48,7 @@ import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport.
 import static edu.harvard.iq.dataverse.util.FileUtil.calculateChecksum;
 import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
 import static edu.harvard.iq.dataverse.util.FileUtil.getFilesTempDirectory;
+import static edu.harvard.iq.dataverse.util.FileUtil.limitedInputStreamToTempFile;
 
 @Stateless
 @TransactionManagement(TransactionManagementType.BEAN)
@@ -64,7 +68,24 @@ public class DataFileCreator {
     private TermsOfUseFactory termsOfUseFactory;
     @Inject
     private TermsOfUseFormMapper termsOfUseFormMapper;
+    
+    public DataFileCreator() {
+        
+    }
 
+    public DataFileCreator(final SettingsServiceBean settingsService,
+            final AntivirFileScanner antivirFileScanner,
+            final ArchiveUncompressedSizeCalculator uncompressedCalculator,
+            final FileTypeDetector fileTypeDetector, 
+            final TermsOfUseFactory termsOfUseFactory,
+            final TermsOfUseFormMapper termsOfUseFormMapper) {
+        this.settingsService = settingsService;
+        this.antivirFileScanner = antivirFileScanner;
+        this.uncompressedCalculator = uncompressedCalculator;
+        this.fileTypeDetector = fileTypeDetector;
+        this.termsOfUseFactory = termsOfUseFactory;
+        this.termsOfUseFormMapper = termsOfUseFormMapper;
+    }
 
     public List<DataFile> createDataFiles(InputStream inputStream, String fileName, String suppliedContentType) throws IOException {
         Path tempFile = null;
@@ -76,6 +97,21 @@ public class DataFileCreator {
         } finally {
             if (tempFile != null) {
                 Files.deleteIfExists(tempFile);
+            }
+        }
+    }
+    
+    public DataFile createSafeFile(final byte[] content, final String name,
+            final String contentType) throws IOException {
+        Path tempFile = null;
+        try {
+            tempFile = limitedInputStreamToTempFile(
+                    new ByteArrayInputStream(content), Long.MAX_VALUE);
+            return createSingleDataFile(tempFile, name, contentType,
+                    (long) content.length);
+        } finally {
+            if (tempFile != null) {
+                deleteIfExists(tempFile);
             }
         }
     }

@@ -182,6 +182,28 @@ public class DownloadInstanceWriterTest {
         assertThrows(WebApplicationException.class, () -> writeToOutput());
         assertThat(this.output.size()).isZero();
     }
+    
+    @Test
+    void writingOCRedImage_works() throws Exception {
+        prepareFile("images/coffeeshop.png");
+        prepareAuxFile("images/sample.txt", ".ocr");
+        this.downloadInstance.setConversionParam("ocr");
+        this.dataFile.setContentType("image/png");
+
+        writeToOutput();
+
+        assertThatOutputStartsWith("Test");
+    }
+    
+    @Test
+    void writingNotOCRedImage_throwsException() throws Exception {
+        prepareFile("images/coffeeshop.png");
+        this.downloadInstance.setConversionParam("ocr");
+        this.dataFile.setContentType("image/png");
+
+        assertThrows(WebApplicationException.class, () -> writeToOutput());
+        assertThat(this.output.size()).isZero();
+    }
 
     // --------------------------------------------------------------------------
     private void assertThatOutputStartsWith(final String s) {

@@ -22,7 +22,8 @@ public enum DownloadType {
     WORLDMAP(null, null),
     EXTERNALTOOL(null, null),
     PREVIEW(null, null),
-    PACKAGE(null, null);
+    PACKAGE(null, null),
+    OCR(ApiDownloadType.OCR, null);
 
     private ApiDownloadType apiDownloadEquivalent;
     private ApiBatchDownloadType apiBatchDownloadEquivalent;

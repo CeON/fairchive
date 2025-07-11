@@ -47,10 +47,12 @@ import static edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter.DEFAULT_TH
 import static java.io.File.createTempFile;
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang3.math.NumberUtils.toInt;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -129,10 +131,16 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
                         storageIO);
                 return;
             }
-            if (StringUtils.equals("format", di.getConversionParam())
-                    && dataFile.isTabularData()) {
-                writeFormattedTabular(di, httpHeaders, outstream, dataFile, storageIO);
-                return;
+            if (StringUtils.equals("format", di.getConversionParam())) {
+                if (dataFile.isTabularData()) {
+                    writeFormattedTabular(di, httpHeaders, outstream, dataFile,
+                            storageIO);
+                    return;
+                } else if (dataFile.isImage()
+                        && "ocr".equals(di.getConversionParamValue())) {
+                    writeOCRedFile(di, httpHeaders, outstream, dataFile, storageIO);
+                    return;
+                }
             }
             if (StringUtils.equals("subset", di.getConversionParam())
                     && dataFile.isTabularData()) {
@@ -316,6 +324,32 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         } else {
             throw new WebApplicationException(
                     ApiErrorResponseDTO.errorResponse(404, "Image thumbnail not found")
+                            .asJaxRsResponse());
+        }
+    }
+    
+    private void writeOCRedFile(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile,
+            final StorageIO<DataFile> storageIO) throws IOException {
+        try {
+            final InputStream in = storageIO.getAuxFileAsInputStream("ocr");
+            final int fileSize = (int) storageIO.getAuxObjectSize("ocr");
+
+            String fileName = storageIO.getFileName();
+            if (fileName != null) {
+                fileName = fileName.replaceAll("\\.[^\\.]*$", ".txt");
+            }
+            final InputStreamIO storage = new InputStreamIO(in, fileSize, fileName,
+                    "text/plain");
+            storage.setNoVarHeader(TRUE);
+            storage.setVarHeader(null);
+            writeStorageIOToOutputStream(storage, outstream, httpHeaders);
+
+        } catch (final Exception e) {
+            throw new WebApplicationException(
+                    ApiErrorResponseDTO.errorResponse(404, "OCRed image not found.")
                             .asJaxRsResponse());
         }
     }
