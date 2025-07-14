@@ -50,7 +50,7 @@ public class DownloadInstanceWriterTest {
     @Mock
     private RemoteDataFrameService remoteDataFrameService;
     @InjectMocks
-    private ImageThumbConverter thumbConverter;
+    private ImageThumbConverter thumbConverter; 
     @InjectMocks
     private DataConverter dataConverter;
     private final Dataset dataset = new Dataset();
@@ -187,7 +187,8 @@ public class DownloadInstanceWriterTest {
     void writingOCRedImage_works() throws Exception {
         prepareFile("images/coffeeshop.png");
         prepareAuxFile("images/sample.txt", ".ocr");
-        this.downloadInstance.setConversionParam("ocr");
+        this.downloadInstance.setConversionParam("format");
+        this.downloadInstance.setConversionParamValue("ocr");
         this.dataFile.setContentType("image/png");
 
         writeToOutput();
@@ -198,7 +199,8 @@ public class DownloadInstanceWriterTest {
     @Test
     void writingNotOCRedImage_throwsException() throws Exception {
         prepareFile("images/coffeeshop.png");
-        this.downloadInstance.setConversionParam("ocr");
+        this.downloadInstance.setConversionParam("format");
+        this.downloadInstance.setConversionParamValue("ocr");
         this.dataFile.setContentType("image/png");
 
         assertThrows(WebApplicationException.class, () -> writeToOutput());

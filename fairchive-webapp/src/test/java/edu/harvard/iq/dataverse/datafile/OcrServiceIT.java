@@ -132,7 +132,7 @@ public class OcrServiceIT extends WebappArquillianDeployment {
 
         when(this.settings.getValueForKey(eq(Key.OcrCommand))).thenReturn(executable);
 
-        DataFile image = createImageFileObject(fileName);
+        DataFile image = createImageFileObject(fileNameNoText);
         
         this.ocrSerivice.ocr(image);
 
