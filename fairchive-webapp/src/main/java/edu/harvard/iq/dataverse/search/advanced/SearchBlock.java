@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.search.advanced;
 
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -55,5 +56,10 @@ public class SearchBlock implements Serializable {
     public List<SearchField> addSearchField(SearchField searchField) {
         searchFields.add(searchField);
         return searchFields;
+    }
+
+    public boolean hasValidationErrors() {
+        return searchFields.stream()
+                .anyMatch(field -> StringUtils.isNotBlank(field.getValidationMessage()));
     }
 }
