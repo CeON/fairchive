@@ -25,16 +25,29 @@ public class ControlledVocabularyValueServiceBean implements java.io.Serializabl
 
     public List<ControlledVocabularyValue> findByDatasetFieldTypeId(Long dsftId) {
 
-        String queryString = "select o from ControlledVocabularyValue as o where o.datasetFieldType.id = " + dsftId + " ";
+        String queryString = "select o from ControlledVocabularyValue as o where o.datasetFieldType.id = :dsftId";
         TypedQuery<ControlledVocabularyValue> query = em.createQuery(queryString, ControlledVocabularyValue.class);
+        query.setParameter("dsftId", dsftId);
         return query.getResultList();
-
     }
+
+
+    public List<ControlledVocabularyValue> findByStrValue(Long dataFieldTypeId, String strValue) {
+
+        String queryString = "select cvv from ControlledVocabularyValue as cvv where " +
+                "cvv.datasetFieldType.id = :id and cvv.strValue = :strValue";
+        TypedQuery<ControlledVocabularyValue> query = em.createQuery(queryString, ControlledVocabularyValue.class);
+        query.setParameter("id", dataFieldTypeId);
+        query.setParameter("strValue", strValue);
+        return query.getResultList();
+    }
+
     public List<ControlledVocabularyValue> findByDatasetFieldTypeNameAndValueLike(String datasetFieldTypeName, String suggestionSourceFieldValue, int queryLimit) {
 
         String queryString = "select DISTINCT v from ControlledVocabularyValue as v " +
-                "where UPPER(v.strValue) LIKE CONCAT('%', UPPER(:suggestionSourceFieldValue), '%') " +
-                "and v.datasetFieldType.id = (select d.id from DatasetFieldType as d where d.name = :datasetFieldTypeName)";
+                "where v.datasetFieldType.id = (select d.id from DatasetFieldType as d where d.name = :datasetFieldTypeName) " +
+                "and ( UPPER(v.strValue) LIKE CONCAT('%', UPPER(:suggestionSourceFieldValue), '%') " +
+                "or UPPER(v.suggestionDetails) LIKE CONCAT('%', UPPER(:suggestionSourceFieldValue), '%') ) ";
         TypedQuery<ControlledVocabularyValue> query = em.createQuery(queryString, ControlledVocabularyValue.class);
         query.setParameter("suggestionSourceFieldValue", suggestionSourceFieldValue);
         query.setParameter("datasetFieldTypeName", datasetFieldTypeName);
