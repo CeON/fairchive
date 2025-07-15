@@ -452,24 +452,21 @@ public class IngestServiceBean {
                 dataFile.setIngestRequest(null);
             }
             this.fileService.saveInNewTransaction(dataFile);
-            
+            return true;
         } catch (final IngestException ex) {
             dataFile.setIngestProblem();
             dataFile.setIngestReport(IngestReport.createIngestFailureReport(dataFile, ex));
             logger.log(WARNING, "Ingest failure.", ex);
-            fileService.saveInNewTransaction(dataFile);
+            this.fileService.saveInNewTransaction(dataFile);
             return false;
         } catch (final Exception ingestEx) {
             dataFile.setIngestProblem();
             dataFile.setIngestReport(IngestReport.createIngestFailureReport(dataFile, UNKNOWN_ERROR));
-            fileService.saveInNewTransaction(dataFile);
+            this.fileService.saveInNewTransaction(dataFile);
             logger.log(WARNING, "Ingest failure.", ingestEx);
             return false;
         } 
-
-       // return finalizeIngestService.finalizeIngest(dataFile, additionalData, tabDataIngest, tabFile, originalFileData);
-        return true;
-        }
+    }
     
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean ingestAsTabular(Long datafile_id) {
