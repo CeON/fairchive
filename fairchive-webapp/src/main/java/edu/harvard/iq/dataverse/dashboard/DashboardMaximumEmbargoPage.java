@@ -1,23 +1,24 @@
 package edu.harvard.iq.dataverse.dashboard;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+
+import java.io.Serializable;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.lang.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Try;
-import org.apache.commons.lang.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-
-import java.io.Serializable;
 
 @SuppressWarnings("serial")
 @ViewScoped
@@ -55,55 +56,55 @@ public class DashboardMaximumEmbargoPage implements Serializable {
     // -------------------- GETTERS --------------------
 
     public boolean isMaximumEmbargoSet() {
-        return isMaximumEmbargoSet;
+        return this.isMaximumEmbargoSet;
     }
 
     public int getMaximumEmbargoLength() {
-        return maximumEmbargoLength;
+        return this.maximumEmbargoLength;
     }
 
     // -------------------- LOGIC --------------------
     public String init() {
-        if (!session.getUser().isSuperuser() || config.isReadonlyMode()) {
-            return permissionsWrapper.notAuthorized();
+        if (!this.session.getUser().isSuperuser() || this.config.isReadonlyMode()) {
+            return this.permissionsWrapper.notAuthorized();
         }
 
-        isMaximumEmbargoSet = settings.getValueForKeyAsInt(Key.MaximumEmbargoLength) > 0;
-        maximumEmbargoLength = settings.getValueForKeyAsInt(Key.MaximumEmbargoLength);
+        this.isMaximumEmbargoSet = this.settings.getValueForKeyAsInt(Key.MaximumEmbargoLength) > 0;
+        this.maximumEmbargoLength = this.settings.getValueForKeyAsInt(Key.MaximumEmbargoLength);
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     public String save() {
-        if(isMaximumEmbargoSet) {
-            setMaxEmbargoSetting(maximumEmbargoLength);
+        if(this.isMaximumEmbargoSet) {
+            setMaxEmbargoSetting(this.maximumEmbargoLength);
         } else {
             setMaxEmbargoSetting(0);
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
 
     public String cancel() {
         return "/dashboard.xhtml?dataverseId=" 
-                + dataverseDao.findRootDataverse().getId() + "&faces-redirect=true";
+                + this.dataverseDao.findRootDataverse().getId() + "&faces-redirect=true";
     }
 
     // -------------------- PRIVATE ---------------------
-    private void setMaxEmbargoSetting(int maxLength) {
-        Try.of(() -> settings.setValueForKey(Key.MaximumEmbargoLength, Integer.toString(maxLength)))
+    private void setMaxEmbargoSetting(final int maxLength) {
+        Try.of(() -> this.settings.setValueForKey(Key.MaximumEmbargoLength, Integer.toString(maxLength)))
                 .onSuccess(setting -> JsfHelper.addSuccessMessage(getStringFromBundle("dashboard.card.maximumembargo.save.success")))
                 .onFailure(setting -> JsfHelper.addErrorMessage(getStringFromBundle("dashboard.card.maximumembargo.save.failure")));
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setMaximumEmbargoSet(boolean maximumEmbargoSet) {
-        isMaximumEmbargoSet = maximumEmbargoSet;
+    public void setMaximumEmbargoSet(final boolean maximumEmbargoSet) {
+        this.isMaximumEmbargoSet = maximumEmbargoSet;
     }
 
-    public void setMaximumEmbargoLength(int maximumEmbargoLength) {
+    public void setMaximumEmbargoLength(final int maximumEmbargoLength) {
         this.maximumEmbargoLength = maximumEmbargoLength;
     }
 }
