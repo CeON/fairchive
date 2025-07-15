@@ -92,6 +92,14 @@ public class DashboardMaximumEmbargoPage implements Serializable {
         return "/dashboard.xhtml?faces-redirect=true&dataverseId=" 
                 + this.dataverseDao.findRootDataverse().getId();
     }
+    
+    public String getPageTitle() {
+        return getStringFromBundle("dashboard.card.maximumembargo.header") 
+                + " - "
+                + this.dataverseDao.findRootDataverse().getName()
+                + " "
+                + getStringFromBundle("dataverse");
+    }
 
     // -------------------- SETTERS --------------------
 
