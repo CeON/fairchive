@@ -481,7 +481,11 @@ function initDvJS() {
     let searchResultsData = new Map();
 
     function initializeMapSearchResults(key, data) {
-      data.leafMap = L.map(key, INIT_MAP_OPTS);
+      const mapOptions = Object.assign({}, INIT_MAP_OPTS, {
+        zoom: 1,
+        minZoom: 1
+      });
+      data.leafMap = L.map(key, mapOptions);
       let map = data.leafMap;
       data.polygonLayer = L.layerGroup().addTo(map);
       L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
@@ -546,7 +550,7 @@ function initDvJS() {
             markers.addLayer(marker);
         }
 
-         mapData.leafMap.addLayer(markers);
+        mapData.leafMap.addLayer(markers);
       }
     }
 
