@@ -128,6 +128,10 @@
                                                     ? (mdb.blockName).concat('_').concat(item.getParent().get().getDisplayId()) : ''}"/>
                                                 <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
 
+                                                <div id="infoBox" tabindex="0">
+                                                    <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
+                                                </div>
+
                                                 <div id="#{mapId}" class="form-col-container geo-map">
                                                 </div>
 
@@ -140,8 +144,6 @@
                                                              rows="5"
                                                              widgetVar="#{widgetVar}"
                                                              pt:data-handler="#{widgetVar}"/>
-
-                                                <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
 
                                                 <script>
                                                     DvJS.Geo.SearchView.prepare('#{mapId}');
