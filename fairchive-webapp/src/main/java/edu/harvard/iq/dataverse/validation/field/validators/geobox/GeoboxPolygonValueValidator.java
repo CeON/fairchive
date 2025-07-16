@@ -37,13 +37,11 @@ class GeoboxPolygonValueValidator implements FieldValidator {
             }
 
             if (!NumberUtils.isParsable(coords[0])) {
-                return FieldValidationResult.invalid(field, "isNotValidNumber",
-                        coords[0]);
+                return FieldValidationResult.invalid(field, "isNotValidNumber", coords[0]);
             }
 
             if (!NumberUtils.isParsable(coords[1])) {
-                return FieldValidationResult.invalid(field, "isNotValidNumber",
-                        coords[1]);
+                return FieldValidationResult.invalid(field, "isNotValidNumber", coords[1]);
             }
 
             BigDecimal longitude = new BigDecimal(coords[0]);

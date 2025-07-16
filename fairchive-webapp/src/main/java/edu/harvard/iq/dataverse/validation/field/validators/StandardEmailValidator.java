@@ -23,7 +23,6 @@ public class StandardEmailValidator extends MultiValueValidatorBase {
                                                Map<String, ? extends List<? extends ValidatableField>> fieldIndex) {
         return EmailValidator.getInstance().isValid(value)
                 ? FieldValidationResult.ok()
-                : FieldValidationResult.invalid(field,
-                        "email.invalid", value);
+                : FieldValidationResult.invalid(field, "email.invalid", value);
     }
 }
