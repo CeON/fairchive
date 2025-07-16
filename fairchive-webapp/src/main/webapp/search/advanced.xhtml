@@ -100,14 +100,13 @@
                                  href="#panelCollapseCitationFieldList#{status.index}"
                                  class="panel-heading">
                                 <h:outputText value="#{bundle['advanced.search.header.datasets']}: #{mdb.blockDisplayName}"/> &#160;<span
-                                    class="glyphicon #{mdb.hasValidationErrors() ?
+                                    class="glyphicon #{(mdb.hasValidationErrors() || status.first) ?
                                                         'glyphicon-chevron-up' :
-                                                        status.first? 'glyphicon-chevron-up':'glyphicon-chevron-down'}"/>
+                                                        'glyphicon-chevron-down'}"/>
                             </a>
                             <div id="panelCollapseCitationFieldList#{status.index}"
-                                 class="collapse #{mdb.hasValidationErrors() ?
-                                        'in' :
-                                        status.first? 'in':''} panel-body form-horizontal"
+                                 class="collapse #{(mdb.hasValidationErrors() || status.first) ?
+                                        'in' : ''} panel-body form-horizontal"
                                  data-map-prefix="#{mdb.blockName}_">
 
                                 <ui:repeat value="#{mdb.searchFields}" var="item">
