@@ -79,7 +79,7 @@ public class FileService {
         Set<ConstraintViolation<FileMetadata>> constraintViolations = versionToValidate.validateFileMetadata();
 
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
-            fieldValidationResults.forEach(r -> logger.warn(r.getMessage()));
+            fieldValidationResults.forEach(r -> logger.warn(r.getField().getValidationMessage()));
             constraintViolations.forEach(constraintViolation -> logger.warn(constraintViolation.getMessage()));
             throw new ValidationException("There was validation error during deletion attempt with the dataFile id: " + fileToDelete.getDataFile().getId());
 
@@ -116,7 +116,7 @@ public class FileService {
         Set<ConstraintViolation<FileMetadata>> constraintViolations = versionToValidate.validateFileMetadata();
 
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
-            fieldValidationResults.forEach(r -> logger.warn(r.getMessage()));
+            fieldValidationResults.forEach(r -> logger.warn(r.getField().getValidationMessage()));
             constraintViolations.forEach(constraintViolation -> logger.warn(constraintViolation.getMessage()));
             throw new ValidationException("There was validation error during deletion attempt with the dataFile id: " + editedFile.getDataFile().getId());
         }

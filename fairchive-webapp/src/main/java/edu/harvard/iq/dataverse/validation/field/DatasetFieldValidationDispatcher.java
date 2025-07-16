@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.validation.field;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -55,8 +54,7 @@ public class DatasetFieldValidationDispatcher {
     private FieldValidationResult validateField(DatasetField field) {
         DatasetFieldType fieldType = field.getDatasetFieldType();
         if (StringUtils.isBlank(field.getValue()) && fieldType.isPrimitive() && isRequiredInDataverse(field)) {
-            return FieldValidationResult.invalid(field,
-                    BundleUtil.getStringFromBundle("isrequired", fieldType.getDisplayName()));
+            return FieldValidationResult.invalid(field, "isrequired", fieldType.getDisplayName());
         }
         boolean effectivelyEmptyValue = StringUtils.isBlank(field.getValue())
                 || DatasetField.NA_VALUE.equals(field.getValue());

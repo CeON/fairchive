@@ -48,8 +48,8 @@ public class RequiredDependantFieldValidator extends DependantFieldValidator {
             Map<String, ? extends List<? extends ValidatableField>> fieldIndex) {
 
         if (dependantField.getValidatableValues().stream().noneMatch(StringUtils::isNotBlank)) {
-            return FieldValidationResult.invalid(dependantField, BundleUtil.getStringFromBundle("isrequired",
-                    dependantField.getDatasetFieldType().getDisplayName()));
+            return FieldValidationResult.invalid(dependantField, "isrequired",
+                    dependantField.getDatasetFieldType().getDisplayName());
         }
         return FieldValidationResult.ok();
     }

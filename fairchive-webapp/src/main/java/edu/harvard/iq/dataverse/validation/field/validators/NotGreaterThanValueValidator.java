@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 import org.omnifaces.cdi.Eager;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 
@@ -54,9 +53,9 @@ public class NotGreaterThanValueValidator extends FieldValidatorBase {
         long compareToValueLong = parseValue((String) compareToValue);
 
         if (valueLong > compareToValueLong) {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isGreaterThanValue",
+            return FieldValidationResult.invalid(field, "isGreaterThanValue",
                     field.getDatasetFieldType().getDisplayName(),
-                    String.valueOf(compareToValueLong)));
+                    String.valueOf(compareToValueLong));
         }
 
         return FieldValidationResult.ok();
