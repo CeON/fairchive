@@ -107,6 +107,24 @@ class GeoboxPolygonValueValidatorTest {
         assertThat(result.getMessage()).isEqualTo("The latitude must be a number between -90 and 90.");
     }
 
+    @Test
+    void validate__intersecting_sides() {
+        // given
+        String value = "20.821362 49.053845\n" +
+                "21.859114 48.793973\n" +
+                "21.414363 48.485439\n" +
+                "20.695075 48.481797\n" +
+                "21.606539 49.186865\n" +
+                "20.821362 49.053845";
+        DatasetField datasetField = createField(value);
+
+        // when
+        FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
+
+        // then
+        assertThat(result.getMessage()).isEqualTo("Self-intersecting polygons are not allowed.");
+    }
+
     private DatasetField createField(String value) {
         DatasetField datasetField = new DatasetField();
         datasetField.setValue(value);

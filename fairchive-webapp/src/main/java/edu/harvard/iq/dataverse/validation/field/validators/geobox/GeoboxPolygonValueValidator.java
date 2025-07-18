@@ -2,10 +2,14 @@ package edu.harvard.iq.dataverse.validation.field.validators.geobox;
 
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import edu.harvard.iq.dataverse.validation.field.FieldValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Polygon;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -65,6 +69,25 @@ class GeoboxPolygonValueValidator implements FieldValidator {
             return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.invalid.longitude.span"));
         }
 
+        if (isSelfIntersectingPolygon(value)) {
+            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.polygon.invalid.self.intersection"));
+        }
+
         return FieldValidationResult.ok();
+    }
+
+    private boolean isSelfIntersectingPolygon(String coordsStr) {
+        List<GeoPoint> geoPoints = GeoPoint.fromCoordinateString(coordsStr);
+        if (geoPoints.size() <= 2) {
+            return false;
+        }
+
+        Coordinate[] coords = geoPoints.stream()
+                .map(g -> new Coordinate(g.getLongitude(), g.getLatitude()))
+                .toArray(Coordinate[]::new);
+
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Polygon polygon = geometryFactory.createPolygon(coords);
+        return !polygon.isSimple();
     }
 }
