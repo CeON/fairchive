@@ -47,12 +47,10 @@ import static edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter.DEFAULT_TH
 import static java.io.File.createTempFile;
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
-import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang3.math.NumberUtils.toInt;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -77,8 +75,8 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
 
     // -------------------- CONSTRUCTORS --------------------
     public DownloadInstanceWriter() {
-        
     }
+    
     public DownloadInstanceWriter(DataConverter dataConverter,
             WholeDatasetDownloadLogger datasetDownloadLogger,
             ImageThumbConverter imageThumbConverter) {
@@ -138,7 +136,7 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
                     return;
                 } else if (dataFile.isImage()
                         && "ocr".equals(di.getConversionParamValue())) {
-                    writeOCRedFile(di, httpHeaders, outstream, dataFile, storageIO);
+                    writeOCRedFile(httpHeaders, outstream, storageIO);
                     return;
                 }
             }
@@ -328,18 +326,17 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         }
     }
     
-    private void writeOCRedFile(final DownloadInstance di,
-            final MultivaluedMap<String, Object> httpHeaders,
-            final OutputStream outstream,
-            final DataFile dataFile,
-            final StorageIO<DataFile> storageIO) throws IOException {
+    private void writeOCRedFile(final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream, final StorageIO<DataFile> storageIO) {
         try {
             final InputStream in = storageIO.getAuxFileAsInputStream("ocr");
             final int fileSize = (int) storageIO.getAuxObjectSize("ocr");
 
             String fileName = storageIO.getFileName();
             if (fileName != null) {
-                fileName = fileName.replaceAll("\\.[^\\.]*$", ".txt");
+                fileName = fileName.concat(".txt");
+            } else {
+                fileName = "text.txt";
             }
             final InputStreamIO storage = new InputStreamIO(in, fileSize, fileName,
                     "text/plain");

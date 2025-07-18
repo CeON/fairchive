@@ -5,4 +5,11 @@ RUN addgroup --gid 1000 jenkins && \
 
 RUN addgroup jenkins root
 
+# Install Tesseract and language packs
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    tesseract-ocr-eng \  # English language pack 
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 ENTRYPOINT []

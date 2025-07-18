@@ -9,9 +9,6 @@ import static java.nio.file.Files.createDirectories;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jboss.arquillian.transaction.api.annotation.TransactionMode.ROLLBACK;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -23,19 +20,16 @@ import org.apache.commons.io.IOUtils;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
-import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFileRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
@@ -48,12 +42,11 @@ public class OcrServiceIT extends WebappArquillianDeployment {
 
     private final static String fileName = "example_text.png";
     private final static String fileNameNoText = "example_no_text.jpg";
-    private final String executable = "C:\\bin\\Tesseract-OCR\\tesseract.exe stdin stdout";
 
     private String originalFilesDir;
+    private String originalOcrCommand;
     @TempDir
     Path dir;
-    private OcrService ocrSerivice;
     @EJB
     private AuthenticationServiceBean authenticationServiceBean;
     @Inject
@@ -61,15 +54,9 @@ public class OcrServiceIT extends WebappArquillianDeployment {
     @Inject
     private DatasetRepository datasets;
     @Inject
-    private DataFileRepository datafiles;
-    @Inject
-    private DataFileCreator fileCreator;
-    @Inject
-    private IngestServiceBean ingestService;
-    @Inject
-    private DatasetVersionServiceBean datasetVersionService;
-    @Mock
     private SettingsServiceBean settings;
+    @Inject
+    private OcrService ocrSerivice;
 
     private Dataset set;
 
@@ -85,9 +72,9 @@ public class OcrServiceIT extends WebappArquillianDeployment {
         createDirectories(setDir);
         copyResource("/images/" + fileName, setDir.resolve(fileName));
         copyResource("/images/" + fileNameNoText, setDir.resolve(fileNameNoText));
-
-        this.ocrSerivice = new OcrService(this.fileCreator, this.ingestService,
-                this.datasetVersionService, this.datafiles, this.settings);
+        
+        this.originalOcrCommand = this.settings.getValueForKey(Key.OcrCommand);
+        this.settings.setValueForKey(Key.OcrCommand, "tesseract stdin stdout");
     }
 
     @AfterEach
@@ -95,15 +82,13 @@ public class OcrServiceIT extends WebappArquillianDeployment {
         if (this.originalFilesDir != null) {
             System.setProperty(FILES_DIRECTORY, originalFilesDir);
         }
+        
+        this.settings.setValueForKey(Key.OcrCommand, this.originalOcrCommand);
     }
 
     @Test
+    @Tag("OCR")
     void orc_forProperConfiguration_producesTextFile() throws Exception {
-        // this is temporary so that this tests doesn't break the build in linux
-        assumeTrue(isWindows());
-
-        when(this.settings.getValueForKey(eq(Key.OcrCommand))).thenReturn(executable);
-
         DataFile image = createImageFileObject(fileName);
         
         this.ocrSerivice.ocr(image);
@@ -112,11 +97,9 @@ public class OcrServiceIT extends WebappArquillianDeployment {
     }
 
     @Test
+    @Tag("OCR")
     void ocr_forMissingConfiguration_doesNothing() throws Exception {
-        // this is temporary so that this tests doesn't break the build in linux
-        assumeTrue(isWindows());
-
-        when(this.settings.getValueForKey(eq(Key.OcrCommand))).thenReturn("");
+        this.settings.setValueForKey(Key.OcrCommand, "");
 
         DataFile image = createImageFileObject(fileName);
         
@@ -126,12 +109,8 @@ public class OcrServiceIT extends WebappArquillianDeployment {
     }
     
     @Test
+    @Tag("OCR")
     void ocr_forFileThtContainsNoText_producesEmptyTextFile() throws Exception {
-        // this is temporary so that this tests doesn't break the build in linux
-        assumeTrue(isWindows());
-
-        when(this.settings.getValueForKey(eq(Key.OcrCommand))).thenReturn(executable);
-
         DataFile image = createImageFileObject(fileNameNoText);
         
         this.ocrSerivice.ocr(image);
@@ -165,9 +144,5 @@ public class OcrServiceIT extends WebappArquillianDeployment {
         file.setStorageIdentifier(name);
         file.setOwner(this.set);
         return file;
-    }
-
-    private static boolean isWindows() {
-        return System.getProperty("os.name").startsWith("Windows");
     }
 }

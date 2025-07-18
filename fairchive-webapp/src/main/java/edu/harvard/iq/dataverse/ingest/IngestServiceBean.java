@@ -73,6 +73,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.OptimizedSumStatCalculator;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -633,15 +634,27 @@ public class IngestServiceBean {
         return provider;
     }
 
-    public long getIngestSizeLimit(DataFile dataFile) {
-        return systemConfig.getTabularIngestSizeLimit(getTabDataReaderByMimeType(dataFile.getContentType()).getFormatName());
+    public long getIngestSizeLimit(final DataFile dataFile) {
+        if (dataFile.isImage()) {
+            final Long imageSizeLimit = this.settingsService
+                    .getValueForKeyAsLong(Key.OcrImageSizeLimit);
+            return imageSizeLimit != null ? imageSizeLimit : -1;
+        } else {
+                return systemConfig.getTabularIngestSizeLimit(
+                    getTabDataReaderByMimeType(dataFile.getContentType())
+                            .getFormatName());
+        }
     }
 
-    public boolean exceedsIngestSizeLimit(DataFile dataFile) {
+    public boolean exceedsIngestSizeLimit(final DataFile dataFile) {
         if (dataFile.isImage()) {
-            return false;
+            final Long imageSizeLimit = this.settingsService
+                    .getValueForKeyAsLong(Key.OcrImageSizeLimit);
+            return imageSizeLimit != null && dataFile.getFilesize() > imageSizeLimit;
         } else {
-            long ingestSizeLimit = getIngestSizeLimit(dataFile);
+            final long ingestSizeLimit = this.systemConfig.getTabularIngestSizeLimit(
+                    getTabDataReaderByMimeType(dataFile.getContentType())
+                            .getFormatName());
             return ingestSizeLimit != -1 && dataFile.getFilesize() > ingestSizeLimit;
         }
     }

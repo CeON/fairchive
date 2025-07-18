@@ -786,7 +786,11 @@ public class SettingsServiceBean {
          * a commond to be executed in order to ORC images
          * (eg. "tesseract stdin stdout")
          */
-        OcrCommand;
+        OcrCommand,
+        /**
+         * a limit for images to be ocr'red in bytes
+         */
+        OcrImageSizeLimit;
 
 
 

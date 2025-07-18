@@ -982,6 +982,7 @@
             </activation>
             <properties>
                 <testsToExclude>NonEssentialTests</testsToExclude>
+                <testsToExclude>OCR</testsToExclude>
 
                 <test.network.mode>bridge</test.network.mode>
                 <test.postgres.docker.port>5432</test.postgres.docker.port>

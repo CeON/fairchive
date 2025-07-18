@@ -100,21 +100,6 @@ public class DataFileCreator {
             }
         }
     }
-    
-    public DataFile createSafeFile(final byte[] content, final String name,
-            final String contentType) throws IOException {
-        Path tempFile = null;
-        try {
-            tempFile = limitedInputStreamToTempFile(
-                    new ByteArrayInputStream(content), Long.MAX_VALUE);
-            return createSingleDataFile(tempFile, name, contentType,
-                    (long) content.length);
-        } finally {
-            if (tempFile != null) {
-                deleteIfExists(tempFile);
-            }
-        }
-    }
 
     // -------------------- PRIVATE --------------------
 

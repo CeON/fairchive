@@ -16,37 +16,22 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
-import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
-import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFileRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 
 @Stateless
 public class OcrService {
 
-    private final Logger log = getLogger(OcrService.class);
+    private static final Logger log = getLogger(OcrService.class);
     
-    private DataFileCreator fileCreator;
-    private IngestServiceBean ingestService;
-    private DatasetVersionServiceBean datasetVersionService;
-    private DataFileRepository datafiles;
     private SettingsServiceBean settings;
 
     public OcrService() {
     }
 
     @Inject
-    public OcrService(final DataFileCreator fileCreator,
-            final IngestServiceBean ingestService,
-            final DatasetVersionServiceBean datasetVersionService,
-            final DataFileRepository datafiles,
-            SettingsServiceBean settings) {
-        this.fileCreator = fileCreator;
-        this.ingestService = ingestService;
-        this.datasetVersionService = datasetVersionService;
-        this.datafiles = datafiles;
+    public OcrService(final SettingsServiceBean settings) {
         this.settings = settings;
     }
 

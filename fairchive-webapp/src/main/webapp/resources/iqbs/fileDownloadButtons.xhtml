@@ -16,8 +16,8 @@
     <composite:attribute name="previewTools" />
     <composite:attribute name="downloadRequestFunction" method-signature="java.lang.String downloadRequestFunction()"/>
     <composite:attribute name="updateOnDownloadRequest" />
-
     <composite:attribute name="updateOnRequestAccess" />
+    <composite:attribute name="OCRedFilePresent" />
 </composite:interface>
 
 
@@ -221,7 +221,7 @@
         </div>
 
 		<div class="btn-group"
-			jsf:rendered="#{cc.attrs.fileMetadata.dataFile.image}">
+			jsf:rendered="#{cc.attrs.fileMetadata.dataFile.image and cc.attrs.OCRedFilePresent}">
 			<!-- Download Dropdown -->
 			<button type="button"
 				class="btn btn-default btn-download dropdown-toggle"
@@ -258,6 +258,19 @@
                 </li>
 			</ul>
 		</div>
+		
+		<ui:fragment rendered="#{cc.attrs.fileMetadata.dataFile.image and not cc.attrs.OCRedFilePresent}">
+            <p:commandLink id="standardImageDownloadButton"
+                           styleClass="btn btn-default btn-download"
+                           process="@this"
+                           actionListener="#{RequestedDownloadType.initDownloadType(cc.attrs.fileMetadata)}"
+                           action="#{cc.attrs.downloadRequestFunction}"
+                           update="#{cc.attrs.updateOnDownloadRequest}"
+                           oncomplete="if (args &amp;&amp; args.apiDownloadLink) { refreshAndClickDownloadLink(args.apiDownloadLink); }">
+                <!-- non-tabular data file: -->
+                <span class="glyphicon glyphicon-download-alt" aria-hidden="true"/> #{bundle['file.download.header']}
+            </p:commandLink>
+         </ui:fragment>
 
 	</ui:fragment>
 

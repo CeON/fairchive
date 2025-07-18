@@ -437,6 +437,7 @@
                         downloadRequestFunction="#{fileDownloadHelper.requestDownload}"
                         updateOnDownloadRequest="@widgetVar(downloadPackagePopup)"
                         updateOnRequestAccess="@widgetVar(requestAccessPopup)"
+                        OCRedFilePresent="#{datasetFilesTab.isOCRedFilePresent(fileMetadata.dataFile)}"
                         />
                 </div>
                 <div class="col-xs-12 text-left small" jsf:rendered="#{fileMetadata.dataFile.filePackage and systemConfig.rsyncDownload
