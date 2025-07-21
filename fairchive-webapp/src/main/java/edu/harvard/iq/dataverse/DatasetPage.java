@@ -1340,7 +1340,7 @@ public class DatasetPage implements Serializable {
         boolean valid = org.apache.commons.validator.routines.EmailValidator.getInstance().isValid(email);
         if (!valid) {
             throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    email + " " + BundleUtil.getStringFromBundle("email.invalid"), ""));
+                    BundleUtil.getStringFromBundle("email.invalid", email), ""));
         }
     }
 

@@ -5,19 +5,20 @@ import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class ControlledVocabularyValidatorTest {
 
     @Mock
@@ -26,10 +27,6 @@ class ControlledVocabularyValidatorTest {
     @InjectMocks
     private ControlledVocabularyValidator validator;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
 
     @Test
     void testValidateValue_success() {
@@ -49,7 +46,7 @@ class ControlledVocabularyValidatorTest {
         FieldValidationResult result = validator.validateValue(
                 testValue, testField, new HashMap<>(), new HashMap<>());
 
-        assertTrue(result.isOk());
+        assertThat(result.isOk()).isTrue();
     }
 
     @Test
@@ -67,7 +64,8 @@ class ControlledVocabularyValidatorTest {
         FieldValidationResult result = validator.validateValue(
                 testValue, testField, new HashMap<>(), new HashMap<>());
 
-        assertFalse(result.isOk());
-        assertEquals("Value \"InvalidValue\" is not allowed. Please select one from the list.", result.getMessage());
+        assertThat(result.isOk()).isFalse();
+        assertThat(result.getErrorCode()).isEqualTo("validation.value.not.allowed.in.controlled.vocabulary");
+        assertThat(result.getErrorArgs()).containsExactly("InvalidValue");
     }
 }

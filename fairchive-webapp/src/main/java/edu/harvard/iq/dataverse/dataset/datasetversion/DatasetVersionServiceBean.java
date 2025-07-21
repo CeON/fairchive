@@ -1084,7 +1084,7 @@ w
         List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(editVersion);
         Set<ConstraintViolation<FileMetadata>> constraintViolations = editVersion.validateFileMetadata();
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
-            fieldValidationResults.forEach(r -> log.warn(r.getMessage()));
+            fieldValidationResults.forEach(r -> log.warn(r.getField().getValidationMessage()));
             constraintViolations.forEach(constraintViolation -> log.warn(constraintViolation.getMessage()));
             throw new ValidationException("There was validation error during updating dataset attempt with id: " + editVersion.getDataset().getId());
         }

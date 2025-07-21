@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import io.vavr.Tuple;
@@ -44,14 +43,14 @@ public class DateRangeValidator extends FieldValidatorBase {
 
         Tuple2<LocalDate, Boolean> dateFrom = validateAndParse(dateFromValue);
         if (!dateFrom._2()) {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("advanced.search.wrong.daterange.format", dateFromValue));
+            return FieldValidationResult.invalid(field, "advanced.search.wrong.daterange.format", dateFromValue);
         }
         Tuple2<LocalDate, Boolean> dateTo = validateAndParse(dateToValue);
         if (!dateTo._2()) {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("advanced.search.wrong.daterange.format", dateToValue));
+            return FieldValidationResult.invalid(field, "advanced.search.wrong.daterange.format", dateToValue);
         }
         if (!isValidDateRange(dateFrom._1(), dateTo._1(), dateToValue)) {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("advanced.search.wrong.daterange.badRange"));
+            return FieldValidationResult.invalid(field, "advanced.search.wrong.daterange.badRange");
         }
         return FieldValidationResult.ok();
     }

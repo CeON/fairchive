@@ -53,7 +53,7 @@ class GeoboxRectangleValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("Coordinates should have 4 different points");
+        assertThat(result.getErrorCode()).isEqualTo("geobox.polygon.invalid.coordiantes.length");
     }
 
     @Test
@@ -66,7 +66,7 @@ class GeoboxRectangleValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("Coordinates should have 4 different points");
+        assertThat(result.getErrorCode()).isEqualTo("geobox.polygon.invalid.coordiantes.length");
     }
 
     @Test
@@ -79,7 +79,7 @@ class GeoboxRectangleValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("Coordinates should create axis-aligned rectangle");
+        assertThat(result.getErrorCode()).isEqualTo("geobox.polygon.invalid.coordiantes.rectangle");
     }
 
     private DatasetField createField(String value) {

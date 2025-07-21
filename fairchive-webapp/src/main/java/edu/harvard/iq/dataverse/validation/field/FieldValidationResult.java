@@ -2,21 +2,20 @@ package edu.harvard.iq.dataverse.validation.field;
 
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.ValidationResult;
-import org.apache.commons.lang3.StringUtils;
 
 public class FieldValidationResult extends ValidationResult {
 
-    public static FieldValidationResult OK = new FieldValidationResult(true, null, null, StringUtils.EMPTY);
+    public static FieldValidationResult OK = new FieldValidationResult(true, null, null);
 
     private final ValidatableField field;
-    private final String message;
+    private final Object[] errorArgs;
 
     // -------------------- CONSTRUCTORS --------------------
 
-    private FieldValidationResult(boolean ok, String errorCode, ValidatableField field, String validationMessage) {
+    private FieldValidationResult(boolean ok, String errorCode, ValidatableField field, Object...errorArgs) {
         super(ok, errorCode);
         this.field = field;
-        this.message = validationMessage;
+        this.errorArgs = errorArgs;
     }
 
     // -------------------- GETTERS --------------------
@@ -25,8 +24,8 @@ public class FieldValidationResult extends ValidationResult {
         return field;
     }
 
-    public String getMessage() {
-        return message;
+    public Object[] getErrorArgs() {
+        return errorArgs;
     }
 
     // -------------------- LOGIC --------------------
@@ -35,7 +34,8 @@ public class FieldValidationResult extends ValidationResult {
         return OK;
     }
 
-    public static FieldValidationResult invalid(ValidatableField field, String message) {
-        return new FieldValidationResult(false, null, field, message);
+    public static FieldValidationResult invalid(ValidatableField field, String errorCode, Object... errorArgs) {
+        return new FieldValidationResult(false, errorCode, field, errorArgs);
     }
+
 }

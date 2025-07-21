@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -24,7 +23,6 @@ public class StandardEmailValidator extends MultiValueValidatorBase {
                                                Map<String, ? extends List<? extends ValidatableField>> fieldIndex) {
         return EmailValidator.getInstance().isValid(value)
                 ? FieldValidationResult.ok()
-                : FieldValidationResult.invalid(field,
-                String.format("%s %s", value, BundleUtil.getStringFromBundle("email.invalid")));
+                : FieldValidationResult.invalid(field, "email.invalid", value);
     }
 }
