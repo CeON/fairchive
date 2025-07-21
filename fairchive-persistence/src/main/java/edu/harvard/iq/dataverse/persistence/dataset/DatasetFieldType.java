@@ -525,6 +525,16 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         }
     }
 
+    public String getLocaleVocab(String value) {
+        if (getMetadataBlock() == null) {
+            return value;
+        } else {
+            String localeVocab = BundleUtil.getStringFromNonDefaultBundle(
+                    "controlledvocabulary." + getName() + "." + value, getMetadataBlock().getName());
+            return localeVocab.isEmpty() ? value : localeVocab;
+        }
+    }
+
     /**
      * Determinate if this DatasetFieldType or it's parent allows multiple values for solr field.
      */

@@ -30,6 +30,7 @@ import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
 import edu.harvard.iq.dataverse.search.response.GeoPoint;
+import edu.harvard.iq.dataverse.search.response.GeoShape;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Try;
@@ -735,19 +736,13 @@ public class SearchServiceBean {
 
             boolean isDraft = isDraftDataset(solrDocument);
             for (String coords : coordinates) {
-                List<GeoPoint> points = new ArrayList<>();
-                String[] geoPoints = coords.trim().split("\\s+");
-                for (int i = 0; i < geoPoints.length; i += 2) {
-                    double longitude = Double.parseDouble(geoPoints[i]);
-                    double latitude = Double.parseDouble(geoPoints[i + 1]);
-                    points.add(new GeoPoint(latitude, longitude));
-                }
+                List<GeoPoint> points = GeoPoint.fromCoordinateString(coords);
                 Map<String, String> customData = parseCustomData(solrDocument);
                 SolrSearchLocationResult result = new SolrSearchLocationResult(
                         datasetName,
                         doi,
                         isDraft,
-                        points,
+                        GeoShape.of(points),
                         customData
                 );
                 results.add(result);
