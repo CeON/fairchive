@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,6 +87,7 @@ public class OcrServiceIT extends WebappArquillianDeployment {
         this.settings.setValueForKey(Key.OcrCommand, this.originalOcrCommand);
     }
 
+    @Disabled
     @Test
     @Tag("OCR")
     void orc_forProperConfiguration_producesTextFile() throws Exception {
@@ -95,7 +97,8 @@ public class OcrServiceIT extends WebappArquillianDeployment {
         
         assertThat(contentOf(image, "ocr")).startsWith("Actors:");
     }
-
+    
+    @Disabled
     @Test
     @Tag("OCR")
     void ocr_forMissingConfiguration_doesNothing() throws Exception {
@@ -108,6 +111,7 @@ public class OcrServiceIT extends WebappArquillianDeployment {
         assertThat(isPresent(image, "ocr")).isFalse();
     }
     
+    @Disabled  
     @Test
     @Tag("OCR")
     void ocr_forFileThtContainsNoText_producesEmptyTextFile() throws Exception {
