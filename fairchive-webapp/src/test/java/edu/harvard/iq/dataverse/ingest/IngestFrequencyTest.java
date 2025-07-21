@@ -4,6 +4,7 @@ import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.UnitTestUtils;
 import edu.harvard.iq.dataverse.datafile.FileTypeDetector;
+import edu.harvard.iq.dataverse.datafile.OcrService;
 import edu.harvard.iq.dataverse.ingest.tabulardata.TabularDataFileReader;
 import edu.harvard.iq.dataverse.ingest.tabulardata.TabularDataIngest;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -46,12 +47,16 @@ public class IngestFrequencyTest {
     @Mock private FileTypeDetector fileTypeDetector;
     @Mock private Event<IngestMessageSendEvent> ingestMessageSendEventEvent;
     @Mock private FinalizeIngestService finalizeIngestService;
+    @Mock private OcrService ocrService;
 
     private IngestServiceBean ingestService;
 
     @BeforeEach
     void setUp() {
-        ingestService = new IngestServiceBean(datasetDao, fileService, systemConfig, settingsService, fileTypeDetector, ingestMessageSendEventEvent, finalizeIngestService);
+        ingestService = new IngestServiceBean(datasetDao, fileService, 
+                systemConfig, settingsService, fileTypeDetector, 
+                ingestMessageSendEventEvent, finalizeIngestService,
+                ocrService);
         Mockito.when(settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.IngestMethodChangeThreshold)).thenReturn(1000000L);
     }
 

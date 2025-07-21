@@ -32,6 +32,7 @@ import edu.harvard.iq.dataverse.dataaccess.ingest.FileIngestDataProvider;
 import edu.harvard.iq.dataverse.dataaccess.ingest.InMemoryIngestDataProvider;
 import edu.harvard.iq.dataverse.dataaccess.ingest.IngestDataProvider;
 import edu.harvard.iq.dataverse.datafile.FileTypeDetector;
+import edu.harvard.iq.dataverse.datafile.OcrService;
 import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
 import edu.harvard.iq.dataverse.ingest.StartIngestResult.DataFileExceededSizeInfo;
 import edu.harvard.iq.dataverse.ingest.metadataextraction.FileMetadataExtractor;
@@ -72,6 +73,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.OptimizedSumStatCalculator;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -89,6 +91,11 @@ import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Event;
 import javax.faces.bean.ManagedBean;
 import javax.inject.Inject;
+
+import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError.UNKNOWN_ERROR;
+import static java.util.logging.Level.WARNING;
+import static javax.ejb.TransactionAttributeType.NOT_SUPPORTED;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -129,6 +136,7 @@ public class IngestServiceBean {
     private FileTypeDetector fileTypeDetector;
     private Event<IngestMessageSendEvent> ingestMessageSendEventEvent;
     private FinalizeIngestService finalizeIngestService;
+    private OcrService ocrService;
 
     private DataAccess dataAccess = DataAccess.dataAccess();
 
@@ -140,7 +148,7 @@ public class IngestServiceBean {
     public IngestServiceBean(DatasetDao datasetDao, DataFileServiceBean fileService,
                              SystemConfig systemConfig, SettingsServiceBean settingsService,
                              FileTypeDetector fileTypeDetector, Event<IngestMessageSendEvent> ingestMessageSendEventEvent,
-                             FinalizeIngestService finalizeIngestService) {
+                             FinalizeIngestService finalizeIngestService, OcrService ocrService) {
         this.datasetDao = datasetDao;
         this.fileService = fileService;
         this.systemConfig = systemConfig;
@@ -148,6 +156,7 @@ public class IngestServiceBean {
         this.fileTypeDetector = fileTypeDetector;
         this.ingestMessageSendEventEvent = ingestMessageSendEventEvent;
         this.finalizeIngestService = finalizeIngestService;
+        this.ocrService = ocrService;
     }
 
     // -------------------- LOGIC --------------------
@@ -275,6 +284,8 @@ public class IngestServiceBean {
                 // queued for async. ingest in the background. In the meantime, the file will
                 // be ingested as a regular, non-tabular file, and appear as such to the user,
                 // until the ingest job is finished with the Ingest Service.
+                dataFile.setIngestScheduled();
+            } else if(dataFile.isImage() && !Boolean.FALSE.equals(dataFile.getIncludedInIngest())) {
                 dataFile.setIngestScheduled();
             } else if (fileMetadataExtractable(dataFile)) {
 
@@ -430,6 +441,34 @@ public class IngestServiceBean {
         IngestUtil.recalculateDatasetVersionUNF(version);
     }
 
+    @TransactionAttribute(NOT_SUPPORTED)
+    public boolean performOCR(final Long datafile_id) {
+        final DataFile dataFile = fileService.find(datafile_id);
+        try {
+            this.ocrService.ocr(dataFile);
+            dataFile.setIngestDone();
+            // delete the ingest request, if exists:
+            if (dataFile.getIngestRequest() != null) {
+                dataFile.getIngestRequest().setDataFile(null);
+                dataFile.setIngestRequest(null);
+            }
+            this.fileService.saveInNewTransaction(dataFile);
+            return true;
+        } catch (final IngestException ex) {
+            dataFile.setIngestProblem();
+            dataFile.setIngestReport(IngestReport.createIngestFailureReport(dataFile, ex));
+            logger.log(WARNING, "Ingest failure.", ex);
+            this.fileService.saveInNewTransaction(dataFile);
+            return false;
+        } catch (final Exception ingestEx) {
+            dataFile.setIngestProblem();
+            dataFile.setIngestReport(IngestReport.createIngestFailureReport(dataFile, UNKNOWN_ERROR));
+            this.fileService.saveInNewTransaction(dataFile);
+            logger.log(WARNING, "Ingest failure.", ingestEx);
+            return false;
+        } 
+    }
+    
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean ingestAsTabular(Long datafile_id) {
         DataFile dataFile = fileService.find(datafile_id);
@@ -595,13 +634,29 @@ public class IngestServiceBean {
         return provider;
     }
 
-    public long getIngestSizeLimit(DataFile dataFile) {
-        return systemConfig.getTabularIngestSizeLimit(getTabDataReaderByMimeType(dataFile.getContentType()).getFormatName());
+    public long getIngestSizeLimit(final DataFile dataFile) {
+        if (dataFile.isImage()) {
+            final Long imageSizeLimit = this.settingsService
+                    .getValueForKeyAsLong(Key.OcrImageSizeLimit);
+            return imageSizeLimit != null ? imageSizeLimit : -1;
+        } else {
+                return systemConfig.getTabularIngestSizeLimit(
+                    getTabDataReaderByMimeType(dataFile.getContentType())
+                            .getFormatName());
+        }
     }
 
-    public boolean exceedsIngestSizeLimit(DataFile dataFile) {
-        long ingestSizeLimit = getIngestSizeLimit(dataFile);
-        return ingestSizeLimit != -1 && dataFile.getFilesize() > ingestSizeLimit;
+    public boolean exceedsIngestSizeLimit(final DataFile dataFile) {
+        if (dataFile.isImage()) {
+            final Long imageSizeLimit = this.settingsService
+                    .getValueForKeyAsLong(Key.OcrImageSizeLimit);
+            return imageSizeLimit != null && dataFile.getFilesize() > imageSizeLimit;
+        } else {
+            final long ingestSizeLimit = this.systemConfig.getTabularIngestSizeLimit(
+                    getTabDataReaderByMimeType(dataFile.getContentType())
+                            .getFormatName());
+            return ingestSizeLimit != -1 && dataFile.getFilesize() > ingestSizeLimit;
+        }
     }
 
     public boolean supportsPickingEncoding(DataFile file) {

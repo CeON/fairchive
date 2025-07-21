@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UseOAIStrictIdentifierScheme;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -185,7 +186,12 @@ public class SystemConfig {
     }
 
     public boolean isSuperiorLogoDefined(Locale locale) {
-        return !getLocalizedProperty(Key.SuperiorLogoPath, locale).isEmpty() || !getLocalizedProperty(Key.SuperiorLogoResponsivePath, locale).isEmpty();
+        return !getLocalizedProperty(Key.SuperiorLogoPath, locale).isEmpty() 
+                || !getLocalizedProperty(Key.SuperiorLogoResponsivePath, locale).isEmpty();
+    }
+    
+    public boolean isOcrEnabled() {
+        return isNotBlank(this.settingsService.getValueForKey(Key.OcrCommand));
     }
 
     public String getSuperiorLogoLink(Locale locale) {

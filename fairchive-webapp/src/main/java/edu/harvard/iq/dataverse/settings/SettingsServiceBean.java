@@ -781,8 +781,16 @@ public class SettingsServiceBean {
         /**
          * Session length, in minutes, of an authenticated user
          */
-        AuthenticatedSessionTimeout
-        ;
+        AuthenticatedSessionTimeout,
+        /**
+         * a commond to be executed in order to ORC images
+         * (eg. "tesseract stdin stdout")
+         */
+        OcrCommand,
+        /**
+         * a limit for images to be ocr'red in bytes
+         */
+        OcrImageSizeLimit;
 
 
 

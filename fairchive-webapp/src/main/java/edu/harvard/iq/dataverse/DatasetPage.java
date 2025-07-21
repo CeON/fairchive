@@ -445,6 +445,11 @@ public class DatasetPage implements Serializable {
         return !this.workingVersion.isDeaccessioned()
                 || (this.workingVersion.isDeaccessioned() && canUpdateDataset());
     }
+    
+    public boolean displayFilesTab() {
+        return !this.workingVersion.isDeaccessioned()
+                || (this.workingVersion.isDeaccessioned() && canUpdateDataset());
+    }
 
     public Dataset getDataset() {
         return dataset;
