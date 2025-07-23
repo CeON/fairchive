@@ -177,7 +177,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     private boolean visibleThroughAnonymizedUrl;
 
     /**
-     * When creating/editing dataset. Field value will be pre-populated with
+     * When creating/editing dataset, field value will be pre-populated with
      * this value.
      * If field type is a controlled vocabulary then it should be set to
      * the value of {@link ControlledVocabularyValue#getStrValue()}.
