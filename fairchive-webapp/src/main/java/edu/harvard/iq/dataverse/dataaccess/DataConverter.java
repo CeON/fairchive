@@ -30,6 +30,11 @@ import edu.harvard.iq.dataverse.util.FileUtil;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+
+import static edu.harvard.iq.dataverse.dataaccess.StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION;
+import static java.nio.file.StandardOpenOption.DELETE_ON_CLOSE;
+import static java.util.logging.Logger.getLogger;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +42,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,7 +63,7 @@ import java.util.logging.Logger;
 
 @Stateless
 public class DataConverter {
-    private static Logger logger = Logger.getLogger(DataConverter.class.getPackage().getName());
+    private static Logger logger = getLogger(DataConverter.class.getPackage().getName());
 
     private static final String FILE_TYPE_TAB = "tab";
 
@@ -70,15 +74,17 @@ public class DataConverter {
     }
 
 
-    public StorageIO<DataFile> performFormatConversion(DataFile file, StorageIO<DataFile> storageIO, String formatRequested, String formatType) {
+    public StorageIO<DataFile> performFormatConversion(final DataFile file, 
+            final StorageIO<DataFile> storageIO, final String formatRequested, 
+            final String formatType) {
         if (!file.isTabularData()) {
             return null;
         }
 
         // if the format requested is "D00", and it's already a TAB file,
         // we don't need to do anything:
-        if (formatRequested.equals(FILE_TYPE_TAB) && file.getContentType().equals("text/tab-separated-values")) {
-
+        if (formatRequested.equals(FILE_TYPE_TAB) 
+                && file.getContentType().equals("text/tab-separated-values")) {
             return storageIO;
         }
 
@@ -89,9 +95,11 @@ public class DataConverter {
         // format:
         try {
             convertedFileSize = storageIO.getAuxObjectSize(formatRequested);
-            convertedFileStream = Channels.newInputStream((ReadableByteChannel) storageIO.openAuxChannel(formatRequested));
+            convertedFileStream = Channels.newInputStream((ReadableByteChannel) 
+                    storageIO.openAuxChannel(formatRequested));
         } catch (IOException ioex) {
-            logger.fine("No cached copy for file format " + formatRequested + ", file " + file.getStorageIdentifier());
+            logger.fine("No cached copy for file format " + formatRequested 
+                    + ", file " + file.getStorageIdentifier());
             convertedFileStream = null;
         }
 
@@ -99,19 +107,20 @@ public class DataConverter {
         if (convertedFileStream == null) {
             Optional<File> tabFile = Optional.empty();
             try {
-                tabFile = Optional.of(StorageIOUtils.obtainAsLocalFile(storageIO, storageIO.isRemoteFile()));
-
-                File formatConvertedFile = runFormatConversion(file, tabFile.get(), formatRequested);
-
+                tabFile = Optional.of(StorageIOUtils.obtainAsLocalFile(storageIO, 
+                        storageIO.isRemoteFile()));
+                File formatConvertedFile = runFormatConversion(file, tabFile.get(),
+                        formatRequested);
                 if (formatConvertedFile != null && formatConvertedFile.exists()) {
-
-                    storageIO.savePathAsAux(Paths.get(formatConvertedFile.getAbsolutePath()), formatRequested);
-
+                    storageIO.savePathAsAux(Paths.get(formatConvertedFile.getAbsolutePath()), 
+                            formatRequested);
                     convertedFileSize = formatConvertedFile.length();
-                    convertedFileStream = Files.newInputStream(formatConvertedFile.toPath(), StandardOpenOption.DELETE_ON_CLOSE);
+                    convertedFileStream = Files.newInputStream(formatConvertedFile.toPath(), 
+                            DELETE_ON_CLOSE);
                 }
             } catch (IOException e) {
-                logger.log(Level.WARNING, "Unable to perform format conversion for file with storageId: " + file.getStorageIdentifier(), e);
+                logger.log(Level.WARNING, "Unable to perform format conversion for file with storageId: " 
+                                            + file.getStorageIdentifier(), e);
                 return null;
             } finally {
                 if (storageIO.isRemoteFile()) {
@@ -130,7 +139,8 @@ public class DataConverter {
             }
             fileName = generateAltFileName(formatRequested, fileName);
 
-            return new InputStreamIO(convertedFileStream, convertedFileSize, fileName, formatType);
+            return new InputStreamIO(convertedFileStream, convertedFileSize, 
+                    fileName, formatType);
         }
 
         return null;
@@ -145,7 +155,8 @@ public class DataConverter {
     // (possibly running on a remote host) and gets back the transformed copy,
     // providing error-checking and diagnostics in the process.
     // This is mostly Akio Sone's code from DVN3.
-    private File runFormatConversion(DataFile file, File tabFile, String formatRequested) {
+    private File runFormatConversion(final DataFile file, final File tabFile, 
+            final String formatRequested) {
 
         if (formatRequested.equals(FILE_TYPE_TAB)) {
             // if the *requested* format is TAB-delimited, we don't
@@ -178,9 +189,12 @@ public class DataConverter {
                 Optional<File> tmpOrigFile = Optional.empty();
                 try {
                     StorageIO<DataFile> storageIO = DataAccess.dataAccess().getStorageIO(file);
-                    File origFile = StorageIOUtils.obtainAuxAsLocalFile(storageIO, StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION, storageIO.isRemoteFile());
+                    File origFile = StorageIOUtils.obtainAuxAsLocalFile(storageIO, 
+                            SAVED_ORIGINAL_FILENAME_EXTENSION, storageIO.isRemoteFile());
                     
-                    tmpOrigFile = storageIO.isRemoteFile() ? Optional.of(origFile) : Optional.empty();
+                    tmpOrigFile = storageIO.isRemoteFile() 
+                            ? Optional.of(origFile) 
+                            : Optional.empty();
                     
                     resultInfo = dfs.directConvert(origFile, origFormat);
                 } catch (IOException ex) {
@@ -193,8 +207,10 @@ public class DataConverter {
             } else {
                 List<DataVariable> dataVariables = file.getDataTable().getDataVariables();
                 Map<String, Map<String, String>> vls = getValueTableForRequestedVariables(dataVariables);
-                logger.fine("format conversion: variables(getDataVariableForRequest())=" + dataVariables + "\n");
-                logger.fine("format conversion: variables(dataVariables)=" + dataVariables + "\n");
+                logger.fine("format conversion: variables(getDataVariableForRequest())=" 
+                            + dataVariables + "\n");
+                logger.fine("format conversion: variables(dataVariables)=" 
+                            + dataVariables + "\n");
                 logger.fine("format conversion: value table(vls)=" + vls + "\n");
                 RJobRequest sro = new RJobRequest(dataVariables, vls);
 
@@ -235,7 +251,8 @@ public class DataConverter {
         return formatConvertedFile;
     }
 
-    private static Map<String, Map<String, String>> getValueTableForRequestedVariables(List<DataVariable> dataVariables) {
+    private static Map<String, Map<String, String>> getValueTableForRequestedVariables(
+            final List<DataVariable> dataVariables) {
         Map<String, Map<String, String>> allVarLabels = new LinkedHashMap<>();
         for (DataVariable dataVar : dataVariables) {
             Map<String, String> varLabels = new HashMap<>();
@@ -251,7 +268,8 @@ public class DataConverter {
         return allVarLabels;
     }
 
-    private static String generateAltFileName(String formatRequested, String xfileId) {
+    private static String generateAltFileName(final String formatRequested, 
+            final String xfileId) {
         String altFileName = xfileId;
 
         if (altFileName == null || altFileName.isEmpty()) {

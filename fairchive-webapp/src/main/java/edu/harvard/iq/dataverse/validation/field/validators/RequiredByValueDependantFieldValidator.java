@@ -49,8 +49,8 @@ public class RequiredByValueDependantFieldValidator extends DependantFieldValida
         if (dependantField.getValidatableValues().stream().anyMatch(actualValue ->
                 StringUtils.equalsIgnoreCase(actualValue, (String) params.get(DEPENDANT_FIELD_VALUE_PARAM)))) {
             if (field.getValidatableValues().stream().noneMatch(StringUtils::isNotBlank)) {
-                return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isrequired",
-                        field.getDatasetFieldType().getDisplayName()));
+                return FieldValidationResult.invalid(field, "isrequired",
+                        field.getDatasetFieldType().getDisplayName());
             }
             return FieldValidationResult.ok();
         }

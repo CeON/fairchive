@@ -327,11 +327,13 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
                 if (!fieldValidationResults.isEmpty()) {
                     FieldValidationResult firstError = fieldValidationResults.get(0);
                     throw new SwordError(UriRegistry.ERROR_BAD_REQUEST,
-                            String.format("Unable to add file(s) to dataset: %s The invalid value was \"%s\".", firstError.getMessage(), firstError.getField().getSingleValue()));
+                            String.format("Unable to add file(s) to dataset: %s The invalid value was \"%s\".",
+                                    firstError.getField().getValidationMessage(), firstError.getField().getSingleValue()));
                 } else if (!constraintViolations.isEmpty()) {
                     ConstraintViolation<FileMetadata> violation = constraintViolations.iterator().next();
                     throw new SwordError(UriRegistry.ERROR_BAD_REQUEST,
-                            String.format("Unable to add file(s) to dataset: %s The invalid value was \"%s\".", violation.getMessage(), violation.getInvalidValue()));
+                            String.format("Unable to add file(s) to dataset: %s The invalid value was \"%s\".",
+                                    violation.getMessage(), violation.getInvalidValue()));
                 } else {
                     ingestService.saveAndAddFilesToDataset(editVersion, dataFiles);
                 }

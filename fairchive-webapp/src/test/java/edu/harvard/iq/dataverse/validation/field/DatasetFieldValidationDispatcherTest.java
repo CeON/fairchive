@@ -43,7 +43,7 @@ class DatasetFieldValidationDispatcherTest {
         @Override
         public FieldValidationResult validate(ValidatableField field, Map<String, Object> params,
                                               Map<String, ? extends List<? extends ValidatableField>> fieldIndex) {
-            return FieldValidationResult.invalid(field, "message");
+            return FieldValidationResult.invalid(field, "message.code");
         }
     };
 
@@ -110,8 +110,8 @@ class DatasetFieldValidationDispatcherTest {
 
         // then
         assertThat(results)
-                .extracting(FieldValidationResult::getMessage, FieldValidationResult::isOk)
-                .containsExactly(tuple("testField is not a valid entry.", false));
+                .extracting(FieldValidationResult::getErrorCode, FieldValidationResult::isOk)
+                .containsExactly(tuple("isNotValidEntry", false));
     }
 
     @Test
@@ -128,8 +128,8 @@ class DatasetFieldValidationDispatcherTest {
 
         // then
         assertThat(results)
-                .extracting(FieldValidationResult::getMessage, FieldValidationResult::isOk)
-                .containsExactly(tuple("testField is not a valid entry.", false));
+                .extracting(FieldValidationResult::getErrorCode, FieldValidationResult::isOk)
+                .containsExactly(tuple("isNotValidEntry", false));
     }
 
     @Test
@@ -142,8 +142,8 @@ class DatasetFieldValidationDispatcherTest {
 
         // then
         assertThat(results)
-                .extracting(FieldValidationResult::getMessage, FieldValidationResult::isOk)
-                .containsExactly(tuple("testField is required.", false));
+                .extracting(FieldValidationResult::getErrorCode, FieldValidationResult::isOk)
+                .containsExactly(tuple("isrequired", false));
     }
 
     @Test

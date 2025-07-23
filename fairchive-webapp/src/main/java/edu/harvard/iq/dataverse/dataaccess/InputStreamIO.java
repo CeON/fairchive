@@ -9,8 +9,10 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.Channel;
 import java.nio.channels.Channels;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -73,6 +75,12 @@ public class InputStreamIO extends StorageIO<DataFile> {
 
     @Override
     public Channel openAuxChannel(String auxItemTag, DataAccessOption... options) throws IOException {
+        throw new UnsupportedDataAccessOperationException("InputStreamIO: this method is not supported in this DataAccess driver.");
+    }
+    
+    @Override
+    public OutputStream openAuxOutput(final String auxItemTag) 
+            throws IOException {
         throw new UnsupportedDataAccessOperationException("InputStreamIO: this method is not supported in this DataAccess driver.");
     }
 

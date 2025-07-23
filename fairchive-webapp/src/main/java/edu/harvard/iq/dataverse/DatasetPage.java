@@ -445,6 +445,11 @@ public class DatasetPage implements Serializable {
         return !this.workingVersion.isDeaccessioned()
                 || (this.workingVersion.isDeaccessioned() && canUpdateDataset());
     }
+    
+    public boolean displayFilesTab() {
+        return !this.workingVersion.isDeaccessioned()
+                || (this.workingVersion.isDeaccessioned() && canUpdateDataset());
+    }
 
     public Dataset getDataset() {
         return dataset;
@@ -1340,7 +1345,7 @@ public class DatasetPage implements Serializable {
         boolean valid = org.apache.commons.validator.routines.EmailValidator.getInstance().isValid(email);
         if (!valid) {
             throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    email + " " + BundleUtil.getStringFromBundle("email.invalid"), ""));
+                    BundleUtil.getStringFromBundle("email.invalid", email), ""));
         }
     }
 

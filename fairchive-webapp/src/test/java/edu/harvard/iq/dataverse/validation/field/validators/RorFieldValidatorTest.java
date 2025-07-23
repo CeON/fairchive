@@ -41,7 +41,7 @@ public class RorFieldValidatorTest {
         // then
         assertThat(result.isOk()).isTrue();
         assertThat(result.getField()).isNull();
-        assertThat(result.getMessage()).isEmpty();
+        assertThat(result.getErrorCode()).isNull();
     }
 
     @Test
