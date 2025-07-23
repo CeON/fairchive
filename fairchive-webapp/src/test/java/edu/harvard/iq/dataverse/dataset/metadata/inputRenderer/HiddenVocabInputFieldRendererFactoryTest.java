@@ -9,7 +9,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.util.json.TestJsonCreator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -19,11 +18,8 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -35,7 +31,7 @@ public class HiddenVocabInputFieldRendererFactoryTest {
     // -------------------- TESTS --------------------
     
     @Test
-    public void createRenderer__withEmptyOptions() {
+    public void createRenderer() {
         // given
         DatasetFieldType fieldType = new DatasetFieldType();
         fieldType.setControlledVocabularyValues(Lists.newArrayList());
@@ -45,41 +41,6 @@ public class HiddenVocabInputFieldRendererFactoryTest {
         HiddenVocabInputFieldRenderer renderer = inputFieldRendererFactory.createRenderer(fieldType, rendererOptions);
         // then
         assertEquals(inputFieldRendererFactory.isFactoryForType(), renderer.getType());
-        assertEquals(0, renderer.getDefaultVocabValues().size());
-    }
-    
-    @Test
-    public void createRenderer__withDefaultValues() {
-        // given
-        DatasetFieldType fieldType = new DatasetFieldType();
-        ControlledVocabularyValue vocabValue1 = new ControlledVocabularyValue(1L, "val1", null);
-        ControlledVocabularyValue vocabValue2 = new ControlledVocabularyValue(2L, "val2", null);
-        ControlledVocabularyValue vocabValue3 = new ControlledVocabularyValue(2L, "val3", null);
-        fieldType.setControlledVocabularyValues(Lists.newArrayList(vocabValue1, vocabValue2, vocabValue3));
-        
-        JsonObject rendererOptions = TestJsonCreator.stringAsJsonElement("{'defaultValues': ['val1', 'val2']}").getAsJsonObject();
-        
-        // when
-        HiddenVocabInputFieldRenderer renderer = inputFieldRendererFactory.createRenderer(fieldType, rendererOptions);
-        // then
-        assertEquals(inputFieldRendererFactory.isFactoryForType(), renderer.getType());
-        assertThat(renderer.getDefaultVocabValues(), contains(vocabValue1, vocabValue2));
-    }
-    
-    @Test
-    public void createRenderer__invalidOptions() {
-        // given
-        DatasetFieldType fieldType = new DatasetFieldType();
-        fieldType.setControlledVocabularyValues(Lists.newArrayList());
-        
-        JsonObject rendererOptions = TestJsonCreator.stringAsJsonElement(
-                "{'defaultValues':'notAnArray'}").getAsJsonObject();
-        
-        // when
-        Executable createRendererOperation = () -> inputFieldRendererFactory.createRenderer(fieldType, rendererOptions);
-        
-        // then
-        assertThrows(InputRendererInvalidConfigException.class, createRendererOperation);
     }
 
     @Test

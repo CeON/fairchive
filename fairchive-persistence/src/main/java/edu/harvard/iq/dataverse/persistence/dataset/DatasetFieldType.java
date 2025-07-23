@@ -176,6 +176,16 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     private Map<String, Object> metadata = emptyMap();
     private boolean visibleThroughAnonymizedUrl;
 
+    /**
+     * When creating/editing dataset. Field value will be pre-populated with
+     * this value.
+     * If field type is a controlled vocabulary then it should be set to
+     * the value of {@link ControlledVocabularyValue#getStrValue()}.
+     * If controlled vocabulary is a multivalued it is possible to set
+     * default value to multiple values by seperating them by semicolon ';'.
+     */
+    private String defaultValue;
+
     // -------------------- CONSTRUCTORS --------------------
 
     public DatasetFieldType() { }
@@ -354,6 +364,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public Map<String, Object> getMetadata() {
         return metadata;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
     }
 
     // -------------------- LOGIC --------------------
@@ -696,6 +710,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public void setMetadata(Map<String, Object> metadata) {
         this.metadata = metadata;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
     }
 
     // -------------------- hashCode & equals --------------------

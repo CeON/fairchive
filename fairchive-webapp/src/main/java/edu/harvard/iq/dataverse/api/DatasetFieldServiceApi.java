@@ -323,6 +323,9 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
         setIfNotEmpty(dsf::setValidation, 19, values);
         setIfNotEmpty(v -> dsf.setMetadata(jsonMapConverter.convertToEntityAttribute(v)), 20, values);
         setIfNotEmpty(v -> dsf.setVisibleThroughAnonymizedUrl(parseBoolean(v)), 21, values);
+        if (values.length >= 22) {
+            dsf.setDefaultValue(values[22]);
+        }
 
         datasetFieldService.save(dsf);
         return dsf.getName();

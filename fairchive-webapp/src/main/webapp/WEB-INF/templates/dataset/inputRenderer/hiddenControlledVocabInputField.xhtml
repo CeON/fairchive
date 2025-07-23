@@ -11,15 +11,7 @@
                 value="#{datasetField.controlledVocabularyValues}"
                 converter="controlledVocabularyValueConverter"
                 widgetVar="#{datasetField.datasetFieldType.name}_HiddenSelect">
-        <f:selectItems value="#{inputRenderer.defaultVocabValues}" />
+        <f:selectItems value="#{datasetField.datasetFieldType.getControlledVocabSelectItems(false)}" />
     </p:selectManyCheckbox>
-
-    <script>
-    $(document).ready(function (){
-        PF('#{datasetField.datasetFieldType.name}_HiddenSelect').inputs.each(function() {
-            $(this).prop('checked', true)
-        });
-    });
-    </script>
 
 </ui:composition>
