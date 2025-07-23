@@ -18,7 +18,6 @@ public class FieldDefaultValueApplier {
 
         if (StringUtils.isNotBlank(datasetFieldType.getDefaultValue())
                 && datasetField.isEmpty()) {
-            
             if (datasetFieldType.isControlledVocabulary()) {
                 datasetField.setControlledVocabularyValues(
                         getControlledVocabularyValues(datasetFieldType, datasetFieldType.getDefaultValue()));
