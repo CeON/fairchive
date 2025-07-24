@@ -299,7 +299,6 @@ public class DatasetDao implements java.io.Serializable {
         return lock;
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW) /*?*/
     public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason, Long userId, String info) {
 
         Dataset dataset = em.find(Dataset.class, datasetId);
