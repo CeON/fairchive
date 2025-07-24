@@ -188,14 +188,14 @@ public class FeedbackUtilTest {
         assertEquals(installationBrandName + " contact: " + messageSubject, feedback.getSubject());
         String expectedBody
                 = "You have just been sent the following message from " + userEmail + " "
-                + "via the " + installationBrandName + " hosted dataverse named \"dvAlias1\":\n\n"
+                + "via the " + installationBrandName + " hosted collection named \"dvAlias1\":\n\n"
                 + "---\n\n"
                 + userMessage + "\n\n"
                 + "---\n\n"
                 + supportTeamName + "\n"
                 + systemEmail + "\n\n"
-                + "Go to dataverse https://dataverse.librascholar.edu/dataverse/dvAlias1\n\n"
-                + "You received this email because you have been listed as a contact for the dataverse. "
+                + "Go to collection https://dataverse.librascholar.edu/dataverse/dvAlias1\n\n"
+                + "You received this email because you have been listed as a contact for the collection. "
                 + "If you believe this was an error, please contact "
                 + supportTeamName + " at " + systemEmail + ". "
                 + "To respond directly to the individual who sent the message, simply reply to this email.";
@@ -224,7 +224,7 @@ public class FeedbackUtilTest {
         // then
         feedback = feedbacks2.get(0);
         assertEquals("support@librascholar.edu", feedback.getToEmail());
-        assertTrue(feedback.getBody().startsWith("There is no contact address on file for this dataverse so this message is being sent to the system address."));
+        assertTrue(feedback.getBody().startsWith("There is no contact address on file for this collection so this message is being sent to the system address."));
     }
 
     @Test
@@ -256,14 +256,14 @@ public class FeedbackUtilTest {
         assertEquals(installationBrandName + " contact: " + messageSubject, feedback.getSubject());
         String expectedBody
                 = "You have just been sent the following message from " + userEmail + " "
-                + "via the " + installationBrandName + " hosted dataverse named \"dvAlias1\":\n\n"
+                + "via the " + installationBrandName + " hosted collection named \"dvAlias1\":\n\n"
                 + "---\n\n"
                 + userMessage + "\n\n"
                 + "---\n\n"
                 + supportTeamName + "\n"
                 + systemEmail + "\n\n"
-                + "Go to dataverse https://dataverse.librascholar.edu/dataverse/dvAlias1\n\n"
-                + "You received this email because you have been listed as a contact for the dataverse. "
+                + "Go to collection https://dataverse.librascholar.edu/dataverse/dvAlias1\n\n"
+                + "You received this email because you have been listed as a contact for the collection. "
                 + "If you believe this was an error, please contact "
                 + supportTeamName + " at " + systemEmail + ". "
                 + "To respond directly to the individual who sent the message, simply reply to this email.";

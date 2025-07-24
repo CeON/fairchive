@@ -33,15 +33,15 @@ public class BundleUtilTest {
     @Test
     public void getStringFromBundleWithArguments() {
         assertAll(
-            () -> assertEquals("You have successfully created your dataverse! To learn more about what you can do with your dataverse, "+
-                            "check out the <a href=\"http://guides.dataverse.org/en/4.0/user/dataverse-management.html\" title=\"Dataverse Management - " +
+            () -> assertEquals("You have successfully created your collection! To learn more about what you can do with your collection, "+
+                            "check out the <a href=\"http://guides.dataverse.org/en/4.0/user/dataverse-management.html\" title=\"Collection Management - " +
                             "Dataverse User Guide\" target=\"_blank\">User Guide</a>.",
                     BundleUtil.getStringFromBundle("dataverse.create.success", "http://guides.dataverse.org/en", "4.0")),
-            () -> assertEquals("Your new dataverse named "
+            () -> assertEquals("Your new collection named "
                                  + "dvName (view at dvUrl ) "
                                  + "was created in parentDvName (view at parentDvUrl ). To learn more "
-                                 + "about what you can do with your dataverse, check out "
-                                 + "the Dataverse Management - User Guide at "
+                                 + "about what you can do with your collection, check out "
+                                 + "the Collection Management - User Guide at "
                                  + "http://guides.dataverse.org/en/4.0/user/dataverse-management.html .",
                     BundleUtil.getStringFromBundle("notification.email.createDataverse",
                             "dvName", "dvUrl", "parentDvName", "parentDvUrl", "http://guides.dataverse.org/en", "4.0")),
@@ -52,7 +52,7 @@ public class BundleUtilTest {
                                  + "http://guides.dataverse.org/en/4.0/user/dataset-management.html .",
                          BundleUtil.getStringFromBundle("notification.email.createDataset",
                             "dsName", "dsUrl", "parentDvName", "parentDvUrl", "http://guides.dataverse.org/en", "4.0")),
-            () -> assertEquals("There are no dataverses, datasets, or files that match your search. "
+            () -> assertEquals("There are no collections, datasets, or files that match your search. "
                                  + "Please try a new search by using other or broader terms. You can also check out "
                                  + "the <a href=\"http://guides.dataverse.org/en/4.2/user/find-use-data.html\" title=\"Finding &amp; Using "
                                  + "Data - Dataverse User Guide\" target=\"_blank\">search guide</a> for tips.",
