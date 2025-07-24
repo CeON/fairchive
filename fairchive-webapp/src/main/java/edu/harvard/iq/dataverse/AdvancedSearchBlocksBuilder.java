@@ -78,9 +78,12 @@ public class AdvancedSearchBlocksBuilder {
                     .map(searchFieldFactory::create)
                     .filter(f -> !SearchField.EMPTY.equals(f))
                     .collect(toList());
+
             metadataSearchBlocks.add(new SearchBlock(block.getName(), block.getLocaleDisplayName(), searchFields));
         }
         addExtraFieldsToCitationMetadataBlock(metadataSearchBlocks);
+
+        metadataSearchBlocks.removeIf(sBlock -> sBlock.getSearchFields().isEmpty());
         return metadataSearchBlocks;
     }
 

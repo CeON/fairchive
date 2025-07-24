@@ -72,8 +72,8 @@ public class AdvancedSearchBlocksBuilderTest {
         // when
         List<SearchBlock> searchBlocks = advancedSearchBlocksBuilder.createDatasetMetadataBlocks(dataverse);
         // then
-        assertThat(searchBlocks).hasSize(3);
-        assertThat(searchBlocks).extracting(SearchBlock::getBlockName).containsExactly("citation", "block2", "block3");
+        assertThat(searchBlocks).hasSize(2);
+        assertThat(searchBlocks).extracting(SearchBlock::getBlockName).containsExactly("citation", "block2");
         assertThat(searchBlocks.get(0).getSearchFields())
             .extracting(SearchField::getName, SearchField::getSearchFieldType)
             .containsExactly(
@@ -86,7 +86,6 @@ public class AdvancedSearchBlocksBuilderTest {
             .containsExactly(
                     tuple("field3", SearchFieldType.TEXT),
                     tuple("field4", SearchFieldType.TEXT));
-        assertThat(searchBlocks.get(2).getSearchFields()).isEmpty();
     }
     
     @Test
