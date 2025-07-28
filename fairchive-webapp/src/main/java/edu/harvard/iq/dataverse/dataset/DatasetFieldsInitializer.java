@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.FieldDefaultValueApplier;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import org.apache.commons.collections4.SetUtils;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class DatasetFieldsInitializer {
 
     private DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService;
+    private FieldDefaultValueApplier defaultValueApplier = new FieldDefaultValueApplier();
 
 
     // -------------------- CONSTRUCTORS --------------------
@@ -81,6 +83,8 @@ public class DatasetFieldsInitializer {
         newDatasetFields = filterEmptyFieldsFromUnknownBlocks(newDatasetFields, metadataBlocksDataverse);
 
         newDatasetFields = sortDatasetFieldsRecursively(newDatasetFields);
+
+        applyDefaultValues(newDatasetFields);
 
         return newDatasetFields;
     }
@@ -261,6 +265,10 @@ public class DatasetFieldsInitializer {
             }
         }
         return notEmptyFields;
+    }
+
+    private void applyDefaultValues(List<DatasetField> datasetFields) {
+        datasetFields.forEach(defaultValueApplier::applyDefaultValue);
     }
 
     private List<DatasetField> filterEmptyFieldsFromUnknownBlocks(List<DatasetField> datasetFields, Dataverse metadataBlocksDataverse) {

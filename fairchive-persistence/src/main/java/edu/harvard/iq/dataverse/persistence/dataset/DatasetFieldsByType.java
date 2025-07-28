@@ -20,6 +20,8 @@ public class DatasetFieldsByType {
     // some kind of factory and collection of field actions.
     private FieldValueDivider divider;
 
+    private FieldDefaultValueApplier defaultValueApplier = new FieldDefaultValueApplier();
+
     private boolean include = true;
 
     // -------------------- CONSTRUCTORS --------------------
@@ -58,6 +60,7 @@ public class DatasetFieldsByType {
 
     public void addEmptyDatasetField(int position) {
         DatasetField newField = DatasetField.createNewEmptyDatasetField(datasetFieldType, null);
+        applyDefaultValues(newField);
         datasetFields.add(position, newField);
     }
 
@@ -89,6 +92,10 @@ public class DatasetFieldsByType {
             divider = FieldValueDivider.create(datasetFieldType);
         }
         return divider;
+    }
+
+    private void applyDefaultValues(DatasetField datasetField) {
+        defaultValueApplier.applyDefaultValue(datasetField);
     }
 
     // -------------------- SETTERS --------------------
