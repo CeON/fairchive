@@ -124,7 +124,7 @@ class GeoboxPolygonValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("Self-intersecting polygons are not allowed.");
+        assertThat(result.getErrorCode()).isEqualTo("geobox.polygon.invalid.self.intersection");
     }
 
     private DatasetField createField(String value) {

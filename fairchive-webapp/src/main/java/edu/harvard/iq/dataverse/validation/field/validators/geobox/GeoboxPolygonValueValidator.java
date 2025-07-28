@@ -67,7 +67,7 @@ class GeoboxPolygonValueValidator implements FieldValidator {
         }
 
         if (isSelfIntersectingPolygon(value)) {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.polygon.invalid.self.intersection"));
+            return FieldValidationResult.invalid(field, "geobox.polygon.invalid.self.intersection");
         }
 
         return FieldValidationResult.ok();
