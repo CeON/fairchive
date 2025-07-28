@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import org.omnifaces.cdi.Eager;
@@ -27,8 +26,8 @@ public class StandardUrlValidator extends MultiValueValidatorBase {
             new URL(value);
             return FieldValidationResult.ok();
         } catch (MalformedURLException e) {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isNotValidUrl",
-                    field.getDatasetFieldType().getDisplayName(), value));
+            return FieldValidationResult.invalid(field, "isNotValidUrl",
+                    field.getDatasetFieldType().getDisplayName(), value);
         }
     }
 }

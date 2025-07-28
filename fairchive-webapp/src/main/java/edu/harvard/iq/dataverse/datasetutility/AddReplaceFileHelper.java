@@ -1021,7 +1021,7 @@ public class AddReplaceFileHelper {
         // violations found: gather all error messages
         // -----------------------------------------------------------
         Stream.concat(
-                fieldValidationResults.stream().map(FieldValidationResult::getMessage),
+                fieldValidationResults.stream().map(fvr -> fvr.getField().getValidationMessage()),
                 constraintViolations.stream().map(ConstraintViolation::getMessage))
                 .forEach(this::addError);
         return this.hasError();

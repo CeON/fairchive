@@ -305,15 +305,22 @@
             <p:column class="col-file-action text-right #{settingsWrapper.rsyncOnly ? 'col-file-access' : ''}">
                 <f:facet name="header" class="col-file-action text-right">
                     <!-- EDIT -->
-                    <div style="margin-right:14px;" class="btn-group" jsf:rendered="#{!widgetWrapper.widgetView and datasetFilesTab.canUpdateDataset() and (datasetFilesTab.fileMetadatasSearch.getAllAvailableFilesCount() gt 0)}">
-                        <button type="button" class="btn btn-default btn-access dropdown-toggle" data-toggle="dropdown"
+                    <div style="margin-right:14px;" class="btn-group" 
+                         jsf:rendered="#{!widgetWrapper.widgetView and datasetFilesTab.canUpdateDataset() 
+                                        and (datasetFilesTab.fileMetadatasSearch.getAllAvailableFilesCount() gt 0)}">
+                        <button type="button" 
+                                class="btn btn-default btn-access dropdown-toggle" 
+                                data-toggle="dropdown"
                                 disabled="#{datasetFilesTab.lockedFromEdits ? 'disabled' : ''}">
                             <span class="glyphicon glyphicon-pencil"/> #{bundle['file.editFiles']} <span class="caret"></span>
                         </button>
-                        <ul class="dropdown-menu multi-level pull-right text-left" role="menu">
-                            <ui:fragment rendered="#{!datasetFilesTab.dataset.released or !datasetFilesTab.workingVersion.hasPackageFile}">
+                        <ul class="dropdown-menu multi-level pull-right text-left" 
+                            role="menu">
+                            <ui:fragment rendered="#{!datasetFilesTab.dataset.released
+                                                     or !datasetFilesTab.workingVersion.hasPackageFile}">
                                 <li class="#{datasetFilesTab.lockedFromEdits ? 'disabled' : ''}">
-                                    <p:commandLink onclick="testFilesSelectedForDelete(this);" id="deleteSelectedFile">
+                                    <p:commandLink onclick="testFilesSelectedForDelete(this);" 
+                                                   id="deleteSelectedFile">
                                         <h:outputText value="#{bundle['file.delete']}"/>
                                     </p:commandLink>
                                 </li>
@@ -327,7 +334,8 @@
                                     </p:commandLink>
                                 </li>
                                 <li class="#{datasetFilesTab.lockedFromEdits ? 'disabled' : ''}">
-                                    <p:commandLink onclick="testFilesSelectedForEditLicense(this);" id="editLicenseSelectedFile">
+                                    <p:commandLink onclick="testFilesSelectedForEditLicense(this);" 
+                                                   id="editLicenseSelectedFile">
                                         <h:outputText value="#{bundle['file.license']}" />
                                     </p:commandLink>
                                 </li>
@@ -429,6 +437,7 @@
                         downloadRequestFunction="#{fileDownloadHelper.requestDownload}"
                         updateOnDownloadRequest="@widgetVar(downloadPackagePopup)"
                         updateOnRequestAccess="@widgetVar(requestAccessPopup)"
+                        OCRedFilePresent="#{datasetFilesTab.isOCRedFilePresent(fileMetadata.dataFile)}"
                         />
                 </div>
                 <div class="col-xs-12 text-left small" jsf:rendered="#{fileMetadata.dataFile.filePackage and systemConfig.rsyncDownload

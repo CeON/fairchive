@@ -21,7 +21,10 @@ package edu.harvard.iq.dataverse.dataaccess;
 
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
-import org.apache.commons.lang3.StringUtils;
+
+import static edu.harvard.iq.dataverse.dataaccess.StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION;
+import static java.util.logging.Logger.getLogger;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,52 +34,48 @@ import java.util.logging.Logger;
  * @author Leonid Andreev
  */
 public class StoredOriginalFile {
-    private static Logger logger = Logger.getLogger(StoredOriginalFile.class.getPackage().getName());
+    private final static Logger logger = getLogger(StoredOriginalFile.class.getPackage().getName());
 
 
-    public static StorageIO<DataFile> retreive(StorageIO<DataFile> storageIO, DataTable dataTable) {
-
+    public static StorageIO<DataFile> retreive(final StorageIO<DataFile> storageIO, 
+            final DataTable dataTable) {
         if (dataTable == null) {
             return null;
         }
-
-        String originalMimeType = dataTable.getOriginalFileFormat();
-        
-        
+        final String originalMimeType = dataTable.getOriginalFileFormat();
         try {
             storageIO.open();
             long storedOriginalSize = dataTable.getOriginalFileSize() != null ?
                     dataTable.getOriginalFileSize() :
-                    storageIO.getAuxObjectSize(StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION);
+                    storageIO.getAuxObjectSize(SAVED_ORIGINAL_FILENAME_EXTENSION);
 
-            String mimeType = generateOriginalFileMimeType(originalMimeType);
-            String fileName = generateFileName(storageIO.getFileName(), originalMimeType);
+            final String mimeType = generateOriginalFileMimeType(originalMimeType);
+            final String fileName = generateFileName(storageIO.getFileName(), originalMimeType);
                     
-            InputStream storedOriginalInputStream = storageIO.getAuxFileAsInputStream(StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION);
-            logger.fine("Opened stored original file as Aux " + StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION);
+            final InputStream in = storageIO.getAuxFileAsInputStream(SAVED_ORIGINAL_FILENAME_EXTENSION);
+            logger.fine("Opened stored original file as Aux " + SAVED_ORIGINAL_FILENAME_EXTENSION);
             
-            return new InputStreamIO(storedOriginalInputStream, storedOriginalSize, fileName, mimeType);
+            return new InputStreamIO(in, storedOriginalSize, fileName, mimeType);
 
-        } catch (IOException ioEx) {
+        } catch (final IOException ioEx) {
             // The original file not saved, or could not be opened.
-            logger.fine("Failed to open stored original file as Aux " + StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION + "!");
+            logger.fine("Failed to open stored original file as Aux " + SAVED_ORIGINAL_FILENAME_EXTENSION + "!");
             return null;
         }
 
     }
 
-    private static String generateOriginalFileMimeType(String originalMimeType) {
-        String mimeType = StringUtils.defaultIfEmpty(originalMimeType, "application/x-unknown");
-
-        if (mimeType.matches("application/x-dvn-.*-zip")) {
-            mimeType = "application/zip";
-        }
-        return mimeType;
+    private static String generateOriginalFileMimeType(final String originalMimeType) {
+        final String mimeType = defaultIfEmpty(originalMimeType, "application/x-unknown");
+        return mimeType.matches("application/x-dvn-.*-zip") 
+                ? "application/zip" 
+                : mimeType;
     }
 
-    private static String generateFileName(String storageFilename, String originalMimeType) {
+    private static String generateFileName(final String storageFilename, 
+            final String originalMimeType) {
         if (originalMimeType != null) {
-            String origFileExtension = generateOriginalExtension(originalMimeType);
+            final String origFileExtension = generateOriginalExtension(originalMimeType);
             return storageFilename.replaceAll("\\.tab$", origFileExtension);
         } else {
             return storageFilename.replaceAll("\\.tab$", "");
@@ -96,7 +95,10 @@ public class StoredOriginalFile {
             return ".sav";
         } else if (fileType.equalsIgnoreCase("application/x-spss-por")) {
             return ".por";
-        } else if (fileType.equalsIgnoreCase("application/x-stata") || fileType.equalsIgnoreCase("application/x-stata-13") || fileType.equalsIgnoreCase("application/x-stata-14") || fileType.equalsIgnoreCase("application/x-stata-15")) {
+        } else if (fileType.equalsIgnoreCase("application/x-stata") || 
+                fileType.equalsIgnoreCase("application/x-stata-13") || 
+                fileType.equalsIgnoreCase("application/x-stata-14") || 
+                fileType.equalsIgnoreCase("application/x-stata-15")) {
             return ".dta";
         } else if (fileType.equalsIgnoreCase("application/x-dvn-csvspss-zip")) {
             return ".zip";
@@ -104,9 +106,11 @@ public class StoredOriginalFile {
             return ".zip";
         } else if (fileType.equalsIgnoreCase("application/x-rlang-transport")) {
             return ".RData";
-        } else if (fileType.equalsIgnoreCase("text/csv") || fileType.equalsIgnoreCase("text/comma-separated-values")) {
+        } else if (fileType.equalsIgnoreCase("text/csv") || 
+                fileType.equalsIgnoreCase("text/comma-separated-values")) {
             return ".csv";
-        } else if (fileType.equalsIgnoreCase("text/tsv") || fileType.equalsIgnoreCase("text/tab-separated-values")) {
+        } else if (fileType.equalsIgnoreCase("text/tsv") || 
+                fileType.equalsIgnoreCase("text/tab-separated-values")) {
             return ".tsv";
         } else if (fileType.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
             return ".xlsx";

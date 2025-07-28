@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
 import static edu.harvard.iq.dataverse.persistence.dataset.InputRendererType.PERIODO;
+import static org.apache.commons.lang.StringUtils.EMPTY;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,8 +20,6 @@ import io.vavr.control.Option;
 
 public class PeriodoRenderer implements InputFieldRenderer {
 
-    private Optional<Period> selectedPeriod = Optional.empty();
-    private final CapturingConverter converter = new CapturingConverter();
     private final ConditionalRendering conditionalRendering;
 
     // -------------------- CONSTRUCTORS --------------------
@@ -64,39 +63,9 @@ public class PeriodoRenderer implements InputFieldRenderer {
         
         return PeriodoDictionary.find(query);
     }
-
-    public boolean displayDetails() {
-        return this.selectedPeriod.isPresent();
-    }
-    
-    public String getDetails() {
-        return this.selectedPeriod.map(p -> p.getDetails("<b>", "</b>", "<br>")).orElse("");
-    }
-    
-    public Converter getConverter() {
-        return this.converter;
-    }
-    
-    public void processValueChange(final ValueChangeEvent event) {
-        final String url = Objects.toString(event.getNewValue(), "");
-        this.selectedPeriod = PeriodoDictionary.getByUrl(url);
-    }
-    
-    private class CapturingConverter implements Converter {
-
-        @Override
-        public Object getAsObject(final FacesContext context,
-                final UIComponent component,
-                final String value) {
-            return value;
-        }
-
-        @Override
-        public String getAsString(final FacesContext context,
-                final UIComponent component,
-                final Object value) {
-            selectedPeriod = PeriodoDictionary.getByUrl(value.toString());
-            return value.toString();
-        }
+    public String getDetailsOf(final DatasetField field) {
+        return PeriodoDictionary.getByUrl(field.getFieldValue().getOrElse(EMPTY))
+                .map(gn -> gn.getDetails("<b>", "</b>", "<br/>"))
+                .orElse(EMPTY);
     }
 }

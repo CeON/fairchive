@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import org.apache.commons.lang.StringUtils;
@@ -26,8 +25,8 @@ public class StandardInputValidator extends MultiValueValidatorBase {
         if (StringUtils.isNotBlank(validationFormat)) {
             return value.matches(validationFormat)
                     ? FieldValidationResult.ok()
-                    : FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isNotValidEntry",
-                    field.getDatasetFieldType().getDisplayName()));
+                    : FieldValidationResult.invalid(field, "isNotValidEntry",
+                    field.getDatasetFieldType().getDisplayName());
         }
         return FieldValidationResult.ok();
     }

@@ -16,9 +16,13 @@ import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
+
+import static java.util.logging.Logger.getLogger;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,7 +38,7 @@ import java.util.zip.ZipOutputStream;
 @Provider
 public class BundleDownloadInstanceWriter implements MessageBodyWriter<BundleDownloadInstance> {
 
-    private static final Logger logger = Logger.getLogger(BundleDownloadInstanceWriter.class.getCanonicalName());
+    private static final Logger logger = getLogger(BundleDownloadInstanceWriter.class.getCanonicalName());
 
     @Inject
     private DataConverter dataConverter;
@@ -42,18 +46,23 @@ public class BundleDownloadInstanceWriter implements MessageBodyWriter<BundleDow
     private DataAccess dataAccess = DataAccess.dataAccess();
 
     @Override
-    public boolean isWriteable(Class<?> clazz, Type type, Annotation[] annotation, MediaType mediaType) {
+    public boolean isWriteable(Class<?> clazz, Type type, 
+            Annotation[] annotation, MediaType mediaType) {
         return clazz == BundleDownloadInstance.class;
     }
 
     @Override
-    public long getSize(BundleDownloadInstance di, Class<?> clazz, Type type, Annotation[] annotation, MediaType mediaType) {
+    public long getSize(BundleDownloadInstance di, Class<?> clazz, Type type, 
+            Annotation[] annotation, MediaType mediaType) {
         return -1;
     }
 
 
     @Override
-    public void writeTo(BundleDownloadInstance di, Class<?> clazz, Type type, Annotation[] annotation, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream outstream) throws IOException, WebApplicationException {
+    public void writeTo(BundleDownloadInstance di, Class<?> clazz, Type type, 
+            Annotation[] annotation, MediaType mediaType, 
+            MultivaluedMap<String, Object> httpHeaders, OutputStream outstream) 
+                    throws IOException, WebApplicationException {
 
         try {
             if (di.getDownloadInfo() != null && di.getDownloadInfo().getDataFile() != null) {
@@ -68,8 +77,10 @@ public class BundleDownloadInstanceWriter implements MessageBodyWriter<BundleDow
                 String fileName = accessObject.getFileName();
                 String zipFileName = fileName.replaceAll("\\.tab$", "-bundle.zip");
 
-                httpHeaders.add("Content-disposition", "attachment; filename=\"" + zipFileName + "\"");
-                httpHeaders.add("Content-Type", "application/zip; name=\"" + zipFileName + "\"");
+                httpHeaders.add("Content-disposition", "attachment; filename=\"" 
+                                + zipFileName + "\"");
+                httpHeaders.add("Content-Type", "application/zip; name=\"" 
+                                + zipFileName + "\"");
 
                 InputStream instream = accessObject.getInputStream();
 
@@ -95,7 +106,8 @@ public class BundleDownloadInstanceWriter implements MessageBodyWriter<BundleDow
                 // Now, the original format:
                 String origFormat = null;
                 try {
-                    StorageIO<DataFile> accessObjectOrig = StoredOriginalFile.retreive(accessObject, sf.getDataTable());
+                    StorageIO<DataFile> accessObjectOrig = 
+                            StoredOriginalFile.retreive(accessObject, sf.getDataTable());
                     if (accessObjectOrig != null) {
                         instream = accessObjectOrig.getInputStream();
                         if (instream != null) {
@@ -138,8 +150,9 @@ public class BundleDownloadInstanceWriter implements MessageBodyWriter<BundleDow
                 // add an RData version:
                 if (!"application/x-rlang-transport".equals(origFormat)) {
                     try {
-                        StorageIO<DataFile> accessObjectRdata = dataConverter.performFormatConversion(sf, accessObject,
-                                                                                                      "RData", "application/x-rlang-transport");
+                        StorageIO<DataFile> accessObjectRdata = 
+                                dataConverter.performFormatConversion(sf, accessObject,
+                                     "RData", "application/x-rlang-transport");
 
                         if (accessObjectRdata != null) {
                             instream = accessObjectRdata.getInputStream();
@@ -158,7 +171,8 @@ public class BundleDownloadInstanceWriter implements MessageBodyWriter<BundleDow
                     } catch (IOException ioex) {
                         // ignore; if for whatever reason RData conversion is not
                         // available, we'll just skip it.
-                        logger.warning("failed to convert tabular data file " + fileName + " to RData.");
+                        logger.warning("failed to convert tabular data file " 
+                                    + fileName + " to RData.");
                     } finally {
                         if (instream != null) {
                             try {
@@ -215,14 +229,11 @@ public class BundleDownloadInstanceWriter implements MessageBodyWriter<BundleDow
                 zout.close();
                 return;
             }
-        } catch (
-                IOException ioex) {
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        } catch (IOException ioex) {
+            throw new WebApplicationException(INTERNAL_SERVER_ERROR);
         }
 
-        throw new
-
-                WebApplicationException(Response.Status.NOT_FOUND);
+        throw new WebApplicationException(NOT_FOUND);
 
     }
 

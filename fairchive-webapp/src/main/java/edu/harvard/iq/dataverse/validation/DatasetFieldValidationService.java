@@ -7,20 +7,24 @@ import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+
 import java.util.List;
 
 @Stateless
 public class DatasetFieldValidationService {
 
     private DatasetFieldValidationDispatcherFactory dispatcherFactory;
+    private ValidationMessageResolver validationMessageResolver;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public DatasetFieldValidationService() { }
 
     @Inject
-    public DatasetFieldValidationService(DatasetFieldValidationDispatcherFactory dispatcherFactory) {
+    public DatasetFieldValidationService(DatasetFieldValidationDispatcherFactory dispatcherFactory,
+            ValidationMessageResolver validationMessageResolver) {
         this.dispatcherFactory = dispatcherFactory;
+        this.validationMessageResolver = validationMessageResolver;
     }
 
 // -------------------- LOGIC --------------------
@@ -32,7 +36,7 @@ public class DatasetFieldValidationService {
                 .executeValidations();
         fieldValidationResults.forEach(r -> {
                     ValidatableField field = r.getField();
-                    field.setValidationMessage(r.getMessage());
+                    field.setValidationMessage(validationMessageResolver.resolveValidationMessage(r));
                 });
         return fieldValidationResults;
     }

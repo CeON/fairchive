@@ -66,8 +66,8 @@ public class NotGreaterThanValueValidatorTest {
 
         // then
         assertThat(result.isOk()).isFalse();
-        assertThat(result.getMessage()).contains("FROM");
-        assertThat(result.getMessage()).contains("1998");
+        assertThat(result.getErrorCode()).isEqualTo("isGreaterThanValue");
+        assertThat(result.getErrorArgs()).containsExactly("FROM", "1998");
     }
 
     @Test
@@ -113,8 +113,8 @@ public class NotGreaterThanValueValidatorTest {
 
         // then
         assertThat(result.isOk()).isFalse();
-        assertThat(result.getMessage()).contains("FROM");
-        assertThat(result.getMessage()).contains(Year.now(Clock.systemUTC()).toString());
+        assertThat(result.getErrorCode()).isEqualTo("isGreaterThanValue");
+        assertThat(result.getErrorArgs()).contains("FROM", Year.now(Clock.systemUTC()).toString());
     }
 
     private DatasetField buildSimpleField(String typeName, String value) {

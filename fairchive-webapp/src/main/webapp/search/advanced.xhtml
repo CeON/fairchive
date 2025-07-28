@@ -100,10 +100,13 @@
                                  href="#panelCollapseCitationFieldList#{status.index}"
                                  class="panel-heading">
                                 <h:outputText value="#{bundle['advanced.search.header.datasets']}: #{mdb.blockDisplayName}"/> &#160;<span
-                                    class="glyphicon #{status.first?'glyphicon-chevron-up':'glyphicon-chevron-down'}"/>
+                                    class="glyphicon #{(mdb.hasValidationErrors() || status.first) ?
+                                                        'glyphicon-chevron-up' :
+                                                        'glyphicon-chevron-down'}"/>
                             </a>
                             <div id="panelCollapseCitationFieldList#{status.index}"
-                                 class="collapse #{status.first?'in':''} panel-body form-horizontal"
+                                 class="collapse #{(mdb.hasValidationErrors() || status.first) ?
+                                        'in' : ''} panel-body form-horizontal"
                                  data-map-prefix="#{mdb.blockName}_">
 
                                 <ui:repeat value="#{mdb.searchFields}" var="item">
@@ -128,6 +131,10 @@
                                                     ? (mdb.blockName).concat('_').concat(item.getParent().get().getDisplayId()) : ''}"/>
                                                 <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
 
+                                                <div id="infoBox" tabindex="0">
+                                                    <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
+                                                </div>
+
                                                 <div id="#{mapId}" class="form-col-container geo-map">
                                                 </div>
 
@@ -141,12 +148,9 @@
                                                              widgetVar="#{widgetVar}"
                                                              pt:data-handler="#{widgetVar}"/>
 
-                                                <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
-
                                                 <script>
                                                     DvJS.Geo.SearchView.prepare('#{mapId}');
                                                     DvJS.Geo.SearchView.putWidgetVar('#{mapId}', 'polygonGeo', '#{widgetVar}');
-                                                    DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
                                                 </script>
                                             </div>
                                             <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">

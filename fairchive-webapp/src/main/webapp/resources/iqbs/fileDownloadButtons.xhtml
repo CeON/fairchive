@@ -16,8 +16,8 @@
     <composite:attribute name="previewTools" />
     <composite:attribute name="downloadRequestFunction" method-signature="java.lang.String downloadRequestFunction()"/>
     <composite:attribute name="updateOnDownloadRequest" />
-
     <composite:attribute name="updateOnRequestAccess" />
+    <composite:attribute name="OCRedFilePresent" />
 </composite:interface>
 
 
@@ -125,7 +125,9 @@
             </p:commandLink>
         </ui:fragment>
 
-        <ui:fragment rendered="#{!(cc.attrs.fileMetadata.dataFile.filePackage and systemConfig.HTTPDownload) and !(cc.attrs.fileMetadata.dataFile.tabularData)}">
+        <ui:fragment rendered="#{!(cc.attrs.fileMetadata.dataFile.filePackage and systemConfig.HTTPDownload) 
+                                    and !(cc.attrs.fileMetadata.dataFile.tabularData)
+                                    and !(cc.attrs.fileMetadata.dataFile.image)}">
             <p:commandLink id="standardFileDownloadButton"
                            styleClass="btn btn-default btn-download"
                            process="@this"
@@ -218,7 +220,59 @@
             </ul>
         </div>
 
-    </ui:fragment>
+		<div class="btn-group"
+			jsf:rendered="#{cc.attrs.fileMetadata.dataFile.image and cc.attrs.OCRedFilePresent}">
+			<!-- Download Dropdown -->
+			<button type="button"
+				class="btn btn-default btn-download dropdown-toggle"
+				data-toggle="dropdown" 
+				aria-haspopup="true" 
+				aria-expanded="false">
+				<span class="glyphicon glyphicon-download-alt" />
+				#{bundle['file.download.header']} 
+				<span class="caret" />
+			</button>
+			<ul class="dropdown-menu multi-level pull-right text-left"
+				role="menu">
+				<li>
+					<p:commandLink id="imageOriginalDownloadPopupButton"
+						process="@this" 
+						pt:role="menuitem"
+						actionListener="#{RequestedDownloadType.initDownloadTypeForOriginal(cc.attrs.fileMetadata)}"
+						action="#{cc.attrs.downloadRequestFunction}"
+						update="#{cc.attrs.updateOnDownloadRequest}"
+						oncomplete="if (args &amp;&amp; args.apiDownloadLink) { refreshAndClickDownloadLink(args.apiDownloadLink); }">
+						#{bundle['file.downloadBtn.format.image']}
+					</p:commandLink>
+				</li>
+                <li>
+                    <p:commandLink id="imageOCRDownloadPopupButton"
+                                   pt:role="menuitem"
+                                   process="@this"
+                                   actionListener="#{RequestedDownloadType.initDownloadTypeForOCR(cc.attrs.fileMetadata)}"
+                                   action="#{cc.attrs.downloadRequestFunction}"
+                                   update="#{cc.attrs.updateOnDownloadRequest}"
+                                   oncomplete="if (args &amp;&amp; args.apiDownloadLink) { refreshAndClickDownloadLink(args.apiDownloadLink); }">
+                        #{bundle['file.downloadBtn.format.ocr']}
+                    </p:commandLink>
+                </li>
+			</ul>
+		</div>
+		
+		<ui:fragment rendered="#{cc.attrs.fileMetadata.dataFile.image and not cc.attrs.OCRedFilePresent}">
+            <p:commandLink id="standardImageDownloadButton"
+                           styleClass="btn btn-default btn-download"
+                           process="@this"
+                           actionListener="#{RequestedDownloadType.initDownloadType(cc.attrs.fileMetadata)}"
+                           action="#{cc.attrs.downloadRequestFunction}"
+                           update="#{cc.attrs.updateOnDownloadRequest}"
+                           oncomplete="if (args &amp;&amp; args.apiDownloadLink) { refreshAndClickDownloadLink(args.apiDownloadLink); }">
+                <!-- non-tabular data file: -->
+                <span class="glyphicon glyphicon-download-alt" aria-hidden="true"/> #{bundle['file.download.header']}
+            </p:commandLink>
+         </ui:fragment>
+
+	</ui:fragment>
 
     <ui:fragment rendered="#{!cc.attrs.fileMetadata.datasetVersion.deaccessioned and !canDownloadFile}">
 

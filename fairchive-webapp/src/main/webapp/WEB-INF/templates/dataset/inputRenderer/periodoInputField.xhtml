@@ -30,7 +30,6 @@
     <p:autoComplete
             id="periodo"
             value="#{datasetField.value}"
-            converter="#{inputRenderer.converter}"
             completeMethod="#{inputRenderer.processSuggestionQuery(datasetField)}"
             valueChangeListener="#{inputRenderer.processValueChange}"
             styleClass="autocomplete-form-control"
@@ -46,7 +45,7 @@
             queryDelay="700">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  
-                update="details"/>
+                update="periodoDetails"/>
 
         <p:column style="width: 12em;">
             <h:outputText value="#{suggestion.value}"/>
@@ -59,9 +58,9 @@
     <p:watermark for="periodo"
                  value="#{datasetField.datasetFieldType.localeWatermark}"/>
 
-    <div jsf:id="details">
-        <h:outputText rendered="#{inputRenderer.displayDetails()}" 
-                      value="#{inputRenderer.getDetails()}" escape="false"/>
+    <div jsf:id="periodoDetails">
+        <h:outputText value="#{inputRenderer.getDetailsOf(datasetField)}" 
+                      escape="false"/>
     </div>
 
     <div class="ui-message ui-message-error ui-widget ui-corner-all" 

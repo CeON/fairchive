@@ -263,10 +263,10 @@ public class SearchFields {
     /**
      * Fields from perio.do distionary
      */
-    public static final String PERIODO_ID = "periodo_id_s";
+    public static final String PERIODO_ID = "periodo_id_ss";
     public static final String PERIODO_LABEL = "periodo_label_txt";
-    public static final String PERIODO_START = "periodo_start_l";
-    public static final String PERIODO_STOP = "periodo_stop_l";
+    public static final String PERIODO_START = "periodo_start_ls";
+    public static final String PERIODO_STOP = "periodo_stop_ls";
     public static final String PERIODO_AUTHORITY_TITLE = "periodo_authority_title_txt";
     public static final String PERIODO_COVERAGE_NAME = "periodo_coverage_name_txt";
     public static final String PERIODO_LOCATIONS = "periodo_locations_ss";

@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import org.omnifaces.cdi.Eager;
@@ -33,7 +32,7 @@ public class StandardBooleanValidator extends MultiValueValidatorBase {
         if (valueToValidateParsed == acceptableValueParsed) {
             return FieldValidationResult.ok();
         } else {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isNotAcceptable", value));
+            return FieldValidationResult.invalid(field, "isNotAcceptable", value);
         }
     }
 

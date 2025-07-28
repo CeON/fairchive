@@ -21,20 +21,23 @@
 package edu.harvard.iq.dataverse.dataaccess;
 
 
-import com.google.common.base.Preconditions;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.Preconditions;
+
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 
 
 /**
@@ -54,6 +57,7 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
 
     private boolean isLocalFile = false;
     private boolean noVarHeader = false;
+    protected boolean opened = false;
 
     public StorageIO() {
 
@@ -123,6 +127,8 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
     public abstract InputStream getAuxFileAsInputStream(String auxItemTag) throws IOException;
 
     public abstract Channel openAuxChannel(String auxItemTag, DataAccessOption... option) throws IOException;
+    
+    public abstract OutputStream openAuxOutput(String auxItemTag) throws IOException;
 
     public abstract long getAuxObjectSize(String auxItemTag) throws IOException;
 
@@ -300,7 +306,14 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
 		if (this.in != null) {
 			this.in.close();
 		}
+		this.opened = false;
 	}
-    
-    
+	
+    public void closeQuietly() {
+        try {
+            close();
+        } catch (final Exception e) {
+            return;
+        }
+    }
 }

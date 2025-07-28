@@ -44,7 +44,7 @@ public class OrcidFieldValidatorTest {
         // then
         assertThat(result.isOk()).isTrue();
         assertThat(result.getField()).isNull();
-        assertThat(result.getMessage()).isEmpty();
+        assertThat(result.getErrorCode()).isNull();
     }
 
     @Test
@@ -77,7 +77,7 @@ public class OrcidFieldValidatorTest {
         // then
         assertThat(result.isOk()).isTrue();
         assertThat(result.getField()).isNull();
-        assertThat(result.getMessage()).isEmpty();
+        assertThat(result.getErrorCode()).isNull();
         verify(orcidValidator, never()).validate(isni);
     }
 
