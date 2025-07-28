@@ -120,7 +120,7 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
             } else {
                 // explode with a helpful message
                 String validationMessage = fieldValidationResults.stream()
-                        .map(r -> String.format("%s (Invalid value:%s)", r.getMessage(), r.getField().getSingleValue()))
+                        .map(r -> String.format("%s (Invalid value:%s)", r.getField().getValidationMessage(), r.getField().getSingleValue()))
                         .collect(joining(", ", "Validation Failed: ", "."));
                 throw new IllegalCommandException(validationMessage, this);
             }

@@ -26,7 +26,7 @@ public class PeriodoSearchFieldTest {
     void getQueryPart_idOnly() {
         this.searchField.setId("123");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_s:\"123\"");
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\"");
     }
     
     @Test
@@ -55,21 +55,21 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStartEarliest("2000");
         this.searchField.setStartLatest("2020");
         
-        assertThatQueryFragment().isEqualTo("periodo_start_l:[2000 TO 2020]");
+        assertThatQueryFragment().isEqualTo("periodo_start_ls:[2000 TO 2020]");
     }
     
     @Test
     void getQueryPart_startEarliestOnly() {
         this.searchField.setStartEarliest("2000");
         
-        assertThatQueryFragment().isEqualTo("periodo_start_l:[2000 TO *]");
+        assertThatQueryFragment().isEqualTo("periodo_start_ls:[2000 TO *]");
     }
     
     @Test
     void getQueryPart_startLatestOnly() {
         this.searchField.setStartLatest("2020");
         
-        assertThatQueryFragment().isEqualTo("periodo_start_l:[* TO 2020]");
+        assertThatQueryFragment().isEqualTo("periodo_start_ls:[* TO 2020]");
     }
     
     @Test
@@ -77,21 +77,21 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopEarliest("2100");
         this.searchField.setStopLatest("2120");
         
-        assertThatQueryFragment().isEqualTo("periodo_stop_l:[2100 TO 2120]");
+        assertThatQueryFragment().isEqualTo("periodo_stop_ls:[2100 TO 2120]");
     }
     
     @Test
     void getQueryPart_stopEarliestOnly() {
         this.searchField.setStopEarliest("2100");
         
-        assertThatQueryFragment().isEqualTo("periodo_stop_l:[2100 TO *]");
+        assertThatQueryFragment().isEqualTo("periodo_stop_ls:[2100 TO *]");
     }
     
     @Test
     void getQueryPart_stopLatestOnly() {
         this.searchField.setStopLatest("2120");
         
-        assertThatQueryFragment().isEqualTo("periodo_stop_l:[* TO 2120]");
+        assertThatQueryFragment().isEqualTo("periodo_stop_ls:[* TO 2120]");
     }
     
     @Test
@@ -113,12 +113,12 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopLatest("2120");
         this.searchField.setAuthorityTitle("title1");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_s:\"123\" AND " +
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\" AND " +
                 "periodo_label_txt:\"label1\" AND " + 
                 "periodo_coverage_name_txt:\"name1\" AND " + 
                 "periodo_locations_ss:\"location1\" AND " + 
-                "periodo_start_l:[2000 TO 2020] AND " +
-                "periodo_stop_l:[2100 TO 2120] AND " +
+                "periodo_start_ls:[2000 TO 2020] AND " +
+                "periodo_stop_ls:[2100 TO 2120] AND " +
                 "periodo_authority_title_txt:\"title1\"");
     }
     
@@ -133,11 +133,11 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopLatest("2120");
         this.searchField.setAuthorityTitle("title1");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_s:\"123\" AND " +
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\" AND " +
                 "periodo_label_txt:\"label1\" AND " + 
                 "periodo_coverage_name_txt:\"name1\" AND " + 
-                "periodo_start_l:[2000 TO 2020] AND " +
-                "periodo_stop_l:[2100 TO 2120] AND " +
+                "periodo_start_ls:[2000 TO 2020] AND " +
+                "periodo_stop_ls:[2100 TO 2120] AND " +
                 "periodo_authority_title_txt:\"title1\"");
     }
     
@@ -152,13 +152,13 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopLatest("2120");
         this.searchField.setAuthorityTitle("title1");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_s:\"123\" AND " +
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\" AND " +
                 "periodo_label_txt:\"label1\" AND " + 
                 "periodo_coverage_name_txt:\"name1\" AND " + 
                 "periodo_locations_ss:\"location1\" OR " + 
                 "periodo_locations_ss:\"location2\" AND " + 
-                "periodo_start_l:[* TO 2020] AND " +
-                "periodo_stop_l:[* TO 2120] AND " +
+                "periodo_start_ls:[* TO 2020] AND " +
+                "periodo_stop_ls:[* TO 2120] AND " +
                 "periodo_authority_title_txt:\"title1\"");
     }
     
@@ -172,12 +172,12 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopEarliest("2100");
         this.searchField.setAuthorityTitle("title1");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_s:\"123\" AND " +
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\" AND " +
                 "periodo_label_txt:\"label1\" AND " + 
                 "periodo_coverage_name_txt:\"name1\" AND " + 
                 "periodo_locations_ss:\"location1\" AND " + 
-                "periodo_start_l:[2000 TO *] AND " +
-                "periodo_stop_l:[2100 TO *] AND " +
+                "periodo_start_ls:[2000 TO *] AND " +
+                "periodo_stop_ls:[2100 TO *] AND " +
                 "periodo_authority_title_txt:\"title1\"");
     }
 }

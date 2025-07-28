@@ -117,6 +117,9 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
     @Override
     public void open(DataAccessOption... options) throws IOException {
 
+        if(this.opened) {
+            return;
+        }
         if (isWriteAccessRequested(options)) {
             isWriteAccess = true;
             isReadAccess = false;
@@ -145,8 +148,10 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
                 }
 
             }
+            this.opened = true;
         } else if (dvObject instanceof Dataset) {
             key = dvObject.getStorageIdentifier().substring(S3_STORAGE_IDENTIFIER_PREFIX.length());
+            this.opened = true;
         } else if (dvObject instanceof Dataverse) {
             throw new IOException("Data Access: Storage driver does not support dvObject type Dataverse yet");
         } else {
@@ -240,6 +245,12 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
         }
 
         return Channels.newChannel(fin);
+    }
+    
+    @Override
+    public OutputStream openAuxOutput(final String auxItemTag) 
+            throws IOException {
+        throw new UnsupportedDataAccessOperationException("S3AccessIO: write mode openAuxChannel() not yet implemented in this storage driver.");
     }
 
     @Override

@@ -27,6 +27,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import edu.harvard.iq.dataverse.persistence.dataset.formatter.*;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -34,9 +35,6 @@ import com.google.common.collect.ImmutableMap;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.common.MarkupChecker;
-import edu.harvard.iq.dataverse.persistence.dataset.formatter.AuthorIdentifierUrlProvider;
-import edu.harvard.iq.dataverse.persistence.dataset.formatter.DatasetFieldFormattedValueDecorator;
-import edu.harvard.iq.dataverse.persistence.dataset.formatter.LinkFormattedValueDecorator;
 import io.vavr.control.Option;
 
 /**
@@ -52,7 +50,8 @@ public class DatasetField implements Serializable, ValidatableField {
     public static final String NA_VALUE = "N/A";
     public static final String DEFAULT_SOURCE = "PRIMARY";
     private static final Map<String, DatasetFieldFormattedValueDecorator> FORMATTED_VALUE_DECORATORS = ImmutableMap.
-            of(DatasetFieldConstant.authorIdValue, new LinkFormattedValueDecorator(new AuthorIdentifierUrlProvider()));
+            of(DatasetFieldConstant.authorIdValue, new LinkFormattedValueDecorator(new AuthorIdentifierUrlProvider()),
+               DatasetFieldConstant.authorAffiliationIdentifier, new AuthorAffiliationLinkDecorator());
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

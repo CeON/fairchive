@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators.geobox;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.search.advanced.field.GeoboxCoordSearchField;
 import edu.harvard.iq.dataverse.search.response.GeoPoint;
@@ -42,7 +41,7 @@ class GeoboxRectangleValueValidator implements FieldValidator {
                 .collect(Collectors.toList());
 
         if (coordinates.size() != 4) {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.polygon.invalid.coordiantes.length"));
+            return FieldValidationResult.invalid(field, "geobox.polygon.invalid.coordiantes.length");
         }
 
         // Sort to match: Top-left, Top-right, Bottom-left, Bottom-right
@@ -64,7 +63,7 @@ class GeoboxRectangleValueValidator implements FieldValidator {
         if (topSide && bottomSide && leftSide && rightSide) {
             return FieldValidationResult.ok();
         } else {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.polygon.invalid.coordiantes.rectangle"));
+            return FieldValidationResult.invalid(field, "geobox.polygon.invalid.coordiantes.rectangle");
         }
     }
 }

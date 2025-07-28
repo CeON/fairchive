@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+
 import java.util.List;
 import java.util.Map;
 
@@ -14,14 +15,17 @@ import java.util.Map;
 public class SearchFormValidationService {
 
     private SearchFormValidationDispatcherFactory dispatcherFactory;
+    private ValidationMessageResolver validationMessageResolver;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public SearchFormValidationService() { }
 
     @Inject
-    public SearchFormValidationService(SearchFormValidationDispatcherFactory dispatcherFactory) {
+    public SearchFormValidationService(SearchFormValidationDispatcherFactory dispatcherFactory,
+            ValidationMessageResolver validationMessageResolver) {
         this.dispatcherFactory = dispatcherFactory;
+        this.validationMessageResolver = validationMessageResolver;
     }
 
     // -------------------- LOGIC --------------------
@@ -33,8 +37,9 @@ public class SearchFormValidationService {
                 .executeValidations();
         fieldValidationResults.forEach(r -> {
             ValidatableField field = r.getField();
-            field.setValidationMessage(r.getMessage());
+            field.setValidationMessage(validationMessageResolver.resolveValidationMessage(r));
         });
         return fieldValidationResults;
     }
+
 }
