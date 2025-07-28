@@ -1,6 +1,54 @@
 package edu.harvard.iq.dataverse.dataset.tab;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter.DEFAULT_THUMBNAIL_SIZE;
+import static edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil.rsyncSupportEnabled;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.CONFIGURE;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EXPLORE;
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.DcmUpload;
+import static edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder.asc;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UploadMethods;
+import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
+import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashErrorMessage;
+import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashSuccessMessage;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJBException;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolation;
+
+import org.apache.commons.lang3.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.component.datatable.DataTable;
+import org.primefaces.event.SelectEvent;
+import org.primefaces.event.ToggleSelectEvent;
+import org.primefaces.event.UnselectEvent;
+import org.primefaces.event.data.PageEvent;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
@@ -8,7 +56,9 @@ import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
+import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.datacapturemodule.ScriptRequestResponse;
 import edu.harvard.iq.dataverse.datafile.file.FileMetadataService;
 import edu.harvard.iq.dataverse.datafile.file.dto.LazyFileMetadataModel;
@@ -44,51 +94,6 @@ import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.component.datatable.DataTable;
-import org.primefaces.event.SelectEvent;
-import org.primefaces.event.ToggleSelectEvent;
-import org.primefaces.event.UnselectEvent;
-import org.primefaces.event.data.PageEvent;
-
-import javax.ejb.EJBException;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolation;
-import java.io.IOException;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter.DEFAULT_THUMBNAIL_SIZE;
-import static edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil.rsyncSupportEnabled;
-import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.CONFIGURE;
-import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EXPLORE;
-import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
-import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.DcmUpload;
-import static edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder.asc;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UploadMethods;
-import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
-import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashErrorMessage;
-import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashSuccessMessage;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @SuppressWarnings("serial")
 @ViewScoped
@@ -701,6 +706,17 @@ public class DatasetFilesTab implements Serializable {
             }
         }
         return lockedFromEditsVar;
+    }
+    
+    public boolean isOCRedFilePresent(final DataFile file) {
+        try {
+            final StorageIO<DataFile> storage = DataAccess.dataAccess()
+                    .getStorageIO(file);
+            return storage.isAuxObjectCached("ocr");
+        } catch (final IOException e) {
+            logger.warning(e.toString());
+            return false;
+        }
     }
 
     public boolean isAllFilesSelected() {

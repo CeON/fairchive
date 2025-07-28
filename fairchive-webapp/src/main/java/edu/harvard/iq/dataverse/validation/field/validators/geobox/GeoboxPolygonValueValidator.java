@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators.geobox;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -37,18 +36,16 @@ class GeoboxPolygonValueValidator implements FieldValidator {
         for (String line : value.split("\n")) {
             String[] coords = line.trim().split("\\s+");
             if (coords.length != 2) {
-                return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.polygon.invalid.geo.point",
-                        field.getDatasetFieldType().getDisplayName()));
+                return FieldValidationResult.invalid(field, "geobox.polygon.invalid.geo.point",
+                        field.getDatasetFieldType().getDisplayName());
             }
 
             if (!NumberUtils.isParsable(coords[0])) {
-                return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isNotValidNumber",
-                        coords[0]));
+                return FieldValidationResult.invalid(field, "isNotValidNumber", coords[0]);
             }
 
             if (!NumberUtils.isParsable(coords[1])) {
-                return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isNotValidNumber",
-                        coords[1]));
+                return FieldValidationResult.invalid(field, "isNotValidNumber", coords[1]);
             }
 
             BigDecimal longitude = new BigDecimal(coords[0]);
@@ -56,17 +53,17 @@ class GeoboxPolygonValueValidator implements FieldValidator {
             minLongitude = minLongitude.compareTo(longitude) > 0 ? longitude : minLongitude;
             BigDecimal latitude = new BigDecimal(coords[1]);
             if (longitude.abs().compareTo(MAX_LONGITUDE) > 0) {
-                return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.invalid.longitude"));
+                return FieldValidationResult.invalid(field, "geobox.invalid.longitude");
             }
 
             if (latitude.abs().compareTo(MAX_LATITUDE) > 0) {
-                return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.invalid.latitude"));
+                return FieldValidationResult.invalid(field, "geobox.invalid.latitude");
             }
         }
 
         BigDecimal span = maxLongitude.subtract(minLongitude).abs();
         if (span.compareTo(MAX_LONGITUDE) > 0) {
-            return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("geobox.invalid.longitude.span"));
+            return FieldValidationResult.invalid(field, "geobox.invalid.longitude.span");
         }
 
         if (isSelfIntersectingPolygon(value)) {

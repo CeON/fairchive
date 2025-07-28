@@ -60,8 +60,8 @@ public class LazyFileMetadataModel extends LazyDataModel<FileMetadata> {
         loadedData = fileMetadataService.findAccessibleFileMetadataSorted(dsvId, pageNumber, pageSize);
 
         if (allFileIds.isEmpty()) {
-        allFileIds = fileMetadataService.findFileMetadataIds(dsvId);
-        this.setRowCount(allFileIds.size());
+            allFileIds = fileMetadataService.findFileMetadataIds(dsvId);
+            this.setRowCount(allFileIds.size());
         }
 
         return loadedData;

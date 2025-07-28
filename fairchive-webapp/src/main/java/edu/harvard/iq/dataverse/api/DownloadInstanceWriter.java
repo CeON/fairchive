@@ -15,10 +15,9 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateGuestbookResponseCommand;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
+
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
@@ -41,12 +40,19 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter.DEFAULT_THUMBNAIL_SIZE;
+import static java.io.File.createTempFile;
+import static java.lang.Boolean.TRUE;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static org.apache.commons.lang3.math.NumberUtils.toInt;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author Leonid Andreev
@@ -54,7 +60,7 @@ import static java.util.stream.Collectors.toList;
 @Provider
 public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstance> {
 
-    private static final Logger logger = LoggerFactory.getLogger(DownloadInstanceWriter.class);
+    private static final Logger logger = getLogger(DownloadInstanceWriter.class);
 
     @Inject
     private DataConverter dataConverter;
@@ -68,186 +74,297 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
     private DataAccess dataAccess = DataAccess.dataAccess();
 
     // -------------------- CONSTRUCTORS --------------------
+    public DownloadInstanceWriter() {
+    }
+    
+    public DownloadInstanceWriter(DataConverter dataConverter,
+            WholeDatasetDownloadLogger datasetDownloadLogger,
+            ImageThumbConverter imageThumbConverter) {
+        this.dataConverter = dataConverter;
+        this.datasetDownloadLogger = datasetDownloadLogger;
+        this.imageThumbConverter = imageThumbConverter;
+    }
 
     @Override
-    public boolean isWriteable(Class<?> clazz, Type type, Annotation[] annotation, MediaType mediaType) {
+    public boolean isWriteable(Class<?> clazz, Type type, Annotation[] annotation, 
+            MediaType mediaType) {
         return clazz == DownloadInstance.class;
     }
 
     @Override
-    public long getSize(DownloadInstance di, Class<?> clazz, Type type, Annotation[] annotation, MediaType mediaType) {
+    public long getSize(DownloadInstance di, Class<?> clazz, Type type, 
+            Annotation[] annotation, MediaType mediaType) {
         return -1;
     }
 
     @Override
-    public void writeTo(DownloadInstance di, Class<?> clazz, Type type, Annotation[] annotation, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream outstream) throws IOException, WebApplicationException {
-        if (di.getDownloadInfo() == null || di.getDownloadInfo().getDataFile() == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+    public void writeTo(DownloadInstance di, Class<?> clazz, Type type,
+            Annotation[] annotation, MediaType mediaType,
+            MultivaluedMap<String, Object> httpHeaders, OutputStream outstream)
+            throws IOException, WebApplicationException {
+        if (di.getDownloadInfo() == null
+                || di.getDownloadInfo().getDataFile() == null) {
+            throw new WebApplicationException(NOT_FOUND);
         }
-        DataFile dataFile = di.getDownloadInfo().getDataFile();
-        StorageIO<DataFile> storageIO = dataAccess.getStorageIO(dataFile);
-
+        final DataFile dataFile = di.getDownloadInfo().getDataFile();
+        final StorageIO<DataFile> storageIO = dataAccess.getStorageIO(dataFile);
 
         try {
             storageIO.open();
         } catch (IOException ioex) {
-            //throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
-            logger.info("Datafile {}: Failed to locate and/or open physical file. Error message: {}", dataFile.getId(), ioex.getLocalizedMessage());
-            throw new NotFoundException("Datafile " + dataFile.getId() + ": Failed to locate and/or open physical file.");
+            logger.info(
+                    "Datafile {}: Failed to locate and/or open physical file. Error message: {}",
+                    dataFile.getId(), ioex.getLocalizedMessage());
+            throw new NotFoundException("Datafile " + dataFile.getId()
+                    + ": Failed to locate and/or open physical file.");
         }
-
-        if (StringUtils.equals("imageThumb", di.getConversionParam())) {
-            int thumbnailSize = NumberUtils.toInt(di.getConversionParamValue(), ImageThumbConverter.DEFAULT_THUMBNAIL_SIZE);
-            InputStreamIO thumbnailStorageIO = Optional
-                    .ofNullable(imageThumbConverter.getImageThumbnailAsInputStream(dataFile, thumbnailSize))
-                    .orElseThrow(() -> new WebApplicationException(ApiErrorResponseDTO.errorResponse(404, "Image thumbnail not found").asJaxRsResponse()));
-
-            // and, since we now have tabular data files that can
-            // have thumbnail previews... obviously, we don't want to
-            // add the variable header to the image stream!
-            thumbnailStorageIO.setNoVarHeader(Boolean.TRUE);
-            thumbnailStorageIO.setVarHeader(null);
-
-            writeStorageIOToOutputStream(thumbnailStorageIO, outstream, httpHeaders);
-            return;
-        }
-        if (StringUtils.equals("noVarHeader", di.getConversionParam()) && dataFile.isTabularData()) {
-            logger.debug("tabular data with no var header requested");
-            storageIO.setNoVarHeader(Boolean.TRUE);
-            storageIO.setVarHeader(null);
-
-            writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, outstream, httpHeaders, di, dataFile);
-            return;
-        }
-        if (StringUtils.equals("format", di.getConversionParam()) && dataFile.isTabularData()) {
-            // Conversions, and downloads of "stored originals" are
-            // now supported on all DataFiles for which StorageIO
-            // access drivers are available.
-
-            if ("original".equals(di.getConversionParamValue())) {
-                logger.debug("stored original of an ingested file requested");
-                storageIO = StoredOriginalFile.retreive(storageIO, dataFile.getDataTable());
-                if (storageIO == null) {
-                    throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
-                }
-            } else {
-                // Other format conversions:
-                logger.debug("format conversion on a tabular file requested (" + di.getConversionParamValue() + ")");
-                String requestedMimeType = di.getServiceFormatType(di.getConversionParam(), di.getConversionParamValue());
-                if (requestedMimeType == null) {
-                    // default mime type, in case real type is unknown;
-                    // (this shouldn't happen in real life - but just in case):
-                    requestedMimeType = "application/octet-stream";
-                }
-                storageIO = Optional.ofNullable(dataConverter.performFormatConversion(dataFile, storageIO,
-                                                                                      di.getConversionParamValue(), requestedMimeType))
-                                    .orElseThrow(() -> new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE));
-            }
-
-            if (StringUtils.equals("prep", di.getConversionParamValue())) {
-                writeStorageIOToOutputStream(storageIO, outstream, httpHeaders);
-            } else {
-                writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, outstream, httpHeaders, di, dataFile);
-            }
-            return;
-        }
-        if (StringUtils.equals("subset", di.getConversionParam()) && dataFile.isTabularData()) {
-            logger.debug("processing subset request.");
-
-            // TODO:
-            // If there are parameters on the list that are
-            // not valid variable ids, or if they do not belong to
-            // the datafile referenced - I simply skip them;
-            // perhaps I should throw an invalid argument exception
-            // instead.
-
-            List<DataVariable> filteredVariables = filterToVariablesOfDataFile(di, dataFile);
-
-            if (filteredVariables.isEmpty()) {
-                writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, outstream, httpHeaders, di, dataFile);
+        try {
+            if (StringUtils.equals("imageThumb", di.getConversionParam())) {
+                writeThumbnail(di, httpHeaders, outstream, dataFile);
                 return;
             }
+            if (StringUtils.equals("noVarHeader", di.getConversionParam())
+                    && dataFile.isTabularData()) {
+                writeTabularWithNoVarHeader(di, httpHeaders, outstream, dataFile,
+                        storageIO);
+                return;
+            }
+            if (StringUtils.equals("format", di.getConversionParam())) {
+                if (dataFile.isTabularData()) {
+                    writeFormattedTabular(di, httpHeaders, outstream, dataFile,
+                            storageIO);
+                    return;
+                } else if (dataFile.isImage()
+                        && "ocr".equals(di.getConversionParamValue())) {
+                    writeOCRedFile(httpHeaders, outstream, storageIO);
+                    return;
+                }
+            }
+            if (StringUtils.equals("subset", di.getConversionParam())
+                    && dataFile.isTabularData()) {
+                writeSubsetOfTabular(di, httpHeaders, outstream, dataFile, storageIO);
+                return;
+            }
+            if (storageIO instanceof S3AccessIO
+                    && !(dataFile.isTabularData()) && isRedirectToS3()) {
+                URI redirectUri = generateTemporaryS3URI(
+                        (S3AccessIO<DataFile>) storageIO);
+                // increment the download count, if necessary:
+                writeGuestbookResponse(di);
+                datasetDownloadLogger.incrementLogIfDownloadingWholeDataset(
+                        singletonList(dataFile));
 
+                // finally, issue the redirect:
+                Response response = Response.seeOther(redirectUri).build();
+                logger.info("Issuing redirect to the file location on S3.");
+                throw new RedirectionException(response);
+            } else {
+                // just write
+                writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO,
+                        outstream,
+                        httpHeaders, di, dataFile);
+            }
+        } finally {
+            storageIO.closeQuietly();
+        }
+    }
 
-            List<Integer> variablePositionIndex = filteredVariables.stream().map(DataVariable::getFileOrder).collect(toList());
-            String subsetVariableHeader = filteredVariables.stream().map(DataVariable::getName).collect(joining("\t"));
-            subsetVariableHeader = subsetVariableHeader.concat("\n");
+    private void writeFormattedTabular(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile,
+            final StorageIO<DataFile> storageIO) throws IOException {
+        // Conversions, and downloads of "stored originals" are
+        // now supported on all DataFiles for which StorageIO
+        // access drivers are available.
+
+        if ("original".equals(di.getConversionParamValue())) {
+            final StorageIO<DataFile> in = StoredOriginalFile.retreive(storageIO,
+                    dataFile.getDataTable());
+            if (in != null) {
+                try {
+                    if (StringUtils.equals("prep", di.getConversionParamValue())) {
+                        writeStorageIOToOutputStream(in, outstream, httpHeaders);
+                    } else {
+                        writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(
+                                in, outstream, httpHeaders, di, dataFile);
+                    }
+                } finally {
+                    in.closeQuietly();
+                }
+            } else {
+                throw new WebApplicationException(SERVICE_UNAVAILABLE);
+            }
+        } else {
+            // Other format conversions:
+            String requestedMimeType = di.getServiceFormatType(
+                    di.getConversionParam(),
+                    di.getConversionParamValue());
+            if (requestedMimeType == null) {
+                requestedMimeType = "application/octet-stream";
+            }
+            final StorageIO<DataFile> in = dataConverter.performFormatConversion(
+                    dataFile, storageIO, di.getConversionParamValue(), requestedMimeType);
+            if (in != null) {
+                try {
+                    if (StringUtils.equals("prep", di.getConversionParamValue())) {
+                        writeStorageIOToOutputStream(in, outstream, httpHeaders);
+                    } else {
+                        writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(in,
+                                outstream, httpHeaders, di, dataFile);
+                    }
+                } finally {
+                    in.closeQuietly();
+                }
+            } else {
+                throw new WebApplicationException(SERVICE_UNAVAILABLE);
+            }
+        }
+    }
+    
+    private void writeSubsetOfTabular(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile,
+            final StorageIO<DataFile> storage)
+            throws IOException {
+
+        // TODO:
+        // If there are parameters on the list that are
+        // not valid variable ids, or if they do not belong to
+        // the datafile referenced - I simply skip them;
+        // perhaps I should throw an invalid argument exception
+        // instead.
+
+        final List<DataVariable> filteredVariables = filterToVariablesOfDataFile(di,
+                dataFile);
+
+        if (filteredVariables.isEmpty()) {
+            writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storage,
+                    outstream, httpHeaders, di, dataFile);
+        } else {
+            final List<Integer> variablePositionIndex = filteredVariables
+                    .stream()
+                    .map(DataVariable::getFileOrder)
+                    .collect(toList());
+            final String subsetVariableHeader = filteredVariables
+                    .stream()
+                    .map(DataVariable::getName)
+                    .collect(joining("\t")).concat("\n");
 
             Optional<File> tempSubsetFile = Optional.empty();
             try {
-                tempSubsetFile = Optional.of(File.createTempFile("tempSubsetFile", ".tmp"));
-                TabularSubsetGenerator tabularSubsetGenerator = new TabularSubsetGenerator();
-                tabularSubsetGenerator.subsetFile(storageIO.getInputStream(), tempSubsetFile.get().getAbsolutePath(), variablePositionIndex, dataFile.getDataTable().getCaseQuantity());
-
-                long subsetSize = tempSubsetFile.get().length();
-
-                String tabularFileName = storageIO.getFileName();
-
+                tempSubsetFile = Optional.of(createTempFile("tempSubsetFile", ".tmp"));
+                new TabularSubsetGenerator().subsetFile(storage.getInputStream(),
+                        tempSubsetFile.get().getAbsolutePath(), variablePositionIndex,
+                        dataFile.getDataTable().getCaseQuantity());
+                final long subsetSize = tempSubsetFile.get().length();
+                String tabularFileName = storage.getFileName();
                 if (tabularFileName != null && tabularFileName.endsWith(".tab")) {
-                    tabularFileName = tabularFileName.replaceAll("\\.tab$", "-subset.tab");
+                    tabularFileName = tabularFileName.replaceAll("\\.tab$",
+                            "-subset.tab");
                 } else if (tabularFileName != null && !"".equals(tabularFileName)) {
                     tabularFileName = tabularFileName.concat("-subset.tab");
                 } else {
                     tabularFileName = "subset.tab";
                 }
 
-                InputStreamIO subsetStreamIO = new InputStreamIO(new FileInputStream(tempSubsetFile.get()), subsetSize, tabularFileName, storageIO.getMimeType());
-                logger.debug("successfully created subset output stream.");
+                try (InputStreamIO subsetStreamIO = new InputStreamIO(
+                        new FileInputStream(tempSubsetFile.get()),
+                        subsetSize, tabularFileName, storage.getMimeType())) {
+                    subsetStreamIO.setVarHeader(subsetVariableHeader);
 
-                subsetStreamIO.setVarHeader(subsetVariableHeader);
-
-                storageIO = subsetStreamIO;
-                writeStorageIOToOutputStream(storageIO, outstream, httpHeaders);
-                writeGuestbookResponse(di);
-
-                return;
-            } catch (IOException ioex) {
-                throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
+                    writeStorageIOToOutputStream(subsetStreamIO, outstream,
+                            httpHeaders);
+                    writeGuestbookResponse(di);
+                }
+            } catch (final Exception e) {
+                throw new WebApplicationException(SERVICE_UNAVAILABLE);
             } finally {
                 tempSubsetFile.ifPresent(File::delete);
             }
         }
+    }
+    
+    private void writeTabularWithNoVarHeader(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile,
+            final StorageIO<DataFile> storage)
+            throws IOException {
 
-        // There's no conversion etc., so we should enable check
-        //                    checkForWholeDatasetDownload = true;
-
-        if (storageIO instanceof S3AccessIO && !(dataFile.isTabularData()) && isRedirectToS3()) {
-            // definitely close the (still open) S3 input stream,
-            // since we are not going to use it. The S3 documentation
-            // emphasizes that it is very important not to leave these
-            // lying around un-closed, since they are going to fill
-            // up the S3 connection pool!
+        storage.setNoVarHeader(TRUE);
+        storage.setVarHeader(null);
+        writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storage,
+                outstream, httpHeaders, di, dataFile);
+    }
+    
+    private void writeThumbnail(final DownloadInstance di,
+            final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream,
+            final DataFile dataFile)
+            throws IOException {
+        
+        final int size = toInt(di.getConversionParamValue(), DEFAULT_THUMBNAIL_SIZE);
+        final InputStreamIO storage = this.imageThumbConverter
+                .getImageThumbnailAsInputStream(dataFile, size);
+        if (storage != null) {
             try {
-                storageIO.getInputStream().close();
-            } catch (IOException ioex) {
-                logger.warn("Exception during closing input stream: ", ioex);
+                // and, since we now have tabular data files that can
+                // have thumbnail previews... obviously, we don't want to
+                // add the variable header to the image stream!
+                storage.setNoVarHeader(TRUE);
+                storage.setVarHeader(null);
+                writeStorageIOToOutputStream(storage, outstream, httpHeaders);
+            } finally {
+                storage.closeQuietly();
             }
-            URI redirectUri = generateTemporaryS3URI((S3AccessIO<DataFile>) storageIO);
-
-            // increment the download count, if necessary:
-            writeGuestbookResponse(di);
-            datasetDownloadLogger.incrementLogIfDownloadingWholeDataset(Collections.singletonList(dataFile));
-
-            // finally, issue the redirect:
-            Response response = Response.seeOther(redirectUri).build();
-            logger.info("Issuing redirect to the file location on S3.");
-            throw new RedirectionException(response);
+        } else {
+            throw new WebApplicationException(
+                    ApiErrorResponseDTO.errorResponse(404, "Image thumbnail not found")
+                            .asJaxRsResponse());
         }
+    }
+    
+    private void writeOCRedFile(final MultivaluedMap<String, Object> httpHeaders,
+            final OutputStream outstream, final StorageIO<DataFile> storageIO) {
+        try {
+            final InputStream in = storageIO.getAuxFileAsInputStream("ocr");
+            final int fileSize = (int) storageIO.getAuxObjectSize("ocr");
 
-        writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(storageIO, outstream, httpHeaders, di, dataFile);
+            String fileName = storageIO.getFileName();
+            if (fileName != null) {
+                fileName = fileName.concat(".txt");
+            } else {
+                fileName = "text.txt";
+            }
+            final InputStreamIO storage = new InputStreamIO(in, fileSize, fileName,
+                    "text/plain");
+            storage.setNoVarHeader(TRUE);
+            storage.setVarHeader(null);
+            writeStorageIOToOutputStream(storage, outstream, httpHeaders);
+
+        } catch (final Exception e) {
+            throw new WebApplicationException(
+                    ApiErrorResponseDTO.errorResponse(404, "OCRed image not found.")
+                            .asJaxRsResponse());
+        }
     }
 
     // -------------------- PRIVATE --------------------
 
-    private void writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(StorageIO<DataFile> storageIO, OutputStream outstream,
-            MultivaluedMap<String, Object> httpHeaders, DownloadInstance di, DataFile dataFile) throws IOException {
+    private void writeStorageIOWithGuesbookAndWholeDatasetDownloadSave(
+            StorageIO<DataFile> storageIO, OutputStream outstream,
+            MultivaluedMap<String, Object> httpHeaders, DownloadInstance di, 
+            DataFile dataFile) throws IOException {
 
         writeStorageIOToOutputStream(storageIO, outstream, httpHeaders);
         writeGuestbookResponse(di);
-        datasetDownloadLogger.incrementLogIfDownloadingWholeDataset(Collections.singletonList(dataFile));
+        datasetDownloadLogger.incrementLogIfDownloadingWholeDataset(singletonList(dataFile));
     }
 
-    private List<DataVariable> filterToVariablesOfDataFile(DownloadInstance di, DataFile dataFile) {
+    private List<DataVariable> filterToVariablesOfDataFile(DownloadInstance di, 
+            DataFile dataFile) {
         List<DataVariable> dataVariables = new ArrayList<>();
         if (di.getExtraArguments() == null || di.getExtraArguments().size() == 0) {
             logger.debug("empty list of extra arguments.");
@@ -274,11 +391,11 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         try {
             redirectUrlStr = s3StorageIO.generateTemporaryS3Url();
         } catch (IOException ioex) {
-            throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
+            throw new WebApplicationException(SERVICE_UNAVAILABLE);
         }
 
         if (redirectUrlStr == null) {
-            throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
+            throw new WebApplicationException(SERVICE_UNAVAILABLE);
         }
 
         logger.info("Data Access API: direct S3 url: " + redirectUrlStr);
@@ -286,8 +403,9 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         try {
             return new URI(redirectUrlStr);
         } catch (URISyntaxException ex) {
-            logger.info("Data Access API: failed to create S3 redirect url (" + redirectUrlStr + ")");
-            throw new WebApplicationException(Response.Status.SERVICE_UNAVAILABLE);
+            logger.info("Data Access API: failed to create S3 redirect url (" 
+                        + redirectUrlStr + ")");
+            throw new WebApplicationException(SERVICE_UNAVAILABLE);
         }
     }
 
@@ -295,7 +413,9 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         if (di.getGbr() != null) {
             try {
                 logger.debug("writing guestbook response.");
-                Command<?> cmd = new CreateGuestbookResponseCommand(di.getDataverseRequestService().getDataverseRequest(), di.getGbr(), di.getGbr().getDataFile().getOwner());
+                Command<?> cmd = new CreateGuestbookResponseCommand(
+                        di.getDataverseRequestService().getDataverseRequest(), 
+                        di.getGbr(), di.getGbr().getDataFile().getOwner());
                 di.getCommand().submit(cmd);
             } catch (CommandException ce) {
                 logger.warn("Exception while writing into guestbook: ", ce);
@@ -305,12 +425,14 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         }
     }
 
-    private void writeStorageIOToOutputStream(StorageIO<DataFile> storageIO, OutputStream outstream, MultivaluedMap<String, Object> httpHeaders) throws IOException {
+    private void writeStorageIOToOutputStream(StorageIO<DataFile> storageIO, 
+            OutputStream outstream, MultivaluedMap<String, Object> httpHeaders) 
+                    throws IOException {
 
         try (InputStream instream = storageIO.getInputStream()) {
 
             if (instream == null) {
-                throw new WebApplicationException(Response.Status.NOT_FOUND);
+                throw new WebApplicationException(NOT_FOUND);
             }
 
             // headers:
@@ -322,13 +444,15 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
             // to satisfy the widest selection of browsers out there.
 
             fileName = encodeURI(fileName);
-            httpHeaders.add("Content-Disposition", "attachment; filename*=utf-8''"+ fileName + "; filename="+fileName);
+            httpHeaders.add("Content-Disposition", "attachment; filename*=utf-8''"
+                    + fileName + "; filename="+fileName);
             httpHeaders.add("Content-Type", mimeType + "; name=\"" + fileName + "\"");
 
             long contentSize = getContentSize(storageIO);
             //if ((contentSize = getFileSize(di, storageIO.getVarHeader())) > 0) {
             if (contentSize > 0) {
-                logger.debug("Content size (retrieved from the AccessObject): " + contentSize);
+                logger.debug("Content size (retrieved from the AccessObject): " 
+                            + contentSize);
                 httpHeaders.add("Content-Length", contentSize);
             }
 
@@ -375,19 +499,18 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
                 .replace("%7E", "~");
     }
 
-    private long getContentSize(StorageIO<?> accessObject) {
+    private long getContentSize(final StorageIO<?> accessObject) {
         try {
-            long contentSize = accessObject.getSize();
-
             if (accessObject.getVarHeader() != null) {
-                contentSize += accessObject.getVarHeader().getBytes().length;
+                return accessObject.getSize()
+                        + accessObject.getVarHeader().getBytes().length;
+            } else {
+                return accessObject.getSize();
             }
-            return contentSize;
-
-        } catch(IOException e) {
+        } catch (IOException e) {
             logger.warn("Unable to obtain content size", e);
+            return -1;
         }
-        return -1;
     }
 
     private boolean isRedirectToS3() {

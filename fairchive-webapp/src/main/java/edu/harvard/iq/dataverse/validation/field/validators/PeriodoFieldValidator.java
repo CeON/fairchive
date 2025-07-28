@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.validation.field.FieldValidationResult.invalid;
 import static edu.harvard.iq.dataverse.validation.field.FieldValidationResult.ok;
 
@@ -38,6 +37,6 @@ public class PeriodoFieldValidator extends MultiValueValidatorBase {
         final ValidationResult result = this.validator.validate(periodoUrl);
         return result.isOk()
                 ? ok()
-                : invalid(field, getStringFromBundle(result.getErrorCode(), fieldName));
+                : invalid(field, result.getErrorCode(), fieldName);
     }
 }

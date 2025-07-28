@@ -39,7 +39,7 @@ class GeoboxPolygonValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("Each line should have only two numbers");
+        assertThat(result.getErrorCode()).isEqualTo("geobox.polygon.invalid.geo.point");
     }
 
     @Test
@@ -52,7 +52,8 @@ class GeoboxPolygonValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("abc is not a valid number.");
+        assertThat(result.getErrorCode()).isEqualTo("isNotValidNumber");
+        assertThat(result.getErrorArgs()).containsExactly("abc");
     }
 
     @Test
@@ -65,7 +66,8 @@ class GeoboxPolygonValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("xyz is not a valid number.");
+        assertThat(result.getErrorCode()).isEqualTo("isNotValidNumber");
+        assertThat(result.getErrorArgs()).containsExactly("xyz");
     }
 
     @Test
@@ -78,7 +80,7 @@ class GeoboxPolygonValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("The longitude must be a number between -180 and 180.");
+        assertThat(result.getErrorCode()).isEqualTo("geobox.invalid.longitude");
     }
 
     @Test
@@ -91,7 +93,7 @@ class GeoboxPolygonValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("The longitude cannot span more than 180 degrees.");
+        assertThat(result.getErrorCode()).isEqualTo("geobox.invalid.longitude.span");
     }
 
     @Test
@@ -104,7 +106,7 @@ class GeoboxPolygonValueValidatorTest {
         FieldValidationResult result = validator.validate(datasetField, Collections.emptyMap(), Collections.emptyMap());
 
         // then
-        assertThat(result.getMessage()).isEqualTo("The latitude must be a number between -90 and 90.");
+        assertThat(result.getErrorCode()).isEqualTo("geobox.invalid.latitude");
     }
 
     @Test

@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import org.omnifaces.cdi.Eager;
@@ -55,16 +54,16 @@ public class StandardDateValidator extends MultiValueValidatorBase {
                 return FieldValidationResult.ok();
             }
         }
-        return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isNotValidDate",
-                field.getDatasetFieldType().getDisplayName(), YYYY_MM_DD_FORMAT, YYYY_MM_FORMAT, YYYY_FORMAT));
+        return FieldValidationResult.invalid(field, "isNotValidDate",
+                field.getDatasetFieldType().getDisplayName(), YYYY_MM_DD_FORMAT, YYYY_MM_FORMAT, YYYY_FORMAT);
     }
 
     private FieldValidationResult validateOnlyYear(String value, ValidatableField field) {
         if (isValidDate(value, YEAR_ONLY_PARSER)) {
             return FieldValidationResult.ok();
         }
-        return FieldValidationResult.invalid(field, BundleUtil.getStringFromBundle("isNotValidYear",
-                field.getDatasetFieldType().getDisplayName(), YYYY_FORMAT));
+        return FieldValidationResult.invalid(field, "isNotValidYear",
+                field.getDatasetFieldType().getDisplayName(), YYYY_FORMAT);
     }
 
     // -------------------- LOGIC --------------------
