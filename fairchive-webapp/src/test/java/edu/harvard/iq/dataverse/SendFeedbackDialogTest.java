@@ -391,7 +391,7 @@ public class SendFeedbackDialogTest {
                 .isEqualTo("root dataverse contact: abc subject");
         assertThat(email.getPlainText())
                 .contains(
-                        "You have just been sent the following message from user1@dv.com via the root dataverse hosted dataverse named \"null\"");
+                        "You have just been sent the following message from user1@dv.com via the root dataverse hosted collection named \"null\"");
         assertThat(email.getPlainText()).contains("abc message");
         assertThat(email.getAttachments()).isEmpty();
 
@@ -657,7 +657,7 @@ public class SendFeedbackDialogTest {
         assertThat(this.dialog.getRecipientOptionLabel(SYSTEM_SUPPORT))
                 .isEqualTo("root dataverse repository support");
         assertThat(this.dialog.getRecipientOptionLabel(DATAVERSE_CONTACT))
-                .isEqualTo("Contact person for this dataverse");
+                .isEqualTo("Contact person for this collection");
         assertThat(this.dialog.getRecipientOptionLabel(DATASET_CONTACT))
                 .isEqualTo("Contact person for this dataset");
     }
