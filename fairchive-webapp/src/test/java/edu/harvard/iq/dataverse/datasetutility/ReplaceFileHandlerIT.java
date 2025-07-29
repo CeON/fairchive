@@ -76,27 +76,11 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
 
     @BeforeEach
     public void setUp() {
-
-
         System.setProperty(SystemConfig.FILES_DIRECTORY, tempFiles.getAbsolutePath());
     }
 
-    private static boolean isWindows() {
-
-        return System.getProperty("os.name").toLowerCase().contains("win");
-    }
-
-
     @Test
     public void shouldCreateDataFile() {
-
-        // this test fails under Windows - the fix will require longer investigation
-        if(isWindows()) {
-            System.out.println("Skipped ReplaceFileHandlerIT.shouldReplaceFile. Windows detected");
-            return;
-        }
-
-
         //given
         Dataset dataset = new Dataset();
 
@@ -117,13 +101,6 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
 
     @Test
     public void shouldReplaceFile() throws IOException {
-
-        // this test fails under Windows - the fix will require longer investigation
-        if(isWindows()) {
-            System.out.println("Skipped ReplaceFileHandlerIT.shouldReplaceFile. Windows detected");
-            return;
-        }
-
         //given
         dataverseSession.logIn(authenticationServiceBean.getAdminUser());
 
@@ -141,12 +118,12 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
         attachDataFileToDataset(initialFile, dataset.getLatestVersion());
         em.persist(initialFile);
 
-        byte[] bytes = IOUtils.resourceToByteArray("images/coffeeshop.png", getClass().getClassLoader());
-        File newFile = new File(FileUtil.getFilesTempDirectory() +"/coffeeshop.png");
+        byte[] bytes = IOUtils.resourceToByteArray("images/sample.txt", getClass().getClassLoader());
+        File newFile = new File(FileUtil.getFilesTempDirectory() +"/sample.txt");
         Files.write(newFile.toPath(), bytes);
 
-        DataFile newDataFile = createTestDataFile("coffeeshop", "image/png");
-        newDataFile.setStorageIdentifier("coffeeshop.png");
+        DataFile newDataFile = createTestDataFile("sample.txt", "text/plain");
+        newDataFile.setStorageIdentifier("sample.txt");
 
         //when
         replaceFileHandler.replaceFile(dataset.getFiles().get(0), dataset, newDataFile);
@@ -163,7 +140,7 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
 
         DatasetVersion dbNewVersion = dbDatasetVersions.get(0);
         Assertions.assertEquals(1, dbNewVersion.getFileMetadatas().size());
-        Assertions.assertEquals("coffeeshop", dbNewVersion.getFileMetadatas().get(0).getLabel());
+        Assertions.assertEquals("sample.txt", dbNewVersion.getFileMetadatas().get(0).getLabel());
 
         Assertions.assertEquals(2, dbDataset.getFiles().size());
         Assertions.assertEquals(dbOldVersion.getFileMetadatas().get(0).getDataFile(), dbDataset.getFiles().get(0));
