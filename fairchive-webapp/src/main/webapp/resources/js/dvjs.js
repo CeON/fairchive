@@ -123,13 +123,13 @@ function initDvJS() {
         createdShape(e ,data);
       });
       map.on('editable:edited', function (e) {
-        updateTextArea(e.layer, data.widgetVars);
+        updateTextArea(e.layer, data);
       });
       map.on('editable:vertex:new', function (e) {
-        updateTextArea(e.layer, data.widgetVars);
+        updateTextArea(e.layer, data);
       });
       map.on('editable:vertex:deleted', function (e) {
-        updateTextArea(e.layer, data.widgetVars);
+        updateTextArea(e.layer, data);
       });
     }
 
@@ -229,10 +229,11 @@ function initDvJS() {
         let layer = e.layer;
         data.polygonLayer.addLayer(layer);
 
-        updateTextArea(layer, data.widgetVars);
+        updateTextArea(layer, data);
     }
 
-    function updateTextArea(layer, widgetVars) {
+    function updateTextArea(layer, data) {
+      const widgetVars = data.widgetVars;
       if (!PF(widgetVars['polygonGeo'])) {
         throw new Error('Missing dataset field supporting polygon edit: polygonGeo');
       }
@@ -241,11 +242,35 @@ function initDvJS() {
 
       const isPolygon = Array.isArray(geometry[0]);
       if (isPolygon) {
-        result = geometry[0].map(row => row.join(" ")).join("\n");
+        if (data.advancedSearch) {
+          result = normalizeToRectangle(geometry)
+            .map(row => row.join(" "))
+            .join("\n");
+        } else {
+          result = geometry[0].map(row => row.join(" ")).join("\n");
+        }
       } else {
         result = geometry.join(" ");
       }
       PF(widgetVars['polygonGeo']).jq.val(result);
+    }
+
+    function normalizeToRectangle(coordinates) {
+      const latList = coordinates[0].map(p => p[0]);
+      const lonList = coordinates[0].map(p => p[1]);
+
+      const minLat = Math.min(...latList);
+      const maxLat = Math.max(...latList);
+      const minLon = Math.min(...lonList);
+      const maxLon = Math.max(...lonList);
+
+      return [
+       [maxLat, minLon],
+       [maxLat, maxLon],
+       [minLat, maxLon],
+       [minLat, minLon],
+       [maxLat, minLon]
+      ];
     }
 
     function parseCoordinates(textCoordinates) {
@@ -451,6 +476,7 @@ function initDvJS() {
 
         let options = createEmptyEntry();
         options.drawTools.allowRectangle = true;
+        options.advancedSearch = true;
         searchMapsData.set(key, options);
       },
 

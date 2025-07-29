@@ -136,6 +136,7 @@ public class DatasetFieldsInitializerTest {
         keywordField.getDatasetFieldsChildren().add(makeDatasetField(keywordField, keywordValueType, "term3", 4));
 
         DatasetFieldType depositorFieldType = makeDepositorFieldType(citationBlock);
+        depositorFieldType.setDefaultValue("I am the depositor");
         DatasetFieldType dataOfDepositFieldType = makeDateOfDepositFieldType(citationBlock);
 
         DatasetField unitOfAnalysisField = DatasetField.createNewEmptyDatasetField(makeUnitOfAnalysisFieldType(socialScienceBlock), null);
@@ -158,7 +159,7 @@ public class DatasetFieldsInitializerTest {
         assertEquals("term1; vocabName; http://example.edu; term2; term3", retDatasetFields.get(2).getCompoundRawValue());
 
         assertEquals(depositorFieldType, retDatasetFields.get(3).getDatasetFieldType());
-        assertEquals("", retDatasetFields.get(3).getRawValue());
+        assertEquals("I am the depositor", retDatasetFields.get(3).getRawValue());
 
         assertEquals(dataOfDepositFieldType, retDatasetFields.get(4).getDatasetFieldType());
         assertEquals("", retDatasetFields.get(4).getRawValue());
