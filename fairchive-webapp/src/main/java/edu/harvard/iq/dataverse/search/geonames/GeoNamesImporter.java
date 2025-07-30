@@ -39,27 +39,32 @@ final class GeoNamesImporter {
     }
 
     private Stream<GeoName> importNames(final InputStream in) throws Exception {
-        log.info("Reading geo names");
-        final long begin = currentTimeMillis();
-        final Map<String, List<GeoName>> map = read(in);
-        final long readtime = currentTimeMillis();
-        log.info("Geo names read in {} seconds.", (readtime - begin) / 1000);
+        try {
+            log.info("Reading geo names");
+            final long begin = currentTimeMillis();
+            final Map<String, List<GeoName>> map = read(in);
+            final long readtime = currentTimeMillis();
+            log.info("Geo names read in {} seconds.", (readtime - begin) / 1000);
 
-        int index = 1;
-        for (final String countryCode : map.keySet()) {
-            log.info("Processing geo names from {} - {}/{}.",
-                    countryCode, index, map.size());
-            final long processingStart = currentTimeMillis();
-            final List<GeoName> geoNames = map.get(countryCode);
-            process(geoNames);
-            log.info("Processed geo names from {} in {} seconds.",
-                    countryCode, (currentTimeMillis() - processingStart) / 1000);
-            ++index;
+            int index = 1;
+            for (final String countryCode : map.keySet()) {
+                log.info("Processing geo names from {} - {}/{}.",
+                        countryCode, index, map.size());
+                final long processingStart = currentTimeMillis();
+                final List<GeoName> geoNames = map.get(countryCode);
+                process(geoNames);
+                log.info("Processed geo names from {} in {} seconds.",
+                        countryCode, (currentTimeMillis() - processingStart) / 1000);
+                ++index;
+            }
+            log.info("Finished processing geo names in {} seconds.",
+                    +(currentTimeMillis() - begin) / 1000);
+            log.info("Cache size: " + this.cache.size());
+            return map.values().stream().flatMap(List::stream);
+        } catch (final Exception e) {
+            log.warn("Importing geo names failed.", e);
+            throw e;
         }
-        log.info("Finished processing geo names in {} seconds.",
-                +(currentTimeMillis() - begin) / 1000);
-        log.info("Cache size: " + this.cache.size());
-        return map.values().stream().flatMap(List::stream);
     }
 
     private void process(final List<GeoName> geoNames) {

@@ -93,16 +93,27 @@ public class GeoNamesIT extends WebappArquillianDeployment {
         assertThat(geoName.get().getName()).isEqualTo("Poraj");
         assertThat(geoName.get().getHierarchy())
                 .isEqualTo("PL - Lublin Voivodeship - Powiat hrubieszowski - Poraj");
-
+        // search by name
         List<GeoName> geoNames = this.finder.find("Poraj", 50);
+        assertThat(geoNames).isNotEmpty();
         assertThat(geoNames).anyMatch(gn -> gn.getName().equals("Poraj"));
         assertThat(this.finder.find("Yorks", 50)).isNotEmpty();
-
+        // searhc by name - case insensitive
+        geoNames = this.finder.find("poRaj", 50);
+        assertThat(geoNames).isNotEmpty();
+        assertThat(geoNames).anyMatch(gn -> gn.getName().equals("Poraj"));
+        assertThat(this.finder.find("yorks", 50)).isNotEmpty();     
         // search by alternative name
         assertThat(this.finder.find("Predocin", 50))
                 .anyMatch(gn -> gn.getName().equals("Prędocin"));
+        // search by alternative name - case insensitive
+        assertThat(this.finder.find("pRedocin", 50))
+                .anyMatch(gn -> gn.getName().equals("Prędocin"));
         //search multiple words
         assertThat(this.finder.find("Jezioro Zygmunta Augusta", 50))
+                .anyMatch(gn -> gn.getName().equals("Jezioro Zygmunta Augusta"));
+        //search multiple words - case insensitive
+        assertThat(this.finder.find("jezioro zygmunta augusta", 50))
                 .anyMatch(gn -> gn.getName().equals("Jezioro Zygmunta Augusta"));
     }
 
