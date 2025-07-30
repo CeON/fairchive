@@ -90,7 +90,7 @@ public class AdvancedSearchPage implements Serializable {
 
         metadataSearchBlocks = advancedSearchBlocksBuilder.createDatasetMetadataBlocks(dataverse);
         searchFieldIndex = buildSearchFieldIndex(metadataSearchBlocks);
-        nonSearchFieldIndex = createParentFieldsForSearchFields(nonSearchFieldIndex);
+        nonSearchFieldIndex = createParentFieldsForSearchFields(searchFieldIndex);
     }
 
     /** Composes query and redirects to the page with results. */
