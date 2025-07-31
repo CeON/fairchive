@@ -51,12 +51,12 @@ function initDvJS() {
       }
     }
 
-    function hasPolygonThreePoints(layer) {
+    function hasPolygonThreePointsOrMore(layer) {
       return layer.getLatLngs()[0].length >= 3;
     }
 
     function isSelfIntersecting(layer, currentGeo, isEditMode) {
-      if (!hasPolygonThreePoints(layer)) {
+      if (!hasPolygonThreePointsOrMore(layer)) {
         return false;
       }
 
@@ -200,7 +200,7 @@ function initDvJS() {
 
         // for three points no need to check intersection
         // also dashed lines were not rendered properly when style was changed for 2,3 points
-        if (!hasPolygonThreePoints(e.layer)) {
+        if (!hasPolygonThreePointsOrMore(e.layer)) {
           return;
         }
 
