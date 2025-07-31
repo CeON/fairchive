@@ -27,9 +27,6 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 
-import static java.nio.file.Files.deleteIfExists;
-
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,7 +45,6 @@ import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport.
 import static edu.harvard.iq.dataverse.util.FileUtil.calculateChecksum;
 import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
 import static edu.harvard.iq.dataverse.util.FileUtil.getFilesTempDirectory;
-import static edu.harvard.iq.dataverse.util.FileUtil.limitedInputStreamToTempFile;
 
 @Stateless
 @TransactionManagement(TransactionManagementType.BEAN)
@@ -374,6 +370,7 @@ public class DataFileCreator {
          * the dataset level, for example.
          */
         datafile.setPermissionModificationTime(new Timestamp(new Date().getTime()));
+        datafile.setFilesize(filePath.toFile().length());
         datafile.setUncompressedSize(uncompressedSize);
         FileMetadata fmd = new FileMetadata();
 

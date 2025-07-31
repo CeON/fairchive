@@ -141,6 +141,7 @@ public class DataFileCreatorTest {
         assertThat(datafiles).hasSize(1)
             .satisfies(dataFile -> {
                 assertThat(dataFile.getContentType()).isEqualTo("application/fits");
+                assertThat(dataFile.getFilesize()).isEqualTo(63360L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("a4791e42cd1045892f9c41f11b50bad8");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -167,6 +168,7 @@ public class DataFileCreatorTest {
         assertThat(datafiles).hasSize(1)
             .satisfies(dataFile -> {
                 assertThat(dataFile.getContentType()).isEqualTo("application/fits-gzipped");
+                assertThat(dataFile.getFilesize()).isEqualTo(41766L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("bb566e4c4afef02a279471c64e964602");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -197,6 +199,7 @@ public class DataFileCreatorTest {
         assertThat(datafiles).hasSize(2)
             .satisfies(dataFile -> {
                 assertThat(dataFile.getContentType()).isEqualTo("text/plain");
+                assertThat(dataFile.getFilesize()).isEqualTo(1L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("0cc175b9c0f1b6a831c399e269772661");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -204,6 +207,7 @@ public class DataFileCreatorTest {
             }, atIndex(0))
             .satisfies(dataFile -> {
                 assertThat(dataFile.getContentType()).isEqualTo("text/plain");
+                assertThat(dataFile.getFilesize()).isEqualTo(3L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("d5c256b294dabd02bd496a2b1de99bd2");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -238,6 +242,7 @@ public class DataFileCreatorTest {
                 assertThat(dataFile.getFileMetadatas().get(0).getLabel()).isEqualTo("plaintext_utf8.txt");
                 assertThat(dataFile.getFileMetadatas().get(0).getDirectoryLabel()).isEqualTo("folder1");
                 assertThat(dataFile.getContentType()).isEqualTo("text/plain");
+                assertThat(dataFile.getFilesize()).isEqualTo(3L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("d5c256b294dabd02bd496a2b1de99bd2");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -246,6 +251,7 @@ public class DataFileCreatorTest {
                 assertThat(dataFile.getFileMetadatas().get(0).getLabel()).isEqualTo("plaintext_ascii.txt");
                 assertThat(dataFile.getFileMetadatas().get(0).getDirectoryLabel()).isEqualTo("folder1");
                 assertThat(dataFile.getContentType()).isEqualTo("text/plain");
+                assertThat(dataFile.getFilesize()).isEqualTo(1L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("0cc175b9c0f1b6a831c399e269772661");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -279,6 +285,7 @@ public class DataFileCreatorTest {
                 assertThat(dataFile.getFileMetadatas().get(0).getLabel()).isEqualTo("plaintext_utf8.txt");
                 assertThat(dataFile.getFileMetadatas().get(0).getDirectoryLabel()).isEqualTo("folder1");
                 assertThat(dataFile.getContentType()).isEqualTo("text/plain");
+                assertThat(dataFile.getFilesize()).isEqualTo(3L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("d5c256b294dabd02bd496a2b1de99bd2");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -287,6 +294,7 @@ public class DataFileCreatorTest {
                 assertThat(dataFile.getFileMetadatas().get(0).getLabel()).isEqualTo("plaintext_ascii.txt");
                 assertThat(dataFile.getFileMetadatas().get(0).getDirectoryLabel()).isEqualTo("folder1");
                 assertThat(dataFile.getContentType()).isEqualTo("text/plain");
+                assertThat(dataFile.getFilesize()).isEqualTo(1L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("0cc175b9c0f1b6a831c399e269772661");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -319,6 +327,7 @@ public class DataFileCreatorTest {
             .satisfies(dataFile -> {
                 assertThat(dataFile.getFileMetadatas().get(0).getLabel()).isEqualTo("archive.zip");
                 assertThat(dataFile.getContentType()).isEqualTo("application/zip");
+                assertThat(dataFile.getFilesize()).isEqualTo(416L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("6246a24606128a4f34ae799d1e0d457d");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
@@ -348,6 +357,7 @@ public class DataFileCreatorTest {
             .satisfies(dataFile -> {
                 assertThat(dataFile.getFileMetadatas().get(0).getLabel()).isEqualTo("archive.zip");
                 assertThat(dataFile.getContentType()).isEqualTo("application/zip");
+                assertThat(dataFile.getFilesize()).isEqualTo(12480L);
                 assertThat(dataFile.getChecksumType()).isEqualTo(ChecksumType.MD5);
                 assertThat(dataFile.getChecksumValue()).isEqualTo("a1e42cad3947efd6e5d10bdb43e8e074");
                 assertThat(dataFile.getStorageIdentifier()).isNotEmpty();
