@@ -26,6 +26,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.search.advanced.SearchBlock;
 import edu.harvard.iq.dataverse.search.advanced.SearchFieldFactory;
 import edu.harvard.iq.dataverse.search.advanced.SearchFieldType;
@@ -47,6 +48,8 @@ public class AdvancedSearchBlocksBuilderTest {
     private LicenseRepository licenseRepository;
     @Mock
     private TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory;
+    @Mock
+    private DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService;
     
     @Test
     void createDatasetMetadataBlocks() {
@@ -121,6 +124,57 @@ public class AdvancedSearchBlocksBuilderTest {
                     tuple("field2", SearchFieldType.TEXT),
                     tuple("dsPersistentId", SearchFieldType.TEXT),
                     tuple("dsPublicationDate", SearchFieldType.DATE));
+    }
+    
+    @Test
+    void createDatasetMetadataBlocks__omit_hidden_fields() {
+        // given
+        Dataverse dataverse = new Dataverse();
+        dataverse.setId(1L);
+        MetadataBlock block1 = MocksFactory.makeMetadataBlock("citation", "Citation Metadata", 0);
+        MetadataBlock block2 = MocksFactory.makeMetadataBlock("block2", "Block Name2", 1);
+        dataverse.setMetadataBlocks(ImmutableList.of(block1, block2));
+
+        List<Long> blockIds = ImmutableList.of(block1.getId(), block2.getId());
+
+        DatasetFieldType field1 = MocksFactory.makeDatasetFieldType("field1", FieldType.TEXT, false, block1);
+        DatasetFieldType field2 = MocksFactory.makeDatasetFieldType("field2", FieldType.TEXT, false, block1);
+        DatasetFieldType field3 = MocksFactory.makeDatasetFieldType("field3", FieldType.TEXT, false, block2);
+        DatasetFieldType field4 = MocksFactory.makeDatasetFieldType("field4", FieldType.TEXT, false, block2);
+        field4.setParentDatasetFieldType(MocksFactory.makeDatasetFieldType("parentOfField4", FieldType.NONE, false, block2));
+
+        when(datasetFieldService.findAllAdvancedSearchFieldTypesByMetadataBlockIds(eq(blockIds))).thenReturn(
+                ImmutableList.of(field1, field2, field3, field4));
+        when(searchFieldFactory.create(any())).thenAnswer(invocation -> new TextSearchField(invocation.getArgument(0)));
+
+        DataverseFieldTypeInputLevel inputLevel1 = new DataverseFieldTypeInputLevel();
+        inputLevel1.setDatasetFieldType(field4.getParentDatasetFieldType());
+        inputLevel1.setInclude(false);
+        DataverseFieldTypeInputLevel inputLevel2 = new DataverseFieldTypeInputLevel();
+        inputLevel2.setDatasetFieldType(field2);
+        inputLevel2.setInclude(false);
+        DataverseFieldTypeInputLevel inputLevel3 = new DataverseFieldTypeInputLevel();
+        inputLevel3.setDatasetFieldType(field1);
+        inputLevel3.setInclude(true);
+
+        when(dataverseFieldTypeInputLevelService.findByDataverseId(1L)).thenReturn(
+                ImmutableList.of(inputLevel1, inputLevel2, inputLevel3));
+        
+        // when
+        List<SearchBlock> searchBlocks = advancedSearchBlocksBuilder.createDatasetMetadataBlocks(dataverse);
+        // then
+        assertThat(searchBlocks).hasSize(2);
+        assertThat(searchBlocks).extracting(SearchBlock::getBlockName).containsExactly("citation", "block2");
+        assertThat(searchBlocks.get(0).getSearchFields())
+            .extracting(SearchField::getName, SearchField::getSearchFieldType)
+            .containsExactly(
+                    tuple("field1", SearchFieldType.TEXT),
+                    tuple("dsPersistentId", SearchFieldType.TEXT),
+                    tuple("dsPublicationDate", SearchFieldType.DATE));
+        assertThat(searchBlocks.get(1).getSearchFields())
+            .extracting(SearchField::getName, SearchField::getSearchFieldType)
+            .containsExactly(
+                    tuple("field3", SearchFieldType.TEXT));
     }
 
     @Test
