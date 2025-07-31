@@ -655,6 +655,8 @@ public class IngestServiceBean {
             final long ingestSizeLimit = this.systemConfig.getTabularIngestSizeLimit(
                     getTabDataReaderByMimeType(dataFile.getContentType())
                             .getFormatName());
+            System.out.println("exceeds: " + (ingestSizeLimit != -1 && dataFile.getFilesize() > ingestSizeLimit)
+                    + " filesize: " + dataFile.getFilesize() + " limit: " + ingestSizeLimit);
             return ingestSizeLimit != -1 && dataFile.getFilesize() > ingestSizeLimit;
         }
     }
