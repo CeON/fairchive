@@ -30,47 +30,33 @@
                     <f:viewParam name="versionString" value="#{EditDatafilesPage.versionString}"/>
                     <f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}"/>
                     <f:viewAction action="#{EditDatafilesPage.init}" />
-                    <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(EditDatafilesPage.dataset, 
-                                            (datasetPage || EditDatafilesPage.showFileUploadFragment() ? bundle['file.uploadFiles'] : bundle['file.editFiles']))}" />
+                    <f:viewAction
+                            action="#{dataverseHeaderFragment.initBreadcrumbs(EditDatafilesPage.dataset, (datasetPage || EditDatafilesPage.showFileUploadFragment() ? bundle['file.uploadFiles'] : bundle['file.editFiles']))}" />
                 </f:metadata>
                 <h:form id="datasetForm">
 
                     <!-- static Messages -->
                     <p:outputPanel>
-                        <div jsf:rendered="#{EditDatafilesPage.isInstallationPublic()}" 
-                             class="alert alert-warning" 
-                             role="alert" 
-                             aria-atomic="true">
+                        <div jsf:rendered="#{EditDatafilesPage.isInstallationPublic()}" class="alert alert-warning" role="alert" aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"/>
                                 &#160;<strong>#{bundle['dataset.message.publicInstall.title']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{bundle['dataset.message.publicInstall.details']} "/>
+                                <h:outputText escape="false" value="#{bundle['dataset.message.publicInstall.details']} "/>
                             </p>
                         </div>
 
-                        <div jsf:rendered="#{EditDatafilesPage.isInUploadMode() 
-                                            and settingsWrapper.getUploadMethodsCount() eq 1}" 
-                             class="alert alert-info" 
-                             role="alert" 
-                             aria-atomic="true">
+                        <div jsf:rendered="#{EditDatafilesPage.isInUploadMode() and settingsWrapper.getUploadMethodsCount() eq 1}" class="alert alert-info" role="alert" aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"/>
                                 &#160;<strong>#{bundle['dataset.message.uploadFiles.label']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{EditDatafilesPage.getMultiUploadDetailsMessage()}"/>
+                                <h:outputText escape="false" value="#{EditDatafilesPage.getMultiUploadDetailsMessage()}"/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{EditDatafilesPage.isInUploadMode() 
-                                            and settingsWrapper.getUploadMethodsCount() gt 1}" 
-                             class="alert alert-info" 
-                             role="alert" 
-                             aria-atomic="true">
+                        <div jsf:rendered="#{EditDatafilesPage.isInUploadMode() and settingsWrapper.getUploadMethodsCount() gt 1}" class="alert alert-info" role="alert" aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"/>
                                 &#160;<strong>#{bundle['dataset.message.uploadFiles.label']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{bundle['dataset.message.uploadFilesMultiple.message']}"/>
+                                <h:outputText escape="false" value="#{bundle['dataset.message.uploadFilesMultiple.message']}"/>
                             </p>
                         </div>
                     </p:outputPanel>
@@ -79,22 +65,14 @@
                     <div id="contentTabs">
 
                     <ui:include src="editFilesFragment.xhtml">
-                        <ui:param name="isDatasetSection" 
-                                  value="false"/>
-                        <ui:param name="createDataset" 
-                                  value="false"/>
-                        <ui:param name="showFileButtonUpdate" 
-                                  value="true"/>
-                        <ui:param name="lockedFromEdits" 
-                                  value="#{EditDatafilesPage.lockedFromEdits}"/>
-                        <ui:param name="showFileUpload" 
-                                  value="#{EditDatafilesPage.showFileUploadFragment()}"/>
-                        <ui:param name="isMultiplyFilesUploadAllowed" 
-                                  value="#{EditDatafilesPage.allowMultipleFileUpload()}" />
-                        <ui:param name="fileUploadDisabled" 
-                                  value="#{!EditDatafilesPage.showFileUploadComponent()}" />
-                        <ui:param name="isUploadPermited" 
-                                  value="#{EditDatafilesPage.mode eq 'UPLOAD'}" />
+                        <ui:param name="isDatasetSection" value="false"/>
+                        <ui:param name="createDataset" value="false"/>
+                        <ui:param name="showFileButtonUpdate" value="true"/>
+                        <ui:param name="lockedFromEdits" value="#{EditDatafilesPage.lockedFromEdits}"/>
+                        <ui:param name="showFileUpload" value="#{EditDatafilesPage.showFileUploadFragment()}"/>
+                        <ui:param name="isMultiplyFilesUploadAllowed" value="#{EditDatafilesPage.allowMultipleFileUpload()}" />
+                        <ui:param name="fileUploadDisabled" value="#{!EditDatafilesPage.showFileUploadComponent()}" />
+                        <ui:param name="isUploadPermited" value="#{EditDatafilesPage.mode eq 'UPLOAD'}" />
                         </ui:include>
                     </div>
 
@@ -102,36 +80,42 @@
                     <p:fragment  id="editDataFilesButtons">
                         <div  class="button-block">
                             <p:outputPanel id="filesButtons" >
-                                <div jsf:rendered="#{!(empty EditDatafilesPage.fileMetadatas 
-                                                       and (datasetPage || EditDatafilesPage.showFileUploadFragment()))}">
-                                    <p:commandButton id="save" 
-                                                     value="#{bundle.saveChanges}"
-                                                     action="#{EditDatafilesPage.save}"
-                                                     update="@form,:messagePanel"
-                                                     process="@form"
-                                                     oncomplete="$(document).scrollTop(0);" />
-                                    <p:commandButton id="cancel" 
-                                                     value="#{bundle.cancel}" 
-                                                     action="#{EditDatafilesPage.cancel}" 
-                                                     process="@this" 
+                                <div jsf:rendered="#{!(empty EditDatafilesPage.fileMetadatas and (datasetPage || EditDatafilesPage.showFileUploadFragment()))}">
+                                    <p:commandButton
+                                            id="save"
+                                            value="#{bundle.saveChanges}"
+                                            action="#{EditDatafilesPage.save}"
+                                            update="@form,:messagePanel"
+                                            process="@form"
+                                            onstart="PF('blockFileForm').show();"
+                                            onerror="PF('saveStatusPoll').start();"
+                                            oncomplete="$(document).scrollTop(0);"
+                                    />
+                                    <p:commandButton id="cancel"
+                                                     value="#{bundle.cancel}"
+                                                     action="#{EditDatafilesPage.cancel}"
+                                                     process="@this"
                                                      update="@form" />
                                 </div>
-                                <div jsf:rendered="#{empty EditDatafilesPage.fileMetadatas 
-                                                     and (datasetPage || EditDatafilesPage.showFileUploadFragment())}">
-                                    <p:commandButton id="doneFilesButton" 
-                                                     value="#{bundle.cancel}" 
-                                                     action="#{EditDatafilesPage.cancel}" 
-                                                     process="@this" 
-                                                     update="@form" >
+                                <div jsf:rendered="#{empty EditDatafilesPage.fileMetadatas and (datasetPage || EditDatafilesPage.showFileUploadFragment())}">
+                                    <p:commandButton id="doneFilesButton" value="#{bundle.cancel}" action="#{EditDatafilesPage.cancel}" process="@this" update="@form" >
                                     </p:commandButton>
 
                                 </div>
                             </p:outputPanel>
                         </div>
                     </p:fragment>
+
+                    <p:poll interval="2"
+                            listener="#{EditDatafilesPage.checkSaveStatus()}"
+                            autoStart="false"
+                            stop="#{!EditDatafilesPage.isSaveRunning}"
+                            update=":messagePanel"
+                            widgetVar="saveStatusPoll" />
+
                     <!-- END: Create/Save Dataset Button Panel -->
-                    <p:blockUI block="datasetForm" 
-                               trigger="save" 
+                    <p:blockUI block="datasetForm"
+                               blocked="#{EditDatafilesPage.isSaveRunning}"
                                widgetVar="blockFileForm"/>
                 </h:form>
             </ui:define>

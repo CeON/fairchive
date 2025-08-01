@@ -100,8 +100,18 @@ services:
       - ${DATAVERSE_SOURCE_DIR}/conf/grafana/datasources.yml:/etc/grafana/provisioning/datasources/main.yaml
       - ${DATAVERSE_SOURCE_DIR}/conf/grafana/dashboards:/var/lib/grafana/dashboards
 
+  minio:
+    image: "minio/minio:RELEASE.2021-03-26T00-00-41Z"
+    container_name: "fairchive-dev-s3"
+    ports:
+      - "9000:9000"
+    volumes:
+      - "s3-data:/data"
+    command: ["server", "/data"]
+
 volumes:
   postgres-data:
+  s3-data:
   gl-domain-data:
   gl-server-data:
   gl-home:
