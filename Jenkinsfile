@@ -98,9 +98,6 @@ pipeline {
                     withinContainer {
                         IT_TEST_OPTS="-P integration-tests-only,ci-jenkins -Dtest.network.name=${env.DOCKER_NETWORK_NAME} -Ddocker.host=${env.DOCKER_HOST_EXT} -Ddocker.certPath=${env.DOCKER_CERT_EXT}"
 
-                        echo 'Build containers.'
-                        sh "./mvnw docker:build -pl fairchive-webapp ${IT_TEST_OPTS}"
-
                         echo 'Starting containers.'
                         sh "./mvnw docker:start -pl fairchive-webapp ${IT_TEST_OPTS}"
 
