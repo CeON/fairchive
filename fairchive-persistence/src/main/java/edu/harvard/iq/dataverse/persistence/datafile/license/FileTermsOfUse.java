@@ -106,7 +106,7 @@ public class FileTermsOfUse implements Serializable, JpaEntity<Long> {
         case ALL_RIGHTS_RESERVED :
             return "All rights reserved";
         case RESTRICTED :
-            return Objects.toString(this.restrictCustomText, "");
+            return Objects.toString(this.restrictCustomText, "Restricted access");
         case TERMS_UNKNOWN:
             return "Unknown";
         default:
