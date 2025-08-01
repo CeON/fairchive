@@ -1,38 +1,23 @@
 package edu.harvard.iq.dataverse.search;
 
-import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
+import edu.harvard.iq.dataverse.AdvancedSearchBlocksBuilder;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.WidgetWrapper;
 import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.license.TermsOfUseSelectItemsFactory;
-import edu.harvard.iq.dataverse.persistence.datafile.license.License;
-import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.search.advanced.QueryWrapperCreator;
 import edu.harvard.iq.dataverse.search.advanced.SearchBlock;
-import edu.harvard.iq.dataverse.search.advanced.SearchFieldFactory;
-import edu.harvard.iq.dataverse.search.advanced.field.CheckboxSearchField;
-import edu.harvard.iq.dataverse.search.advanced.field.DateSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.GroupingSearchField;
-import edu.harvard.iq.dataverse.search.advanced.field.LicenseCheckboxSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
-import edu.harvard.iq.dataverse.search.advanced.field.TextSearchField;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.validation.SearchFormValidationService;
-import edu.harvard.iq.dataverse.validation.ValidationEnhancer;
-import edu.harvard.iq.dataverse.validation.field.ValidationDescriptor;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
-import edu.harvard.iq.dataverse.validation.field.validators.DateRangeValidator;
-import io.vavr.Tuple;
 import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
 import javax.annotation.PostConstruct;
-import javax.faces.model.SelectItem;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
@@ -40,7 +25,6 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +32,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * Page class responsible for showing search fields for Metadata blocks, files/dataverses blocks
@@ -62,13 +44,10 @@ public class AdvancedSearchPage implements Serializable {
     private static final Logger logger = Logger.getLogger(AdvancedSearchPage.class.getCanonicalName());
 
     private DataverseDao dataverseDao;
-    private DatasetFieldServiceBean datasetFieldService;
     private WidgetWrapper widgetWrapper;
     private QueryWrapperCreator queryWrapperCreator;
-    private TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory;
     private SearchFormValidationService validationService;
-    private SearchFieldFactory searchFieldFactory;
-    private LicenseRepository licenseRepository;
+    private AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder;
 
     private Dataverse dataverse;
     private String dataverseIdentifier;
@@ -85,18 +64,15 @@ public class AdvancedSearchPage implements Serializable {
     public AdvancedSearchPage() { }
 
     @Inject
-    public AdvancedSearchPage(DataverseDao dataverseDao, DatasetFieldServiceBean datasetFieldService,
+    public AdvancedSearchPage(DataverseDao dataverseDao,
                               WidgetWrapper widgetWrapper, QueryWrapperCreator queryWrapperCreator,
-                              TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory, SearchFormValidationService validationService,
-                              SearchFieldFactory searchFieldFactory, LicenseRepository licenseRepository) {
+                              SearchFormValidationService validationService,
+                              AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder) {
         this.dataverseDao = dataverseDao;
-        this.datasetFieldService = datasetFieldService;
         this.widgetWrapper = widgetWrapper;
         this.queryWrapperCreator = queryWrapperCreator;
-        this.termsOfUseSelectItemsFactory = termsOfUseSelectItemsFactory;
         this.validationService = validationService;
-        this.searchFieldFactory = searchFieldFactory;
-        this.licenseRepository = licenseRepository;
+        this.advancedSearchBlocksBuilder = advancedSearchBlocksBuilder;
     }
 
     // -------------------- LOGIC --------------------
@@ -109,7 +85,12 @@ public class AdvancedSearchPage implements Serializable {
         if (dataverse == null) {
             dataverse = dataverseDao.findRootDataverse();
         }
-        buildFieldStructure();
+        dataversesSearchBlock = advancedSearchBlocksBuilder.createDataversesBlock();
+        filesSearchBlock = advancedSearchBlocksBuilder.createFilesBlock();
+
+        metadataSearchBlocks = advancedSearchBlocksBuilder.createDatasetMetadataBlocks(dataverse);
+        searchFieldIndex = buildSearchFieldIndex(metadataSearchBlocks);
+        nonSearchFieldIndex = createParentFieldsForSearchFields(searchFieldIndex);
     }
 
     /** Composes query and redirects to the page with results. */
@@ -132,31 +113,10 @@ public class AdvancedSearchPage implements Serializable {
 
     // -------------------- PRIVATE --------------------
 
-    private void buildFieldStructure() {
-        extractSearchableFieldsForMetadataBlocks();
-        createParentFieldsForSearchFields();
-        createDataversesAndFilesBlocks();
-    }
-
-    private void extractSearchableFieldsForMetadataBlocks() {
-        List<MetadataBlock> metadataBlocks = dataverse.getRootMetadataBlocks();
-        List<Long> metadataBlockIds = metadataBlocks.stream()
-                .map(MetadataBlock::getId)
-                .collect(toList());
-        Map<Long, List<DatasetFieldType>> metadataFieldListByBlock
-                = datasetFieldService.findAllAdvancedSearchFieldTypesByMetadataBlockIds(metadataBlockIds).stream()
-                .collect(Collectors.groupingBy(f -> f.getMetadataBlock().getId()));
-        for (MetadataBlock block : metadataBlocks) {
-            List<SearchField> searchFields
-                    = metadataFieldListByBlock.getOrDefault(block.getId(), Collections.emptyList()).stream()
-                    .map(searchFieldFactory::create)
-                    .filter(f -> !SearchField.EMPTY.equals(f))
-                    .collect(toList());
-            searchFieldIndex.putAll(searchFields.stream()
-                    .collect(Collectors.toMap(SearchField::getName, f -> f, (prev, next) -> next)));
-            metadataSearchBlocks.add(new SearchBlock(block.getName(), block.getLocaleDisplayName(), searchFields));
-        }
-        addExtraFieldsToCitationMetadataBlock();
+    private Map<String, SearchField> buildSearchFieldIndex(List<SearchBlock> searchBlocks) {
+        return searchBlocks.stream()
+            .flatMap(block -> block.getSearchFields().stream())
+            .collect(Collectors.toMap(SearchField::getName, f -> f, (prev, next) -> next));
     }
 
     /**
@@ -165,7 +125,8 @@ public class AdvancedSearchPage implements Serializable {
      * accessing {@link DatasetFieldType} and creating new or retrieving
      * existing parent fields in order to connect them with search fields.
      */
-    private void createParentFieldsForSearchFields() {
+    private Map<String, SearchField> createParentFieldsForSearchFields(Map<String, SearchField> searchFieldIndex) {
+        Map<String, SearchField> nonSearchFieldIndex = new HashMap<>();
         int i = 0;
         for (SearchField field : searchFieldIndex.values()) {
             DatasetFieldType fieldType = field.getDatasetFieldType();
@@ -185,80 +146,7 @@ public class AdvancedSearchPage implements Serializable {
             parentField.getChildren().add(field);
             field.setParent(parentField);
         }
-    }
-
-    private void createDataversesAndFilesBlocks() {
-        dataversesSearchBlock = new SearchBlock("dataverses",
-                BundleUtil.getStringFromBundle("advanced.search.header.dataverses"), constructDataversesSearchFields());
-        filesSearchBlock = new SearchBlock("files",
-                BundleUtil.getStringFromBundle("advanced.search.header.files"), constructFilesSearchFields());
-    }
-
-    private void addExtraFieldsToCitationMetadataBlock() {
-        for (SearchBlock b : metadataSearchBlocks) {
-            if (SearchFields.DATASET_CITATION.equals(b.getBlockName())) {
-                ValidationEnhancer enhancer = new ValidationEnhancer();
-                TextSearchField persistentIdField = textFieldFromBundle(SearchFields.DATASET_PERSISTENT_ID, "dataset.metadata.persistentId", "dataset.metadata.persistentId.tip");
-                DatasetFieldType publicationDateType = enhancer.createDatasetFieldType(SearchFields.DATASET_PUBLICATION_DATE,
-                        BundleUtil.getStringFromBundle("dataset.metadata.publicationYear"),
-                        BundleUtil.getStringFromBundle("dataset.metadata.publicationYear.tip"),
-                        enhancer.createValidation(new DateRangeValidator(),
-                                Collections.singletonMap(ValidationDescriptor.CONTEXT_PARAM, Collections.singletonList(ValidationDescriptor.SEARCH_CONTEXT))));
-                DateSearchField publicationDateField = new DateSearchField(publicationDateType);
-                b.addSearchField(persistentIdField);
-                b.addSearchField(publicationDateField);
-                searchFieldIndex.put(persistentIdField.getName(), persistentIdField);
-                searchFieldIndex.put(publicationDateField.getName(), publicationDateField);
-                break;
-            }
-        }
-    }
-
-    private List<SearchField> constructFilesSearchFields() {
-        List<SearchField> fields = new ArrayList<>();
-
-        fields.add(textFieldFromBundle(SearchFields.FILE_NAME, "name", "advanced.search.files.name.tip"));
-        fields.add(textFieldFromBundle(SearchFields.FILE_DESCRIPTION, "description", "advanced.search.files.description.tip"));
-        fields.add(textFieldFromBundle(SearchFields.FILE_EXTENSION, "advanced.search.files.fileExtension", "advanced.search.files.fileExtension.tip"));
-        fields.add(textFieldFromBundle(SearchFields.FILE_PERSISTENT_ID, "advanced.search.files.persistentId", "advanced.search.files.persistentId.tip"));
-        fields.add(textFieldFromBundle(SearchFields.VARIABLE_NAME, "advanced.search.files.variableName", "advanced.search.files.variableName.tip"));
-        fields.add(textFieldFromBundle(SearchFields.VARIABLE_LABEL, "advanced.search.files.variableLabel", "advanced.search.files.variableLabel.tip"));
-
-        Map<Long, String> licenseNames = licenseRepository.findAll().stream()
-                .collect(Collectors.toMap(License::getId, License::getName, (prev, next) -> next));
-        CheckboxSearchField licenseSearchField = new LicenseCheckboxSearchField(SearchFields.LICENSE,
-                BundleUtil.getStringFromBundle("advanced.search.files.license"),
-                BundleUtil.getStringFromBundle("advanced.search.files.license.tip"), licenseNames);
-
-        for (SelectItem selectItem : termsOfUseSelectItemsFactory.buildLicenseSelectItems()) {
-            licenseSearchField.getCheckboxLabelAndValue().add(Tuple.of(selectItem.getLabel(), selectItem.getValue().toString()));
-        }
-        fields.add(licenseSearchField);
-        return fields;
-    }
-
-    private List<SearchField> constructDataversesSearchFields() {
-        List<SearchField> fields = new ArrayList<>();
-
-        fields.add(textFieldFromBundle(SearchFields.DATAVERSE_NAME, "name", "advanced.search.dataverses.name.tip"));
-        fields.add(textFieldFromBundle(SearchFields.DATAVERSE_ALIAS, "identifier","dataverse.identifier.title"));
-        fields.add(textFieldFromBundle(SearchFields.DATAVERSE_AFFILIATION, "affiliation", "advanced.search.dataverses.affiliation.tip"));
-        fields.add(textFieldFromBundle(SearchFields.DATAVERSE_DESCRIPTION, "description", "advanced.search.dataverses.description.tip"));
-
-        CheckboxSearchField checkboxSearchField = new CheckboxSearchField(SearchFields.DATAVERSE_SUBJECT,
-                BundleUtil.getStringFromBundle("subject"),
-                BundleUtil.getStringFromBundle("advanced.search.dataverses.subject.tip"));
-        datasetFieldService.findByName(DatasetFieldConstant.subject)
-                .getControlledVocabularyValues()
-                .forEach(v -> checkboxSearchField.getCheckboxLabelAndValue()
-                        .add(Tuple.of(v.getLocaleStrValue(), v.getStrValue())));
-        fields.add(checkboxSearchField);
-
-        return fields;
-    }
-
-    private TextSearchField textFieldFromBundle(String name, String displayNameKey, String descriptionKey) {
-        return new TextSearchField(name, BundleUtil.getStringFromBundle(displayNameKey), BundleUtil.getStringFromBundle(descriptionKey));
+        return nonSearchFieldIndex;
     }
 
     private String buildSearchUrl(QueryWrapper queryWrapper) {

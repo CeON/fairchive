@@ -88,7 +88,7 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
         await()
                 .atMost(Duration.ofSeconds(15L))
                 .until(() -> smtpServer.getMails().stream()
-                        .anyMatch(emailModel -> emailModel.getSubject().contains("Your dataverse has been created")));
+                        .anyMatch(emailModel -> emailModel.getSubject().contains("Your collection has been created")));
 
         await().atMost(Duration.ofSeconds(15L))
                 .until(() -> solrClient.getById("dataverse_" + savedDataverse.get().getId()) != null);

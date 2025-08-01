@@ -67,8 +67,8 @@ public class GeoNameDataFinder {
             if (builder.length() > 0) {
                 builder.append(" AND ");
             }
-            builder.append("(hierarchy:*").append(word)
-                    .append("* OR alternateNames:*").append(word).append("*)");
+            builder.append("(name:").append(word)
+                    .append(" OR alternateNames:").append(word).append(")");
         }
 
         return builder;

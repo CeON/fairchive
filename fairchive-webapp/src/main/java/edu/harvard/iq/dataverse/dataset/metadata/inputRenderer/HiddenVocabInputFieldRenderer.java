@@ -1,22 +1,12 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
-import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class HiddenVocabInputFieldRenderer implements InputFieldRenderer {
 
-    private List<ControlledVocabularyValue> defaultVocabValues = new ArrayList<>();
-    
-    // -------------------- CONSTRUCTORS --------------------
-    
-    public HiddenVocabInputFieldRenderer(List<ControlledVocabularyValue> defaultVocabValues) {
-        this.defaultVocabValues = defaultVocabValues;
-    }
-    
     // -------------------- GETTERS --------------------
     
     /**
@@ -47,14 +37,6 @@ public class HiddenVocabInputFieldRenderer implements InputFieldRenderer {
     @Override
     public boolean isHidden() {
         return true;
-    }
-
-    /**
-     * Returns {@link ControlledVocabularyValue}s that should
-     * be assigned to dataset field by default
-     */
-    public List<ControlledVocabularyValue> getDefaultVocabValues() {
-        return defaultVocabValues;
     }
 
     @Override
