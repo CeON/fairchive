@@ -29,6 +29,9 @@ function initDvJS() {
     const TILE_LAYER_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const TILE_LAYER_COPYRIGHT = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
+    // Initialize JSTS geometry factory
+    var geoFactory = new jsts.geom.GeometryFactory();
+
     // Store value from input field
     function putValue(dataMap, key, field, value) {
       if (!isNaN(value) && value !== '') {
@@ -46,6 +49,38 @@ function initDvJS() {
         initializer(key, data);
         data.leafMapInitialized = true;
       }
+    }
+
+    function hasPolygonThreePointsOrMore(layer) {
+      return layer.getLatLngs()[0].length >= 3;
+    }
+
+    function isSelfIntersecting(layer, currentGeo, isEditMode) {
+      if (!hasPolygonThreePointsOrMore(layer)) {
+        return false;
+      }
+
+      var latlngs = layer.getLatLngs()[0]; // Get polygon coordinates
+      var coords = latlngs.map(function (latlng) {
+          return new jsts.geom.Coordinate(latlng.lng, latlng.lat);
+      });
+
+      // add current geo only when drawing mode is on
+      // used for move event to check new vertex location before creating
+      if (currentGeo && isEditMode) {
+        coords.push(new jsts.geom.Coordinate(currentGeo.lng, currentGeo.lat));
+      }
+      coords.push(coords[0]); // Close the polygon
+
+      return isSelfIntersectingCoordinates(coords);
+    }
+
+    function isSelfIntersectingCoordinates(coordinates) {
+     // Create JSTS polygon
+      var linearRing = geoFactory.createLinearRing(coordinates);
+      var polygon = geoFactory.createPolygon(linearRing);
+
+      return !polygon.isSimple();
     }
 
     // MetadataView – methods & data for Dataset/Metadata tab
@@ -131,6 +166,50 @@ function initDvJS() {
       map.on('editable:vertex:deleted', function (e) {
         updateTextArea(e.layer, data);
       });
+
+      // only Polygon event
+      map.on('editable:vertex:dragend', function (e) {
+        if (e.layer instanceof L.Rectangle || e.layer instanceof L.Marker) {
+          return;
+        }
+
+        if (isSelfIntersecting(e.layer, e.latlng, map.editTools.drawing())) {
+          e.vertex.delete();
+          e.layer.setStyle({ color: '#3388ff' });
+        }
+      });
+
+      // only Polygon event
+      // cancel click for polygons and preventing creating new vertex
+      map.on('editable:drawing:click', function (e) {
+        if (e.layer instanceof L.Rectangle || e.layer instanceof L.Marker) {
+          return;
+        }
+
+        if (isSelfIntersecting(e.layer, e.latlng, map.editTools.drawing())) {
+          e.cancel();
+        }
+      });
+
+      // only Polygon event
+      // detect if polygon is self intersecting and change color of such polygon
+      map.on('editable:drawing:move', function (e) {
+        if (e.layer instanceof L.Rectangle || e.layer instanceof L.Marker) {
+          return;
+        }
+
+        // for three points no need to check intersection
+        // also dashed lines were not rendered properly when style was changed for 2,3 points
+        if (!hasPolygonThreePointsOrMore(e.layer)) {
+          return;
+        }
+
+        if (isSelfIntersecting(e.layer, e.latlng, map.editTools.drawing())) {
+          e.layer.setStyle({ color: 'red' });
+        } else {
+          e.layer.setStyle({ color: '#3388ff' });
+        }
+      });
     }
 
     function activateDrawingTools(map, data) {
@@ -195,7 +274,8 @@ function initDvJS() {
           position: 'topleft',
           callback: function () {
             polygonLayer.clearLayers();
-            map.editTools.startPolygon();
+            var polygon = map.editTools.startPolygon();
+
           },
           kind: 'polygon',
           html: '<svg width="20" height="20" viewBox="0 0 100 100" style="margin-top:5px">' +
@@ -335,7 +415,13 @@ function initDvJS() {
           if (isRectangleAxisAligned(cords)) {
             shape = L.rectangle(cords).addTo(data.polygonLayer);
           } else {
-            shape = L.polygon(cords).addTo(data.polygonLayer);
+            var polygon = L.polygon(cords);
+            if (isSelfIntersecting(polygon, null, false)) {
+              console.log('updateMapCoordinates was not possible, polygon is self intersecting');
+              return;
+            }
+
+            shape = polygon.addTo(data.polygonLayer);
           }
       }
 
