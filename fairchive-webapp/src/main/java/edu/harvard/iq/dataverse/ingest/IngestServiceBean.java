@@ -214,7 +214,7 @@ public class IngestServiceBean {
                 logger.debug("Success: permanently saved file {}", dataFile.getFileMetadata().getLabel());
 
             } catch (IOException ioex) {
-                logger.debug("Failed to save the file, storage id {}", dataFile.getStorageIdentifier(), ioex);
+                logger.warn("Failed to save the file, storage id {}", dataFile.getStorageIdentifier(), ioex);
             }
 
             // Since we may have already spent some CPU cycles scaling down image thumbnails,
