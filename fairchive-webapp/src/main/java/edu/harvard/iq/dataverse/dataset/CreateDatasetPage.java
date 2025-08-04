@@ -35,7 +35,6 @@ import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.PrimeFaces;
 
 import javax.ejb.EJBException;
 import javax.faces.event.AjaxBehaviorEvent;
@@ -49,6 +48,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,7 +87,8 @@ public class CreateDatasetPage implements Serializable {
     private ImportersForView importers;
     private MetadataImporter selectedImporter;
     private ImporterForm importerForm;
-    private final OneAtATimeExecutionGuard<String> performSave = new OneAtATimeExecutionGuard<>(this::performSave);
+    private AsyncExecutionService asyncExecutionService;
+    private SaveDatasetProcess saveDatasetProcess;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -98,7 +100,7 @@ public class CreateDatasetPage implements Serializable {
                              DatasetFieldsInitializer datasetFieldsInitializer, DataverseSession session,
                              TermsOfUseFormMapper termsOfUseFormMapper, UserDataFieldFiller userDataFieldFiller,
                              DatasetService datasetService, InputFieldRendererManager inputFieldRendererManager,
-                             DatasetFieldValidationService fieldValidationService) {
+                             DatasetFieldValidationService fieldValidationService, AsyncExecutionService asyncExecutionService) {
         this.importerRegistry = importerRegistry;
         this.dataverseDao = dataverseDao;
         this.permissionsWrapper = permissionsWrapper;
@@ -110,6 +112,7 @@ public class CreateDatasetPage implements Serializable {
         this.datasetService = datasetService;
         this.inputFieldRendererManager = inputFieldRendererManager;
         this.fieldValidationService = fieldValidationService;
+        this.asyncExecutionService = asyncExecutionService;
     }
 
     // -------------------- GETTERS --------------------
@@ -194,23 +197,20 @@ public class CreateDatasetPage implements Serializable {
     }
 
     public void checkSaveStatus() {
-        if (performSave.isRunning()) {
+        if (getIsSaveRunning()) {
             JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.save.inprogress"));
-        } else {
-            // refreshing the form, allowing it to be un-blocked
-            PrimeFaces.current().ajax().update("datasetForm");
         }
     }
 
     public boolean getIsSaveRunning() {
-        return performSave.isRunning();
+        return saveDatasetProcess != null &&
+                saveDatasetProcess.getAddingFiles() != null &&
+                !saveDatasetProcess.getAddingFiles().isDone();
     }
 
-    public String save() {
-        return performSave.execute().getOrElse(StringUtils.EMPTY);
-    }
+    public void save() {
+        saveDatasetProcess = new SaveDatasetProcess();
 
-    private String performSave() {
         workingVersion.setDatasetFields(DatasetFieldUtil.flattenDatasetFieldsFromBlocks(metadataBlocksForEdit));
 
         List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(workingVersion);
@@ -218,25 +218,35 @@ public class CreateDatasetPage implements Serializable {
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
             JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.validationError"),
                     BundleUtil.getStringFromBundle("dataset.message.validationErrorDetails"));
-            return StringUtils.EMPTY;
+            saveDatasetProcess.setPreconditionErrors(true);
+            return;
         }
 
         mapTermsOfUseInFiles(newFiles);
 
         Try<Dataset> createDatasetOperation = Try.of(() -> datasetService.createDataset(dataset, selectedTemplate))
                 .onFailure(NotAuthenticatedException.class,
-                    ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.create.authenticatedUsersOnly"), ex))
+                        ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.create.authenticatedUsersOnly"), ex))
                 .onFailure(EJBException.class,
-                    ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createFailure"), ex))
+                        ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createFailure"), ex))
                 .onFailure(CommandException.class,
-                    ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createFailure"), ex));
+                        ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createFailure"), ex));
 
         if (createDatasetOperation.isFailure()) {
-            return StringUtils.EMPTY;
+            saveDatasetProcess.setPreconditionErrors(true);
+            return;
+        }
+
+        saveDatasetProcess.setAddingFiles(asyncExecutionService.executeAsync(() -> datasetService.addFilesToDataset(dataset.getId(), newFiles)));
+    }
+
+    public String finalizeSave() {
+        if (saveDatasetProcess == null || saveDatasetProcess.hasPreconditionErrors()) {
+            return null;
         }
 
 
-        Try.of(() -> datasetService.addFilesToDataset(dataset.getId(), newFiles))
+        Try.of(() -> saveDatasetProcess.getAddingFiles().get())
             .onFailure(ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"), ex))
             .onSuccess(addFilesResult -> handleSuccessOrPartialSuccessMessages(newFiles.size(), addFilesResult))
             .onSuccess(addFilesResult -> dataset = addFilesResult.getDataset());
@@ -330,5 +340,26 @@ public class CreateDatasetPage implements Serializable {
 
     public void setSelectedImporter(MetadataImporter selectedImporter) {
         this.selectedImporter = selectedImporter;
+    }
+
+    public static class SaveDatasetProcess {
+        private boolean preconditionErrors = false;
+        private CompletableFuture<AddFilesResult> addingFiles;
+
+        public boolean hasPreconditionErrors() {
+            return preconditionErrors;
+        }
+
+        public void setPreconditionErrors(boolean preconditionErrors) {
+            this.preconditionErrors = preconditionErrors;
+        }
+
+        public void setAddingFiles(CompletableFuture<AddFilesResult> addingFiles) {
+            this.addingFiles = addingFiles;
+        }
+
+        public CompletableFuture<AddFilesResult> getAddingFiles() {
+            return addingFiles;
+        }
     }
 }

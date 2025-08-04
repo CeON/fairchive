@@ -136,25 +136,36 @@
                                      value="#{bundle['file.addBtn']}"
                                      action="#{CreateDatasetPage.save}"
                                      update="formContent"
-                                     onstart="PF('datasetFormBlockUI').show();"
-                                     onerror="PF('saveStatusPoll').start();"
-                                     oncomplete="$(document).scrollTop(0);"
+                                     onstart="PF('blockFileForm').show();"
+                                     oncomplete="PF('blockFileForm').show(); PF('saveStatusPoll').start(); $(document).scrollTop(0);"
                                      />
                     <p:button id="cancelCreate" value="#{bundle.cancel}"
                               outcome="/dataverse.xhtml?alias=#{CreateDatasetPage.dataset.owner.alias}" />
                 </div>
                 <!-- END: Create/Save Dataset Button Panel -->
 
+                <p:commandButton id="saveResultRefresh" widgetVar="saveResultRefresh"
+                                 style="display:none"
+                                 action="#{CreateDatasetPage.finalizeSave()}"
+                                 update="@form,:messagePanel"
+                                 process="@form"
+                                 oncomplete="PF('blockFileForm').hide();"
+                />
+
+                <p:inputText id="saveStatus" widgetVar="saveStatus"
+                             type="hidden"
+                             value="#{CreateDatasetPage.isSaveRunning}"
+                             readonly="true" />
+
                 <p:poll interval="2"
                         listener="#{CreateDatasetPage.checkSaveStatus()}"
                         autoStart="false"
                         stop="#{!CreateDatasetPage.isSaveRunning}"
-                        update=":messagePanel"
+                        oncomplete="if (PF('saveStatus').jq.val() === 'false') { console.log('finished'); PF('saveResultRefresh').jq.click(); }"
+                        update=":messagePanel, saveStatus"
                         widgetVar="saveStatusPoll" />
 
-                <p:blockUI block="datasetForm"
-                           blocked="#{CreateDatasetPage.isSaveRunning}"
-                           widgetVar="datasetFormBlockUI"/>
+                <p:blockUI block="datasetForm" widgetVar="datasetFormBlockUI"/>
             </h:form>
 
             <script type="text/javascript">
