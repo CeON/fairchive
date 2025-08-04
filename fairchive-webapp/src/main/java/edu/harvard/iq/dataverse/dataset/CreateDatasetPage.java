@@ -35,6 +35,7 @@ import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import io.vavr.control.Try;
 import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.PrimeFaces;
 
 import javax.ejb.EJBException;
 import javax.faces.event.AjaxBehaviorEvent;
@@ -85,6 +86,7 @@ public class CreateDatasetPage implements Serializable {
     private ImportersForView importers;
     private MetadataImporter selectedImporter;
     private ImporterForm importerForm;
+    private final OneAtATimeExecutionGuard<String> performSave = new OneAtATimeExecutionGuard<>(this::performSave);
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -191,7 +193,24 @@ public class CreateDatasetPage implements Serializable {
         resetDatasetFields();
     }
 
+    public void checkSaveStatus() {
+        if (performSave.isRunning()) {
+            JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.save.inprogress"));
+        } else {
+            // refreshing the form, allowing it to be un-blocked
+            PrimeFaces.current().ajax().update("datasetForm");
+        }
+    }
+
+    public boolean getIsSaveRunning() {
+        return performSave.isRunning();
+    }
+
     public String save() {
+        return performSave.execute().getOrElse(StringUtils.EMPTY);
+    }
+
+    private String performSave() {
         workingVersion.setDatasetFields(DatasetFieldUtil.flattenDatasetFieldsFromBlocks(metadataBlocksForEdit));
 
         List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(workingVersion);

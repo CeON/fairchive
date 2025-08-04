@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
@@ -15,6 +16,7 @@ import edu.harvard.iq.dataverse.datafile.pojo.RsyncInfo;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnail;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
+import edu.harvard.iq.dataverse.dataset.OneAtATimeExecutionGuard;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
@@ -49,6 +51,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
 
@@ -89,8 +92,20 @@ import java.util.stream.Collectors;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
+import static java.util.Arrays.stream;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Level.WARNING;
+import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.io.IOUtils.copy;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 
 /**
@@ -190,6 +205,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private boolean hasDuplicates;
     private List<DuplicatesService.DuplicateGroup> duplicatesList = new ArrayList<>();
     private List<FileMetadata> filesTableBackup = new ArrayList<>();
+    private final OneAtATimeExecutionGuard<String> performSave = new OneAtATimeExecutionGuard<>(this::performSave);
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -544,7 +560,24 @@ public class EditDatafilesPage implements java.io.Serializable {
         uploadedFiles.forEach(this::deleteTempFile);
     }
 
+    public void checkSaveStatus() {
+        if (performSave.isRunning()) {
+            JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.save.inprogress"));
+        } else {
+            // refreshing the form, allowing it to be un-blocked
+            PrimeFaces.current().ajax().update("datasetForm");
+        }
+    }
+
+    public boolean getIsSaveRunning() {
+        return performSave.isRunning();
+    }
+
     public String save() {
+        return performSave.execute().getOrElse(StringUtils.EMPTY);
+    }
+
+    private String performSave() {
         // Once all the filemetadatas pass the validation, we'll only allow the user to try to save once – this it to
         // prevent them from creating multiple DRAFT versions, if the page gets stuck in that state where it
         // successfully creates a new version, but can't complete the remaining tasks. -- L.A. 4.2
