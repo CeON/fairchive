@@ -60,7 +60,7 @@ pipeline {
 
             steps {
                echo 'Building fairchive.'
-               sh './mvnw package -DskipTests'
+               sh './mvnw install -DskipTests -Ddocker.skip'
             }
 
             post {
