@@ -106,14 +106,34 @@ public class FileTermsOfUse implements Serializable, JpaEntity<Long> {
         case ALL_RIGHTS_RESERVED :
             return "All rights reserved";
         case RESTRICTED :
-            return Objects.toString(this.restrictCustomText, "");
+            return getRestrictedDisplayText(getRestrictType());
         case TERMS_UNKNOWN:
             return "Unknown";
         default:
             return "Unknown";
         }
     }
-    
+
+    private String getRestrictedDisplayText(RestrictType restrictType) {
+        String restrictedAccess = "Restricted access";
+        if (restrictType == null) {
+            return restrictedAccess;
+        }
+        switch (restrictType) {
+            case ACADEMIC_PURPOSE:
+                return restrictedAccess + " - Academic purpose only";
+            case NOT_FOR_REDISTRIBUTION:
+                return restrictedAccess + " - Not for redistribution";
+            case ACADEMIC_PURPOSE_AND_NOT_FOR_REDISTRIBUTION:
+                return restrictedAccess + " - Academic purpose and not for redistribution";
+            case CUSTOM:
+                return StringUtils.isBlank(restrictCustomText) ?
+                        restrictedAccess : restrictedAccess + " - " + restrictCustomText;
+            default:
+                return restrictedAccess;
+        }
+    }
+
     public boolean isSameAs(final FileTermsOfUse other) {
         final TermsOfUseType thisTerms = getTermsOfUseType();
         if (thisTerms != other.getTermsOfUseType()) {
