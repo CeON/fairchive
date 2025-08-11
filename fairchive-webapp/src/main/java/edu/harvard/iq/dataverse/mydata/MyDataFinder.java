@@ -33,8 +33,6 @@ public class MyDataFinder {
     public boolean errorFound = false;
     public String errorMessage = null;
 
-    public Map<Long, Boolean> harvestedDataverseIds = new HashMap<>();
-
     // Populated in initial query.  DvObject ids -- regardless of Dtype,
     // are sorted into respective buckets in regard to permissions.
     // The same id may appear in multiple lists--and more than once
@@ -67,7 +65,6 @@ public class MyDataFinder {
         this.rolePermissionHelper = rolePermissionHelper;
         this.roleAssigneeService = roleAssigneeService;
         this.dvObjectServiceBean = dvObjectServiceBean;
-        loadHarvestedDataverseIds();
     }
 
     // -------------------- GETTERS --------------------
@@ -78,10 +75,6 @@ public class MyDataFinder {
 
     public boolean hasError() {
         return errorFound;
-    }
-
-    public boolean isHarvestedDataExcluded() {
-        return true;
     }
 
     // -------------------- LOGIC --------------------
@@ -127,6 +120,10 @@ public class MyDataFinder {
         // (2) FQ by Publication Status
         // -----------------------------------------------------------------
         filterQueries.add(filterParams.getSolrFragmentForPublicationStatus());
+        // -----------------------------------------------------------------
+        // (3) Filter all document which were harvested
+        // -----------------------------------------------------------------
+        filterQueries.add(filterParams.getUnharvestedPublication());
         return filterQueries;
     }
 
@@ -196,15 +193,6 @@ public class MyDataFinder {
 
     // -------------------- PRIVATE --------------------
 
-    private void loadHarvestedDataverseIds() {
-        dvObjectServiceBean.getAllHarvestedDataverseIds()
-                .forEach(id -> harvestedDataverseIds.put(id, true));
-    }
-
-    private boolean isHarvesteDataverseId(Long id) {
-        return id != null && harvestedDataverseIds.containsKey(id);
-    }
-
     private boolean runStep1RoleAssignments() {
         List<Object[]> results = roleAssigneeService.getAssigneeAndRoleIdListFor(filterParams);
 
@@ -228,11 +216,6 @@ public class MyDataFinder {
         for (Object[] ra : results) {
             Long dvId = (Long) ra[0];
             Long roleId = (Long) ra[1];
-
-            // Is this is a harvested Dataverse? If so, skip it.
-            if (isHarvestedDataExcluded() && isHarvesteDataverseId(dvId)) {
-                continue;
-            }
 
             // Put dvId in 1 or more buckets, depending pn if role
             // applies to a Dataverse, Dataset, and/or File
@@ -267,11 +250,6 @@ public class MyDataFinder {
             Long dvId = new Long((Integer) ra[0]);
             String dtype = (String) ra[1];
             Long parentId = (Long) ra[2];
-
-            // If this object is harvested, then skip it...
-            if (isHarvestedDataExcluded() && (isHarvesteDataverseId(dvId) || isHarvesteDataverseId(parentId))) {
-                continue;
-            }
 
             childToParentIds.put(dvId, parentId);
 
