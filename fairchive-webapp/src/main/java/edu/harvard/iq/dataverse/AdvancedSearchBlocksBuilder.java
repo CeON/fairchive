@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ejb.Stateless;
@@ -43,17 +44,20 @@ public class AdvancedSearchBlocksBuilder {
     private DatasetFieldServiceBean datasetFieldService;
     private LicenseRepository licenseRepository;
     private TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory;
+    private DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService;
 
     AdvancedSearchBlocksBuilder() { }
 
     @Inject
     public AdvancedSearchBlocksBuilder(SearchFieldFactory searchFieldFactory,
             DatasetFieldServiceBean datasetFieldService, LicenseRepository licenseRepository,
-            TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory) {
+            TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory,
+            DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService) {
         this.searchFieldFactory = searchFieldFactory;
         this.datasetFieldService = datasetFieldService;
         this.licenseRepository = licenseRepository;
         this.termsOfUseSelectItemsFactory = termsOfUseSelectItemsFactory;
+        this.dataverseFieldTypeInputLevelService = dataverseFieldTypeInputLevelService;
     }
 
 
@@ -72,9 +76,19 @@ public class AdvancedSearchBlocksBuilder {
         Map<Long, List<DatasetFieldType>> metadataFieldListByBlock
                 = datasetFieldService.findAllAdvancedSearchFieldTypesByMetadataBlockIds(metadataBlockIds).stream()
                 .collect(Collectors.groupingBy(f -> f.getMetadataBlock().getId()));
+
+        Set<String> hiddenFieldTypeIds = dataverseFieldTypeInputLevelService
+                .findByDataverseId(dataverse.getMetadataRootId()).stream()
+                .filter(l -> !l.isInclude())
+                .map(l -> l.getDatasetFieldType().getName())
+                .collect(Collectors.toSet());
+
         for (MetadataBlock block : metadataBlocks) {
             List<SearchField> searchFields
                     = metadataFieldListByBlock.getOrDefault(block.getId(), Collections.emptyList()).stream()
+                    .filter(dft -> !hiddenFieldTypeIds.contains(dft.getName()))
+                    .filter(dft -> dft.getParentDatasetFieldType() == null
+                                    || !hiddenFieldTypeIds.contains(dft.getParentDatasetFieldType().getName()))
                     .map(searchFieldFactory::create)
                     .filter(f -> !SearchField.EMPTY.equals(f))
                     .collect(toList());

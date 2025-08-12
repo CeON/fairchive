@@ -137,14 +137,24 @@
                                      action="#{CreateDatasetPage.save}"
                                      update="formContent"
                                      onstart="PF('datasetFormBlockUI').show();"
-                                     oncomplete="$(document).scrollTop(0); PF('datasetFormBlockUI').hide();"
+                                     onerror="PF('saveStatusPoll').start();"
+                                     oncomplete="$(document).scrollTop(0);"
                                      />
                     <p:button id="cancelCreate" value="#{bundle.cancel}"
                               outcome="/dataverse.xhtml?alias=#{CreateDatasetPage.dataset.owner.alias}" />
                 </div>
                 <!-- END: Create/Save Dataset Button Panel -->
 
-                <p:blockUI block="datasetForm" trigger="save" widgetVar="datasetFormBlockUI" />
+                <p:poll interval="2"
+                        listener="#{CreateDatasetPage.checkSaveStatus()}"
+                        autoStart="false"
+                        stop="#{!CreateDatasetPage.isSaveRunning}"
+                        update=":messagePanel"
+                        widgetVar="saveStatusPoll" />
+
+                <p:blockUI block="datasetForm"
+                           blocked="#{CreateDatasetPage.isSaveRunning}"
+                           widgetVar="datasetFormBlockUI"/>
             </h:form>
 
             <script type="text/javascript">
