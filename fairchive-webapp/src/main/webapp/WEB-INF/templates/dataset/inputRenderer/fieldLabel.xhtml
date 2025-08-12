@@ -1,0 +1,21 @@
+<ui:composition
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:jsf="http://xmlns.jcp.org/jsf">
+
+    <div class="control-label-with-tooltip #{labelClass}">
+        <p:outputLabel styleClass="control-label #{hiddenLabel ? 'sr-only' : ''}" for="#{for}">
+            <h:outputText value="#{datasetFieldType.localeTitle}" escape="false" />
+            <h:outputText value=" #{labelFieldNumber}" rendered="#{not (labelFieldNumber eq 0)}" />
+            <h:outputText styleClass="glyphicon glyphicon-asterisk text-danger" value="" rendered="#{datasetFieldType.requiredInDataverse}" />
+        </p:outputLabel>
+        <span class="glyphicon glyphicon-question-sign tooltip-icon"
+              jsf:rendered="#{(not empty datasetFieldType.localeDescription) and !hiddenLabel}"
+              tabindex="0" role="button"
+              aria-label="#{bundle['common.forms.field.tooltip.ariaLabel']} #{datasetFieldType.localeTitle}"
+              data-toggle="tooltip" data-placement="auto right"
+              data-original-title="#{datasetFieldType.localeDescription}"></span>
+    </div>
+
+</ui:composition>
