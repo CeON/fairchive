@@ -38,7 +38,7 @@ public class XresumptionTokenHelper {
                 return populate(new ResumptionToken(next));
             } else {
                 ResumptionToken resumptionToken = new ResumptionToken();
-                resumptionToken.withCursor(round((current.getOffset()) / maxPerPage));
+                resumptionToken.withCursor(current.getOffset());
                 if (totalResults != null) {
                     resumptionToken.withCompleteListSize(totalResults);
                 }
@@ -55,7 +55,7 @@ public class XresumptionTokenHelper {
         if (totalResults != null) {
             resumptionToken.withCompleteListSize(totalResults);
         }
-        resumptionToken.withCursor(round((resumptionToken.getValue().getOffset() - maxPerPage) / maxPerPage));
+        resumptionToken.withCursor(resumptionToken.getValue().getOffset() - maxPerPage);
         return resumptionToken;
     }
 

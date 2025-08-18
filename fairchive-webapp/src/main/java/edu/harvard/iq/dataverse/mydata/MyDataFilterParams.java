@@ -192,6 +192,10 @@ public class MyDataFilterParams {
         return String.format("(%s:%s)", SearchFields.PUBLICATION_STATUS, valStr);
     }
 
+    public String getUnharvestedPublication() {
+        return String.format("(%s:%s)", SearchFields.IS_HARVESTED, false);
+    }
+
     // -------------------- INNER CLASSES --------------------
 
     private static class Initializer {
