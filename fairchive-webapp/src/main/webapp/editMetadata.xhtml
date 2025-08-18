@@ -44,7 +44,8 @@
                                                 ? fieldsByType.datasetFieldType.localeTitle : ''}">
 
                                 <div class="col-sm-3 control-label section-title"
-                                        jsf:rendered="#{not inputRenderersByFieldType.get(fieldsByType.datasetFieldType).isHidden()}">
+                                        jsf:rendered="#{not inputRenderersByFieldType.get(fieldsByType.datasetFieldType).isHidden()
+                                                        and not (inputRenderersByFieldType.get(fieldsByType.datasetFieldType).getType() eq inputRendererTypeEnum.CHECKBOX)}">
                                     <h:outputText value="#{fieldsByType.datasetFieldType.localeTitle}" escape="false" />
                                     <h:outputText styleClass="glyphicon glyphicon-asterisk text-danger" value="" rendered="#{fieldsByType.datasetFieldType.requiredInDataverse }" />
 
@@ -54,6 +55,9 @@
                                           aria-label="#{bundle['common.forms.field.tooltip.ariaLabel']} #{fieldsByType.datasetFieldType.localeTitle}"
                                           data-toggle="tooltip" data-placement="auto right"
                                           data-original-title="#{fieldsByType.datasetFieldType.localeDescription}"></span>
+                                </div>
+                                <div class="col-sm-3 control-label section-title"
+                                     jsf:rendered="#{inputRenderersByFieldType.get(fieldsByType.datasetFieldType).getType() eq inputRendererTypeEnum.CHECKBOX}">
                                 </div>
 
 

@@ -3619,6 +3619,14 @@ div.filesTable {
 	}
 }
 
+.control-label-with-tooltip.checkbox-label {
+    display: inline;
+
+    label {
+        font-weight: 500;
+    }
+}
+
 .datasetfield-value.datasetfield-separable + .datasetfield-value.datasetfield-separable {
 	border-top: 1px solid $gray-border-color;
 	padding-top: 8px;

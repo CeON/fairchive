@@ -10,20 +10,12 @@
 
     <c:set var="widgetVar" value="#{datasetField.datasetFieldType.allowMultiples ? 'controlledVocabEnhancedInputFieldMultipleSelect_'.concat(datasetField.datasetFieldType.name) : 'controlledVocabEnhancedInputFieldSingleSelect_'.concat(datasetField.datasetFieldType.name)}"/>
 
-    <div class="control-label-with-tooltip">
-        <p:outputLabel styleClass="control-label #{hiddenLabel ? 'sr-only' : ''}" for="#{datasetField.datasetFieldType.allowMultiples ? 'controlledVocabEnhancedInputFieldMultipleSelect' : 'controlledVocabEnhancedInputFieldSingleSelect'}">
-            <h:outputText value="#{datasetField.datasetFieldType.localeTitle}" escape="false" />
-            <h:outputText value=" #{labelFieldNumber}" rendered="#{not (labelFieldNumber eq 0)}" />
-            <h:outputText styleClass="glyphicon glyphicon-asterisk text-danger" value="" rendered="#{datasetField.datasetFieldType.requiredInDataverse}" />
-        </p:outputLabel>
-        <span class="glyphicon glyphicon-question-sign tooltip-icon"
-              jsf:rendered="#{(not empty datasetField.datasetFieldType.localeDescription) and !hiddenLabel}"
-              tabindex="0" role="button"
-              aria-label="#{bundle['common.forms.field.tooltip.ariaLabel']} #{datasetField.datasetFieldType.localeTitle}"
-              data-toggle="tooltip" data-placement="auto right"
-              data-original-title="#{datasetField.datasetFieldType.localeDescription}"
-        />
-    </div>
+    <ui:include src="/WEB-INF/templates/dataset/inputRenderer/fieldLabel.xhtml">
+        <ui:param name="for" value="#{datasetField.datasetFieldType.allowMultiples ? 'controlledVocabEnhancedInputFieldMultipleSelect' : 'controlledVocabEnhancedInputFieldSingleSelect'}" />
+        <ui:param name="datasetFieldType" value="#{datasetField.datasetFieldType}" />
+        <ui:param name="hiddenLabel" value="#{hiddenLabel}" />
+        <ui:param name="labelFieldNumber" value="#{labelFieldNumber}" />
+    </ui:include>
 
     <span id="pre-input-#{datasetField.datasetFieldType.name}" class="pre-input-tag"/>
     <p:autoComplete rendered="#{!datasetField.datasetFieldType.allowMultiples}"
