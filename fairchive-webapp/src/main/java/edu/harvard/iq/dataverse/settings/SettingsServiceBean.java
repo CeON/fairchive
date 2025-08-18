@@ -767,7 +767,7 @@ public class SettingsServiceBean {
          */
         CustomSearchLocationsSolrFields,
         /**
-         * Specifies maximum number of search results axported to CSV file
+         * Specifies maximum number of search results exported to CSV file
          */
         MaxResultsCountSavedToFile,
         /**
@@ -783,16 +783,22 @@ public class SettingsServiceBean {
          */
         AuthenticatedSessionTimeout,
         /**
-         * a commond to be executed in order to ORC images
+         * a command to be executed in order to ORC images
          * (eg. "tesseract stdin stdout")
          */
         OcrCommand,
         /**
          * a limit for images to be ocr'red in bytes
          */
-        OcrImageSizeLimit;
+        OcrImageSizeLimit,
 
-
+        /**
+         * If set to {@code true} (the default) or any other truthy value, the
+         * collection name, affiliation, and contact email fields will be
+         * pre-filled on the collection creation form. If set to {@code false}
+         * or any value other non-truthy value, the fields will be blank.
+         */
+        CollectionFormPrefillEnabled;
 
         @Override
         public String toString() {

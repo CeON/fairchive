@@ -14,7 +14,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
-import edu.harvard.iq.dataverse.settings.SettingsWrapper;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Either;
@@ -62,7 +62,7 @@ public class CreateEditDataversePage implements Serializable {
     private DataverseSession session;
 
     @Inject
-    private SettingsWrapper settingsWrapper;
+    private SettingsServiceBean settingsServiceBean;
 
     @Inject
     private SystemConfig systemConfig;
@@ -318,7 +318,8 @@ public class CreateEditDataversePage implements Serializable {
 
     private void showSuccessMessage() {
         JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.create.success",
-                                                                        settingsWrapper.getGuidesBaseUrl(), systemConfig.getGuidesVersion()));
+                                                                        systemConfig.getGuidesBaseUrl(this.session.getLocale()),
+                                                                        systemConfig.getGuidesVersion()));
     }
 
     private String setupViewForDataverseEdit() {
@@ -343,13 +344,21 @@ public class CreateEditDataversePage implements Serializable {
             return permissionsWrapper.notAuthorized();
         }
 
-        dataverse.getDataverseContacts().add(new DataverseContact(dataverse, session.getUser().getDisplayInfo().getEmailAddress()));
-        dataverse.setAffiliation(session.getUser().getDisplayInfo().getAffiliation());
+        if (isPrefillEnabled()) {
+            dataverse.getDataverseContacts().add(new DataverseContact(dataverse, session.getUser().getDisplayInfo().getEmailAddress()));
+            dataverse.setAffiliation(session.getUser().getDisplayInfo().getAffiliation());
+            dataverse.setName(DataverseUtil.getSuggestedDataverseNameOnCreate(session.getUser()));
+        } else {
+            dataverse.getDataverseContacts().add(new DataverseContact(dataverse, ""));
+        }
+
         setupForGeneralInfoEdit();
 
-        dataverse.setName(DataverseUtil.getSuggestedDataverseNameOnCreate(session.getUser()));
-
         return StringUtils.EMPTY;
+    }
+
+    private boolean isPrefillEnabled() {
+        return settingsServiceBean.isTrueForKey(SettingsServiceBean.Key.CollectionFormPrefillEnabled);
     }
 
     private void setupForGeneralInfoEdit() {
