@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.settings;
 
 import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.omnifaces.cdi.ViewScoped;
 
@@ -95,6 +96,10 @@ public class SettingsWrapper implements java.io.Serializable {
 
     public String getDataCiteCitationsPageUrl() {
         return settingService.getValueForKey(SettingsServiceBean.Key.DoiDataCiteCitationsPageUrl);
+    }
+
+    public Boolean isAllowDatasetPublishWithoutFiles() {
+        return settingService.isTrueForKey(Key.AllowDatasetPublishWithoutFiles);
     }
 
     // -------------------- LOGIC --------------------
