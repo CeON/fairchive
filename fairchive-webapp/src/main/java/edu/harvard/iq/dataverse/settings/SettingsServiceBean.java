@@ -798,7 +798,16 @@ public class SettingsServiceBean {
          * pre-filled on the collection creation form. If set to {@code false}
          * or any value other non-truthy value, the fields will be blank.
          */
-        CollectionFormPrefillEnabled;
+        CollectionFormPrefillEnabled,
+
+        /**
+         * If set to {@code true} (the default) or any other truthy value,
+         * the button for adding dataset will be rendered on dataverse page
+         * (alongside with add dataverse button). If set to {@code false}
+         * or any other non-truthy value, the only way to add a new
+         * dataset would be by using add data button from the header.
+         */
+        ShowAddDatasetButtonOnDataversePage;
 
         @Override
         public String toString() {

@@ -86,6 +86,10 @@ public class SettingsWrapper implements java.io.Serializable {
         return systemConfig.getGuidesVersion();
     }
 
+    public Boolean isShowAddDatasetButtonOnDataversePage() {
+        return settingService.isTrueForKey(Key.ShowAddDatasetButtonOnDataversePage);
+    }
+
     public String getDropBoxKey() {
         String configuredDropBoxKey = getSettingValue(SettingsServiceBean.Key.DropboxKey.toString());
         if (configuredDropBoxKey != null) {
