@@ -1,16 +1,14 @@
 package edu.harvard.iq.dataverse.settings;
 
+import static java.nio.file.Files.copy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -73,16 +71,17 @@ public class FileBasedSettingsFetcherTest {
 
 
     @Test
-    public void loadSettings__PROPERTIES_FROM_FILESYSTEM(@TempDir Path tempDir) throws IOException {
-
+    public void loadSettings__PROPERTIES_FROM_FILESYSTEM(@TempDir Path tempDir) 
+            throws IOException {
         // given
-        byte[] propertiesBytes = IOUtils.resourceToByteArray("/test1.properties");
-        File filesystemPropertiesFile = new File(tempDir.toFile(), "filesystem.properties");
-        FileUtils.writeByteArrayToFile(filesystemPropertiesFile, propertiesBytes);
+        Path filesystemPropertiesFile = tempDir.resolve("filesystem.properties");
+        try(final InputStream in = getClass().getResourceAsStream("/test1.properties")) {
+            copy(in, filesystemPropertiesFile);
+        }
 
         FileSettingLocations settingLocations = new FileSettingLocations()
                 .addLocation(1, SettingLocationType.FILESYSTEM,
-                        filesystemPropertiesFile.getAbsolutePath(), PathType.DIRECT, false);
+                        filesystemPropertiesFile.toAbsolutePath().toString(), PathType.DIRECT, false);
 
         FileBasedSettingsFetcher settingsFetcher = new FileBasedSettingsFetcher(settingLocations);
 
