@@ -1,18 +1,21 @@
 package edu.harvard.iq.dataverse.settings;
 
-import edu.harvard.iq.dataverse.settings.FileSettingLocations.PathType;
-import edu.harvard.iq.dataverse.settings.FileSettingLocations.SettingLocationType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import edu.harvard.iq.dataverse.settings.FileSettingLocations.PathType;
+import edu.harvard.iq.dataverse.settings.FileSettingLocations.SettingLocationType;
 
 public class FileBasedSettingsFetcherTest {
 
@@ -153,16 +156,21 @@ public class FileBasedSettingsFetcherTest {
     }
 
     @Test
-    public void loadSettings__PROPERTIES_WITH_PROPERTY_TYPE_PATH(@TempDir Path tempDir) throws IOException {
+    public void loadSettings__PROPERTIES_WITH_PROPERTY_TYPE_PATH(@TempDir Path tempDir) 
+            throws IOException {
         // given
-        File filesystemPropertiesFile = new File(tempDir.toFile(), "filesystem.properties");
-        File secondPropertiesFile = new File(tempDir.toFile(), "second.properties");
-        FileUtils.writeByteArrayToFile(filesystemPropertiesFile, ("props.path=" + secondPropertiesFile.getAbsolutePath()).getBytes());
-        FileUtils.writeByteArrayToFile(secondPropertiesFile, IOUtils.resourceToByteArray("/test1.properties"));
-
+        Path filesystemPropertiesFile = tempDir.resolve("filesystem.properties");
+        Path secondPropertiesFile = tempDir.resolve("second.properties");
+        String value = secondPropertiesFile.toAbsolutePath().toString();
+        value = value.replace("\\", "\\\\"); // make it work under Windows
+        
+        Files.write(filesystemPropertiesFile, ("props.path=" + value).getBytes());
+        try(final InputStream in = getClass().getResourceAsStream("/test1.properties")) {
+            Files.copy(in, secondPropertiesFile);
+        }
         FileSettingLocations settingLocations = new FileSettingLocations()
                 .addLocation(1, SettingLocationType.FILESYSTEM,
-                        filesystemPropertiesFile.getAbsolutePath(), PathType.DIRECT, false)
+                        filesystemPropertiesFile.toAbsolutePath().toString(), PathType.DIRECT, false)
                 .addLocation(2, SettingLocationType.FILESYSTEM,
                         ":props.path", PathType.PROPERTY, false);
         FileBasedSettingsFetcher settingsFetcher = new FileBasedSettingsFetcher(settingLocations);

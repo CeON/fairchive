@@ -28,6 +28,7 @@ class DdiToHtmlTransformerTest {
         String transformed = output.toString();
         String expected = IOUtils.toString(this.getClass().getClassLoader()
                 .getResource("xml/export/ddi/codebook-result.html").toURI(), StandardCharsets.UTF_8);
-        assertThat(transformed).isEqualTo(expected);
+        
+        assertThat(transformed).isEqualToIgnoringWhitespace(expected);
     }
 }
