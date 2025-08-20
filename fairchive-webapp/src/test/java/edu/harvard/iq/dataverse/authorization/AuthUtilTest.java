@@ -19,7 +19,6 @@ public class AuthUtilTest {
      */
     @Test
     public void testIsNonLocalLoginEnabled() {
-        System.out.println("isNonLocalLoginEnabled");
 
         AuthUtil authUtil = new AuthUtil();
 

@@ -522,7 +522,6 @@ public class JsonParser {
             }
 
             JsonArray value = json.getJsonArray("value");
-            System.out.println(value);
 
             for (JsonObject obj : json.getJsonArray("value").getValuesAs(JsonObject.class)) {
                 DatasetField parentField = new DatasetField();
@@ -666,9 +665,6 @@ public class JsonParser {
                         throw new ControlledVocabularyException("Value '" + strValue + "' does not exist in type '" + cvvType.getName() + "'", cvvType, strValue);
                     }
                     // Only add value to the list if it is not a duplicate
-                    if (strValue.equals("Other")) {
-                        System.out.println("vals = " + vals + ", contains: " + vals.contains(cvv));
-                    }
                     if (!vals.contains(cvv)) {
                         vals.add(cvv);
                     }
