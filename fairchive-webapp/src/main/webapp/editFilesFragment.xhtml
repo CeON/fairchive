@@ -564,7 +564,6 @@
                             <f:facet name="header" class="col-file-action text-right">
                                 <div jsf:id="editFilesRestrictDeletePanel" style="margin-right:14px;" class="btn-group"
                                      jsf:rendered="#{!empty EditDatafilesPage.fileMetadatas and !EditDatafilesPage.workingVersion.hasPackageFile}">
-                                    <!--  here -->
                                     <button type="button" class="btn btn-default dropdown-toggle"
                                             data-toggle="dropdown">
                                         <span class="glyphicon glyphicon-pencil"/> #{bundle['file.editFilesSelected']}
@@ -583,7 +582,7 @@
                                         </li>
                                         <li class="#{lockedFromEdits ? 'disabled' : ''}">
                                             <p:commandLink onclick="checkFilesForOCR(this);">
-                                                <h:outputText value="OCR/THR"/>
+                                                <h:outputText value="OCR/HTR"/>
                                             </p:commandLink>
                                         </li>
                                     </ul>
