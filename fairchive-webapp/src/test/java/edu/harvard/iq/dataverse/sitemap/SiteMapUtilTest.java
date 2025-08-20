@@ -115,7 +115,6 @@ public class SiteMapUtilTest {
 
         File sitemapFile = new File("/tmp/sitemap.xml");
         String sitemapString = XmlPrinter.prettyPrintXml(new String(Files.readAllBytes(Paths.get(sitemapFile.getAbsolutePath()))));
-        System.out.println("sitemap: " + sitemapString);
 
         assertTrue(sitemapString.contains("1955-11-12"));
         assertTrue(sitemapString.contains(publishedPid));

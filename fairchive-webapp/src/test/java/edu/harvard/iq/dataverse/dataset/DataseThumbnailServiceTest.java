@@ -63,7 +63,6 @@ public class DataseThumbnailServiceTest {
 
     @Test
     public void testGetThumbnailRestricted() {
-        System.out.println("testGetThumbnailRestricted");
         Dataset dataset = new Dataset();
         DataFile thumbnailFile = new DataFile();
         thumbnailFile.setId(42l);

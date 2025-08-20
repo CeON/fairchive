@@ -293,7 +293,6 @@ public class MoveDataverseCommandTest {
      */
     @Test
     public void testValidMove() throws Exception {
-        System.out.println("testValidMove");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
 
         testEngine.submit(
@@ -315,7 +314,6 @@ public class MoveDataverseCommandTest {
      */
     @Test
     public void testInvalidMove() throws Exception {
-        System.out.println("testInvalidMove");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         assertThrows(IllegalCommandException.class, () -> testEngine.submit(
                 new MoveDataverseCommand(aRequest, childA, grandchildAA, false)));
@@ -326,7 +324,6 @@ public class MoveDataverseCommandTest {
      */
     @Test
     public void testNotSuperUser() throws Exception {
-        System.out.println("testNotSuperUser");
         DataverseRequest aRequest = new DataverseRequest(nobody, httpRequest);
         assertThrows(PermissionException.class, () -> testEngine.submit(
                 new MoveDataverseCommand(aRequest, childB, childA, false)));
@@ -334,7 +331,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testMoveIntoSelf() throws Exception {
-        System.out.println("testMoveIntoSelf");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         assertThrows(IllegalCommandException.class, () -> testEngine.submit(
                 new MoveDataverseCommand(aRequest, childB, childB, false)));
@@ -342,7 +338,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testMoveIntoParent() throws Exception {
-        System.out.println("testMoveIntoParent");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         assertThrows(IllegalCommandException.class, () -> testEngine.submit(
                 new MoveDataverseCommand(aRequest, grandchildAA, childA, false)));
@@ -350,7 +345,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testKeepGuestbook() throws Exception {
-        System.out.println("testKeepGuestbook");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         testEngine.submit(
                 new MoveDataverseCommand(aRequest, childC, childB, false));
@@ -364,7 +358,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testRemoveGuestbookWithoutForce() throws Exception {
-        System.out.println("testRemoveGuestbookWithoutForce");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         assertThrows(IllegalCommandException.class, () -> testEngine.submit(
                 new MoveDataverseCommand(aRequest, grandchildCC, root, false)));
@@ -372,7 +365,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testRemoveGuestbook() throws Exception {
-        System.out.println("testRemoveGuestbook");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         testEngine.submit(
                 new MoveDataverseCommand(aRequest, grandchildCC, root, true));
@@ -386,7 +378,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testKeepTemplate() throws Exception {
-        System.out.println("testKeepTemplate");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         testEngine.submit(
                 new MoveDataverseCommand(aRequest, childD, childB, false));
@@ -401,7 +392,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testRemoveTemplateWithoutForce() throws Exception {
-        System.out.println("testRemoveTemplateWithoutForce");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         assertThrows(IllegalCommandException.class, () -> testEngine.submit(
                 new MoveDataverseCommand(aRequest, grandchildDD, root, false)));
@@ -409,7 +399,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testRemoveTemplate() throws Exception {
-        System.out.println("testRemoveTemplate");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         testEngine.submit(
                 new MoveDataverseCommand(aRequest, grandchildDD, root, true));
@@ -423,7 +412,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testKeepMetadataBlock() throws Exception {
-        System.out.println("testKeepMetadataBlock");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         testEngine.submit(
                 new MoveDataverseCommand(aRequest, childE, childB, false));
@@ -437,7 +425,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testRemoveMetadataBlockWithoutForce() throws Exception {
-        System.out.println("testRemoveMetadataBlockWithoutForce");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         assertThrows(IllegalCommandException.class, () -> testEngine.submit(
                 new MoveDataverseCommand(aRequest, grandchildEE, root, false)));
@@ -445,7 +432,6 @@ public class MoveDataverseCommandTest {
 
     @Test
     public void testRemoveMetadataBlock() throws Exception {
-        System.out.println("testRemoveMetadataBlock");
         DataverseRequest aRequest = new DataverseRequest(auth, httpRequest);
         testEngine.submit(
                 new MoveDataverseCommand(aRequest, grandchildEE, root, true));
