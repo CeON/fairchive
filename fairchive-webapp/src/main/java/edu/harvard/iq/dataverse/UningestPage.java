@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.ingest.UningestInfoService;
 import edu.harvard.iq.dataverse.ingest.UningestService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -10,25 +9,31 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang.StringUtils;
+import edu.harvard.iq.dataverse.util.UIMessages;
+
 import org.omnifaces.cdi.ViewScoped;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType.MD5;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("UningestPage")
 public class UningestPage implements Serializable {
 
-    private static final Logger log = LoggerFactory.getLogger(UningestPage.class);
+    private static final Logger log = getLogger(UningestPage.class);
     private UningestService uningestService;
     private DatasetRepository datasetRepository;
     private DataverseSession dataverseSession;
@@ -37,6 +42,7 @@ public class UningestPage implements Serializable {
     private PermissionServiceBean permissionService;
     private SystemConfig systemConfig;
     private UningestInfoService uningestInfoService;
+    private UIMessages messages;
 
     private List<UningestableItem> uningestableFiles = new ArrayList<>();
     private List<UningestableItem> selectedFiles = new ArrayList<>();
@@ -47,19 +53,19 @@ public class UningestPage implements Serializable {
     // -------------------- GETTERS --------------------
 
     public Long getDatasetId() {
-        return datasetId;
+        return this.datasetId;
     }
 
     public Dataset getDataset() {
-        return dataset;
+        return this.dataset;
     }
 
     public List<UningestableItem> getUningestableFiles() {
-        return uningestableFiles;
+        return this.uningestableFiles;
     }
 
     public List<UningestableItem> getSelectedFiles() {
-        return selectedFiles;
+        return this.selectedFiles;
     }
 
     // -------------------- CONSTRUCTORS --------------------
@@ -67,11 +73,15 @@ public class UningestPage implements Serializable {
     public UningestPage() { }
 
     @Inject
-    public UningestPage(UningestService uningestService, DatasetRepository datasetRepository,
-                        DataverseSession dataverseSession, PermissionsWrapper permissionsWrapper,
-                        SystemConfig systemConfig, UningestInfoService uningestInfoService,
-                        PermissionServiceBean permissionServiceBean,
-                        DataverseRequestServiceBean dataverseRequestService) {
+    public UningestPage(final UningestService uningestService, 
+                        final DatasetRepository datasetRepository,
+                        final DataverseSession dataverseSession, 
+                        final PermissionsWrapper permissionsWrapper,
+                        final SystemConfig systemConfig, 
+                        final UningestInfoService uningestInfoService,
+                        final PermissionServiceBean permissionServiceBean,
+                        final DataverseRequestServiceBean dataverseRequestService,
+                        final UIMessages messages) {
         this.uningestService = uningestService;
         this.datasetRepository = datasetRepository;
         this.dataverseSession = dataverseSession;
@@ -80,76 +90,79 @@ public class UningestPage implements Serializable {
         this.uningestInfoService = uningestInfoService;
         this.permissionService = permissionServiceBean;
         this.dataverseRequestService = dataverseRequestService;
+        this.messages = messages;
     }
 
     // -------------------- LOGIC --------------------
 
     public String init() {
-        if (datasetId == null) {
-            return permissionsWrapper.notFound();
+        if (this.datasetId == null) {
+            return this.permissionsWrapper.notFound();
         }
-        this.dataset = datasetRepository.getById(datasetId);
-        if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)
-                || systemConfig.isReadonlyMode()) {
-            return permissionsWrapper.notAuthorized();
+        this.dataset = this.datasetRepository.getById(this.datasetId);
+        if (!this.permissionsWrapper.canCurrentUserUpdateDataset(this.dataset)
+                || this.systemConfig.isReadonlyMode()) {
+            return this.permissionsWrapper.notAuthorized();
         }
-        if (permissionService.checkEditDatasetLockNonThrowing(dataset, dataverseRequestService.getDataverseRequest())) {
-            return permissionsWrapper.notAuthorized();
+        if (this.permissionService.checkEditDatasetLockNonThrowing(this.dataset, 
+                this.dataverseRequestService.getDataverseRequest())) {
+            return this.permissionsWrapper.notAuthorized();
         }
         
-        DatasetVersion version = dataset.getLatestVersion();
+        DatasetVersion version = this.dataset.getLatestVersion();
         if (!version.isDraft()) {
-            return permissionsWrapper.notFound();
+            return this.permissionsWrapper.notFound();
         }
-        uningestableFiles.addAll(prepareItemList());
-        selectedFiles.clear();
-        return StringUtils.EMPTY;
+        this.uningestableFiles.addAll(prepareItemList());
+        this.selectedFiles.clear();
+        return EMPTY;
     }
 
     public void uningest() {
-        if (selectedFiles.isEmpty() || !dataverseSession.isUserLoggedIn()) {
+        if (this.selectedFiles.isEmpty() || !this.dataverseSession.isUserLoggedIn()) {
             return;
         }
 
-        AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
-        List<String> uningestFailedFileNames = new ArrayList<>();
-        selectedFiles.forEach(toUningest -> {
+        final AuthenticatedUser user = (AuthenticatedUser) this.dataverseSession.getUser();
+        final List<String> uningestFailedFileNames = new ArrayList<>();
+        this.selectedFiles.forEach(toUningest -> {
             try {
-                uningestService.uningest(toUningest.getDataFile(), user);
+                this.uningestService.uningest(toUningest.getDataFile(), user);
             } catch (Exception e) {
                 log.error("Could not uningest data file: {}", toUningest.getDataFile().getId(), e);
                 uningestFailedFileNames.add(toUningest.getFileName());
             }
         });
-        uningestableFiles = prepareItemList();
-        selectedFiles.clear();
+        this.uningestableFiles = prepareItemList();
+        this.selectedFiles.clear();
 
         if (!uningestFailedFileNames.isEmpty()) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    BundleUtil.getStringFromBundle("uningest.error"),
-                    uningestFailedFileNames.stream().collect(Collectors.joining(", ", "[", "]. "))));
+            this.messages.addComponentErrorMessage(
+                    getStringFromBundle("uningest.error"),
+                    uningestFailedFileNames.stream().collect(joining(", ", "[", "]. ")));
         }
     }
 
     public String cancel() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId().asString() + "&version=DRAFT&faces-redirect=true";
+        return "/dataset.xhtml?version=DRAFT&faces-redirect=true&persistentId="
+                .concat(this.dataset.getGlobalId().asString());
     }
 
     // -------------------- PRIVATE --------------------
 
     private List<UningestableItem> prepareItemList() {
-        return uningestInfoService.listUningestableFiles(dataset).stream()
+        return this.uningestInfoService.listUningestableFiles(this.dataset).stream()
                 .map(UningestableItem::fromDatafile)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setDatasetId(Long datasetId) {
+    public void setDatasetId(final Long datasetId) {
         this.datasetId = datasetId;
     }
 
-    public void setSelectedFiles(List<UningestableItem> selectedFiles) {
+    public void setSelectedFiles(final List<UningestableItem> selectedFiles) {
         this.selectedFiles = selectedFiles;
     }
 
@@ -165,45 +178,45 @@ public class UningestPage implements Serializable {
         // -------------------- GETTERS --------------------
 
         public DataFile getDataFile() {
-            return dataFile;
+            return this.dataFile;
         }
 
         public String getFileName() {
-            return fileName;
+            return this.fileName;
         }
 
         public String getOriginalFormat() {
-            return originalFormat;
+            return this.originalFormat;
         }
 
         public String getMd5() {
-            return md5;
+            return this.md5;
         }
 
         public String getUnf() {
-            return unf;
+            return this.unf;
         }
 
         // -------------------- LOGIC --------------------
 
-        public static UningestableItem fromDatafile(DataFile file) {
-            UningestableItem item = new UningestableItem();
+        public static UningestableItem fromDatafile(final DataFile file) {
+            final UningestableItem item = new UningestableItem();
             item.dataFile = file;
             item.fileName = file.getFileMetadata().getLabel();
             item.originalFormat = extractAndFormatExtension(file);
-            item.md5 = file.getChecksumType() == DataFile.ChecksumType.MD5
-                    ? file.getChecksumValue() : StringUtils.EMPTY;
+            item.md5 = file.getChecksumType() == MD5
+                    ? file.getChecksumValue() : EMPTY;
             item.unf = file.getUnf();
             return item;
         }
 
         // -------------------- PRIVATE --------------------
 
-        public static String extractAndFormatExtension(DataFile file) {
+        public static String extractAndFormatExtension(final DataFile file) {
             String extension = FileUtil.generateOriginalExtension(file.isTabularData()
                     ? file.getDataTable().getOriginalFileFormat()
                     : file.getContentType());
-            return extension.replaceFirst("\\.", StringUtils.EMPTY).toUpperCase();
+            return extension.replaceFirst("\\.", EMPTY).toUpperCase();
         }
     }
 }

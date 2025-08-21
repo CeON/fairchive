@@ -28,7 +28,8 @@
                 <div class="alert alert-info" role="alert">
                     <p class="text-block">
                         <span class="glyphicon glyphicon-info-sign"></span>
-                        <h:outputText value="#{bundle['uningest.page.info']}" escape="false"/>
+                        <h:outputText value="#{bundle['uningest.page.info']}" 
+                        escape="false"/>
                     </p>
                 </div>
             </p:outputPanel>
@@ -77,12 +78,16 @@
                                          oncomplete="primeFacesShowModal('uningestConfirm', this)"
                                          update=":uningestConfirm"/>
 
-                        <p:commandButton id="cancel" value="#{bundle.cancel}" action="#{UningestPage.cancel}"/>
+                        <p:commandButton id="cancel" value="#{bundle.cancel}" 
+                                         action="#{UningestPage.cancel}"/>
                     </p:outputPanel>
                 </div>
 
             </h:form>
-            <p:dialog id="uningestConfirm" styleClass="smallPopUp" header="#{bundle['uningest.dialog.title']}" widgetVar="uningestConfirm" modal="true">
+            <p:dialog id="uningestConfirm" 
+                      styleClass="smallPopUp" 
+                      header="#{bundle['uningest.dialog.title']}" 
+                      widgetVar="uningestConfirm" modal="true">
                 <p class="text-warning">
                     <span class="glyphicon glyphicon-warning-sign"/>
                     <h:outputText value="#{bundle['uningest.dialog.text']}" />
