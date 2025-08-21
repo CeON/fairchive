@@ -332,7 +332,6 @@ public class JsonParserTest {
         c.set(2015, 8, 15);
         Date d = c.getTime();
         String generated = format(d);
-        System.err.println(generated);
 
         //when
         Date parsedDate = sut.parseDate(generated);
@@ -361,7 +360,6 @@ public class JsonParserTest {
         c.set(2015, 8, 15, 13, 37, 56);
         Date d = c.getTime();
         String generated = format(d);
-        System.err.println(generated);
 
         //when
         Date parsedDate = sut.parseTime(generated);
@@ -383,7 +381,6 @@ public class JsonParserTest {
             try (InputStream jsonFile = ClassLoader.getSystemResourceAsStream("json/empty-dataset.json")) {
                 InputStreamReader reader = new InputStreamReader(jsonFile, StandardCharsets.UTF_8);
                 dsJson = Json.createReader(reader).readObject();
-                System.out.println(dsJson != null);
 
                 //when
                 Dataset actual = sut.parseDataset(dsJson);
@@ -411,7 +408,6 @@ public class JsonParserTest {
         try (InputStream jsonFile = ClassLoader.getSystemResourceAsStream("json/complete-dataset-version.json")) {
             InputStreamReader reader = new InputStreamReader(jsonFile, StandardCharsets.UTF_8);
             dsJson = Json.createReader(reader).readObject();
-            System.out.println(dsJson != null);
 
             //when & then
             assertThrows(JsonParseException.class, () -> sut.parseDatasetVersion(dsJson));
@@ -434,8 +430,6 @@ public class JsonParserTest {
 
         JsonObject serialized = serialize(new IpGroupDTO.Converter().convert(original));
 
-        System.out.println(serialized.toString());
-
         //when
         IpGroup parsed = new JsonParser().parseIpGroup(serialized);
 
@@ -457,8 +451,6 @@ public class JsonParserTest {
         original.add(IpAddressRange.make(IpAddress.valueOf("1.1.1.1"), IpAddress.valueOf("1.1.1.1")));
 
         JsonObject serialized = serialize(new IpGroupDTO.Converter().convert(original));
-
-        System.out.println(serialized.toString());
 
         //when
         IpGroup parsed = new JsonParser().parseIpGroup(serialized);
@@ -499,8 +491,6 @@ public class JsonParserTest {
                                          IpAddress.valueOf("fe80::22c9:d0ff:fe48:ce61")));
 
         JsonObject serialized = serialize(new IpGroupDTO.Converter().convert(original));
-
-        System.out.println(serialized.toString());
 
         //when
         IpGroup parsed = new JsonParser().parseIpGroup(serialized);

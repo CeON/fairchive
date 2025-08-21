@@ -54,7 +54,6 @@ public class JsfHelperTest {
     @ParameterizedTest
     @MethodSource("parameters")
     public void testEnumValue(TestEnum inputEnum, String inputString, TestEnum defaultEnumValue) {
-        System.out.println("enumValue");
         JsfHelper instance = new JsfHelper();
 
         assertEquals(inputEnum, instance.enumValue(inputString, TestEnum.class, defaultEnumValue));

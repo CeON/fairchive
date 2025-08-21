@@ -14,6 +14,7 @@ import static org.eclipse.persistence.annotations.BatchFetchType.JOIN;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -170,13 +171,10 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     @Column
     private Long uncompressedSize = 0L;
-
-    /**
-     * This flag has only meaning for ingestable files and when unset prevents
-     * the file from being ingested.
-     */
-    @Transient
-    private Boolean includedInIngest = TRUE;
+    
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private IngestType ingestType = IngestType.NON;
 
     private char ingestStatus = INGEST_STATUS_NONE;
 
@@ -234,12 +232,29 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         return this.checksumValue;
     }
 
+    public IngestType getIngestType() {
+        return this.ingestType;
+    }
+
+    public void setIngestType(final IngestType type) {
+        this.ingestType = type;
+    }
+    
+    
+    public String getIngestTypeStr() {
+        return this.ingestType.toString();
+    }
+    
+    public void setIngestTypeStr(final String type) {
+        this.ingestType = IngestType.valueOf(type);
+    }
+
     public int getIngestStatus() {
         return ingestStatus;
     }
 
     public Boolean getIncludedInIngest() {
-        return includedInIngest;
+        return this.ingestType != IngestType.NON;
     }
 
     public Dataset getThumbnailForDataset() {
@@ -615,7 +630,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     public void setIncludedInIngest(Boolean includedInIngest) {
-        this.includedInIngest = includedInIngest;
+        this.ingestType = includedInIngest == TRUE ? IngestType.TAB : IngestType.NON;
     }
 
     public void setFileAccessRequesters(List<AuthenticatedUser> fileAccessRequesters) {
@@ -686,5 +701,12 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         public String toString() {
             return this.text;
         }
+    }
+    
+    public enum IngestType {
+        OCR,
+        HTR,
+        TAB,
+        NON;
     }
 }
