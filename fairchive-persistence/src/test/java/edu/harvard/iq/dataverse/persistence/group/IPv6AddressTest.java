@@ -65,7 +65,6 @@ public class IPv6AddressTest {
 
         expected = new int[]{0, 0, 0, 0, 0, 0, 0, 0x7334};
         adr = IPv6Address.valueOf("::7334");
-        System.out.println("adr = " + adr);
         for (int i = 0; i < 8; i++) {
             assertEquals(expected[i], adr.get(i), "At index " + i + ": expecting " + expected[i] + ", got " + adr.get(i));
         }
@@ -90,7 +89,6 @@ public class IPv6AddressTest {
     public void testValueOfWithExpansionSpecialCases() {
         int[] expected = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
         IPv6Address adr = IPv6Address.valueOf("::");
-        System.out.println("adr = " + adr);
         for (int i = 0; i < 8; i++) {
             assertEquals(expected[i], adr.get(i), "At index " + i + ": expecting " + expected[i] + ", got " + adr.get(i));
         }

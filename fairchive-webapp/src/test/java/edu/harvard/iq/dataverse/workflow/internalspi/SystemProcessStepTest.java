@@ -62,8 +62,8 @@ class SystemProcessStepTest {
     @Test
     void shouldRunSimpleProcessSuccessfully() throws IOException {
         // given
-        inputParams = inputParams.with(COMMAND_PARAM_NAME, "echo")
-                .with(ARGUMENTS_PARAM_NAME, "test");
+        inputParams = inputParams.with(COMMAND_PARAM_NAME, "java")
+                .with(ARGUMENTS_PARAM_NAME, "-version");
         SystemProcessStep step = new SystemProcessStep(inputParams);
         WorkflowExecutionContext context = givenWorkflowExecutionContext(datasetId, workflow);
         context.getExecution().start("test", "127.0.1.1", clock);
@@ -74,7 +74,8 @@ class SystemProcessStepTest {
         // and
         String processId = result.getData().get(PROCESS_ID_PARAM_NAME);
         assertThat(processId).isNotBlank();
-        assertThat(readFileToString(step.outLogPath(processId, tmpDir).toFile(), UTF_8)).isEqualTo("test\n");
+        assertThat(readFileToString(step.errLogPath(processId, tmpDir).toFile(), UTF_8))
+            .contains("version");
     }
 
     @Test

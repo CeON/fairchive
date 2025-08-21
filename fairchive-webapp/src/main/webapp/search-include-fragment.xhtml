@@ -46,8 +46,10 @@
                     </button>
                 </ui:fragment>
                 <h:form id="addDataForm" class="btn-form"
-                        rendered="#{dataverseSession.user.authenticated and (permissionsWrapper.canIssueCreateDataverseCommand(SearchIncludeFragment.dataverse)
-                                     or permissionsWrapper.canIssueCreateDatasetCommand(SearchIncludeFragment.dataverse))}">
+                        rendered="#{dataverseSession.user.authenticated and 
+                                     (permissionsWrapper.canIssueCreateDataverseCommand(SearchIncludeFragment.dataverse)
+                                     or (permissionsWrapper.canIssueCreateDatasetCommand(SearchIncludeFragment.dataverse)
+                                        and settingsWrapper.isShowAddDatasetButtonOnDataversePage()))}">
                     <div class="btn-group">
                         <button id="addData" type="button" class="btn btn-default btn-access dropdown-toggle" data-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false">
@@ -62,7 +64,8 @@
                                     </a>
                                 </li>
                             </ui:fragment>
-                            <ui:fragment rendered="#{permissionsWrapper.canIssueCreateDatasetCommand(SearchIncludeFragment.dataverse) }">
+                            <ui:fragment rendered="#{permissionsWrapper.canIssueCreateDatasetCommand(SearchIncludeFragment.dataverse)
+                                                       and settingsWrapper.isShowAddDatasetButtonOnDataversePage()}">
                                 <li role="none">
                                     <a href="${pageContext.request.contextPath}/createDataset.xhtml?ownerId=#{SearchIncludeFragment.dataverse.id}"
                                             role="menuitem">

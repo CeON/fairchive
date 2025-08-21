@@ -767,7 +767,7 @@ public class SettingsServiceBean {
          */
         CustomSearchLocationsSolrFields,
         /**
-         * Specifies maximum number of search results axported to CSV file
+         * Specifies maximum number of search results exported to CSV file
          */
         MaxResultsCountSavedToFile,
         /**
@@ -783,16 +783,31 @@ public class SettingsServiceBean {
          */
         AuthenticatedSessionTimeout,
         /**
-         * a commond to be executed in order to ORC images
+         * a command to be executed in order to ORC images
          * (eg. "tesseract stdin stdout")
          */
         OcrCommand,
         /**
          * a limit for images to be ocr'red in bytes
          */
-        OcrImageSizeLimit;
+        OcrImageSizeLimit,
 
+        /**
+         * If set to {@code true} (the default) or any other truthy value, the
+         * collection name, affiliation, and contact email fields will be
+         * pre-filled on the collection creation form. If set to {@code false}
+         * or any value other non-truthy value, the fields will be blank.
+         */
+        CollectionFormPrefillEnabled,
 
+        /**
+         * If set to {@code true} (the default) or any other truthy value,
+         * the button for adding dataset will be rendered on dataverse page
+         * (alongside with add dataverse button). If set to {@code false}
+         * or any other non-truthy value, the only way to add a new
+         * dataset would be by using add data button from the header.
+         */
+        ShowAddDatasetButtonOnDataversePage;
 
         @Override
         public String toString() {

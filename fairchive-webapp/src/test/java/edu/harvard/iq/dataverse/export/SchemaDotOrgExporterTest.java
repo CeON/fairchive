@@ -679,7 +679,6 @@ public class SchemaDotOrgExporterTest {
      */
     @Test
     public void testGetDisplayName() {
-        System.out.println("getDisplayName");
         // We capitalize "Schema.org" because it looks better in the dropdown list and it's what DataCite does in their UI.
         assertEquals("Schema.org JSON-LD", schemaDotOrgExporter.getDisplayName());
     }
@@ -689,7 +688,6 @@ public class SchemaDotOrgExporterTest {
      */
     @Test
     public void testIsXMLFormat() {
-        System.out.println("isXMLFormat");
         assertEquals(false, schemaDotOrgExporter.isXMLFormat());
     }
 
@@ -698,7 +696,6 @@ public class SchemaDotOrgExporterTest {
      */
     @Test
     public void testIsHarvestable() {
-        System.out.println("isHarvestable");
         assertEquals(false, schemaDotOrgExporter.isHarvestable());
     }
 
@@ -707,7 +704,6 @@ public class SchemaDotOrgExporterTest {
      */
     @Test
     public void testIsAvailableToUsers() {
-        System.out.println("isAvailableToUsers");
         assertEquals(true, schemaDotOrgExporter.isAvailableToUsers());
     }
 

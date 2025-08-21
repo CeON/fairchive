@@ -1,0 +1,1 @@
+ALTER TABLE public.datafile ADD ingesttype char(3) not null default 'NON';
