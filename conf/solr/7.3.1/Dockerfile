@@ -2,7 +2,7 @@ FROM solr:7.3.1
 
 ADD --chmod=444 https://repo1.maven.org/maven2/org/locationtech/jts/jts-core/1.19.0/jts-core-1.19.0.jar /opt/solr/server/solr-webapp/webapp/WEB-INF/lib/
 
-USER root
+USER solr
 
 ADD schema.xml ./
 ADD solrconfig.xml ./

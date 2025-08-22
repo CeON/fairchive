@@ -9,7 +9,6 @@ public class DataverseUtilTest {
 
     @Test
     public void testGetSuggestedDataverseNameOnCreate() {
-        System.out.println("getSuggestedDataverseNameOnCreate");
         assertEquals(null, DataverseUtil.getSuggestedDataverseNameOnCreate(null));
         assertEquals("Homer Simpson Collection", DataverseUtil.getSuggestedDataverseNameOnCreate(MocksFactory.makeAuthenticatedUser("Homer", "Simpson")));
     }

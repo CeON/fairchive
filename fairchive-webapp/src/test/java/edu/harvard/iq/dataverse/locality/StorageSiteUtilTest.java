@@ -23,7 +23,6 @@ public class StorageSiteUtilTest {
         StorageSite result = StorageSiteUtil.parse(job.build());
         result.setId(42l);
         String output = JsonUtil.prettyPrint(result.toJsonObjectBuilder().build().toString());
-        System.out.println("output: " + output);
     }
 
     @Test

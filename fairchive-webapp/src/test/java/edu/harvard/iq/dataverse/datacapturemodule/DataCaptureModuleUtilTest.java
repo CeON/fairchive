@@ -26,7 +26,6 @@ public class DataCaptureModuleUtilTest {
 
     @Test
     public void testRsyncSupportEnabled() {
-        System.out.println("rsyncSupportEnabled");
         assertEquals(false, DataCaptureModuleUtil.rsyncSupportEnabled(null));
         assertEquals(true, DataCaptureModuleUtil.rsyncSupportEnabled("dcm/rsync+ssh"));
         // Comma sepratated lists of upload methods are supported.
@@ -38,7 +37,6 @@ public class DataCaptureModuleUtilTest {
 
     @Test
     public void testGenerateJsonForUploadRequest() {
-        System.out.println("generateJsonForUploadRequest");
         AuthenticatedUser user = makeAuthenticatedUser("Ralph", "Rsync");
         Dataset dataset = new Dataset();
         dataset.setIdentifier("42");
@@ -50,7 +48,6 @@ public class DataCaptureModuleUtilTest {
 
     @Test
     public void testGetScriptFromRequestOk() throws UnsupportedEncodingException {
-        System.out.println("getScriptFromRequestOk");
         HttpResponseFactory factory = new DefaultHttpResponseFactory();
         org.apache.http.HttpResponse response = factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, null), null);
         JsonObjectBuilder jab = Json.createObjectBuilder();
@@ -68,7 +65,6 @@ public class DataCaptureModuleUtilTest {
 
     @Test
     public void testGetScriptFromRequestNotFound() throws UnsupportedEncodingException {
-        System.out.println("getScriptFromRequestNotFound");
         HttpResponseFactory factory = new DefaultHttpResponseFactory();
         org.apache.http.HttpResponse response = factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, null), null);
         JsonObjectBuilder jab = Json.createObjectBuilder();
@@ -86,7 +82,6 @@ public class DataCaptureModuleUtilTest {
 
     @Test
     public void testMakeUploadRequest() throws UnsupportedEncodingException {
-        System.out.println("makeUploadRequest");
         HttpResponseFactory factory = new DefaultHttpResponseFactory();
         org.apache.http.HttpResponse response = factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, null), null);
         response.setEntity(new StringEntity("received"));
@@ -98,7 +93,6 @@ public class DataCaptureModuleUtilTest {
 
     @Test
     public void testGetMessageFromException() {
-        System.out.println("getMessageFromException");
         // preferred form
         assertEquals("message1 was caused by innerExceptionMessage", DataCaptureModuleUtil.getMessageFromException(new DataCaptureModuleException("message1", new NullPointerException("innerExceptionMessage"))));
         // suboptimal messages

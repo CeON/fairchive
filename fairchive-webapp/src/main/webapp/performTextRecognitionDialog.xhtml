@@ -1,0 +1,39 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:o="http://omnifaces.org/ui"
+      xmlns:jsf="http://xmlns.jcp.org/jsf">
+
+    <p:dialog id="performTextRecognitionDialog" 
+	          widgetVar="performTextRecognitionDialog" 
+	          styleClass="smallPopUp" 
+	          header="#{bundle['file.performOcr.header']}" 
+	          modal="true">
+	   <p:outputPanel id="content">    
+		  <div class="form-horizontal">
+		      <p class="help-block">#{bundle['file.performOcr.tip']}</p>
+		      <p:selectOneMenu id="ocrAction" 
+		                       value="#{EditDatafilesPage.textRecognitionDialog.action}">
+		          <f:selectItem itemLabel="#{bundle['file.performOcr.ocr']}" 
+		                        itemValue="OCR" />
+		       <!--    <f:selectItem itemLabel="#{bundle['file.performOcr.htr']}"
+		                        itemValue="HTR" /> -->
+		          <f:selectItem itemLabel="#{bundle['file.performOcr.none']}"
+		                        itemValue="NON" />
+		      </p:selectOneMenu>
+		   </div>
+		   <div class="button-block">
+		       <p:commandButton styleClass="btn btn-default" 
+		                        value="#{bundle.ok}"
+		                        action="#{EditDatafilesPage.textRecognitionDialog.updateSelectedFiles()}"
+		                        update="content :datasetForm"
+		                        oncomplete="if (args &amp;&amp; !args.validationFailed) { PF('performTextRecognitionDialog').hide(); }" />
+		       <p:commandButton styleClass="btn btn-default" 
+		                        value="#{bundle.cancel}"
+		                        onclick="PF('performTextRecognitionDialog').hide();" />
+		   </div>
+		</p:outputPanel>
+	</p:dialog>
+</ui:composition>
