@@ -1,8 +1,6 @@
 package edu.harvard.iq.dataverse.common.files.mime;
 
-import com.google.common.collect.Lists;
-
-import java.util.List;
+import static java.util.Arrays.stream;
 
 public enum ApplicationMimeType implements MimeType {
 
@@ -27,25 +25,21 @@ public enum ApplicationMimeType implements MimeType {
     XLSX("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
     DOCUMENT_MSWORD_OPENXML("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
 
-    private String mimeValue;
+    private final static ApplicationMimeType[] ingestable = 
+            {STATA, STATA13, STATA14, STATA15, RDATA, XLSX, SPSS_SAV, SPSS_POR};
+    
+    private final String mimeValue;
 
-    ApplicationMimeType(String mimeType) {
+    ApplicationMimeType(final String mimeType) {
         this.mimeValue = mimeType;
     }
 
     @Override
     public String getMimeValue() {
-        return mimeValue;
+        return this.mimeValue;
     }
-
-    public static List<ApplicationMimeType> retrieveIngestableMimes() {
-        return Lists.newArrayList(ApplicationMimeType.STATA,
-                                  ApplicationMimeType.STATA13,
-                                  ApplicationMimeType.STATA14,
-                                  ApplicationMimeType.STATA15,
-                                  ApplicationMimeType.RDATA,
-                                  ApplicationMimeType.XLSX,
-                                  ApplicationMimeType.SPSS_SAV,
-                                  ApplicationMimeType.SPSS_POR);
+    
+    public static boolean isIngestable(final String mimeType) {
+        return stream(ingestable).anyMatch(type -> type.mimeValue.equals(mimeType));
     }
 }
