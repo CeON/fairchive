@@ -3,6 +3,8 @@ package edu.harvard.iq.dataverse.ingest;
 import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_ERROR;
 import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_NONE;
 import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_SCHEDULED;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType.NON;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType.OCR;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DRAFT;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +55,7 @@ class UningestInfoServiceTest {
     void draftDataset_withoutIngestedFiles_hasNoUningestableFiles() {
         Dataset set = createDataset();
         addFile(set, "text/csv", INGEST_STATUS_NONE, null);
-        
+            
         assertThat(this.service.hasUningestableFiles(set)).isFalse();
         assertThat(this.service.listUningestableFiles(set)).isEmpty();
     }
@@ -62,6 +64,12 @@ class UningestInfoServiceTest {
     void draftDataset_withUningestedFiles_hasNoUningestableFiles() {
         Dataset set = createDataset();
         addFile(set, "text/csv", INGEST_STATUS_NONE, null);
+        
+        DataFile image1 = addFile(set, "image/png", INGEST_STATUS_NONE, null);
+        image1.setIngestType(NON);
+        
+        DataFile image2 = addFile(set, "image/png", INGEST_STATUS_SCHEDULED, null);
+        image2.setIngestType(NON);
         
         assertThat(this.service.hasUningestableFiles(set)).isFalse();
         assertThat(this.service.listUningestableFiles(set)).isEmpty();
@@ -87,14 +95,17 @@ class UningestInfoServiceTest {
         addFile(set, "text/csv", INGEST_STATUS_NONE, new DataTable());
         addFile(set, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", INGEST_STATUS_ERROR, null);
         addFile(set, "text/tsv", INGEST_STATUS_NONE, new DataTable());
+        DataFile image = addFile(set, "image/png", INGEST_STATUS_SCHEDULED, null);
+        image.setIngestType(OCR);
         
         assertThat(this.service.hasUningestableFiles(set)).isTrue();
         List<DataFile> files = this.service.listUningestableFiles(set);
-        assertThat(files).hasSize(3);
+        assertThat(files).hasSize(4);
         assertThat(files.stream().map(DataFile::getContentType))
             .containsExactly("text/csv", 
                              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
-                             "text/tsv");
+                             "text/tsv",
+                             "image/png");
     }
     
     private Dataset createDataset() {
@@ -108,9 +119,10 @@ class UningestInfoServiceTest {
         return dataset;
     }
     
-    private DataFile addFile(final Dataset set, final String mimeType, final char ingestStatus, final DataTable table) {
+    private DataFile addFile(final Dataset set, final String mimeType,
+            final char ingestStatus, final DataTable table) {
         final DataFile file = new DataFile();
-        
+
         set.getFiles().add(file);
         final FileMetadata meta = new FileMetadata();
         file.getFileMetadatas().add(meta);
@@ -120,7 +132,7 @@ class UningestInfoServiceTest {
         file.setContentType(mimeType);
         file.setIngestStatus(ingestStatus);
         file.setDataTable(table);
-        
+
         return file;
     }
 }
