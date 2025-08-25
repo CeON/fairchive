@@ -44,6 +44,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLockRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
@@ -84,6 +85,8 @@ public class DatasetDao implements java.io.Serializable {
     private DatasetThumbnailService datasetThumbnailService;
     @EJB
     private DatasetLockRepository datasetLockRepo;
+    @EJB
+    private DatasetVersionRepository datasetVersionRepo;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;
@@ -263,13 +266,10 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(AuthenticatedUser user){
-
-        TypedQuery<DatasetVersionUser> typedQuery =
-                em.createQuery("SELECT u from DatasetVersionUser u where u.authenticatedUser.id = :authenticatedUserId",
-                        DatasetVersionUser.class);
-        typedQuery.setParameter("authenticatedUserId", user.getId());
-        return typedQuery.getResultList();
+    public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(
+            final AuthenticatedUser user) {
+        return this.datasetVersionRepo
+                .getDatasetVersionUsersByAuthenticatedUser(user.getId());
     }
 
     public boolean checkDatasetLock(Long datasetId) {
