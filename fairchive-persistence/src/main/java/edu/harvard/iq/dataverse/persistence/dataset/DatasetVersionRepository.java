@@ -16,29 +16,31 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
 
     // -------------------- LOGIC --------------------
 
-    public Optional<DatasetVersion> findByDatasetIdAndVersionNumber(long datasetId, long majorVersionNumber) {
+    public Optional<DatasetVersion> findByDatasetIdAndVersionNumber(
+            final long datasetId, final long majorVersionNumber) {
         return getSingleResult(this.em.createQuery(
-                        "select v " +
-                                "from DatasetVersion v " +
-                                "where v.dataset.id = :datasetId " +
-                                "and v.versionNumber= :majorVersionNumber " +
-                                "order by v.minorVersionNumber desc",
-                        DatasetVersion.class)
+                "select v from DatasetVersion v " +
+                        "where v.dataset.id = :datasetId " +
+                        "and v.versionNumber= :majorVersionNumber " +
+                        "order by v.minorVersionNumber desc",
+                DatasetVersion.class)
                 .setParameter("datasetId", datasetId)
                 .setParameter("majorVersionNumber", majorVersionNumber)
                 .setMaxResults(1));
     }
 
-    public Optional<DatasetVersion> findByDatasetIdAndVersionNumber(DatasetVersionIdentifier versionIdentifier) {
+    public Optional<DatasetVersion> findByDatasetIdAndVersionNumber(
+            final DatasetVersionIdentifier versionIdentifier) {
         return getSingleResult(this.em.createQuery(
-                        "select v " +
-                                "from DatasetVersion v " +
-                                "where v.dataset.id = :datasetId " +
-                                "and v.versionNumber= :versionNumber " +
-                                "and v.minorVersionNumber= :minorVersionNumber",
-                        DatasetVersion.class)
+                "select v " +
+                        "from DatasetVersion v " +
+                        "where v.dataset.id = :datasetId " +
+                        "and v.versionNumber= :versionNumber " +
+                        "and v.minorVersionNumber= :minorVersionNumber",
+                DatasetVersion.class)
                 .setParameter("datasetId", versionIdentifier.getDatasetId())
                 .setParameter("versionNumber", versionIdentifier.getVersionNumber())
-                .setParameter("minorVersionNumber", versionIdentifier.getMinorVersionNumber()));
+                .setParameter("minorVersionNumber",
+                        versionIdentifier.getMinorVersionNumber()));
     }
 }
