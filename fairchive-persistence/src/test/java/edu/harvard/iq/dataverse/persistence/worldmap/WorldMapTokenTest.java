@@ -23,7 +23,7 @@ public class WorldMapTokenTest {
 
 
     public void msg(String s) {
-        System.out.println(s);
+      //  System.out.println(s);
     }
 
     public void msgt(String s) {

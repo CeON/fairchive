@@ -34,10 +34,6 @@ public class ConfirmEmailUtilTest {
 
     @Test
     public void testGrandfatheredTime() {
-        System.out.println();
-        System.out.println("Grandfathered account timestamp test");
-        System.out.println("Grandfathered Time (y2k): " + ConfirmEmailUtil.getGrandfatheredTime());
         assertEquals(Timestamp.valueOf("2000-01-01 00:00:00.0"), ConfirmEmailUtil.getGrandfatheredTime());
-        System.out.println();
     }
 }
