@@ -1,14 +1,16 @@
 package edu.harvard.iq.dataverse.ingest;
 
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 
 @Stateless
 public class UningestInfoService {
@@ -19,21 +21,20 @@ public class UningestInfoService {
     public UningestInfoService() { }
 
     @Inject
-    public UningestInfoService(IngestServiceBean ingestService) {
+    public UningestInfoService(final IngestServiceBean ingestService) {
         this.ingestService = ingestService;
     }
 
     // -------------------- LOGIC --------------------
 
-    public List<DataFile> listUningestableFiles(Dataset dataset) {
+    public List<DataFile> listUningestableFiles(final Dataset dataset) {
         if (dataset == null || !dataset.getLatestVersion().isDraft()) {
-            return Collections.emptyList();
+            return emptyList();
         }
-        List<DataFile> uningestable = new ArrayList<>();
+        final List<DataFile> uningestable = new ArrayList<>();
         // Only certain files from draft version can be uningested:
-        List<FileMetadata> fileMetadatas = dataset.getLatestVersion().getFileMetadatas();
-        for (FileMetadata metadata : fileMetadatas) {
-            DataFile dataFile = metadata.getDataFile();
+        for (final FileMetadata metadata : dataset.getLatestVersion().getFileMetadatas()) {
+            final DataFile dataFile = metadata.getDataFile();
             if (canUningestFile(dataFile)) {
                 uningestable.add(dataFile);
             }
@@ -41,7 +42,7 @@ public class UningestInfoService {
         return uningestable;
     }
 
-    public boolean hasUningestableFiles(Dataset dataset) {
+    public boolean hasUningestableFiles(final Dataset dataset) {
        if (dataset == null || !dataset.getLatestVersion().isDraft()) {
            return false;
        }
@@ -52,14 +53,19 @@ public class UningestInfoService {
 
     // -------------------- PRIVATE --------------------
 
-    private boolean canUningestFile(DataFile file) {
+    private boolean canUningestFile(final DataFile file) {
         // File from draft version can be uningested if it:
-        // (1) was not published yet (ie. it has only one metadata set, but we assume that
+        // was not published yet (ie. it has only one metadata set, but we assume that
         //     the file is from the latest, draft version – which is NOT checked here);
-        // (2) is of XLSX, CSV or TSV type;
-        // (3) has been ingested (successfully or not).
-        return file.getFileMetadatas().size() == 1 // 1
-                && ingestService.isSelectivelyIngestableFile(file) // 2
-                && (file.getIngestStatus() != DataFile.INGEST_STATUS_NONE || file.isTabularData()); // 3
+        if(file.getFileMetadatas().size() != 1) {
+            return false;
+        }
+        // is of XLSX, CSV or TSV type or image;
+        if(! ingestService.isSelectivelyIngestableFile(file)) {
+            return false;
+        }
+        // has been ingested (successfully or not).
+        
+        return file.hasBeenIngested();
     }
 }

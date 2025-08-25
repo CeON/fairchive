@@ -3,6 +3,8 @@ package edu.harvard.iq.dataverse.persistence.datafile;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType.SHAPEFILE_FILE_TYPE;
 import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_NONE;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType.NON;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
@@ -251,6 +253,14 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     public int getIngestStatus() {
         return ingestStatus;
+    }
+    
+    public boolean hasBeenIngested() {
+        if(isImage()) {
+            return this.ingestType != IngestType.NON;
+        } else {
+            return getIngestStatus() != INGEST_STATUS_NONE || isTabularData();
+        }
     }
 
     public Boolean getIncludedInIngest() {
@@ -704,6 +714,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
     public enum IngestType {
+        // names need to have 3 characters to fit database column
         OCR,
         HTR,
         TAB,

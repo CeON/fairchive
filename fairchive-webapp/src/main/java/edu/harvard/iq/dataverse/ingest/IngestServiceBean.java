@@ -669,7 +669,7 @@ public class IngestServiceBean {
 
     public boolean isSelectivelyIngestableFile(DataFile file) {
         return file.hasMimeType(ApplicationMimeType.XLSX, TextMimeType.TSV, TextMimeType.TSV_ALT,
-                TextMimeType.CSV, TextMimeType.CSV_ALT);
+                TextMimeType.CSV, TextMimeType.CSV_ALT) || file.isImage();
     }
 
     public TabularDataFileReader getTabDataReaderByMimeType(String mimeType) {

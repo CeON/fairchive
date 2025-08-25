@@ -189,17 +189,8 @@ public class FileUtil implements java.io.Serializable {
     }
 
     public static boolean canIngestAsTabular(String mimeType) {
-        if (mimeType == null) {
-            return false;
-        }
-
-        boolean isMimeAmongIngestableAppTypes = ApplicationMimeType.retrieveIngestableMimes().stream()
-                .anyMatch(appMime -> appMime.getMimeValue().equals(mimeType));
-
-        boolean isMimeAmongIngestableTextTypes = TextMimeType.retrieveIngestableMimes().stream()
-                .anyMatch(appMime -> appMime.getMimeValue().equals(mimeType));
-
-        return isMimeAmongIngestableAppTypes || isMimeAmongIngestableTextTypes;
+            return ApplicationMimeType.isIngestable(mimeType)
+                    || TextMimeType.isIngestable(mimeType);
     }
 
     public static String getFilesTempDirectory() {
