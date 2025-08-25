@@ -22,7 +22,7 @@
             <div style="#{fieldsLoop.last ? '': 'padding-bottom: 10px;'}" 
                  class="datasetfield-value #{datasetField.datasetFieldType.separableOnGui ? 'datasetfield-separable' : ''}">
                 <ui:repeat var="value" value="#{datasetField.values}" varStatus="valuesLoop">
-                        <c:set var="valueToDisplay" value="#{rendererFactory.getRendererFor(datasetField).render(value)}"/>
+                        <c:set var="valueToDisplay" value="#{datasetFieldValueRenderer.getRendererFor(datasetField).render(value)}"/>
                         <h:outputText value="#{valuesLoop.first?'':'; '}#{ valueToDisplay }"
                                 escape="false"/>
                 </ui:repeat>
@@ -38,7 +38,7 @@
 
                     <div jsf:rendered="#{childField.parentDisplayFormatIsNewLine}">
                             <ui:repeat value="#{childField.values}" var="value" varStatus="valuesLoop">
-                                <c:set var="valueToDisplay" value="#{rendererFactory.getRendererFor(childField).render(value)}"/>
+                                <c:set var="valueToDisplay" value="#{datasetFieldValueRenderer.getRendererFor(childField).render(value)}"/>
                                 <h:outputText value="#{valuesLoop.first?'':'; '}#{ valueToDisplay }"
                                         escape="false"/>
                             </ui:repeat>
