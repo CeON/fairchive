@@ -1,26 +1,17 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
-import edu.harvard.iq.dataverse.engine.command.CommandContext;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.engine.command.impl.FinalizeDatasetPublicationCommand;
-import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.User;
-import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import org.apache.commons.lang.RandomStringUtils;
+import static java.lang.Math.max;
+import static java.util.stream.Collectors.toList;
+
+import java.io.InputStream;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
@@ -36,19 +27,30 @@ import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 
-import static java.lang.Math.max;
-import static java.util.stream.Collectors.toList;
+import org.apache.commons.lang.RandomStringUtils;
 
-import java.io.InputStream;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
+import edu.harvard.iq.dataverse.engine.command.CommandContext;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.engine.command.impl.FinalizeDatasetPublicationCommand;
+import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLockRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.User;
+import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 /**
  * @author skraffmiller
@@ -81,6 +83,10 @@ public class DatasetDao implements java.io.Serializable {
 
     @EJB
     private DatasetThumbnailService datasetThumbnailService;
+    @EJB
+    private DatasetLockRepository datasetLockRepo;
+    @EJB
+    private DatasetVersionRepository datasetVersionRepo;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;
@@ -260,13 +266,10 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(AuthenticatedUser user){
-
-        TypedQuery<DatasetVersionUser> typedQuery =
-                em.createQuery("SELECT u from DatasetVersionUser u where u.authenticatedUser.id = :authenticatedUserId",
-                        DatasetVersionUser.class);
-        typedQuery.setParameter("authenticatedUserId", user.getId());
-        return typedQuery.getResultList();
+    public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(
+            final AuthenticatedUser user) {
+        return this.datasetVersionRepo
+                .getDatasetVersionUsersByAuthenticatedUser(user.getId());
     }
 
     public boolean checkDatasetLock(Long datasetId) {
@@ -277,18 +280,10 @@ public class DatasetDao implements java.io.Serializable {
         return lock.size() > 0;
     }
 
-    public List<DatasetLock> getDatasetLocksByUser( AuthenticatedUser user) {
-
-        TypedQuery<DatasetLock> query =
-                em.createNamedQuery("DatasetLock.getLocksByAuthenticatedUserId", DatasetLock.class);
-        query.setParameter("authenticatedUserId", user.getId());
-        try {
-            return query.getResultList();
-        } catch (javax.persistence.NoResultException e) {
-            return Collections.emptyList();
-        }
+    public List<DatasetLock> getDatasetLocksByUser(final AuthenticatedUser user) {
+        return this.datasetLockRepo.findByUser(user);
     }
-
+    
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public DatasetLock addDatasetLock(Dataset dataset, DatasetLock lock) {
         lock.setDataset(dataset);
