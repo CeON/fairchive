@@ -100,7 +100,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public List<Dataset> findAll() {
-        return em.createQuery("select object(o) from Dataset as o order by o.id", Dataset.class).getResultList();
+        return this.datasetRepository.findAll();
     }
     
     public List<Dataset> findStaleOrMissingDatasets() {
@@ -114,11 +114,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public List<Long> findAllLocalDatasetIds() {
-        return em.createQuery("SELECT o.id FROM Dataset o WHERE o.harvestedFrom IS null ORDER BY o.id", Long.class).getResultList();
-    }
-
-    public List<Long> findAllUnindexed() {
-        return em.createQuery("SELECT o.id FROM Dataset o WHERE o.indexTime IS null ORDER BY o.id DESC", Long.class).getResultList();
+        return this.datasetRepository.findAllLocalDatasetIds();
     }
 
     /**
