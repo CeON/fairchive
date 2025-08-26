@@ -1000,6 +1000,15 @@ div.form-col-container.edit-compound-field div.form-col-container.form-hidden-co
 	margin-right: 0;
 }
 
+.control-label-with-tooltip ~ .btn {
+	margin-top: -3px;
+	height: calc(1.8em - 0.833333333333em + 19.5px);
+
+	& span.glyphicon {
+		margin-right: 0;
+	}
+}
+
 /* Graphical text editor */
 
 .ql-container {
