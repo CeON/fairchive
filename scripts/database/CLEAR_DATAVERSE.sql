@@ -166,3 +166,6 @@ alter sequence builtinuser_id_seq restart with 2;
 --clear some settings
 delete from setting where "name" = ':NavbarAboutUrl';
 
+--clear exported dataset
+delete from oairecord;
+
