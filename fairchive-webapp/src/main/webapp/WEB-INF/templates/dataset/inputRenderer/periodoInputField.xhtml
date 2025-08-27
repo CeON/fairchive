@@ -29,7 +29,8 @@
             itemValue="#{suggestion.value}"
             autoSelection="false"
             autoHighlight="false"
-            maxResults="50"
+            maxResults="10"
+            moreText="#{bundle['periodo.moreText']}"
             queryDelay="700">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  
