@@ -1,6 +1,9 @@
 package edu.harvard.iq.dataverse.validation.field;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.ConditionalRendering;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRenderer;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRendererManager;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -21,11 +24,13 @@ public class DatasetFieldValidationDispatcher {
     private Map<String, List<ValidationDescriptor>> descriptorsCache = new HashMap<>();
 
     private FieldValidatorRegistry registry;
+    private InputFieldRendererManager inputFieldRendererManager;
 
     // -------------------- CONSTRUCTORS --------------------
 
-    DatasetFieldValidationDispatcher(FieldValidatorRegistry registry) {
+    DatasetFieldValidationDispatcher(FieldValidatorRegistry registry, InputFieldRendererManager inputFieldRendererManager) {
         this.registry = registry;
+        this.inputFieldRendererManager = inputFieldRendererManager;
     }
 
     // -------------------- LOGIC --------------------
@@ -77,18 +82,34 @@ public class DatasetFieldValidationDispatcher {
     private boolean isRequiredInDataverse(DatasetField field) {
         DatasetFieldType fieldType = field.getDatasetFieldType();
         if (fieldType.isRequired()) {
-            return true;
+            return isParentForConditionalRenderingSelected(field);
         }
 
         Dataverse dataverse = field.getTopParentDatasetField()
                 .getDatasetVersion()
                 .getDataset()
                 .getOwner().getMetadataBlockRootDataverse();
-        return dataverse.getDataverseFieldTypeInputLevels().stream()
+        boolean inputLevelRequired =  dataverse.getDataverseFieldTypeInputLevels().stream()
                 .filter(inputLevel -> inputLevel.getDatasetFieldType().equals(field.getDatasetFieldType()))
                 .map(DataverseFieldTypeInputLevel::isRequired)
                 .findFirst()
                 .orElse(false);
+
+        return inputLevelRequired && isParentForConditionalRenderingSelected(field);
+    }
+
+    private boolean isParentForConditionalRenderingSelected(DatasetField field) {
+        InputFieldRenderer renderer = this.inputFieldRendererManager.obtainRenderer(field.getDatasetFieldType());
+        if (renderer != null && renderer.getConditionalRendering().isDefined()) {
+            ConditionalRendering conditionalRendering = renderer.getConditionalRendering().get();
+            List<DatasetField> subfields = field.getParent()
+                    .map(DatasetField::getDatasetFieldsChildren)
+                    .getOrElse(Collections.emptyList());
+            return conditionalRendering.shouldRender(subfields);
+        }
+
+        // default case no conditional rendering
+        return true;
     }
 
     private List<ValidationDescriptor> retrieveDescriptors(DatasetField field) {
