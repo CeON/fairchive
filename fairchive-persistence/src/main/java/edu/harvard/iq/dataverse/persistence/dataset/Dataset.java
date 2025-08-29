@@ -53,9 +53,7 @@ import java.util.stream.Stream;
  */
 @NamedQueries({
         @NamedQuery(name = "Dataset.findByIdentifier",
-                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier"),
-        @NamedQuery(name = "Dataset.findByIdentifierAuthorityProtocol",
-                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier AND d.protocol=:protocol AND d.authority=:authority"),
+                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier")
 })
 
 /*

@@ -173,7 +173,7 @@ public class DatasetDao implements java.io.Serializable {
         String identifier = null;
         do {
             identifier = shoulder + RandomStringUtils.randomAlphanumeric(6).toUpperCase();
-        } while (!isIdentifierLocallyUnique(identifier, dataset));
+        } while (!this.datasetRepository.isIdentifierLocallyUnique(identifier, dataset));
 
         return identifier;
     }
@@ -191,7 +191,7 @@ public class DatasetDao implements java.io.Serializable {
                 return null;
             }
             identifier = shoulder + identifierNumeric.toString();
-        } while (!isIdentifierLocallyUnique(identifier, dataset));
+        } while (!this.datasetRepository.isIdentifierLocallyUnique(identifier, dataset));
 
         return identifier;
     }
@@ -207,7 +207,7 @@ public class DatasetDao implements java.io.Serializable {
      * @return {@code true} if the identifier is unique, {@code false} otherwise.
      */
     public boolean isIdentifierUnique(String userIdentifier, Dataset dataset, GlobalIdServiceBean persistentIdSvc) {
-        if (!isIdentifierLocallyUnique(userIdentifier, dataset)) {
+        if (!this.datasetRepository.isIdentifierLocallyUnique(userIdentifier, dataset)) {
             return false; // duplication found in local database
         }
 
@@ -220,16 +220,8 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    public boolean isIdentifierLocallyUnique(Dataset dataset) {
-        return isIdentifierLocallyUnique(dataset.getIdentifier(), dataset);
-    }
-
-    public boolean isIdentifierLocallyUnique(String identifier, Dataset dataset) {
-        return em.createNamedQuery("Dataset.findByIdentifierAuthorityProtocol")
-                .setParameter("identifier", identifier)
-                .setParameter("authority", dataset.getAuthority())
-                .setParameter("protocol", dataset.getProtocol())
-                .getResultList().isEmpty();
+    public boolean isIdentifierLocallyUnique(final Dataset dataset) {
+        return this.datasetRepository.isIdentifierLocallyUnique(dataset.getIdentifier(), dataset);
     }
 
     public DatasetVersion storeVersion(DatasetVersion dsv) {
