@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -155,8 +157,8 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public String generateDatasetIdentifier(Dataset dataset) {
-        String identifierType = settingsService.getValueForKey(SettingsServiceBean.Key.IdentifierGenerationStyle);
-        String shoulder = settingsService.getValueForKey(SettingsServiceBean.Key.Shoulder);
+        String identifierType = settingsService.getValueForKey(IdentifierGenerationStyle);
+        String shoulder = settingsService.getValueForKey(Shoulder);
 
         switch (identifierType) {
             case "randomString":
