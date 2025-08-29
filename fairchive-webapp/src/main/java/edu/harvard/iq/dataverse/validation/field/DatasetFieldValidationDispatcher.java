@@ -82,7 +82,7 @@ public class DatasetFieldValidationDispatcher {
     private boolean isRequiredInDataverse(DatasetField field) {
         DatasetFieldType fieldType = field.getDatasetFieldType();
         if (fieldType.isRequired()) {
-            return isParentForConditionalRenderingSelected(field);
+            return isFieldRendered(field);
         }
 
         Dataverse dataverse = field.getTopParentDatasetField()
@@ -95,10 +95,10 @@ public class DatasetFieldValidationDispatcher {
                 .findFirst()
                 .orElse(false);
 
-        return inputLevelRequired && isParentForConditionalRenderingSelected(field);
+        return inputLevelRequired && isFieldRendered(field);
     }
 
-    private boolean isParentForConditionalRenderingSelected(DatasetField field) {
+    private boolean isFieldRendered(DatasetField field) {
         InputFieldRenderer renderer = this.inputFieldRendererManager.obtainRenderer(field.getDatasetFieldType());
         if (renderer != null && renderer.getConditionalRendering().isDefined()) {
             ConditionalRendering conditionalRendering = renderer.getConditionalRendering().get();
