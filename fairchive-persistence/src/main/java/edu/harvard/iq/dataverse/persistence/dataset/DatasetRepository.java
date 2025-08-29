@@ -1,15 +1,14 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
-
-import javax.ejb.Singleton;
-import javax.persistence.TypedQuery;
-
+import static java.lang.Math.max;
 import static java.time.Instant.now;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.List;
+
+import javax.ejb.Singleton;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Singleton
 public class DatasetRepository extends JpaRepository<Long, Dataset> {
@@ -66,6 +65,30 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
                 "where d.id = o.id and d.embargoDate < :actualTimestamp and d.embargoDate > o.indexTime",
                 Dataset.class)
                 .setParameter("actualTimestamp", Timestamp.from(now()))
+                .getResultList();
+    }
+    
+    public List<Long> findAllOrSubset(final long numPartitions,
+            final long partitionId) {
+        return this.em.createQuery(
+                "SELECT o.id FROM Dataset o " + 
+                "WHERE MOD( o.id, :numPartitions) = :partitionId " +
+                "ORDER BY o.id",
+                Long.class)
+                .setParameter("numPartitions", max(numPartitions, 1))
+                .setParameter("partitionId", partitionId)
+                .getResultList();
+    }
+    
+    public List<Long> findAllOrSubsetSkippingIndexed(final long numPartitions,
+            final long partitionId) {
+        return this.em.createQuery(
+                "SELECT o.id FROM Dataset o " + 
+                "WHERE MOD( o.id, :numPartitions) = :partitionId AND o.indexTime is null " +
+                "ORDER BY o.id",
+                Long.class)
+                .setParameter("numPartitions", max(numPartitions, 1))
+                .setParameter("partitionId", partitionId)
                 .getResultList();
     }
 }

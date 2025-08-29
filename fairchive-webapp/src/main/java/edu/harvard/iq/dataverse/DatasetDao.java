@@ -1,12 +1,9 @@
 package edu.harvard.iq.dataverse;
 
-import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.InputStream;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -124,15 +121,11 @@ public class DatasetDao implements java.io.Serializable {
      * @return a list of datasets
      * @see DataverseDao#findAllOrSubset(long, long, boolean)
      */
-    public List<Long> findAllOrSubset(long numPartitions, long partitionId, boolean skipIndexed) {
-        numPartitions = max(numPartitions, 1);
-        String skipClause = skipIndexed ? "AND o.indexTime is null " : "";
-        TypedQuery<Long> typedQuery = em.createQuery("SELECT o.id FROM Dataset o WHERE MOD( o.id, :numPartitions) = :partitionId " +
-                                                             skipClause +
-                                                             "ORDER BY o.id", Long.class);
-        typedQuery.setParameter("numPartitions", numPartitions);
-        typedQuery.setParameter("partitionId", partitionId);
-        return typedQuery.getResultList();
+    public List<Long> findAllOrSubset(final long numPartitions, 
+            final long partitionId, final boolean skipIndexed) { 
+        return skipIndexed 
+                ? this.datasetRepository.findAllOrSubsetSkippingIndexed(numPartitions, partitionId)
+                : this.datasetRepository.findAllOrSubset(numPartitions, partitionId);
     }
 
     /**
