@@ -313,17 +313,17 @@ public class DatasetField implements Serializable, ValidatableField {
      * or controlled vocab value list (not formatted)
      */
     public List<String> getValuesWithoutFormatting() {
-        List<String> returnList = new ArrayList<>();
         if (!getFieldValue().isEmpty()) {
-            returnList.add(fieldValue);
+            return Collections.singletonList(fieldValue);
         } else {
+            List<String> returnList = new ArrayList<>();
             for (ControlledVocabularyValue cvv : controlledVocabularyValues) {
                 if (cvv != null && cvv.getLocaleStrValue() != null) {
                     returnList.add(cvv.getLocaleStrValue());
                 }
             }
+            return returnList;
         }
-        return returnList;
     }
 
 
