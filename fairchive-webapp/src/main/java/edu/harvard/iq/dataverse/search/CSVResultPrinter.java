@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.io.ByteOrderMark;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
@@ -104,17 +105,18 @@ public final class CSVResultPrinter {
         for(final DatasetField field : fields) {
             for(final DatasetField childField : field.getChildren()){
                 if(childField.isOfType(type)) {
-                    return childField.getDisplayValue();
+                    return String.join("; ", childField.getValuesWithoutFormatting());
                 }
             }
             if(field.isOfType(type)) {
-                return field.getDisplayValue();
+                return String.join("; ", field.getValuesWithoutFormatting());
             }
         }
         return null;
     }
 
     private CSVPrinter newPrinter(final OutputStream output) throws IOException {
+        output.write(ByteOrderMark.UTF_8.getBytes());
         return new CSVPrinter(new OutputStreamWriter(output, "utf-8"), format);
     }
 
