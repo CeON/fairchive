@@ -3,6 +3,12 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 import javax.ejb.Singleton;
+import javax.persistence.TypedQuery;
+
+import static java.time.Instant.now;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 
 @Singleton
@@ -51,6 +57,15 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
         return this.em.createQuery(
                 "SELECT o.id FROM Dataset o WHERE o.harvestedFrom IS null ORDER BY o.id", 
                 Long.class)
+                .getResultList();
+    }
+    
+    public List<Dataset> findNotIndexedAfterEmbargo() {
+        return this.em.createQuery(
+                "select d from Dataset d, DvObject o " + 
+                "where d.id = o.id and d.embargoDate < :actualTimestamp and d.embargoDate > o.indexTime",
+                Dataset.class)
+                .setParameter("actualTimestamp", Timestamp.from(now()))
                 .getResultList();
     }
 }

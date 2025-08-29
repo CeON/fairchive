@@ -108,9 +108,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public List<Dataset> findNotIndexedAfterEmbargo() {
-        TypedQuery<Dataset> typedQuery = em.createQuery("select d from Dataset d, DvObject o where d.id = o.id and d.embargoDate < :actualTimestamp and d.embargoDate > o.indexTime", Dataset.class);
-        typedQuery.setParameter("actualTimestamp", Timestamp.from(Instant.now()));
-        return typedQuery.getResultList();
+        return this.datasetRepository.findNotIndexedAfterEmbargo();
     }
 
     public List<Long> findAllLocalDatasetIds() {
