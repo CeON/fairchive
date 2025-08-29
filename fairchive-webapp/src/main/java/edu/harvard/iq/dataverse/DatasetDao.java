@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse;
 
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.InputStream;
 import java.sql.Timestamp;
@@ -10,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
@@ -28,6 +27,7 @@ import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
@@ -61,7 +61,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 @Stateless
 public class DatasetDao implements java.io.Serializable {
 
-    private static final Logger logger = Logger.getLogger(DatasetDao.class.getCanonicalName());
+    private static final Logger logger = getLogger(DatasetDao.class);
 
     @Inject
     SettingsServiceBean settingsService;
@@ -382,7 +382,7 @@ public class DatasetDao implements java.io.Serializable {
                                                          + ";").getSingleResult();
 
         } catch (Exception ex) {
-            logger.log(Level.INFO, "exception trying to get title from latest version: {0}", ex);
+            logger.info("exception trying to get title from latest version: {0}", ex);
             return "";
         }
 
@@ -419,11 +419,9 @@ public class DatasetDao implements java.io.Serializable {
 
     public Dataset setNonDatasetFileAsThumbnail(Dataset dataset, InputStream inputStream) {
         if (dataset == null) {
-            logger.fine("In setNonDatasetFileAsThumbnail but dataset is null! Returning null.");
             return null;
         }
         if (inputStream == null) {
-            logger.fine("In setNonDatasetFileAsThumbnail but inputStream is null! Returning null.");
             return null;
         }
         dataset = datasetThumbnailService.persistDatasetLogoToStorageAndCreateThumbnail(dataset, inputStream);
@@ -434,11 +432,9 @@ public class DatasetDao implements java.io.Serializable {
 
     public Dataset setDatasetFileAsThumbnail(Dataset dataset, DataFile datasetFileThumbnailToSwitchTo) {
         if (dataset == null) {
-            logger.fine("In setDatasetFileAsThumbnail but dataset is null! Returning null.");
             return null;
         }
         if (datasetFileThumbnailToSwitchTo == null) {
-            logger.fine("In setDatasetFileAsThumbnail but dataset is null! Returning null.");
             return null;
         }
         datasetThumbnailService.deleteDatasetLogo(dataset);
@@ -449,7 +445,6 @@ public class DatasetDao implements java.io.Serializable {
 
     public Dataset removeDatasetThumbnail(Dataset dataset) {
         if (dataset == null) {
-            logger.fine("In removeDatasetThumbnail but dataset is null! Returning null.");
             return null;
         }
         datasetThumbnailService.deleteDatasetLogo(dataset);
@@ -481,9 +476,8 @@ public class DatasetDao implements java.io.Serializable {
         try {
             Thread.sleep(15000);
         } catch (Exception ex) {
-            logger.warning("Failed to sleep for 15 seconds.");
+            logger.warn("Failed to sleep for 15 seconds.");
         }
-        logger.fine("Running FinalizeDatasetPublicationCommand, asynchronously");
         Dataset theDataset = find(datasetId);
         commandEngine.submit(new FinalizeDatasetPublicationCommand(theDataset, request, isPidPrePublished));
     }
