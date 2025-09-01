@@ -100,7 +100,7 @@ public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2Auth
 
     protected abstract ParsedUserResponse parseUserResponse(String responseBody);
 
-    public OAuth20Service getService(final String state, final String redirectUrl) {
+    protected OAuth20Service getService(final String state, final String redirectUrl) {
         final ServiceBuilder builder = new ServiceBuilder()
                 .apiKey(getClientId())
                 .apiSecret(getClientSecret())
