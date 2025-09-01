@@ -1,28 +1,29 @@
 package edu.harvard.iq.dataverse.authorization.providers.oauth2;
 
+import static com.github.scribejava.core.model.Verb.GET;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.hash;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.builder.api.BaseApi;
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
-import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth20Service;
+
 import edu.harvard.iq.dataverse.authorization.AuthenticationProviderDisplayInfo;
 import edu.harvard.iq.dataverse.authorization.EditableAccountField;
 import edu.harvard.iq.dataverse.authorization.EditableAccountFieldSets;
 import edu.harvard.iq.dataverse.authorization.common.ExternalIdpUserRecord;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
 import edu.harvard.iq.dataverse.persistence.user.OAuth2TokenData;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Base class for OAuth2 identity providers, such as GitHub and ORCiD.
@@ -31,31 +32,29 @@ import java.util.logging.Logger;
  */
 public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2AuthenticationProvider {
 
-    final static Logger logger = Logger.getLogger(AbstractOAuth2AuthenticationProvider.class.getName());
-
     protected static class ParsedUserResponse {
         public final AuthenticatedUserDisplayInfo displayInfo;
         public final String userIdInProvider;
         public final String username;
         public final List<String> emails = new ArrayList<>();
 
-        public ParsedUserResponse(AuthenticatedUserDisplayInfo aDisplayInfo, String aUserIdInProvider, String aUsername, List<String> someEmails) {
-            displayInfo = aDisplayInfo;
-            userIdInProvider = aUserIdInProvider;
-            username = aUsername;
-            emails.addAll(emails);
+        public ParsedUserResponse(final AuthenticatedUserDisplayInfo aDisplayInfo,
+                final String aUserIdInProvider, final String aUsername,
+                final List<String> emails) {
+            this.displayInfo = aDisplayInfo;
+            this.userIdInProvider = aUserIdInProvider;
+            this.username = aUsername;
+            this.emails.addAll(emails);
         }
 
-        public ParsedUserResponse(AuthenticatedUserDisplayInfo displayInfo, String userIdInProvider, String username) {
-            this(displayInfo, userIdInProvider, username, Collections.emptyList());
+        public ParsedUserResponse(final AuthenticatedUserDisplayInfo displayInfo, 
+                final String userIdInProvider, final String username) {
+            this(displayInfo, userIdInProvider, username, emptyList());
         }
 
         @Override
         public int hashCode() {
-            int hash = 7;
-            hash = 47 * hash + Objects.hashCode(this.userIdInProvider);
-            hash = 47 * hash + Objects.hashCode(this.username);
-            return hash;
+            return hash(this.userIdInProvider, this.username);
         }
 
         @Override
@@ -101,38 +100,38 @@ public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2Auth
 
     protected abstract ParsedUserResponse parseUserResponse(String responseBody);
 
-    public OAuth20Service getService(String state, String redirectUrl) {
-        ServiceBuilder svcBuilder = new ServiceBuilder()
+    public OAuth20Service getService(final String state, final String redirectUrl) {
+        final ServiceBuilder builder = new ServiceBuilder()
                 .apiKey(getClientId())
                 .apiSecret(getClientSecret())
                 .state(state)
                 .callback(redirectUrl);
-        if (scope != null) {
-            svcBuilder.scope(scope);
+        if (this.scope != null) {
+            builder.scope(this.scope);
         }
-        return svcBuilder.build(getApiInstance());
+        return builder.build(getApiInstance());
     }
 
     @Override
-    public String createAuthorizationUrl(String state, String redirectUrl) {
+    public String createAuthorizationUrl(final String state, final String redirectUrl) {
         return getService(state, redirectUrl).getAuthorizationUrl();
     }
 
     @Override
-    public ExternalIdpUserRecord getUserRecord(String code, String state, String redirectUrl) throws IOException, OAuth2Exception {
-        OAuth20Service service = getService(state, redirectUrl);
-        OAuth2AccessToken accessToken = service.getAccessToken(code);
-
+    public ExternalIdpUserRecord getUserRecord(final String code, 
+            final String state, final String redirectUrl) 
+                    throws IOException, OAuth2Exception {
+        final OAuth20Service service = getService(state, redirectUrl);
+        final OAuth2AccessToken accessToken = service.getAccessToken(code);
         final String userEndpoint = getUserEndpoint(accessToken);
 
-        final OAuthRequest request = new OAuthRequest(Verb.GET, userEndpoint, service);
-        request.addHeader("Authorization", "Bearer " + accessToken.getAccessToken());
+        final OAuthRequest request = new OAuthRequest(GET, userEndpoint, service);
+        request.addHeader("Authorization", "Bearer ".concat(accessToken.getAccessToken()));
         request.setCharset("UTF-8");
 
         final Response response = request.send();
-        int responseCode = response.getCode();
+        final int responseCode = response.getCode();
         final String body = response.getBody();
-        logger.log(Level.FINE, "In getUserRecord. Body: {0}", body);
 
         if (responseCode == 200) {
             final ParsedUserResponse parsed = parseUserResponse(body);
@@ -170,49 +169,49 @@ public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2Auth
 
     @Override
     public String getId() {
-        return id;
+        return this.id;
     }
 
     @Override
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public String getClientId() {
-        return clientId;
+        return this.clientId;
     }
 
     @Override
     public String getClientSecret() {
-        return clientSecret;
+        return this.clientSecret;
     }
 
-    public String getUserEndpoint(OAuth2AccessToken token) {
-        return baseUserEndpoint;
+    public String getUserEndpoint(final OAuth2AccessToken token) {
+        return this.baseUserEndpoint;
     }
 
     public String getRedirectUrl() {
-        return redirectUrl;
+        return this.redirectUrl;
     }
 
     public Optional<String> getIconHtml() {
         return Optional.empty();
     }
 
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(final String title) {
         this.title = title;
     }
 
-    public void setSubTitle(String subtitle) {
+    public void setSubTitle(final String subtitle) {
         this.subTitle = subtitle;
     }
 
     public String getSubTitle() {
-        return subTitle;
+        return this.subTitle;
     }
 
     @Override
