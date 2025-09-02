@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
+import com.amazonaws.thirdparty.ion.IonException;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.builder.api.BaseApi;
 import com.github.scribejava.core.model.OAuth2AccessToken;
@@ -101,8 +103,7 @@ public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2Auth
     protected abstract ParsedUserResponse parseUserResponse(String responseBody);
 
     protected OAuth20Service getService(final String state, final String redirectUrl) {
-        final ServiceBuilder builder = new ServiceBuilder()
-                .apiKey(getClientId())
+        final ServiceBuilder builder = new ServiceBuilder(getClientId())
                 .apiSecret(getClientSecret())
                 .state(state)
                 .callback(redirectUrl);
@@ -118,30 +119,35 @@ public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2Auth
     }
 
     @Override
-    public ExternalIdpUserRecord getUserRecord(final String code, 
-            final String state, final String redirectUrl) 
-                    throws IOException, OAuth2Exception {
-        final OAuth20Service service = getService(state, redirectUrl);
-        final OAuth2AccessToken accessToken = service.getAccessToken(code);
-        final String userEndpoint = getUserEndpoint(accessToken);
+    public ExternalIdpUserRecord getUserRecord(final String code,
+            final String state, final String redirectUrl)
+            throws IOException, OAuth2Exception {
+        try {
+            final OAuth20Service service = getService(state, redirectUrl);
+            final OAuth2AccessToken accessToken = service.getAccessToken(code);
+            final String userEndpoint = getUserEndpoint(accessToken);
 
-        final OAuthRequest request = new OAuthRequest(GET, userEndpoint, service);
-        request.addHeader("Authorization", "Bearer ".concat(accessToken.getAccessToken()));
-        request.setCharset("UTF-8");
+            final OAuthRequest request = new OAuthRequest(GET, userEndpoint);
+            service.signRequest(accessToken, request);
+            request.setCharset("UTF-8");
 
-        final Response response = request.send();
-        final int responseCode = response.getCode();
-        final String body = response.getBody();
+            final Response response = service.execute(request);
+            final int responseCode = response.getCode();
+            final String body = response.getBody();
 
-        if (responseCode == 200) {
-            final ParsedUserResponse parsed = parseUserResponse(body);
-            return new ExternalIdpUserRecord(getId(), parsed.userIdInProvider,
-                                        parsed.username,
-                                        OAuth2TokenData.from(accessToken),
-                                        parsed.displayInfo,
-                                        parsed.emails);
-        } else {
-            throw new OAuth2Exception(responseCode, body, "Error getting the user info record.");
+            if (responseCode == 200) {
+                final ParsedUserResponse parsed = parseUserResponse(body);
+                return new ExternalIdpUserRecord(getId(), parsed.userIdInProvider,
+                        parsed.username,
+                        OAuth2TokenData.from(accessToken),
+                        parsed.displayInfo,
+                        parsed.emails);
+            } else {
+                throw new OAuth2Exception(responseCode, body,
+                        "Error getting the user info record.");
+            }
+        } catch (final ExecutionException | InterruptedException e) {
+            throw new IOException(e);
         }
     }
 
