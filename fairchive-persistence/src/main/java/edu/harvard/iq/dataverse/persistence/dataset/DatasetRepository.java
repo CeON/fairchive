@@ -95,7 +95,7 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
     public boolean isIdentifierLocallyUnique(final String identifier, final Dataset dataset) {
         return this.em.createQuery(
                     "SELECT d FROM Dataset d " +
-                    "HERE d.identifier=:id AND d.protocol=:protocol AND d.authority=:authority")
+                    "WHERE d.identifier=:id AND d.protocol=:protocol AND d.authority=:authority")
                 .setParameter("id", identifier)
                 .setParameter("authority", dataset.getAuthority())
                 .setParameter("protocol", dataset.getProtocol())
