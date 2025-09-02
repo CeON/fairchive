@@ -86,7 +86,7 @@ pipeline {
             post {
                 always {
                     junit skipPublishingChecks: true, testResults: '**/target/surefire-reports/*.xml'
-            		jacoco()
+                    recordCoverage(tools: [[parser: 'JACOCO']])
             	}
             }
         }
