@@ -402,7 +402,7 @@ public abstract class AbstractApiBean {
         return dsv;
     }
 
-    protected Command<DatasetVersion> chooseCommandForVersionFinding(String versionId, Dataset ds, DataverseRequest req)
+    private Command<DatasetVersion> chooseCommandForVersionFinding(String versionId, Dataset ds, DataverseRequest req)
             throws WrappedResponse {
         switch (versionId) {
             case ":latest":
