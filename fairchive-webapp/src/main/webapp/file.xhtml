@@ -233,10 +233,8 @@
 
 
                                 <!-- Explore/Download/Request Button Block -->
-                                <div class="button-container btn-group" jsf:rendered="#{(!FilePage.datasetDeaccesioned or
-                                                                                            (FilePage.datasetDeaccesioned and FilePage.canUpdateDataset()))
-                                                                                             and (!FilePage.fileMetadata.dataFile.filePackage or
-                                                                                                   FilePage.fileMetadata.dataFile.filePackage and systemConfig.HTTPDownload)}">
+                                <div class="button-container btn-group" 
+                                     jsf:rendered="#{FilePage.displayDownloadButtons()}">
                                     <iqbs:fileDownloadButtons
                                         fileMetadata="#{FilePage.fileMetadata}"
                                         lockedFromDownload="#{FilePage.isLockedFromDownload()}"

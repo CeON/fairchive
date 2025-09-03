@@ -336,6 +336,14 @@ public class FilePage implements java.io.Serializable {
                                 && this.file.getFileMetadata().getDatasetVersion()
                                         .getDataset().isReleased()));
     }
+    
+    public boolean displayDownloadButtons() {
+        return (!isDatasetDeaccesioned() ||
+                (isDatasetDeaccesioned() && canUpdateDataset()))
+                && (!this.file.isFilePackage() ||
+                        this.file.isFilePackage()
+                                && this.systemConfig.isHTTPDownload());
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
