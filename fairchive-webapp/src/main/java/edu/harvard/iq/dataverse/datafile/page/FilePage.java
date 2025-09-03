@@ -317,6 +317,11 @@ public class FilePage implements java.io.Serializable {
                 && !(this.datafileService.hasReplacement(this.file)
                         || this.datafileService.hasBeenDeleted(this.file));
     }
+    
+    public boolean displayDeleteMenuItem() {
+        return !this.file.isReleased() || !this.file.isFilePackage();
+    }
+    
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(

@@ -217,7 +217,7 @@
                                                 </p:commandLink>
                                             <!-- end replace file link --></li>
                                             </ui:fragment>
-                                            <ui:fragment rendered="#{!FilePage.fileMetadata.dataFile.released or !FilePage.fileMetadata.dataFile.filePackage}">
+                                            <ui:fragment rendered="#{FilePage.displayDeleteMenuItem()}">
                                                 <li role="none">
                                                     <p:commandLink
                                                                pt:role="menuitem"
