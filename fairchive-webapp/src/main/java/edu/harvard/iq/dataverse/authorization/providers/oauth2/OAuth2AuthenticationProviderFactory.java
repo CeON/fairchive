@@ -13,6 +13,7 @@ import edu.harvard.iq.dataverse.authorization.providers.AuthenticationProviderFa
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.impl.GitHubOAuth2AP;
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.impl.GoogleOAuth2AP;
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.impl.OrcidOAuth2AP;
+import edu.harvard.iq.dataverse.authorization.providers.oauth2.impl.PBIOauth2AP;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticationProviderRow;
 
 /**
@@ -31,6 +32,8 @@ public class OAuth2AuthenticationProviderFactory implements AuthenticationProvid
                 data.get("clientSecret")));
         this.builders.put("orcid", data -> new OrcidOAuth2AP(data.get("clientId"),
                 data.get("clientSecret"), data.get("userEndpoint")));
+        this.builders.put("pbi", data -> new PBIOauth2AP(data.get("clientId"),
+                data.get("clientSecret")));
     }
 
     @Override
