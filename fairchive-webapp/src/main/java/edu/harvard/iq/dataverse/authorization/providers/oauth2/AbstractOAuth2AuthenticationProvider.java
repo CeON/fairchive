@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import com.amazonaws.thirdparty.ion.IonException;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.builder.api.BaseApi;
 import com.github.scribejava.core.model.OAuth2AccessToken;
@@ -22,7 +21,6 @@ import com.github.scribejava.core.oauth.OAuth20Service;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationProviderDisplayInfo;
 import edu.harvard.iq.dataverse.authorization.EditableAccountField;
-import edu.harvard.iq.dataverse.authorization.EditableAccountFieldSets;
 import edu.harvard.iq.dataverse.authorization.common.ExternalIdpUserRecord;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
 import edu.harvard.iq.dataverse.persistence.user.OAuth2TokenData;
@@ -158,7 +156,7 @@ public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2Auth
 
     @Override
     public Set<EditableAccountField> getEditableFields() {
-        return EditableAccountFieldSets.secondaryFields();
+        return EditableAccountField.secondary();
     }
 
     @Override

@@ -148,7 +148,7 @@ public interface AuthenticationProvider {
      * Returns the set of fields that user can edit after account creation is done.
      */
     default Set<EditableAccountField> getEditableFields() {
-        return isUserInfoUpdateAllowed() ? EditableAccountFieldSets.allFields() : EditableAccountFieldSets.noFields();
+        return isUserInfoUpdateAllowed() ? EditableAccountField.all() : EditableAccountField.none();
     }
 }
 
