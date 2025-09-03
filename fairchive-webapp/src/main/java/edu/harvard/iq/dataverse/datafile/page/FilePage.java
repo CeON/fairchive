@@ -328,6 +328,14 @@ public class FilePage implements java.io.Serializable {
                 && !this.file.isFilePackage();
     }
     
+    public boolean displayAlreadyReplacedManuItem() {
+        return !this.file.isFilePackage()
+                && ((this.file.isReleased()
+                        && isDraftReplacementFile() == true)
+                        || (!this.file.isReleased()
+                                && this.file.getFileMetadata().getDatasetVersion()
+                                        .getDataset().isReleased()));
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
