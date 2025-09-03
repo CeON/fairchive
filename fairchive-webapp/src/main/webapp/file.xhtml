@@ -157,9 +157,7 @@
                                         </p:commandLink>
                                     </div>
                                     <div class="btn-group" 
-                                         jsf:rendered="#{FilePage.canUpdateDataset()
-                                                             and !FilePage.lockedFromEdits
-                                                             and !(dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile))}"
+                                         jsf:rendered="#{FilePage.displayEditMenu()}"
                                           >
                                         <button type="button" 
                                                 id="editFile"

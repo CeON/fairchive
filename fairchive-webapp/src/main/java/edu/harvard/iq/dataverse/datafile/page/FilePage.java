@@ -310,6 +310,13 @@ public class FilePage implements java.io.Serializable {
     public boolean displayPreviewArea() {
         return !isDownloadPopupRequired() || getGuestbookResponseProvided();
     }
+    
+    public boolean displayEditMenu() throws Exception {
+        return canUpdateDataset()
+                && !isLockedFromEdits()
+                && !(this.datafileService.hasReplacement(this.file)
+                        || this.datafileService.hasBeenDeleted(this.file));
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
