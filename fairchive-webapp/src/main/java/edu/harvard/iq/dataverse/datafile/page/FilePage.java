@@ -37,6 +37,8 @@ import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.dataaccess.DataAccess;
+import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean.RetrieveDatasetVersionResponse;
@@ -324,6 +326,17 @@ public class FilePage implements java.io.Serializable {
         return fileMetadata.getId() != null
                 && fileMetadata.getDatasetVersion().getId() != null
                 && FileUtil.isRequestAccessPopupRequired(fileMetadata);
+    }
+    
+    public boolean isOCRedFilePresent() {
+        try {
+            final StorageIO<DataFile> storage = DataAccess.dataAccess()
+                    .getStorageIO(this.file);
+            return storage.isAuxObjectCached("ocr");
+        } catch (final IOException e) {
+            logger.warning(e.toString());
+            return false;
+        }
     }
 
     public List<String[]> getExporters() {
