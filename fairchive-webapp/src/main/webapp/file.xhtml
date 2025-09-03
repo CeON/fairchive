@@ -197,7 +197,7 @@
                                                                   value="#{bundle['file.dataFilesTab.metadata.header']}"/>
                                                 </h:outputLink>
                                             </li>
-                                            <ui:fragment rendered="#{FilePage.fileMetadata.dataFile.released and FilePage.draftReplacementFile == false and !FilePage.fileMetadata.dataFile.filePackage}">
+                                            <ui:fragment rendered="#{FilePage.displayReplaceMenuItem()}">
                                             <li role="none"><!-- start: replace file link -->
                                                 <h:outputLink value="/replaceDatasetfiles.xhtml" 
                                                               role="menuitem">

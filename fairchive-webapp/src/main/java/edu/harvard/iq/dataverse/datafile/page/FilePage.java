@@ -322,6 +322,12 @@ public class FilePage implements java.io.Serializable {
         return !this.file.isReleased() || !this.file.isFilePackage();
     }
     
+    public boolean displayReplaceMenuItem() {
+        return this.file.isReleased()
+                && isDraftReplacementFile() == false
+                && !this.file.isFilePackage();
+    }
+    
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
