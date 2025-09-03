@@ -8,6 +8,8 @@ import org.apache.solr.client.solrj.beans.Field;
 
 public class GeoName {    
     
+    private static final int MAX_ALT_NAMES_LENGTH = 50;
+    
     private int id;
     @Field
     private String name;
@@ -158,9 +160,14 @@ public class GeoName {
         if (isNotBlank(this.alternateNames)) {
             result.append(beginDecorator)
                     .append(getStringFromBundle("geoname.altnames"))
-                    .append(endDecorator).append(": ")
-                    .append(this.alternateNames)
-                    .append(separator);
+                    .append(endDecorator).append(": ");
+            if (this.alternateNames.length() > MAX_ALT_NAMES_LENGTH) {
+                result.append(this.alternateNames, 0, MAX_ALT_NAMES_LENGTH)
+                        .append(" ...");
+            } else {
+                result.append(this.alternateNames);
+            }
+            result.append(separator);
         }
         result.append(beginDecorator)
                 .append(getStringFromBundle("geonames.featurecode"))
