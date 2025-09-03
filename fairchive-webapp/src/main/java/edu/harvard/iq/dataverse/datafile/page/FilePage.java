@@ -336,7 +336,7 @@ public class FilePage implements java.io.Serializable {
                 temp[0] = exporter.getDisplayName();
                 temp[1] = myHostURL + "/api/datasets/export?exporter=" 
                         + exporter.getProviderName() + "&persistentId="
-                        + dataset.getGlobalIdString();
+                        + dataset.getGlobalId();
                 retList.add(temp);
             }
         }
@@ -668,7 +668,7 @@ public class FilePage implements java.io.Serializable {
     }
 
     private String returnToDatasetOnly(Dataset draftDataset) {
-        return "/dataset.xhtml?persistentId=" + draftDataset.getGlobalIdString() 
+        return "/dataset.xhtml?persistentId=" + draftDataset.getGlobalId() 
                + "&version=DRAFT&faces-redirect=true";
     }
 
