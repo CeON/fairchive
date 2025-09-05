@@ -79,9 +79,6 @@ public class SAVFileReaderSpi extends TabularDataFileReaderSpi {
         } else {
             dbgLog.fine("not File object");
         }
-        if (source == null) {
-            throw new IllegalArgumentException("source == null!");
-        }
         BufferedInputStream stream = (BufferedInputStream) source;
 
         dbgLog.fine("applying the sav test\n");
@@ -96,14 +93,11 @@ public class SAVFileReaderSpi extends TabularDataFileReaderSpi {
         if (nbytes == 0) {
             throw new IOException();
         }
-        //printHexDump(b, "hex dump of the byte-array");
         dbgLog.fine("hex dump of the 1st 4 bytes[$FL2 == 24 46 4C 32]=" +
                             new String(Hex.encodeHex(b)));
         if (stream.markSupported()) {
             stream.reset();
         }
-
-        boolean DEBUG = false;
 
         String hdr4sav = new String(b);
         dbgLog.fine("from string[$FL2 == 24 46 4C 32]=" + new String(Hex.encodeHex(b)).toUpperCase());
@@ -136,7 +130,6 @@ public class SAVFileReaderSpi extends TabularDataFileReaderSpi {
         if (nbytes == 0) {
             throw new IOException();
         }
-        //printHexDump(b, "hex dump of the byte-array");
         dbgLog.fine("hex dump of the 1st 4 bytes[$FL2 == 24 46 4C 32]=" +
                             (new String(Hex.encodeHex(b))).toUpperCase());
 
@@ -144,8 +137,6 @@ public class SAVFileReaderSpi extends TabularDataFileReaderSpi {
         if (stream.markSupported()) {
             stream.reset();
         }
-
-        boolean DEBUG = false;
 
         String hdr4sav = new String(b);
         dbgLog.fine("from string[$FL2 == 24 46 4C 32]=" + new String(Hex.encodeHex(b)).toUpperCase());
@@ -177,13 +168,10 @@ public class SAVFileReaderSpi extends TabularDataFileReaderSpi {
         // create a read-only MappedByteBuffer
         MappedByteBuffer buff = srcChannel.map(FileChannel.MapMode.READ_ONLY, 0, SAV_HEADER_SIZE);
 
-        //printHexDump(buff, "hex dump of the byte-buffer");
         dbgLog.fine("hex dump of the 1st 4 bytes[$FL2 == 24 46 4C 32]=" +
                             new String(Hex.encodeHex(buff.array())));
 
         buff.rewind();
-
-        boolean DEBUG = false;
 
         byte[] hdr4 = new byte[4];
         buff.get(hdr4, 0, 4);
