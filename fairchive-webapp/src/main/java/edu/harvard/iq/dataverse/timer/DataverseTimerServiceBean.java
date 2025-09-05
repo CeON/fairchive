@@ -1,26 +1,16 @@
 package edu.harvard.iq.dataverse.timer;
 
-import com.google.api.client.util.Preconditions;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.datafile.FileIntegrityChecker;
-import edu.harvard.iq.dataverse.datafile.pojo.FilesIntegrityReport;
-import edu.harvard.iq.dataverse.dataset.DatasetCitationsCountUpdater;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.harvest.client.HarvesterParams;
-import edu.harvard.iq.dataverse.harvest.client.HarvestTimerInfo;
-import edu.harvard.iq.dataverse.harvest.client.HarvesterServiceBean;
-import edu.harvard.iq.dataverse.harvest.client.HarvestingClientDao;
-import edu.harvard.iq.dataverse.harvest.server.OAISetServiceBean;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang3.StringUtils;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -36,16 +26,32 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.api.client.util.Preconditions;
+
+import edu.harvard.iq.dataverse.DatasetDao;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.datafile.FileIntegrityChecker;
+import edu.harvard.iq.dataverse.datafile.pojo.FilesIntegrityReport;
+import edu.harvard.iq.dataverse.dataset.DatasetCitationsCountUpdater;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
+import edu.harvard.iq.dataverse.harvest.client.HarvestTimerInfo;
+import edu.harvard.iq.dataverse.harvest.client.HarvesterParams;
+import edu.harvard.iq.dataverse.harvest.client.HarvesterServiceBean;
+import edu.harvard.iq.dataverse.harvest.client.HarvestingClientDao;
+import edu.harvard.iq.dataverse.harvest.server.OAISetServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 
 /**
@@ -56,11 +62,12 @@ import java.util.logging.Logger;
  * ported by
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 @Singleton
 @Startup
 @DependsOn("StartupFlywayMigrator")
 public class DataverseTimerServiceBean implements Serializable {
-    private static final Logger logger = Logger.getLogger(DataverseTimerServiceBean.class.getCanonicalName());
+    private static final Logger logger = getLogger(DataverseTimerServiceBean.class);
 
     @Resource
     javax.ejb.TimerService timerService;
@@ -136,11 +143,6 @@ public class DataverseTimerServiceBean implements Serializable {
     }
 
     public void createTimer(Date initialExpiration, long intervalDuration, Serializable info) {
-        try {
-            logger.log(Level.INFO, "Creating timer on " + InetAddress.getLocalHost().getCanonicalHostName());
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(DataverseTimerServiceBean.class.getName()).log(Level.SEVERE, null, ex);
-        }
         timerService.createIntervalTimer(initialExpiration, intervalDuration, new TimerConfig(info, false));
     }
 
@@ -158,19 +160,12 @@ public class DataverseTimerServiceBean implements Serializable {
         // if an exception is thrown from this method, Glassfish will automatically
         // call the method a second time. (The minimum number of re-tries for a Timer method is 1)
         if (systemConfig.isReadonlyMode()) {
-            Logger.getLogger(DataverseTimerServiceBean.class.getName()).log(Level.WARNING, null, "handleTimeout() was called in readonly mode - skipping timeout handling");
+            logger.warn("handleTimeout() was called in readonly mode - skipping timeout handling");
             return;
         }
 
         if (!systemConfig.isTimerServer()) {
-            //logger.info("I am not the timer server! - bailing out of handleTimeout()");
-            Logger.getLogger(DataverseTimerServiceBean.class.getName()).log(Level.WARNING, null, "I am not the timer server! - but handleTimeout() got called. Please investigate!");
-        }
-
-        try {
-            logger.log(Level.INFO, "Handling timeout on " + InetAddress.getLocalHost().getCanonicalHostName());
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(DataverseTimerServiceBean.class.getName()).log(Level.SEVERE, null, ex);
+            logger.warn("I am not the timer server! - but handleTimeout() got called. Please investigate!");
         }
 
         if (timer.getInfo() instanceof MotherTimerInfo) {
@@ -183,7 +178,7 @@ public class DataverseTimerServiceBean implements Serializable {
             HarvestTimerInfo info = (HarvestTimerInfo) timer.getInfo();
             try {
 
-                logger.log(Level.INFO, "running a harvesting client: id=" + info.getHarvestingClientId());
+                logger.info("running a harvesting client: id=" + info.getHarvestingClientId());
                 // Timer batch jobs are run by the main Admin user.
                 // TODO: revisit how we retrieve the superuser here.
                 // Should it be configurable somewhere, which superuser
@@ -262,14 +257,14 @@ public class DataverseTimerServiceBean implements Serializable {
         // since this code is only called on startup of the application,
         // and it may be useful to know what existing timers were encountered).
 
-        logger.log(Level.INFO, "Removing existing harvest timers..");
+        logger.info("Removing existing harvest timers..");
 
         int i = 1;
         for(final Timer timer : timerService.getTimers()) {
-            logger.log(Level.INFO, "HarvesterService: checking timer " + i);
+            logger.info("HarvesterService: checking timer " + i);
 
             if (timer.getInfo() instanceof HarvestTimerInfo) {
-                logger.log(Level.INFO, "HarvesterService: timer " + i + " is a harvesting one; removing.");
+                logger.info("HarvesterService: timer " + i + " is a harvesting one; removing.");
                 timer.cancel();
             }
 
@@ -311,7 +306,7 @@ public class DataverseTimerServiceBean implements Serializable {
                 initExpiration.set(Calendar.DAY_OF_WEEK, harvestingClient.getScheduleDayOfWeek() + 1); //(saved as zero-based array but Calendar is one-based.)
 
             } else {
-                logger.log(Level.WARNING, "Could not set timer for harvesting client id=" + harvestingClient.getId() + ", unknown schedule period: " + harvestingClient.getSchedulePeriod());
+                logger.warn("Could not set timer for harvesting client id=" + harvestingClient.getId() + ", unknown schedule period: " + harvestingClient.getSchedulePeriod());
                 return;
             }
             Date initExpirationDate = initExpiration.getTime();
@@ -319,18 +314,12 @@ public class DataverseTimerServiceBean implements Serializable {
             if (initExpirationDate.before(currTime)) {
                 initExpirationDate.setTime(initExpiration.getTimeInMillis() + intervalDuration);
             }
-            logger.log(Level.INFO, "Setting timer for harvesting client " + harvestingClient.getName() + ", initial expiration: " + initExpirationDate);
+            logger.info("Setting timer for harvesting client " + harvestingClient.getName() + ", initial expiration: " + initExpirationDate);
             createTimer(initExpirationDate, intervalDuration, new HarvestTimerInfo(harvestingClient.getId()));
         }
     }
 
     public void removeHarvestTimer(HarvestingClient harvestingClient) {
-        // Clear dataverse timer, if one exists
-        try {
-            logger.log(Level.INFO, "Removing harvest timer on " + InetAddress.getLocalHost().getCanonicalHostName());
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(DataverseTimerServiceBean.class.getName()).log(Level.SEVERE, null, ex);
-        }
         for (Iterator it = timerService.getTimers().iterator(); it.hasNext(); ) {
             Timer timer = (Timer) it.next();
             if (timer.getInfo() instanceof HarvestTimerInfo) {
@@ -438,7 +427,7 @@ public class DataverseTimerServiceBean implements Serializable {
             fullMessage += message;
             cause = true;
         } while ((e = e.getCause()) != null);
-        logger.severe(fullMessage);
+        logger.error(fullMessage);
     }
 
 }
