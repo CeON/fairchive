@@ -1,5 +1,40 @@
 package edu.harvard.iq.dataverse.dataset.datasetversion;
 
+import static edu.harvard.iq.dataverse.batch.jobs.importer.filesystem.FileRecordJobListener.SEP;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.ValidationException;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -24,44 +59,11 @@ import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.validation.ConstraintViolation;
-import javax.validation.ValidationException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static edu.harvard.iq.dataverse.batch.jobs.importer.filesystem.FileRecordJobListener.SEP;
 
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Named
 @Stateless
 public class DatasetVersionServiceBean implements java.io.Serializable {
@@ -898,70 +900,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         return hashList;
     } // end getBasicDatasetVersionInfo
 
-
-    public HashMap getFileMetadataHistory(DataFile df) {
-
-        if (df == null) {
-            throw new NullPointerException("DataFile 'df' cannot be null");
-        }
-
-        String rootFileIdClause = "";
-        if (df.getRootDataFileId() != null) {
-            rootFileIdClause = " OR rootdatafileid = " + df.getRootDataFileId();
-        }
-
-        List<String> colsToRetrieve = Arrays.asList("df.id", "df.contenttype"
-                , "df.filesize", "df.checksumtype", "df.checksumvalue"
-                , "fm.label", "fm.description", "fm.version"
-        );
-
-        String colsToRetrieveString = StringUtils.join(colsToRetrieve, ",");
-
-
-        String query = "SELECT " + colsToRetrieveString
-                + " FROM datafile df, filemetadata fm"
-                + " WHERE (df.id = " + df.getId()
-                + "    OR rootdatafileid = " + df.getId()
-                + rootFileIdClause + ")"
-                + " AND fm.datafile_id = df.id"
-                + " ORDER BY df.id;";
-
-        Query nativeQuery = em.createNativeQuery(query);
-        List<Object[]> infoList = nativeQuery.getResultList();
-
-        List<HashMap> hashList = new ArrayList<>();
-
-        /*
-        HashMap mMap;
-        List<String> hashKeys = colsToRetrieve.stream()
-                                  .map(String :: trim)
-          */
-
-        /*
-                                                        .map(x -> x.getTypeLabel())
-w
-                 return tagsToCheck.stream()
-                        .filter(p -> p != null)         // no nulls
-                        .map(String :: trim)            // strip strings
-                        .filter(p -> p.length() > 0 )   // no empty strings
-                        .distinct()                     // distinct
-                        .collect(Collectors.toList());
-                */
-        return null;/*
-        for (Object[] dvInf: infoList) {
-
-            mMap = new HashMap();
-            for(int idx=0; idx < colsToRetrieve.size(); idx++){
-                String keyName = colsToRetrieve.get(idx);
-                if ()
-                mMap.put(colsToRetrieve.get(idx), dvInfo[idx]);
-            }
-            hashList.add(mMap);
-        }
-        return hashList;
-        */
-    }
-
     public JsonObjectBuilder fixMissingUnf(String datasetVersionId, boolean forceRecalculate) {
         JsonObjectBuilder info = Json.createObjectBuilder();
         if (datasetVersionId == null || datasetVersionId.isEmpty()) {
@@ -992,7 +930,7 @@ w
 
                 if (isFileUnfsIdentical(fileUnfsInVersion, fileUnfsInPreviousVersion)) {
                     datasetVersion.setUNF(previousDatasetVersion.getUNF());
-                    DatasetVersion saved = em.merge(datasetVersion);
+                    em.merge(datasetVersion);
                     info.add("message", "Dataset version (id=" + datasetVersionId + ") has the same tabular file UNFs as a previous version. Assigned the UNF of the previous version without recalculation (" + previousDatasetVersion.getUNF() + "). Use the --forceRecalculate option if you insist on recalculating this UNF.");
                 }
             }
@@ -1007,7 +945,7 @@ w
 
         // reindexing the dataset, to make sure the new UNF is in SOLR:
         boolean doNormalSolrDocCleanUp = true;
-        Future<String> indexingResult = indexService.indexDataset(datasetVersion.getDataset(), doNormalSolrDocCleanUp);
+        indexService.indexDataset(datasetVersion.getDataset(), doNormalSolrDocCleanUp);
 
         return info;
     }
