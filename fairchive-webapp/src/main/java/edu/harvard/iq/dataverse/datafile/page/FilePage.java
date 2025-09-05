@@ -328,10 +328,10 @@ public class FilePage implements java.io.Serializable {
                 && !this.file.isFilePackage();
     }
     
-    public boolean displayAlreadyReplacedManuItem() {
+    public boolean displayAlreadyReplacedMenuItem() {
         return !this.file.isFilePackage()
                 && ((this.file.isReleased()
-                        && isDraftReplacementFile() == true)
+                        && isDraftReplacementFile())
                         || (!this.file.isReleased()
                                 && this.file.getFileMetadata().getDatasetVersion()
                                         .getDataset().isReleased()));
@@ -368,7 +368,7 @@ public class FilePage implements java.io.Serializable {
                     .getStorageIO(this.file);
             return storage.isAuxObjectCached("ocr");
         } catch (final IOException e) {
-            logger.warning(e.toString());
+            logger.warning("Problem with checking ocr file on file page" + e.toString());
             return false;
         }
     }
