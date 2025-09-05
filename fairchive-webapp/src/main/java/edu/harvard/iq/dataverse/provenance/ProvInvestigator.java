@@ -65,7 +65,7 @@ public class ProvInvestigator {
                         e.fileName = s.getValue().getAsString();
                     } else if ("type".equals(key) || key.endsWith(":type")) {
                         if (s.getValue().isJsonObject()) {
-                            for (Map.Entry tEntry : s.getValue().getAsJsonObject().entrySet()) {
+                            for (Map.Entry<String, JsonElement> tEntry : s.getValue().getAsJsonObject().entrySet()) {
                                 String tKey = (String) tEntry.getKey();
                                 if ("type".equals(tKey) || tKey.endsWith(":type")) {
                                     ProvEntityFileData e = provJsonParsedEntities.get(outerKey);
