@@ -57,6 +57,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLev
  *
  * @author Stephen Kraffmiller
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "DatasetFieldType.findByName",
                 query = "SELECT dft FROM DatasetFieldType dft WHERE dft.name=:name"),

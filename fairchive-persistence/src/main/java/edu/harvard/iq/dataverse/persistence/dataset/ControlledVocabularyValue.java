@@ -23,6 +23,7 @@ import java.util.Objects;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "datasetfieldtype_id"), @Index(columnList = "displayorder")})
 public class ControlledVocabularyValue implements Serializable {

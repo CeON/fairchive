@@ -23,16 +23,15 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 /**
  * @author tjanek
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "dataverse_id")})
 public class DataverseTextMessage implements Serializable {
 
-    private static final Logger logger = Logger.getLogger(DataverseTextMessage.class.getCanonicalName());
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -640,12 +640,12 @@ public class Dataset extends DvObjectContainer {
             return null;
         }
         if (HarvestStyle.DATAVERSE.equals(getHarvestedFrom().getHarvestStyle())) {
-            return getHarvestedFrom().getArchiveUrl() + "/dataset.xhtml?persistentId=" + getGlobalIdString();
+            return getHarvestedFrom().getArchiveUrl() + "/dataset.xhtml?persistentId=" + getGlobalId();
         } else if (HarvestStyle.VDC.equals(getHarvestedFrom().getHarvestStyle())) {
             String rootArchiveUrl = getHarvestedFrom().getHarvestingUrl();
             int c = rootArchiveUrl.indexOf("/OAIHandler");
             return c > 0
-                    ? rootArchiveUrl.substring(0, c) + "/faces/study/StudyPage.xhtml?globalId=" + getGlobalIdString()
+                    ? rootArchiveUrl.substring(0, c) + "/faces/study/StudyPage.xhtml?globalId=" + getGlobalId()
                     : null;
         } else if (HarvestStyle.ICPSR.equals(getHarvestedFrom().getHarvestStyle())) {
             // For the ICPSR, it turns out that the best thing to do is to

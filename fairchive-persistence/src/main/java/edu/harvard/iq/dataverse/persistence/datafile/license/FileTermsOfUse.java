@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.datafile.license;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.persistence.Column;
