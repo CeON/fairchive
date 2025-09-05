@@ -1,12 +1,22 @@
 package edu.harvard.iq.dataverse.workflow.execution;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.ejb.Singleton;
+import javax.inject.Inject;
+
+import org.awaitility.Awaitility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.group.IpAddress;
-import edu.harvard.iq.dataverse.persistence.user.ApiToken;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.persistence.workflow.Workflow;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowContextSource;
@@ -15,18 +25,6 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowExecutionContextSou
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowExecutionRepository;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import org.awaitility.Awaitility;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.Singleton;
-import javax.inject.Inject;
-import java.sql.Timestamp;
-import java.time.Clock;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * A factory responsible for creating a {@link WorkflowExecutionContext} from different sources of data.
