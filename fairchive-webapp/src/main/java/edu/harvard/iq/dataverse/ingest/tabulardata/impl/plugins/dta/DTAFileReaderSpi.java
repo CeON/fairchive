@@ -88,9 +88,6 @@ public class DTAFileReaderSpi extends TabularDataFileReaderSpi {
         if (!(source instanceof BufferedInputStream)) {
             return false;
         }
-        if (source == null) {
-            throw new IllegalArgumentException("stream == null!");
-        }
         BufferedInputStream stream = (BufferedInputStream) source;
         dbgLog.fine("applying the dta test\n");
 

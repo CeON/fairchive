@@ -240,10 +240,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
             throw new IOException("Failed to open FITS stream; " + fEx.getMessage());
         }
 
-        if (fitsFile == null) {
-            throw new IOException("Failed to open FITS stream; null Fits object");
-        }
-
 
         readConfig();
 
