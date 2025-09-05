@@ -4,13 +4,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -29,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.api.client.util.Preconditions;
 
@@ -208,7 +204,7 @@ public class DataverseTimerServiceBean implements Serializable {
             }
         } else if (timer.getInfo() instanceof ExportTimerInfo) {
             try {
-                ExportTimerInfo info = (ExportTimerInfo) timer.getInfo();
+                timer.getInfo();
                 logger.info("Timer Service: Running a scheduled export job.");
 
                 // and update all oai sets:
@@ -319,11 +315,10 @@ public class DataverseTimerServiceBean implements Serializable {
         }
     }
 
-    public void removeHarvestTimer(HarvestingClient harvestingClient) {
-        for (Iterator it = timerService.getTimers().iterator(); it.hasNext(); ) {
-            Timer timer = (Timer) it.next();
+    public void removeHarvestTimer(final HarvestingClient harvestingClient) {
+        for (final Timer timer : timerService.getTimers()) {
             if (timer.getInfo() instanceof HarvestTimerInfo) {
-                HarvestTimerInfo info = (HarvestTimerInfo) timer.getInfo();
+                final HarvestTimerInfo info = (HarvestTimerInfo) timer.getInfo();
                 if (info.getHarvestingClientId().equals(harvestingClient.getId())) {
                     timer.cancel();
                 }
