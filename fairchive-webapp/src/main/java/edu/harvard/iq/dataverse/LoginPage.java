@@ -89,8 +89,17 @@ public class LoginPage implements java.io.Serializable {
     public boolean displayLoginInfo() {
         return isNoneEmpty(getLoginInfo());
     }
+    
+    public boolean displayNoProvidersWarning() {
+        return listAuthenticationProviders().isEmpty();
+    }
 
     // -------------------- GETTERS --------------------
+    
+    public String getPageTitle() {
+        return getStringFromBundle("login") + " - " + 
+                this.dataverseDao.findRootDataverse().getName();
+    }
 
     public Long getSelectedSamlIdpId() {
         return selectedSamlIdpId;
