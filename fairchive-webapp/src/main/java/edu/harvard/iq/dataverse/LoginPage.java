@@ -25,6 +25,7 @@ import javax.inject.Named;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultAuthProvider;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SignUpUrl;
+import static org.apache.commons.lang3.StringUtils.isNoneEmpty;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -83,6 +84,10 @@ public class LoginPage implements java.io.Serializable {
         this.settingsService = settingsService;
         this.dvRequestService = dvRequestService;
         this.systemConfig = systemConfig;
+    }
+    
+    public boolean displayLoginInfo() {
+        return isNoneEmpty(getLoginInfo());
     }
 
     // -------------------- GETTERS --------------------
