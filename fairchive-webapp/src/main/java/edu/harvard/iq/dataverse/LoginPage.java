@@ -1,30 +1,9 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.authorization.AuthenticationProvider;
-import edu.harvard.iq.dataverse.authorization.AuthenticationProviderDisplayInfo;
-import edu.harvard.iq.dataverse.authorization.AuthenticationRequest;
-import edu.harvard.iq.dataverse.authorization.AuthenticationResponse;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.authorization.CredentialsAuthenticationProvider;
-import edu.harvard.iq.dataverse.authorization.exceptions.AuthenticationFailedException;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
-import javax.faces.event.AjaxBehaviorEvent;
-import javax.faces.validator.ValidatorException;
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultAuthProvider;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SignUpUrl;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNoneEmpty;
 
 import java.io.IOException;
@@ -38,6 +17,29 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.faces.validator.ValidatorException;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.lang3.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+
+import edu.harvard.iq.dataverse.authorization.AuthenticationProvider;
+import edu.harvard.iq.dataverse.authorization.AuthenticationProviderDisplayInfo;
+import edu.harvard.iq.dataverse.authorization.AuthenticationRequest;
+import edu.harvard.iq.dataverse.authorization.AuthenticationResponse;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.authorization.CredentialsAuthenticationProvider;
+import edu.harvard.iq.dataverse.authorization.exceptions.AuthenticationFailedException;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.JsfHelper;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 /**
  * @author xyang
@@ -73,7 +75,8 @@ public class LoginPage implements java.io.Serializable {
     public LoginPage() { }
 
     @Inject
-    public LoginPage(DataverseSession session, DataverseDao dataverseDao,
+    public LoginPage(DataverseSession session, 
+                     DataverseDao dataverseDao,
                      AuthenticationServiceBean authSvc, 
                      SettingsServiceBean settingsService,
                      DataverseRequestServiceBean dvRequestService, 
@@ -91,7 +94,7 @@ public class LoginPage implements java.io.Serializable {
     }
     
     public boolean displayNoProvidersWarning() {
-        return listAuthenticationProviders().isEmpty();
+        return this.authSvc.getAuthenticationProviders().isEmpty();
     }
     
     public boolean displayBuiltInProviderForm() {
@@ -111,7 +114,7 @@ public class LoginPage implements java.io.Serializable {
     }
     
     public boolean displayOtherProvidersForm() {
-        return listAuthenticationProviders().size() > 1;
+        return this.authSvc.getAuthenticationProviders().size() > 1;
     }
 
     // -------------------- GETTERS --------------------
@@ -180,28 +183,14 @@ public class LoginPage implements java.io.Serializable {
     public boolean isNotSelected(final AuthenticationProviderDisplayInfo providerInfo) {
         return ! providerInfo.getId().equals(this.authProvider.getId());
     }
-
-    public List<AuthenticationProviderDisplayInfo> listCredentialsAuthenticationProviders() {
-        List<AuthenticationProviderDisplayInfo> infos = new LinkedList<>();
-        for (String id : authSvc.getAuthenticationProviderIdsOfType(CredentialsAuthenticationProvider.class)) {
-            AuthenticationProvider authenticationProvider = authSvc.getAuthenticationProvider(id);
-            infos.add(authenticationProvider.getInfo());
-        }
-        return infos;
+    
+    public List<AuthenticationProviderDisplayInfo> listAuthenticationProviders() {     
+        return this.authSvc.getAuthenticationProviders().stream()
+                .map(AuthenticationProvider::getInfo)
+                .collect(toList());
     }
 
-    public List<AuthenticationProviderDisplayInfo> listAuthenticationProviders() {
-        List<AuthenticationProviderDisplayInfo> infos = new LinkedList<>();
-        for (String id : authSvc.getAuthenticationProviderIds()) {
-            AuthenticationProvider authenticationProvider = authSvc.getAuthenticationProvider(id);
-            if (authenticationProvider != null) {
-                infos.add(authenticationProvider.getInfo());
-            }
-        }
-        return infos;
-    }
-
-    public CredentialsAuthenticationProvider selectedCredentialsProvider() {
+    private CredentialsAuthenticationProvider selectedCredentialsProvider() {
         return (CredentialsAuthenticationProvider) authSvc.getAuthenticationProvider(getCredentialsAuthProviderId());
     }
 
