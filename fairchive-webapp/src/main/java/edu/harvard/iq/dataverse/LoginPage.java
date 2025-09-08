@@ -54,7 +54,7 @@ public class LoginPage implements java.io.Serializable {
     private String redirectPage = "dataverse.xhtml";
     private AuthenticationProvider authProvider;
     private int numFailedLoginAttempts;
-    private Random random;
+    private final Random random = new Random();
     private long op1;
     private long op2;
     private Long userSum;
@@ -175,7 +175,6 @@ public class LoginPage implements java.io.Serializable {
         }
         resetFilledCredentials(null);
         authProvider = authSvc.getAuthenticationProvider(settingsService.getValueForKey(DefaultAuthProvider));
-        random = new Random();
 
         return "";
     }
