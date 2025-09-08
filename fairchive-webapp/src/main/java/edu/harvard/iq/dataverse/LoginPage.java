@@ -93,12 +93,32 @@ public class LoginPage implements java.io.Serializable {
     public boolean displayNoProvidersWarning() {
         return listAuthenticationProviders().isEmpty();
     }
+    
+    public boolean displayBuiltInProviderForm() {
+        return  this.authProvider.getId().equals("builtin");
+    }
+    
+    public boolean displayShibbolethProviderForm() {
+        return  this.authProvider.getId().equals("shib");
+    }
+    
+    public boolean displayOAuthProviderForm() {
+        return  this.authProvider.isOAuthProvider();
+    }
+    
+    public boolean displaySamlProviderForm() {
+        return  this.authProvider.getId().equals("saml");
+    }
+    
+    public boolean displayOtherProvidersForm() {
+        return listAuthenticationProviders().size() > 1;
+    }
 
     // -------------------- GETTERS --------------------
     
     public String getPageTitle() {
         return getStringFromBundle("login") + " - " + 
-                this.dataverseDao.findRootDataverse().getName();
+                this.dataverseDao.getRootDataverseName();
     }
 
     public Long getSelectedSamlIdpId() {
@@ -155,6 +175,10 @@ public class LoginPage implements java.io.Serializable {
         random = new Random();
 
         return "";
+    }
+    
+    public boolean isNotSelected(final AuthenticationProviderDisplayInfo providerInfo) {
+        return ! providerInfo.getId().equals(this.authProvider.getId());
     }
 
     public List<AuthenticationProviderDisplayInfo> listCredentialsAuthenticationProviders() {
@@ -269,9 +293,8 @@ public class LoginPage implements java.io.Serializable {
         return authSvc.getAuthenticationProviderIds().size() > 1;
     }
 
-    public void setAuthProviderById(String authProviderId) {
-        logger.fine("Setting auth provider to " + authProviderId);
-        this.authProvider = authSvc.getAuthenticationProvider(authProviderId);
+    public void selectProviderById(final String id) {
+        this.authProvider = this.authSvc.getAuthenticationProvider(id);
     }
 
     public String getLoginButtonText() {
@@ -283,8 +306,8 @@ public class LoginPage implements java.io.Serializable {
         }
     }
 
-    public boolean isRequireExtraValidation() {
-        return numFailedLoginAttempts > 2;
+    public boolean requiresExtraValidation() {
+        return this.numFailedLoginAttempts > 2;
     }
 
     // TODO: Consolidate with SendFeedbackDialog.validateUserSum?
