@@ -7,7 +7,6 @@ import edu.harvard.iq.dataverse.authorization.AuthenticationResponse;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.authorization.CredentialsAuthenticationProvider;
 import edu.harvard.iq.dataverse.authorization.exceptions.AuthenticationFailedException;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.JsfHelper;
@@ -22,6 +21,11 @@ import javax.faces.event.AjaxBehaviorEvent;
 import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultAuthProvider;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SignUpUrl;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -69,8 +73,10 @@ public class LoginPage implements java.io.Serializable {
 
     @Inject
     public LoginPage(DataverseSession session, DataverseDao dataverseDao,
-                     AuthenticationServiceBean authSvc, SettingsServiceBean settingsService,
-                     DataverseRequestServiceBean dvRequestService, SystemConfig systemConfig) {
+                     AuthenticationServiceBean authSvc, 
+                     SettingsServiceBean settingsService,
+                     DataverseRequestServiceBean dvRequestService, 
+                     SystemConfig systemConfig) {
         this.session = session;
         this.dataverseDao = dataverseDao;
         this.authSvc = authSvc;
@@ -124,12 +130,14 @@ public class LoginPage implements java.io.Serializable {
             return redirectPage + "?faces-redirect=true";
         }
 
-        Iterator<String> credentialsIterator = authSvc.getAuthenticationProviderIdsOfType(CredentialsAuthenticationProvider.class).iterator();
+        Iterator<String> credentialsIterator = 
+                authSvc.getAuthenticationProviderIdsOfType(CredentialsAuthenticationProvider.class).
+                iterator();
         if (credentialsIterator.hasNext()) {
             setCredentialsAuthProviderId(credentialsIterator.next());
         }
         resetFilledCredentials(null);
-        authProvider = authSvc.getAuthenticationProvider(settingsService.getValueForKey(SettingsServiceBean.Key.DefaultAuthProvider));
+        authProvider = authSvc.getAuthenticationProvider(settingsService.getValueForKey(DefaultAuthProvider));
         random = new Random();
 
         return "";
@@ -200,7 +208,7 @@ public class LoginPage implements java.io.Serializable {
             AuthenticationResponse response = ex.getResponse();
             switch (response.getStatus()) {
                 case FAIL:
-                    JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("login.builtin.invalidUsernameEmailOrPassword"));
+                    JsfHelper.addErrorMessage(getStringFromBundle("login.builtin.invalidUsernameEmailOrPassword"));
                     return null;
                 case ERROR:
                     /**
@@ -208,8 +216,9 @@ public class LoginPage implements java.io.Serializable {
                      * with password upgrade? See
                      * https://github.com/IQSS/dataverse/pull/2922
                      */
-                    JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("login.error"));
-                    logger.log(Level.WARNING, "Error logging in: " + response.getMessage(), response.getError());
+                    JsfHelper.addErrorMessage(getStringFromBundle("login.error"));
+                    logger.log(Level.WARNING, "Error logging in: " + 
+                            response.getMessage(), response.getError());
                     return null;
                 case BREAKOUT:
                     return response.getMessage();
@@ -224,7 +233,8 @@ public class LoginPage implements java.io.Serializable {
         boolean result = Pattern.compile("^(https?)://[^\\s/$.?#].[^\\s]*$",
                 Pattern.CASE_INSENSITIVE).matcher(urlToValidate).matches();
         if(!result) {
-            logger.severe("Invalid redirect URL: " + urlToValidate + ". Redirect URL must start with http:// or https://");
+            logger.severe("Invalid redirect URL: " + urlToValidate + 
+                    ". Redirect URL must start with http:// or https://");
         }
         return result;
     }
@@ -235,7 +245,8 @@ public class LoginPage implements java.io.Serializable {
         }
 
         filledCredentials = new LinkedList<>();
-        for (CredentialsAuthenticationProvider.Credential c : selectedCredentialsProvider().getRequiredCredentials()) {
+        for (CredentialsAuthenticationProvider.Credential c : selectedCredentialsProvider().
+                getRequiredCredentials()) {
             filledCredentials.add(new FilledCredential(c, ""));
         }
     }
@@ -252,9 +263,9 @@ public class LoginPage implements java.io.Serializable {
     public String getLoginButtonText() {
         if (authProvider != null) {
             // Note that for ORCID we do not want the normal "Log In with..." text. There is special logic in the xhtml.
-            return BundleUtil.getStringFromBundle("login.button", authProvider.getInfo().getTitle());
+            return getStringFromBundle("login.button", authProvider.getInfo().getTitle());
         } else {
-            return BundleUtil.getStringFromBundle("login.button", "???");
+            return getStringFromBundle("login.button", "???");
         }
     }
 
@@ -263,7 +274,8 @@ public class LoginPage implements java.io.Serializable {
     }
 
     // TODO: Consolidate with SendFeedbackDialog.validateUserSum?
-    public void validateUserSum(FacesContext context, UIComponent component, Object value) throws ValidatorException {
+    public void validateUserSum(FacesContext context, UIComponent component, 
+            Object value) throws ValidatorException {
         // The FacesMessage text is on the xhtml side.
         FacesMessage msg = new FacesMessage("");
         ValidatorException validatorException = new ValidatorException(msg);
@@ -280,7 +292,7 @@ public class LoginPage implements java.io.Serializable {
     }
 
     public String getSignUpRedirect() {
-        String url = settingsService.getValueForKey(SettingsServiceBean.Key.SignUpUrl);
+        String url = settingsService.getValueForKey(SignUpUrl);
         List<String> params = new ArrayList<>();
         if (StringUtils.isNotBlank(redirectPage)) {
             params.add("redirectPage=" + redirectPage);
@@ -298,7 +310,8 @@ public class LoginPage implements java.io.Serializable {
     private String redirectToExternalResource() {
         try {
             logger.info("Trying to redirect to external page: " + redirectPage);
-            if(systemConfig.getAllowedExternalRedirectionUrl() == null || systemConfig.getAllowedExternalRedirectionUrl().isEmpty()) {
+            if(systemConfig.getAllowedExternalRedirectionUrl() == null || 
+                    systemConfig.getAllowedExternalRedirectionUrl().isEmpty()) {
                 logger.severe("External redirection not allowed.");
             } else if(redirectPage.startsWith(systemConfig.getAllowedExternalRedirectionUrl())) {
                 FacesContext.getCurrentInstance().getExternalContext().redirect(redirectPage);
@@ -349,7 +362,8 @@ public class LoginPage implements java.io.Serializable {
 
         public FilledCredential() { }
 
-        public FilledCredential(CredentialsAuthenticationProvider.Credential credential, String value) {
+        public FilledCredential(CredentialsAuthenticationProvider.Credential credential, 
+                String value) {
             this.credential = credential;
             this.value = value;
         }
