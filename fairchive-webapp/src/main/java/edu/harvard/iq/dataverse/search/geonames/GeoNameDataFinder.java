@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.search.geonames;
 
+import static edu.harvard.iq.dataverse.search.geonames.GeoName.isFeatureCode;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
@@ -39,16 +40,21 @@ public class GeoNameDataFinder {
         this.sanitizer = sanitizer;
     }
 
-    public List<GeoName> find(final String phraze, final int maxResultsCount) {
+    public List<GeoName> find(final String phrase, final int maxResultsCount) {
         try {
-            if (isNotBlank(phraze)) {
-                final StringBuilder builder = buildQueryString(phraze);
+            if (isNotBlank(phrase)) {
+                final StringBuilder builder = buildQueryString(phrase);
                 final SolrQuery query = new SolrQuery(builder.toString())
                         .setRows(maxResultsCount);
                 final List<GeoName> result = this.solr.query(query)
                         .getBeans(GeoName.class);
                 if (result.isEmpty()) {
-                    findById(phraze.trim()).ifPresent(result::add);
+                    try {
+                        // It may fail if there is more than one word in the phrase. 
+                        findById(phrase.trim()).ifPresent(result::add);
+                    } catch (final Exception e) {
+                        return emptyList(); // It's ok to return nothing in this case.
+                    }
                 }
                 return result;
             } else {
@@ -67,8 +73,12 @@ public class GeoNameDataFinder {
             if (builder.length() > 0) {
                 builder.append(" AND ");
             }
-            builder.append("(name:").append(word)
-                    .append(" OR alternateNames:").append(word).append(")");
+            if (isFeatureCode(word)) {
+                builder.append("featureCode:").append(word.toUpperCase());
+            } else {
+                builder.append("(name:").append(word)
+                        .append(" OR alternateNames:").append(word).append(")");
+            }
         }
 
         return builder;
