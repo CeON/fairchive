@@ -24,6 +24,7 @@ import edu.harvard.iq.dataverse.authorization.EditableAccountField;
 import edu.harvard.iq.dataverse.authorization.common.ExternalIdpUserRecord;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
 import edu.harvard.iq.dataverse.persistence.user.OAuth2TokenData;
+import edu.harvard.iq.dataverse.util.StringUtil;
 
 /**
  * Base class for OAuth2 identity providers, such as GitHub and ORCiD.
@@ -110,6 +111,16 @@ public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2Auth
         }
         return builder.build(getApiInstance());
     }
+    @Override
+    public String createState(Optional<String> redirectPage) {
+        String base = getId() + "~" + System.currentTimeMillis()
+                + "~" + (int) java.lang.Math.round(java.lang.Math.random() * 1000)
+                + redirectPage.map(page -> "~" + page).orElse("");
+
+        String encrypted = StringUtil.encrypt(base, getClientSecret());
+        final String state = getId() + "~" + encrypted;
+        return state;
+    }
 
     @Override
     public String createAuthorizationUrl(final String state, final String redirectUrl) {
@@ -169,6 +180,11 @@ public abstract class AbstractOAuth2AuthenticationProvider implements OAuth2Auth
     @Override
     public AuthenticationProviderDisplayInfo getInfo() {
         return new AuthenticationProviderDisplayInfo(getId(), getTitle(), getSubTitle());
+    }
+    
+    @Override
+    public String toString() {
+        return getId();
     }
 
     @Override

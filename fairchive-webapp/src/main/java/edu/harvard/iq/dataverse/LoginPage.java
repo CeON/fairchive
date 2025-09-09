@@ -99,7 +99,7 @@ public class LoginPage implements java.io.Serializable {
     
     public boolean displayBuiltInProviderForm() {
         return  this.authProvider.getId().equals("builtin");
-    }
+    };
     
     public boolean displayShibbolethProviderForm() {
         return  this.authProvider.getId().equals("shib");
