@@ -37,6 +37,8 @@ import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.dataaccess.DataAccess;
+import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean.RetrieveDatasetVersionResponse;
@@ -308,6 +310,40 @@ public class FilePage implements java.io.Serializable {
     public boolean displayPreviewArea() {
         return !isDownloadPopupRequired() || getGuestbookResponseProvided();
     }
+    
+    public boolean displayEditMenu() throws Exception {
+        return canUpdateDataset()
+                && !isLockedFromEdits()
+                && !(this.datafileService.hasReplacement(this.file)
+                        || this.datafileService.hasBeenDeleted(this.file));
+    }
+    
+    public boolean displayDeleteMenuItem() {
+        return !this.file.isReleased() || !this.file.isFilePackage();
+    }
+    
+    public boolean displayReplaceMenuItem() {
+        return this.file.isReleased()
+                && isDraftReplacementFile() == false
+                && !this.file.isFilePackage();
+    }
+    
+    public boolean displayAlreadyReplacedMenuItem() {
+        return !this.file.isFilePackage()
+                && ((this.file.isReleased()
+                        && isDraftReplacementFile())
+                        || (!this.file.isReleased()
+                                && this.file.getFileMetadata().getDatasetVersion()
+                                        .getDataset().isReleased()));
+    }
+    
+    public boolean displayDownloadButtons() {
+        return (!isDatasetDeaccesioned() ||
+                (isDatasetDeaccesioned() && canUpdateDataset()))
+                && (!this.file.isFilePackage() ||
+                        this.file.isFilePackage()
+                                && this.systemConfig.isHTTPDownload());
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
@@ -325,6 +361,17 @@ public class FilePage implements java.io.Serializable {
                 && fileMetadata.getDatasetVersion().getId() != null
                 && FileUtil.isRequestAccessPopupRequired(fileMetadata);
     }
+    
+    public boolean isOCRedFilePresent() {
+        try {
+            final StorageIO<DataFile> storage = DataAccess.dataAccess()
+                    .getStorageIO(this.file);
+            return storage.isAuxObjectCached("ocr");
+        } catch (final IOException e) {
+            logger.warning("Problem with checking ocr file on file page" + e.toString());
+            return false;
+        }
+    }
 
     public List<String[]> getExporters() {
         List<String[]> retList = new ArrayList<>();
@@ -336,7 +383,7 @@ public class FilePage implements java.io.Serializable {
                 temp[0] = exporter.getDisplayName();
                 temp[1] = myHostURL + "/api/datasets/export?exporter=" 
                         + exporter.getProviderName() + "&persistentId="
-                        + dataset.getGlobalIdString();
+                        + dataset.getGlobalId();
                 retList.add(temp);
             }
         }
@@ -668,7 +715,7 @@ public class FilePage implements java.io.Serializable {
     }
 
     private String returnToDatasetOnly(Dataset draftDataset) {
-        return "/dataset.xhtml?persistentId=" + draftDataset.getGlobalIdString() 
+        return "/dataset.xhtml?persistentId=" + draftDataset.getGlobalId() 
                + "&version=DRAFT&faces-redirect=true";
     }
 
