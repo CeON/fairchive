@@ -15,6 +15,10 @@
         <ui:param name="labelFieldNumber" value="#{labelFieldNumber}" />
     </ui:include>
 
+	<div>
+		<h:outputFormat value="#{bundle['geonames.search.hint']}"
+			            escape="false"/>
+	</div> 
     <p:autoComplete
             id="geoname"
             value="#{datasetField.value}"

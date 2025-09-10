@@ -78,6 +78,8 @@ public class SearchIncludeFragmentTest {
 
     private Dataset dataset = new Dataset();
 
+    String BOM = "\uFEFF";
+
     @BeforeEach
     public void setUp() {
 
@@ -175,14 +177,13 @@ public class SearchIncludeFragmentTest {
 
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(2);
-        assertThat(lines.get(0)).isEqualTo("Id,Name,Title,Block1->def,Block1->compound->ghi");
+        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Block1->def,Block1->compound->ghi");
         assertThat(lines.get(1)).isEqualTo("id1,name1,title1,one,two");
     }
 
     @Test
     public void emptyResultsSavedToCSV_generateFileWithColumnNamesOnly()
             throws Exception {
-
         when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
                 any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
         when(this.searchService.search(any(SolrQuery.class))).thenReturn(asList());
@@ -197,11 +198,11 @@ public class SearchIncludeFragmentTest {
         assertThat(file.getContentEncoding()).isEqualTo("utf-8");
         assertThat(file.getContentType()).isEqualTo("text/csv");
         assertThat(file.getName()).isEqualTo("searchResults.csv");
-        assertThat(file.getContentLength()).isEqualTo(49);
+        assertThat(file.getContentLength()).isEqualTo(52);
 
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(1);
-        assertThat(lines.get(0)).isEqualTo("Id,Name,Title,Block1->def,Block1->compound->ghi");
+        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Block1->def,Block1->compound->ghi");
     }
 
     @Test

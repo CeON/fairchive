@@ -31,6 +31,7 @@
         <p:ajax event="change"
                 listener="#{inputRenderer.processValueChange(datasetField, inputRenderersByFieldType)}"
                 disabled="#{not inputRenderer.hasChangeListener(datasetField, inputRenderersByFieldType)}"
+                process=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}"
                 update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}"
         />
     </p:selectOneMenu>

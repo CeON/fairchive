@@ -10,6 +10,7 @@ import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.UserServiceBean;
+import edu.harvard.iq.dataverse.api.AbstractApiBean.WrappedResponse;
 import edu.harvard.iq.dataverse.api.dto.ApiErrorResponseDTO;
 import edu.harvard.iq.dataverse.api.dto.ApiResponseDTO;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
@@ -21,8 +22,13 @@ import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
+import edu.harvard.iq.dataverse.engine.command.impl.GetDraftVersionIfExists;
+import edu.harvard.iq.dataverse.engine.command.impl.GetLatestAccessibleDatasetVersionCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.GetLatestPublishedDatasetVersionCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.GetSpecificPublishedDatasetVersionCommand;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
@@ -385,6 +391,38 @@ public abstract class AbstractApiBean {
                 throw new WrappedResponse(
                         badRequest(BundleUtil.getStringFromBundle("find.dataset.error.dataset.not.found.bad.id", id)));
             }
+        }
+    }
+
+    protected DatasetVersion getDatasetVersionOrDie(final DataverseRequest req, String versionNumber, final Dataset ds) throws WrappedResponse {
+        DatasetVersion dsv = execCommand(chooseCommandForVersionFinding(versionNumber, ds, req));
+        if (dsv == null || dsv.getId() == null) {
+            throw new WrappedResponse(notFound(String.format("Dataset version %s of dataset %d not found", versionNumber, ds.getId())));
+        }
+        return dsv;
+    }
+
+    private Command<DatasetVersion> chooseCommandForVersionFinding(String versionId, Dataset ds, DataverseRequest req)
+            throws WrappedResponse {
+        switch (versionId) {
+            case ":latest":
+                return new GetLatestAccessibleDatasetVersionCommand(req, ds);
+            case ":draft":
+                return new GetDraftVersionIfExists(req, ds);
+            case ":latest-published":
+                return new GetLatestPublishedDatasetVersionCommand(req, ds);
+            default:
+                try {
+                    String[] versions = versionId.split("\\.");
+                    if (versions.length == 1) {
+                        return new GetSpecificPublishedDatasetVersionCommand(req, ds, Long.parseLong(versions[0]), 0L);
+                    } else if (versions.length == 2) {
+                        return new GetSpecificPublishedDatasetVersionCommand(req, ds, Long.parseLong(versions[0]), Long.parseLong(versions[1]));
+                    }
+                    throw new WrappedResponse(error(Response.Status.BAD_REQUEST, "Illegal version identifier '" + versionId + "'"));
+                } catch (NumberFormatException nfe) {
+                    throw new WrappedResponse(error(Response.Status.BAD_REQUEST, "Illegal version identifier '" + versionId + "'"));
+                }
         }
     }
 

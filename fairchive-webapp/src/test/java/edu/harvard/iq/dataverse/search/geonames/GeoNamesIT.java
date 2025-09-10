@@ -115,6 +115,11 @@ public class GeoNamesIT extends WebappArquillianDeployment {
         //search multiple words - case insensitive
         assertThat(this.finder.find("jezioro zygmunta augusta", 50))
                 .anyMatch(gn -> gn.getName().equals("Jezioro Zygmunta Augusta"));
+        //search by name and proper featureCode
+        assertThat(this.finder.find("Predocin PPL", 50))
+                .anyMatch(gn -> gn.getName().equals("Prędocin"));
+        //search by name and inexistent featureCode
+        assertThat(this.finder.find("Predocin ADM3", 50)).isEmpty();
     }
 
     @Test

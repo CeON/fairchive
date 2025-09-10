@@ -12,7 +12,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 
 /**
- * Validator that checks whether field is not greater then dependant field.
+ * Validator that checks whether a field is not greater than dependant field.
  * 
  * @author Krzysztof Mądry
  * @author Sylwester Niewczas

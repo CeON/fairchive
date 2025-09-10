@@ -1,17 +1,15 @@
 package edu.harvard.iq.dataverse;
 
-import static java.lang.Math.max;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.InputStream;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
@@ -28,6 +26,7 @@ import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
@@ -61,7 +60,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 @Stateless
 public class DatasetDao implements java.io.Serializable {
 
-    private static final Logger logger = Logger.getLogger(DatasetDao.class.getCanonicalName());
+    private static final Logger logger = getLogger(DatasetDao.class);
 
     @Inject
     SettingsServiceBean settingsService;
@@ -100,7 +99,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public List<Dataset> findAll() {
-        return em.createQuery("select object(o) from Dataset as o order by o.id", Dataset.class).getResultList();
+        return this.datasetRepository.findAll();
     }
     
     public List<Dataset> findStaleOrMissingDatasets() {
@@ -108,17 +107,11 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public List<Dataset> findNotIndexedAfterEmbargo() {
-        TypedQuery<Dataset> typedQuery = em.createQuery("select d from Dataset d, DvObject o where d.id = o.id and d.embargoDate < :actualTimestamp and d.embargoDate > o.indexTime", Dataset.class);
-        typedQuery.setParameter("actualTimestamp", Timestamp.from(Instant.now()));
-        return typedQuery.getResultList();
+        return this.datasetRepository.findNotIndexedAfterEmbargo();
     }
 
     public List<Long> findAllLocalDatasetIds() {
-        return em.createQuery("SELECT o.id FROM Dataset o WHERE o.harvestedFrom IS null ORDER BY o.id", Long.class).getResultList();
-    }
-
-    public List<Long> findAllUnindexed() {
-        return em.createQuery("SELECT o.id FROM Dataset o WHERE o.indexTime IS null ORDER BY o.id DESC", Long.class).getResultList();
+        return this.datasetRepository.findAllLocalDatasetIds();
     }
 
     /**
@@ -130,15 +123,11 @@ public class DatasetDao implements java.io.Serializable {
      * @return a list of datasets
      * @see DataverseDao#findAllOrSubset(long, long, boolean)
      */
-    public List<Long> findAllOrSubset(long numPartitions, long partitionId, boolean skipIndexed) {
-        numPartitions = max(numPartitions, 1);
-        String skipClause = skipIndexed ? "AND o.indexTime is null " : "";
-        TypedQuery<Long> typedQuery = em.createQuery("SELECT o.id FROM Dataset o WHERE MOD( o.id, :numPartitions) = :partitionId " +
-                                                             skipClause +
-                                                             "ORDER BY o.id", Long.class);
-        typedQuery.setParameter("numPartitions", numPartitions);
-        typedQuery.setParameter("partitionId", partitionId);
-        return typedQuery.getResultList();
+    public List<Long> findAllOrSubset(final long numPartitions, 
+            final long partitionId, final boolean skipIndexed) { 
+        return skipIndexed 
+                ? this.datasetRepository.findAllOrSubsetSkippingIndexed(numPartitions, partitionId)
+                : this.datasetRepository.findAllOrSubset(numPartitions, partitionId);
     }
 
     /**
@@ -168,8 +157,8 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public String generateDatasetIdentifier(Dataset dataset) {
-        String identifierType = settingsService.getValueForKey(SettingsServiceBean.Key.IdentifierGenerationStyle);
-        String shoulder = settingsService.getValueForKey(SettingsServiceBean.Key.Shoulder);
+        String identifierType = settingsService.getValueForKey(IdentifierGenerationStyle);
+        String shoulder = settingsService.getValueForKey(Shoulder);
 
         switch (identifierType) {
             case "randomString":
@@ -186,7 +175,7 @@ public class DatasetDao implements java.io.Serializable {
         String identifier = null;
         do {
             identifier = shoulder + RandomStringUtils.randomAlphanumeric(6).toUpperCase();
-        } while (!isIdentifierLocallyUnique(identifier, dataset));
+        } while (!this.datasetRepository.isIdentifierLocallyUnique(identifier, dataset));
 
         return identifier;
     }
@@ -204,7 +193,7 @@ public class DatasetDao implements java.io.Serializable {
                 return null;
             }
             identifier = shoulder + identifierNumeric.toString();
-        } while (!isIdentifierLocallyUnique(identifier, dataset));
+        } while (!this.datasetRepository.isIdentifierLocallyUnique(identifier, dataset));
 
         return identifier;
     }
@@ -220,7 +209,7 @@ public class DatasetDao implements java.io.Serializable {
      * @return {@code true} if the identifier is unique, {@code false} otherwise.
      */
     public boolean isIdentifierUnique(String userIdentifier, Dataset dataset, GlobalIdServiceBean persistentIdSvc) {
-        if (!isIdentifierLocallyUnique(userIdentifier, dataset)) {
+        if (!this.datasetRepository.isIdentifierLocallyUnique(userIdentifier, dataset)) {
             return false; // duplication found in local database
         }
 
@@ -233,16 +222,8 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    public boolean isIdentifierLocallyUnique(Dataset dataset) {
-        return isIdentifierLocallyUnique(dataset.getIdentifier(), dataset);
-    }
-
-    public boolean isIdentifierLocallyUnique(String identifier, Dataset dataset) {
-        return em.createNamedQuery("Dataset.findByIdentifierAuthorityProtocol")
-                .setParameter("identifier", identifier)
-                .setParameter("authority", dataset.getAuthority())
-                .setParameter("protocol", dataset.getProtocol())
-                .getResultList().isEmpty();
+    public boolean isIdentifierLocallyUnique(final Dataset dataset) {
+        return this.datasetRepository.isIdentifierLocallyUnique(dataset.getIdentifier(), dataset);
     }
 
     public DatasetVersion storeVersion(DatasetVersion dsv) {
@@ -270,14 +251,6 @@ public class DatasetDao implements java.io.Serializable {
             final AuthenticatedUser user) {
         return this.datasetVersionRepo
                 .getDatasetVersionUsersByAuthenticatedUser(user.getId());
-    }
-
-    public boolean checkDatasetLock(Long datasetId) {
-        TypedQuery<DatasetLock> lockCounter = em.createNamedQuery("DatasetLock.getLocksByDatasetId", DatasetLock.class);
-        lockCounter.setParameter("datasetId", datasetId);
-        lockCounter.setMaxResults(1);
-        List<DatasetLock> lock = lockCounter.getResultList();
-        return lock.size() > 0;
     }
 
     public List<DatasetLock> getDatasetLocksByUser(final AuthenticatedUser user) {
@@ -386,7 +359,7 @@ public class DatasetDao implements java.io.Serializable {
                                                          + ";").getSingleResult();
 
         } catch (Exception ex) {
-            logger.log(Level.INFO, "exception trying to get title from latest version: {0}", ex);
+            logger.info("exception trying to get title from latest version: {0}", ex);
             return "";
         }
 
@@ -423,11 +396,9 @@ public class DatasetDao implements java.io.Serializable {
 
     public Dataset setNonDatasetFileAsThumbnail(Dataset dataset, InputStream inputStream) {
         if (dataset == null) {
-            logger.fine("In setNonDatasetFileAsThumbnail but dataset is null! Returning null.");
             return null;
         }
         if (inputStream == null) {
-            logger.fine("In setNonDatasetFileAsThumbnail but inputStream is null! Returning null.");
             return null;
         }
         dataset = datasetThumbnailService.persistDatasetLogoToStorageAndCreateThumbnail(dataset, inputStream);
@@ -438,11 +409,9 @@ public class DatasetDao implements java.io.Serializable {
 
     public Dataset setDatasetFileAsThumbnail(Dataset dataset, DataFile datasetFileThumbnailToSwitchTo) {
         if (dataset == null) {
-            logger.fine("In setDatasetFileAsThumbnail but dataset is null! Returning null.");
             return null;
         }
         if (datasetFileThumbnailToSwitchTo == null) {
-            logger.fine("In setDatasetFileAsThumbnail but dataset is null! Returning null.");
             return null;
         }
         datasetThumbnailService.deleteDatasetLogo(dataset);
@@ -453,7 +422,6 @@ public class DatasetDao implements java.io.Serializable {
 
     public Dataset removeDatasetThumbnail(Dataset dataset) {
         if (dataset == null) {
-            logger.fine("In removeDatasetThumbnail but dataset is null! Returning null.");
             return null;
         }
         datasetThumbnailService.deleteDatasetLogo(dataset);
@@ -485,9 +453,8 @@ public class DatasetDao implements java.io.Serializable {
         try {
             Thread.sleep(15000);
         } catch (Exception ex) {
-            logger.warning("Failed to sleep for 15 seconds.");
+            logger.warn("Failed to sleep for 15 seconds.");
         }
-        logger.fine("Running FinalizeDatasetPublicationCommand, asynchronously");
         Dataset theDataset = find(datasetId);
         commandEngine.submit(new FinalizeDatasetPublicationCommand(theDataset, request, isPidPrePublished));
     }
