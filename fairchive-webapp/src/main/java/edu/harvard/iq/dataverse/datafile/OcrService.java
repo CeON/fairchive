@@ -4,8 +4,11 @@ import static edu.harvard.iq.dataverse.dataaccess.DataAccess.dataAccess;
 import static edu.harvard.iq.dataverse.dataaccess.DataAccessOption.READ_ACCESS;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.pdfbox.rendering.ImageType.RGB;
+import static org.apache.pdfbox.tools.imageio.ImageIOUtil.writeImage;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,6 +16,8 @@ import java.io.OutputStream;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
@@ -24,7 +29,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 public class OcrService {
 
     private static final Logger log = getLogger(OcrService.class);
-    
+
     private SettingsServiceBean settings;
 
     public OcrService() {
@@ -36,6 +41,14 @@ public class OcrService {
     }
 
     public void ocr(final DataFile file) throws Exception {
+        if (file.isPdf()) {
+            ocrPdf(file);
+        } else {
+            ocrImage(file);
+        }
+    }
+
+    public void ocrPdf(final DataFile file) throws Exception {
 
         try (final StorageIO<DataFile> storage = dataAccess()
                 .getStorageIO(file)) {
@@ -43,7 +56,57 @@ public class OcrService {
 
             final String command = this.settings.getValueForKey(Key.OcrCommand);
             if (isNotBlank(command)) {
-                final ProcessBuilder builder = new ProcessBuilder(command.split("\\s"));
+                final ProcessBuilder builder = new ProcessBuilder(
+                        command.split("\\s"));
+                final ByteArrayOutputStream out = new ByteArrayOutputStream(100000);
+                final ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+                try (final InputStream pdf = storage.getInputStream()) {
+                    try (final PDDocument document = PDDocument.load(pdf)) {
+                        final PDFRenderer renderer = new PDFRenderer(document);
+
+                        for (int page = 0; page < document
+                                .getNumberOfPages(); ++page) {
+                            final BufferedImage image = renderer.renderImageWithDPI(
+                                    page, 300,
+                                    RGB);
+                            final Process process = builder.start();
+
+                            writeImage(image, "bmp", process.getOutputStream());
+
+                            process.getOutputStream().close();
+
+                            copy(process.getInputStream(), out);
+                            out.write('\n');
+                            copy(process.getErrorStream(), err);
+
+                            if (process.waitFor() != 0) {
+                                log.warn(err.toString());
+                                throw new RuntimeException(
+                                        "OCR failed for "
+                                                .concat(file.getDisplayName()));
+                            }
+                        }
+
+                        try (final OutputStream ocr = storage.openAuxOutput("ocr")) {
+                            out.writeTo(ocr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void ocrImage(final DataFile file) throws Exception {
+
+        try (final StorageIO<DataFile> storage = dataAccess()
+                .getStorageIO(file)) {
+            storage.open(READ_ACCESS);
+
+            final String command = this.settings.getValueForKey(Key.OcrCommand);
+            if (isNotBlank(command)) {
+                final ProcessBuilder builder = new ProcessBuilder(
+                        command.split("\\s"));
                 final ByteArrayOutputStream out = new ByteArrayOutputStream(1000);
                 final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
@@ -66,7 +129,7 @@ public class OcrService {
                                 "OCR failed for ".concat(file.getDisplayName()));
                     }
                 }
-            } 
+            }
         }
     }
 }
