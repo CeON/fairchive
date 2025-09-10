@@ -1755,6 +1755,10 @@ div[id$="versionsTable"] {
 	}
 }
 
+#datasetForm\:tabView\:versionsTab .ui-commandlink {
+  text-decoration: underline;
+}
+
 tr.ui-state-highlight a:not(.btn), .ui-widget-content tr.ui-state-highlight a:not(.btn) {
 	@include link-color;
 }
