@@ -27,6 +27,7 @@ import java.sql.Timestamp;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "OAuth2TokenData.findByUserIdAndProviderId",
                 query = "SELECT d FROM OAuth2TokenData d WHERE d.user.id=:userId AND d.oauthProviderId=:providerId"),

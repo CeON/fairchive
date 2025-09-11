@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.test.arquillian;
 
-import edu.harvard.iq.dataverse.test.arquillian.ParametrizedGlassfishConfCreator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

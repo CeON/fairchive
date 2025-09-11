@@ -19,6 +19,7 @@ import java.util.UUID;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "useridentifier"), @Index(columnList = "actiontype"), @Index(columnList = "starttime")})
 public class ActionLogRecord implements java.io.Serializable {

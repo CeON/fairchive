@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
+@SuppressWarnings("serial")
 @Entity
 @NamedQueries({
         @NamedQuery(name = "ApiToken.findByTokenString", query = "SELECT t FROM ApiToken t WHERE t.tokenString = :tokenString"),

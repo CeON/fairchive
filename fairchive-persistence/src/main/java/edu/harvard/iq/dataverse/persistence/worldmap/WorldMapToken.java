@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 /**
  * @author raprasad
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "worldmapauth_token"
         , indexes = {@Index(name = "token_value", columnList = "token", unique = true)

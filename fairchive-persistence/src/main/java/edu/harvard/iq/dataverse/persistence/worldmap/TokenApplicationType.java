@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 /**
  * @author raprasad
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "worldmapauth_tokentype", indexes = {@Index(name = "application_name", columnList = "name", unique = true)})
 public class TokenApplicationType implements java.io.Serializable {

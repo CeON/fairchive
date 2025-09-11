@@ -17,6 +17,7 @@ import java.math.BigInteger;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Table(indexes = {@Index(columnList = "owner_id")})
 @NamedQueries({
         @NamedQuery(name = "IPv4Range.findAllContainingAddressAsLong",

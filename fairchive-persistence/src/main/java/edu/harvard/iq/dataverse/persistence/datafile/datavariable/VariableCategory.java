@@ -22,7 +22,7 @@ import java.util.List;
  */
 @Entity
 @Table(indexes = {@Index(columnList = "datavariable_id")})
-public class VariableCategory implements Comparable, Serializable {
+public class VariableCategory implements Comparable<VariableCategory>, Serializable {
     /*
      * Simple constructor:
      */
@@ -179,9 +179,8 @@ public class VariableCategory implements Comparable, Serializable {
     }
 
     @Override
-    public int compareTo(Object obj) {
-        VariableCategory ss = (VariableCategory) obj;
-        return alphaNumericComparator.compare(this.getValue(), ss.getValue());
+    public int compareTo(VariableCategory other) {
+        return alphaNumericComparator.compare(this.getValue(), other.getValue());
 
     }
 

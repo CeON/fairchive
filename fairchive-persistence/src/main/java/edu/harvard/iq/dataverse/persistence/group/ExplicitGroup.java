@@ -36,6 +36,7 @@ import java.util.TreeSet;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "ExplicitGroup.findAll",
                 query = "SELECT eg FROM ExplicitGroup eg"),

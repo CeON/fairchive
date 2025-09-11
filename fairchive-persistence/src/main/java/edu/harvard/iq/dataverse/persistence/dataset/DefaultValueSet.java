@@ -13,6 +13,7 @@ import java.util.List;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Entity
 public class DefaultValueSet implements Serializable {
 

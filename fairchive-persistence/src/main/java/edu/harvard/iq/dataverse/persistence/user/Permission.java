@@ -72,10 +72,6 @@ public enum Permission implements java.io.Serializable {
     //RestrictMetadata("Mark metadata as restricted", DvObject.class),
     //AccessRestrictedMetadata("Access metadata marked as\"restricted\"", DvObject.class),
 
-    /**
-     * A human readable name for the permission.
-     */
-    private final String humanName;
 
     /**
      * Which types of {@link DvObject}s this permission applies to.
@@ -96,7 +92,6 @@ public enum Permission implements java.io.Serializable {
     
     @SafeVarargs
     Permission(String aHumanName, boolean authenticatedUserRequired, boolean requiresWrite, Class<? extends DvObject>... appliesToList) {
-        humanName = aHumanName;
         appliesTo = new HashSet<>(Arrays.asList(appliesToList));
         requiresAuthenticatedUser = authenticatedUserRequired;
         this.requiresWrite = requiresWrite;

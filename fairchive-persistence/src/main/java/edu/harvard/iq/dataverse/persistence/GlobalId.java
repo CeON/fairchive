@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 public class GlobalId implements java.io.Serializable {
 
     public static final String DOI_PROTOCOL = "doi";

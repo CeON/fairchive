@@ -42,6 +42,7 @@ import java.util.Set;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "DvObject.findAll",
                 query = "SELECT o FROM DvObject o ORDER BY o.id"),

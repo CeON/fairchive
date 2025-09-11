@@ -8,6 +8,7 @@ import java.util.Objects;
  * @author michael
  */
 
+@SuppressWarnings("serial")
 public class RoleAssigneeDisplayInfo implements java.io.Serializable {
 
     private String title;

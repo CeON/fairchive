@@ -36,6 +36,7 @@ import java.util.Objects;
  *
  * @author rmp553
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "AuthenticatedUser.findAll",
                 query = "select au from AuthenticatedUser au where au.userIdentifier not like 'ERASED%'"),
