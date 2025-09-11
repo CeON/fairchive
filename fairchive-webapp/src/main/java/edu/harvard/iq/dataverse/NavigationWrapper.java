@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class NavigationWrapper implements Serializable {

@@ -43,6 +43,7 @@ public class OcrServiceIT extends WebappArquillianDeployment {
 
     private final static String fileName = "example_text.png";
     private final static String fileNameNoText = "example_no_text.jpg";
+    private final static String fileNamePdf = "example_text_images.pdf";
 
     private String originalFilesDir;
     private String originalOcrCommand;
@@ -73,6 +74,7 @@ public class OcrServiceIT extends WebappArquillianDeployment {
         createDirectories(setDir);
         copyResource("/images/" + fileName, setDir.resolve(fileName));
         copyResource("/images/" + fileNameNoText, setDir.resolve(fileNameNoText));
+        copyResource("/images/" + fileNamePdf, setDir.resolve(fileNamePdf));
         
         this.originalOcrCommand = this.settings.getValueForKey(Key.OcrCommand);
         this.settings.setValueForKey(Key.OcrCommand, "tesseract stdin stdout");
@@ -114,12 +116,29 @@ public class OcrServiceIT extends WebappArquillianDeployment {
     @Disabled  
     @Test
     @Tag("OCR")
-    void ocr_forFileThtContainsNoText_producesEmptyTextFile() throws Exception {
+    void ocr_forImageFileThatContainsNoText_producesEmptyTextFile() throws Exception {
         DataFile image = createImageFileObject(fileNameNoText);
         
         this.ocrSerivice.ocr(image);
 
         assertThat(contentOf(image, "ocr")).isEmpty();
+    }
+    
+    @Disabled
+    @Test
+    @Tag("OCR")
+    void orc_forPdf_producesTextFile() throws Exception {
+        DataFile pdf = createPdfFileObject(fileNamePdf);
+        
+        this.ocrSerivice.ocr(pdf);
+        
+        String text = contentOf(pdf, "ocr");
+        assertThat(text).startsWith("Offprint from"); // page 1
+        assertThat(text).contains("THE TREPHINED"); // page 2
+        assertThat(text).contains("90*"); // page 3
+        assertThat(text).contains("91*"); // page 4
+        assertThat(text).contains("92*"); // page 5
+        assertThat(text).contains("Zias J. & Pomeranz S."); // page 6
     }
     
     private String contentOf(final DataFile file, final String tag) throws Exception {
@@ -141,6 +160,18 @@ public class OcrServiceIT extends WebappArquillianDeployment {
     }
 
     private DataFile createImageFileObject(final String name) {
+        DataFile file = createIFileObject(name);
+        file.setContentType("image/png");
+        return file;
+    }
+    
+    private DataFile createPdfFileObject(final String name) {
+        DataFile file = createIFileObject(name);
+        file.setContentType("application/pdf");
+        return file;
+    }
+    
+    private DataFile createIFileObject(final String name) {
         DataFile file = new DataFile();
         FileMetadata meta = new FileMetadata();
         meta.setLabel(name);

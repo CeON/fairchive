@@ -12,6 +12,7 @@ import javax.inject.Named;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class WidgetWrapper implements java.io.Serializable {
