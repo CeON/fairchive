@@ -107,13 +107,6 @@ public class TokenApplicationTypeServiceBean {
             return null;
         }
 
-        // Set time limit minutes
-        Integer time_limit_minutes = tokenApp.getTimeLimitMinutes();
-        if (time_limit_minutes == null) {
-            tokenApp.setTimeLimitMinutes(TokenApplicationType.DEFAULT_TOKEN_TIME_LIMIT_MINUTES);
-            // (also sets the time limit seconds)
-        }
-
         // set md5
         tokenApp.setMd5(this.getMD5Hash(tokenApp.getName()));
 

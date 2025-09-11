@@ -2,6 +2,8 @@ package edu.harvard.iq.dataverse.authorization.providers.oauth2.impl;
 
 import com.github.scribejava.apis.GitHubApi;
 import com.github.scribejava.core.builder.api.BaseApi;
+import com.github.scribejava.core.oauth.OAuth20Service;
+
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.AbstractOAuth2AuthenticationProvider;
 import edu.harvard.iq.dataverse.authorization.providers.shib.ShibUserNameFields;
 import edu.harvard.iq.dataverse.authorization.providers.shib.ShibUtil;
@@ -30,7 +32,7 @@ public class GitHubOAuth2AP extends AbstractOAuth2AuthenticationProvider {
     }
 
     @Override
-    public BaseApi getApiInstance() {
+    public BaseApi<OAuth20Service> getApiInstance() {
         return GitHubApi.instance();
     }
 

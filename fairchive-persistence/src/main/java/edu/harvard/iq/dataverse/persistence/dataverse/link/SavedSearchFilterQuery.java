@@ -12,6 +12,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "savedsearch_id")})
 public class SavedSearchFilterQuery implements Serializable {

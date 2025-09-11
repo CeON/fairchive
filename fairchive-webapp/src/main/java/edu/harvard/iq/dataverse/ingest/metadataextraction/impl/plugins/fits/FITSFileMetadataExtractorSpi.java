@@ -55,19 +55,7 @@ public class FITSFileMetadataExtractorSpi extends FileMetadataExtractorSpi {
         out.println("this method is actually called: object");
         if (!(source instanceof BufferedInputStream)) {
             return false;
-        } else if (source instanceof File) {
-            out.println("source is a File object");
-        } else {
-            out.println("not File object");
-        }
-        if (source == null) {
-            throw new IllegalArgumentException("source == null!");
-        }
-
-        BufferedInputStream stream = (BufferedInputStream) source;
-
-        //
-
+        } 
         return true;
     }
 

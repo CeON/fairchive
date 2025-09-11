@@ -111,6 +111,7 @@
                                                      process="@form"
                                                      onstart="PF('blockFileForm').show();"
                                                      onerror="PF('saveStatusPoll').start();"
+                                                     onsuccess="PF('blockFileForm').hide();"
                                                      oncomplete="$(document).scrollTop(0);" />
                                     <p:commandButton id="cancel" 
                                                      value="#{bundle.cancel}" 
