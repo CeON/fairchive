@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
  * @author xyang
  * @author Michael Bar-Sinai
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("LoginPage")
 public class LoginPage implements java.io.Serializable {

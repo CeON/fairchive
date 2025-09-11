@@ -17,6 +17,7 @@ import java.io.IOException;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 public class CitationServlet extends HttpServlet {
 
     @EJB

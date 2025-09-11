@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Stateless
 @Named
 public class DatasetLinkingServiceBean implements java.io.Serializable {
