@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 /**
  * @author michaelsuo
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class ManageGroupsPage implements java.io.Serializable {

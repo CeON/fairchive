@@ -58,6 +58,7 @@ import static java.util.stream.Collectors.toList;
  * Basic skeleton of the new DataFile service for DVN 4.0
  */
 
+@SuppressWarnings("serial")
 @Stateless
 @Named
 public class DataFileServiceBean implements java.io.Serializable {

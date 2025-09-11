@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
-import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 import javax.ejb.EJB;
@@ -23,8 +21,6 @@ import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
-import org.apache.commons.lang.StringUtils;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
@@ -46,6 +42,7 @@ import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @Stateless
 @Named
 public class DataverseDao implements java.io.Serializable {
@@ -94,8 +91,7 @@ public class DataverseDao implements java.io.Serializable {
         /**
          * @todo check the result to see if indexing was successful or not
          */
-        Future<String> indexingResult = indexService.indexDataverse(savedDataverse);
-//        logger.log(Level.INFO, "during dataverse save, indexing result was: {0}", indexingResult);
+        indexService.indexDataverse(savedDataverse);
         return savedDataverse;
     }
 

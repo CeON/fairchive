@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("editDatasetMetadataPage")
 public class EditDatasetMetadataPage implements Serializable {
@@ -179,7 +180,7 @@ public class EditDatasetMetadataPage implements Serializable {
         if (workingVersion.isDeaccessioned() && dataset.getReleasedVersion() != null) {
             workingVersion = dataset.getReleasedVersion();
         }
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + 
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId() + 
                 "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
     }
 

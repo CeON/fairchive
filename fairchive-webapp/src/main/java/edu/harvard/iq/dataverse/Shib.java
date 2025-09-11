@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("Shib")
 public class Shib implements java.io.Serializable {
