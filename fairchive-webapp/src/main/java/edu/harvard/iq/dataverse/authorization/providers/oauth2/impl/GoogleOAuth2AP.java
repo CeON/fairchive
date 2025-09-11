@@ -2,6 +2,8 @@ package edu.harvard.iq.dataverse.authorization.providers.oauth2.impl;
 
 import com.github.scribejava.apis.GoogleApi20;
 import com.github.scribejava.core.builder.api.BaseApi;
+import com.github.scribejava.core.oauth.OAuth20Service;
+
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.AbstractOAuth2AuthenticationProvider;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
@@ -27,7 +29,7 @@ public class GoogleOAuth2AP extends AbstractOAuth2AuthenticationProvider {
     }
 
     @Override
-    public BaseApi getApiInstance() {
+    public BaseApi<OAuth20Service> getApiInstance() {
         return GoogleApi20.instance();
     }
 

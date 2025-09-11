@@ -5,7 +5,6 @@ import static java.util.Locale.ENGLISH;
 
 import java.util.Locale;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 
 import edu.harvard.iq.dataverse.persistence.DvObject;
 

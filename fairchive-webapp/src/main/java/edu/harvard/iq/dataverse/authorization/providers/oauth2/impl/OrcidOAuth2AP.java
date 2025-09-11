@@ -76,7 +76,7 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
     }
 
     @Override
-    public BaseApi getApiInstance() {
+    public BaseApi<OAuth20Service> getApiInstance() {
         return OrcidApi.instance(!baseUserEndpoint.contains("sandbox"));
     }
 

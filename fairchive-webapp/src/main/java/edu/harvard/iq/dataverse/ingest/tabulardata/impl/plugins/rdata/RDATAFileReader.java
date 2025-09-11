@@ -178,7 +178,7 @@ public class RDATAFileReader extends TabularDataFileReader {
      * -- L.A. 4.0 alpha 1
      */
     private class RWorkspace {
-        public String mParent, mWeb, mDvn, mDsb;
+        public String mParent;
         public File mDataFile, mCsvDataFile;
         public RRequest mRRequest;
         public BufferedInputStream mInStream;
@@ -187,7 +187,7 @@ public class RDATAFileReader extends TabularDataFileReader {
          *
          */
         public RWorkspace() {
-            mParent = mWeb = mDvn = mDsb = "";
+            mParent = "";
             mDataFile = null;
             mCsvDataFile = null;
             mInStream = null;
@@ -205,12 +205,6 @@ public class RDATAFileReader extends TabularDataFileReader {
                 RRequest scriptRequest = scriptBuilder.build();
                 LOG.fine("script request built.");
 
-        /*
-        REXP result = mRequestBuilder
-                .script(RSCRIPT_CREATE_WORKSPACE)
-                .build()
-                .eval();
-        */
                 REXP result = scriptRequest.eval();
 
                 LOG.fine("evaluated the script");
@@ -227,8 +221,8 @@ public class RDATAFileReader extends TabularDataFileReader {
                         if (directoryNames.isEmpty()) {
                             LOG.fine("WARNING: directoryNames is empty!");
                         } else {
-                            Set<String> dirKeySet = directoryNames.keySet();
-                            Iterator iter = dirKeySet.iterator();
+                            Set dirKeySet = directoryNames.keySet();
+                            Iterator<String> iter = dirKeySet.iterator();
                             String key;
 
                             while (iter.hasNext()) {
@@ -249,7 +243,7 @@ public class RDATAFileReader extends TabularDataFileReader {
                 mDataFile = new File(mParent, "data.Rdata");
             } catch (Exception E) {
                 LOG.warning("RDATAFileReader: Could not create R workspace");
-                mParent = mWeb = mDvn = mDsb = "";
+                mParent = "";
             }
         }
 
@@ -352,7 +346,6 @@ public class RDATAFileReader extends TabularDataFileReader {
             }
 
             byte[] buffer = new byte[1024];
-            int bytesRead = 0;
             RFileOutputStream outStream = null;
             RConnection rServerConnection = null;
 
@@ -380,7 +373,6 @@ public class RDATAFileReader extends TabularDataFileReader {
                 // Read from local file and write to rserver 1kb at a time
                 while (mInStream.read(buffer) != -1) {
                     outStream.write(buffer);
-                    bytesRead++;
                 }
             } catch (IOException ex) {
                 LOG.warning("RDATAFileReader: Could not write to file");
@@ -514,51 +506,41 @@ public class RDATAFileReader extends TabularDataFileReader {
      * @param target a target on the remote r-server
      */
     private File transferCsvFile(File target) {
-        File destination;
-        FileOutputStream csvDestinationStream;
-
         try {
-            destination = File.createTempFile("data", ".csv");
+            File destination = File.createTempFile("data", ".csv");
             LOG.fine(String.format("RDATAFileReader: Writing local CSV File to `%s`", destination.getAbsolutePath()));
-            csvDestinationStream = new FileOutputStream(destination);
-        } catch (IOException ex) {
+            try(FileOutputStream csvDestinationStream = new FileOutputStream(destination)) {
+
+                // Open connection to R-serve
+                RConnection rServeConnection = new RConnection(rserveHost, rservePort);
+                rServeConnection.login(rserveUser, rservePassword);
+    
+                // Open file for reading from R-serve
+                RFileInputStream rServeInputStream = rServeConnection.openFile(target.getAbsolutePath());
+    
+                int b;
+    
+                LOG.fine("RDATAFileReader: Beginning to write to local destination file");
+    
+                // Read from stream one character at a time
+                while ((b = rServeInputStream.read()) != -1) {
+                    // Write to the *local* destination file
+                    csvDestinationStream.write(b);
+                }
+    
+                LOG.fine(String.format("RDATAFileReader: Finished writing from destination `%s`", target.getAbsolutePath()));
+                LOG.fine(String.format("RDATAFileReader: Finished copying to source `%s`", destination.getAbsolutePath()));
+    
+    
+                LOG.fine("RDATAFileReader: Closing CSVFileReader R Connection");
+                rServeConnection.close();
+                return destination;
+            }
+        } catch (Exception ex) {
             LOG.warning("RDATAFileReader: Could not create temporary file!");
             return null;
         }
-
-        try {
-            // Open connection to R-serve
-            RConnection rServeConnection = new RConnection(rserveHost, rservePort);
-            rServeConnection.login(rserveUser, rservePassword);
-
-            // Open file for reading from R-serve
-            RFileInputStream rServeInputStream = rServeConnection.openFile(target.getAbsolutePath());
-
-            int b;
-
-            LOG.fine("RDATAFileReader: Beginning to write to local destination file");
-
-            // Read from stream one character at a time
-            while ((b = rServeInputStream.read()) != -1) {
-                // Write to the *local* destination file
-                csvDestinationStream.write(b);
-            }
-
-            LOG.fine(String.format("RDATAFileReader: Finished writing from destination `%s`", target.getAbsolutePath()));
-            LOG.fine(String.format("RDATAFileReader: Finished copying to source `%s`", destination.getAbsolutePath()));
-
-
-            LOG.fine("RDATAFileReader: Closing CSVFileReader R Connection");
-            rServeConnection.close();
-        }
-        /*
-         * TO DO: Make this error catching more intelligent
-         */ catch (Exception ex) {
-        }
-
-        return destination;
     }
-
 
     /**
      * Runs an R-script that extracts meta-data from the *original* Rdata

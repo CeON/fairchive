@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.persistence.dataset.formatter;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import io.vavr.control.Option;
 

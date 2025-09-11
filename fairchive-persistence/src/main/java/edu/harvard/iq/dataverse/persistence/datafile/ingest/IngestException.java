@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@SuppressWarnings("serial")
 @ApplicationException(rollback = true)
 public class IngestException extends RuntimeException {
 

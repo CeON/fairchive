@@ -23,6 +23,7 @@ import java.util.List;
  * This comparator was originally created by Ellen Kraffmiller for the DVN v2.
  * Incorporated into DVN 4.0 by Leonid Andreev in Dec. 2013.
  */
+@SuppressWarnings("serial")
 public class AlphaNumericComparator implements Comparator<String>, Serializable {
     public AlphaNumericComparator() {
     }

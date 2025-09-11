@@ -3,7 +3,7 @@ package edu.harvard.iq.dataverse.provenance;
 /**
  * @author madunlap
  */
-public class ProvEntityFileData implements Comparable {
+public class ProvEntityFileData implements Comparable<Object> {
     String entityName;
     String fileName;
     String fileType;
