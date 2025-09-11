@@ -141,6 +141,7 @@
                                      update="formContent"
                                      onstart="PF('datasetFormBlockUI').show();"
                                      onerror="PF('saveStatusPoll').start();"
+                                     onsuccess="PF('datasetFormBlockUI').hide();"
                                      oncomplete="$(document).scrollTop(0);"
                                      />
                     <p:button id="cancelCreate" value="#{bundle.cancel}"
