@@ -8,7 +8,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 /**
  * Routes API calls that don't have a version number to the latest API version
@@ -16,7 +15,6 @@ import java.util.logging.Logger;
  * @author michael
  */
 public class ApiRouter implements javax.servlet.Filter {
-    private static final Logger logger = Logger.getLogger(ApiRouter.class.getName());
 
     @Override
     public void init(FilterConfig fc) throws ServletException {

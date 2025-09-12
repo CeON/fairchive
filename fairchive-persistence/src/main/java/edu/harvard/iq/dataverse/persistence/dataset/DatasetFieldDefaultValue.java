@@ -18,6 +18,7 @@ import java.util.Collection;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "datasetfield_id"),
         @Index(columnList = "defaultvalueset_id"),

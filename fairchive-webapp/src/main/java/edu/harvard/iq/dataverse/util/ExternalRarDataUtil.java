@@ -86,8 +86,9 @@ public class ExternalRarDataUtil {
             String lineWithSize = contents[++index];
 
             // Extract first number from the line
-            Scanner scanner = new Scanner(lineWithSize);
-            return scanner.hasNextLong() ? scanner.nextLong() : 0L;
+            try(Scanner scanner = new Scanner(lineWithSize)){
+                return scanner.hasNextLong() ? scanner.nextLong() : 0L;
+            }
         }
         return 0L;
     }

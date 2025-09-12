@@ -20,16 +20,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.text.NumberFormat;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class DashboardPage implements java.io.Serializable {
-
-    private static final Logger logger = Logger.getLogger(DashboardPage.class.getCanonicalName());
 
     @EJB
     HarvestingClientDao harvestingClientService;

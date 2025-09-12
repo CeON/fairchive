@@ -15,6 +15,7 @@ import java.util.Objects;
 /**
  * @author ellenk
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "controlledvocabularyvalue_id"), @Index(columnList = "datasetfieldtype_id")})
 public class ControlledVocabAlternate implements Serializable {

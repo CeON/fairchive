@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "dataversetextmessage_id")})
 public class DataverseLocalizedMessage implements Serializable {

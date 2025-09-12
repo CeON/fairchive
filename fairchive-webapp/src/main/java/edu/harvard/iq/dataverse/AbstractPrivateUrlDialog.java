@@ -1,9 +1,6 @@
 package edu.harvard.iq.dataverse;
 
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.inject.Inject;
 import java.io.Serializable;
 
@@ -11,8 +8,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @SuppressWarnings("serial")
 abstract class AbstractPrivateUrlDialog implements Serializable {
-
-    private static final Logger logger = LoggerFactory.getLogger(AbstractPrivateUrlDialog.class);
 
     @Inject
     private DatasetPage datasetPage;

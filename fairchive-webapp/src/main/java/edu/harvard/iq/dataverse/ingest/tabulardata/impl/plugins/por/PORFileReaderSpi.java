@@ -72,9 +72,6 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
         if (!(source instanceof BufferedInputStream)) {
             return false;
         }
-        if (source == null) {
-            throw new IllegalArgumentException("source == null!");
-        }
         BufferedInputStream stream = (BufferedInputStream) source;
         dbgLog.fine("applying the por test\n");
 
@@ -85,8 +82,6 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
         }
 
         int nbytes = stream.read(b, 0, POR_HEADER_SIZE);
-
-        //printHexDump(b, "hex dump of the byte-array");
 
         if (nbytes == 0) {
             throw new IOException();
@@ -99,8 +94,6 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
         if (stream.markSupported()) {
             stream.reset();
         }
-
-        boolean DEBUG = false;
 
         //windows [0D0A]=>   [1310] = [CR/LF]
         //unix    [0A]  =>   [10]
@@ -237,8 +230,6 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
             stream.reset();
         }
 
-        boolean DEBUG = false;
-
         //windows [0D0A]=>   [1310] = [CR/LF]
         //unix    [0A]  =>   [10]
         //mac     [0D]  =>   [13]
@@ -360,11 +351,7 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
         // create a read-only MappedByteBuffer
         MappedByteBuffer buff = srcChannel.map(FileChannel.MapMode.READ_ONLY, 0, POR_HEADER_SIZE);
 
-        //printHexDump(buff, "hex dump of the byte-buffer");
-
         buff.rewind();
-
-        boolean DEBUG = false;
 
 
         dbgLog.fine("applying the spss-por test\n");

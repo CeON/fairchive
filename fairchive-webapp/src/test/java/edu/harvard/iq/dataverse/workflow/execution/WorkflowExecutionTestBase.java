@@ -1,11 +1,15 @@
 package edu.harvard.iq.dataverse.workflow.execution;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doAnswer;
+
+import org.junit.jupiter.api.BeforeEach;
+
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.engine.TestSettingsServiceBean;
 import edu.harvard.iq.dataverse.mocks.MockAuthenticatedUser;
-import edu.harvard.iq.dataverse.mocks.MockAuthenticationServiceBean;
 import edu.harvard.iq.dataverse.mocks.MockRoleAssigneeServiceBean;
 import edu.harvard.iq.dataverse.persistence.StubJpaPersistence;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
@@ -19,11 +23,6 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowExecutionStepReposi
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.test.WithTestClock;
-import org.junit.jupiter.api.BeforeEach;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doAnswer;
 
 public abstract class WorkflowExecutionTestBase implements WithTestClock {
 

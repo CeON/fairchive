@@ -52,6 +52,12 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
           .getResultList();
     }
     
+    public List<Dataset> findAllOrderedById() {
+        return this.em.createQuery("select object(o) from Dataset as o order by o.id",
+                Dataset.class)
+                .getResultList();
+    }
+    
     public List<Long> findAllLocalDatasetIds() {
         return this.em.createQuery(
                 "SELECT o.id FROM Dataset o WHERE o.harvestedFrom IS null ORDER BY o.id", 
