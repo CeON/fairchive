@@ -18,6 +18,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "datavariable_id"), @Index(columnList = "filemetadata_id"),
         @Index(columnList = "datavariable_id,filemetadata_id")},

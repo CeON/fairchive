@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
+@SuppressWarnings("serial")
 @Entity
 public class WorkflowComment implements Serializable {
 

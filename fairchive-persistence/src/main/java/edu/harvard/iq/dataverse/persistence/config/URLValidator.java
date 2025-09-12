@@ -32,7 +32,7 @@ public class URLValidator implements ConstraintValidator<ValidateURL, String> {
             return true;
         }
         try {
-            URL url = new URL(value);
+            new URL(value);
         } catch (MalformedURLException e) {
             return false;
         }

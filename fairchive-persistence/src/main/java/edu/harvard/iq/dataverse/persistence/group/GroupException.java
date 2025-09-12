@@ -7,6 +7,7 @@ import javax.ejb.ApplicationException;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @ApplicationException(rollback = true)
 public class GroupException extends RuntimeException {
 

@@ -12,6 +12,7 @@ import java.io.Serializable;
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 @Table(indexes = {@Index(columnList = "owner_id")})
 @NamedQueries({
         @NamedQuery(name = "IPv6Range.findGroupsContainingABCD",

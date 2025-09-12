@@ -4,11 +4,9 @@ import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 import javax.ejb.Stateless;
 import java.util.List;
-import java.util.logging.Logger;
 
 @Stateless
 public class DataverseFeaturedDataverseRepository extends JpaRepository<Long, DataverseFeaturedDataverse> {
-    private static final Logger logger = Logger.getLogger(DataverseFeaturedDataverseRepository.class.getCanonicalName());
 
     // -------------------- CONSTRUCTORS --------------------
 

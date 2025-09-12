@@ -36,12 +36,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.io.Serializable;
 
 /**
  * Base of the object hierarchy for "anything that can be inside a dataverse".
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "DvObject.findAll",
                 query = "SELECT o FROM DvObject o ORDER BY o.id"),
@@ -75,7 +77,7 @@ import java.util.Set;
         , @Index(columnList = "creator_id")
         , @Index(columnList = "releaseuser_id")},
         uniqueConstraints = @UniqueConstraint(columnNames = {"authority","protocol","identifier"}))
-public abstract class DvObject extends DataverseEntity implements java.io.Serializable, JpaEntity<Long> {
+public abstract class DvObject extends DataverseEntity implements Serializable, JpaEntity<Long> {
 
     public static final String DATAVERSE_DTYPE_STRING = "Dataverse";
     public static final String DATASET_DTYPE_STRING = "Dataset";

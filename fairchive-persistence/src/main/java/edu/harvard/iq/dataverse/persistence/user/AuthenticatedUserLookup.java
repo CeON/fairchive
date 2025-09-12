@@ -23,6 +23,7 @@ import java.io.Serializable;
  * @author pdurbin
  * @author michael
  */
+@SuppressWarnings("serial")
 @Table(
         uniqueConstraints =
         @UniqueConstraint(columnNames = {"persistentuserid", "authenticationproviderid"})

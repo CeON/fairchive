@@ -6,6 +6,7 @@ import java.util.Arrays;
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 public class IPv4Address extends IpAddress implements Comparable<IPv4Address> {
 
     public static IPv4Address valueOf(String input) {

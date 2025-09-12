@@ -16,13 +16,15 @@ import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.logging.Logger;
+import java.io.Serializable;
 
 /**
  * @author raprasad
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "worldmapauth_tokentype", indexes = {@Index(name = "application_name", columnList = "name", unique = true)})
-public class TokenApplicationType implements java.io.Serializable {
+public class TokenApplicationType implements Serializable {
 
     private static final Logger logger = Logger.getLogger(TokenApplicationType.class.getCanonicalName());
     public static final String DEFAULT_GEOCONNECT_APPLICATION_NAME = "GEOCONNECT";

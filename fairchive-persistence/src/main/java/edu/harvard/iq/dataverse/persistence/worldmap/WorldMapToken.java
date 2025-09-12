@@ -19,10 +19,12 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Random;
 import java.util.logging.Logger;
+import java.io.Serializable;
 
 /**
  * @author raprasad
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "worldmapauth_token"
         , indexes = {@Index(name = "token_value", columnList = "token", unique = true)
@@ -30,7 +32,7 @@ import java.util.logging.Logger;
         , @Index(columnList = "datafile_id")
         , @Index(columnList = "dataverseuser_id")
 })
-public class WorldMapToken implements java.io.Serializable {
+public class WorldMapToken implements Serializable {
 
     @Transient
     public static final String GEOCONNECT_TOKEN_KEY = "GEOCONNECT_TOKEN";

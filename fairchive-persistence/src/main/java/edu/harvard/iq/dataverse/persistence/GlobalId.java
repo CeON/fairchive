@@ -9,11 +9,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.io.Serializable;
 /**
  * @author skraffmiller
  */
-public class GlobalId implements java.io.Serializable {
+@SuppressWarnings("serial")
+public class GlobalId implements Serializable {
 
     public static final String DOI_PROTOCOL = "doi";
     public static final String HDL_PROTOCOL = "hdl";

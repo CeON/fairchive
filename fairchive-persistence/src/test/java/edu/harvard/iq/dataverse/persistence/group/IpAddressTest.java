@@ -1,8 +1,5 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
-import edu.harvard.iq.dataverse.persistence.group.IPv4Address;
-import edu.harvard.iq.dataverse.persistence.group.IPv6Address;
-import edu.harvard.iq.dataverse.persistence.group.IpAddress;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
