@@ -30,6 +30,7 @@ import java.util.Objects;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "dataverse_id")})
 @Customizer(EntityCustomizer.class)

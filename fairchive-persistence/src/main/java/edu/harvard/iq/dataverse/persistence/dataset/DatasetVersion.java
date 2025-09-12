@@ -78,6 +78,7 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "dataset_id")},
         uniqueConstraints = @UniqueConstraint(columnNames = {"dataset_id","versionnumber","minorversionnumber"}))
