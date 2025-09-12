@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.EMAIL;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.NONE;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXT;
@@ -46,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.config.JsonMapConverter;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
@@ -410,7 +410,8 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         }
 
         for (String groupName : groupsMap.keySet()) {
-            String groupLabel = BundleUtil.getStringFromNonDefaultBundle("controlledvocabulary." + getName() + "." + groupName,
+            String groupLabel = getStringFromNonDefaultBundle("controlledvocabulary." 
+                    + getName() + "." + groupName,
                     getMetadataBlock().getName());
 
             SelectItemGroup selectItemGroup = new SelectItemGroup(groupLabel);
@@ -515,7 +516,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         } else {
             String key = "datasetfieldtype." + getName() + ".title";
             String bundleName = getMetadataBlock().getName();
-            String localeTitle = BundleUtil.getStringFromNonDefaultBundle(key, bundleName);
+            String localeTitle = getStringFromNonDefaultBundle(key, bundleName);
             return localeTitle.isEmpty() ? title : localeTitle;
         }
     }
@@ -524,7 +525,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         if (getMetadataBlock() == null || StringUtils.isEmpty(description)) {
             return description;
         } else {
-            String localeDescription = BundleUtil.getStringFromNonDefaultBundle(
+            String localeDescription = getStringFromNonDefaultBundle(
                     "datasetfieldtype." + getName() + ".description", getMetadataBlock().getName());
             return localeDescription.isEmpty() ? description : localeDescription;
         }
@@ -534,7 +535,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         if (getMetadataBlock() == null) {
             return watermark;
         } else {
-            String localeWatermark = BundleUtil.getStringFromNonDefaultBundle(
+            String localeWatermark = getStringFromNonDefaultBundle(
                     "datasetfieldtype." + getName() + ".watermark", getMetadataBlock().getName());
             return localeWatermark.isEmpty() ? watermark : localeWatermark;
         }
@@ -544,7 +545,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         if (getMetadataBlock() == null) {
             return value;
         } else {
-            String localeVocab = BundleUtil.getStringFromNonDefaultBundle(
+            String localeVocab = getStringFromNonDefaultBundle(
                     "controlledvocabulary." + getName() + "." + value, getMetadataBlock().getName());
             return localeVocab.isEmpty() ? value : localeVocab;
         }
@@ -583,7 +584,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         try {
             String key = "datasetfieldtype." + getName() + ".withParent.title";
             String bundleName = getMetadataBlock().getName();
-            return BundleUtil.getStringFromNonDefaultBundle(key, bundleName);
+            return getStringFromNonDefaultBundle(key, bundleName);
         } catch (NullPointerException e) {
             return StringUtils.EMPTY;
         }

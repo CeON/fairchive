@@ -3,12 +3,9 @@ package edu.harvard.iq.dataverse.persistence.datafile.datavariable;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import org.hibernate.validator.constraints.NotBlank;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -16,6 +13,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +42,7 @@ public class DataVariable implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     /*
@@ -134,7 +138,7 @@ public class DataVariable implements Serializable {
      * variable.
      * Note that VariableRange is itself an entity.
      */
-    @OneToMany(mappedBy = "dataVariable", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataVariable", cascade = {REMOVE, MERGE, PERSIST})
     private Collection<VariableRange> invalidRanges;
 
     /*
@@ -142,14 +146,14 @@ public class DataVariable implements Serializable {
      * as "invalid" for this variable.
      * Note that VariableRangeItem is itself an entity.
      */
-    @OneToMany(mappedBy = "dataVariable", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataVariable", cascade = {REMOVE, MERGE, PERSIST})
     private Collection<VariableRangeItem> invalidRangeItems;
 
     /*
      * Summary Statistics for this variable.
      * Note that SummaryStatistic is itself an entity.
      */
-    @OneToMany(mappedBy = "dataVariable", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataVariable", cascade = {REMOVE, MERGE, PERSIST})
     private Collection<SummaryStatistic> summaryStatistics;
 
     /*
@@ -162,11 +166,11 @@ public class DataVariable implements Serializable {
      * Variable Categories, for categorical variables.
      * VariableCategory is itself an entity.
      */
-    @OneToMany(mappedBy = "dataVariable", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataVariable", cascade = {REMOVE, MERGE, PERSIST})
     @OrderBy("catOrder")
     private Collection<VariableCategory> categories;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn
     private VarGroup varGroup;
 
@@ -181,18 +185,6 @@ public class DataVariable implements Serializable {
      */
     private boolean factor;
 
-
-
-    /*
-     * weightedVariables: <NOT YET IMPLEMENTED!>
-     * Note that WeightedVarRelationship is a custom entity, with a custom
-     * @IdClass.
-     */
-    /*
-        @OneToMany (mappedBy="dataVariable")
-        private java.util.Collection<WeightedVarRelationship> weightedVariables;
-    */
-
     /*
      * fileOrder: the numeric order in which this variable occurs in the
      * physical file.
@@ -204,7 +196,7 @@ public class DataVariable implements Serializable {
      */
     private Long numberOfDecimalPoints;
 
-    @OneToMany(mappedBy = "dataVariable", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataVariable", cascade = {REMOVE, MERGE, PERSIST})
     private Collection<VariableMetadata> variableMetadatas = new ArrayList<>();
 
     public DataVariable() {
@@ -292,14 +284,6 @@ public class DataVariable implements Serializable {
     public void setFileEndPosition(java.lang.Long fileEndPosition) {
         this.fileEndPosition = fileEndPosition;
     }
-
-    //experimentpublic String getFormatSchema() {
-    //    return this.formatSchema;
-    //}
-    //
-    //public void setFormatSchema(String formatSchema) {
-    //    this.formatSchema = formatSchema;
-    //}
 
     public String getFormat() {
         return this.format;
@@ -467,16 +451,6 @@ public class DataVariable implements Serializable {
         this.factor = factor;
     }
 
-    /* getter and setter for weightedVariables - not yet implemented!
-    public java.util.Collection<WeightedVarRelationship> getWeightedVariables() {
-        return this.weightedVariables;
-    }
-
-    public void setWeightedVariables(java.util.Collection<edu.harvard.iq.dvn.core.study.WeightedVarRelationship> weightedVariables) {
-        this.weightedVariables = weightedVariables;
-    }
-    */
-
     public int getFileOrder() {
         return fileOrder;
     }
@@ -508,11 +482,6 @@ public class DataVariable implements Serializable {
     public Collection<VariableMetadata> getVariableMetadatas() {
         return variableMetadatas;
     }
-
-    /*
-     * Custom overrides for hashCode(), equals() and toString() methods:
-     */
-
 
     @Override
     public int hashCode() {

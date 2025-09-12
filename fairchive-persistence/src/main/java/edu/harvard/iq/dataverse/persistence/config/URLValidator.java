@@ -1,9 +1,10 @@
 package edu.harvard.iq.dataverse.persistence.config;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
-
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -22,7 +23,8 @@ public class URLValidator implements ConstraintValidator<ValidateURL, String> {
 
         boolean valid = isURLValid(value);
         if (context != null && !valid) {
-            context.buildConstraintViolationWithTemplate(value + "  " + BundleUtil.getStringFromBundle("url.invalid")).addConstraintViolation();
+            context.buildConstraintViolationWithTemplate(value + "  " + 
+        getStringFromBundle("url.invalid")).addConstraintViolation();
         }
         return valid;
     }

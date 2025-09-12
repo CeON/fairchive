@@ -29,7 +29,8 @@ public class GrantSuggestions {
     public GrantSuggestions() {
     }
 
-    public GrantSuggestions(String grantAgency, String grantAgencyAcronym, String fundingProgram, String foreignName, Locale foreignNameLocale) {
+    public GrantSuggestions(String grantAgency, String grantAgencyAcronym, 
+            String fundingProgram, String foreignName, Locale foreignNameLocale) {
         this.grantAgency = grantAgency;
         this.grantAgencyAcronym = grantAgencyAcronym;
         this.fundingProgram = fundingProgram;

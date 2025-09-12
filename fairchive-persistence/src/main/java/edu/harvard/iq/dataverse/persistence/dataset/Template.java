@@ -6,11 +6,9 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import org.eclipse.persistence.annotations.Customizer;
 import org.hibernate.validator.constraints.NotBlank;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -18,8 +16,14 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.TemporalType.TIMESTAMP;
+
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,7 +41,7 @@ import java.util.Objects;
 public class Template implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @NotBlank(message = "{dataset.templatename}")
@@ -47,12 +51,12 @@ public class Template implements Serializable {
 
     private Long usageCount;
 
-    @Temporal(value = TemporalType.TIMESTAMP)
+    @Temporal(value = TIMESTAMP)
     @Column(nullable = false)
     private Date createTime;
 
     @OneToMany(mappedBy = "template", orphanRemoval = true,
-            cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+            cascade = {REMOVE, MERGE, PERSIST})
     @CustomizeSelectionQuery(EntityCustomizer.Customizations.DATASET_FIELDS_WITH_PRIMARY_SOURCE)
     private List<DatasetField> datasetFields = new ArrayList<>();
 

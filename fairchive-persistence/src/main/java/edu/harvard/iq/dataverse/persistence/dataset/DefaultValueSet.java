@@ -1,12 +1,16 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -18,7 +22,7 @@ import java.util.List;
 public class DefaultValueSet implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     public Long getId() {
@@ -40,7 +44,7 @@ public class DefaultValueSet implements Serializable {
         this.name = name;
     }
 
-    @OneToMany(mappedBy = "defaultValueSet", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "defaultValueSet", cascade = {REMOVE, MERGE, PERSIST})
     private List<DatasetFieldDefaultValue> datasetFieldDefaultValues;
 
     public List<DatasetFieldDefaultValue> getDatasetFieldDefaultValues() {
