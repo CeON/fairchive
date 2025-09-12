@@ -169,7 +169,6 @@ public class MailMessageCreator {
         Locale notificationsEmailLanguage = notificationDto.getNotificationReceiver().getNotificationsLanguage();
         String messageText = BundleUtil.getStringFromBundleWithLocale("notification.email.greeting",
                 notificationsEmailLanguage);
-        String objectType = NotificationObjectType.DATAVERSE.toString().toLowerCase();
 
         switch (notificationDto.getNotificationType()) {
             case ASSIGNROLE:
@@ -179,14 +178,12 @@ public class MailMessageCreator {
                         .map(RoleTranslationUtil::getLocaleNameFromAlias)
                         .collect(Collectors.joining("/"));
 
-                String pattern = BundleUtil.getStringFromBundleWithLocale("notification.email.assignRole",
-                        notificationsEmailLanguage);
-
-                messageText += MessageFormat.format(pattern, joinedRoleNames, objectType, dataverse.getDisplayName(),
-                                                    getDataverseLink(dataverse));
+                messageText += BundleUtil.getStringFromBundleWithLocale("notification.email.dataverse.assignRole",
+                        notificationsEmailLanguage,
+                        joinedRoleNames, dataverse.getDisplayName(), getDataverseLink(dataverse));
 
                 if (joinedRoleNames.contains(BuiltInRole.FILE_DOWNLOADER.getAlias())) {
-                    pattern = BundleUtil.getStringFromBundleWithLocale(
+                    String pattern = BundleUtil.getStringFromBundleWithLocale(
                             "notification.access.granted.fileDownloader.additionalDataverse",
                             notificationsEmailLanguage);
                     messageText += MessageFormat.format(pattern, " ");
@@ -194,9 +191,9 @@ public class MailMessageCreator {
 
                 return messageText;
             case REVOKEROLE:
-                messageText += MessageFormat.format(
-                        BundleUtil.getStringFromBundleWithLocale("notification.email.revokeRole", notificationsEmailLanguage),
-                        objectType, dataverse.getDisplayName(), getDataverseLink(dataverse));
+                messageText += BundleUtil.getStringFromBundleWithLocale("notification.email.dataverse.revokeRole",
+                        notificationsEmailLanguage,
+                        dataverse.getDisplayName(), getDataverseLink(dataverse));
                 return messageText;
             case CREATEDV:
                 Dataverse parentDataverse = dataverse.getOwner();
@@ -217,21 +214,20 @@ public class MailMessageCreator {
         Locale notificationsEmailLanguage = notificationDto.getNotificationReceiver().getNotificationsLanguage();
         String messageText = BundleUtil.getStringFromBundleWithLocale("notification.email.greeting",
                 notificationsEmailLanguage);
-        String objectType = notificationDto.getNotificationObjectType().toString().toLowerCase();
         String pattern;
 
         switch (notificationDto.getNotificationType()) {
             case ASSIGNROLE:
 
                 String joinedRoleNames = permissionService.getRolesOfUser(notificationDto.getNotificationReceiver(), dataset).stream()
-                        .map(roleAssignment -> roleAssignment.getRole().getAlias())
+                        .map(RoleAssignment::getRole)
+                        .map(DataverseRole::getAlias)
+                        .map(RoleTranslationUtil::getLocaleNameFromAlias)
                         .collect(Collectors.joining("/"));
 
-                pattern = BundleUtil.getStringFromBundleWithLocale("notification.email.assignRole",
-                        notificationsEmailLanguage);
-
-                messageText += MessageFormat.format(pattern,
-                        joinedRoleNames, objectType, dataset.getDisplayName(), getDatasetLink(dataset));
+                messageText += BundleUtil.getStringFromBundleWithLocale("notification.email.dataset.assignRole",
+                        notificationsEmailLanguage,
+                        joinedRoleNames, dataset.getDisplayName(), getDatasetLink(dataset));
 
                 if (joinedRoleNames.contains(BuiltInRole.FILE_DOWNLOADER.getAlias())) {
                     pattern = BundleUtil.getStringFromBundleWithLocale(
@@ -240,8 +236,9 @@ public class MailMessageCreator {
                 }
                 return messageText;
             case REVOKEROLE:
-                messageText += MessageFormat.format(BundleUtil.getStringFromBundleWithLocale("notification.email.revokeRole",
-                        notificationsEmailLanguage), objectType, dataset.getDisplayName(), getDatasetLink(dataset));
+                messageText += BundleUtil.getStringFromBundleWithLocale("notification.email.dataset.revokeRole",
+                        notificationsEmailLanguage,
+                        dataset.getDisplayName(), getDatasetLink(dataset));
                 return messageText;
             case GRANTFILEACCESS:
                 pattern = BundleUtil.getStringFromBundleWithLocale("notification.email.grantFileAccess",
