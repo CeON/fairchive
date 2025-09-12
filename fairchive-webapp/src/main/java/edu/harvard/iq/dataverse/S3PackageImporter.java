@@ -47,6 +47,7 @@ import java.util.logging.Logger;
  * @author matthew
  */
 
+@SuppressWarnings("serial")
 @Stateless
 public class S3PackageImporter extends AbstractApiBean implements java.io.Serializable {
 

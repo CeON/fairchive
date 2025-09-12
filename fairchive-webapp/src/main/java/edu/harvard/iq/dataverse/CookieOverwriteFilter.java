@@ -1,8 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.inject.Inject;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -17,7 +14,6 @@ import java.io.IOException;
 import java.util.Collection;
 
 public class CookieOverwriteFilter implements Filter {
-    private static final Logger logger = LoggerFactory.getLogger(CookieOverwriteFilter.class);
 
     private HttpSession session;
 

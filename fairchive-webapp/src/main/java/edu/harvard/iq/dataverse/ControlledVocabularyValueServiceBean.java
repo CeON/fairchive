@@ -17,6 +17,7 @@ import java.util.List;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Stateless
 public class ControlledVocabularyValueServiceBean implements java.io.Serializable {
 

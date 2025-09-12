@@ -10,6 +10,7 @@ import java.io.Serializable;
  * @author skraffmiller
  */
 
+@SuppressWarnings("serial")
 public class DatasetVersionDatasetUserId implements Serializable {
 
     private String userIdentifier;

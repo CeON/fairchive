@@ -16,6 +16,7 @@ import java.util.List;
  * @author xyang
  * @author Michael Bar-Sinai
  */
+@SuppressWarnings("serial")
 @Stateless
 @Named
 public class DataverseFacetServiceBean implements java.io.Serializable {
