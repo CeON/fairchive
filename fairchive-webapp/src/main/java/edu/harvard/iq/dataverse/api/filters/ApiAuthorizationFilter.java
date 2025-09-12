@@ -17,7 +17,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  *  When one is using Dataverse REST Api we need to set user in session
