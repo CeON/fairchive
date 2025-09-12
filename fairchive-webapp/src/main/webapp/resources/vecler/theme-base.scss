@@ -2434,6 +2434,14 @@ body:not(.high-contrast-yellow-on-black) .superior-logo.contrast {
 				background: #e8e8e8;
 			}
 	}
+
+	/* Fix misaligned main menu in top navbar */
+
+    .navbar-default #topNavBar.collapse.navbar-collapse {
+        display: flex !important;
+        flex-direction: column;
+        align-items: flex-end;
+    }
 }
 
 /* Accessibility controls */
