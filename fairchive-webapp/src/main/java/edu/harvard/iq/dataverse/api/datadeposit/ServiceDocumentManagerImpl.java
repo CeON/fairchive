@@ -20,11 +20,9 @@ import org.swordapp.server.UriRegistry;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class ServiceDocumentManagerImpl implements ServiceDocumentManager {
 
-    private static final Logger logger = Logger.getLogger(ServiceDocumentManagerImpl.class.getCanonicalName());
     @EJB
     DataverseDao dataverseDao;
     @EJB

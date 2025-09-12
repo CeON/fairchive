@@ -26,11 +26,9 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.namespace.QName;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class CollectionListManagerImpl implements CollectionListManager {
 
-    private static final Logger logger = Logger.getLogger(CollectionListManagerImpl.class.getCanonicalName());
     @EJB
     DataverseDao dataverseDao;
     @EJB
@@ -79,8 +77,8 @@ public class CollectionListManagerImpl implements CollectionListManager {
                     if (!permissionService.isUserAllowedOn(user, new UpdateDatasetVersionCommand(dataset, dvReq), dataset)) {
                         continue;
                     }
-                    String editUri = baseUrl + "/edit/study/" + dataset.getGlobalIdString();
-                    String editMediaUri = baseUrl + "/edit-media/study/" + dataset.getGlobalIdString();
+                    String editUri = baseUrl + "/edit/study/" + dataset.getGlobalId();
+                    String editMediaUri = baseUrl + "/edit-media/study/" + dataset.getGlobalId();
                     Entry entry = feed.addEntry();
                     entry.setId(editUri);
                     entry.setTitle(datasetDao.getTitleFromLatestVersion(dataset.getId()));
