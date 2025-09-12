@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class DataverseHeaderFragment implements Serializable {
@@ -269,7 +270,7 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     private Breadcrumb buildBreadcrumbForDataset(Dataset dataset, String optionalUrlExtension) {
-        return buildBreadcrumb(dataset, optionalUrlExtension, d -> "/dataset.xhtml?persistentId=" + d.getGlobalIdString());
+        return buildBreadcrumb(dataset, optionalUrlExtension, d -> "/dataset.xhtml?persistentId=" + d.getGlobalId());
     }
 
     private Breadcrumb buildBreadcrumbForDatafile(DataFile datafile, String optionalUrlExtension) {

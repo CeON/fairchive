@@ -87,11 +87,9 @@ public class MapLayerMetadataServiceBean {
         }
 
         try {
-            //           String sqlStatement =
             Query query = em.createQuery("select m from MapLayerMetadata m WHERE m.dataFile=:datafile", MapLayerMetadata.class);
             query.setParameter("datafile", datafile);
             query.setMaxResults(1);
-            //entityManager.createQuery(SQL_QUERY).setParameter(arg0,arg1).setMaxResults(10).getResultList();
             return (MapLayerMetadata) query.getSingleResult();
         } catch (NoResultException nre) {
             return null;
@@ -115,7 +113,7 @@ public class MapLayerMetadataServiceBean {
             // Remove thumbnails associated with the map metadata
             // (this also sets theto set the "preview image" flag to false)
             //
-            boolean success = this.deleteOlderMapThumbnails(mapLayerMetadata.getDataFile());
+            this.deleteOlderMapThumbnails(mapLayerMetadata.getDataFile());
 
             // Remove the actual map metadata
             //
@@ -127,12 +125,10 @@ public class MapLayerMetadataServiceBean {
     }
 
 
-    public MapLayerMetadata findMetadataByLayerNameAndDatafile(String layer_name) {//, DataFile datafile) {
-        if ((layer_name == null)) {//||(datafile==null)){
+    public MapLayerMetadata findMetadataByLayerNameAndDatafile(String layer_name) {
+        if ((layer_name == null)) {
             return null;
         }
-        //Query query = em.createQuery("select o.id from MapLayerMetadta as o where o.layer_name =:layerName and o.datafile_id =:datafileID;");
-        //Query query = em.createQuery("select m from MapLayerMetadata m where m.layer_name =:layerName ;");
         try {
             return em.createQuery("select m from MapLayerMetadata m WHERE m.layerName=:layerName", MapLayerMetadata.class)
                     .setParameter("layerName", layer_name)
@@ -147,7 +143,7 @@ public class MapLayerMetadataServiceBean {
         if (dataset == null) {
             return null;
         }
-        TypedQuery<MapLayerMetadata> query = em.createQuery("select object(o) from MapLayerMetadata as o where o.dataset=:dataset", MapLayerMetadata.class);// order by o.name");
+        TypedQuery<MapLayerMetadata> query = em.createQuery("select object(o) from MapLayerMetadata as o where o.dataset=:dataset", MapLayerMetadata.class);
         query.setParameter("dataset", dataset);
         return query.getResultList();
     }
@@ -300,7 +296,6 @@ public class MapLayerMetadataServiceBean {
 
         logger.log(Level.INFO, "callback_url: {0}", callback_url);
 
-        //String geoConnectCommand = geoConnectAddress + GEOCONNECT_MAP_DELETE_API + token.getApplication().getMapitLink() + "/" + token.getToken() + "/?cb=" +  callback_url;
         String geoConnectCommand = geoConnectAddress + GEOCONNECT_MAP_DELETE_API + token.getToken() + "/?cb=" + callback_url;
         logger.info("-- new token id 2: " + token.getId());
 

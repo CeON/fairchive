@@ -13,6 +13,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+@SuppressWarnings("serial")
 @SessionScoped
 @Named("SuperUserPage")
 public class SuperUserPage implements java.io.Serializable {

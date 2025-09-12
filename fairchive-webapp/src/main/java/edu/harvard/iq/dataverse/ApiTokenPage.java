@@ -11,17 +11,16 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.logging.Logger;
 
 /**
  * @todo Rename this to ApiTokenFragment? The separate page is being taken out
  * per https://github.com/IQSS/dataverse/issues/3086
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("ApiTokenPage")
 public class ApiTokenPage implements java.io.Serializable {
 
-    private static final Logger logger = Logger.getLogger(ApiTokenPage.class.getCanonicalName());
 
     @Inject
     DataverseSession session;

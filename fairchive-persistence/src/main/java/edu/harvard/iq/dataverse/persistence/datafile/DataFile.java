@@ -463,7 +463,11 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         // a pdf file is an "image" for practical purposes (we will attempt to
         // generate thumbnails and previews for them)
         return contentType != null
-                && (contentType.startsWith("image/") || "application/pdf".equalsIgnoreCase(contentType));
+                && (contentType.startsWith("image/") || isPdf());
+    }
+    
+    public boolean isPdf() {
+        return "application/pdf".equalsIgnoreCase(this.contentType);
     }
 
     public boolean isFilePackage() {

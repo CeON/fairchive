@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.api;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
 import java.io.InputStream;
 
@@ -15,7 +14,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.search.geonames.GeoNameIndexingService;
 
 @Stateless

@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("CreateDatasetDialog")
 public class CreateDatasetDialog implements Serializable {

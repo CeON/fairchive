@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class HarvestingSetsPage implements java.io.Serializable {
