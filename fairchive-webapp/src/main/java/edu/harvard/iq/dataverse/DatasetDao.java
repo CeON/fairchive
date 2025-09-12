@@ -99,7 +99,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public List<Dataset> findAll() {
-        return this.datasetRepository.findAll();
+        return this.datasetRepository.findAllOrderedById();
     }
     
     public List<Dataset> findStaleOrMissingDatasets() {
