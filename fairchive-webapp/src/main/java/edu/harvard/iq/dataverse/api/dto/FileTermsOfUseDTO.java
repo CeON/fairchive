@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.api.dto;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class FileTermsOfUseDTO implements Serializable {
 
     private final String termsType;

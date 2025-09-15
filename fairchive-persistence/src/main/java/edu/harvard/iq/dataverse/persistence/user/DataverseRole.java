@@ -31,6 +31,7 @@ import java.util.Set;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "owner_id")
         , @Index(columnList = "name")

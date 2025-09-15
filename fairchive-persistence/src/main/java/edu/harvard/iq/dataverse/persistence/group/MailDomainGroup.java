@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
+@SuppressWarnings("serial")
 @Entity
 public class MailDomainGroup extends PersistedGlobalGroup implements JpaEntity<Long> {
 

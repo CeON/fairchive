@@ -83,7 +83,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -689,17 +688,6 @@ public class Access extends AbstractApiBean {
                     thumbnailDataAccess = null;
                 }
             }
-
-
-            // If not, we'll try to use one of the files in this dataset version:
-            /*
-            if (thumbnailDataAccess == null) {
-
-                if (!datasetVersion.getDataset().isHarvested()) {
-                    thumbnailDataAccess = getThumbnailForDatasetVersion(datasetVersion);
-                }
-            }*/
-
         }
 
         return null;
@@ -861,7 +849,6 @@ public class Access extends AbstractApiBean {
         List<AuthenticatedUser> requesters = dataFile.getFileAccessRequesters();
 
         if (requesters == null || requesters.isEmpty()) {
-            List<String> args = Arrays.asList(dataFile.getDisplayName());
             return error(BAD_REQUEST, BundleUtil.getStringFromBundle("access.api.requestList.noRequestsFound"));
         }
 

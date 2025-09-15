@@ -9,6 +9,7 @@ import java.util.Locale;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class GuestUser implements User {
 
     private static final GuestUser INSTANCE = new GuestUser();

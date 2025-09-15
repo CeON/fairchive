@@ -7,6 +7,7 @@ import java.io.Serializable;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public abstract class IpAddress implements Serializable {
 
     public static IpAddress valueOf(String s) {

@@ -6,6 +6,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class UningestableItemDTO implements Serializable {
     private Long dataFileId;
     private String fileName;

@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("serial")
 @Entity
 public class RorData implements JpaEntity<Long>, Serializable {
     @Id

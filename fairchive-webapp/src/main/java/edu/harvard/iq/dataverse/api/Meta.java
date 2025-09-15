@@ -32,15 +32,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import java.io.ByteArrayOutputStream;
 import java.util.Optional;
-import java.util.logging.Logger;
-
-/*
-    Custom API exceptions [NOT YET IMPLEMENTED]
-import edu.harvard.iq.dataverse.api.exceptions.NotFoundException;
-import edu.harvard.iq.dataverse.api.exceptions.ServiceUnavailableException;
-import edu.harvard.iq.dataverse.api.exceptions.PermissionDeniedException;
-import edu.harvard.iq.dataverse.api.exceptions.AuthorizationRequiredException;
-*/
 
 /**
  * PLEASE NOTE that the "/api/meta" endpoints are deprecated! All code should
@@ -58,7 +49,6 @@ import edu.harvard.iq.dataverse.api.exceptions.AuthorizationRequiredException;
 @Deprecated
 @Path("meta")
 public class Meta {
-    private static final Logger logger = Logger.getLogger(Meta.class.getCanonicalName());
 
     @EJB
     SearchServiceBean searchService;
@@ -125,8 +115,6 @@ public class Meta {
 
         DataFile dataFile = null;
 
-        //httpHeaders.add("Content-disposition", "attachment; filename=\"dataverse_files.zip\"");
-        //httpHeaders.add("Content-Type", "application/zip; name=\"dataverse_files.zip\"");
         response.setHeader("Content-disposition", "attachment; filename=\"dataverse_files.zip\"");
 
         dataFile = datafileService.find(fileId);

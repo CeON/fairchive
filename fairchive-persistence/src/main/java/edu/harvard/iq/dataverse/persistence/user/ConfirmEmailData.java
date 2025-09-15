@@ -19,6 +19,7 @@ import java.util.UUID;
 /**
  * @author bsilverstein
  */
+@SuppressWarnings("serial")
 @Table(indexes = {
         @Index(columnList = "token"),
         @Index(columnList = "authenticateduser_id")})

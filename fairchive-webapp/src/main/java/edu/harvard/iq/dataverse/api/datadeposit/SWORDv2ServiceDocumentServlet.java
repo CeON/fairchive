@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@SuppressWarnings("serial")
 public class SWORDv2ServiceDocumentServlet extends SwordServlet {
 
     @Inject

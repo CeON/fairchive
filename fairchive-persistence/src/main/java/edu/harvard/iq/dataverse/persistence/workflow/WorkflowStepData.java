@@ -19,6 +19,7 @@ import java.util.Map;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Entity
 public class WorkflowStepData implements Serializable {
 

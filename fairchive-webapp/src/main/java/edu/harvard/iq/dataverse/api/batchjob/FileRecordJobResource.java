@@ -18,14 +18,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.logging.Logger;
 
 @Stateless
 @Path("batch/jobs")
 @Produces(MediaType.APPLICATION_JSON)
 public class FileRecordJobResource extends AbstractApiBean {
-
-    private static final Logger logger = Logger.getLogger(FileRecordJobResource.class.getName());
 
     @EJB
     PermissionServiceBean permissionServiceBean;

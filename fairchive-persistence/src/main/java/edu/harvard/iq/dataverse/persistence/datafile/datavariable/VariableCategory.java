@@ -11,7 +11,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author Ellen Kraffmiller
@@ -22,7 +21,7 @@ import java.util.List;
  */
 @Entity
 @Table(indexes = {@Index(columnList = "datavariable_id")})
-public class VariableCategory implements Comparable, Serializable {
+public class VariableCategory implements Comparable<VariableCategory>, Serializable {
     /*
      * Simple constructor:
      */
@@ -135,21 +134,6 @@ public class VariableCategory implements Comparable, Serializable {
         this.frequency = frequency;
     }
 
-
-    /*
-     * Helper methods:
-     */
-
-
-    // helper for html display  
-    // [TODO: double-check if we still need this method in 4.0; -- L.A., jan. 2014] 
-    private transient List charList;
-
-    /*
-     * Custom overrides for hashCode(), equals() and toString() methods:
-     */
-
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -179,9 +163,8 @@ public class VariableCategory implements Comparable, Serializable {
     }
 
     @Override
-    public int compareTo(Object obj) {
-        VariableCategory ss = (VariableCategory) obj;
-        return alphaNumericComparator.compare(this.getValue(), ss.getValue());
+    public int compareTo(final VariableCategory other) {
+        return alphaNumericComparator.compare(this.getValue(), other.getValue());
 
     }
 

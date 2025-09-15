@@ -35,7 +35,6 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

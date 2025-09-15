@@ -8,8 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
+
+import static java.util.Collections.emptyMap;
+
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,11 +36,11 @@ public class JsonMapConverter implements AttributeConverter<Map<String, Object>,
     public Map<String, Object> convertToEntityAttribute(String dbData) {
         try {
             return EMPTY_VALUE.equals(dbData)
-                    ? Collections.emptyMap()
+                    ? emptyMap()
                     : objectMapper.readValue(dbData, new TypeReference<HashMap<String, Object>>() {});
         } catch (IOException ioe) {
             logger.warn("Problem with converting to attribute: " + dbData, ioe);
-            return Collections.emptyMap();
+            return emptyMap();
         }
     }
 }

@@ -13,6 +13,7 @@ import java.util.Objects;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "Setting.deleteByName",
                 query = "DELETE FROM Setting s WHERE s.name=:name"),

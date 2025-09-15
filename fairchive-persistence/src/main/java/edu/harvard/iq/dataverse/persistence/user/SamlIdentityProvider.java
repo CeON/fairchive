@@ -11,6 +11,7 @@ import javax.persistence.NamedQuery;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
+@SuppressWarnings("serial")
 @Entity
 @NamedQuery(name = "SamlIdentityProvider.findByEntityId",
         query = "SELECT s FROM SamlIdentityProvider s WHERE s.entityId = :entityId")

@@ -20,6 +20,7 @@ import java.io.Serializable;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "PersistedGlobalGroup.persistedGroupAlias",
                 query = "SELECT g FROM PersistedGlobalGroup g WHERE g.persistedGroupAlias=:persistedGroupAlias")

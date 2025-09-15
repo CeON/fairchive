@@ -42,7 +42,8 @@ public class AcceptedConsent {
     protected AcceptedConsent() {
     }
 
-    public AcceptedConsent(String name, Locale language, String text, boolean required, AuthenticatedUser user) {
+    public AcceptedConsent(String name, Locale language, String text, 
+            boolean required, AuthenticatedUser user) {
         this.name = name;
         this.language = language;
         this.text = text;

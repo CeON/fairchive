@@ -8,6 +8,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import java.math.BigInteger;
+import java.io.Serializable;
 
 /**
  * A range of IPv4 addresses. In order to make SQL querying efficient, the actual fields
@@ -17,6 +18,7 @@ import java.math.BigInteger;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Table(indexes = {@Index(columnList = "owner_id")})
 @NamedQueries({
         @NamedQuery(name = "IPv4Range.findAllContainingAddressAsLong",
@@ -25,7 +27,7 @@ import java.math.BigInteger;
                 query = "SELECT DISTINCT r.owner from IPv4Range r WHERE r.bottomAsLong<=:addressAsLong AND r.topAsLong>=:addressAsLong")
 })
 @Entity
-public class IPv4Range extends IpAddressRange implements java.io.Serializable {
+public class IPv4Range extends IpAddressRange implements Serializable {
 
     @Id
     @GeneratedValue

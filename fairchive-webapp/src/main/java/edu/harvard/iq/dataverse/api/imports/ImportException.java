@@ -5,6 +5,7 @@ package edu.harvard.iq.dataverse.api.imports;
  *
  * @author ellenk
  */
+@SuppressWarnings("serial")
 public class ImportException extends Exception {
     public ImportException(String message) {
         super(message);

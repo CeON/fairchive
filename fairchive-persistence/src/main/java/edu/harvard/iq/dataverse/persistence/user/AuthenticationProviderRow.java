@@ -17,6 +17,7 @@ import java.util.Objects;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "AuthenticationProviderRow.findAllEnabled",
                 query = "SELECT r FROM AuthenticationProviderRow r WHERE r.enabled=true"),
