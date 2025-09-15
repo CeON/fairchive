@@ -91,6 +91,7 @@ public class GeoNamesIT extends WebappArquillianDeployment {
         Optional<GeoName> geoName = this.finder.findById("752942");
         assertThat(geoName).isNotEmpty();
         assertThat(geoName.get().getName()).isEqualTo("Poraj");
+        assertThat(geoName.get().getAlternateNames()).isEqualTo("Kolonia Poraj, Poraj");
         assertThat(geoName.get().getHierarchy())
                 .isEqualTo("PL - Lublin Voivodeship - Powiat hrubieszowski - Poraj");
         // search by name
