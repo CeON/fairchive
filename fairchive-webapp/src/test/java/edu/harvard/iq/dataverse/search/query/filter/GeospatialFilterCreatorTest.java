@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ExtendWith(MockitoExtension.class)
 class GeospatialFilterCreatorTest {
 
+    @SuppressWarnings("serial")
     private static final DatasetFieldType TEST_TYPE = new DatasetFieldType() {
         @Override public String getName() {
             return "TestType";

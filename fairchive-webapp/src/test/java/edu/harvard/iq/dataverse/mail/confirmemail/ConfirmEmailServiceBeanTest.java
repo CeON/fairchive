@@ -7,7 +7,6 @@ import edu.harvard.iq.dataverse.persistence.user.ConfirmEmailData;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,14 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.security.AuthProvider;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.jayway.restassured.RestAssured.when;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
