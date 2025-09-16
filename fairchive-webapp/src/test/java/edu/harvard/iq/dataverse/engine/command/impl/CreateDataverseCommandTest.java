@@ -59,6 +59,7 @@ public class CreateDataverseCommandTest {
     List<DataverseFieldTypeInputLevel> createdDftils;
     List<DataverseFacet> createdFacets;
 
+    @SuppressWarnings("serial")
     DataverseDao dataverses = new DataverseDao() {
         @Override
         public boolean isRootDataverseExists() {
@@ -84,6 +85,7 @@ public class CreateDataverseCommandTest {
 
     };
 
+    @SuppressWarnings("serial")
     DataverseRoleServiceBean roles = new DataverseRoleServiceBean() {
 
         List<RoleAssignment> assignments = new LinkedList<>();
@@ -139,6 +141,7 @@ public class CreateDataverseCommandTest {
         }
     };
 
+    @SuppressWarnings("serial")
     DataverseFacetServiceBean facets = new DataverseFacetServiceBean() {
         @Override
         public DataverseFacet create(int displayOrder, DatasetFieldType fieldType, Dataverse ownerDv) {

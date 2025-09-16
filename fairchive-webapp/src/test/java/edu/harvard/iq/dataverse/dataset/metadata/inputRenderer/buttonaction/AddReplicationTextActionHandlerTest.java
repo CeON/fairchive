@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 public class AddReplicationTextActionHandlerTest {
@@ -33,6 +33,6 @@ public class AddReplicationTextActionHandlerTest {
         
         // then
         assertEquals("Replication Data for: before action", datasetField.getFieldValue().get());
-        verifyZeroInteractions(allBlockFields);
+        verifyNoInteractions(allBlockFields);
     }
 }

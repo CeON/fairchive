@@ -29,6 +29,7 @@ public class DeletePrivateUrlCommandTest {
     @BeforeEach
     public void setUp() {
         testEngine = new TestDataverseEngine(new TestCommandContext() {
+            @SuppressWarnings("serial")
             @Override
             public PrivateUrlServiceBean privateUrl() {
                 return new PrivateUrlServiceBean() {
@@ -50,6 +51,7 @@ public class DeletePrivateUrlCommandTest {
                 };
             }
 
+            @SuppressWarnings("serial")
             @Override
             public DataverseRoleServiceBean roles() {
                 return new DataverseRoleServiceBean() {

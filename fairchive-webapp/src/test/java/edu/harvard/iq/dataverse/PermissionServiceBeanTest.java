@@ -26,8 +26,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -147,7 +145,7 @@ public class PermissionServiceBeanTest {
 
         // then
         assertFalse(hasPermission);
-        verifyZeroInteractions(roleService);
+        verifyNoInteractions(roleService);
     }
 
     @Test
@@ -161,7 +159,7 @@ public class PermissionServiceBeanTest {
 
         // then
         assertFalse(hasPermission);
-        verifyZeroInteractions(groupService, roleService);
+        verifyNoInteractions(groupService, roleService);
     }
 
     @Test
@@ -298,16 +296,5 @@ public class PermissionServiceBeanTest {
         roleAssignment.setRole(role);
 
         return roleAssignment;
-    }
-
-    private List<RoleAssignment> assignRoleForUserInDataverse(User user, String roleAlias) {
-        RoleAssignment roleAssignment = new RoleAssignment();
-
-        DataverseRole adminRole = new DataverseRole();
-        adminRole.setAlias(roleAlias);
-
-        roleAssignment.setRole(adminRole);
-        roleAssignment.setAssigneeIdentifier(user.getIdentifier());
-        return Collections.singletonList(roleAssignment);
     }
 }

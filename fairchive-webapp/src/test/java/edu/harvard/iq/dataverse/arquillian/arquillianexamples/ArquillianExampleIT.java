@@ -27,7 +27,7 @@ public class ArquillianExampleIT extends WebappArquillianDeployment {
         builtinUser.setPasswordEncryptionVersion(1);
         builtinUserServiceBean.save(builtinUser);
 
-        List list = em.createNativeQuery("SELECT * FROM builtinuser").getResultList();
+        List<?> list = em.createNativeQuery("SELECT * FROM builtinuser").getResultList();
         list.forEach(System.out::println);
     }
 }

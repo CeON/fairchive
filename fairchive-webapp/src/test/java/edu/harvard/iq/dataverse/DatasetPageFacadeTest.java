@@ -181,7 +181,7 @@ class DatasetPageFacadeTest {
         Dataset foundDataset = datasetPageFacade.findByGlobalId(globalId);
 
         //then
-        assertThat(foundDataset.getGlobalIdString()).isEqualTo(globalId);
+        assertThat(foundDataset.getGlobalId().toString()).isEqualTo(globalId);
     }
 
     @Test

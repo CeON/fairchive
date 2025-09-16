@@ -113,7 +113,7 @@ public class IngestUtilTest {
         DatasetVersion datasetVersion = getDatasetVersion(dataset);
 
         List<DataFile> dataFileList = new ArrayList<>();
-        FileMetadata fmd3 = createDataFilesWithDirectories(dataset, datasetVersion, dataFileList);
+        createDataFilesWithDirectories(dataset, datasetVersion, dataFileList);
 
         // when
         IngestUtil.checkForDuplicateFileNamesFinal(datasetVersion, dataFileList);

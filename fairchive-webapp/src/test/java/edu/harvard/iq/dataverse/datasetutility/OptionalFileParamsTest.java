@@ -33,7 +33,7 @@ public class OptionalFileParamsTest {
         String val = "A new file";
         String jsonParams = "{\"description\": \"" + val + "\"}";
 
-        OptionalFileParams instance = new OptionalFileParams().create(jsonParams);
+        OptionalFileParams instance = new OptionalFileParams(null, null).create(jsonParams);
 
         assertEquals(instance.getDescription(), val);
         assertNull(instance.getCategories());
@@ -49,7 +49,7 @@ public class OptionalFileParamsTest {
 
         String jsonParams = "{\"description\": 250 }";
 
-        OptionalFileParams instance = new OptionalFileParams().create(jsonParams);
+        OptionalFileParams instance = new OptionalFileParams(null, null).create(jsonParams);
 
         assertEquals(instance.getDescription(), "250");
 
@@ -64,7 +64,7 @@ public class OptionalFileParamsTest {
         //String val = "A new file";
         String jsonParams = null;
 
-        OptionalFileParams instance = new OptionalFileParams().create(jsonParams);
+        OptionalFileParams instance = new OptionalFileParams(null, null).create(jsonParams);
 
         assertNull(instance.getDescription());
 
@@ -79,7 +79,7 @@ public class OptionalFileParamsTest {
         String val = "A new file";
         String jsonParams = "{\"description\": \"A new file\", \"categories\": [\"dog\", \"cat\", \"mouse\"]}";
 
-        OptionalFileParams instance = new OptionalFileParams().create(jsonParams);
+        OptionalFileParams instance = new OptionalFileParams(null, null).create(jsonParams);
 
         assertEquals(instance.getDescription(), val);
 
@@ -99,7 +99,7 @@ public class OptionalFileParamsTest {
         String val = "A new file";
         String jsonParams = "{\"dataFileTags\": [\"Survey\", \"Event\", \"Panel\"], \"description\": \"A new file\"}";
 
-        OptionalFileParams instance = new OptionalFileParams().create(jsonParams);
+        OptionalFileParams instance = new OptionalFileParams(null, null).create(jsonParams);
 
         assertEquals(instance.getDescription(), val);
 
@@ -115,11 +115,10 @@ public class OptionalFileParamsTest {
     @Test
     public void test_06_jsonTabularTagsBad() throws DataFileTagException {
 
-        String val = "A new file";
         String jsonParams = "{\"dataFileTags\": [\"Survey\", \"Event\", \"xPanel\"], \"description\": \"A new file\"}";
 
         try {
-            OptionalFileParams instance = new OptionalFileParams().create(jsonParams);
+            new OptionalFileParams(null, null).create(jsonParams);
             fail();
         } catch (DataFileTagException ex) {
             assertTrue(ex.getMessage().startsWith("Not a valid Tabular Data Tag"));
@@ -134,7 +133,7 @@ public class OptionalFileParamsTest {
         List<String> categories = Arrays.asList("dog", " dog ", "cat", "mouse", "dog ");
         List<String> dataFileTags = Arrays.asList("Survey", "Event", "Panel");
 
-        OptionalFileParams instance = new OptionalFileParams();
+        OptionalFileParams instance = new OptionalFileParams(null, null);
         instance.setDescription(val);
         instance.setCategories(categories);
         instance.addFileDataTags(dataFileTags);
@@ -150,7 +149,7 @@ public class OptionalFileParamsTest {
 
         List<String> dataFileTags = Arrays.asList("Survey", "Survey", "Event", "Panel", "Survey", " ");
 
-        OptionalFileParams instance = new OptionalFileParams();
+        OptionalFileParams instance = new OptionalFileParams(null, null);
         instance.addFileDataTags(dataFileTags);
 
         assertNull(instance.getDescription());
@@ -164,7 +163,7 @@ public class OptionalFileParamsTest {
 
         String jsonParams = "{\"forceReplace\": \"unused within OptionalFileParams\", \"oldFileId\": \"unused within OptionalFileParams\", \"description\": null, \"unusedParam1\": \"haha\", \"categories\": []}";
 
-        OptionalFileParams instance = new OptionalFileParams().create(jsonParams);
+        OptionalFileParams instance = new OptionalFileParams(null, null).create(jsonParams);
 
         assertNull(instance.getDescription());
         assertFalse(instance.hasDescription());
@@ -182,7 +181,7 @@ public class OptionalFileParamsTest {
 
         String jsonParams = "";
 
-        OptionalFileParams instance = new OptionalFileParams().create(jsonParams);
+        OptionalFileParams instance = new OptionalFileParams(null, null).create(jsonParams);
 
         assertNull(instance.getDescription());
         assertFalse(instance.hasDescription());

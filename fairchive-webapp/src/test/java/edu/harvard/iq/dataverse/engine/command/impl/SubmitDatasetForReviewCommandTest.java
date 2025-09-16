@@ -92,6 +92,7 @@ public class SubmitDatasetForReviewCommandTest {
                 };
             }
 
+            @SuppressWarnings("serial")
             @Override
             public DatasetDao datasets() {
                 return new DatasetDao() {
@@ -113,6 +114,7 @@ public class SubmitDatasetForReviewCommandTest {
                 };
             }
 
+            @SuppressWarnings("serial")
             @Override
             public DataverseRoleServiceBean roles() {
                 return new DataverseRoleServiceBean() {
