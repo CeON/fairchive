@@ -228,7 +228,7 @@ public class CSVFileReader extends TabularDataFileReader {
                                 continue;
                             } else {
                                 try {
-                                    Double testDoubleValue = new Double(varString);
+                                    new Double(varString);
                                     continue;
                                 } catch (NumberFormatException ex) {
                                     // the token failed to parse as a double so the column is a string variable.

@@ -6,10 +6,8 @@ import edu.harvard.iq.dataverse.notification.NotificationObjectResolver;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
 import edu.harvard.iq.dataverse.notification.NotificationParametersUtil;
 import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
-import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.persistence.user.UserNotification;
 import org.apache.commons.lang.StringUtils;
@@ -107,18 +105,6 @@ public class UserNotificationMapper {
                 .map(roleAssignment -> roleAssignment.getRole().getName())
                 .collect(joining("/"));
     }
-
-    /**
-    Returns true if notification display is handled by main Dataverse repository.
-    <p>
-    Note that external notifications only works if object associated with notification ({@link #getObjectId()})
-    is a {@link Dataset}
-    <p>
-    Notifications should be redesigned to properly support external notifications.
-    */
-   private boolean isBaseNotification(UserNotification userNotification) {
-       return NotificationType.getTypes().contains(userNotification.getType());
-   }
 
    private String getRequestorName(UserNotification notification, AuthenticatedUser requestor) {
        if (requestor == null || requestor.getFirstName() == null || requestor.getLastName() == null) {

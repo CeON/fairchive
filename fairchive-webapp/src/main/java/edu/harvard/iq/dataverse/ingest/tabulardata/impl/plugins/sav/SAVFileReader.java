@@ -1301,7 +1301,7 @@ public class SAVFileReader extends TabularDataFileReader {
                                 bb_missig_value_code[i].order(ByteOrder.LITTLE_ENDIAN);
                             }
 
-                            ByteBuffer temp = bb_missig_value_code[i].duplicate();
+                            bb_missig_value_code[i].duplicate();
 
 
                             missingValues[i] = bb_missig_value_code[i].getDouble();
@@ -1860,7 +1860,7 @@ public class SAVFileReader extends TabularDataFileReader {
                                 if (isLittleEndian) {
                                     bb_field.order(ByteOrder.LITTLE_ENDIAN);
                                 }
-                                ByteBuffer bb_field_dup = bb_field.duplicate();
+                                bb_field.duplicate();
                                 OBSTypeHexValue.put(RecordType7SubType4Fields.get(i),
                                                     new String(Hex.encodeHex(bb_field.array())));
                                 if (unitLength == 8) {

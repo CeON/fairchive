@@ -5,7 +5,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import org.apache.commons.lang3.StringUtils;
 import org.passay.CharacterCharacteristicsRule;
 import org.passay.CharacterRule;
-import org.passay.DictionaryRule;
 import org.passay.DictionarySubstringRule;
 import org.passay.IllegalRegexRule;
 import org.passay.LengthRule;
@@ -19,7 +18,6 @@ import org.passay.dictionary.WordListDictionary;
 import org.passay.dictionary.WordLists;
 import org.passay.dictionary.sort.ArraysSort;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
@@ -73,6 +71,7 @@ import java.util.stream.Collectors;
  *
  * @author Lucien van Wouw <lwo@iisg.nl>
  */
+@SuppressWarnings("serial")
 @Stateless
 public class PasswordValidatorServiceBean implements java.io.Serializable {
 
@@ -235,27 +234,6 @@ public class PasswordValidatorServiceBean implements java.io.Serializable {
             passwordValidator = new PasswordValidator(messageResolver, rules);
             validators.put(ValidatorTypes.StandardValidator, passwordValidator);
         }
-    }
-
-    /**
-     * dictionaryRule
-     * <p>
-     * Reads in the getDictionaries from a file.
-     *
-     * @return A rule.
-     */
-    private DictionaryRule dictionaryRule() {
-        DictionaryRule rule = null;
-        try {
-            rule = new DictionaryRule(
-                    new WordListDictionary(WordLists.createFromReader(
-                            getDictionaries(),
-                            false,
-                            new ArraysSort())));
-        } catch (IOException e) {
-            logger.log(Level.CONFIG, e.getMessage());
-        }
-        return rule;
     }
 
     /**

@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("PublishedDatasetsChart")
 public class PublishedDatasetsChart implements Serializable {

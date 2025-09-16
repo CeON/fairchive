@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.metrics;
 import edu.harvard.iq.dataverse.persistence.cache.Metric;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -28,6 +27,7 @@ import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_ALL;
 import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_LOCAL;
 import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_REMOTE;
 
+@SuppressWarnings("serial")
 @Stateless
 public class MetricsServiceBean implements Serializable {
 

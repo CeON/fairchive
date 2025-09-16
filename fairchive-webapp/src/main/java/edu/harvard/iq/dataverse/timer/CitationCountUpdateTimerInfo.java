@@ -9,6 +9,7 @@ import java.io.Serializable;
  * 
  * @author madryk
  */
+@SuppressWarnings("serial")
 public class CitationCountUpdateTimerInfo implements Serializable {
 
 }

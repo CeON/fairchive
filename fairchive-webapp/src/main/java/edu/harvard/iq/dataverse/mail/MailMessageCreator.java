@@ -12,7 +12,6 @@ import edu.harvard.iq.dataverse.notification.NotificationParameter;
 import edu.harvard.iq.dataverse.notification.dto.EmailNotificationDto;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -254,7 +253,7 @@ public class MailMessageCreator {
                 return messageText;
             case CHECKSUMFAIL:
                 String checksumFailMsg = BundleUtil.getStringFromBundleWithLocale("notification.checksumfail",
-                        notificationsEmailLanguage, dataset.getGlobalIdString());
+                        notificationsEmailLanguage, dataset.getGlobalId().toString());
                 logger.fine("checksumFailMsg: " + checksumFailMsg);
                 return messageText + checksumFailMsg;
             case GRANTFILEACCESSINFO:
@@ -341,13 +340,13 @@ public class MailMessageCreator {
                 return greetingsText +
                         BundleUtil.getStringFromBundleWithLocale("notification.mail.import.filesystem", notificationsEmailLanguage,
                                                                               systemConfig.getDataverseSiteUrl(),
-                                                                              version.getDataset().getGlobalIdString(),
+                                                                              version.getDataset().getGlobalId().toString(),
                                                                               version.getDataset().getDisplayName());
 
             case CHECKSUMIMPORT:
 
                 return greetingsText + BundleUtil.getStringFromBundleWithLocale("notification.import.checksum", notificationsEmailLanguage,
-                                                                                  version.getDataset().getGlobalIdString(),
+                                                                                  version.getDataset().getGlobalId().toString(),
                                                                                   version.getDataset().getDisplayName());
 
         }
@@ -495,11 +494,11 @@ public class MailMessageCreator {
     }
 
     private String getDatasetLink(Dataset dataset) {
-        return systemConfig.getDataverseSiteUrl() + "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString();
+        return systemConfig.getDataverseSiteUrl() + "/dataset.xhtml?persistentId=" + dataset.getGlobalId();
     }
 
     private String getDatasetDraftLink(Dataset dataset) {
-        return systemConfig.getDataverseSiteUrl() + "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&version=DRAFT";
+        return systemConfig.getDataverseSiteUrl() + "/dataset.xhtml?persistentId=" + dataset.getGlobalId() + "&version=DRAFT";
     }
 
     private String getDatasetManageFilePermissionsLink(Dataset dataset) {

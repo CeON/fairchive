@@ -30,6 +30,7 @@ import javax.json.JsonObject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,11 +48,10 @@ import java.util.logging.Logger;
  * @author madunlap
  */
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class ProvPopupFragmentBean extends AbstractApiBean implements java.io.Serializable {
-
-    private static final Logger logger = Logger.getLogger(ProvPopupFragmentBean.class.getCanonicalName());
 
     private UploadedFile jsonUploadedTempFile;
 
@@ -92,7 +92,7 @@ public class ProvPopupFragmentBean extends AbstractApiBean implements java.io.Se
     public void handleFileUpload(FileUploadEvent event) throws IOException {
         jsonUploadedTempFile = event.getFile();
         provJsonParsedEntities = new HashMap<>();
-        provJsonState = IOUtils.toString(jsonUploadedTempFile.getInputStream());
+        provJsonState = IOUtils.toString(jsonUploadedTempFile.getInputStream(), Charset.defaultCharset());
 
 
         if (!provUtil.isProvValid(provJsonState)) { //if uploaded prov-json does not comply with schema
@@ -212,7 +212,7 @@ public class ProvPopupFragmentBean extends AbstractApiBean implements java.io.Se
             popupDataFile.setProvEntityName(null);
         }
         if (null != jsonUploadedTempFile && "application/json".equalsIgnoreCase(jsonUploadedTempFile.getContentType())) { //delete and create again can both happen at once
-            stagingEntry.setProvJson(Option.of(IOUtils.toString(jsonUploadedTempFile.getInputStream())));
+            stagingEntry.setProvJson(Option.of(IOUtils.toString(jsonUploadedTempFile.getInputStream(), Charset.defaultCharset())));
             stagingEntry.setDeleteJson(false);
 
             jsonUploadedTempFile = null;
