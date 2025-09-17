@@ -788,6 +788,11 @@ public class SettingsServiceBean {
          */
         OcrCommand,
         /**
+         * a command to be executed in order to HTR images
+         * (eg. "python3 /opt/trocr.py")
+         */
+        HtrCommand,
+        /**
          * a limit for images to be ocr'red in bytes
          */
         OcrImageSizeLimit,

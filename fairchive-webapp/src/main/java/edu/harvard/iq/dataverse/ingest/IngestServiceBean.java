@@ -33,6 +33,7 @@ import edu.harvard.iq.dataverse.dataaccess.ingest.FileIngestDataProvider;
 import edu.harvard.iq.dataverse.dataaccess.ingest.InMemoryIngestDataProvider;
 import edu.harvard.iq.dataverse.dataaccess.ingest.IngestDataProvider;
 import edu.harvard.iq.dataverse.datafile.FileTypeDetector;
+import edu.harvard.iq.dataverse.datafile.HtrService;
 import edu.harvard.iq.dataverse.datafile.OcrService;
 import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
 import edu.harvard.iq.dataverse.ingest.StartIngestResult.DataFileExceededSizeInfo;
@@ -134,6 +135,7 @@ public class IngestServiceBean {
     private Event<IngestMessageSendEvent> ingestMessageSendEventEvent;
     private FinalizeIngestService finalizeIngestService;
     private OcrService ocrService;
+    private HtrService htrService;
 
     private DataAccess dataAccess = DataAccess.dataAccess();
 
@@ -145,7 +147,8 @@ public class IngestServiceBean {
     public IngestServiceBean(DatasetDao datasetDao, DataFileServiceBean fileService,
                              SystemConfig systemConfig, SettingsServiceBean settingsService,
                              FileTypeDetector fileTypeDetector, Event<IngestMessageSendEvent> ingestMessageSendEventEvent,
-                             FinalizeIngestService finalizeIngestService, OcrService ocrService) {
+                             FinalizeIngestService finalizeIngestService, OcrService ocrService,
+                             HtrService htrService) {
         this.datasetDao = datasetDao;
         this.fileService = fileService;
         this.systemConfig = systemConfig;
@@ -154,6 +157,7 @@ public class IngestServiceBean {
         this.ingestMessageSendEventEvent = ingestMessageSendEventEvent;
         this.finalizeIngestService = finalizeIngestService;
         this.ocrService = ocrService;
+        this.htrService = htrService;
     }
 
     // -------------------- LOGIC --------------------
@@ -466,6 +470,34 @@ public class IngestServiceBean {
             logger.warn("Ingest failure.", ingestEx);
             return false;
         } 
+    }
+
+    @TransactionAttribute(NOT_SUPPORTED)
+    public boolean performHTR(final Long datafile_id) {
+        final DataFile dataFile = fileService.find(datafile_id);
+        try {
+            this.htrService.htr(dataFile);
+            dataFile.setIngestDone();
+            // delete the ingest request, if exists:
+            if (dataFile.getIngestRequest() != null) {
+                dataFile.getIngestRequest().setDataFile(null);
+                dataFile.setIngestRequest(null);
+            }
+            this.fileService.saveInNewTransaction(dataFile);
+            return true;
+        } catch (final IngestException ex) {
+            dataFile.setIngestProblem();
+            dataFile.setIngestReport(IngestReport.createIngestFailureReport(dataFile, ex));
+            logger.warn("Ingest failure.", ex);
+            this.fileService.saveInNewTransaction(dataFile);
+            return false;
+        } catch (final Exception ingestEx) {
+            dataFile.setIngestProblem();
+            dataFile.setIngestReport(IngestReport.createIngestFailureReport(dataFile, UNKNOWN_ERROR));
+            this.fileService.saveInNewTransaction(dataFile);
+            logger.warn("Ingest failure.", ingestEx);
+            return false;
+        }
     }
     
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)

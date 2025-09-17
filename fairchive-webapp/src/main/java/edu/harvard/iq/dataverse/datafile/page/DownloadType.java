@@ -23,7 +23,8 @@ public enum DownloadType {
     EXTERNALTOOL(null, null),
     PREVIEW(null, null),
     PACKAGE(null, null),
-    OCR(ApiDownloadType.OCR, ApiBatchDownloadType.DEFAULT);
+    OCR(ApiDownloadType.OCR, ApiBatchDownloadType.DEFAULT),
+    HTR(ApiDownloadType.HTR, ApiBatchDownloadType.DEFAULT);
 
     private ApiDownloadType apiDownloadEquivalent;
     private ApiBatchDownloadType apiBatchDownloadEquivalent;

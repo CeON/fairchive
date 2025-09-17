@@ -86,18 +86,23 @@ public class IngestMessageBean implements MessageListener {
                 logger.fine("Start ingest job;");
                 try {
                     DataFile dataFile = this.datafileService.find(datafile_id);
-                   if(dataFile.isImage()) {
-                        if (ingestService.performOCR(datafile_id)) {
-                            logger.fine("Finished ingest job;");
-                        } else {
-                            logger.warning("Error occurred during OCR job for file id " + datafile_id + "!");
-                        }
+                    boolean success;
+                    switch (dataFile.getIngestType()) {
+                        case OCR:
+                            success = ingestService.performOCR(datafile_id);
+                            break;
+                        case HTR:
+                            success = ingestService.performHTR(datafile_id);
+                            break;
+                        default:
+                            success = ingestService.ingestAsTabular(datafile_id);
+                            break;
+                    }
+
+                    if (success) {
+                        logger.fine("Finished " + dataFile.getIngestType() + " job;");
                     } else {
-                        if (ingestService.ingestAsTabular(datafile_id)) {
-                            logger.fine("Finished ingest job;");
-                        } else {
-                            logger.warning("Error occurred during ingest job for file id " + datafile_id + "!");
-                        }
+                        logger.warning("Error occurred during " + dataFile.getIngestType() + " job for file id " + datafile_id + "!");
                     }
                 } catch (Exception ex) {
                     // TODO:
