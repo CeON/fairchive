@@ -64,7 +64,7 @@ public class HtrService {
                             out.writeTo(ocr);
                         }
                     } else {
-                        log.warn(err.toString());
+                        log.error(err.toString());
                         throw new RuntimeException(
                                 "HTR failed for ".concat(file.getDisplayName()));
                     }
