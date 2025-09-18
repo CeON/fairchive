@@ -37,8 +37,6 @@ public class HarvestingClientsServiceIT extends WebappArquillianDeployment {
     private AuthenticationServiceBean authenticationServiceBean;
     @Inject
     private DataverseDao dataverseDao;
-    @Inject
-    private HarvestingClientDao harvestingClientDao;
 
     @BeforeEach
     public void setUp() {

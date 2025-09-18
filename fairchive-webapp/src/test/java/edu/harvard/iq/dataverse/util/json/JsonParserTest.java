@@ -624,6 +624,7 @@ public class JsonParserTest {
     }
 
 
+    @SuppressWarnings("serial")
     @TestBean
     static class MockDatasetFieldSvc extends DatasetFieldServiceBean {
 

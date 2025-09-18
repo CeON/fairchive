@@ -33,6 +33,7 @@ public class GetPrivateUrlCommandTest {
     public void setUp() {
         testEngine = new TestDataverseEngine(new TestCommandContext() {
 
+            @SuppressWarnings("serial")
             @Override
             public PrivateUrlServiceBean privateUrl() {
                 return new PrivateUrlServiceBean() {

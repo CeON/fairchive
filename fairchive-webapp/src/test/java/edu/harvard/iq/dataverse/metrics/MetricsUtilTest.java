@@ -1,15 +1,12 @@
 package edu.harvard.iq.dataverse.metrics;
 
 import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
-import edu.harvard.iq.dataverse.util.json.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class MetricsUtilTest {
 
     private static final long COUNT = 42l;
-    private List<ChartMetrics> chartMetrics;
 
     @Test
     public void testCountToJson() {
-        // This constructor is just here for code coverage. :)
-        MetricsUtil metricsUtil = new MetricsUtil();
         JsonObject jsonObject = MetricsUtil.countToJson(COUNT).build();
         assertEquals(COUNT, jsonObject.getJsonNumber("count").longValue());
     }

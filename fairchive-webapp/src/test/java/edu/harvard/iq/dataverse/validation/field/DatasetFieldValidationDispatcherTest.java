@@ -62,6 +62,7 @@ class DatasetFieldValidationDispatcherTest {
     };
 
 
+    @SuppressWarnings("serial")
     @BeforeEach
     void setUp() {
         registry.register(new StandardIntegerValidator());

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Path;
-import java.util.Collections;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;

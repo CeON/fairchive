@@ -719,9 +719,7 @@ public class DatasetVersionDifferenceTest {
         v1.setDataset(dataset);
 
         FileMetadata v1FileMetadata1 = buildFileMetadata(10L, "firstFile.txt", 0, dataFile1);
-        FileTermsOfUse v1File1Terms = buildLicenseTermsOfUse(80L, "CCO0", "Public Domain", v1FileMetadata1);
         FileMetadata v1FileMetadata2 = buildFileMetadata(11L, "secondFile.txt", 1, dataFile2);
-        FileTermsOfUse v1File2Terms = buildLicenseTermsOfUse(81L, "Apache 2.0", "Apache License", v1FileMetadata2);
 
         v1.addFileMetadata(v1FileMetadata1);
         v1.addFileMetadata(v1FileMetadata2);
@@ -731,9 +729,7 @@ public class DatasetVersionDifferenceTest {
         v2.setDataset(dataset);
 
         FileMetadata v2FileMetadata1 = buildFileMetadata(10L, "firstFile.txt", 0, dataFile1);
-        FileTermsOfUse v2File1Terms = buildLicenseTermsOfUse(81L, "Apache 2.0", "Apache License", v2FileMetadata1);
         FileMetadata v2FileMetadata2 = buildFileMetadata(11L, "secondFile.txt", 1, dataFile2);
-        FileTermsOfUse v2File2Terms = buildRestrictedTermsOfUse(RestrictType.NOT_FOR_REDISTRIBUTION, v2FileMetadata2);
 
         v2.addFileMetadata(v2FileMetadata1);
         v2.addFileMetadata(v2FileMetadata2);

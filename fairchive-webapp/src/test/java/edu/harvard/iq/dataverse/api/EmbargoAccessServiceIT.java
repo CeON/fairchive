@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.api;
 
 import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
@@ -33,10 +32,7 @@ public class EmbargoAccessServiceIT extends WebappArquillianDeployment {
 
     @EJB
     private AuthenticationServiceBean authenticationService;
-
-    @Inject
-    private DataverseRequestServiceBean dvRequest;
-
+    
     @Test
     public void shouldCheckEmbargoRestriction_userWithPermissions() {
         // given
