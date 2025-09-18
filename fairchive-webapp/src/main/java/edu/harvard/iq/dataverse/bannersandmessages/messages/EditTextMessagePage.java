@@ -23,6 +23,7 @@ import javax.inject.Named;
 import java.io.Serializable;
 import java.util.Date;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("EditTextMessagePage")
 public class EditTextMessagePage implements Serializable {

@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.toList;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("OAuth2Page")
 public class OAuth2LoginBackingBean implements Serializable {
