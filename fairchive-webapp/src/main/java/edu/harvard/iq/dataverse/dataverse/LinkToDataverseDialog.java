@@ -23,6 +23,7 @@ import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("LinkToDataverseDialog")
 public class LinkToDataverseDialog implements java.io.Serializable {

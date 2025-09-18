@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 /**
  * Backing bean responsible for handling dataset deacession
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("datasetDeaccessionDialog")
 public class DatasetDeaccessionDialog implements Serializable {

@@ -10,6 +10,7 @@ import java.util.Map;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public abstract class AbstractVoidCommand extends AbstractCommand<Void> {
 
     public AbstractVoidCommand(DataverseRequest aRequest, DvObject dvObject) {

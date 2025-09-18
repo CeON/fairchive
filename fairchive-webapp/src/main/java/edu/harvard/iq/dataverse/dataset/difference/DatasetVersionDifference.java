@@ -436,24 +436,6 @@ public final class DatasetVersionDifference {
         });
     }
 
-
-    private void addToSummary(DatasetField dsfo, DatasetField dsfn) {
-        if (dsfo == null) {
-            dsfo = new DatasetField();
-            dsfo.setDatasetFieldType(dsfn.getDatasetFieldType());
-        }
-        if (dsfn == null) {
-            dsfn = new DatasetField();
-            dsfn.setDatasetFieldType(dsfo.getDatasetFieldType());
-        }
-        MetadataBlock blockToUpdate = dsfo.getDatasetFieldType().getMetadataBlock();
-        List<DatasetFieldDiff> blockListDiffToUpdate = extractOrCreateDiffForBlock(blockToUpdate);
-
-        blockListDiffToUpdate.add(new DatasetFieldDiff(Lists.newArrayList(dsfo),
-                                                       Lists.newArrayList(dsfn),
-                                                       dsfo.getDatasetFieldType()));
-    }
-
     private void addToSummary(List<DatasetField> dsfo, List<DatasetField> dsfn, DatasetFieldType fieldType) {
 
         List<DatasetFieldDiff> blockListDiffToUpdate = extractOrCreateDiffForBlock(fieldType.getMetadataBlock());
