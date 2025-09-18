@@ -26,14 +26,11 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
-import java.util.logging.Logger;
 
 /*
  * @author Leonid Andreev
  */
 public class CSVFileReaderSpi extends TabularDataFileReaderSpi {
-
-    private static Logger LOG = Logger.getLogger(CSVFileReaderSpi.class.getPackage().getName());
 
     private static String[] formatNames = {"CSV"};
     private static String[] extensions = {"CSV", "csv"};

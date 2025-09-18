@@ -63,6 +63,7 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
  * Uses lyncode XOAI data provider implementation for serving content.
  * The servlet itself is somewhat influenced by the older OCLC OAIcat implementation.
  */
+@SuppressWarnings("serial")
 public class OAIServlet extends HttpServlet {
     private static final Logger logger = Logger.getLogger("edu.harvard.iq.dataverse.harvest.server.web.servlet.OAIServlet");
 

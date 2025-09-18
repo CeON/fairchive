@@ -32,7 +32,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStringsTable;
-import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
@@ -336,7 +335,7 @@ public class XLSXFileReader extends TabularDataFileReader {
             // Do it now, as characters() may be called more than once
             if (nextIsString) {
                 int idx = Integer.parseInt(cellContents);
-                cellContents = new XSSFRichTextString(sst.getEntryAt(idx)).toString();
+                cellContents = sst.getItemAt(idx).toString();
                 nextIsString = false;
             }
 
@@ -416,7 +415,7 @@ public class XLSXFileReader extends TabularDataFileReader {
                                     isNumeric = true;
                                 } else {
                                     try {
-                                        Double testDoubleValue = new Double(dataRow[i]);
+                                        new Double(dataRow[i]);
                                         isNumeric = true;
                                     } catch (Exception ex) {
                                         // the token failed to parse as a double number;

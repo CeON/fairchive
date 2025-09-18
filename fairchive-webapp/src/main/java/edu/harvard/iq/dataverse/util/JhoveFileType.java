@@ -39,6 +39,7 @@ import java.util.Iterator;
  * Updated and integrated into 4.0 by
  * @author landreev
  */
+@SuppressWarnings("serial")
 public class JhoveFileType implements java.io.Serializable {
     private static final Logger logger = LoggerFactory.getLogger(JhoveFileType.class);
 

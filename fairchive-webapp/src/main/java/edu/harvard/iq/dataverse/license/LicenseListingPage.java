@@ -38,6 +38,7 @@ import java.util.Set;
  * Page that is responsible for showing all valid and invalid licenses while also giving ability to disable/enable
  * them all across Dataverse.
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("LicenseListingPage")
 public class LicenseListingPage implements Serializable {

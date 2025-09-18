@@ -5,6 +5,7 @@ package edu.harvard.iq.dataverse.util.json;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class JsonParseException extends Exception {
 
     public JsonParseException(String message) {

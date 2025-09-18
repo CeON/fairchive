@@ -46,6 +46,7 @@ public class ValidationEnhancer {
 
     // -------------------- INNER CLASSES --------------------
 
+    @SuppressWarnings("serial")
     public static class SimpleDatasetFieldType extends DatasetFieldType {
         private String displayName;
 

@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
 import java.util.Collections;
 import java.util.List;
 
+@SuppressWarnings("serial")
 public class GroupingSearchField extends SearchField {
 
     // -------------------- CONSTRUCTORS --------------------

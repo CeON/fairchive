@@ -12,6 +12,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
  *
  * @author ellenk
  */
+@SuppressWarnings("serial")
 public class ControlledVocabularyException extends JsonParseException {
     DatasetFieldType dsfType;
     String strValue;

@@ -63,8 +63,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
-//import edu.harvard.iq.dataverse.datavariable.VariableFormatType;
-//import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
 
 
 /**
@@ -83,8 +81,6 @@ public class DTAFileReader extends TabularDataFileReader {
 
     private static final Logger logger = Logger.getLogger(DTAFileReader.class.getCanonicalName());
 
-    //@Inject
-    //VariableServiceBean varService;
     // static fields, STATA-specific constants, etc.
     // (should it all be isolated in some other class?)
 
@@ -1768,7 +1764,6 @@ public class DTAFileReader extends TabularDataFileReader {
                                     dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
                                 }
                                 dataRow[columnCounter] = ddt.decodedDateTime;
-                                //dateFormat[columnCounter][i] = ddt.format;
                                 dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
                             } else {
                                 dataRow[columnCounter] = short_datum;
@@ -1779,7 +1774,6 @@ public class DTAFileReader extends TabularDataFileReader {
                     case -3:
                         // stata-Long (= java's int: 4 byte) case
                         // note: 4-byte singed, not java's long
-                        //dbgLog.fine("DATreader: stata long");
                         ByteBuffer long_buffer
                                 = ByteBuffer.wrap(dataRowBytes, byte_offset, 4);
                         if (isLittleEndian) {
@@ -1788,15 +1782,7 @@ public class DTAFileReader extends TabularDataFileReader {
                         }
                         int int_datum = long_buffer.getInt();
 
-                        if (dbgLog.isLoggable(Level.FINE)) {
-                            //dbgLog.fine(i + "-th row " + columnCounter
-                            //        + "=th column stata long =" + int_datum);
-                        }
                         if (int_datum >= LONG_MISSING_VALUE) {
-                            if (dbgLog.isLoggable(Level.FINE)) {
-                                //dbgLog.fine(i + "-th row " + columnCounter
-                                //        + "=th column stata long missing value=" + int_datum);
-                            }
                             dataRow[columnCounter] = MissingValueForTabDelimitedFile;
                         } else {
                             if (isDateTimeDatum) {
@@ -1949,9 +1935,6 @@ public class DTAFileReader extends TabularDataFileReader {
             } // for-columnCounter
             // Dump the row of data to the tab-delimited file we are producing:
             pwout.println(StringUtils.join(dataRow, "\t"));
-            if (dbgLog.isLoggable(Level.FINE)) {
-                //dbgLog.fine(i + "-th row's data={" + StringUtils.join(dataRow, ",") + "};");
-            }
         }  // for- i (row)
 
         pwout.close();
@@ -2014,7 +1997,6 @@ public class DTAFileReader extends TabularDataFileReader {
                 if (left == 52L) {
                     left = 0L;
                 }
-                //out.println("left="+left);
                 years = (Math.abs(weekYears) - 1) / 52L + 1L;
                 years *= -1L;
             } else {
@@ -2040,7 +2022,6 @@ public class DTAFileReader extends TabularDataFileReader {
             long years;
             if (monthYears < 0L) {
                 left = 12L - left;
-                //out.println("left="+left);
                 years = (Math.abs(monthYears) - 1) / 12L + 1L;
                 years *= -1L;
             } else {
@@ -2072,7 +2053,6 @@ public class DTAFileReader extends TabularDataFileReader {
             long years;
             if (quaterYears < 0L) {
                 left = 4L - left;
-                //out.println("left="+left);
                 years = (Math.abs(quaterYears) - 1) / 4L + 1L;
                 years *= -1L;
             } else {

@@ -131,8 +131,6 @@ public class NewDTAFileReader extends TabularDataFileReader {
     private static final int NVAR_FIELD_LENGTH = 2;
     private static final int NOBS_FIELD_LENGTH = 4;
     private static final int TIME_STAMP_LENGTH = 18;
-    private static final int VAR_SORT_FIELD_LENGTH = 2;
-    private static final int VALUE_LABEL_HEADER_PADDING_LENGTH = 3;
 
     private static int MISSING_VALUE_BIAS = 26;
 
@@ -167,8 +165,6 @@ public class NewDTAFileReader extends TabularDataFileReader {
         variableTypeTable.put(65527, "Float");
         variableTypeTable.put(65526, "Double");
     }
-
-    private static String unfVersionNumber = "6";
 
     private static final List<Float> FLOAT_MISSING_VALUES = Arrays.asList(
             0x1.000p127f, 0x1.001p127f, 0x1.002p127f, 0x1.003p127f,
@@ -618,7 +614,7 @@ public class NewDTAFileReader extends TabularDataFileReader {
         // Important!
         // The SORT ORDER section (5.5 in the doc) always contains
         // number_of_variables + 1 2 or 4 byte integers depending on version!
-        long terminatingShort = reader.readULong(DTAVersion == 119 ? 4 : 2);
+        reader.readULong(DTAVersion == 119 ? 4 : 2);
         reader.readClosingTag(TAG_SORT_ORDER);
     }
 
@@ -1296,7 +1292,6 @@ public class NewDTAFileReader extends TabularDataFileReader {
     }
 
     private int getVariableByteLength(String variableType) throws IOException {
-        int byte_length = 0;
 
         if (variableType == null || variableType.equals("")) {
             throw new IOException("<empty variable type in attempted byte length lookup.>");
@@ -1521,15 +1516,6 @@ public class NewDTAFileReader extends TabularDataFileReader {
         private long dta_offset_data_close = 0;
         private long dta_offset_eof = 0;
 
-        // getters:
-        public long getOffset_head() {
-            return dta_offset_stata_data;
-        }
-
-        public long getOffset_map() {
-            return dta_offset_map;
-        }
-
         public long getOffset_types() {
             return dta_offset_variable_types;
         }
@@ -1568,14 +1554,6 @@ public class NewDTAFileReader extends TabularDataFileReader {
 
         public long getOffset_vallabs() {
             return dta_offset_value_labels;
-        }
-
-        public long getOffset_data_close() {
-            return dta_offset_data_close;
-        }
-
-        public long getOffset_eof() {
-            return dta_offset_eof;
         }
 
         // setters:

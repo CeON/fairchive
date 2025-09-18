@@ -148,8 +148,6 @@ public class SearchIncludeFragment {
     private String errorFromSolr;
     private SearchException searchException;
     private boolean solrErrorEncountered = false;
-    
-    private StreamedContent searchResultsFile;
 
     // -------------------- GETTERS --------------------
 

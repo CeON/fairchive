@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.settings;
 
 import edu.harvard.iq.dataverse.settings.FileSettingLocations.SettingLocation;
-import edu.harvard.iq.dataverse.settings.FileSettingLocations.SettingLocationType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

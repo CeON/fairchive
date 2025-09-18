@@ -237,7 +237,7 @@ public class IngestUtil {
         }
         List<String> values = getUnfValuesOfFiles(version);
         logger.fine("UNF values for files from Dataset version " + version.getSemanticVersion()
-                + " from " + version.getDataset().getGlobalIdString() + ": " + values);
+                + " from " + version.getDataset().getGlobalId() + ": " + values);
         return values.size() > 0;
     }
 }

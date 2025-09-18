@@ -5,8 +5,6 @@ import static java.util.Arrays.binarySearch;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import java.util.Arrays;
-
 import org.apache.solr.client.solrj.beans.Field;
 
 public class GeoName {    

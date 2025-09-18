@@ -1,7 +1,5 @@
 package edu.harvard.iq.dataverse.util.xml;
 
-import org.apache.commons.io.IOUtils;
-import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -17,7 +15,6 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.logging.Logger;
 
@@ -55,7 +52,7 @@ public class XmlValidator {
         DocumentBuilder builder = factory.newDocumentBuilder();
         builder.setErrorHandler(new SimpleErrorHandler());
         try {
-            Document document = builder.parse(new InputSource(filename));
+            builder.parse(new InputSource(filename));
             return true;
         } catch (SAXException ex) {
             throw new Exception("XML is not well formed: " + ex.getMessage(), ex);
