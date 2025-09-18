@@ -119,8 +119,12 @@ public class PBIOauth2AP extends AbstractOAuth2AuthenticationProvider {
         throw new RuntimeException("Not implemented.");
     }
 
-    private static JsonObject extractPayloadFrom(final String jwt) {
+    private static JsonObject extractPayloadFrom(final String jwt) 
+        throws IOException{
         final int firstDotIndex = jwt.indexOf('.');
+        if(firstDotIndex == -1) {
+            throw new IOException("Invalid JWT.");
+        }
         final int secondDotIndex = jwt.indexOf('.', firstDotIndex + 1);
         final String payload = secondDotIndex > -1
                 ? jwt.substring(firstDotIndex + 1, secondDotIndex)
