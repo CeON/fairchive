@@ -8,13 +8,49 @@ from worddetectornn import DataLoaderImgBytes, WordDetectorNet, evaluate
 
 
 DEVICE = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
+DEBUG = False
 
-# -----------------------------
-# Line segmentation (projection)
-# -----------------------------
+def deskew_text_line(img):
+    # Convert to grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Invert (text = white, background = black)
+    gray = cv2.bitwise_not(gray)
+
+    # Threshold to binary
+    _, bw = cv2.threshold(gray, 0, 255,
+                          cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+    # Edge detection
+    edges = cv2.Canny(bw, 50, 150, apertureSize=3)
+
+    # Detect lines with Hough transform
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+
+    angle = 0
+    if lines is not None:
+        angles = []
+        for rho, theta in lines[:,0]:
+            ang = (theta * 180 / np.pi) - 90  # convert radians → degrees
+            if -45 < ang < 45:  # ignore vertical lines
+                angles.append(ang)
+        if len(angles) > 0:
+            angle = np.median(angles)  # robust against outliers
+
+    # Rotate back by detected angle
+    (h, w) = img.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rotated = cv2.warpAffine(img, M, (w, h),
+                             flags=cv2.INTER_CUBIC,
+                             borderMode=cv2.BORDER_REPLICATE)
+
+    return rotated, angle
+
+
 def segment_lines(img_bgr):
     """
-    Returns a list of line boxes (x1, y1, x2, y2) top-to-bottom.
+    Returns a list of line boxes (xmin, xmax, ymin, ymax) top-to-bottom.
     """
     net = WordDetectorNet()
     net.load_state_dict(torch.load('weights', map_location=DEVICE))
@@ -28,6 +64,9 @@ def segment_lines(img_bgr):
     for i, (img, aabbs) in enumerate(zip(res.batch_imgs, res.batch_aabbs)):
         f = loader.get_scale_factor(i)
         aabbs = [aabb.scale(1 / f, 1 / f) for aabb in aabbs]
+
+    if DEBUG:
+      debug_save_boxed_on_org_image(img_bgr, aabbs)
 
     line_box = group_boxes_dynamic(aabbs)
     line_box = merge_boxes_to_lines(line_box)
@@ -59,7 +98,8 @@ def group_boxes_dynamic(boxes, min_overlap=0.3):
 
 def merge_boxes_to_lines(lines):
     """
-    Take grouped lines (list of list of AABB) and return one AABB per line.
+    Take grouped lines (list of list of AABB)
+    and return tuple (xmin, xmax, ymin, ymax) per line.
     """
     merged = []
     for line in lines:
@@ -69,6 +109,20 @@ def merge_boxes_to_lines(lines):
         ymax = max(b.ymax for b in line)
         merged.append((int(xmin), int(xmax), int(ymin), int(ymax)))
     return merged
+
+def debug_save_boxed_on_org_image(img, boxes):
+  img_with_boxes = img.copy()
+
+  for b in boxes:
+      pt1 = (int(b.xmin-10), int(b.ymin-10))
+      pt2 = (int(b.xmax+10), int(b.ymax+10))
+      cv2.rectangle(img_with_boxes, pt1, pt2, color=(0, 255, 0), thickness=2)  # green box
+
+  # Save the result with timestamp
+  from datetime import datetime
+  timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+  filename = f"detected_{timestamp}.png"
+  cv2.imwrite(filename, img_with_boxes)
 
 def main():
     # 1) Read image bytes from stdin
@@ -82,24 +136,23 @@ def main():
     arr = np.frombuffer(data, dtype=np.uint8)   # 1D uint8 array
     img = cv2.imdecode(arr, cv2.IMREAD_COLOR)   # decode to BGR image
 
+    rotated, angle = deskew_text_line(img)
+    img = rotated
+
     # 3) Segment lines
     line_box = segment_lines(img)
 
     # 4) Prepare per-line crops (as PIL RGB)
     line_images = []
-    for (xmin, xmax, ymin, ymax) in line_box:
+    for i, (xmin, xmax, ymin, ymax) in enumerate(line_box):
         crop_bgr = img[ymin:ymax+1, xmin:xmax+1]
+        if DEBUG:
+          cv2.imwrite(f'line-{i}.jpg', crop_bgr)    # saves as JPEG
         crop_rgb = cv2.cvtColor(crop_bgr, cv2.COLOR_BGR2RGB)
         line_images.append(Image.fromarray(crop_rgb))
-        # debug purpose
-        #cv2.rectangle(img, (aabb.xmin, aabb.ymin), (aabb.xmax, aabb.ymax), (255, 0, 255), 2)
-        #crop_bgr = img[int(box.ymin):int(box.ymax), int(box.xmin):int(box.xmax)]
-        #cv2.imwrite(f'output-{i}.jpg', crop_bgr)    # saves as JPEG
-
 
     if not line_images:
         return
-
 
     # 5) Load model & processor (handwritten specialization)
     processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten")
