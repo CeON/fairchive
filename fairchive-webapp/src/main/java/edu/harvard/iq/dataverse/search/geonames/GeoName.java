@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.search.geonames;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static java.util.Arrays.binarySearch;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -190,84 +189,4 @@ public class GeoName {
     public String toString() {
         return Integer.toString(this.id);
     }
-    
-    public static boolean isFeatureCode(final String txt) {
-        return binarySearch(featureCodes, txt.toUpperCase()) > 0;
-    }
-
-    private static String[] featureCodes = { "ADM1", "ADM1H", "ADM2", "ADM2H", "ADM3",
-            "ADM3H", "ADM4", "ADM4H", "ADM5", "ADM5H", "ADMD", "ADMDH", "ADMF", "ADMS",
-            "AGRC", "AGRF", "AIRB", "AIRF", "AIRH", "AIRP", "AIRQ", "AIRS", "AIRT",
-            "AMTH", "AMUS", "ANCH", "ANS", "APNU", "AQC", "ARCH", "ARCHV", "ARCU",
-            "AREA", "ARRU", "ART", "ASPH", "ASTR", "ASYL", "ATHF", "ATM", "ATOL",
-            "BANK", "BAR", "BAY", "BAYS", "BCH", "BCHS", "BCN", "BDG", "BDGQ", "BDLD",
-            "BDLU", "BGHT", "BKSU", "BLDA", "BLDG", "BLDO", "BLDR", "BLHL", "BLOW",
-            "BNCH", "BNK", "BNKR", "BNKU", "BNKX", "BOG", "BP", "BRKS", "BRKW", "BSND",
-            "BSNP", "BSNU", "BSTN", "BTL", "BTYD", "BUR", "BUSH", "BUSTN", "BUSTP",
-            "BUTE", "CAPE", "CAPG", "CARN", "CAVE", "CDAU", "CFT", "CH", "CHN", "CHNL",
-            "CHNM", "CHNN", "CLDA", "CLF", "CLG", "CMN", "CMP", "CMPL", "CMPLA",
-            "CMPMN", "CMPO", "CMPQ", "CMPRF", "CMTY", "CNFL", "CNL", "CNLA", "CNLB",
-            "CNLD", "CNLI", "CNLN", "CNLQ", "CNLSB", "CNLX", "CNS", "CNSU", "CNYN",
-            "CNYU", "COLF", "COMC", "CONE", "CONT", "COVE", "CRDR", "CRKT", "CRNT",
-            "CRQ", "CRQS", "CRRL", "CRSU", "CRTR", "CSNO", "CST", "CSTL", "CSTM",
-            "CSWY", "CTHSE", "CTRA", "CTRB", "CTRCM", "CTRF", "CTRM", "CTRR", "CTRS",
-            "CTYD", "CUET", "CULT", "CUTF", "CVNT", "DAM", "DAMQ", "DAMSB", "DARY",
-            "DCK", "DCKB", "DCKD", "DCKY", "DEPU", "DEVH", "DIKE", "DIP", "DLTA",
-            "DOMG", "DPOF", "DPR", "DPRG", "DSRT", "DTCH", "DTCHD", "DTCHI", "DTCHM",
-            "DUNE", "DVD", "EDGU", "ERG", "ESCU", "EST", "ESTO", "ESTR", "ESTSG",
-            "ESTT", "ESTX", "ESTY", "FAN", "FANU", "FCL", "FIRE", "FISH", "FJD",
-            "FJDS", "FLD", "FLDI", "FLLS", "FLLSX", "FLTM", "FLTT", "FLTU", "FNDY",
-            "FORD", "FRM", "FRMQ", "FRMS", "FRMT", "FRST", "FRSTF", "FRZU", "FSR",
-            "FT", "FURU", "FY", "FYT", "GAP", "GAPU", "GASF", "GATE", "GDN", "GHAT",
-            "GHSE", "GLCR", "GLYU", "GOSP", "GOVL", "GRAZ", "GRGE", "GROVE", "GRSLD",
-            "GRVC", "GRVE", "GRVO", "GRVP", "GRVPN", "GULF", "GVL", "GYSR", "HBR",
-            "HBRX", "HDLD", "HERM", "HLL", "HLLS", "HLLU", "HLSU", "HLT", "HMCK",
-            "HMDA", "HMSD", "HOLU", "HSE", "HSEC", "HSP", "HSPC", "HSPD", "HSPL",
-            "HSTS", "HTH", "HTL", "HUT", "HUTS", "INDS", "INLT", "INLTQ", "INSM",
-            "INTF", "ISL", "ISLET", "ISLF", "ISLM", "ISLS", "ISLT", "ISLX", "ISTH",
-            "ITTR", "JTY", "KNLU", "KNSU", "KRST", "LAND", "LAVA", "LBED", "LCTY",
-            "LDGU", "LDNG", "LEPC", "LEV", "LEVU", "LGN", "LGNS", "LGNX", "LIBR", "LK",
-            "LKC", "LKI", "LKN", "LKNI", "LKO", "LKOI", "LKS", "LKSB", "LKSC", "LKSI",
-            "LKSN", "LKSNI", "LKX", "LNDF", "LOCK", "LTER", "LTHSE", "MALL", "MAR",
-            "MDW", "MESA", "MESU", "MFG", "MFGB", "MFGC", "MFGCU", "MFGLM", "MFGM",
-            "MFGN", "MFGPH", "MFGQ", "MFGSG", "MGV", "MILB", "MKT", "ML", "MLM", "MLO",
-            "MLSG", "MLSGQ", "MLSW", "MLWND", "MLWTR", "MN", "MNA", "MNAU", "MNC",
-            "MNCR", "MNCU", "MND", "MNDU", "MNFE", "MNMT", "MNN", "MNQ", "MNQR",
-            "MOLE", "MOOR", "MOTU", "MRN", "MRSH", "MRSHN", "MSQE", "MSSN", "MSSNQ",
-            "MSTY", "MT", "MTRO", "MTS", "MTU", "MUS", "MVA", "NKM", "NOV", "NRWS",
-            "NSY", "NTK", "NTKS", "NVB", "OAS", "OBPT", "OBS", "OBSR", "OCH", "OCN",
-            "OILF", "OILJ", "OILP", "OILQ", "OILR", "OILT", "OILW", "OPRA", "OVF",
-            "PAL", "PAN", "PANS", "PASS", "PCL", "PCLD", "PCLF", "PCLH", "PCLI",
-            "PCLIX", "PCLS", "PEAT", "PEN", "PENX", "PGDA", "PIER", "PK", "PKLT",
-            "PKS", "PKSU", "PKU", "PLAT", "PLATX", "PLDR", "PLN", "PLNU", "PLNX",
-            "PLTU", "PMPO", "PMPW", "PND", "PNDI", "PNDN", "PNDNI", "PNDS", "PNDSF",
-            "PNDSI", "PNDSN", "PNLU", "PO", "POOL", "POOLI", "PP", "PPL", "PPLA",
-            "PPLA2", "PPLA3", "PPLA4", "PPLA5", "PPLC", "PPLCD", "PPLCH", "PPLF",
-            "PPLG", "PPLH", "PPLL", "PPLQ", "PPLR", "PPLS", "PPLW", "PPLX", "PPQ",
-            "PRK", "PRKGT", "PRKHQ", "PRMN", "PRN", "PRNJ", "PRNQ", "PROM", "PRSH",
-            "PRT", "PRVU", "PS", "PSH", "PSN", "PSTB", "PSTC", "PSTP", "PT", "PTGE",
-            "PTS", "PYR", "PYRS", "QCKS", "QUAY", "RCH", "RD", "RDA", "RDB", "RDCR",
-            "RDCUT", "RDGB", "RDGE", "RDGG", "RDGU", "RDIN", "RDJCT", "RDST", "RDSU",
-            "RECG", "RECR", "REG", "RES", "RESA", "RESF", "RESH", "RESN", "RESP",
-            "REST", "RESV", "RESW", "RET", "RF", "RFC", "RFSU", "RFU", "RFX", "RGN",
-            "RGNE", "RGNH", "RGNL", "RHSE", "RISU", "RJCT", "RK", "RKFL", "RKRY",
-            "RKS", "RLG", "RLGR", "RNCH", "RNGA", "RPDS", "RR", "RRQ", "RSD", "RSGNL",
-            "RSRT", "RSTN", "RSTNQ", "RSTP", "RSTPQ", "RSV", "RSVI", "RSVT", "RTE",
-            "RUIN", "RVN", "RYD", "SALT", "SAND", "SBED", "SBKH", "SCH", "SCHA",
-            "SCHC", "SCHL", "SCHM", "SCHN", "SCHT", "SCNU", "SCRB", "SCRP", "SCSU",
-            "SD", "SDL", "SDLU", "SEA", "SECP", "SHFU", "SHLU", "SHOL", "SHOR", "SHPF",
-            "SHRN", "SHSE", "SHSU", "SHVU", "SILL", "SILU", "SINK", "SLCE", "SLID",
-            "SLP", "SLPU", "SMSU", "SMU", "SNOW", "SNTR", "SPA", "SPIT", "SPLY",
-            "SPNG", "SPNS", "SPNT", "SPRU", "SPUR", "SQR", "ST", "STBL", "STDM",
-            "STKR", "STLMT", "STM", "STMA", "STMB", "STMC", "STMD", "STMH", "STMI",
-            "STMIX", "STMM", "STMQ", "STMS", "STMSB", "STMX", "STNB", "STNC", "STNE",
-            "STNF", "STNI", "STNM", "STNR", "STNS", "STNW", "STPS", "STRT", "SWMP",
-            "SWT", "SYG", "SYSI", "TAL", "TERR", "TERU", "THTR", "TMB", "TMPL", "TMSU",
-            "TMTU", "TNGU", "TNKD", "TNL", "TNLC", "TNLN", "TNLRD", "TNLRR", "TNLS",
-            "TOLL", "TOWR", "TRAM", "TRANT", "TRB", "TREE", "TRGD", "TRGU", "TRIG",
-            "TRL", "TRMO", "TRNU", "TRR", "TUND", "TWO", "UNIP", "UNIV", "UPLD",
-            "USGE", "VAL", "VALG", "VALS", "VALU", "VALX", "VETF", "VIN", "VINS",
-            "VLC", "VLSU", "WAD", "WADB", "WADJ", "WADM", "WADS", "WADX", "WALL",
-            "WALLA", "WEIR", "WHRF", "WHRL", "WLL", "WLLQ", "WLLS", "WRCK", "WTLD",
-            "WTLDI", "WTRC", "WTRH", "WTRW", "ZN", "ZNB", "ZNF", "ZOO" };
 }
