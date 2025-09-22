@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("serial")
 public class SamlAuthenticationServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(SamlAuthenticationServlet.class);
 

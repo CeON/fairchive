@@ -7,7 +7,6 @@ import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.MapLayerMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -48,6 +47,7 @@ import java.util.Map;
  *
  * @author rmp553
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class WorldMapPermissionHelper implements java.io.Serializable {

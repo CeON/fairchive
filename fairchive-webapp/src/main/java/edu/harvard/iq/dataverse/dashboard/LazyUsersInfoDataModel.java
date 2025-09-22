@@ -17,7 +17,6 @@ import java.util.Objects;
 public class LazyUsersInfoDataModel extends LazyDataModel<DashboardUserInfo> {
     private static final long serialVersionUID = 3477513295109722650L;
 
-    private final UserServiceBean userService;
     private final DashboardUserInfoService dashboardUserInfoService;
     private final UserListMaker userListMaker;
     private List<DashboardUserInfo> users = new ArrayList<>();
@@ -27,7 +26,6 @@ public class LazyUsersInfoDataModel extends LazyDataModel<DashboardUserInfo> {
     // -------------------- CONSTRUCTORS --------------------
 
     public LazyUsersInfoDataModel(UserServiceBean userService, DashboardUserInfoService dashboardUserInfoService) {
-        this.userService = userService;
         this.dashboardUserInfoService = dashboardUserInfoService;
         this.userListMaker = new UserListMaker(userService);
     }

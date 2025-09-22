@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 import static edu.harvard.iq.dataverse.persistence.dataset.InputRendererType.PERIODO;
 
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

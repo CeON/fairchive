@@ -67,6 +67,7 @@ import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toList;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DataverseUserPage")
 public class DataverseUserPage extends BaseUserPage {

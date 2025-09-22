@@ -26,6 +26,7 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DatasetMetadataTab")
 public class DatasetMetadataTab implements Serializable {

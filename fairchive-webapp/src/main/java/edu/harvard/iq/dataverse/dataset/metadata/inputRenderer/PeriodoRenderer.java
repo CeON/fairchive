@@ -4,13 +4,8 @@ import static edu.harvard.iq.dataverse.persistence.dataset.InputRendererType.PER
 import static org.apache.commons.lang.StringUtils.EMPTY;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
-import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
-import javax.faces.convert.Converter;
-import javax.faces.event.ValueChangeEvent;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;

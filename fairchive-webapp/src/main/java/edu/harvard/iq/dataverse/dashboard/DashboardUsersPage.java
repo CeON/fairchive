@@ -16,6 +16,7 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DashboardUsersPage")
 public class DashboardUsersPage implements java.io.Serializable {

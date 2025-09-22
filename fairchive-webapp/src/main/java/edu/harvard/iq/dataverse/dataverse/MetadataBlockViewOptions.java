@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.dataverse;
 import java.io.Serializable;
 import java.util.List;
 
+@SuppressWarnings("serial")
 public class MetadataBlockViewOptions implements Serializable {
 
     private boolean showDatasetFieldTypes;

@@ -32,7 +32,8 @@
             itemValue="#{suggestion.id}"
             autoSelection="false"
             autoHighlight="false"
-            maxResults="50"
+            maxResults="7"
+            moreText="#{bundle['geonames.moreText']}"
             queryDelay="700">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  

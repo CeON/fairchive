@@ -20,6 +20,7 @@ import java.util.List;
 /**
  * Provides common functionality for the user account details page.
  */
+@SuppressWarnings("serial")
 public abstract class BaseUserPage  implements Serializable  {
 
     @EJB

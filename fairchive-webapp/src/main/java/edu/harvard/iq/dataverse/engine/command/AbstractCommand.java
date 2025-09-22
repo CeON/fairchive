@@ -17,6 +17,7 @@ import static edu.harvard.iq.dataverse.engine.command.CommandHelper.CH;
  * @param <R> The result type of the command.
  * @author michael
  */
+@SuppressWarnings("serial")
 public abstract class AbstractCommand<R> implements Command<R>, Serializable {
 
     private final Map<String, DvObject> affectedDvObjects;

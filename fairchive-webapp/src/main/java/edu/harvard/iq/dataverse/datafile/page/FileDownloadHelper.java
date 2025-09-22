@@ -12,7 +12,6 @@ import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
 import edu.harvard.iq.dataverse.util.FileUtil;
@@ -26,7 +25,6 @@ import javax.inject.Named;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -40,6 +38,7 @@ import static java.util.stream.Collectors.toList;
  *
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class FileDownloadHelper implements java.io.Serializable {

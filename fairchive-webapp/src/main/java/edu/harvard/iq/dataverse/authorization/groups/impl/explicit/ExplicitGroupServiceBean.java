@@ -18,7 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -32,7 +31,6 @@ import static java.util.stream.Collectors.joining;
 @Stateless
 public class ExplicitGroupServiceBean {
 
-    private static final Logger logger = Logger.getLogger(ExplicitGroupServiceBean.class.getName());
     @EJB
     protected RoleAssigneeServiceBean roleAssigneeSvc;
 
