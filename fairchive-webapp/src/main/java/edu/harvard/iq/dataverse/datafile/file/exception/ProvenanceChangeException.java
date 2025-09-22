@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.datafile.file.exception;
 
 import javax.ejb.ApplicationException;
 
+@SuppressWarnings("serial")
 @ApplicationException(rollback = true)
 public class ProvenanceChangeException extends RuntimeException {
 

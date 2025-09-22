@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.datasetutility;
 
 import javax.ejb.ApplicationException;
 
+@SuppressWarnings("serial")
 @ApplicationException(rollback = true)
 public class VirusFoundException extends RuntimeException {
 

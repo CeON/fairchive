@@ -17,6 +17,7 @@ import javax.inject.Named;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("ReorderDataFilesPage")
 public class ReorderDataFilesPage implements java.io.Serializable {

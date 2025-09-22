@@ -46,6 +46,7 @@ import java.util.logging.Logger;
  * Handles All File Download processes
  * including Guestbook responses
  */
+@SuppressWarnings("serial")
 @Stateless
 @Named("fileDownloadService")
 public class FileDownloadServiceBean implements java.io.Serializable {

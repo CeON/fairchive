@@ -15,6 +15,7 @@ import java.util.Objects;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class DataverseRequest implements Serializable {
 
     private final User user;

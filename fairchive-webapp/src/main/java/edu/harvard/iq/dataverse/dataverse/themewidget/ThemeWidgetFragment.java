@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 /**
  * @author ellenk
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class ThemeWidgetFragment implements java.io.Serializable {
@@ -174,7 +175,7 @@ public class ThemeWidgetFragment implements java.io.Serializable {
     public void validateUrl(FacesContext context, UIComponent component, Object value) throws ValidatorException {
         try {
             if (!StringUtils.isEmpty((String) value)) {
-                URL test = new URL((String) value);
+                new URL((String) value);
             }
         } catch (MalformedURLException e) {
             FacesMessage msg

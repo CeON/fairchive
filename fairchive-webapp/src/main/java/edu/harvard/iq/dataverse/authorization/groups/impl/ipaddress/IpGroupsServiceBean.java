@@ -16,7 +16,6 @@ import javax.persistence.PersistenceContext;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Provides CRUD tools to efficiently manage IP groups in a Java EE container.
@@ -25,8 +24,6 @@ import java.util.logging.Logger;
  */
 @Stateless
 public class IpGroupsServiceBean {
-
-    private static final Logger logger = Logger.getLogger(IpGroupsServiceBean.class.getName());
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;

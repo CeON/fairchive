@@ -1,7 +1,5 @@
 package edu.harvard.iq.dataverse.dataset.deaccession;
 
-import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
-import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.annotations.PermissionNeeded;
 import edu.harvard.iq.dataverse.annotations.processors.permissions.extractors.DatasetFromVersion;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBeanResolver;
@@ -34,12 +32,6 @@ public class DatasetDeaccessionService {
 
     @Inject
     private IndexServiceBean indexService;
-
-    @Inject
-    private EjbDataverseEngine commandEngine;
-
-    @Inject
-    private DataverseRequestServiceBean dvRequestService;
 
     @Inject
     private GlobalIdServiceBeanResolver globalIdServiceBeanResolver;

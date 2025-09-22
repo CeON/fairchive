@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("TextMessagePage")
 public class TextMessagePage implements Serializable {

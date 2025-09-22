@@ -16,6 +16,7 @@ import java.util.TreeSet;
 /**
  * Class takes care of editing tags(FileMetadata and Datafile) for single or multiple files.
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("FileTagModal")
 public class FileTagModal implements Serializable {

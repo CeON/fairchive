@@ -4,11 +4,9 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 public class DashboardUserInfo implements Serializable {
 
-    private static final Logger logger = Logger.getLogger(DashboardUserInfo.class.getCanonicalName());
     private static final long serialVersionUID = 8350493065070981744L;
 
     private String id;

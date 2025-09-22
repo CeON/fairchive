@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 /**
  * @author tjanek
  */
+@SuppressWarnings("serial")
 @Stateless
 public class DataverseTextMessageServiceBean implements java.io.Serializable {
 

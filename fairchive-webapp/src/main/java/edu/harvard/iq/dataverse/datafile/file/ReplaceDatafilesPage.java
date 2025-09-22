@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("ReplaceDatafilesPage")
 public class ReplaceDatafilesPage implements Serializable {

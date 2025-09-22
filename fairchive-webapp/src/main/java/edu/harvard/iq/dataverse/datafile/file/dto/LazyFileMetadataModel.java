@@ -13,6 +13,7 @@ import java.util.Map;
 /**
  * Class created in order to use Lazy-Loading in p:datatable.
  */
+@SuppressWarnings("serial")
 public class LazyFileMetadataModel extends LazyDataModel<FileMetadata> {
 
     private FileMetadataService fileMetadataService;
