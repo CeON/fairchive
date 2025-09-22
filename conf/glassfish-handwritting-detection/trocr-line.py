@@ -9,6 +9,8 @@ from worddetectornn import DataLoaderImgBytes, WordDetectorNet, evaluate
 
 DEVICE = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
 DEBUG = False
+# use half of all cpu by pytorch
+torch.set_num_threads(torch.get_num_threads() // 2)
 
 def deskew_text_line(img):
     """
