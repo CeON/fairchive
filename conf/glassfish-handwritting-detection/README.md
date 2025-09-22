@@ -8,7 +8,7 @@ All dependencies are in shell script `install.htr.sh` which are needed by TrOcr 
 
 ### Configuration
 * place `trocr-line.py` on server where glassfish is running in `/opt` directory
-* set path to htr script in database `settings` table key `:HTRCommand` value: `/opt/trocr-line.py`
+* set path to htr script in database `settings` table key `:HTRCommand` value: `python /opt/trocr-line.py`
 * install all dependencies from `install.htr.sh`
 * you can test if script is working running `cat some-image.jpg | python trocr-line.py`
 
@@ -26,4 +26,7 @@ Preparing image steps:
   * base on bounding boxes find lines of text
   * crop line of text and pass to trocr
 
+### Troubleshooting
 
+* to see it all package were installed run `cat some-image.jpg | python trocr-line.py`
+* in script `trocr-line.py` there is flag `DEBUG` which will save cropped line of text to disk for inspection
