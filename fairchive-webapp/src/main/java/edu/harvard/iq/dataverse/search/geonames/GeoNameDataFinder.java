@@ -73,7 +73,7 @@ public class GeoNameDataFinder {
                 if (builder.length() > 0) {
                     builder.append(" AND ");
                 }
-                if (word.charAt(0) == '#') {
+                if (isFeatureCode(word)) {
                     final String code = word.substring(1).trim();
                     if (code.length() > 1) {
                         builder.append("featureCode:").append(code.toUpperCase())
@@ -87,6 +87,10 @@ public class GeoNameDataFinder {
         }
 
         return builder;
+    }
+    
+    private boolean isFeatureCode(final String word) {
+        return word.charAt(0) == '#';
     }
 
     public Optional<GeoName> findById(final String id) {
