@@ -19,41 +19,63 @@
                        var="termsOfUseTypeEnum"/>
 
     <!-- Static Tab Layout -->
-    <div data-widget="content" class="ui-tabs ui-widget ui-widget-content ui-corner-all ui-hidden-container ui-tabs-top"
+    <div data-widget="content"
+         class="ui-tabs ui-widget ui-widget-content ui-corner-all ui-hidden-container ui-tabs-top"
          id="datasetForm:tabView">
-        <ul role="tablist" class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
-            <li aria-expanded="true" role="tab" class="ui-state-default ui-tabs-selected ui-state-active ui-corner-top">
+        <ul role="tablist" 
+            class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+            <li aria-expanded="true" 
+                role="tab" 
+                class="ui-state-default ui-tabs-selected ui-state-active ui-corner-top">
                 <a href="#datasetForm:tabView:dataFilesTab">#{bundle['files']}</a>
             </li>
         </ul>
         <div class="ui-tabs-panels">
-            <div aria-hidden="false" role="tabpanel" class="ui-tabs-panel ui-widget-content ui-corner-bottom"
+            <div aria-hidden="false"
+                 role="tabpanel"
+                 class="ui-tabs-panel ui-widget-content ui-corner-bottom"
                  id="datasetForm:tabView:dataFilesTab">
                 <!-- Create dataset workflow info msg + user guide link -->
                 <ui:fragment rendered="#{createDataset}">
                     <p class="help-block">
-                        <h:outputFormat value="#{bundle['dataset.message.uploadFilesSingle.message']}" escape="false"
+                        <h:outputFormat value="#{bundle['dataset.message.uploadFilesSingle.message']}"
+                                        escape="false"
                                         rendered="#{settingsWrapper.uploadMethodsCount == 1}">
                             <f:param value="#{settingsWrapper.guidesBaseUrl}"/>
                             <f:param value="#{settingsWrapper.guidesVersion}"/>
                         </h:outputFormat>
 
-                        <h:outputText value="#{bundle['dataset.message.uploadFilesMultiple.message']}" escape="false"
+                        <h:outputText value="#{bundle['dataset.message.uploadFilesMultiple.message']}" 
+                                      escape="false"
                                       rendered="#{settingsWrapper.uploadMethodsCount > 1}"/>
                     </p>
                 </ui:fragment>
                 <!-- Upload -->
-                <div class="panel-group" role="tablist" aria-multiselectable="true"
-                     id="fileUploadFragment" jsf:rendered="#{showFileUpload}">
+                <div class="panel-group" 
+                     role="tablist" 
+                     aria-multiselectable="true"
+                     id="fileUploadFragment" 
+                     jsf:rendered="#{showFileUpload}">
 
-                    <div jsf:id="httpPanel" jsf:rendered="#{settingsWrapper.HTTPUpload}" class="panel panel-default">
-                        <a role="tab" id="headingHTTP" data-toggle="collapse" href="#panelCollapseHTTP"
-                             class="panel-heading text-info" aria-expanded="true" aria-controls="panelCollapseHTTP" tabindex="0">
+                    <div jsf:id="httpPanel" 
+                         jsf:rendered="#{settingsWrapper.HTTPUpload}" 
+                         class="panel panel-default">
+                        <a role="tab" 
+                           id="headingHTTP" 
+                           data-toggle="collapse" 
+                           href="#panelCollapseHTTP"
+                           class="panel-heading text-info" 
+                           aria-expanded="true" 
+                           aria-controls="panelCollapseHTTP" 
+                           tabindex="0">
                             #{bundle['file.fromHTTP']} &#160;<span class="glyphicon glyphicon-chevron-up"/>
                         </a>
-                        <div id="panelCollapseHTTP" class="panel-collapse collapse in" role="tabpanel"
+                        <div id="panelCollapseHTTP" 
+                             class="panel-collapse collapse in" 
+                             role="tabpanel"
                              aria-labelledby="headingHTTP">
-                            <div class="panel-body" jsf:id="httpUploadDisabledDueToExistingRsyncPackage"
+                            <div class="panel-body" 
+                                 jsf:id="httpUploadDisabledDueToExistingRsyncPackage"
                                  jsf:rendered="#{EditDatafilesPage.workingVersion.hasPackageFile and !EditDatafilesPage.dataset.released}">
                                 <p class="help-block">
                                     <span class="glyphicon glyphicon-warning-sign text-warning"></span>
@@ -69,7 +91,8 @@
                                     </h:outputFormat>
                                 </p>
                             </div>
-                            <div class="panel-body" jsf:id="httpUploadDisabledDueToExistingRsyncPackagePublished"
+                            <div class="panel-body" 
+                                 jsf:id="httpUploadDisabledDueToExistingRsyncPackagePublished"
                                  jsf:rendered="#{EditDatafilesPage.workingVersion.hasPackageFile and EditDatafilesPage.dataset.released}">
                                 <p class="help-block">
                                     <span class="glyphicon glyphicon-warning-sign text-warning"></span>
@@ -77,7 +100,8 @@
                                                   value=" #{bundle['file.rsyncUpload.httpUploadDisabledDueToRsyncFileExistingAndPublished']}"/>
                                 </p>
                             </div>
-                            <div class="panel-body" jsf:id="contentOfHttpPanel"
+                            <div class="panel-body" 
+                                 jsf:id="contentOfHttpPanel"
                                  jsf:rendered="#{!EditDatafilesPage.workingVersion.hasPackageFile}">
                                 <p class="help-block">
                                     <h:outputFormat value="#{bundle['file.selectToAdd.tipMoreInformation']}"
@@ -194,8 +218,14 @@
                          jsf:rendered="#{settingsWrapper.rsyncUpload and !EditDatafilesPage.fileReplaceOperation}"
                          class="panel panel-default">
                         <!-- NOTE: conditional logic for 'glyphicon-chevron-up' icon in rsync header if HTTP is off, but isn't scalable when a third upload mode is added -->
-                        <a role="tab" id="headingRsync" data-toggle="collapse" href="#panelCollapseRsync"
-                             class="panel-heading text-info" aria-expanded="true" aria-controls="panelCollapseRsync" tabindex="0">
+                        <a role="tab"
+                           id="headingRsync" 
+                           data-toggle="collapse" 
+                           href="#panelCollapseRsync"
+                           class="panel-heading text-info" 
+                           aria-expanded="true" 
+                           aria-controls="panelCollapseRsync" 
+                           tabindex="0">
                             #{bundle['file.fromRsync']} &#160;<span
                                 class="glyphicon #{!settingsWrapper.HTTPUpload ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}"/>
                         </a>
