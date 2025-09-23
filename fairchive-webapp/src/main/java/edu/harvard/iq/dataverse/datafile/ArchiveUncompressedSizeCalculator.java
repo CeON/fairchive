@@ -1,12 +1,9 @@
 package edu.harvard.iq.dataverse.datafile;
 
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GzipMaxInputFileSizeInBytes;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GzipMaxOutputFileSizeInBytes;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RarDataLineBeforeResultDelimiter;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RarDataUtilCommand;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RarDataUtilOpts;
 import static java.nio.file.Files.newInputStream;
-import static java.nio.file.Files.size;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
@@ -77,30 +74,15 @@ public class ArchiveUncompressedSizeCalculator {
         }
     }
 
-    private long uncompressecSizeForGzip(final Path path, final String fileName) 
+    private long uncompressecSizeForGzip(final Path path, final String fileName)
             throws IOException {
-        final long maxInputSize = this.settings
-                .getValueForKeyAsLong(GzipMaxInputFileSizeInBytes, 0L);
-        final long maxOutputSize = this.settings
-                .getValueForKeyAsLong(GzipMaxOutputFileSizeInBytes, 0L);
-
-        final long inputSize = size(path);
-        if (inputSize > 0L && inputSize <= maxInputSize) {
-            try (final GZIPInputStream gzip = new GZIPInputStream(newInputStream(path))) {
-                long size = 0;
-                while (gzip.read() != -1) {
-                    ++size;
-                }
-                if (size <= maxOutputSize) {
-                    return size;
-                } else {
-                    logger.warn(
-                            "The contents of file {} exceeds the max allowed size of uncompressed output.",
-                            fileName);
-                }
+        try (final GZIPInputStream gzip = new GZIPInputStream(newInputStream(path))) {
+            long size = 0;
+            while (gzip.read() != -1) {
+                ++size;
             }
+            return size;
         }
-        return 0;
     }
 
     private long uncompressedSizeFor7Zip(final Path path, final String fileName) 

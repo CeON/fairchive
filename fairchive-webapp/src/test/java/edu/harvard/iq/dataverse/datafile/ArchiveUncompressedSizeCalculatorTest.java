@@ -1,12 +1,7 @@
 package edu.harvard.iq.dataverse.datafile;
 
 import static edu.harvard.iq.dataverse.UnitTestUtils.copyFileFromClasspath;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GzipMaxInputFileSizeInBytes;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GzipMaxOutputFileSizeInBytes;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -94,52 +89,11 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // given
         Path filePath = copyResource("jhove/dummy.pdf.gz");
 
-        when(this.settings.getValueForKeyAsLong(eq(GzipMaxInputFileSizeInBytes), anyLong()))
-                .thenReturn(1024 * 1024L);
-        when(this.settings.getValueForKeyAsLong(eq(GzipMaxOutputFileSizeInBytes), anyLong()))
-                .thenReturn(1024 * 1024L);
-
         // when
         Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
                 "application/gzip", "dummy.pdf.gz");
         // then
         assertThat(uncompressedSize).isEqualTo(13264L);
-    }
-
-    @Test
-    void uncompressedSizeForGzFileIfOutputFileIsTooBig_returnsZero()
-            throws IOException {
-        // given
-        Path filePath = copyResource("jhove/dummy.pdf.gz");
-
-        when(this.settings.getValueForKeyAsLong(eq(GzipMaxInputFileSizeInBytes), anyLong()))
-                .thenReturn(1024 * 1024L);
-        when(this.settings.getValueForKeyAsLong(eq(GzipMaxOutputFileSizeInBytes), anyLong()))
-                .thenReturn(1L);
-
-        // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
-                "application/gzip", "dummy.pdf.gz");
-        // then
-        assertThat(uncompressedSize).isEqualTo(0L);
-    }
-
-    @Test
-    void uncompressedSizeForGzFileIfItIsTooBig_returnZero()
-            throws IOException {
-        // given
-        Path filePath = copyResource("jhove/dummy.pdf.gz");
-
-        when(this.settings.getValueForKeyAsLong(eq(GzipMaxInputFileSizeInBytes), anyLong()))
-                .thenReturn(1L);
-        when(this.settings.getValueForKeyAsLong(eq(GzipMaxOutputFileSizeInBytes), anyLong()))
-                .thenReturn(1024 * 1024L);
-
-        // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
-                "application/gzip", "dummy.pdf.gz");
-        // then
-        assertThat(uncompressedSize).isEqualTo(0L);
     }
     
     @Test
