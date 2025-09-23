@@ -1,131 +1,150 @@
 package edu.harvard.iq.dataverse.datafile;
 
-import com.github.junrar.ContentDescription;
-import com.github.junrar.Junrar;
-import com.github.junrar.exception.RarException;
-import com.github.junrar.exception.UnsupportedRarV5Exception;
-import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.ExternalRarDataUtil;
-import edu.harvard.iq.dataverse.util.FileUtil;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GzipMaxInputFileSizeInBytes;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GzipMaxOutputFileSizeInBytes;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RarDataLineBeforeResultDelimiter;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RarDataUtilCommand;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RarDataUtilOpts;
+import static java.nio.file.Files.newInputStream;
+import static java.nio.file.Files.size;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Enumeration;
+import java.util.zip.GZIPInputStream;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import com.github.junrar.Junrar;
+import com.github.junrar.exception.RarException;
+import com.github.junrar.exception.UnsupportedRarV5Exception;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.zip.GZIPInputStream;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.ExternalRarDataUtil;
 
 @ApplicationScoped
 public class ArchiveUncompressedSizeCalculator {
 
-    private static final Logger logger = LoggerFactory.getLogger(ArchiveUncompressedSizeCalculator.class);
+    private static final Logger logger = getLogger(
+            ArchiveUncompressedSizeCalculator.class);
 
-    private SettingsServiceBean settingsService;
-
+    private SettingsServiceBean settings;
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public ArchiveUncompressedSizeCalculator() { }
+    public ArchiveUncompressedSizeCalculator() {
+    }
 
     @Inject
-    public ArchiveUncompressedSizeCalculator(SettingsServiceBean settingsService) {
-        this.settingsService = settingsService;
+    public ArchiveUncompressedSizeCalculator(final SettingsServiceBean settings) {
+        this.settings = settings;
     }
 
     // -------------------- LOGIC --------------------
 
     /**
-     * Returns summary size of files that are inside of an archive.
-     * Returns 0 if file is not an archive or there was some problems in calculating.
+     * Returns summary size of files that are inside of an archive. Returns 0 if
+     * file is not an archive or there was some problems in calculating.
      */
-    public Long calculateUncompressedSize(Path archivePath, String finalType, String fileName) {
-        Long uncompressedSize = 0L;
-
-        if ("application/zip".equals(finalType)) {
-            uncompressedSize = extractZipContentsSize(archivePath);
-        } else if ("application/vnd.rar".equals(finalType)) {
-            try {
-                List<ContentDescription> contentsDescription = Junrar.getContentsDescription(archivePath.toFile());
-                uncompressedSize = contentsDescription.stream()
-                        .mapToLong(d -> d.size)
-                        .sum();
-            } catch (UnsupportedRarV5Exception r5e) {
-                uncompressedSize = new ExternalRarDataUtil(
-                    settingsService.getValueForKey(SettingsServiceBean.Key.RarDataUtilCommand),
-                    settingsService.getValueForKey(SettingsServiceBean.Key.RarDataUtilOpts),
-                    settingsService.getValueForKey(SettingsServiceBean.Key.RarDataLineBeforeResultDelimiter))
-                    .checkRarExternally(archivePath, fileName);
-            } catch (RarException | IOException re) {
-                logger.warn("Exception during rar file scan: " + fileName, re);
+    public long calculateUncompressedSize(final Path path, final String mimeType, 
+            final String fileName) {
+        try {
+            switch (mimeType) {
+            case "application/zip":
+                return uncompressedSizeForZip(path);
+            case "application/vnd.rar":
+                return uncompressedSizeForRar(path, fileName);
+            case "application/x-7z-compressed":
+                return uncompressedSizeFor7Zip(path, fileName);
+            case "application/gzip":
+            case "application/x-compressed-tar":
+                return uncompressecSizeForGzip(path, fileName);
+            default:
+                return 0L;
             }
-        } else if ("application/x-7z-compressed".equals(finalType)) {
-            long size = 0L;
-            try (SevenZFile archive = new SevenZFile(archivePath.toFile())) {
-                SevenZArchiveEntry entry;
-                while ((entry = archive.getNextEntry()) != null) {
-                    if (!entry.isDirectory()) {
-                        size += entry.getSize();
-                    }
+        } catch (final Exception e) {
+            logger.warn("Exception while trying to uncompress file: ".concat(fileName),
+                    e);
+            return 0;
+        }
+    }
+
+    private long uncompressecSizeForGzip(final Path path, final String fileName) 
+            throws IOException {
+        final long maxInputSize = this.settings
+                .getValueForKeyAsLong(GzipMaxInputFileSizeInBytes, 0L);
+        final long maxOutputSize = this.settings
+                .getValueForKeyAsLong(GzipMaxOutputFileSizeInBytes, 0L);
+
+        final long inputSize = size(path);
+        if (inputSize > 0L && inputSize <= maxInputSize) {
+            try (final GZIPInputStream gzip = new GZIPInputStream(newInputStream(path))) {
+                long size = 0;
+                while (gzip.read() != -1) {
+                    ++size;
                 }
-            } catch (IOException ioe) {
-                logger.warn("Exception while checking contents of 7z file: " + fileName, ioe);
-            }
-            uncompressedSize = size;
-        } else if ("application/gzip".equals(finalType) || "application/x-compressed-tar".equals(finalType)) {
-            Long maxInputSize = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.GzipMaxInputFileSizeInBytes);
-            Long maxOutputSize = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.GzipMaxOutputFileSizeInBytes);
-
-            maxInputSize = maxInputSize != null ? maxInputSize : 0L;
-            maxOutputSize = maxOutputSize != null ? maxOutputSize : 0L;
-
-            long inputSize = archivePath.toFile().length();
-            if (inputSize > 0L && inputSize <= maxInputSize) {
-                Path outputFile = null;
-                try (GZIPInputStream output = new GZIPInputStream(Files.newInputStream(archivePath))) {
-                    outputFile = FileUtil.limitedInputStreamToTempFile(output, maxOutputSize);
-                    uncompressedSize = Files.size(outputFile);
-                } catch (FileExceedsMaxSizeException femse) {
+                if (size <= maxOutputSize) {
+                    return size;
+                } else {
                     logger.warn(
-                        String.format("The contents of file [%s] exceed the max allowed size of uncompressed output", fileName),
-                        femse);
-                } catch (IOException ioe) {
-                    logger.warn("Exception while trying to uncompress file: " + fileName, ioe);
-                } finally {
-                    if (outputFile != null) {
-                        outputFile.toFile().delete();
-                    }
+                            "The contents of file {} exceeds the max allowed size of uncompressed output.",
+                            fileName);
                 }
             }
         }
-
-        return uncompressedSize;
+        return 0;
     }
 
-    // -------------------- PRIVATE --------------------
+    private long uncompressedSizeFor7Zip(final Path path, final String fileName) 
+            throws IOException {
+        try (final SevenZFile archive = SevenZFile.builder().setPath(path)
+                .get()) {
+            long size = 0L;
+            SevenZArchiveEntry entry;
+            while ((entry = archive.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    size += entry.getSize();
+                }
+            }
+            return size;
+        }
+    }
 
-    private long extractZipContentsSize(Path tempFile) {
-        long size = 0;
-        try (ZipFile zipFile = new ZipFile(tempFile.toFile())) {
-            Enumeration<ZipArchiveEntry> zipEntries = zipFile.getEntries();
+    private long uncompressedSizeForRar(final Path path, final String fileName) 
+            throws RarException, IOException {
+        try {
+            return Junrar.getContentsDescription(path.toFile())
+                    .stream()
+                    .mapToLong(d -> d.size)
+                    .sum();
+        } catch (final UnsupportedRarV5Exception r5e) {
+            return new ExternalRarDataUtil(
+                    this.settings.getValueForKey(RarDataUtilCommand),
+                    this.settings.getValueForKey(RarDataUtilOpts),
+                    this.settings.getValueForKey(RarDataLineBeforeResultDelimiter))
+                    .checkRarExternally(path, fileName);
+        }
+    }
+
+    private long uncompressedSizeForZip(final Path path) throws IOException {
+        try (final ZipFile zip = ZipFile.builder().setPath(path).get()) {
+            long size = 0;
+            final Enumeration<ZipArchiveEntry> zipEntries = zip.getEntries();
             while (zipEntries.hasMoreElements()) {
-                ZipArchiveEntry zipEntry = zipEntries.nextElement();
+                final ZipArchiveEntry zipEntry = zipEntries.nextElement();
                 if (!zipEntry.isDirectory()) {
                     size += zipEntry.getSize();
                 }
             }
-        } catch (IOException | IllegalArgumentException ex) {
-            logger.warn("Exception encountered: ", ex);
+            return size;
         }
-        return size;
     }
 }

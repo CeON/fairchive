@@ -4,6 +4,8 @@ import static edu.harvard.iq.dataverse.UnitTestUtils.copyFileFromClasspath;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GzipMaxInputFileSizeInBytes;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GzipMaxOutputFileSizeInBytes;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -33,7 +35,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
     // -------------------- TESTS --------------------
 
     @Test
-    void createDataFiles_shouldComputeUncompressedSizeForZipFile() throws IOException {
+    void uncompressedSizeForZipFile() throws IOException {
         // given
         Path filePath = copyResource("jhove/archive.zip");
         // when
@@ -42,9 +44,20 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // then
         assertThat(uncompressedSize).isEqualTo(4L);
     }
+    
+    @Test
+    void uncompressedSizeForZipFile_forBrokenZip_returnsZero() throws IOException {
+        // given
+        Path filePath = copyResource("jhove/empty");
+        // when
+        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+                "application/zip", "archive.zip");
+        // then
+        assertThat(uncompressedSize).isZero();
+    }
 
     @Test
-    void createDataFiles_shouldComputeUncompressedSizeForRarFile() throws IOException {
+    void uncompressedSizeForRarFile() throws IOException {
         // given
         Path filePath = copyResource("jhove/archive.rar");
         // when
@@ -55,7 +68,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
     }
 
     @Test
-    void createDataFiles_shouldComputeUncompressedSizeFor7zFile() throws IOException {
+    void uncompressedSizeFor7zFile() throws IOException {
         // given
         Path filePath = copyResource("jhove/archive.7z");
         // when
@@ -64,15 +77,26 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // then
         assertThat(uncompressedSize).isEqualTo(4L);
     }
+    
+    @Test
+    void uncompressedSizeFor7zFile_forBrokenFile_returnsZero() throws IOException {
+        // given
+        Path filePath = copyResource("jhove/empty");
+        // when
+        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+                "application/x-7z-compressed", "archive.7z");
+        // then
+        assertThat(uncompressedSize).isZero();
+    }
 
     @Test
-    void createDataFiles_shouldComputeUncompressedSizeForGzFile() throws IOException {
+    void uncompressedSizeForGzFile() throws IOException {
         // given
         Path filePath = copyResource("jhove/dummy.pdf.gz");
 
-        when(this.settings.getValueForKeyAsLong(GzipMaxInputFileSizeInBytes))
+        when(this.settings.getValueForKeyAsLong(eq(GzipMaxInputFileSizeInBytes), anyLong()))
                 .thenReturn(1024 * 1024L);
-        when(this.settings.getValueForKeyAsLong(GzipMaxOutputFileSizeInBytes))
+        when(this.settings.getValueForKeyAsLong(eq(GzipMaxOutputFileSizeInBytes), anyLong()))
                 .thenReturn(1024 * 1024L);
 
         // when
@@ -83,14 +107,14 @@ public class ArchiveUncompressedSizeCalculatorTest {
     }
 
     @Test
-    void createDataFiles_shouldNotComputeUncompressedSizeForGzFileIfOutputFileIsTooBig()
+    void uncompressedSizeForGzFileIfOutputFileIsTooBig_returnsZero()
             throws IOException {
         // given
         Path filePath = copyResource("jhove/dummy.pdf.gz");
 
-        when(this.settings.getValueForKeyAsLong(GzipMaxInputFileSizeInBytes))
+        when(this.settings.getValueForKeyAsLong(eq(GzipMaxInputFileSizeInBytes), anyLong()))
                 .thenReturn(1024 * 1024L);
-        when(this.settings.getValueForKeyAsLong(GzipMaxOutputFileSizeInBytes))
+        when(this.settings.getValueForKeyAsLong(eq(GzipMaxOutputFileSizeInBytes), anyLong()))
                 .thenReturn(1L);
 
         // when
@@ -101,14 +125,14 @@ public class ArchiveUncompressedSizeCalculatorTest {
     }
 
     @Test
-    void createDataFiles_shouldNotComputeUncompressedSizeForGzFileIfItIsTooBig()
+    void uncompressedSizeForGzFileIfItIsTooBig_returnZero()
             throws IOException {
         // given
         Path filePath = copyResource("jhove/dummy.pdf.gz");
 
-        when(this.settings.getValueForKeyAsLong(GzipMaxInputFileSizeInBytes))
+        when(this.settings.getValueForKeyAsLong(eq(GzipMaxInputFileSizeInBytes), anyLong()))
                 .thenReturn(1L);
-        when(this.settings.getValueForKeyAsLong(GzipMaxOutputFileSizeInBytes))
+        when(this.settings.getValueForKeyAsLong(eq(GzipMaxOutputFileSizeInBytes), anyLong()))
                 .thenReturn(1024 * 1024L);
 
         // when
@@ -116,6 +140,17 @@ public class ArchiveUncompressedSizeCalculatorTest {
                 "application/gzip", "dummy.pdf.gz");
         // then
         assertThat(uncompressedSize).isEqualTo(0L);
+    }
+    
+    @Test
+    void uncompressedSizeForNonArchiveFile_returnsZero() throws IOException {
+        // given
+        Path filePath = copyResource("jhove/dummy.pdf");
+        // when
+        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+                "application/pdf", "dummy.pdf");
+        // then
+        assertThat(uncompressedSize).isZero();
     }
     
     private Path copyResource(final String name) throws IOException {
