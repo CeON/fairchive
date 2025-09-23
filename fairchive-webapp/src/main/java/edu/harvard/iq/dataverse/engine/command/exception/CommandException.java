@@ -10,23 +10,24 @@ import javax.ejb.ApplicationException;
  * @author michael
  */
 
+@SuppressWarnings("serial")
 @ApplicationException(rollback = true)
 public class CommandException extends RuntimeException {
 
-    private final Command failedCommand;
+    private final Command<?> failedCommand;
 
 
-    public  CommandException(String message, Command aCommand) {
+    public  CommandException(String message, Command<?> aCommand) {
         super(message);
         failedCommand = aCommand;
     }
 
-    public CommandException(String message, Throwable cause, Command aCommand) {
+    public CommandException(String message, Throwable cause, Command<?> aCommand) {
         super(message, cause);
         failedCommand = aCommand;
     }
 
-    public Command getFailedCommand() {
+    public Command<?> getFailedCommand() {
         return failedCommand;
     }
 
