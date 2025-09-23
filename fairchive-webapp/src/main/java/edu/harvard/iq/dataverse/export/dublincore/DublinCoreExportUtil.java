@@ -1,10 +1,5 @@
 package edu.harvard.iq.dataverse.export.dublincore;
 
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.depositor;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.relatedDatasetCitation;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.relatedDatasets;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.OutputStream;
@@ -475,7 +470,6 @@ public class DublinCoreExportUtil {
         }
     }
 
-
     private static void writeFullElement(XMLStreamWriter xmlw, String name, String value) throws XMLStreamException {
         if (!isBlank(value)) {
             xmlw.writeStartElement(name);
@@ -483,11 +477,4 @@ public class DublinCoreExportUtil {
             xmlw.writeEndElement(); 
         }
     }
-
-    private static void writeAttribute(XMLStreamWriter xmlw, String name, String value) throws XMLStreamException {
-        if (!isBlank(value)) {
-            xmlw.writeAttribute(name, value);
-        }
-    }
-
 }

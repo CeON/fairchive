@@ -19,6 +19,7 @@ import java.util.List;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
 
@@ -27,8 +28,9 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
     private final List<Dataverse> featuredDataverseList;
     private final List<DataverseFieldTypeInputLevel> inputLevelList;
 
-    public UpdateDataverseCommand(Dataverse editedDv, List<DatasetFieldType> facetList, List<Dataverse> featuredDataverseList,
-                                  DataverseRequest aRequest, List<DataverseFieldTypeInputLevel> inputLevelList) {
+    public UpdateDataverseCommand(Dataverse editedDv, List<DatasetFieldType> facetList, 
+            List<Dataverse> featuredDataverseList, DataverseRequest aRequest, 
+            List<DataverseFieldTypeInputLevel> inputLevelList) {
         super(aRequest, editedDv);
         this.editedDv = editedDv;
         // add update template uses this command but does not
@@ -93,7 +95,6 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
             List<Dataset> datasets = ctxt.datasets().findByOwnerId(editedDv.getId());
             ctxt.index().asyncIndexDatasetList(datasets, true);
         }
-
         return result;
     }
 }

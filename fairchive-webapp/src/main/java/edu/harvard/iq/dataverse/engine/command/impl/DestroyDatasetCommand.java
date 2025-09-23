@@ -29,6 +29,7 @@ import java.util.logging.Logger;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 // Since this is used by DeleteDatasetCommand, must have at least that permission
 // (for released, user is checked for superuser)
 @RequiredPermissions(Permission.DeleteDatasetDraft)

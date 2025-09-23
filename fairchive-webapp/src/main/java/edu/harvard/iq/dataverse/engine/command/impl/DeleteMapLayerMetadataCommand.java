@@ -4,13 +4,13 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.MapLayerMetadata;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class DeleteMapLayerMetadataCommand extends AbstractCommand<Boolean> {
 

@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -11,12 +10,15 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
 import java.sql.Timestamp;
 import java.util.Date;
 
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataset)
 public class LinkDatasetCommand extends AbstractCommand<DatasetLinkingDataverse> {
 
@@ -33,13 +35,13 @@ public class LinkDatasetCommand extends AbstractCommand<DatasetLinkingDataverse>
     public DatasetLinkingDataverse execute(CommandContext ctxt)  {
 
         if (!linkedDataset.isReleased()) {
-            throw new IllegalCommandException(BundleUtil.getStringFromBundle("dataset.link.not.published"), this);
+            throw new IllegalCommandException(getStringFromBundle("dataset.link.not.published"), this);
         }
         if (linkedDataset.getOwner().equals(linkingDataverse)) {
-            throw new IllegalCommandException(BundleUtil.getStringFromBundle("dataset.link.not.to.owner"), this);
+            throw new IllegalCommandException(getStringFromBundle("dataset.link.not.to.owner"), this);
         }
         if (linkedDataset.getOwner().getOwners().contains(linkingDataverse)) {
-            throw new IllegalCommandException(BundleUtil.getStringFromBundle("dataset.link.not.to.parent.dataverse"), this);
+            throw new IllegalCommandException(getStringFromBundle("dataset.link.not.to.parent.dataverse"), this);
         }
 
         DatasetLinkingDataverse datasetLinkingDataverse = new DatasetLinkingDataverse();

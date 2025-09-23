@@ -11,12 +11,9 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-import java.util.logging.Logger;
-
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class PersistProvFreeFormCommand extends AbstractCommand<DataFile> {
-
-    private static final Logger logger = Logger.getLogger(PersistProvFreeFormCommand.class.getCanonicalName());
 
     private final DataFile dataFile;
     private final String userInput;

@@ -10,7 +10,6 @@ import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
@@ -24,7 +23,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,6 +34,7 @@ import static edu.harvard.iq.dataverse.workflow.execution.WorkflowContext.Trigge
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataset)
 public class FinalizeDatasetPublicationCommand extends AbstractPublishDatasetCommand<Dataset> {
 
@@ -280,7 +279,6 @@ public class FinalizeDatasetPublicationCommand extends AbstractPublishDatasetCom
                 .filter(ra -> ra.getRole().permissions().contains(Permission.ViewUnpublishedDataset) || ra.getRole().permissions().contains(Permission.DownloadFile))
                 .flatMap(ra -> ctxt.roleAssignees().getExplicitUsers(ctxt.roleAssignees().getRoleAssignee(ra.getAssigneeIdentifier())).stream())
                 .distinct() // prevent double-send
-                //.forEach( au -> ctxt.notifications().sendNotification(au, timestamp, messageType, theDataset.getId()) ); //not sure why this line doesn't work instead
                 .forEach(au -> ctxt.notifications().sendNotificationWithEmail(au, getTimestamp(), NotificationType.PUBLISHEDDS, getDataset().getLatestVersion().getId(), NotificationObjectType.DATASET_VERSION));
     }
 

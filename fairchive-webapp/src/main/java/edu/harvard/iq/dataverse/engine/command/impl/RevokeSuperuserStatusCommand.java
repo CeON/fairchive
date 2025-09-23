@@ -19,6 +19,7 @@ import java.io.Serializable;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 // the permission annotation is open, since this is a superuser-only command - 
 // and that's enforced in the command body:
 @RequiredPermissions({})
@@ -45,7 +46,8 @@ public class RevokeSuperuserStatusCommand extends AbstractCommand<AuthenticatedU
 
             return targetUser;
         } catch (Exception e) {
-            throw new CommandException("Failed to revoke the superuser status for user " + targetUser.getIdentifier(), this);
+            throw new CommandException("Failed to revoke the superuser status for user " 
+                    + targetUser.getIdentifier(), this);
         }
     }
 }

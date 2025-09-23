@@ -7,10 +7,8 @@ package edu.harvard.iq.dataverse.guestbook;
 
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.guestbook.CustomQuestion;
 import edu.harvard.iq.dataverse.persistence.guestbook.CustomQuestionResponse;
 import edu.harvard.iq.dataverse.persistence.guestbook.CustomQuestionValue;

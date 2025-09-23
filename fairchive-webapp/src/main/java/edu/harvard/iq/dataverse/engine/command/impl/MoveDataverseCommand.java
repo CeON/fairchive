@@ -32,6 +32,7 @@ import java.util.logging.Logger;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 //@todo We will need to revist the permissions for move, once we add this 
 //(will probably need different move commands for unplublished which checks add,
 //versus published which checks publish 

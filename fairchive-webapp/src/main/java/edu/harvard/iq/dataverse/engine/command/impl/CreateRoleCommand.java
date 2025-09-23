@@ -18,6 +18,7 @@ import java.io.Serializable;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ManageDataversePermissions)
 public class CreateRoleCommand extends AbstractCommand<DataverseRole> implements Serializable {
 

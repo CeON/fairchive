@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import static edu.harvard.iq.dataverse.common.NullSafeJsonBuilder.jsonObjectBuilder;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class ImportFromFileSystemCommand extends AbstractCommand<JsonObject> {
 
@@ -66,13 +67,15 @@ public class ImportFromFileSystemCommand extends AbstractCommand<JsonObject> {
                 logger.info(error);
                 throw new IllegalCommandException(error, this);
             }
-            if (!fileMode.equals(FileRecordWriter.FILE_MODE_INDIVIDUAL_FILES) && !fileMode.equals(FileRecordWriter.FILE_MODE_PACKAGE_FILE)) {
+            if (!fileMode.equals(FileRecordWriter.FILE_MODE_INDIVIDUAL_FILES) 
+                    && !fileMode.equals(FileRecordWriter.FILE_MODE_PACKAGE_FILE)) {
                 String error = "File import mode: " + fileMode + " is not supported.";
                 logger.info(error);
                 throw new IllegalCommandException(error, this);
             }
             File directory = new File(ctxt.systemConfig().getFilesDirectory()
-                                              + File.separator + dataset.getAuthority() + File.separator + dataset.getIdentifier());
+                                              + File.separator + dataset.getAuthority() 
+                                              + File.separator + dataset.getIdentifier());
             if (!isValidDirectory(directory)) {
                 String error = "Dataset directory is invalid. " + directory;
                 logger.info(error);
@@ -86,7 +89,8 @@ public class ImportFromFileSystemCommand extends AbstractCommand<JsonObject> {
             }
 
             File uploadDirectory = new File(ctxt.systemConfig().getFilesDirectory()
-                                                    + File.separator + dataset.getAuthority() + File.separator + dataset.getIdentifier()
+                                                    + File.separator + dataset.getAuthority() 
+                                                    + File.separator + dataset.getIdentifier()
                                                     + File.separator + uploadFolder);
             if (!isValidDirectory(uploadDirectory)) {
                 String error = "Upload folder is not a valid directory.";
@@ -95,13 +99,15 @@ public class ImportFromFileSystemCommand extends AbstractCommand<JsonObject> {
             }
 
             if (dataset.getVersions().size() != 1) {
-                String error = "Error creating FilesystemImportJob with dataset with ID: " + dataset.getId() + " - Dataset has more than one version.";
+                String error = "Error creating FilesystemImportJob with dataset with ID: " 
+                        + dataset.getId() + " - Dataset has more than one version.";
                 logger.info(error);
                 throw new IllegalCommandException(error, this);
             }
 
             if (dataset.getLatestVersion().getVersionState() != DatasetVersion.VersionState.DRAFT) {
-                String error = "Error creating FilesystemImportJob with dataset with ID: " + dataset.getId() + " - Dataset isn't in DRAFT mode.";
+                String error = "Error creating FilesystemImportJob with dataset with ID: "
+                        + dataset.getId() + " - Dataset isn't in DRAFT mode.";
                 logger.info(error);
                 throw new IllegalCommandException(error, this);
             }
@@ -123,13 +129,15 @@ public class ImportFromFileSystemCommand extends AbstractCommand<JsonObject> {
                     bld.add("executionId", jid).add("message", "FileSystemImportJob in progress");
                     return bld.build();
                 } else {
-                    String error = "Error creating FilesystemImportJob with dataset with ID: " + dataset.getId();
+                    String error = "Error creating FilesystemImportJob with dataset with ID: " 
+                            + dataset.getId();
                     logger.info(error);
                     throw new CommandException(error, this);
                 }
 
             } catch (JobStartException | JobSecurityException ex) {
-                String error = "Error creating FilesystemImportJob with dataset with ID: " + dataset.getId() + " - " + ex.getMessage();
+                String error = "Error creating FilesystemImportJob with dataset with ID: " 
+                        + dataset.getId() + " - " + ex.getMessage();
                 logger.info(error);
                 throw new IllegalCommandException(error, this);
             }
@@ -157,7 +165,8 @@ public class ImportFromFileSystemCommand extends AbstractCommand<JsonObject> {
             return false;
         }
         if (!directory.canRead()) {
-            logger.log(Level.SEVERE, "Unable to read files from directory " + path + ". Permission denied.");
+            logger.log(Level.SEVERE, "Unable to read files from directory " 
+                    + path + ". Permission denied.");
             return false;
         }
         return true;

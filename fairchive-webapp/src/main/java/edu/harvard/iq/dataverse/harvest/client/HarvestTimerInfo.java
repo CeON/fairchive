@@ -34,6 +34,7 @@ import java.io.Serializable;
  * incorporated into Dataverse 4 by
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class HarvestTimerInfo implements Serializable {
     private Long harvestingClientId;
 

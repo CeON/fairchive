@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 /**
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("guestbookResponsesPage")
 public class GuestbookResponsesPage implements java.io.Serializable {

@@ -37,6 +37,7 @@ import java.util.logging.Logger;
  *
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @RequiredPermissionsMap({
         @RequiredPermissions(dataverseName = "moved", value = {Permission.PublishDataset})
         , @RequiredPermissions(dataverseName = "destination", value = {Permission.AddDataset, Permission.PublishDataset})
@@ -68,7 +69,8 @@ public class MoveDatasetCommand extends AbstractVoidCommand {
     public void executeImpl(CommandContext ctxt)  {
         boolean removeGuestbook = false, removeLinkDs = false;
         if (!(getUser() instanceof AuthenticatedUser)) {
-            throw new PermissionException("Move Dataset can only be called by authenticated users.", this, Collections.singleton(Permission.DeleteDatasetDraft), moved);
+            throw new PermissionException("Move Dataset can only be called by authenticated users.", 
+                    this, Collections.singleton(Permission.DeleteDatasetDraft), moved);
         }
 
         // validate the move makes sense

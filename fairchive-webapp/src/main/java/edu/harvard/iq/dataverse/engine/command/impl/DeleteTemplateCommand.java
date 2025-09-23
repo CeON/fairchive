@@ -18,6 +18,7 @@ import java.util.List;
 /**
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class DeleteTemplateCommand extends AbstractCommand<Dataverse> {
 
