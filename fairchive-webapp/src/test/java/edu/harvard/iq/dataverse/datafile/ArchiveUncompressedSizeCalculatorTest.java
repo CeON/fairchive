@@ -19,7 +19,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 public class ArchiveUncompressedSizeCalculatorTest {
 
     @InjectMocks
-    private ArchiveUncompressedSizeCalculator caclulator;
+    private ArchiveUncompressedSizeCalculator calculator;
 
     @Mock
     private SettingsServiceBean settings;
@@ -34,7 +34,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // given
         Path filePath = copyResource("jhove/archive.zip");
         // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+        Long uncompressedSize = this.calculator.calculateUncompressedSize(filePath,
                 "application/zip", "archive.zip");
         // then
         assertThat(uncompressedSize).isEqualTo(4L);
@@ -45,7 +45,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // given
         Path filePath = copyResource("jhove/empty");
         // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+        Long uncompressedSize = this.calculator.calculateUncompressedSize(filePath,
                 "application/zip", "archive.zip");
         // then
         assertThat(uncompressedSize).isZero();
@@ -56,7 +56,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // given
         Path filePath = copyResource("jhove/archive.rar");
         // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+        Long uncompressedSize = this.calculator.calculateUncompressedSize(filePath,
                 "application/vnd.rar", "archive.rar");
         // then
         assertThat(uncompressedSize).isEqualTo(4L);
@@ -67,7 +67,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // given
         Path filePath = copyResource("jhove/archive.7z");
         // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+        Long uncompressedSize = this.calculator.calculateUncompressedSize(filePath,
                 "application/x-7z-compressed", "archive.7z");
         // then
         assertThat(uncompressedSize).isEqualTo(4L);
@@ -78,7 +78,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // given
         Path filePath = copyResource("jhove/empty");
         // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+        Long uncompressedSize = this.calculator.calculateUncompressedSize(filePath,
                 "application/x-7z-compressed", "archive.7z");
         // then
         assertThat(uncompressedSize).isZero();
@@ -90,7 +90,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
         Path filePath = copyResource("jhove/dummy.pdf.gz");
 
         // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+        Long uncompressedSize = this.calculator.calculateUncompressedSize(filePath,
                 "application/gzip", "dummy.pdf.gz");
         // then
         assertThat(uncompressedSize).isEqualTo(13264L);
@@ -101,7 +101,7 @@ public class ArchiveUncompressedSizeCalculatorTest {
         // given
         Path filePath = copyResource("jhove/dummy.pdf");
         // when
-        Long uncompressedSize = this.caclulator.calculateUncompressedSize(filePath,
+        Long uncompressedSize = this.calculator.calculateUncompressedSize(filePath,
                 "application/pdf", "dummy.pdf");
         // then
         assertThat(uncompressedSize).isZero();

@@ -63,7 +63,7 @@ public class ArchiveUncompressedSizeCalculator {
                 return uncompressedSizeFor7Zip(path, fileName);
             case "application/gzip":
             case "application/x-compressed-tar":
-                return uncompressecSizeForGzip(path, fileName);
+                return uncompressedSizeForGzip(path, fileName);
             default:
                 return 0L;
             }
@@ -74,7 +74,7 @@ public class ArchiveUncompressedSizeCalculator {
         }
     }
 
-    private long uncompressecSizeForGzip(final Path path, final String fileName)
+    private long uncompressedSizeForGzip(final Path path, final String fileName)
             throws IOException {
         try (final GZIPInputStream gzip = new GZIPInputStream(newInputStream(path))) {
             long size = 0;
