@@ -10,6 +10,9 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+
+import static java.util.stream.Collectors.toList;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -21,11 +24,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_ALL;
 import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_LOCAL;
 import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_REMOTE;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MetricsCacheTimeoutMinutes;
 
 @SuppressWarnings("serial")
 @Stateless
@@ -215,7 +218,7 @@ public class MetricsServiceBean implements Serializable {
                         dm[1] instanceof BigDecimal ?  ((BigDecimal) dm[1]).intValue() : ((Double)dm[1]).intValue(),
                         dm[2] instanceof BigDecimal ?  ((BigDecimal) dm[2]).longValue() : ((Long)dm[2]))
                 )
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
 
@@ -503,7 +506,7 @@ public class MetricsServiceBean implements Serializable {
         Date lastCalled = queriedMetric.getLastCalledDate();
         LocalDateTime ldt = LocalDateTime.ofInstant((new Date()).toInstant(), ZoneId.systemDefault());
 
-        long minutesUntilNextQuery = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MetricsCacheTimeoutMinutes);
+        long minutesUntilNextQuery = settingsService.getValueForKeyAsLong(MetricsCacheTimeoutMinutes);
 
         if (yyyymm.equals(thisMonthYYYYMM)) { //if this month
             LocalDateTime ldtMinus = ldt.minusMinutes(minutesUntilNextQuery);
@@ -526,7 +529,7 @@ public class MetricsServiceBean implements Serializable {
             return true;
         }
 
-        long minutesUntilNextQuery = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MetricsCacheTimeoutMinutes);
+        long minutesUntilNextQuery = settingsService.getValueForKeyAsLong(MetricsCacheTimeoutMinutes);
         Date lastCalled = queriedMetric.getLastCalledDate();
         LocalDateTime ldt = LocalDateTime.ofInstant((new Date()).toInstant(), ZoneId.systemDefault());
 

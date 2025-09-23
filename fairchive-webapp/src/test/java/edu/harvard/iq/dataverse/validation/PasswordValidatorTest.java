@@ -73,18 +73,6 @@ public class PasswordValidatorTest {
             return password;
         }
 
-        Date getPasswordModificationTime() {
-            return passwordModificationTime;
-        }
-
-        int getExpirationDays() {
-            return expirationDays;
-        }
-
-        int getExpirationMaxLength() {
-            return expirationMaxLength;
-        }
-
         int getGoodStrength() {
             return goodStrength;
         }
@@ -204,9 +192,6 @@ public class PasswordValidatorTest {
         paramsList.forEach(
                 params -> {
                     int expectedErrors = params.getExpectedErrors();
-//                    List<String> errors = passwordValidatorService.validate(params.getPassword(), params.getPasswordModificationTime());
-//                    passwordValidatorService.setExpirationDays(params.getExpirationDays());
-//                    passwordValidatorService.setExpirationMaxLength(params.getExpirationMaxLength());
                     passwordValidatorService.setGoodStrength(params.getGoodStrength());
                     passwordValidatorService.setMaxLength(params.getMaxLength());
                     passwordValidatorService.setMinLength(params.getMinLength());

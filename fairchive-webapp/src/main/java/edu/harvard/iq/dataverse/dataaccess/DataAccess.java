@@ -20,11 +20,15 @@
 
 package edu.harvard.iq.dataverse.dataaccess;
 
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
+import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
+
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 /**
  * @author Leonid Andreev
@@ -94,13 +98,13 @@ public class DataAccess {
      */
     public <T extends DvObject> StorageIO<T> createNewStorageIO(T dvObject) throws IOException {
 
-        return createNewStorageIO(dvObject, StringUtils.defaultString(DEFAULT_STORAGE_DRIVER_IDENTIFIER, "file"));
+        return createNewStorageIO(dvObject, Objects.toString(DEFAULT_STORAGE_DRIVER_IDENTIFIER, "file"));
     }
 
     // -------------------- PRIVATE --------------------
 
     private <T extends DvObject> StorageIO<T> createNewStorageIO(T dvObject, String driverIdentifier) throws IOException {
-        if (dvObject == null || StringUtils.isNotEmpty(dvObject.getStorageIdentifier())) {
+        if (dvObject == null || isNotEmpty(dvObject.getStorageIdentifier())) {
             throw new IOException("createNewStorageIO: null dvobject or dvobject have storage id already assigned.");
         }
 
