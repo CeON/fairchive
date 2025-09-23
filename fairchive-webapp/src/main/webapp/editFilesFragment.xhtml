@@ -93,7 +93,12 @@
                                                     rendered="#{EditDatafilesPage.maxBatchSize > 0}">
                                         <f:param value="#{EditDatafilesPage.humanMaxBatchUploadSize}"/>
                                     </h:outputFormat>
-
+                                    <p:selectBooleanCheckbox 
+                                        rendered="#{EditDatafilesPage.superuserLoggedIn}"
+                                        value="#{EditDatafilesPage.ignoringMaxUploadLimit}"
+                                        itemLabel="#{bundle['file.selectToAdd.ignoreLimits']}"> 
+                                            <p:ajax/>
+                                        </p:selectBooleanCheckbox>
                                 </p>
 
                                 <script>
@@ -116,6 +121,7 @@
                                         uploadWidgetDropMsg();
                                     });
                                 </script>
+                                
                                 <!-- ATTENTION: the update= attribute in the fileUpload component -->
                                 <!-- below appears to be super important -->
                                 <!-- Note the "oncomplete=" attribute in the p:fileUpload -->
@@ -154,7 +160,6 @@
                                               oncomplete="uploadFinished(PF('fileUploadWidget'));"
                                               onstart="javascript:uploadWidgetDropRemoveMsg();uploadStarted();"
                                               onerror="javascript:uploadFailure();"
-                                              sizeLimit="#{EditDatafilesPage.getMaxFileUploadSizeInBytes()}"
                                               fileLimit="#{EditDatafilesPage.getMaxNumberOfFiles()}"
                                               invalidSizeMessage="#{bundle['file.edit.error.file_exceeds_limit']}"
                                               sequential="true"

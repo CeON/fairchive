@@ -171,6 +171,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private String versionString = "";
 
     private long currentBatchSize = 0L;
+    private boolean ignoringMaxUploadLimit = false;
 
     private boolean saveEnabled = false;
 
@@ -263,6 +264,10 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     // -------------------- GETTERS --------------------
 
+    public boolean isIgnoringMaxUploadLimit() {
+        return this.ignoringMaxUploadLimit;
+    }
+    
     public String getSelectedFileIds() {
         return this.selectedFileIdsString;
     }
@@ -933,8 +938,12 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
     
     private boolean sizeExceedsLimit(final long fileSize) {
-        return getMaxBatchSize() > 0
-                && (this.currentBatchSize + fileSize) > getMaxBatchSize();
+        if (isSuperuserLoggedIn() & this.ignoringMaxUploadLimit) {
+            return false;
+        } else {
+            return getMaxBatchSize() > 0
+                    && (this.currentBatchSize + fileSize) > getMaxBatchSize();
+        }
     }
 
     /**
@@ -957,7 +966,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                 // zip file.
                 final List<DataFile> files = this.dataFileCreator.createDataFiles(
                         inputStream, uploadedFile.getFileName(), 
-                        uploadedFile.getContentType());
+                        uploadedFile.getContentType(), this.ignoringMaxUploadLimit);
                 this.dataFileUploadInfo.addSizeAndDataFiles(fileSize, files);
 
                 // These raw datafiles are then post-processed, in order to drop any
@@ -980,6 +989,8 @@ public class EditDatafilesPage implements java.io.Serializable {
                     | FileExceedsMaxSizeException ex) {
                 logger.warning("Failed to process and/or save the file " +
                         uploadedFile.getFileName() + "; " + ex.getMessage());
+                this.uploadWarningMessage = getUploadBatchTooBigMessage();
+                this.uploadComponentId = event.getComponent().getClientId();
             } catch (final VirusFoundException e) {
                 this.uploadWarningMessage = getStringFromBundle(
                         "dataset.file.uploadScannerWarning");
@@ -1030,6 +1041,11 @@ public class EditDatafilesPage implements java.io.Serializable {
     public String getTemporaryPreviewAsBase64(final String fileSystemId) {
         return this.temporaryThumbnailsMap.get(fileSystemId);
     }
+    
+    public boolean isSuperuserLoggedIn() {
+        return this.session.isSuperUserLoggedIn();
+    }
+    
 
     public boolean isLocked() {
         if (this.dataset != null) {
@@ -1531,6 +1547,10 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     // -------------------- SETTERS --------------------
 
+    public void setIgnoringMaxUploadLimit(final boolean value) {
+        this.ignoringMaxUploadLimit = value;
+    }
+    
     public void setFileMetadatas(final List<FileMetadata> etadatas) {
         this.fileMetadatas = etadatas;
     }
