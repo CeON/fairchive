@@ -483,13 +483,13 @@ public class DataverseUserPage extends BaseUserPage {
         }
     }
 
-    public void onNotificationSelect(SelectEvent event) {
+    public void onNotificationSelect(SelectEvent<?> event) {
         UserNotificationDTO selectedNotification = (UserNotificationDTO) event.getObject();
         selectedNotificationIds.add(selectedNotification.getId());
         setSelectedAllNotifications(false);
     }
 
-    public void onNotificationUnSelect(UnselectEvent event) {
+    public void onNotificationUnSelect(UnselectEvent<?> event) {
         UserNotificationDTO selectedNotification = (UserNotificationDTO) event.getObject();
         selectedNotificationIds.remove(selectedNotification.getId());
         setSelectedAllNotifications(false);
