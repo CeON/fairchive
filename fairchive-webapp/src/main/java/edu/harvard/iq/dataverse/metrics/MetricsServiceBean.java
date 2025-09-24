@@ -75,6 +75,7 @@ public class MetricsServiceBean implements Serializable {
         return (long) query.getSingleResult();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> dataversesByCategory() throws Exception {
 
         Query query = em.createNativeQuery(""
@@ -89,11 +90,11 @@ public class MetricsServiceBean implements Serializable {
         return query.getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> dataversesBySubject() {
         Query query = em.createNativeQuery(""
                                                    + "select cvv.strvalue, count(dataverse_id) from dataversesubjects\n"
                                                    + "join controlledvocabularyvalue cvv ON cvv.id = controlledvocabularyvalue_id \n"
-                                                   //+ "where dataverse_id != ( select id from dvobject where owner_id is null) \n" //removes root, we decided to do this in the homepage js instead
                                                    + "group by cvv.strvalue\n"
                                                    + "order by count desc;"
 
@@ -106,6 +107,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Datasets
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countPublishedDatasets() {
         return mapToChartMetrics(em.createNativeQuery(
                 "SELECT\n" +
@@ -124,6 +126,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Authenticated users
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countAuthenticatedUsers() {
         return mapToChartMetrics(em.createNativeQuery(
                 "SELECT\n" +
@@ -138,6 +141,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Published files
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countPublishedFiles() {
         return mapToChartMetrics(em.createNativeQuery(
                 "select \n" +
@@ -161,6 +165,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Published files size
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countPublishedFilesStorage() {
         return mapToChartMetrics(em.createNativeQuery(
             "select \n" +
@@ -186,6 +191,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Downloaded Files
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countDownloadedFiles() {
         return mapToChartMetrics(em.createNativeQuery(
                 "SELECT" +
@@ -200,6 +206,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Downloaded Datasets
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countDownloadedDatasets() {
         return mapToChartMetrics(em.createNativeQuery(
                 "SELECT" +
@@ -267,6 +274,7 @@ public class MetricsServiceBean implements Serializable {
         return (long) query.getSingleResult();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> datasetsBySubjectToMonth(String yyyymm, String dataLocation) {
         // The SQL code below selects the local, non-harvested dataset versions:
         // A published local datasets may have more than one released version!
