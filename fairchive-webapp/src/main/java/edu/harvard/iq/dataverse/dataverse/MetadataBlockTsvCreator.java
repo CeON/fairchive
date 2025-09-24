@@ -180,6 +180,7 @@ public class MetadataBlockTsvCreator {
         METADATABLOCK_ID("metadatablock_id", t -> t.getMetadataBlock().getName()),
         TERM_URI("termURI", DatasetFieldType::getUri),
         VALIDATION("validation", DatasetFieldType::getValidation),
+        @SuppressWarnings("unchecked")
         METADATA("metadata", DatasetFieldType::getMetadata, v -> (Object) jsonMapConverter.convertToDatabaseColumn((Map<String, Object>) v)),
         VISIBLE_THROUGH_ANONYMIZED_URL("visibleThroughAnonymizedUrl", DatasetFieldType::isVisibleThroughAnonymizedUrl, Formatters.toUpperFormatter),
         DEFAULT_VALUE("defaultValue", DatasetFieldType::getDefaultValue);

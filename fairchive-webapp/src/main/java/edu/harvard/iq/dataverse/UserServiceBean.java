@@ -121,6 +121,7 @@ public class UserServiceBean {
      * Attempt to retrieve all the user roles in 1 query
      * Consider putting limits on this -- e.g. no more than 1,000 user identifiers or something similar
      */
+    @SuppressWarnings("unchecked")
     private Map<String, List<String>> retrieveRolesForUsers(List<AuthenticatedUser> userObjectList) {
         // Iterate through results, retrieving only the assignee identifiers
         // Note: userInfo[1], the assigneeIdentifier, cannot be null in the database
@@ -275,9 +276,5 @@ public class UserServiceBean {
                 .filter(dashboardUserSortKey -> dashboardUserSortKey.equals(SortKey.fromString(sortKey)))
                 .findAny()
                 .orElse(SortKey.ID);
-    }
-
-    private String getStringOrNull(Object dbResult) {
-        return dbResult != null ? (String) dbResult : null;
     }
 }

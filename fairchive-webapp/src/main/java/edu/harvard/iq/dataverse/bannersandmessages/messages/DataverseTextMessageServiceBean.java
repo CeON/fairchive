@@ -84,6 +84,7 @@ public class DataverseTextMessageServiceBean implements java.io.Serializable {
             return Lists.newArrayList();
         }
         logger.finest("Getting text messages for dataverse: " + dataverseId);
+        @SuppressWarnings("unchecked")
         List<String> messages = em.createNativeQuery("select r.message from (select distinct dvtml.message, dvtm.totime  from\n" +
                                                              "  dataversetextmessage dvtm\n" +
                                                              "  join dataverselocalizedmessage dvtml on dvtml.dataversetextmessage_id = dvtm.id\n" +

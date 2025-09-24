@@ -107,6 +107,7 @@ public class FileRecordWriter extends AbstractItemWriter {
     public static String FILE_MODE_INDIVIDUAL_FILES = "individual_files";
     public static String FILE_MODE_PACKAGE_FILE = "package_file";
 
+    @SuppressWarnings("unchecked")
     @PostConstruct
     public void init() {
         JobOperator jobOperator = BatchRuntime.getJobOperator();
@@ -139,7 +140,7 @@ public class FileRecordWriter extends AbstractItemWriter {
     }
 
     @Override
-    public void writeItems(List list) {
+    public void writeItems(@SuppressWarnings("rawtypes") List list) {
         if (!list.isEmpty()) {
             if (FILE_MODE_INDIVIDUAL_FILES.equals(fileMode)) {
                 List<DataFile> datafiles = dataset.getFiles();
@@ -157,6 +158,7 @@ public class FileRecordWriter extends AbstractItemWriter {
                 }
                 dataset.getLatestVersion().getDataset().setFiles(datafiles);
             } else if (FILE_MODE_PACKAGE_FILE.equals(fileMode)) {
+                @SuppressWarnings("unchecked")
                 DataFile packageFile = createPackageDataFile(list);
                 if (packageFile == null) {
                     getJobLogger().log(Level.SEVERE, "File package import failed.");
@@ -225,6 +227,7 @@ public class FileRecordWriter extends AbstractItemWriter {
      * storage identifiers for "normal" files), create it as a directory, and move
      * all the supplied files there.l
      */
+    @SuppressWarnings("unchecked")
     private DataFile createPackageDataFile(List<File> files) {
         DataFile packageFile = new DataFile(PackageMimeType.DATAVERSE_PACKAGE.getMimeValue());
         packageFile.setStorageIdentifier(FileUtil.generateStorageIdentifier());
@@ -410,6 +413,7 @@ public class FileRecordWriter extends AbstractItemWriter {
      * @param file file to create dataFile from
      * @return datafile
      */
+    @SuppressWarnings("unchecked")
     private DataFile createDataFile(File file) {
 
         DatasetVersion version = dataset.getLatestVersion();

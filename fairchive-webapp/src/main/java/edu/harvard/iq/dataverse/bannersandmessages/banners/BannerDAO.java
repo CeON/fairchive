@@ -39,6 +39,7 @@ public class BannerDAO {
         return em.find(DataverseBanner.class, bannerId);
     }
 
+    @SuppressWarnings("unchecked")
     public List<ImageWithLinkDto> getBannersForDataverse(Long dataverseId, String localeCode) {
         if (dataverseId == null) {
             return Lists.newArrayList();

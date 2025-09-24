@@ -245,6 +245,7 @@ public class ExplicitGroupServiceBean {
      * @param seed the initial set of groups.
      * @return Transitive closure (based on group  containment) of the groups in {@code seed}.
      */
+    @SuppressWarnings("unchecked")
     protected Set<ExplicitGroup> findClosure(Set<ExplicitGroup> seed) {
 
         if (seed.isEmpty()) {
