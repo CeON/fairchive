@@ -1241,7 +1241,7 @@ public class SAVFileReader extends TabularDataFileReader {
                             SPSSConstants.FORMAT_CODE_TABLE_SAV.get(formatCode) +
                                     formatWidth);
                     if (formatDecimalPointPosition > 0) {
-                        sb.append("." + formatDecimalPointPosition);
+                        sb.append(".").append(formatDecimalPointPosition);
                     }
                     dbgLog.fine("formattable[i] = " + variableName + " -> " + sb.toString());
                     printFormatNameTable.put(variableName, sb.toString());
@@ -1354,7 +1354,7 @@ public class SAVFileReader extends TabularDataFileReader {
                         missingValueTable.put(variableName, mv);
                         invalidDataTable.put(variableName, invalidDataInfo);
                         dbgLog.fine("missing value(str)=" +
-                                            StringUtils.join(missingValueTable.get(variableName), "|"));
+                                            join(missingValueTable.get(variableName), "|"));
                         dbgLog.fine("invalidDataInfo(String):\n" + invalidDataInfo);
 
                     } // string case
@@ -1720,7 +1720,7 @@ public class SAVFileReader extends TabularDataFileReader {
 
                 dbgLog.fine(i + "-th line =" + documentRecord[i] + "<-");
             }
-            dbgLog.fine("documentRecord:\n" + StringUtils.join(documentRecord, "\n"));
+            dbgLog.fine("documentRecord:\n" + join(documentRecord, "\n"));
 
 
         } catch (IOException ex) {
@@ -1906,16 +1906,6 @@ public class SAVFileReader extends TabularDataFileReader {
                                     int fieldData = bb_field.getInt();
                                     dbgLog.finer("fieldData(int)=" + fieldData);
                                     dbgLog.finer("fieldData in Hex=0x" + Integer.toHexString(fieldData));
-
-                                    int remainder = i % 3;
-                                    dbgLog.finer("remainder=" + remainder);
-                                    if (remainder == 0) {
-                                        /// measurementLevel.add(fieldData);
-                                    } else if (remainder == 1) {
-                                        /// columnWidth.add(fieldData);
-                                    } else if (remainder == 2) {
-                                        /// alignment.add(fieldData);
-                                    }
                                 }
 
                             }
@@ -2018,7 +2008,7 @@ public class SAVFileReader extends TabularDataFileReader {
                             byte[] rt7st20bytes = new byte[unitLength * numberOfUnits];
                             stream.read(rt7st20bytes);
 
-                            String dataCharSet = new String(rt7st20bytes, StandardCharsets.US_ASCII);
+                            String dataCharSet = new String(rt7st20bytes, US_ASCII);
 
                             if (dataCharSet != null && !(dataCharSet.equals(""))) {
                                 dbgLog.fine("RT7-20: data charset: " + dataCharSet);
@@ -2109,9 +2099,7 @@ public class SAVFileReader extends TabularDataFileReader {
 
             // missing value processing concerning HIGHEST/LOWEST values
 
-            Set<Map.Entry<String, InvalidData>> msvlc = invalidDataTable.entrySet();
-            for (Iterator<Map.Entry<String, InvalidData>> itc = msvlc.iterator(); itc.hasNext(); ) {
-                Map.Entry<String, InvalidData> et = itc.next();
+            for (Map.Entry<String, InvalidData> et : invalidDataTable.entrySet()) {
                 String variable = et.getKey();
                 dbgLog.fine("variable=" + variable);
                 InvalidData invalidDataInfo = et.getValue();
@@ -2520,7 +2508,8 @@ public class SAVFileReader extends TabularDataFileReader {
                                             dbgLog.finer(sb_time.toString());
 
                                             if (formatDecimalPointPosition > 0) {
-                                                sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                                sb_time.append(".").append(timeData[1], 
+                                                        0, formatDecimalPointPosition);
                                             }
 
                                             dbgLog.finer("k=" + k + ":" + sb_time.toString());
@@ -2550,12 +2539,13 @@ public class SAVFileReader extends TabularDataFileReader {
                                                     sdf_ymdhms.format(new Date(dateDatum)));
 
                                             if (formatDecimalPointPosition > 0) {
-                                                sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                                sb_time.append(".").append(timeData[1], 
+                                                        0, formatDecimalPointPosition);
                                             }
                                             dbgLog.finer("k=" + k + ":" + sb_time.toString());
                                             casewiseRecordForTabFile.set(k, sb_time.toString());
                                             dateFormatList[k] = sdf_ymdhms.toPattern() 
-                                                    + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                                    .concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                         }
                                     } else if (printFormatTable.get(variableNameList.get(k)).equals("TIME")) {
                                         // TODO:
@@ -2577,12 +2567,14 @@ public class SAVFileReader extends TabularDataFileReader {
                                                     sdf_hms.format(new Date(dateDatum)));
 
                                             if (formatDecimalPointPosition > 0) {
-                                                sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                                sb_time.append(".").append(timeData[1], 
+                                                        0, formatDecimalPointPosition);
                                             }
                                             dbgLog.finer("k=" + k + ":" + sb_time.toString());
                                             casewiseRecordForTabFile.set(k, sb_time.toString());
 
-                                            String format_hmsS = sdf_hms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                            String format_hmsS = sdf_hms.toPattern()
+                                                    .concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                             if (dateFormatList[k] == null || (format_hmsS.length() > dateFormatList[k].length())) {
                                                 dateFormatList[k] = format_hmsS;
                                             }
@@ -2908,7 +2900,6 @@ public class SAVFileReader extends TabularDataFileReader {
                             dateFormatList[k] = sdf_ymd.toPattern();
                         } else if (variableFormatType.equals("time")) {
                             dbgLog.finer("time case:DTIME or DATETIME or TIME");
-                            //formatCategoryTable.put(variableNameList.get(k), "time");
                             // not treating DTIME as date/time; see comment elsewhere in
                             // the code;
                             // (but we do need to remember to treat the resulting values
@@ -2934,7 +2925,8 @@ public class SAVFileReader extends TabularDataFileReader {
                                             sdf_dhms.format(new Date(dateDatum)));
 
                                     if (formatDecimalPointPosition > 0) {
-                                        sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                        sb_time.append(".").append(timeData[1],
+                                                0, formatDecimalPointPosition);
                                     }
 
 
@@ -2966,12 +2958,14 @@ public class SAVFileReader extends TabularDataFileReader {
                                             sdf_ymdhms.format(new Date(dateDatum)));
 
                                     if (formatDecimalPointPosition > 0) {
-                                        sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                        sb_time.append(".").append(timeData[1], 
+                                                0, formatDecimalPointPosition);
                                     }
                                     dbgLog.finer("k=" + k + ":" + sb_time.toString());
                                     casewiseRecordForTabFile.set(k, sb_time.toString());
                                     // datetime with milliseconds:
-                                    dateFormatList[k] = sdf_ymdhms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                    dateFormatList[k] = sdf_ymdhms.toPattern()
+                                            .concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                 }
                             } else if (printFormatTable.get(variableNameList.get(k)).equals("TIME")) {
                                 if (casewiseRecordForTabFile.get(k).indexOf(".") < 0) {
@@ -2991,13 +2985,16 @@ public class SAVFileReader extends TabularDataFileReader {
                                             sdf_hms.format(new Date(dateDatum)));
 
                                     if (formatDecimalPointPosition > 0) {
-                                        sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                        sb_time.append(".").append(timeData[1], 
+                                                0, formatDecimalPointPosition);
                                     }
                                     dbgLog.finer("k=" + k + ":" + sb_time.toString());
                                     casewiseRecordForTabFile.set(k, sb_time.toString());
                                     // time, possibly with milliseconds:
-                                    String format_hmsS = sdf_hms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
-                                    if (dateFormatList[k] == null || (format_hmsS.length() > dateFormatList[k].length())) {
+                                    String format_hmsS = sdf_hms.toPattern()
+                                            .concat(formatDecimalPointPosition > 0 ? ".S" : "");
+                                    if (dateFormatList[k] == null 
+                                            || (format_hmsS.length() > dateFormatList[k].length())) {
                                         dateFormatList[k] = format_hmsS;
                                     }
                                 }
