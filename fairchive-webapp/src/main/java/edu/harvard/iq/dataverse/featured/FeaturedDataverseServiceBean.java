@@ -73,6 +73,7 @@ public class FeaturedDataverseServiceBean {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public List<Dataverse> findByDataverseIdQuick(Long dataverseId) {
         List<Object[]> searchResults = em.createNativeQuery("SELECT d.id, d.alias, d.name, dt.logo FROM DataverseFeaturedDataverse f "
                 + " JOIN dataverse d ON d.id = f.featureddataverse_id"
