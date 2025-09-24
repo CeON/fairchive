@@ -588,7 +588,7 @@ public class AddReplaceFileHelper {
 
         // Make a temp. command
         //
-        Command createDatasetCommand = new CreateNewDatasetCommand(datasetToCheck, dvRequest);
+        Command<?> createDatasetCommand = new CreateNewDatasetCommand(datasetToCheck, dvRequest);
 
         // Can this user run the command?
         //
