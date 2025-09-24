@@ -351,31 +351,16 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
 
                         try {
                             startDate = format.parse(obsDateString);
-                            dbgLog.fine("Valid date string: " + obsDateString + ", format: " + format.toPattern() + ", resulting date: " + startDate + ", formatted resulting date: " + TIME_FORMATS[0].format(startDate));
+                            dbgLog.fine("Valid date string: " + obsDateString 
+                                    + ", format: " + format.toPattern() 
+                                    + ", resulting date: " + startDate 
+                                    + ", formatted resulting date: " 
+                                    + TIME_FORMATS[0].format(startDate));
                             startDateFormatted = format.format(startDate);
-                            //startDateFormatted = obsDateString;
                             break;
                         } catch (ParseException ex) {
                             startDate = null;
                         }
-
-                        // Alternative method: 
-                        // We could truncate the string to the point where the parser
-                        // stopped; e.g., if our format was yyyy-mm-dd and the
-                        // string was "2014-05-07T14:52:01" we'll truncate the 
-                        // string to "2014-05-07".
-                        /*
-                        ParsePosition pos = new ParsePosition(0);
-                        startDate = format.parse(obsDateString, pos);
-                        if (startDate == null) {
-                            continue;
-                        }
-                        if (pos.getIndex() != obsDateString.length()) {
-                            obsDateString = obsDateString.substring(0, pos.getIndex());
-                        }
-                        dbgLog.fine("Valid date: " + obsDateString + ", format: " + format.toPattern());
-                        break;
-                        */
                     }
 
                     // if that didn't work, we'll try parsing the string as a 
@@ -386,8 +371,11 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
 
                             try {
                                 startDate = format.parse(obsDateString);
-                                dbgLog.info("Valid date string: " + obsDateString + ", format: " + format.toPattern() + ", resulting date: " + startDate + ", formatted resulting date: " + DATE_FORMATS[0].format(startDate));
-                                //startDateFormatted = format.format(startDate);
+                                dbgLog.info("Valid date string: " + obsDateString 
+                                        + ", format: " + format.toPattern() 
+                                        + ", resulting date: " + startDate 
+                                        + ", formatted resulting date: " 
+                                        + DATE_FORMATS[0].format(startDate));
                                 startDateFormatted = DATE_FORMATS[0].format(startDate);
                                 break;
                             } catch (ParseException ex) {
@@ -401,16 +389,19 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
                             Date startDateTime = null;
 
                             if (obsTimeString != null && !obsTimeString.equals("")) {
-                                String newObsDateString = DATE_FORMATS[0].format(startDate) + "T" + obsTimeString;
+                                String newObsDateString = DATE_FORMATS[0].format(startDate) 
+                                        + "T" + obsTimeString;
 
                                 for (SimpleDateFormat format : TIME_FORMATS) {
                                     format.setLenient(false);
 
                                     try {
                                         startDateTime = format.parse(newObsDateString);
-                                        dbgLog.fine("Valid date obtained by combining obs date and time: " + newObsDateString + ", format: " + format.toPattern() + ", resulting date: " + startDateTime + ", formatted resulting date: " + TIME_FORMATS[0].format(startDateTime));
-                                        //startDateFormatted = TIME_FORMATS[0].format(startDateTime);
-                                        //startDateFormatted = newObsDateString;
+                                        dbgLog.fine("Valid date obtained by combining obs date and time: " 
+                                                + newObsDateString + ", format: " + format.toPattern() 
+                                                + ", resulting date: " + startDateTime 
+                                                + ", formatted resulting date: " 
+                                                + TIME_FORMATS[0].format(startDateTime));
                                         startDateFormatted = format.format(startDateTime);
                                         break;
                                     } catch (ParseException ex) {
@@ -811,7 +802,8 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
     }
 
     private boolean isRecognizedFloatKey(String key) {
-        return recognizedFitsMetadataKeys.containsKey(key) && recognizedFitsMetadataKeys.get(key).intValue() == FIELD_TYPE_FLOAT;
+        return recognizedFitsMetadataKeys.containsKey(key) 
+                && recognizedFitsMetadataKeys.get(key).intValue() == FIELD_TYPE_FLOAT;
     }
 
     private boolean isRecognizedColumnKey(String key) {
