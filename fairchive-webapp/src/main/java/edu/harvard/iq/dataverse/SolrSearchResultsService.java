@@ -226,7 +226,7 @@ public class SolrSearchResultsService {
                 ? Size.MAX
                 : size > Size.MIN.value()
                     ? Size.MID : Size.MIN;
-        Query query = em.createNamedQuery(queryBaseName + selectedSize.querySuffix());
+        Query query = em.createNamedQuery(queryBaseName + selectedSize.querySuffix(), Object[].class);
         int count = 1;
         Number currentId = 0; // ids cannot be empty (as long as it's called from callNamedNativeQueryWithIds),
                               // so the value will be overwritten

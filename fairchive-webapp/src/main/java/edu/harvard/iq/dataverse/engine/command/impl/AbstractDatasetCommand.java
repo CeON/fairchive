@@ -167,7 +167,7 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
      */
     protected void registerExternalIdentifier(Dataset theDataset, CommandContext ctxt) {
         if (!theDataset.isIdentifierRegistered()) {
-            GlobalIdServiceBean globalIdServiceBean = GlobalIdServiceBean.getBean(theDataset.getProtocol(), ctxt);
+            GlobalIdServiceBean globalIdServiceBean = ctxt.globalIdServiceBeanResolver().resolve(theDataset.getProtocol());
             if (globalIdServiceBean != null) {
                 if (globalIdServiceBean instanceof FakePidProviderServiceBean) {
                     try {

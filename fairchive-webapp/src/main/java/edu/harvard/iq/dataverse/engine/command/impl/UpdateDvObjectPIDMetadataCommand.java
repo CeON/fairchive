@@ -48,7 +48,7 @@ public class UpdateDvObjectPIDMetadataCommand extends AbstractVoidCommand {
             //the single dataset update api checks for drafts before calling the command
             return;
         }
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(target.getProtocol(), ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve(target.getProtocol());
         try {
             Boolean doiRetString = idServiceBean.publicizeIdentifier(target);
             if (doiRetString) {

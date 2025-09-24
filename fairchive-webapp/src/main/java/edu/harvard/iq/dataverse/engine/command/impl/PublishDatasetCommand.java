@@ -66,7 +66,7 @@ public class PublishDatasetCommand extends AbstractPublishDatasetCommand<Publish
         Dataset theDataset = getDataset();
 
         String protocol = getDataset().getProtocol();
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(protocol, ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve(protocol);
         if (isReservingPidEnabled(idServiceBean) && theDataset.getGlobalIdCreateTime() == null) {
                 throw new IllegalCommandException(getStringFromBundle("Cannot publish dataset because its" +
                                                         " persistent identifier has not been reserved."), this);

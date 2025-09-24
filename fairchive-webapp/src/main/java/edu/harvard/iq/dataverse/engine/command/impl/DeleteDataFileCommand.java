@@ -129,7 +129,7 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
                 logger.info("Skipping deleting the physical file on the storage volume (will be done outside the command)");
             }
         }
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve();
         try {
             if (idServiceBean.alreadyExists(doomed)) {
                 idServiceBean.deleteIdentifier(doomed);
@@ -153,7 +153,7 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
          *
          * See also https://redmine.hmdc.harvard.edu/issues/3786
          */
-        String indexingResult = ctxt.index().removeSolrDocFromIndex(IndexServiceBean.solrDocIdentifierFile + doomed.getId() + "_draft");
+        ctxt.index().removeSolrDocFromIndex(IndexServiceBean.solrDocIdentifierFile + doomed.getId() + "_draft");
         /**
          * @todo check indexing result for success or failure. Really, we need
          * an indexing queuing system:
