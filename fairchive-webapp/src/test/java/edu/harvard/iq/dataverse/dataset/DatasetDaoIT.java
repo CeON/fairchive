@@ -1,7 +1,10 @@
 package edu.harvard.iq.dataverse.dataset;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
@@ -18,6 +21,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 public class DatasetDaoIT extends WebappArquillianDeployment {
 
@@ -29,6 +33,9 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
 
     @Inject
     private DatasetDao datasetDao;
+    
+    @Inject
+    private SettingsServiceBean settings;
 
     @BeforeEach
     void setUp() {
@@ -78,6 +85,33 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         assertThat(versions.get(1).getDatasetVersion().getId()).isEqualTo(36L);
         assertThat(versions.get(1).getId()).isEqualTo(39L);
 
+    }
+    
+    
+    @Test
+    void generateDatasetIdentifier_throwsNPE_forNullIdentifier() {
+        
+        assertThrows(Exception.class, 
+                () ->  this.datasetDao.generateDatasetIdentifier(null));
+    }
+    
+    @Test
+    void generateRandomDatasetIdentifier() {
+        
+        this.settings.setValueForKey(Shoulder, "");
+        Dataset set = new Dataset();
+        
+        String id = this.datasetDao.generateDatasetIdentifier(set);
+        
+        assertThat(id).isNotBlank();
+        assertThat(id).doesNotStartWith("ABC");
+        
+        this.settings.setValueForKey(Shoulder, "ABC");
+        
+        id = this.datasetDao.generateDatasetIdentifier(set);
+        
+        assertThat(id).isNotBlank();
+        assertThat(id).startsWith("ABC");
     }
 }
 

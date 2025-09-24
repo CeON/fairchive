@@ -1,8 +1,8 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.InputStream;
@@ -21,11 +21,9 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
@@ -63,7 +61,7 @@ public class DatasetDao implements java.io.Serializable {
     private static final Logger logger = getLogger(DatasetDao.class);
 
     @Inject
-    SettingsServiceBean settingsService;
+    SettingsServiceBean settings;
 
     @EJB
     DvObjectServiceBean dvObjectService;
@@ -156,46 +154,14 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    public String generateDatasetIdentifier(Dataset dataset) {
-        String identifierType = settingsService.getValueForKey(IdentifierGenerationStyle);
-        String shoulder = settingsService.getValueForKey(Shoulder);
-
-        switch (identifierType) {
-            case "randomString":
-                return generateIdentifierAsRandomString(dataset, shoulder);
-            case "sequentialNumber":
-                return generateIdentifierAsSequentialNumber(dataset, shoulder);
-            default:
-                /* Should we throw an exception instead?? -- L.A. 4.6.2 */
-                return generateIdentifierAsRandomString(dataset, shoulder);
-        }
-    }
-
-    private String generateIdentifierAsRandomString(Dataset dataset, String shoulder) {
-        String identifier = null;
-        do {
-            identifier = shoulder + RandomStringUtils.randomAlphanumeric(6).toUpperCase();
-        } while (!this.datasetRepository.isIdentifierLocallyUnique(identifier, dataset));
-
-        return identifier;
-    }
-
-    private String generateIdentifierAsSequentialNumber(Dataset dataset, String shoulder) {
-
-        String identifier;
-        do {
-            StoredProcedureQuery query = this.em.createNamedStoredProcedureQuery("Dataset.generateIdentifierAsSequentialNumber");
-            query.execute();
-            Integer identifierNumeric = (Integer) query.getOutputParameterValue(1);
-            // some diagnostics here maybe - is it possible to determine that it's failing
-            // because the stored procedure hasn't been created in the database?
-            if (identifierNumeric == null) {
-                return null;
+    public String generateDatasetIdentifier(final Dataset dataset) {
+        final String shoulder = this.settings.getValueForKey(Shoulder);  
+        for(;;) {
+            final String id = shoulder.concat(randomAlphanumeric(6).toUpperCase());
+            if(this.datasetRepository.isIdentifierLocallyUnique(id, dataset)) {
+                return id;
             }
-            identifier = shoulder + identifierNumeric.toString();
-        } while (!this.datasetRepository.isIdentifierLocallyUnique(identifier, dataset));
-
-        return identifier;
+        }
     }
 
     /**
