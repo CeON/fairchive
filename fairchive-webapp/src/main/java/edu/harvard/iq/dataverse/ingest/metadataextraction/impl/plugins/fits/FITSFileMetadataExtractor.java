@@ -78,7 +78,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
     private static final String ASTROPHYSICS_BLOCK_NAME = "astrophysics";
 
     private static final int FIELD_TYPE_TEXT = 0;
-    private static final int FIELD_TYPE_DATE = 1;
     private static final int FIELD_TYPE_FLOAT = 2;
 
     private static final String ATTRIBUTE_TYPE = "astroType";
@@ -93,32 +92,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
     static {
 
         dbgLog.fine("FITS plugin: loading the default configuration values;");
-
-
-        // The following fields have been dropped from the configuration
-        // map, not because we are not interested in them anymore - but
-        // because they are now *mandatory*, i.e. non-configurable.
-        // We will be checking for the "telescope", "instrument", etc.
-        // fields on all files and HDUs:
-        // -- 4.0 beta
-
-        //defaultRecognizedFitsMetadataKeys.put("TELESCOP", 0);
-        //defaultRecognizedFitsMetadataKeys.put("INSTRUME", 0);
-        //defaultRecognizedFitsMetadataKeys.put("NAXIS", 0);
-        //defaultRecognizedFitsMetadataKeys.put("DATE-OBS", FIELD_TYPE_DATE);
-        // both coverage.Temporal.StartTime and .EndTime are derived from
-        // the DATE-OBS values; extra rules apply (coded further down)
-        //defaultRecognizedFitsMetadataKeys.put("OBJECT", FIELD_TYPE_TEXT);
-        //defaultRecognizedFitsMetadataKeys.put("CRVAL1", FIELD_TYPE_TEXT);
-        //defaultRecognizedFitsMetadataKeys.put("CRVAL2", FIELD_TYPE_TEXT);
-        //defaultRecognizedFitsMetadataKeys.put("EXPTIME", FIELD_TYPE_DATE);
-
-        //defaultIndexableFitsMetaKeys.put("DATE-OBS", "coverage.Temporal.StartTime");
-        //defaultIndexableFitsMetaKeys.put("DATE-OBS", "coverage.Temporal.StopTime");
-        //defaultIndexableFitsMetaKeys.put("NAXIS", "naxis");
-        //defaultIndexableFitsMetaKeys.put("OBJECT", "astroObject");
-        //defaultIndexableFitsMetaKeys.put("CRVAL1", "coverage.Spatial");
-        //defaultIndexableFitsMetaKeys.put("CRVAL2", "coverage.Spatial");
 
 
         // Optional, configurable fields:
@@ -138,46 +111,7 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
         defaultIndexableFitsMetaKeys.put("CD1_1", "resolution.Spatial");
         defaultIndexableFitsMetaKeys.put("CDELT", "resolution.Spatial");
         defaultIndexableFitsMetaKeys.put("EXPTIME", "resolution.Temporal");
-
-
-        // The following fields have been dropped from the configuration
-        // in 4.0 beta because we are not interested in them
-        // any longer:
-
-        //defaultRecognizedFitsMetadataKeys.put("EQUINOX", 0);
-        //defaultIndexableFitsMetaKeys.put("EQUINOX", "Equinox");
-
-        //defaultRecognizedFitsMetadataKeys.put("DATE", 0);
-        //defaultRecognizedFitsMetadataKeys.put("ORIGIN", 0);
-        //defaultRecognizedFitsMetadataKeys.put("AUTHOR", 0);
-        //defaultRecognizedFitsMetadataKeys.put("REFERENC", 0);
-        //defaultRecognizedFitsMetadataKeys.put("COMMENT", 0);
-        //defaultRecognizedFitsMetadataKeys.put("HISTORY", 0);
-        //defaultRecognizedFitsMetadataKeys.put("OBSERVER", 0);
-        //defaultRecognizedFitsMetadataKeys.put("EXTNAME", 0);
-        //defaultRecognizedFitsColumnKeys.put("TTYPE", 1);
-        //defaultRecognizedFitsColumnKeys.put("TCOMM", 0);
-        //defaultRecognizedFitsColumnKeys.put("TUCD", 0);
-        //defaultRecognizedFitsMetadataKeys.put("CUNIT", 0);
-
-
-        //defaultIndexableFitsMetaKeys.put("DATE", "Date");
-        //defaultIndexableFitsMetaKeys.put("ORIGIN", "Origin");
-        //defaultIndexableFitsMetaKeys.put("AUTHOR", "Author");
-        //defaultIndexableFitsMetaKeys.put("REFERENC", "Reference");
-        //defaultIndexableFitsMetaKeys.put("COMMENT", "Comment");
-        //defaultIndexableFitsMetaKeys.put("HISTORY", "History");
-        //defaultIndexableFitsMetaKeys.put("OBSERVER", "Observer");
-        //defaultIndexableFitsMetaKeys.put("EXTNAME", "Extension-Name");
-        //defaultIndexableFitsMetaKeys.put("TTYPE", "Column-Label");
-        //defaultIndexableFitsMetaKeys.put("TCOMM", "Column-Comment");
-        //defaultIndexableFitsMetaKeys.put("TUCD", "Column-UCD");
-        //defaultIndexableFitsMetaKeys.put("CUNIT", "cunit");
-
     }
-
-    //private static final String METADATA_SUMMARY = "FILE_METADATA_SUMMARY_INFO";
-    //private static final String OPTION_PREFIX_SEARCHABLE = "PREFIXSEARCH";
 
 
     private static final String HDU_TYPE_IMAGE = "Image";
@@ -190,7 +124,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
     private static final String FILE_TYPE_MOSAIC = "Mosaic";
     private static final String FILE_TYPE_CUBE = "Cube";
     private static final String FILE_TYPE_TABLE = "Table";
-    private static final String FILE_TYPE_SPECTRUM = "Spectrum";
 
     // Recognized date formats, for extracting temporal values: 
 
@@ -253,7 +186,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
         int nAxis = 0;
 
         Set<String> metadataKeys = new HashSet<String>();
-        Set<String> columnKeys = new HashSet<String>();
         List<String> hduTypes = new ArrayList<String>();
         List<String> hduNames = new ArrayList<String>();
 
@@ -590,20 +522,11 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
                     boolean recognized = false;
 
                     if (headerKey != null) {
-                        /*
-                        if (i > 1 && headerKey.equals("EXTNAME")) {
-                            hduNames.set(i-2, headerValue);
-                        } */
                         if (isRecognizedKey(headerKey)) {
                             dbgLog.fine("recognized key: " + headerKey);
                             recognized = true;
                             metadataKeys.add(headerKey);
-                        } /*else if (isRecognizedColumnKey(headerKey)) {
-                            dbgLog.fine("recognized column key: " + headerKey);
-                            recognized = true;
-                            //columnKeys.add(getTrimmedColumnKey(headerKey));
-                            columnKeys.add(headerKey);
-                        }*/
+                        } 
                     }
 
                     if (recognized) {
@@ -719,12 +642,12 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
         // Numeric fields should also be validated!
         // -- L.A. 4.0 beta
 
-        String metadataSummary = createMetadataSummary(n, nTableHDUs, nImageHDUs, nUndefHDUs, metadataKeys); //, columnKeys, hduNames, fitsMetaMap.get("Column-Label"));
+        String metadataSummary = createMetadataSummary(n, nTableHDUs, nImageHDUs, 
+                nUndefHDUs, metadataKeys);
 
         ingest.setMetadataMap(fitsMetaMap);
         ingest.setMetadataSummary(metadataSummary);
 
-        //return fitsMetaMap; 
         return ingest;
     }
 
@@ -745,8 +668,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
             String configFileName = domainRoot + "/config/fits.conf_DONOTREAD";
             File configFile = new File(configFileName);
             BufferedReader configFileReader = null;
-
-            boolean success = true;
 
             dbgLog.fine("FITS plugin: checking for the config file: " + configFileName);
 
@@ -786,16 +707,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
                                         dbgLog.fine("FITS plugin: (warning) no index name specified for " + configTokens[1]);
                                         indexableFitsMetaKeys.put(configTokens[1], configTokens[1]);
                                     }
-                                    // Extra field options:
-                                    // (the only option currently supported is prefix-steam searching
-                                    // on the field)
-                                    /*
-                                    if (configTokens.length > 3 && configTokens[3] != null) {
-                                        if (configTokens[3].equalsIgnoreCase(OPTION_PREFIX_SEARCHABLE)) {
-                                            recognizedFitsMetadataKeys.put(configTokens[1], 1);
-                                        }
-                                    } 
-                                    */
                                     nConfiguredKeys++;
                                 } else {
                                     dbgLog.warning("FITS plugin: empty (or malformed) meta key entry in the config file.");
@@ -813,13 +724,7 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
                                         dbgLog.fine("FITS plugin: (warning) no index name specified for " + configTokens[1]);
                                         indexableFitsMetaKeys.put(configTokens[1], configTokens[1]);
                                     }
-                                    // Extra field options:
-                                    /*
-                                    if (configTokens.length > 3 && configTokens[3] != null) {
-                                        if (configTokens[3].equalsIgnoreCase(OPTION_PREFIX_SEARCHABLE)) {
-                                            recognizedFitsColumnKeys.put(configTokens[1], 1);
-                                        }
-                                    } */
+
                                     nConfiguredKeys++;
                                 } else {
                                     dbgLog.warning("FITS plugin: empty (or malformed) column key entry in the config file.");
@@ -838,7 +743,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
                     dbgLog.warning("FITS plugin: Caught an exception reading "
                                            + "the configuration file; will proceed with the "
                                            + "default configuration.");
-                    success = false;
                     // We may have already read some values from the config
                     // file, before the exception was encountered. We will
                     // now resort to using the hard-coded, default 
@@ -937,7 +841,8 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
         return null;
     }
 
-    private String createMetadataSummary(int nHDU, int nTableHDUs, int nImageHDUs, int nUndefHDUs, Set<String> metadataKeys) { //, Set<String> columnKeys, List<String> hduNames, Set<String> columnNames) {
+    private String createMetadataSummary(int nHDU, int nTableHDUs, int nImageHDUs, 
+            int nUndefHDUs, Set<String> metadataKeys) {
         String summary = "";
 
         if (nHDU > 1) {
@@ -946,7 +851,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
             summary = summary.concat("The primary HDU; ");
             if (nTableHDUs > 0) {
                 summary = summary.concat(nTableHDUs + " Table HDU(s) ");
-                //summary = summary.concat("(column names: "+StringUtils.join(columnNames, ", ")+"); ");
             }
             if (nImageHDUs > 0) {
                 summary = summary.concat(nImageHDUs + " Image HDU(s); ");
@@ -955,8 +859,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
                 summary = summary.concat(nUndefHDUs + " undefined HDU(s); ");
             }
             summary = summary.concat("\n");
-
-            //summary = summary.concat("HDU names: "+StringUtils.join(hduNames, ", ")+"; ");
         } else {
             summary = "This is a FITS file with 1 (primary) HDU.\n";
         }
@@ -970,39 +872,7 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
             }
             summary = summary.concat("\n");
         }
-        
-        /*
-         * Per feedback from Gus: it's not necessary to list the column keys.
-         *
-        if (columnKeys != null && columnKeys.size() > 0) {
-            summary = summary.concat ("In addition, the following column keys "+
-                    "have been found in the table HDUs: \n");
-            for (String key : columnKeys) {
-                summary = summary.concat(key+"; ");
-            }
-            summary=summary.concat("\n");
-        }
-        */
-
         return summary;
-    }
-
-    private int typeCount(List<String> typeList, String typeToken) {
-        if (typeToken == null || typeToken.equals("")) {
-            return 0;
-        }
-
-        int count = 0;
-
-        if (typeList != null) {
-            for (int i = 0; i < typeList.size(); i++) {
-                if (typeToken.equals(typeList.get(i))) {
-                    count++;
-                }
-            }
-        }
-
-        return count;
     }
 
     @Override
@@ -1039,9 +909,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
         }
 
         for (String mKey : fitsMetadata.keySet()) {
-            //if (mKey.equals(METADATA_SUMMARY)) {
-            //    continue;
-            //}
             Set<String> mValues = fitsMetadata.get(mKey);
             System.out.println("key: " + mKey);
 
