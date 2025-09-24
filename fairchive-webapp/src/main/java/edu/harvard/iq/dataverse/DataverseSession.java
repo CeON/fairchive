@@ -66,7 +66,7 @@ public class DataverseSession implements Serializable {
     }
     
     public boolean isSuperUserLoggedIn() {
-        return isUserLoggedIn() & this.user.isSuperuser();
+        return isUserLoggedIn() && this.user.isSuperuser();
     }
     
     public String getUserEmailAddress() {
