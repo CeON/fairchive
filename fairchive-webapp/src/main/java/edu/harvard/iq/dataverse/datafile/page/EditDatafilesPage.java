@@ -938,7 +938,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
     
     private boolean sizeExceedsLimit(final long fileSize) {
-        if (isSuperuserLoggedIn() & this.ignoringMaxUploadLimit) {
+        if (isSuperuserLoggedIn() && this.ignoringMaxUploadLimit) {
             return false;
         } else {
             return getMaxBatchSize() > 0
