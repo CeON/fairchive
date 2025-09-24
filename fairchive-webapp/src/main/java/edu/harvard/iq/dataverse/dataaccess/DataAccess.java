@@ -80,7 +80,7 @@ public class DataAccess {
      * Experimental extension of the StorageIO system allowing direct access to
      * stored physical files that may not be associated with any DvObjects
      */
-    public StorageIO getDirectStorageIO(String storageLocation) throws IOException {
+    public StorageIO<?> getDirectStorageIO(String storageLocation) throws IOException {
         if (storageLocation.startsWith("file://")) {
             return new FileAccessIO(storageLocation.substring(7), SystemConfig.getFilesDirectoryStatic());
         } else if (storageLocation.startsWith("s3://")) {

@@ -530,7 +530,7 @@ public class DataverseUserPage extends BaseUserPage {
         return notificationsList.getRowCount();
     }
 
-    public void onTabChange(TabChangeEvent event) {
+    public void onTabChange(TabChangeEvent<?> event) {
         if ("notifications".equals(event.getTab().getId())) {
             displayNotification();
         }
