@@ -82,7 +82,7 @@ public class DataAccess {
      */
     public StorageIO<?> getDirectStorageIO(String storageLocation) throws IOException {
         if (storageLocation.startsWith("file://")) {
-            return new FileAccessIO(storageLocation.substring(7), SystemConfig.getFilesDirectoryStatic());
+            return new FileAccessIO<>(storageLocation.substring(7), SystemConfig.getFilesDirectoryStatic());
         } else if (storageLocation.startsWith("s3://")) {
             return new S3AccessIO<>(storageLocation.substring(5), s3ClientFactory.getClient());
         }
