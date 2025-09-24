@@ -9,7 +9,6 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandExecutionExcepti
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
@@ -32,6 +31,7 @@ import java.util.logging.Logger;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class DeleteDataFileCommand extends AbstractVoidCommand {
     private static final Logger logger = Logger.getLogger(DeleteDataFileCommand.class.getCanonicalName());

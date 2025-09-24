@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
@@ -15,12 +14,10 @@ import edu.harvard.iq.dataverse.persistence.workflow.Workflow;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.workflow.execution.WorkflowContext.TriggerType.PrePublishDataset;
 import static java.util.stream.Collectors.joining;
-
-import java.io.Serializable;
 
 /**
  * Kick-off a dataset publication process. The process may complete immediately,
@@ -32,9 +29,9 @@ import java.io.Serializable;
  * @author michbarsinai
  * @see FinalizeDatasetPublicationCommand
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataset)
 public class PublishDatasetCommand extends AbstractPublishDatasetCommand<PublishDatasetResult> {
-    private static final Logger logger = Logger.getLogger(PublishDatasetCommand.class.getName());
     boolean minorRelease;
     DataverseRequest request;
 
@@ -49,7 +46,8 @@ public class PublishDatasetCommand extends AbstractPublishDatasetCommand<Publish
         this(datasetIn, aRequest, minor, false);
     }
 
-    public PublishDatasetCommand(Dataset datasetIn, DataverseRequest aRequest, boolean minor, boolean isPidPrePublished) {
+    public PublishDatasetCommand(Dataset datasetIn, DataverseRequest aRequest, 
+            boolean minor, boolean isPidPrePublished) {
         super(datasetIn, aRequest);
         minorRelease = minor;
         datasetExternallyReleased = isPidPrePublished;
@@ -70,8 +68,8 @@ public class PublishDatasetCommand extends AbstractPublishDatasetCommand<Publish
         String protocol = getDataset().getProtocol();
         GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(protocol, ctxt);
         if (isReservingPidEnabled(idServiceBean) && theDataset.getGlobalIdCreateTime() == null) {
-                throw new IllegalCommandException(BundleUtil.getStringFromBundle("Cannot publish dataset because its" +
-                                                                                         " persistent identifier has not been reserved."), this);
+                throw new IllegalCommandException(getStringFromBundle("Cannot publish dataset because its" +
+                                                        " persistent identifier has not been reserved."), this);
         }
 
         // Set the version numbers:

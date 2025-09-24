@@ -130,6 +130,6 @@ public class DatasetMetadataTab implements Serializable {
 
     private String createExporterURL(Exporter exporter, String myHostURL) {
         return myHostURL + "/api/datasets/export?exporter=" + exporter.getProviderName()
-            + "&persistentId=" + dataset.getGlobalIdString();
+            + "&persistentId=" + dataset.getGlobalId();
     }
 }

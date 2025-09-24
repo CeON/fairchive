@@ -11,6 +11,7 @@ import edu.harvard.iq.dataverse.workflow.execution.WorkflowContext.TriggerType;
  * @param <T> Command result type (as usual).
  * @author michael
  */
+@SuppressWarnings("serial")
 public abstract class AbstractPublishDatasetCommand<T> extends AbstractDatasetCommand<T> {
 
 

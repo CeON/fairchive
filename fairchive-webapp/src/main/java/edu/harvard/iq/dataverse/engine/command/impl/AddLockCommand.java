@@ -14,6 +14,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class AddLockCommand extends AbstractCommand<DatasetLock> {
 

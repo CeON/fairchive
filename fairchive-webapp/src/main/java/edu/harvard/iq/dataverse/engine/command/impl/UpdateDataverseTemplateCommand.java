@@ -11,15 +11,15 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class UpdateDataverseTemplateCommand extends AbstractCommand<Template> {
 
-    private final Dataverse editedDv;
     private final Template template;
 
-    public UpdateDataverseTemplateCommand(Dataverse editedDv, Template template, DataverseRequest aRequest) {
+    public UpdateDataverseTemplateCommand(Dataverse editedDv, Template template, 
+            DataverseRequest aRequest) {
         super(aRequest, editedDv);
-        this.editedDv = editedDv;
         this.template = template;
     }
 

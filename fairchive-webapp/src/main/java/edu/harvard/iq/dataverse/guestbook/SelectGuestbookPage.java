@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("selectGuestbookPage")
 public class SelectGuestbookPage implements java.io.Serializable {
@@ -126,7 +127,8 @@ public class SelectGuestbookPage implements java.io.Serializable {
     }
 
     public String getPageTitle() {
-        return dataset.getLatestVersion().getParsedTitle()+ " - " + Jsoup.parse(dataset.getOwner().getName()).text();
+        return dataset.getLatestVersion().getParsedTitle()+ " - " 
+                    + Jsoup.parse(dataset.getOwner().getName()).text();
     }
 
     // -------------------- PRIVATE --------------------
@@ -136,7 +138,9 @@ public class SelectGuestbookPage implements java.io.Serializable {
         if (workingVersion.isDeaccessioned() && dataset.getReleasedVersion() != null) {
             workingVersion = dataset.getReleasedVersion();
         }
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId() 
+                + "&version=" + workingVersion.getFriendlyVersionNumber()
+                + "&faces-redirect=true";
     }
 
     // -------------------- SETTERS --------------------

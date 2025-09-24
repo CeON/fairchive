@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.json.JsonObjectBuilder;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataverse)
 public class CreateSavedSearchCommand extends AbstractCommand<SavedSearch> {
 

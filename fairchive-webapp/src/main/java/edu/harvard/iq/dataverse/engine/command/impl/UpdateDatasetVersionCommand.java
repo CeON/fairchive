@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toMap;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class UpdateDatasetVersionCommand extends AbstractDatasetCommand<Dataset> {
 
@@ -37,7 +38,8 @@ public class UpdateDatasetVersionCommand extends AbstractDatasetCommand<Dataset>
         this(theDataset, aRequest, new ArrayList<>());
     }
 
-    public UpdateDatasetVersionCommand(Dataset theDataset, DataverseRequest aRequest, List<DataFile> filesToDelete) {
+    public UpdateDatasetVersionCommand(Dataset theDataset, DataverseRequest aRequest, 
+            List<DataFile> filesToDelete) {
         this(theDataset, aRequest, filesToDelete, null);
     }
 
@@ -45,7 +47,8 @@ public class UpdateDatasetVersionCommand extends AbstractDatasetCommand<Dataset>
         this(theDataset, aRequest, new ArrayList<>(), clone);
     }
 
-    public UpdateDatasetVersionCommand(Dataset theDataset, DataverseRequest aRequest, List<DataFile> filesToDelete, DatasetVersion clone) {
+    public UpdateDatasetVersionCommand(Dataset theDataset, DataverseRequest aRequest, 
+            List<DataFile> filesToDelete, DatasetVersion clone) {
         super(aRequest, theDataset);
         this.clone = clone;
         this.dataFilesToDelete = filesToDelete;
@@ -166,12 +169,14 @@ public class UpdateDatasetVersionCommand extends AbstractDatasetCommand<Dataset>
         return savedDataset;
     }
 
-    private List<DataFile> collectDatafileFromDataset(Dataset dataset, List<DataFile> dataFiles) {
+    private List<DataFile> collectDatafileFromDataset(Dataset dataset, 
+            List<DataFile> dataFiles) {
         return dataset.getFiles().stream()
                 .filter(df -> dataFiles.contains(df))
                 .collect(toList());
     }
-    private Map<Long, FileMetadata> collectFileMetadataFromVersion(DatasetVersion version, List<DataFile> dataFiles) {
+    private Map<Long, FileMetadata> collectFileMetadataFromVersion(DatasetVersion version, 
+            List<DataFile> dataFiles) {
         return version.getFileMetadatas().stream()
                 .filter(fm -> dataFiles.contains(fm.getDataFile()))
                 .collect(toMap(fm -> fm.getDataFile().getId(), Function.identity()));

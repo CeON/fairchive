@@ -4,7 +4,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -22,7 +21,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * TODO make override the date and user more active, so prevent code errors.
@@ -30,10 +28,9 @@ import java.util.logging.Logger;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.AddDataverse)
 public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
-
-    private static final Logger logger = Logger.getLogger(CreateDataverseCommand.class.getName());
 
     private final Dataverse created;
     private final List<DataverseFieldTypeInputLevel> inputLevelList;

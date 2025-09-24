@@ -4,7 +4,6 @@ import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandExecutionException;
-import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
@@ -14,7 +13,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 import static edu.harvard.iq.dataverse.util.StringUtil.isEmpty;
 
@@ -24,10 +22,10 @@ import static edu.harvard.iq.dataverse.util.StringUtil.isEmpty;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.AddDataset)
 public abstract class AbstractCreateDatasetCommand extends AbstractDatasetCommand<Dataset> {
 
-    private static final Logger logger = Logger.getLogger(AbstractCreateDatasetCommand.class.getCanonicalName());
 
     private final boolean registrationRequired;
 
@@ -68,7 +66,6 @@ public abstract class AbstractCreateDatasetCommand extends AbstractDatasetComman
         additionalParameterTests(ctxt);
 
         Dataset theDataset = getDataset();
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(ctxt);
         if (isEmpty(theDataset.getIdentifier())) {
             theDataset.setIdentifier(ctxt.datasets().generateDatasetIdentifier(theDataset));
         }
@@ -128,18 +125,6 @@ public abstract class AbstractCreateDatasetCommand extends AbstractDatasetComman
         // TODO: switch to asynchronous version when JPA sync works
         // ctxt.index().asyncIndexDataset(theDataset.getId(), true);
         ctxt.index().indexDataset(theDataset, true);
-
-        /*
-        if (DataCaptureModuleUtil.rsyncSupportEnabled(ctxt.settings().getValueForKey(SettingsServiceBean.Key.UploadMethods))) {
-            logger.fine("Requesting rsync support.");
-            try {
-                ScriptRequestResponse scriptRequestResponse = ctxt.engine().submit(new RequestRsyncScriptCommand(getRequest(), theDataset));
-                logger.log(Level.FINE, "script: {0}", scriptRequestResponse.getScript());
-            } catch (RuntimeException ex) {
-                logger.log(Level.WARNING, "Problem getting rsync script: {0}", ex.getLocalizedMessage());
-            }
-            logger.fine("Done with rsync request.");
-        }*/
         return theDataset;
     }
 

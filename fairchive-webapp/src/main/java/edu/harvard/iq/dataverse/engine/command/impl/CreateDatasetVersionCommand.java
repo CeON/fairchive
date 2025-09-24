@@ -12,15 +12,13 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.AddDataset)
 public class CreateDatasetVersionCommand extends AbstractDatasetCommand<DatasetVersion> {
-
-    private static final Logger logger = Logger.getLogger(CreateDatasetVersionCommand.class.getName());
 
     final DatasetVersion newVersion;
     final Dataset dataset;

@@ -408,7 +408,6 @@ public class SearchServiceBean {
         String deaccessionReason = (String) solrDocument.getFieldValue(SearchFields.DATASET_DEACCESSION_REASON);
         String fileContentType = (String) solrDocument.getFieldValue(SearchFields.FILE_CONTENT_TYPE);
         Date release_or_create_date = (Date) solrDocument.getFieldValue(SearchFields.RELEASE_OR_CREATE_DATE);
-        String dvTree = (String) solrDocument.getFirstValue(SearchFields.SUBTREE);
         String identifierOfDataverse = (String) solrDocument.getFieldValue(SearchFields.IDENTIFIER_OF_DATAVERSE);
         String nameOfDataverse = (String) solrDocument.getFieldValue(SearchFields.DATAVERSE_NAME);
         Date embargoUntil = (Date) solrDocument.getFieldValue(SearchFields.EMBARGO_UNTIL);
@@ -539,8 +538,6 @@ public class SearchServiceBean {
              * response is in XML whereas the rest of the Search API returns
              * JSON.
              */
-//                solrSearchResult.setApiUrl(baseUrl + "/api/meta/datafile/" + entityid);
-            //solrSearchResult.setImageUrl(baseUrl + "/api/access/fileCardImage/" + entityid);
             solrSearchResult.setName(name);
             solrSearchResult.setFiletype(FriendlyFileTypeUtil.getUserFriendlyFileTypeForDisplay(fileContentType));
             solrSearchResult.setFileContentType(fileContentType);

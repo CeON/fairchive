@@ -40,6 +40,7 @@ import static java.util.stream.Collectors.joining;
  * @param <T> The type of the command's result. Normally {@link Dataset}.
  * @author michael
  */
+@SuppressWarnings("serial")
 public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
 
     private static final Logger logger = Logger.getLogger(AbstractDatasetCommand.class.getName());
