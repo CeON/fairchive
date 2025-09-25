@@ -144,7 +144,7 @@ public class DatasetDao implements java.io.Serializable {
         return merged;
     }
 
-    public Dataset findByGlobalId(String globalId) {
+    public Dataset findByGlobalId(final String globalId) {
         Dataset retVal = (Dataset) dvObjectService.findByGlobalId(globalId, "Dataset");
         if (retVal != null) {
             return retVal;
@@ -393,11 +393,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public void assignDatasetThumbnailByNativeQuery(Dataset dataset, DataFile dataFile) {
-        try {
-            em.createNativeQuery("UPDATE dataset SET thumbnailfile_id=" + dataFile.getId() + " WHERE id=" + dataset.getId()).executeUpdate();
-        } catch (Exception ex) {
-            // it's ok to just ignore...
-        }
+        this.datasetRepository.assignThumbnail(dataset.getId(), dataFile.getId());
     }
 
     public WorkflowComment addWorkflowComment(WorkflowComment workflowComment) {

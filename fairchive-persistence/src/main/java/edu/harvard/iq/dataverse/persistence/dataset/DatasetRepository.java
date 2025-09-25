@@ -9,6 +9,7 @@ import java.util.List;
 import javax.ejb.Singleton;
 
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 
 @Singleton
 public class DatasetRepository extends JpaRepository<Long, Dataset> {
@@ -107,4 +108,16 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
                 .setParameter("protocol", dataset.getProtocol())
                 .getResultList().isEmpty();
     }
+    
+    public void assignThumbnail(final Long datasetId, final Long datafileId) {
+        try {
+            this.em.createNativeQuery("UPDATE dataset SET thumbnailfile_id=" 
+                                    + datasetId + " WHERE id=" + datasetId)
+                .executeUpdate();
+        } catch (final Exception e) {
+            // it's ok to just ignore...
+        }
+    }
+    
+    
 }

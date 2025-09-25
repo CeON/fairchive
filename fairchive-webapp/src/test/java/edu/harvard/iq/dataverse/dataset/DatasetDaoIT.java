@@ -1,8 +1,7 @@
 package edu.harvard.iq.dataverse.dataset;
 
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
