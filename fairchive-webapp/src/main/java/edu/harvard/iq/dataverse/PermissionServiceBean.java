@@ -222,7 +222,7 @@ public class PermissionServiceBean {
             throws IllegalCommandException {
         boolean checkEditLock = checkEditDatasetLockNonThrowing(dataset, dataverseRequest);
         if (checkEditLock) {
-            if (dataset.isLockedFor(InReview)) {
+            if (dataset.isInReview()) {
                 throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.editNotAllowedInReview"), command);
             } else {
                 throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.editNotAllowed"), command);
@@ -231,24 +231,18 @@ public class PermissionServiceBean {
         return false;
     }
 
-    public boolean checkEditDatasetLockNonThrowing(Dataset dataset, 
-            DataverseRequest dataverseRequest) {
+    public boolean checkEditDatasetLockNonThrowing(final Dataset dataset, 
+            final DataverseRequest dataverseRequest) {
         if (!dataset.isLocked()) {
             return false;
         }
-        if (dataset.isLockedFor(InReview)) {
+        if (dataset.isInReview()) {
             // The "InReview" lock is not really a lock for curators. They can still make edits.
             if (!hasPermissionsFor(dataverseRequest, dataset, EnumSet.of(Permission.PublishDataset))) {
                 return true;
             }
         }
-        if (dataset.isLockedFor(Ingest)
-                || dataset.isLockedFor(pidRegister)
-                || dataset.isLockedFor(Workflow)
-                || dataset.isLockedFor(DcmUpload)) {
-            return true;
-        }
-        return false;
+        return dataset.isLockedForAny(Ingest, pidRegister, Workflow, DcmUpload);
     }
 
     public void checkDownloadFileLock(Dataset dataset, DataverseRequest dataverseRequest, 
@@ -256,7 +250,7 @@ public class PermissionServiceBean {
         if (!dataset.isLocked()) {
             return;
         }
-        if (dataset.isLockedFor(InReview)) {
+        if (dataset.isInReview()) {
             // The "InReview" lock is not really a lock for curators or contributors. They can still download.
             if (!isUserAllowedOn(dataverseRequest.getUser(), new UpdateDatasetVersionCommand(dataset, dataverseRequest), dataset)) {
                 throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.downloadNotAllowedInReview"), command);

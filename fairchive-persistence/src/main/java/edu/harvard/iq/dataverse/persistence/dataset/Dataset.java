@@ -34,11 +34,15 @@ import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import static java.util.Arrays.stream;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -199,6 +203,10 @@ public class Dataset extends DvObjectContainer {
      */
     public boolean isLockedFor(final DatasetLock.Reason reason) {
         return getLockFor(reason) != null;
+    }
+    
+    public boolean isLockedForAny(final DatasetLock.Reason... reasons) {
+        return stream(reasons).anyMatch(this::isLockedFor);
     }
     
 
