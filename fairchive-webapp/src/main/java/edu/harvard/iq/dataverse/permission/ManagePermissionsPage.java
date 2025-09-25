@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.permission;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
@@ -72,8 +71,6 @@ public class ManagePermissionsPage implements java.io.Serializable {
     DataverseRequestServiceBean dvRequestService;
     @Inject
     PermissionsWrapper permissionsWrapper;
-    @Inject
-    private DatasetDao datasetDao;
     @Inject
     private ManagePermissionsService managePermissionsService;
     @Inject
