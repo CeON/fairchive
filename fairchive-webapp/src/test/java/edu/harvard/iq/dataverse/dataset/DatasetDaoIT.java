@@ -47,13 +47,15 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         Dataset dataset = this.datasetDao.find(52L);
 
         assertThat(dataset.isLockedFor(InReview)).isFalse();
+        assertThat(dataset.isInReview()).isFalse();
         
         AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
-
+        
         this.datasetDao.addDatasetLock(dataset, new DatasetLock(InReview, user));
 
         dataset = this.datasetDao.find(52L);
         assertThat(dataset.isLockedFor(InReview)).isTrue();
+        assertThat(dataset.isInReview()).isTrue();
         
         List<DatasetLock> locks = this.datasetDao.getDatasetLocksByUser(user);
         

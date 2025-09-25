@@ -123,7 +123,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
 
         if(dvObject instanceof Dataset || dvObject instanceof DataFile) {
             Dataset dataset = dvObject instanceof Dataset ? (Dataset) dvObject : ((DataFile) dvObject).getOwner();
-            if (datasetDao.isInReview(dataset)
+            if (dataset.isInReview()
                     && !(permissionsWrapper.canIssuePublishDatasetCommand(dataset)
                     && permissionsWrapper.canManageDatasetOrMinorDatasetPermissions(dataset))) {
                 return permissionsWrapper.notAuthorized();
