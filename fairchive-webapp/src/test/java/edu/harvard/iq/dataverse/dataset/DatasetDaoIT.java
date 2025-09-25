@@ -107,6 +107,27 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         assertThat(id).isNotBlank();
         assertThat(id).startsWith("ABC");
     }
+    
+    @Test
+    void getDatasetByHarvestInfo_returnsNull_ifNothingMaches() {
+        
+        Dataset dataset = this.datasetDao.find(52L);
+        assertThat(dataset.getHarvestIdentifier()).isNull();
+        
+        Dataset result = this.datasetDao.getDatasetByHarvestInfo(dataset.getOwner(), "abc");
+        assertThat(result).isNull();
+    }
+    
+    @Test
+    void getDatasetByHarvestInfo_returnsResult_ifExactlyOneMaches() {
+        
+        Dataset dataset = this.datasetDao.find(52L);  
+        dataset.setHarvestIdentifier("abc");
+        this.datasetDao.mergeAndFlush(dataset);
+
+        Dataset result = this.datasetDao.getDatasetByHarvestInfo(dataset.getOwner(), "abc");
+        assertThat(result.getId()).isEqualTo(dataset.getId());
+    }
 }
 
 

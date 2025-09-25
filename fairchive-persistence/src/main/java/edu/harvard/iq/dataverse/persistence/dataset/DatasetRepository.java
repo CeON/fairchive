@@ -3,12 +3,12 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 import static java.lang.Math.max;
 import static java.time.Instant.now;
 import static javax.persistence.TemporalType.TIMESTAMP;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
@@ -129,5 +129,21 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
                         "WHERE ds.harvestedFrom IS NULL")
                 .setParameter("date", new Date(), TIMESTAMP)
                 .executeUpdate();
+    }
+    
+    public Dataset getDatasetByHarvestInfo(final Long dataverseId,
+            final String harvestIdentifier) {
+        final List<Dataset> list = em.createQuery(
+                "SELECT d FROM Dataset d, DvObject o WHERE d.id = o.id AND o.owner.id = "
+                        + dataverseId + " and d.harvestIdentifier = '"
+                        + harvestIdentifier + "'",
+                Dataset.class).getResultList();
+
+        if (list.size() > 1) {
+            throw new EJBException("More than one dataset found in the dataverse (id= "
+                    + dataverseId + "), with harvestIdentifier= "
+                    + harvestIdentifier);
+        }
+        return list.size() == 1 ? list.get(0) : null;
     }
 }

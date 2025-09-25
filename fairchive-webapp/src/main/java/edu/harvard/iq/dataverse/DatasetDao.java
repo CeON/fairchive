@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -288,14 +287,8 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
-        String queryStr = "SELECT d FROM Dataset d, DvObject o WHERE d.id = o.id AND o.owner.id = " 
-                + dataverse.getId() + " and d.harvestIdentifier = '" + harvestIdentifier + "'";
-        List<Dataset> list = em.createQuery(queryStr, Dataset.class).getResultList();
-        if (list.size() > 1) {
-            throw new EJBException("More than one dataset found in the dataverse (id= " 
-                    + dataverse.getId() + "), with harvestIdentifier= " + harvestIdentifier);
-        }
-        return list.size() == 1 ? list.get(0) : null;
+        return this.datasetRepository.getDatasetByHarvestInfo(dataverse.getId(), 
+                harvestIdentifier);
     }
 
     public Dataset setNonDatasetFileAsThumbnail(Dataset dataset, InputStream inputStream) {
@@ -329,16 +322,6 @@ public class DatasetDao implements java.io.Serializable {
             return null;
         }
         datasetThumbnailService.deleteDatasetLogo(dataset);
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         dataset.setThumbnailFile(null);
         dataset.setUseGenericThumbnail(true);
         return merge(dataset);
@@ -354,7 +337,8 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     @Asynchronous
-    public void callFinalizePublishCommandAsynchronously(Long datasetId, CommandContext ctxt, DataverseRequest request, boolean isPidPrePublished)  {
+    public void callFinalizePublishCommandAsynchronously(Long datasetId, 
+            CommandContext ctxt, DataverseRequest request, boolean isPidPrePublished)  {
 
         // Since we are calling the next command asynchronously anyway - sleep here
         // for a few seconds, just in case, to make sure the database update of
