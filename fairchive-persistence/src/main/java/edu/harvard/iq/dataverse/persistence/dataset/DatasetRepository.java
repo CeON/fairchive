@@ -2,11 +2,15 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static java.lang.Math.max;
 import static java.time.Instant.now;
+import static javax.persistence.TemporalType.TIMESTAMP;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import javax.ejb.Singleton;
+import javax.persistence.Query;
+import javax.persistence.TemporalType;
 
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
@@ -118,5 +122,12 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
         }
     }
     
+    public void updateAllLastChangeForExporterTime() {
+        this.em.createQuery(
+                "UPDATE Dataset ds SET ds.lastChangeForExporterTime=:date " +
+                "WHERE ds.harvestedFrom IS NULL")
+                .setParameter("date", new Date(), TIMESTAMP)
+                .executeUpdate();
+    }
     
 }

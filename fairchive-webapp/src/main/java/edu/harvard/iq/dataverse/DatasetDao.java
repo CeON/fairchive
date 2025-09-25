@@ -409,11 +409,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public void updateAllLastChangeForExporterTime() {
-        Date date = new Date();
-        Query query = em.createQuery(
-                "UPDATE Dataset ds SET ds.lastChangeForExporterTime=:date WHERE ds.harvestedFrom IS NULL");
-        query.setParameter("date", date, TemporalType.TIMESTAMP);
-        query.executeUpdate();
+        this.datasetRepository.updateAllLastChangeForExporterTime();
     }
     
 }
