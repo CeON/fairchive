@@ -342,11 +342,6 @@ public class DatasetDao implements java.io.Serializable {
         return list.size() == 1 ? list.get(0) : null;
     }
 
-    public void updateLastExportTimeStamp(Long datasetId) {
-        Date now = new Date();
-        em.createNativeQuery("UPDATE Dataset SET lastExportTime='" + now.toString() + "' WHERE id=" + datasetId).executeUpdate();
-    }
-
     public Dataset setNonDatasetFileAsThumbnail(Dataset dataset, InputStream inputStream) {
         if (dataset == null) {
             return null;
