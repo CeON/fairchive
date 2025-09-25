@@ -130,13 +130,12 @@ public class DatasetDao implements java.io.Serializable {
      * @return The managed entity representing {@code ds}.
      */
     public Dataset merge(Dataset ds) {
-        return em.merge(ds);
+        return this.datasetRepository.save(ds);
+        
     }
 
     public Dataset mergeAndFlush(Dataset ds) {
-        Dataset merged = em.merge(ds);
-        em.flush();
-        return merged;
+        return this.datasetRepository.saveAndFlush(ds);
     }
 
     public Dataset findByGlobalId(final String globalId) {
