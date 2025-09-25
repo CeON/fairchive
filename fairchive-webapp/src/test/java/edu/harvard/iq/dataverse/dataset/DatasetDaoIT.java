@@ -65,13 +65,6 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
     }
     
     @Test
-    void getTitleFromLatestVersion() {
-        Dataset dataset = this.datasetDao.find(52L);
-        assertThat(this.datasetDao.getTitleFromLatestVersion(52L))
-                .isEqualTo(dataset.getLatestVersion().getTitle());
-    }
-    
-    @Test
     void getDatasetVersionUsersByAuthenticatedUser() {
         AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
         List<DatasetVersionUser> versions = this.datasetDao

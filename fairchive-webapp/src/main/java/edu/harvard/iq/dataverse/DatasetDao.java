@@ -20,14 +20,11 @@ import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -36,7 +33,6 @@ import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLockRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
@@ -291,46 +287,6 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    /*
-    getTitleFromLatestVersion methods use native query to return a dataset title
-
-        There are two versions:
-     1) The version with datasetId param only will return the title regardless of version state
-     2)The version with the param 'includeDraft' boolean  will return the most recently published title if the param is set to false
-    If no Title found return empty string - protects against calling with
-    include draft = false with no published version
-    */
-
-    public String getTitleFromLatestVersion(Long datasetId) {
-        return getTitleFromLatestVersion(datasetId, true);
-    }
-
-    public String getTitleFromLatestVersion(Long datasetId, boolean includeDraft) {
-
-        String whereDraft = "";
-        //This clause will exclude draft versions from the select
-        if (!includeDraft) {
-            whereDraft = " and v.versionstate !='DRAFT' ";
-        }
-
-        try {
-            return (String) em.createNativeQuery("select df.fieldvalue  from dataset d "
-                                                         + " join datasetversion v on d.id = v.dataset_id "
-                                                         + " join datasetfield df on v.id = df.datasetversion_id "
-                                                         + " join datasetfieldtype dft on df.datasetfieldtype_id  = dft.id "
-                                                         + " where dft.name = '" + DatasetFieldConstant.title + "' and  v.dataset_id =" + datasetId
-                                                         + " and df.source = '" + DatasetField.DEFAULT_SOURCE + "'"
-                                                         + whereDraft
-                                                         + " order by v.versionnumber desc, v.minorVersionNumber desc limit 1 "
-                                                         + ";").getSingleResult();
-
-        } catch (Exception ex) {
-            logger.info("exception trying to get title from latest version: {0}", ex);
-            return "";
-        }
-
-    }
-
     public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
         String queryStr = "SELECT d FROM Dataset d, DvObject o WHERE d.id = o.id AND o.owner.id = " 
                 + dataverse.getId() + " and d.harvestIdentifier = '" + harvestIdentifier + "'";
@@ -373,6 +329,16 @@ public class DatasetDao implements java.io.Serializable {
             return null;
         }
         datasetThumbnailService.deleteDatasetLogo(dataset);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         dataset.setThumbnailFile(null);
         dataset.setUseGenericThumbnail(true);
         return merge(dataset);
