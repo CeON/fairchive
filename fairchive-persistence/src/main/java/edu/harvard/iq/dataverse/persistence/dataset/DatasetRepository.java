@@ -9,7 +9,6 @@ import java.util.List;
 import javax.ejb.Singleton;
 
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 
 @Singleton
 public class DatasetRepository extends JpaRepository<Long, Dataset> {

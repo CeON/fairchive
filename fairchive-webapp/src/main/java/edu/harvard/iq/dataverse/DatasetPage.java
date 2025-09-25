@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.valueOf;
 import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -740,8 +741,9 @@ public class DatasetPage implements Serializable {
         return dataset.isIdentifierRegistered();
     }
 
-    public boolean isLockedBy(String reason) {
-        return dataset.isLocked() && canUpdateDataset() && dataset.isLockedFor(reason);
+    public boolean isLockedBy(final String reason) {
+        return dataset.isLocked() && canUpdateDataset() && 
+                dataset.isLockedFor(valueOf(reason));
     }
 
     public String releaseDraft() {
