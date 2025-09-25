@@ -220,13 +220,11 @@ public class PermissionServiceBean {
     public boolean checkEditDatasetLock(Dataset dataset, 
             DataverseRequest dataverseRequest, Command<?> command)
             throws IllegalCommandException {
-        boolean checkEditLock = checkEditDatasetLockNonThrowing(dataset, dataverseRequest);
-        if (checkEditLock) {
-            if (dataset.isInReview()) {
-                throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.editNotAllowedInReview"), command);
-            } else {
-                throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.editNotAllowed"), command);
-            }
+        if (checkEditDatasetLockNonThrowing(dataset, dataverseRequest)) {
+            final String key = dataset.isInReview() 
+                    ? "dataset.message.locked.editNotAllowedInReview"
+                    : "dataset.message.locked.editNotAllowed";
+            throw new IllegalCommandException(getStringFromBundle(key), command);
         }
         return false;
     }
