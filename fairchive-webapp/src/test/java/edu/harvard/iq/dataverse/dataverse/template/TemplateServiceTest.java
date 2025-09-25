@@ -46,6 +46,7 @@ public class TemplateServiceTest {
 
     private int testTime = 1576156500;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     public void setUp()  {
         templateService.setClock(Clock.fixed(Instant.ofEpochSecond(testTime), ZoneId.systemDefault()));
@@ -92,6 +93,7 @@ public class TemplateServiceTest {
         Assertions.assertTrue(updatedTemplate.isSuccess());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void shouldSuccessfullyDeleteTemplate()  {
         //given
@@ -114,6 +116,7 @@ public class TemplateServiceTest {
         Assertions.assertNull(updatedDataverse.get().getDefaultTemplate());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void deleteTemplateShouldFail()  {
         //given
@@ -131,6 +134,7 @@ public class TemplateServiceTest {
         Assertions.assertTrue(updatedDataverse.isFailure());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void shouldSuccessfullyCopyAndMergeTemplate()  {
         //given
@@ -159,6 +163,7 @@ public class TemplateServiceTest {
 
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void templateCopyAndMergeShouldFail()  {
         //given

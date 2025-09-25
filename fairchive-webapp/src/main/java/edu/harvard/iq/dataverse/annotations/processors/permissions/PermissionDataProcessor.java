@@ -112,11 +112,11 @@ public class PermissionDataProcessor {
         }
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("unchecked")
     private Stream<Object> flattenIfContainer(Object object) {
         Class<?> cls = object.getClass();
         return Collection.class.isAssignableFrom(cls)
-                ? ((Collection) object).stream()
+                ? ((Collection<Object>) object).stream()
                 : cls.isArray()
                     ? Arrays.stream((Object[]) object)
                     : Stream.of(object);

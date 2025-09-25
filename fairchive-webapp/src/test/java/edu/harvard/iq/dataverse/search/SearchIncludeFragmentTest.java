@@ -209,7 +209,7 @@ public class SearchIncludeFragmentTest {
     public void onTabChange__list_result() throws SearchException {
 
         // given
-        TabChangeEvent tabChangeEvent = mock(TabChangeEvent.class);
+        TabChangeEvent<?> tabChangeEvent = mock(TabChangeEvent.class);
         Tab tab = new Tab();
         tab.setId("test");
         when(tabChangeEvent.getTab()).thenReturn(tab);
@@ -227,7 +227,7 @@ public class SearchIncludeFragmentTest {
     public void onTabChange__dataset_location_result() throws SearchException {
 
         // given
-        TabChangeEvent tabChangeEvent = mock(TabChangeEvent.class);
+        TabChangeEvent<?> tabChangeEvent = mock(TabChangeEvent.class);
         Tab tab = new Tab();
         tab.setId("mapSearchResult");
         when(tabChangeEvent.getTab()).thenReturn(tab);

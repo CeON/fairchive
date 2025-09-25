@@ -50,6 +50,7 @@ class ConfirmEmailServiceBeanTest {
     @Mock
     EntityManager em;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     void setUp() {
         AuthenticatedUser superAdmin = new AuthenticatedUser();

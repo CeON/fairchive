@@ -36,6 +36,7 @@ class DOIDataCiteRegisterServiceTest {
     @Mock
     private EntityManager em;
 
+    @SuppressWarnings("rawtypes")
     @Mock
     private TypedQuery typedQuery;
 
@@ -172,6 +173,7 @@ class DOIDataCiteRegisterServiceTest {
     }
 
 
+    @SuppressWarnings("unchecked")
     @Test
     void reserveIdentifier() throws IOException {
         //given

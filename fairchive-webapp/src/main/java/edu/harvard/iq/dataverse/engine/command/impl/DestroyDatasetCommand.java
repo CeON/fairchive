@@ -88,7 +88,7 @@ public class DestroyDatasetCommand extends AbstractVoidCommand {
             ctxt.em().remove(ra);
         }
 
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve();
         try {
             if (idServiceBean.alreadyExists(doomed)) {
                 idServiceBean.deleteIdentifier(doomed);

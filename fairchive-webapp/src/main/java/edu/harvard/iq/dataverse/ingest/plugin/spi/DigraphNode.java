@@ -65,6 +65,7 @@ import java.util.Set;
  * The in-degree of the node (that is, number of nodes that point to
  * the current node) may be queried.
  */
+@SuppressWarnings("serial")
 class DigraphNode implements Cloneable, Serializable {
 
     /**

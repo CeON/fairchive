@@ -180,6 +180,7 @@ public class RoleAssigneeServiceBean {
         return retList;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> getAssigneeAndRoleIdListFor(MyDataFilterParams filterParams) {
         if (filterParams == null) {
             throw new NullPointerException("Cannot be null! filterParams must be an instance of MyDataFilterParams");
@@ -211,6 +212,7 @@ public class RoleAssigneeServiceBean {
 
     }
 
+    @SuppressWarnings("unchecked")
     public List<Long> getRoleIdListForGivenAssigneeDvObject(DataverseRequest dataverseRequest, 
             List<Long> roleIdList, Long defPointId) {
         if (dataverseRequest == null) {
@@ -282,6 +284,7 @@ public class RoleAssigneeServiceBean {
 
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> getRoleIdsFor(DataverseRequest dataverseRequest, 
             List<Long> dvObjectIdList) {
         if (dataverseRequest == null) {

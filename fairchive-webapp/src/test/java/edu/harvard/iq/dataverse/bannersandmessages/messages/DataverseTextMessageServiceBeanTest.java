@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -166,17 +165,4 @@ public class DataverseTextMessageServiceBeanTest {
         return messageDto;
     }
 
-    private void verifyDefaultLocales(DataverseTextMessageDto dto) {
-        assertEquals(2, dto.getDataverseLocalizedMessage().size());
-        verifyDefaultLocale(dto.getDataverseLocalizedMessage(), "en", "English");
-        verifyDefaultLocale(dto.getDataverseLocalizedMessage(), "pl", "Polski");
-    }
-
-    private void verifyDefaultLocale(List<DataverseLocalizedMessageDto> locales, String locale, String language) {
-        assertTrue(locales.stream().anyMatch(lm ->
-                                                     lm.getLocale().equals(locale) &&
-                                                             lm.getLanguage().equals(language) &&
-                                                             lm.getMessage().equals("")
-        ));
-    }
 }

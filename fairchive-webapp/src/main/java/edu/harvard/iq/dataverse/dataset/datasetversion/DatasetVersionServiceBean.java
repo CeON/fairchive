@@ -1,10 +1,12 @@
 package edu.harvard.iq.dataverse.dataset.datasetversion;
 
 import static edu.harvard.iq.dataverse.batch.jobs.importer.filesystem.FileRecordJobListener.SEP;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,7 +16,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
@@ -40,7 +41,6 @@ import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.batch.util.LoggingUtil;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.MarkupChecker;
 import edu.harvard.iq.dataverse.dataset.difference.DatasetVersionDifference;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
@@ -136,8 +136,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
             if (datasetVersion == null) {
                 throw new IllegalArgumentException("datasetVersion cannot be null");
             }
-            //logger.fine("RetrieveDatasetVersionResponse: datasetVersion: " + datasetVersion.getSemanticVersion() + " requestedVersion: " + requestedVersion);
-            //logger.fine("chosenVersion id: " + datasetVersion.getId() + "  getFriendlyVersionNumber: " + datasetVersion.getFriendlyVersionNumber());
             this.datasetVersionForResponse = datasetVersion;
 
             this.actualVersion = datasetVersion.getSemanticVersion();
@@ -150,15 +148,17 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
             if (this.wasSpecificVersionRequested && !this.didSpecificVersionMatch) {
                 String userMsg;
                 if (DatasetVersionServiceBean.this.isVersionAskingForDraft(this.requestedVersion)) {
-                    userMsg = BundleUtil.getStringFromBundle("file.viewDiffDialog.msg.draftNotFound");
+                    userMsg = getStringFromBundle("file.viewDiffDialog.msg.draftNotFound");
                 } else {
-                    userMsg = BundleUtil.getStringFromBundle("file.viewDiffDialog.msg.versionNotFound", MarkupChecker.escapeHtml(this.requestedVersion));
+                    userMsg = getStringFromBundle("file.viewDiffDialog.msg.versionNotFound", 
+                            MarkupChecker.escapeHtml(this.requestedVersion));
                 }
 
                 if (DatasetVersionServiceBean.this.isVersionAskingForDraft(this.actualVersion)) {
-                    userMsg += BundleUtil.getStringFromBundle("file.viewDiffDialog.msg.draftFound");
+                    userMsg += getStringFromBundle("file.viewDiffDialog.msg.draftFound");
                 } else {
-                    userMsg += BundleUtil.getStringFromBundle("file.viewDiffDialog.msg.versionFound", this.actualVersion);
+                    userMsg += getStringFromBundle("file.viewDiffDialog.msg.versionFound", 
+                            this.actualVersion);
                 }
 
                 return userMsg;
@@ -170,9 +170,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
             if (actualVersion == null) {   // this shouldn't happen
                 return;
             }
-            //logger.fine("check version. requested: " + this.requestedVersion + " returned: " + actualVersion);
             // This may often be the case if version is not specified
-            //
             if (requestedVersion == null || requestedVersion.isEmpty()) {
                 this.wasSpecificVersionRequested = false;
                 return;
@@ -281,11 +279,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         return versionNumbers;
     }
 
-
-    private void msg(String s) {
-        //logger.fine(s);
-    }
-
     /**
      * Does the version identifier in the URL ask for a "DRAFT"?
      */
@@ -308,26 +301,25 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
             extraClause = "";
         }
 
-        String queryStr = "SELECT dv.* FROM DatasetVersion dv";
-        queryStr += " INNER JOIN Dataset ds";
-        queryStr += " ON dv.dataset_id=ds.id";
-        queryStr += identifierClause;      // either persistentId or id
-        queryStr += extraClause;   // may be an empty string
-        queryStr += " ORDER BY versionNumber DESC, minorVersionNumber DESC";
-        queryStr += " LIMIT 1;";
+        String queryStr = "SELECT dv.* FROM DatasetVersion dv"
+                 + " INNER JOIN Dataset ds"
+                 + " ON dv.dataset_id=ds.id"
+                 + identifierClause     // either persistentId or id
+                 + extraClause   // may be an empty string
+                 + " ORDER BY versionNumber DESC, minorVersionNumber DESC"
+                 + " LIMIT 1;";
 
         return queryStr;
-
     }
 
     public String getContributorsNames(DatasetVersion version) {
         return Optional.ofNullable(version.getDatasetVersionUsers())
-                .orElse(Collections.emptyList())
+                .orElse(emptyList())
                 .stream()
                 .map(DatasetVersionUser::getAuthenticatedUser)
                 .filter(Objects::nonNull)
                 .map(AuthenticatedUser::getName)
-                .collect(Collectors.joining(", "));
+                .collect(joining(", "));
     }
 
     /**
@@ -353,25 +345,30 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
      * @param identifierClause - query clause to retrieve via DatasetVersion.Id or DatasetVersion.persistentId
      * @return String fullQuery
      */
-    private String getNumericDatasetVersionQueryByIdentifier(String identifierClause, Long majorVersion, Long minorVersion) {
+    private String getNumericDatasetVersionQueryByIdentifier(String identifierClause, 
+            Long majorVersion, Long minorVersion) {
 
         if (identifierClause == null) {
             return null;
         }
-        String extraQueryClause = "";
+        String extraQueryClause;
 
 
         // For an exact version: retrieve either RELEASED or DEACCESSIONED
         //
         if (majorVersion != null && minorVersion != null) {
-            extraQueryClause += " AND dv.versionNumber= " + majorVersion;
-            extraQueryClause += " AND dv.minorVersionNumber= " + minorVersion;
-            extraQueryClause += " AND (dv.versionstate = '" + VersionState.RELEASED.toString() + "' or dv.versionstate = '" + VersionState.DEACCESSIONED.toString() + "')";
+            extraQueryClause = " AND dv.versionNumber= " + majorVersion
+                    +" AND dv.minorVersionNumber= " + minorVersion
+                    + " AND (dv.versionstate = '" 
+                    + VersionState.RELEASED.toString() 
+                    + "' or dv.versionstate = '" 
+                    + VersionState.DEACCESSIONED.toString() + "')";
         } else {
             // Last released major version
             //
-            extraQueryClause += " AND dv.versionNumber= " + majorVersion;
-            extraQueryClause += " AND dv.versionstate = '" + VersionState.RELEASED.toString() + "'";
+            extraQueryClause = " AND dv.versionNumber= " + majorVersion
+                    + " AND dv.versionstate = '" 
+                    + VersionState.RELEASED.toString() + "'";
         }
 
         return getDatasetVersionBasicQuery(identifierClause, extraQueryClause);
@@ -420,11 +417,9 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
      * @return
      */
     private DatasetVersion getDatasetVersionByQuery(String queryString) {
-        msg("getDatasetVersionByQuery queryString: " + queryString);
         if (queryString == null) {
             return null;
         }
-
         // Inexact check to see if one of the selected tables is DATASETVERSION
         //
         if (!queryString.toUpperCase().contains("FROM DATASETVERSION")) {
@@ -434,12 +429,8 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         try {
             Query query = em.createNativeQuery(queryString, DatasetVersion.class);
             DatasetVersion ds = (DatasetVersion) query.getSingleResult();
-
-            msg("Found: " + ds);
             return ds;
-
         } catch (javax.persistence.NoResultException e) {
-            msg("DatasetVersion not found: " + queryString);
             log.trace("DatasetVersion not found: {}", queryString);
             return null;
         } catch (EJBException e) {
@@ -466,18 +457,15 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         if (DatasetVersionServiceBean.this.isVersionAskingForDraft(version)) {
 
             // (1a) Try to retrieve a draft
-            msg("(1a) Try to retrieve a draft");
             String draftQuery = this.getDraftDatasetVersionQuery(identifierClause);
             chosenVersion = this.getDatasetVersionByQuery(draftQuery);
 
             // Draft Exists! Return it!
-            msg("Draft Exists! Return it!");
             if (chosenVersion != null) {
                 return chosenVersion;   // let DatasetPage check permissions
             }
 
             // (1b) No draft found - check for last released
-            msg("(1b) No draft found - check for last released");
             String lastReleasedQuery = this.getLatestReleasedDatasetVersionQuery(identifierClause);
             chosenVersion = this.getDatasetVersionByQuery(lastReleasedQuery);
 
@@ -502,8 +490,8 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         if (versionNumbers != null && versionNumbers.length == 2) {        // At least a major version found
 
             // (2a) Look for major and minor version - RELEASE OR DEACCESSIONED
-            msg("(2a) Look for major and minor version -" + Arrays.toString(versionNumbers));
-            String specificVersionQuery = this.getNumericDatasetVersionQueryByIdentifier(identifierClause, versionNumbers[0], versionNumbers[1]);
+            String specificVersionQuery = this.getNumericDatasetVersionQueryByIdentifier(identifierClause, 
+                    versionNumbers[0], versionNumbers[1]);
 
             chosenVersion = this.getDatasetVersionByQuery(specificVersionQuery);
             if (chosenVersion != null) {
@@ -512,27 +500,21 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         }
 
         // (2b) Look for latest released version
-        msg("(2b) Look for latest released version");
         String latestVersionQuery = this.getLatestReleasedDatasetVersionQuery(identifierClause);
-        //msg("latestVersionQuery: " + latestVersionQuery);
         chosenVersion = this.getDatasetVersionByQuery(latestVersionQuery);
         if (chosenVersion != null) {
             return chosenVersion;
         }
 
         // (2c) Look for DEACCESSIONED
-        msg("(2c) Look for draft");
         String dQuery = this.getDeaccessionedDatasetVersionQuery(identifierClause);
-        //msg("draftQuery: " + draftQuery);
         chosenVersion = this.getDatasetVersionByQuery(dQuery);
         if (chosenVersion != null) {
             return chosenVersion;
         }
 
         // (2d) Look for draft
-        msg("(2d) Look for draft");
         String draftQuery = this.getDraftDatasetVersionQuery(identifierClause);
-        //msg("draftQuery: " + draftQuery);
         chosenVersion = this.getDatasetVersionByQuery(draftQuery);
 
         return chosenVersion;   // This may be null -- let DatasetPage check
@@ -550,7 +532,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
      */
     public RetrieveDatasetVersionResponse retrieveDatasetVersionByPersistentId(String persistentId, String version) {
 
-        msg("retrieveDatasetVersionByPersistentId: " + persistentId + " " + version);
         if (persistentId == null) {
             return null;
         }
@@ -566,18 +547,16 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
             return null;
         }
 
-        String identifierClause = " AND ds.protocol= '" + parsedId.getProtocol() + "'";
-        identifierClause += " AND ds.authority = '" + parsedId.getAuthority() + "'";
-        identifierClause += " AND ds.identifier = '" + parsedId.getIdentifier() + "'";
+        String identifierClause = " AND ds.protocol= '" + parsedId.getProtocol() + "'"
+                + " AND ds.authority = '" + parsedId.getAuthority() + "'"
+                + " AND ds.identifier = '" + parsedId.getIdentifier() + "'";
 
 
         DatasetVersion ds = retrieveDatasetVersionByIdentiferClause(identifierClause, version);
 
         if (ds != null) {
-            msg("retrieved dataset: " + ds.getId() + " semantic: " + ds.getSemanticVersion());
             return new RetrieveDatasetVersionResponse(ds, version);
         }
-
         return null;
 
     }
@@ -602,7 +581,9 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
                 }
 
             } else if (majorVersion != null && minorVersion != null) {
-                if (majorVersion.equals(version.getVersionNumber()) && minorVersion.equals(version.getMinorVersionNumber()) && (version.isReleased() || version.isDeaccessioned())) {
+                if (majorVersion.equals(version.getVersionNumber()) 
+                        && minorVersion.equals(version.getMinorVersionNumber()) 
+                        && (version.isReleased() || version.isDeaccessioned())) {
                     return new RetrieveDatasetVersionResponse(version, versionTag);
                 }
             } else if (majorVersion != null) {
@@ -648,7 +629,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
      * @return
      */
     public RetrieveDatasetVersionResponse retrieveDatasetVersionById(Long datasetId, String version) {
-        msg("retrieveDatasetVersionById: " + datasetId + " " + version);
         if (datasetId == null) {
             return null;
         }
@@ -674,7 +654,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
      * @return
      */
     public RetrieveDatasetVersionResponse retrieveDatasetVersionByVersionId(Long versionId) {
-        //msg("retrieveDatasetVersionById: " + datasetId + " " + versionId);
         if (versionId == null) {
             return null;
         }
@@ -742,7 +721,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
                                                                       + "AND df.id = o.id "
                                                                       + "AND fm.datasetversion_id = dv.id "
                                                                       + "AND fm.datafile_id = df.id "
-                                                                      // + "AND o.previewImageAvailable = false "
                                                                       + "AND df.restricted = false "
                                                                       + "AND df.contenttype LIKE 'image/%' "
                                                                       + "AND NOT df.contenttype = 'image/fits' "
@@ -775,7 +753,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
                                                                       + "AND df.id = o.id "
                                                                       + "AND fm.datasetversion_id = dv.id "
                                                                       + "AND fm.datafile_id = df.id "
-                                                                      // + "AND o.previewImageAvailable = false "
                                                                       + "AND df.restricted = false "
                                                                       + "AND df.contenttype = 'application/pdf' "
                                                                       + "AND df.filesize < " + imageThumbnailSizeLimit + " "
@@ -800,7 +777,9 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
 
     private void assignDatasetThumbnailByNativeQuery(Long versionId, Long dataFileId) {
         try {
-            em.createNativeQuery("UPDATE dataset SET thumbnailfile_id=" + dataFileId + " WHERE id in (SELECT dataset_id FROM datasetversion WHERE id=" + versionId + ")").executeUpdate();
+            em.createNativeQuery("UPDATE dataset SET thumbnailfile_id=" + dataFileId 
+                    + " WHERE id in (SELECT dataset_id FROM datasetversion WHERE id=" 
+                    + versionId + ")").executeUpdate();
         } catch (Exception ex) {
             // it's ok to just ignore...
         }
@@ -827,18 +806,11 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
      * @param datasetVersion
      * @return a list of checksum Strings for files in the specified DatasetVersion
      */
+    @SuppressWarnings("unchecked")
     public List<String> getChecksumListForDatasetVersion(DatasetVersion datasetVersion) {
-
-        if (datasetVersion == null) {
-            throw new NullPointerException("datasetVersion cannot be null");
-        }
-
-        String query = "SELECT df.md5 FROM datafile df, filemetadata fm WHERE fm.datasetversion_id = " + datasetVersion.getId() + " AND fm.datafile_id = df.id;";
-
-        log.trace("query: {}", query);
-        Query nativeQuery = em.createNativeQuery(query);
-
-        return nativeQuery.getResultList();
+        String query = "SELECT df.md5 FROM datafile df, filemetadata fm WHERE fm.datasetversion_id = " 
+                + datasetVersion.getId() + " AND fm.datafile_id = df.id;";
+        return em.createNativeQuery(query).getResultList();
     }
 
 
@@ -850,10 +822,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
      * @return
      */
     public boolean doesChecksumExistInDatasetVersion(DatasetVersion datasetVersion, String selectedChecksum) {
-        if (datasetVersion == null) {
-            throw new NullPointerException("datasetVersion cannot be null");
-        }
-
         String query = "SELECT df.md5 FROM datafile df, filemetadata fm"
                 + " WHERE fm.datasetversion_id = " + datasetVersion.getId()
                 + " AND fm.datafile_id = df.id"
@@ -866,12 +834,8 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
     }
 
 
+    @SuppressWarnings("unchecked")
     public List<HashMap<String, Object>> getBasicDatasetVersionInfo(Dataset dataset) {
-
-        if (dataset == null) {
-            throw new NullPointerException("dataset cannot be null");
-        }
-
         String query = "SELECT id, dataset_id, releasetime, versionnumber,"
                 + " minorversionnumber, versionstate, versionnote"
                 + " FROM datasetversion"
@@ -879,7 +843,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
                 + " ORDER BY versionnumber DESC,"
                 + " minorversionnumber DESC,"
                 + " versionstate;";
-        msg("query: " + query);
         Query nativeQuery = em.createNativeQuery(query);
         List<Object[]> datasetVersionInfoList = nativeQuery.getResultList();
 
@@ -909,17 +872,20 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         long dsvId = Long.parseLong(datasetVersionId);
         DatasetVersion datasetVersion = getById(dsvId);
         if (datasetVersion == null) {
-            info.add("message", "Could not find a dataset version based on datasetVersionId " + datasetVersionId + ".");
+            info.add("message", "Could not find a dataset version based on datasetVersionId " 
+                        + datasetVersionId + ".");
             return info;
         }
         if (!StringUtils.isBlank(datasetVersion.getUNF())) {
-            info.add("message", "Dataset version (id=" + datasetVersionId + ") already has a UNF. Blank the UNF value in the database if you must change it.");
+            info.add("message", "Dataset version (id=" + datasetVersionId 
+                    + ") already has a UNF. Blank the UNF value in the database if you must change it.");
             return info;
         }
 
         List<String> fileUnfsInVersion = getFileUnfsInVersion(datasetVersion);
         if (fileUnfsInVersion.isEmpty()) {
-            info.add("message", "Dataset version (id=" + datasetVersionId + ") has no tabular data files with UNF signatures. The version UNF will remain blank.");
+            info.add("message", "Dataset version (id=" + datasetVersionId 
+                    + ") has no tabular data files with UNF signatures. The version UNF will remain blank.");
             return info;
         }
 
@@ -931,7 +897,10 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
                 if (isFileUnfsIdentical(fileUnfsInVersion, fileUnfsInPreviousVersion)) {
                     datasetVersion.setUNF(previousDatasetVersion.getUNF());
                     em.merge(datasetVersion);
-                    info.add("message", "Dataset version (id=" + datasetVersionId + ") has the same tabular file UNFs as a previous version. Assigned the UNF of the previous version without recalculation (" + previousDatasetVersion.getUNF() + "). Use the --forceRecalculate option if you insist on recalculating this UNF.");
+                    info.add("message", "Dataset version (id=" + datasetVersionId 
+                            + ") has the same tabular file UNFs as a previous version. Assigned the UNF of the previous version without recalculation (" 
+                            + previousDatasetVersion.getUNF() 
+                            + "). Use the --forceRecalculate option if you insist on recalculating this UNF.");
                 }
             }
         }
@@ -1037,11 +1006,10 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
     }
 
     private DatasetVersion findLatestVersion(long datasetId) {
-        String queryStr = "SELECT dv FROM DatasetVersion dv";
-        queryStr += " INNER JOIN Dataset ds";
-        queryStr += " ON dv.dataset.id=ds.id";
-        queryStr += " WHERE ds.id = :datasetId";
-        queryStr += " ORDER BY dv.versionNumber DESC, dv.minorVersionNumber DESC";
+        String queryStr = "SELECT dv FROM DatasetVersion dv"
+                + " INNER JOIN Dataset ds ON dv.dataset.id=ds.id"
+                + " WHERE ds.id = :datasetId"
+                + " ORDER BY dv.versionNumber DESC, dv.minorVersionNumber DESC";
         return em.createQuery(queryStr, DatasetVersion.class)
                 .setParameter("datasetId", datasetId)
                 .setMaxResults(1)

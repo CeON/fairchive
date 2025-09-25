@@ -10,6 +10,7 @@ import java.io.IOException;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class UnsupportedDataAccessOperationException extends IOException {
 
     public UnsupportedDataAccessOperationException(String message) {

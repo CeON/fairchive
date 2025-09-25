@@ -163,7 +163,7 @@ public class FinalizeDatasetPublicationCommand extends AbstractPublishDatasetCom
 
     private void publicizeExternalIdentifier(Dataset dataset, CommandContext ctxt)  {
         String protocol = getDataset().getProtocol();
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(protocol, ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve(protocol);
         if (idServiceBean != null) {
             try {
                 String currentGlobalIdProtocol = ctxt.settings().getValueForKey(SettingsServiceBean.Key.Protocol);

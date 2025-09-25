@@ -32,6 +32,7 @@ public class WorkflowArtifactServiceBeanTest implements WithTestClock {
 
     WorkflowArtifactSource data = new WorkflowArtifactSource(NAME, ENCODING, DATA_SUPPLIER);
 
+    @SuppressWarnings("unchecked")
     @Test
     @DisplayName("Should save artifact data and metadata")
     public void shouldSaveDataAndMetadata() throws IOException {

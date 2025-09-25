@@ -64,6 +64,7 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
                 .executeUpdate();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Integer> findDataversesWithUserPermitted(List<String> identifiers) {
         if (identifiers == null || identifiers.isEmpty()) {
             return Collections.emptyList();

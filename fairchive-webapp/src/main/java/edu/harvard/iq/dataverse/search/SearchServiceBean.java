@@ -442,6 +442,7 @@ public class SearchServiceBean {
         }
         SolrSearchResult solrSearchResult = new SolrSearchResult();
         // @todo put all this in the constructor?
+        @SuppressWarnings("unchecked")
         List<String> states = (List<String>) solrDocument.getFieldValue(SearchFields.PUBLICATION_STATUS);
         if (states != null) {
             // set list of all statuses
@@ -518,6 +519,7 @@ public class SearchServiceBean {
                 logger.fine("No title indexed. Setting to empty string to prevent NPE. Dataset id " + entityId + " and version id " + datasetVersionId);
                 solrSearchResult.setTitle("");
             }
+            @SuppressWarnings({ "unchecked", "rawtypes" })
             List<String> authors = (List) solrDocument.getFieldValues("dsf_txt_" + DatasetFieldConstant.authorName);
             if (authors != null) {
                 solrSearchResult.setDatasetAuthors(authors);
@@ -559,10 +561,12 @@ public class SearchServiceBean {
             solrSearchResult.setFileChecksumValue((String) solrDocument.getFieldValue(SearchFields.FILE_CHECKSUM_VALUE));
             solrSearchResult.setUnf((String) solrDocument.getFieldValue(SearchFields.UNF));
             solrSearchResult.setDatasetVersionId(datasetVersionId);
+            @SuppressWarnings({ "unchecked", "rawtypes" })
             List<String> fileCategories = (List) solrDocument.getFieldValues(SearchFields.FILE_TAG);
             if (fileCategories != null) {
                 solrSearchResult.setFileCategories(fileCategories);
             }
+            @SuppressWarnings({ "rawtypes", "unchecked" })
             List<String> tabularDataTags = (List) solrDocument.getFieldValues(SearchFields.TABDATA_TAG);
             if (tabularDataTags != null) {
                 Collections.sort(tabularDataTags);

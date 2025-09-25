@@ -11,19 +11,24 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import io.vavr.control.Option;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, isGetterVisibility = JsonAutoDetect.Visibility.NONE)
+@JsonInclude(NON_EMPTY)
+@JsonAutoDetect(fieldVisibility = ANY,  getterVisibility = NONE, isGetterVisibility = NONE)
 public class DatasetFieldDTO {
     public static final String PRIMITIVE = "primitive";
     public static final String VOCABULARY = "controlledVocabulary";
@@ -115,15 +120,16 @@ public class DatasetFieldDTO {
         return valueList.isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     public Set<DatasetFieldDTO> getSingleCompound() {
         return value != null
                 ? new LinkedHashSet<>(((Map<String, DatasetFieldDTO>) value).values())
-                : Collections.emptySet();
+                : emptySet();
     }
 
+    @SuppressWarnings("unchecked")
     public List<String> getMultiplePrimitive() {
-        return value != null
-                ? (List<String>) value : Collections.emptyList();
+        return value != null ? (List<String>) value : emptyList();
     }
 
     public List<String> getMultipleVocabulary() {
@@ -132,17 +138,19 @@ public class DatasetFieldDTO {
 
     public List<Set<DatasetFieldDTO>> getMultipleCompound() {
         if (value == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
+        @SuppressWarnings("unchecked")
         List<Map<String, DatasetFieldDTO>> fieldList = (List<Map<String, DatasetFieldDTO>>) value;
         return fieldList.stream()
                 .map(v -> new LinkedHashSet<>(v.values()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     // -------------------- PRIVATE --------------------
 
     private Map<String, DatasetFieldDTO> clearEmailSubfields(Object value) {
+        @SuppressWarnings("unchecked")
         Map<String, DatasetFieldDTO> subfieldsMap = (Map<String, DatasetFieldDTO>) value;
         subfieldsMap.values().removeIf(DatasetFieldDTO::isEmailType);
         return subfieldsMap;
@@ -199,31 +207,31 @@ public class DatasetFieldDTO {
         // -------------------- LOGIC --------------------
 
         public List<DatasetFieldDTO> create(List<DatasetField> datasetFields) {
-            datasetFields.sort(Comparator.comparing(DatasetField::getDatasetFieldTypeDisplayOrder));
+            datasetFields.sort(comparing(DatasetField::getDatasetFieldTypeDisplayOrder));
             datasetFields.forEach(f -> f.getDatasetFieldsChildren()
-                    .sort(Comparator.comparing(DatasetField::getDatasetFieldTypeDisplayOrder)));
+                    .sort(comparing(DatasetField::getDatasetFieldTypeDisplayOrder)));
             List<DatasetFieldDTO> fields = new ArrayList<>();
             for (DatasetFieldsByType fieldsByType : DatasetFieldUtil.groupByType(datasetFields)) {
                 DatasetFieldType fieldType = fieldsByType.getDatasetFieldType();
                 DatasetFieldDTO field = createForType(fieldType);
                 List<DatasetField> fieldsOfType = fieldsByType.getDatasetFields();
-                List<?> values = Collections.emptyList();
+                List<?> values = emptyList();
                 if (fieldType.isControlledVocabulary()) {
                     values = fieldsOfType.stream()
                             .flatMap(f -> f.getControlledVocabularyValues().stream())
                             .sorted(ControlledVocabularyValue.DisplayOrder)
                             .map(ControlledVocabularyValue::getStrValue)
-                            .collect(Collectors.toList());
+                            .collect(toList());
                 } else if (fieldType.isPrimitive()) {
                     values = fieldsOfType.stream()
                             .map(DatasetField::getFieldValue)
                             .filter(Option::isDefined)
                             .map(Option::get)
-                            .collect(Collectors.toList());
+                            .collect(toList());
                 } else if (fieldType.isCompound()) {
                     values = fieldsOfType.stream()
                             .map(this::extractChildren)
-                            .collect(Collectors.toList());
+                            .collect(toList());
                 }
                 if (values.isEmpty()) {
                     continue;
@@ -255,9 +263,9 @@ public class DatasetFieldDTO {
                 DatasetFieldDTO field = createForType(fieldType);
                 if (fieldType.isControlledVocabulary()) {
                     List<String> values = child.getControlledVocabularyValues().stream()
-                            .sorted(Comparator.comparing(ControlledVocabularyValue::getDisplayOrder))
+                            .sorted(comparing(ControlledVocabularyValue::getDisplayOrder))
                             .map(ControlledVocabularyValue::getStrValue)
-                            .collect(Collectors.toList());
+                            .collect(toList());
                     if (values.isEmpty()) {
                         continue;
                     }

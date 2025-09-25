@@ -37,7 +37,7 @@ public class UpdateDatasetTargetURLCommand extends AbstractVoidCommand {
             throw new PermissionException("Update Target URL can only be called by superusers.",
                                           this, singleton(Permission.EditDataset), target);
         }
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(target.getProtocol(), ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve(target.getProtocol());
         try {
             String doiRetString = idServiceBean.modifyIdentifierTargetURL(target);
             if (doiRetString != null && doiRetString.contains(target.getIdentifier())) {

@@ -53,7 +53,7 @@ public class S3ClientFactory {
             return s3Client;
         }
         AmazonS3 s3Client = buildClient();
-        if (StringUtils.isEmpty(s3DefaultBucketName) || !s3Client.doesBucketExist(s3DefaultBucketName)) {
+        if (StringUtils.isEmpty(s3DefaultBucketName) || !s3Client.doesBucketExistV2(s3DefaultBucketName)) {
             throw new AmazonClientException("ERROR: You must create and configure a bucket before creating datasets.");
         }
         s3Client.listBuckets();

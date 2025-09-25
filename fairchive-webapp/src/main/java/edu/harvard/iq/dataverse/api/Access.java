@@ -670,7 +670,7 @@ public class Access extends AbstractApiBean {
         }
 
         //String imageThumbFileName = null;
-        StorageIO thumbnailDataAccess = null;
+        StorageIO<?> thumbnailDataAccess = null;
 
         // First, check if this dataset has a designated thumbnail image:
 

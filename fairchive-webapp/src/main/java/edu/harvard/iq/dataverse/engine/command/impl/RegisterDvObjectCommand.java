@@ -51,7 +51,7 @@ public class RegisterDvObjectCommand extends AbstractVoidCommand {
         String protocol = ctxt.settings().getValueForKey(Protocol);
         String authority = ctxt.settings().getValueForKey(Authority);
         // Get the idServiceBean that is configured to mint new IDs
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(protocol, ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve(protocol);
         try {
             //Test to see if identifier already present
             //if so, leave.
