@@ -32,7 +32,6 @@ import org.omnifaces.cdi.Param;
 import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.StreamedContent;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
@@ -85,8 +84,6 @@ public class SearchIncludeFragment {
     SearchServiceBean searchService;
     @EJB
     DataverseDao dataverseDao;
-    @EJB
-    DatasetDao datasetDao;
     @EJB
     DvObjectServiceBean dvObjectService;
     @Inject

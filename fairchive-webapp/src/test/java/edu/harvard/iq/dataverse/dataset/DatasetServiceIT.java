@@ -1,24 +1,26 @@
 package edu.harvard.iq.dataverse.dataset;
 
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import io.vavr.Value;
-import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
-import org.jboss.arquillian.transaction.api.annotation.Transactional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import javax.inject.Inject;
+
+import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
+import org.jboss.arquillian.transaction.api.annotation.Transactional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import io.vavr.Value;
 
 @Transactional(TransactionMode.ROLLBACK)
 public class DatasetServiceIT extends WebappArquillianDeployment {
@@ -33,7 +35,7 @@ public class DatasetServiceIT extends WebappArquillianDeployment {
     private AuthenticationServiceBean authenticationServiceBean;
 
     @Inject
-    private DatasetDao datasetDao;
+    private DatasetRepository datasetRepo;
 
     @BeforeEach
     public void setUp() {
@@ -43,26 +45,26 @@ public class DatasetServiceIT extends WebappArquillianDeployment {
     @Test
     public void removeDatasetThumbnail() {
         // given
-        Dataset datasetWithFiles = datasetDao.find(52L);
+        Dataset datasetWithFiles = find(52L);
         datasetWithFiles.setThumbnailFile(datasetWithFiles.getFiles().get(0));
-        Dataset datasetWithThumbnail = datasetDao.merge(datasetWithFiles);
+        Dataset datasetWithThumbnail = this.datasetRepo.save(datasetWithFiles);
 
         // when
         datasetService.removeDatasetThumbnail(datasetWithThumbnail);
 
         // then
-        Dataset updatedDataset = datasetDao.find(52L);
+        Dataset updatedDataset = this.datasetRepo.findById(52L).get();
         assertThat(updatedDataset.getThumbnailFile()).isNull();
     }
 
     @Test
     public void changeDatasetThumbnail() {
         // given
-        Dataset datasetWithFiles = datasetDao.find(52L);
+        Dataset datasetWithFiles = find(52L);
 
         // when
         datasetService.changeDatasetThumbnail(datasetWithFiles, datasetWithFiles.getFiles().get(0));
-        Dataset updatedDataset = datasetDao.find(52L);
+        Dataset updatedDataset = find(52L);
 
         // then
         assertThat(updatedDataset.getThumbnailFile()).isEqualTo(datasetWithFiles.getFiles().get(0));
@@ -71,14 +73,14 @@ public class DatasetServiceIT extends WebappArquillianDeployment {
     @Test
     public void shouldSetDatasetEmbargoDate() {
         // given
-        Dataset draftDataset = datasetDao.find(66L);
+        Dataset draftDataset = find(66L);
         Date embargoDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
 
         // when
         datasetService.setDatasetEmbargoDate(draftDataset, embargoDate);
 
         // then
-        Dataset dbDataset = datasetDao.find(66L);
+        Dataset dbDataset = find(66L);
         assertThat(dbDataset.getEmbargoDate().isDefined()).isTrue();
         assertThat(dbDataset.getEmbargoDate().get()).isEqualTo(embargoDate);
     }
@@ -86,23 +88,23 @@ public class DatasetServiceIT extends WebappArquillianDeployment {
     @Test
     public void shouldLiftDatasetEmbargoDate() {
         // given
-        Dataset draftDataset = datasetDao.find(66L);
+        Dataset draftDataset = find(66L);
         Date embargoDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         draftDataset.setEmbargoDate(embargoDate);
-        datasetDao.merge(draftDataset);
+        this.datasetRepo.save(draftDataset);
 
         // when
         datasetService.liftDatasetEmbargoDate(draftDataset);
 
         // then
-        Dataset dbDataset = datasetDao.find(66L);
+        Dataset dbDataset = find(66L);
         assertThat(dbDataset.getEmbargoDate().isEmpty()).isTrue();
     }
 
     @Test
     public void updateLastChangeForExporterTime() {
         // given
-        Dataset dataset = datasetDao.find(52L);
+        Dataset dataset = find(52L);
         Date lastChangeForExporterTime = dataset.getLastChangeForExporterTime().getOrNull();
 
         // when
@@ -118,7 +120,7 @@ public class DatasetServiceIT extends WebappArquillianDeployment {
         datasetService.updateAllLastChangeForExporterTime();
 
         // then
-        List<Date> updatedTimeList = datasetDao.findAll().stream()
+        List<Date> updatedTimeList = this.datasetRepo.findAll().stream()
                 .filter(d -> !d.isHarvested())
                 .map(Dataset::getLastChangeForExporterTime)
                 .map(Value::getOrNull)
@@ -130,10 +132,14 @@ public class DatasetServiceIT extends WebappArquillianDeployment {
     
     @Test
     public void shouldIndexAfterEmbargo( ) {
-        List<Dataset> forIndexAfterEmbargo = datasetDao.findNotIndexedAfterEmbargo();
+        List<Dataset> forIndexAfterEmbargo = this.datasetRepo.findNotIndexedAfterEmbargo();
         assertThat(forIndexAfterEmbargo).isNotEmpty();
         assertThat(forIndexAfterEmbargo.size()).isEqualTo(1);
         Dataset foundDataset = forIndexAfterEmbargo.get(0);
         assertThat(foundDataset.getId()).isEqualTo(101);
+    }
+    
+    private Dataset find(long id) {
+        return this.datasetRepo.findById(52L).get();
     }
 }

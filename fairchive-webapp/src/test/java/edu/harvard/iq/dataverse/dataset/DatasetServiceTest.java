@@ -1,7 +1,28 @@
 package edu.harvard.iq.dataverse.dataset;
 
+import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticatedUser;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.DatasetDao;
+
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -11,27 +32,11 @@ import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.search.index.SolrIndexServiceBean;
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.io.IOException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class DatasetServiceTest {
@@ -46,7 +51,7 @@ public class DatasetServiceTest {
     private EjbDataverseEngine commandEngine;
 
     @Mock
-    private DatasetDao datasetDao;
+    private DatasetRepository datasetRepo;
     
     @Mock
     private SolrIndexServiceBean solrIndexService;
@@ -66,7 +71,8 @@ public class DatasetServiceTest {
         Dataset dataset = new Dataset();
         DataFile thumbnailFile = new DataFile();
 
-        when(commandEngine.submit(any(UpdateDatasetThumbnailCommand.class))).thenReturn(new DatasetThumbnail("", thumbnailFile));
+        when(commandEngine.submit(any(UpdateDatasetThumbnailCommand.class))).
+            thenReturn(new DatasetThumbnail("", thumbnailFile));
 
         //when
         datasetService.changeDatasetThumbnail(dataset, thumbnailFile);
@@ -81,7 +87,8 @@ public class DatasetServiceTest {
         //given
         Dataset dataset = new Dataset();
 
-        when(commandEngine.submit(any(UpdateDatasetThumbnailCommand.class))).thenReturn(new DatasetThumbnail("", new DataFile()));
+        when(commandEngine.submit(any(UpdateDatasetThumbnailCommand.class))).
+            thenReturn(new DatasetThumbnail("", new DataFile()));
 
         //when
         datasetService.changeDatasetThumbnail(dataset, IOUtils.toInputStream("", "UTF-8"));
@@ -96,7 +103,8 @@ public class DatasetServiceTest {
         //given
         Dataset dataset = new Dataset();
 
-        when(commandEngine.submit(any(UpdateDatasetThumbnailCommand.class))).thenReturn(new DatasetThumbnail("", new DataFile()));
+        when(commandEngine.submit(any(UpdateDatasetThumbnailCommand.class))).
+            thenReturn(new DatasetThumbnail("", new DataFile()));
 
         //when
         datasetService.removeDatasetThumbnail(dataset);
@@ -109,8 +117,8 @@ public class DatasetServiceTest {
     public void setDatasetEmbargoDate() {
         // given
         Dataset dataset = new Dataset();
-        Date embargoDate = Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS).plus(2, ChronoUnit.DAYS));
-        when(datasetDao.mergeAndFlush(dataset)).thenReturn(dataset);
+        Date embargoDate = Date.from(Instant.now().truncatedTo(DAYS).plus(2, DAYS));
+        when(this.datasetRepo.saveAndFlush(dataset)).thenReturn(dataset);
 
         // when
         Dataset result = datasetService.setDatasetEmbargoDate(dataset, embargoDate);
@@ -123,11 +131,11 @@ public class DatasetServiceTest {
     public void setDatasetEmbargoDate_lockedDataset() {
         // given
         Dataset dataset = new Dataset();
-        DatasetLock lock = new DatasetLock(DatasetLock.Reason.InReview, MocksFactory.makeAuthenticatedUser("Jurek", "Kiler"));
+        DatasetLock lock = new DatasetLock(InReview, makeAuthenticatedUser("Jurek", "Kiler"));
         lock.setId(1L);
         dataset.addLock(lock);
-        Date embargoDate = Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS).plus(2, ChronoUnit.DAYS));
-        when(datasetDao.mergeAndFlush(dataset)).thenReturn(dataset);
+        Date embargoDate = Date.from(Instant.now().truncatedTo(DAYS).plus(2, DAYS));
+        when(this.datasetRepo.saveAndFlush(dataset)).thenReturn(dataset);
 
         // when
         Dataset result = datasetService.setDatasetEmbargoDate(dataset, embargoDate);
@@ -140,13 +148,13 @@ public class DatasetServiceTest {
     public void setDatasetEmbargoDate_lockedDatasetByWorkflow() {
         // given
         Dataset dataset = new Dataset();
-        DatasetLock lock = new DatasetLock(DatasetLock.Reason.Workflow, MocksFactory.makeAuthenticatedUser("Jurek", "Kiler"));
+        DatasetLock lock = new DatasetLock(Workflow, makeAuthenticatedUser("Jurek", "Kiler"));
         lock.setId(1L);
         dataset.addLock(lock);
-        DatasetLock reviewLock = new DatasetLock(DatasetLock.Reason.InReview, MocksFactory.makeAuthenticatedUser("Jurek", "Kiler"));
+        DatasetLock reviewLock = new DatasetLock(InReview, makeAuthenticatedUser("Jurek", "Kiler"));
         reviewLock.setId(2L);
         dataset.addLock(reviewLock);
-        Date embargoDate = Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS).plus(2, ChronoUnit.DAYS));
+        Date embargoDate = Date.from(Instant.now().truncatedTo(DAYS).plus(2, DAYS));
 
         // when & then
         Exception exception = Assertions.assertThrows(IllegalStateException.class, () -> {
@@ -163,12 +171,12 @@ public class DatasetServiceTest {
         // given
         Dataset dataset = MocksFactory.makeDataset();
         dataset.setVersions(Lists.newArrayList(new DatasetVersion(), new DatasetVersion()));
-        AuthenticatedUser user = MocksFactory.makeAuthenticatedUser("Jurek","Kiler");
+        AuthenticatedUser user = makeAuthenticatedUser("Jurek","Kiler");
         user.setSuperuser(false);
         session.logIn(user);
         when(session.getUser()).thenReturn(user);
 
-        Date embargoDate = Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS).plus(2, ChronoUnit.DAYS));
+        Date embargoDate = Date.from(Instant.now().truncatedTo(DAYS).plus(2, DAYS));
 
         // when
         Exception exception = Assertions.assertThrows(IllegalStateException.class, () -> {

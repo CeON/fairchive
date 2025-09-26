@@ -474,7 +474,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(this.dataset)) {
             return this.permissionsWrapper.notAuthorized();
         }
-        if (this.datasetDao.isInReview(this.dataset) && 
+        if (this.dataset.isInReview() && 
                 !this.permissionsWrapper.canUpdateAndPublishDataset(this.dataset)) {
             return this.permissionsWrapper.notAuthorized();
         }
