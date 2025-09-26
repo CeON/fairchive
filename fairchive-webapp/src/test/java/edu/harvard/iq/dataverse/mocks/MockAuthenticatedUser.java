@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
 /**
  * @author madunlap
  */
+@SuppressWarnings("serial")
 public class MockAuthenticatedUser extends AuthenticatedUser {
     @Override
     public AuthenticatedUserDisplayInfo getDisplayInfo() {

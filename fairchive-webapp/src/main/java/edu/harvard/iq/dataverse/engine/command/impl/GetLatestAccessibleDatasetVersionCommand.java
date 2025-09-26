@@ -10,7 +10,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -20,7 +19,8 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
  *
  * @author Naomi
  */
-// No permission needed to view published dvObjects
+//No permission needed to view published dvObjects
+@SuppressWarnings("serial")
 @RequiredPermissions({})
 public class GetLatestAccessibleDatasetVersionCommand extends AbstractCommand<DatasetVersion> {
     private final Dataset ds;
@@ -33,7 +33,8 @@ public class GetLatestAccessibleDatasetVersionCommand extends AbstractCommand<Da
     @Override
     public DatasetVersion execute(CommandContext ctxt)  {
 
-        if (ds.getLatestVersion().isDraft() && ctxt.permissions().requestOn(getRequest(), ds).has(Permission.ViewUnpublishedDataset)) {
+        if (ds.getLatestVersion().isDraft() && ctxt.permissions().
+                requestOn(getRequest(), ds).has(Permission.ViewUnpublishedDataset)) {
             return ctxt.engine().submit(new GetDraftDatasetVersionCommand(getRequest(), ds));
         }
 

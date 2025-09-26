@@ -22,6 +22,7 @@ public class UpdatePermissionRootCommandTest {
     TestCommandContext testCommandContext;
     boolean serviceBeanCalled;
 
+    @SuppressWarnings("serial")
     @BeforeEach
     public void setUp() {
         mockBean = new DataverseDao() {

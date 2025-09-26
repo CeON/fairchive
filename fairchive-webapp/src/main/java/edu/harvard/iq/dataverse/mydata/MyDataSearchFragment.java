@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("MyDataSearchFragment")
 public class MyDataSearchFragment implements java.io.Serializable {

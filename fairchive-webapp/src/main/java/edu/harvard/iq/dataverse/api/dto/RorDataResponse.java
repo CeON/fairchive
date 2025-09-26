@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+@SuppressWarnings("serial")
 public class RorDataResponse implements Serializable {
 
     private int numberOfUpdatedRecords = 0;

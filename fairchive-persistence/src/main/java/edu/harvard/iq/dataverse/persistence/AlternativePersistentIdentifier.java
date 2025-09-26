@@ -15,6 +15,7 @@ import java.util.Date;
 /**
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @Entity
 public class AlternativePersistentIdentifier implements Serializable {
 

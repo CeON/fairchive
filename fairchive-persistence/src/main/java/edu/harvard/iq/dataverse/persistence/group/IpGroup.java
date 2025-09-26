@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+@SuppressWarnings("serial")
 @NamedQueries({
     @NamedQuery(name = "IpGroup.findAll",
             query = "SELECT g FROM IpGroup g"),
@@ -58,7 +59,6 @@ public class IpGroup extends PersistedGlobalGroup {
         return range;
     }
 
-    @SuppressWarnings("element-type-mismatch")
     public void remove(IpAddressRange range) {
         ((range instanceof IPv4Range) ? ipv4Ranges : ipv6Ranges).remove(range);
     }

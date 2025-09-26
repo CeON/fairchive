@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

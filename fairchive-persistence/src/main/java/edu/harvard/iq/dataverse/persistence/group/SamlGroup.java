@@ -18,6 +18,7 @@ import java.util.Objects;
 /**
  * Persistence for Saml groups.
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "samlgroup")
 @NamedQueries({

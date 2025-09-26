@@ -21,6 +21,7 @@ import java.util.Objects;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Entity
 public class Workflow implements Serializable, JpaEntity<Long> {
 

@@ -9,7 +9,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DataverseLinkingDataverse;
@@ -22,6 +21,7 @@ import java.util.Collections;
  * @author sarahferry
  */
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class DeleteDataverseLinkingDataverseCommand extends AbstractCommand<Dataverse> {
 
@@ -29,7 +29,8 @@ public class DeleteDataverseLinkingDataverseCommand extends AbstractCommand<Data
     private final Dataverse editedDv;
     private final boolean index;
 
-    public DeleteDataverseLinkingDataverseCommand(DataverseRequest aRequest, Dataverse editedDv, DataverseLinkingDataverse doomed, boolean index) {
+    public DeleteDataverseLinkingDataverseCommand(DataverseRequest aRequest, 
+            Dataverse editedDv, DataverseLinkingDataverse doomed, boolean index) {
         super(aRequest, editedDv);
         this.editedDv = editedDv;
         this.doomed = doomed;

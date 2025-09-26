@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
 
+@SuppressWarnings("serial")
 public class SWORDv2CollectionServlet extends SwordServlet {
 
     @Inject

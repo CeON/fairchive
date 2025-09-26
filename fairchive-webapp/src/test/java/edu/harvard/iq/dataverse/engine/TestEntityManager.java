@@ -36,7 +36,7 @@ import java.util.logging.Logger;
 public class TestEntityManager implements EntityManager {
 
     Set<Object> newlyPersistedObjects = new HashSet<>();
-    Map<Class, Map<Object, Object>> tables = new HashMap<>();
+    Map<Class<?>, Map<Object, Object>> tables = new HashMap<>();
     final AtomicLong nextId = new AtomicLong(0);
 
     @Override

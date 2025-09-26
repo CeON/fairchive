@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
  * incorporated into 4.0 by
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class IngestableDataChecker implements java.io.Serializable {
 
     private static Logger log = LoggerFactory.getLogger(IngestableDataChecker.class);

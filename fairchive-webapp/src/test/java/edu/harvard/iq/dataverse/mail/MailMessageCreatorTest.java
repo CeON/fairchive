@@ -8,7 +8,6 @@ import edu.harvard.iq.dataverse.GenericDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.common.BrandingUtil;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
@@ -88,10 +87,13 @@ public class MailMessageCreatorTest {
 
         when(permissionService.getRolesOfUser(any(), any(Dataverse.class)))
                 .thenReturn(Sets.newHashSet(roleAssignment));
+        when(permissionService.getRolesOfUser(any(), any(Dataset.class)))
+                .thenReturn(Sets.newHashSet(roleAssignment));
         when(dataverseDao.findRootDataverse()).thenReturn(rootDataverse);
         when(dataverseDao.find(createDataverseEmailNotificationDto().getDvObjectId())).thenReturn(testDataverse);
         when(genericDao.find(createReturnToAuthorNotificationDto().getDvObjectId(), DatasetVersion.class)).thenReturn(testDatasetVersion);
-        when(genericDao.find(createGrantFileAccessInfoNotificationDto().getDvObjectId(), Dataset.class)).thenReturn(testDataset);        when(systemConfig.getDataverseSiteUrl()).thenReturn(SITEURL);
+        when(genericDao.find(createGrantFileAccessInfoNotificationDto().getDvObjectId(), Dataset.class)).thenReturn(testDataset);
+        when(systemConfig.getDataverseSiteUrl()).thenReturn(SITEURL);
         when(systemConfig.getGuidesBaseUrl(any(Locale.class))).thenReturn(GUIDESBASEURL);
         when(systemConfig.getGuidesVersion()).thenReturn(GUIDESVERSION);
         when(dataverseSession.getUser()).thenReturn(new AuthenticatedUser());
@@ -179,9 +181,9 @@ public class MailMessageCreatorTest {
     }
 
     @Test
-    void getMessageAndSubject_ForAssignRole() {
+    void getMessageAndSubject_ForAssignRoleInDataverse() {
         // given
-        EmailNotificationDto testEmailNotificationDto = createAssignRoleEmailNotificationDto();
+        EmailNotificationDto testEmailNotificationDto = createAssignRoleEmailInDataverseNotificationDto();
 
         // when
         Tuple2<String, String> messageAndSubject = mailMessageCreator.getMessageAndSubject(testEmailNotificationDto,
@@ -191,7 +193,24 @@ public class MailMessageCreatorTest {
         assertThat(messageAndSubject)
                 .extracting(Tuple2::_1, Tuple2::_2)
                 .containsExactly(
-                        getAssignRoleMessage(RoleTranslationUtil.getLocaleNameFromAlias("admin"), "dataverse"),
+                        getAssignRoleInDataverseMessage("Admin"),
+                        getAssignRoleSubject());
+    }
+
+    @Test
+    void getMessageAndSubject_ForAssignRoleInDataset() {
+        // given
+        EmailNotificationDto testEmailNotificationDto = createAssignRoleEmailInDatasetNotificationDto();
+
+        // when
+        Tuple2<String, String> messageAndSubject = mailMessageCreator.getMessageAndSubject(testEmailNotificationDto,
+                                                                                           "test@icm.pl");
+
+        // then
+        assertThat(messageAndSubject)
+                .extracting(Tuple2::_1, Tuple2::_2)
+                .containsExactly(
+                        getAssignRoleInDatasetMessage("Admin"),
                         getAssignRoleSubject());
     }
 
@@ -261,10 +280,16 @@ public class MailMessageCreatorTest {
                 BrandingUtil.getSupportTeamName(MailUtil.parseSystemAddress(SYSTEMEMAIL), ROOTDVNAME, Locale.ENGLISH);
     }
 
-    private String getAssignRoleMessage(String role, String dvObjectType) {
+    private String getAssignRoleInDataverseMessage(String role) {
         return "Hello, \n\n" +
-                "You are now " + role + " for the " + dvObjectType +
+                "You are now " + role + " for the collection" +
                 " \"" + testDataverse.getDisplayName() + "\" (view at " + SITEURL + "/dataverse/" + testDataverse.getAlias() + " ).";
+    }
+
+    private String getAssignRoleInDatasetMessage(String role) {
+        return "Hello, \n\n" +
+                "You are now " + role + " for the dataset" +
+                " \"" + testDataset.getDisplayName() + "\" (view at " + SITEURL + "/dataset.xhtml?persistentId=" + testDataset.getGlobalId().asString() + " ).";
     }
 
     private String getCreateDataverseMessage() {
@@ -360,7 +385,7 @@ public class MailMessageCreatorTest {
                                         Collections.emptyMap());
     }
 
-    private EmailNotificationDto createAssignRoleEmailNotificationDto() {
+    private EmailNotificationDto createAssignRoleEmailInDataverseNotificationDto() {
         return new EmailNotificationDto(1L,
                                         "useremail@test.com",
                                         NotificationType.ASSIGNROLE,
@@ -370,12 +395,12 @@ public class MailMessageCreatorTest {
                                         Collections.emptyMap());
     }
 
-    private EmailNotificationDto createRequestFileAccessNotificationDto() {
+    private EmailNotificationDto createAssignRoleEmailInDatasetNotificationDto() {
         return new EmailNotificationDto(1L,
                                         "useremail@test.com",
-                                        NotificationType.REQUESTFILEACCESS,
-                                        1L,
-                                        NotificationObjectType.DATAFILE,
+                                        NotificationType.ASSIGNROLE,
+                                        2L,
+                                        NotificationObjectType.DATASET,
                                         new AuthenticatedUser(),
                                         Collections.emptyMap());
     }
@@ -438,6 +463,7 @@ public class MailMessageCreatorTest {
         Dataverse dataverse = createTestDataverse();
         dataverse.setId(1L);
 
+        @SuppressWarnings("serial")
         Dataset dataset = new Dataset() {
             @Override public String getDisplayName() { return "testDataset"; }
         };

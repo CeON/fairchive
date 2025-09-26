@@ -143,7 +143,7 @@ public class FileRecordReader extends AbstractItemReader {
      */
     private List<File> getFiles(final File directory) {
         // create filter from job xml excludes property
-        FileFilter excludeFilter = new NotFileFilter(new WildcardFileFilter(Arrays.asList(excludes.split("\\s*,\\s*"))));
+        FileFilter excludeFilter = new NotFileFilter(WildcardFileFilter.builder().setWildcards(Arrays.asList(excludes.split("\\s*,\\s*"))).get());
         List<File> files = new ArrayList<>();
         File[] filesList = directory.listFiles(excludeFilter);
         if (filesList != null) {

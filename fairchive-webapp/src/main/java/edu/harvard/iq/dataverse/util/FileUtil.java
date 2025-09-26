@@ -67,6 +67,7 @@ import static org.apache.commons.io.IOUtils.toByteArray;
  *
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class FileUtil implements java.io.Serializable {
     private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
 

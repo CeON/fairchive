@@ -7,6 +7,7 @@ import java.util.Objects;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 public class AuthenticatedUserDisplayInfo extends RoleAssigneeDisplayInfo {
 
     @NotBlank(message = "{user.lastName}")

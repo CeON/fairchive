@@ -15,7 +15,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.ApiToken;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.bagit.BagGenerator;
 import edu.harvard.iq.dataverse.util.bagit.OREMap;
@@ -41,6 +40,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataset)
 public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveCommand implements Command<DatasetVersion> {
 

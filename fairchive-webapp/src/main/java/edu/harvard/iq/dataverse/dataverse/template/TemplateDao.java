@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.dataverse.template;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
@@ -10,15 +9,12 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * @author skraffmiller
  */
 @Stateless
 public class TemplateDao {
-
-    private static final Logger logger = Logger.getLogger(DatasetDao.class.getCanonicalName());
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;

@@ -46,7 +46,6 @@ public class SolrQueryFormatterTest {
         makeQueryTest(sqf, 0, paramName, null);
 
         sqf.setSolrIdGroupSize(3);
-        String expectedResult = "(parentId:(1 2 3)) OR (parentId:(4 5 6)) OR (parentId:(7 8 9)) OR (parentId:(10 11))";
         makeQueryTest2(sqf, 11, "parentId", 4);
 
     }

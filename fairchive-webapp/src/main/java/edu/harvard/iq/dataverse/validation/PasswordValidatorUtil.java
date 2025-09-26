@@ -6,7 +6,6 @@ import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -45,8 +44,8 @@ public class PasswordValidatorUtil {
         if (goodStrength > 0) {
             optionalGoodStrengthNote = " (" + BundleUtil.getStringFromBundle("passwdVal.passwdReq.goodStrength", Integer.toString(goodStrength)) + ")";
         }
-        message += "<li " + getColor(errors, ErrorType.TOO_SHORT) + ">" + getOkOrFail(errors, ErrorType.TOO_SHORT) + BundleUtil.getStringFromBundle("passwdVal.passwdReq.lengthReq", Integer.toString(minLength)) + " " + optionalGoodStrengthNote + "</li>";
-        message += "<li " + getColor(errors, ErrorType.INSUFFICIENT_CHARACTERISTICS) + ">" + getOkOrFail(errors, ErrorType.INSUFFICIENT_CHARACTERISTICS) + getRequiredCharacters(characterRules, numberOfCharacteristics) + "</li>";
+        message += "<li>" + getOkOrFail(errors, ErrorType.TOO_SHORT) + BundleUtil.getStringFromBundle("passwdVal.passwdReq.lengthReq", Integer.toString(minLength)) + " " + optionalGoodStrengthNote + "</li>";
+        message += "<li>" + getOkOrFail(errors, ErrorType.INSUFFICIENT_CHARACTERISTICS) + getRequiredCharacters(characterRules, numberOfCharacteristics) + "</li>";
         message += "</ul>";
         boolean repeatingDigitRuleEnabled = Integer.MAX_VALUE != numberOfConsecutiveDigitsAllowed;
         boolean showMayNotBlock = repeatingDigitRuleEnabled || dictionaryEnabled;
@@ -55,10 +54,10 @@ public class PasswordValidatorUtil {
             message += "<ul>";
         }
         if (repeatingDigitRuleEnabled) {
-            message += "<li " + getColor(errors, ErrorType.ILLEGAL_MATCH) + ">" + getOkOrFail(errors, ErrorType.ILLEGAL_MATCH) + BundleUtil.getStringFromBundle("passwdVal.passwdReq.consecutiveDigits", Integer.toString(numberOfConsecutiveDigitsAllowed)) + "</li>";
+            message += "<li>" + getOkOrFail(errors, ErrorType.ILLEGAL_MATCH) + BundleUtil.getStringFromBundle("passwdVal.passwdReq.consecutiveDigits", Integer.toString(numberOfConsecutiveDigitsAllowed)) + "</li>";
         }
         if (dictionaryEnabled) {
-            message += "<li " + getColor(errors, ErrorType.ILLEGAL_WORD) + ">" + getOkOrFail(errors, ErrorType.ILLEGAL_WORD) + BundleUtil.getStringFromBundle("passwdVal.passwdReq.dictionaryWords") + "</li>";
+            message += "<li>" + getOkOrFail(errors, ErrorType.ILLEGAL_WORD) + BundleUtil.getStringFromBundle("passwdVal.passwdReq.dictionaryWords") + "</li>";
         }
         if (showMayNotBlock) {
             message += "</ul>";
@@ -77,21 +76,6 @@ public class PasswordValidatorUtil {
         } else {
             String ok = "<span class=\"glyphicon glyphicon-ok text-success\"/> ";
             return ok;
-        }
-    }
-
-    // TODO: Consider deleting this method if no one wants it.
-    @Deprecated
-    private static String getColor(List<String> errors, ErrorType errorState) {
-        if (errors.isEmpty()) {
-            return "";
-        }
-        if (errors.contains(errorState.toString())) {
-            String red = "style=\"color:red;\"";
-            return "";
-        } else {
-            String green = "style=\"color:green;\"";
-            return "";
         }
     }
 

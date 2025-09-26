@@ -39,6 +39,7 @@ import java.util.logging.Logger;
  *
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class RTabFileParser implements java.io.Serializable {
     private char delimiterChar = '\t';
 

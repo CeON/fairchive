@@ -20,6 +20,7 @@ import java.util.ArrayList;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissionsMap({
         @RequiredPermissions(dataverseName = "doomed", value = Permission.DeleteDataverse)
 })

@@ -8,6 +8,7 @@ import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class AuthenticationFailedException extends AuthorizationException {
 
     private final AuthenticationResponse response;

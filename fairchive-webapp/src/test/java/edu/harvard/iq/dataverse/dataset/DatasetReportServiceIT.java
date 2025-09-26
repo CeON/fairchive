@@ -8,8 +8,6 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
@@ -22,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 public class DatasetReportServiceIT extends WebappArquillianDeployment {
-    private static final Logger logger = LoggerFactory.getLogger(DatasetReportServiceIT.class);
 
     @Inject
     private AuthenticationServiceBean authenticationService;

@@ -10,24 +10,22 @@ import edu.harvard.iq.dataverse.engine.command.AbstractVoidCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class UpdateDataverseTemplateCountCommand extends AbstractVoidCommand {
 
-    private final Dataset editedDs;
     private final Template template;
 
-    public UpdateDataverseTemplateCountCommand(DataverseRequest aRequest, Template templateIn, DvObject anAffectedDvObject) {
+    public UpdateDataverseTemplateCountCommand(DataverseRequest aRequest, 
+            Template templateIn, DvObject anAffectedDvObject) {
         super(aRequest, anAffectedDvObject);
-        this.editedDs = (Dataset) anAffectedDvObject;
         this.template = templateIn;
     }
 

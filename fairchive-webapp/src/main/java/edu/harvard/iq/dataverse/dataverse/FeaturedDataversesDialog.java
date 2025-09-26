@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("FeaturedDataversesDialog")
 public class FeaturedDataversesDialog implements java.io.Serializable {

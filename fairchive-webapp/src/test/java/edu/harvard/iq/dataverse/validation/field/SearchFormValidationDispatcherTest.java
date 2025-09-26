@@ -47,6 +47,7 @@ class SearchFormValidationDispatcherTest {
         }
     };
 
+    @SuppressWarnings("serial")
     @BeforeEach
     void setUp() {
         registry.register(new StandardIntegerValidator());
@@ -170,6 +171,7 @@ class SearchFormValidationDispatcherTest {
 
     // -------------------- INNER CLASSES --------------------
 
+    @SuppressWarnings("serial")
     private static class TestField extends SearchField {
         private List<String> values = new ArrayList<>();
 

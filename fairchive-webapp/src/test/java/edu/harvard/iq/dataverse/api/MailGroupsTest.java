@@ -55,6 +55,7 @@ class MailGroupsTest {
         Response response = endpoint.getAllGroups();
 
         // then
+        @SuppressWarnings("unchecked")
         ApiResponseDTO<List<MailDomainGroupDTO>> entity = (ApiResponseDTO<List<MailDomainGroupDTO>>) response.getEntity();
         assertThat(entity.getData()).extracting(MailDomainGroupDTO::getAlias)
                 .containsExactly("abc");
@@ -112,6 +113,7 @@ class MailGroupsTest {
         Response response = endpoint.getGroup(groupAlias);
 
         // then
+        @SuppressWarnings("unchecked")
         ApiResponseDTO<MailDomainGroupDTO> entity = (ApiResponseDTO<MailDomainGroupDTO>) response.getEntity();
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         assertThat(entity.getData().getAlias()).isEqualTo(groupAlias);

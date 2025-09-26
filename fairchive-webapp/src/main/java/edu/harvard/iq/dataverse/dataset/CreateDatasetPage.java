@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("CreateDatasetPage")
 public class CreateDatasetPage implements Serializable {
@@ -315,7 +316,8 @@ public class CreateDatasetPage implements Serializable {
     }
 
     private String returnToDraftVersion() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&version=DRAFT" + "&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId() 
+            + "&version=DRAFT" + "&faces-redirect=true";
     }
 
     // -------------------- SETTERS --------------------

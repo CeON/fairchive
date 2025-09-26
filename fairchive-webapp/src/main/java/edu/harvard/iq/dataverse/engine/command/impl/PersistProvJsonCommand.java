@@ -9,24 +9,25 @@ import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.logging.Logger;
 
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class PersistProvJsonCommand extends AbstractCommand<DataFile> {
 
-    private static final Logger logger = Logger.getLogger(PersistProvJsonCommand.class.getCanonicalName());
 
     private DataFile dataFile;
     private final String jsonInput;
     private final String entityName;
     private final boolean saveContext;
 
-    public PersistProvJsonCommand(DataverseRequest aRequest, DataFile dataFile, String jsonInput, String entityName, boolean saveContext) {
+    public PersistProvJsonCommand(DataverseRequest aRequest, DataFile dataFile, 
+            String jsonInput, String entityName, boolean saveContext) {
         super(aRequest, dataFile);
         this.dataFile = dataFile;
         this.jsonInput = jsonInput;
@@ -47,7 +48,7 @@ public class PersistProvJsonCommand extends AbstractCommand<DataFile> {
         final String provJsonExtension = "prov-json.json";
         try {
             StorageIO<DataFile> storageIO = ctxt.dataAccess().getStorageIO(dataFile);
-            InputStream inputStream = new ByteArrayInputStream(jsonInput.getBytes(StandardCharsets.UTF_8.name()));
+            InputStream inputStream = new ByteArrayInputStream(jsonInput.getBytes(UTF_8.name()));
             storageIO.saveInputStreamAsAux(inputStream, provJsonExtension);
         } catch (IOException ex) {
             String error = "Exception caught persisting PROV-JSON: " + ex;

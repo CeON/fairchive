@@ -136,7 +136,7 @@ public class HttpSendReceiveClientStep implements WorkflowStep {
                     Map<String, String> params = new HashMap<>();
                     params.put("dataset.id", Long.toString(datasetVersion.getDataset().getId()));
                     params.put("dataset.identifier", datasetVersion.getDataset().getIdentifier());
-                    params.put("dataset.globalId", datasetVersion.getDataset().getGlobalIdString());
+                    params.put("dataset.globalId", datasetVersion.getDataset().getGlobalId().toString());
                     params.put("dataset.displayName", datasetVersion.getDataset().getDisplayName());
                     params.put("dataset.citation",
                             citationFactory.create(datasetVersion.getDataset().getLatestVersion())
@@ -162,7 +162,7 @@ public class HttpSendReceiveClientStep implements WorkflowStep {
         String bodyKey = (rollback ? "rollbackBody" : "body");
         if (params.containsKey(bodyKey) && m instanceof EntityEnclosingMethod) {
             String body = params.get(bodyKey);
-            ((EntityEnclosingMethod) m).setRequestEntity(new StringRequestEntity(process(body, templateParams)));
+            ((EntityEnclosingMethod) m).setRequestEntity(new StringRequestEntity(process(body, templateParams), null, null));
         }
 
         return m;

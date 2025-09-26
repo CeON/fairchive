@@ -12,6 +12,7 @@ import javax.inject.Named;
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("FailedLogin")
 public class SamlFailedLoginPage implements Serializable {

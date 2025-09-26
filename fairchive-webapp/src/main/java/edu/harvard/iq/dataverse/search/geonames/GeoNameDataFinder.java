@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.search.geonames;
 
-import static edu.harvard.iq.dataverse.search.geonames.GeoName.isFeatureCode;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
@@ -50,7 +49,7 @@ public class GeoNameDataFinder {
                         .getBeans(GeoName.class);
                 if (result.isEmpty()) {
                     try {
-                        // It may fail if there is more than one word in the phrase. 
+                        // It may fail if there is more than one word in the phrase.
                         findById(phrase.trim()).ifPresent(result::add);
                     } catch (final Exception e) {
                         return emptyList(); // It's ok to return nothing in this case.
@@ -70,18 +69,28 @@ public class GeoNameDataFinder {
         final StringBuilder builder = new StringBuilder();
         for (final String word : split(
                 this.sanitizer.removeSolrSpecialChars(phraze))) {
-            if (builder.length() > 0) {
-                builder.append(" AND ");
-            }
-            if (isFeatureCode(word)) {
-                builder.append("featureCode:").append(word.toUpperCase());
-            } else {
-                builder.append("(name:").append(word)
-                        .append(" OR alternateNames:").append(word).append(")");
+            if (word.length() > 1) {
+                if (builder.length() > 0) {
+                    builder.append(" AND ");
+                }
+                if (isFeatureCode(word)) {
+                    final String code = word.substring(1).trim();
+                    if (code.length() > 1) {
+                        builder.append("featureCode:").append(code.toUpperCase())
+                                .append('*');
+                    }
+                } else {
+                    builder.append("(name:").append(word)
+                            .append("* OR alternateNames:*").append(word).append("*)");
+                }
             }
         }
 
         return builder;
+    }
+    
+    private boolean isFeatureCode(final String word) {
+        return word.charAt(0) == '#';
     }
 
     public Optional<GeoName> findById(final String id) {

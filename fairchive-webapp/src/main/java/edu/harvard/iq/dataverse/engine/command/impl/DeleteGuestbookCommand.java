@@ -9,7 +9,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -17,6 +16,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 /**
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class DeleteGuestbookCommand extends AbstractCommand<Dataverse> {
 

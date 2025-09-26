@@ -31,7 +31,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
 import edu.harvard.iq.dataverse.rserve.RRequest;
 import edu.harvard.iq.dataverse.rserve.RRequestBuilder;
 import io.vavr.Tuple2;
-import org.apache.commons.lang.RandomStringUtils;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.RList;
@@ -40,17 +39,16 @@ import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
@@ -102,14 +100,12 @@ public class RDATAFileReader extends TabularDataFileReader {
     private TabularDataIngest ingesteddata = new TabularDataIngest();
     private DataTable dataTable = new DataTable();
 
-    // Process ID, used partially in the generation of temporary directories
-    private String mPID;
-
     // Object containing all the informatin for an R-workspace (including
     // temporary directories on and off server)
     private RWorkspace mRWorkspace;
 
-    public RDATAFileReader(TabularDataFileReaderSpi originatingProvider, String rserveHost, String rserveUser, String rservePassword, int rservePort) {
+    public RDATAFileReader(TabularDataFileReaderSpi originatingProvider, 
+            String rserveHost, String rserveUser, String rservePassword, int rservePort) {
         super(originatingProvider);
         this.rserveHost = rserveHost;
         this.rserveUser = rserveUser;
@@ -123,7 +119,6 @@ public class RDATAFileReader extends TabularDataFileReader {
                 .password(rservePassword);
 
         mRWorkspace = new RWorkspace();
-        mPID = RandomStringUtils.randomNumeric(6);
 
     }
 
@@ -221,12 +216,12 @@ public class RDATAFileReader extends TabularDataFileReader {
                         if (directoryNames.isEmpty()) {
                             LOG.fine("WARNING: directoryNames is empty!");
                         } else {
-                            Set dirKeySet = directoryNames.keySet();
-                            Iterator<String> iter = dirKeySet.iterator();
+                            Set<?> dirKeySet = directoryNames.keySet();
+                            Iterator<?> iter = dirKeySet.iterator();
                             String key;
 
                             while (iter.hasNext()) {
-                                key = (String) iter.next();
+                                key = iter.next().toString();
                                 LOG.fine("directoryNames list key: " + key);
                             }
                         }
@@ -269,62 +264,6 @@ public class RDATAFileReader extends TabularDataFileReader {
                 LOG.warning("RDATAFileReader: R Workspace was not destroyed");
                 LOG.fine(ex.getMessage());
             }
-        }
-
-        /**
-         * Create the Data File to Use for Analysis, etc.
-         */
-        public File dataFile(String target, String prefix, int size) {
-
-            String fileName = String.format("DVN.dataframe.%s.Rdata", mPID);
-
-            mDataFile = new File(mParent, fileName);
-
-            RFileInputStream RInStream = null;
-            OutputStream outStream = null;
-
-            RRequest req = mRequestBuilder.build();
-
-            try {
-                outStream = new BufferedOutputStream(new FileOutputStream(mDataFile));
-                RInStream = req.getRConnection().openFile(target);
-
-                if (size < 1024 * 1024 * 500) {
-                    int bufferSize = size;
-                    byte[] outputBuffer = new byte[bufferSize];
-                    RInStream.read(outputBuffer);
-                    outStream.write(outputBuffer, 0, size);
-                }
-
-                RInStream.close();
-                outStream.close();
-                return mDataFile;
-            } catch (FileNotFoundException exc) {
-                exc.printStackTrace();
-                LOG.warning("RDATAFileReader: FileNotFound exception occurred");
-                return mDataFile;
-            } catch (IOException exc) {
-                exc.printStackTrace();
-                LOG.warning("RDATAFileReader: IO exception occurred");
-            }
-
-            // Close R input data stream
-            if (RInStream != null) {
-                try {
-                    RInStream.close();
-                } catch (IOException exc) {
-                }
-            }
-
-            // Close output data stream
-            if (outStream != null) {
-                try {
-                    outStream.close();
-                } catch (IOException ex) {
-                }
-            }
-
-            return mDataFile;
         }
 
         /**
@@ -443,7 +382,8 @@ public class RDATAFileReader extends TabularDataFileReader {
 
     /** Read the Given RData File */
     @Override
-    public TabularDataIngest read(Tuple2<BufferedInputStream, File> streamAndFile, File dataFile) throws IOException {
+    public TabularDataIngest read(Tuple2<BufferedInputStream, File> streamAndFile, 
+            File dataFile) throws IOException {
 
         init();
 
@@ -475,22 +415,24 @@ public class RDATAFileReader extends TabularDataFileReader {
             // created!
             // - L.A.
             RTabFileParser csvFileReader = new RTabFileParser('\t');
-            BufferedReader localBufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(localCsvFile), StandardCharsets.UTF_8));
+            try(BufferedReader localBufferedReader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(localCsvFile), UTF_8))) {
 
-            File tabFileDestination = File.createTempFile("data-", ".tab");
-            PrintWriter tabFileWriter = new PrintWriter(tabFileDestination.getAbsolutePath(), "UTF-8");
-
-            int lineCount = csvFileReader.read(localBufferedReader, dataTable, tabFileWriter);
-
-            LOG.fine("RDATAFileReader: successfully read " + lineCount + " lines of tab-delimited data.");
-
-            dataTable.setUnf("UNF:pending");
-
-            ingesteddata.setTabDelimitedFile(tabFileDestination);
-            ingesteddata.setDataTable(dataTable);
-
-            // Destroy R workspace
-            mRWorkspace.destroy();
+                File tabFileDestination = File.createTempFile("data-", ".tab");
+                PrintWriter tabFileWriter = new PrintWriter(tabFileDestination.getAbsolutePath(), "UTF-8");
+        
+                int lineCount = csvFileReader.read(localBufferedReader, dataTable, tabFileWriter);
+        
+                LOG.fine("RDATAFileReader: successfully read " + lineCount + " lines of tab-delimited data.");
+        
+                dataTable.setUnf("UNF:pending");
+        
+                ingesteddata.setTabDelimitedFile(tabFileDestination);
+                ingesteddata.setDataTable(dataTable);
+        
+                // Destroy R workspace
+                mRWorkspace.destroy();
+            }
         } catch (Exception ex) {
             throw new IngestException(IngestError.UNKNOWN_ERROR, ex);
         }

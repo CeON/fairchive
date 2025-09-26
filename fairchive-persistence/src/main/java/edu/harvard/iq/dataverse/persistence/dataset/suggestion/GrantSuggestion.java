@@ -35,7 +35,8 @@ public class GrantSuggestion {
     public GrantSuggestion() {
     }
 
-    public GrantSuggestion(String grantAgency, String grantAgencyAcronym, String fundingProgram, String suggestionName, Locale suggestionNameLocale) {
+    public GrantSuggestion(String grantAgency, String grantAgencyAcronym, 
+            String fundingProgram, String suggestionName, Locale suggestionNameLocale) {
         this.grantAgency = grantAgency;
         this.grantAgencyAcronym = grantAgencyAcronym;
         this.fundingProgram = fundingProgram;

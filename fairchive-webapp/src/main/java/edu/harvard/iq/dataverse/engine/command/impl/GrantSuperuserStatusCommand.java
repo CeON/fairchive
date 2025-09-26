@@ -19,6 +19,7 @@ import java.io.Serializable;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 // the permission annotation is open, since this is a superuser-only command - 
 // and that's enforced in the command body:
 @RequiredPermissions({})

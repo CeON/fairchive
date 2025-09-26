@@ -5,15 +5,12 @@ import edu.harvard.iq.dataverse.persistence.config.LocaleConverter;
 import edu.harvard.iq.dataverse.persistence.config.ValidateEmail;
 import edu.harvard.iq.dataverse.persistence.consent.AcceptedConsent;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -21,6 +18,16 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
+
+import static java.lang.String.format;
+import static java.util.Locale.ENGLISH;
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -36,6 +43,7 @@ import java.util.Objects;
  *
  * @author rmp553
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "AuthenticatedUser.findAll",
                 query = "select au from AuthenticatedUser au where au.userIdentifier not like 'ERASED%'"),
@@ -63,7 +71,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     public static final String IDENTIFIER_PREFIX = "@";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     Long id;
 
     /**
@@ -108,9 +116,9 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
 
     @Column(nullable = false)
     @Convert(converter = LocaleConverter.class)
-    private Locale notificationsLanguage = Locale.ENGLISH;
+    private Locale notificationsLanguage = ENGLISH;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = ALL)
     private List<AcceptedConsent> acceptedConsents = new ArrayList<>();
 
     @OneToOne(mappedBy = "authenticatedUser")
@@ -125,7 +133,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     @Transient
     private String roles;
 
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "user", cascade = {REMOVE, MERGE, PERSIST})
     private List<DatasetLock> datasetLocks;
 
     // -------------------- GETTERS --------------------
@@ -226,7 +234,8 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
 
     @Override
     public AuthenticatedUserDisplayInfo getDisplayInfo() {
-        return new AuthenticatedUserDisplayInfo(firstName, lastName, email, orcid, affiliation, affiliationROR, position);
+        return new AuthenticatedUserDisplayInfo(firstName, lastName, email, 
+                orcid, affiliation, affiliationROR, position);
     }
 
     /**
@@ -236,19 +245,19 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     public void applyDisplayInfo(AuthenticatedUserDisplayInfo inf) {
         setFirstName(inf.getFirstName());
         setLastName(inf.getLastName());
-        if (StringUtils.isNotBlank(inf.getEmailAddress())) {
+        if (isNotBlank(inf.getEmailAddress())) {
             setEmail(inf.getEmailAddress());
         }
-        if (StringUtils.isNotBlank(inf.getAffiliation())) {
+        if (isNotBlank(inf.getAffiliation())) {
             setAffiliation(inf.getAffiliation());
         }
-        if (StringUtils.isNotBlank(inf.getPosition())) {
+        if (isNotBlank(inf.getPosition())) {
             setPosition(inf.getPosition());
         }
-        if (StringUtils.isNotBlank(inf.getOrcid())) {
+        if (isNotBlank(inf.getOrcid())) {
             setOrcid(inf.getOrcid());
         }
-        if (StringUtils.isNotBlank(inf.getAffiliationROR())) {
+        if (isNotBlank(inf.getAffiliationROR())) {
             setAffiliationROR(inf.getAffiliationROR());
         }
     }
@@ -263,7 +272,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     }
 
     public String getSortByString() {
-        return String.format("%s %s %s", getLastName(), getFirstName(), getUserIdentifier());
+        return format("%s %s %s", getLastName(), getFirstName(), getUserIdentifier());
     }
 
     // -------------------- SETTERS --------------------

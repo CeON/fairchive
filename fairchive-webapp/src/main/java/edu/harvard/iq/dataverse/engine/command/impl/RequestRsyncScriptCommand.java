@@ -29,6 +29,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataCapt
  * "actiontype" in the actionlogrecord rather than "InternalError" if you throw
  * a CommandExecutionException.
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class RequestRsyncScriptCommand extends AbstractCommand<ScriptRequestResponse> {
 
@@ -66,36 +67,47 @@ public class RequestRsyncScriptCommand extends AbstractCommand<ScriptRequestResp
         }
         // We need an AuthenticatedUser so we can pass its database id to the DCM.
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) user;
-        String errorPreamble = "User id " + authenticatedUser.getId() + " had a problem retrieving rsync script for dataset id " + dataset.getId() + " from Data Capture Module.";
+        String errorPreamble = "User id " + authenticatedUser.getId() 
+            + " had a problem retrieving rsync script for dataset id " 
+            + dataset.getId() + " from Data Capture Module.";
         String jsonString = DataCaptureModuleUtil.generateJsonForUploadRequest(authenticatedUser, dataset).toString();
         UploadRequestResponse uploadRequestResponse = null;
         try {
             uploadRequestResponse = ctxt.dataCaptureModule().requestRsyncScriptCreation(jsonString, dcmBaseUrl + DataCaptureModuleServiceBean.uploadRequestPath);
         } catch (DataCaptureModuleException ex) {
-            throw new RuntimeException("Problem making upload request to Data Capture Module:  " + DataCaptureModuleUtil.getMessageFromException(ex));
+            throw new RuntimeException("Problem making upload request to Data Capture Module:  " 
+                        + DataCaptureModuleUtil.getMessageFromException(ex));
         }
         int statusCode = uploadRequestResponse.getHttpStatusCode();
         String response = uploadRequestResponse.getResponse();
         if (statusCode != 200) {
             // TODO: replace with CommandExecutionException?
-            throw new RuntimeException("When making the upload request, rather than 200 the status code was " + statusCode + ". The body was \'" + response + "\'. We cannot proceed. Returning.");
+            throw new RuntimeException("When making the upload request, rather than 200 the status code was " 
+                    + statusCode + ". The body was \'" + response 
+                    + "\'. We cannot proceed. Returning.");
         }
         long millisecondsToSleep = DataCaptureModuleServiceBean.millisecondsToSleepBetweenUploadRequestAndScriptRequestCalls;
-        logger.fine("Message from Data Caputure Module upload request endpoint: " + response + ". Sleeping " + millisecondsToSleep + " milliseconds before making rsync script request.");
+        logger.fine("Message from Data Caputure Module upload request endpoint: " 
+                + response + ". Sleeping " + millisecondsToSleep 
+                + " milliseconds before making rsync script request.");
         try {
             Thread.sleep(millisecondsToSleep);
         } catch (InterruptedException ex) {
-            throw new RuntimeException(errorPreamble + " Unable to wait " + millisecondsToSleep + " milliseconds: " + ex.getLocalizedMessage());
+            throw new RuntimeException(errorPreamble + " Unable to wait " 
+                    + millisecondsToSleep + " milliseconds: " + ex.getLocalizedMessage());
         }
         ScriptRequestResponse scriptRequestResponse = null;
         try {
             scriptRequestResponse = ctxt.dataCaptureModule().retreiveRequestedRsyncScript(dataset.getIdentifier(), dcmBaseUrl + DataCaptureModuleServiceBean.scriptRequestPath);
         } catch (DataCaptureModuleException ex) {
-            throw new RuntimeException("Problem making script request to Data Capture Module:  " + DataCaptureModuleUtil.getMessageFromException(ex));
+            throw new RuntimeException("Problem making script request to Data Capture Module:  " 
+                    + DataCaptureModuleUtil.getMessageFromException(ex));
         }
         String script = scriptRequestResponse.getScript();
         if (script == null || script.isEmpty()) {
-            logger.warning("There was a problem getting the script for " + dataset.getIdentifier() + " . DCM returned status code: " + scriptRequestResponse.getHttpStatusCode());
+            logger.warning("There was a problem getting the script for " 
+                    + dataset.getIdentifier() + " . DCM returned status code: " 
+                    + scriptRequestResponse.getHttpStatusCode());
         }
         logger.fine("script for dataset " + dataset.getId() + ": " + script);
         return scriptRequestResponse;

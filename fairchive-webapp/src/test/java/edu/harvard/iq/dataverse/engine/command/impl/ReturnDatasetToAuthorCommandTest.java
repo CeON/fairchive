@@ -80,6 +80,7 @@ public class ReturnDatasetToAuthorCommandTest {
                 return new NoOpTestEntityManager();
             }
 
+            @SuppressWarnings("serial")
             @Override
             public DatasetDao datasets() {
                 return new DatasetDao() {
@@ -102,6 +103,7 @@ public class ReturnDatasetToAuthorCommandTest {
                 };
             }
 
+            @SuppressWarnings("serial")
             @Override
             public DataverseRoleServiceBean roles() {
                 return new DataverseRoleServiceBean() {

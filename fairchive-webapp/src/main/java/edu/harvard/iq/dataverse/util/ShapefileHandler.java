@@ -1,8 +1,6 @@
 package edu.harvard.iq.dataverse.util;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType;
-import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -16,7 +14,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,7 +30,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
-import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
 
 /**
  * Used to identify, "repackage", and extract data from Shapefiles in .zip format

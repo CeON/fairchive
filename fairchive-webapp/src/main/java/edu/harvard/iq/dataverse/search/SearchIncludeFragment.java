@@ -148,8 +148,6 @@ public class SearchIncludeFragment {
     private String errorFromSolr;
     private SearchException searchException;
     private boolean solrErrorEncountered = false;
-    
-    private StreamedContent searchResultsFile;
 
     // -------------------- GETTERS --------------------
 
@@ -652,7 +650,7 @@ public class SearchIncludeFragment {
         return datafile != null && datafile.isTabularData();
     }
 
-    public void onTabChange(TabChangeEvent event) {
+    public void onTabChange(TabChangeEvent<?> event) {
         String tabId = event.getTab().getId();
         lastSearchValue.setActiveTabIndex(MAP_TAB_ID.equals(tabId) ? 1 : 0);
         search();

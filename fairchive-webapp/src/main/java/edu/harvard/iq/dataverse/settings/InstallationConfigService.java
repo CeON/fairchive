@@ -16,6 +16,7 @@ import java.io.Serializable;
  *
  * @author madryk
  */
+@SuppressWarnings("serial")
 @Stateless
 public class InstallationConfigService implements Serializable {
 

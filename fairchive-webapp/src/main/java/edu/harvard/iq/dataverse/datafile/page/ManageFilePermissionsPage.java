@@ -11,7 +11,6 @@ import edu.harvard.iq.dataverse.datafile.FilePermissionsService;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -39,6 +38,7 @@ import java.util.stream.Collectors;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class ManageFilePermissionsPage implements java.io.Serializable {

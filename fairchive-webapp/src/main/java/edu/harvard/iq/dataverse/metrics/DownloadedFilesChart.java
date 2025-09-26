@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("FilesDownloadedChart")
 public class DownloadedFilesChart implements Serializable {

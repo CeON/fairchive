@@ -18,6 +18,7 @@ import javax.inject.Named;
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("BannerTab")
 public class BannerTab implements Serializable {

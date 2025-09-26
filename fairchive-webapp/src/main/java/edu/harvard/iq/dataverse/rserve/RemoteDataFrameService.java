@@ -38,7 +38,6 @@ import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.rosuda.REngine.Rserve.RserveException;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 

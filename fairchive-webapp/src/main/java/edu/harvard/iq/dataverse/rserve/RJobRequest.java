@@ -34,9 +34,6 @@ public class RJobRequest {
 
     private static final Logger dbgLog = Logger.getLogger(RJobRequest.class.getCanonicalName());
 
-
-    private Map<String, String> variableFormats = new HashMap<>();
-
     /**
      * 4 parameter Constructor:
      *
@@ -372,12 +369,10 @@ public class RJobRequest {
     }
 
     public String[] getUpdatedVariableNames() {
-        List<String> tmp = new ArrayList<>();
         if (!hasUnsafeVariableNames) {
             // neither renemaed nor recoded vars
             return getVariableNames();
         }
-
         return safeVarNames;
     }
 

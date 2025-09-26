@@ -4,7 +4,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractVoidCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
@@ -13,6 +12,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.DeleteDatasetDraft)
 public class DeleteDatasetCommand extends AbstractVoidCommand {
 

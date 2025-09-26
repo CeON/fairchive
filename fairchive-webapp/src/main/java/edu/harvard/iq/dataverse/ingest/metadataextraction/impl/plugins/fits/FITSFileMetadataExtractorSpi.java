@@ -76,7 +76,6 @@ public class FITSFileMetadataExtractorSpi extends FileMetadataExtractorSpi {
         if (nbytes == 0) {
             throw new IOException();
         }
-        //printHexDump(b, "hex dump of the byte-array");
         dbgLog.info("hex dump of the 1st " + FITS_HEADER_SIZE + " bytes:" +
                             (new String(Hex.encodeHex(b))).toUpperCase());
 
@@ -84,8 +83,6 @@ public class FITSFileMetadataExtractorSpi extends FileMetadataExtractorSpi {
         if (stream.markSupported()) {
             stream.reset();
         }
-
-        boolean DEBUG = false;
 
         String hdr4fits = new String(b);
 

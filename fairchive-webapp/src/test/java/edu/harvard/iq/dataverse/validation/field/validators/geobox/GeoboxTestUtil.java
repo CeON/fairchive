@@ -7,11 +7,9 @@ import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.search.advanced.field.GeoboxCoordSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.GroupingSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
-import io.vavr.Tuple;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.geographicCoordinates;
 

@@ -11,13 +11,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.json.JsonArray;
 import java.util.List;
-import java.util.logging.Logger;
 
 @Stateless
 @Named
 public class RepositoryStorageAbstractionLayerPage {
-
-    private static final Logger logger = Logger.getLogger(RepositoryStorageAbstractionLayerPage.class.getCanonicalName());
 
     @Inject
     SettingsServiceBean settingsService;

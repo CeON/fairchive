@@ -62,6 +62,7 @@ public class IngestFrequencyTest {
         Mockito.when(settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.IngestMethodChangeThreshold)).thenReturn(1000000L);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testFrequency() throws IOException {
         DataFile dataFile = readFileCalcFreq("sav/frequency-test.sav" , "application/x-spss-sav");
@@ -129,8 +130,9 @@ public class IngestFrequencyTest {
         }
     }
 
-    private void testVariable(Collection<VariableCategory> categories, Function<VariableCategory, String> extractor,
-                              Tuple2<String, Integer>... values) {
+    private static void testVariable(Collection<VariableCategory> categories, 
+            Function<VariableCategory, String> extractor,
+            @SuppressWarnings("unchecked") final Tuple2<String, Integer>... values) {
         Map<String, Integer> testValues = Arrays.stream(values)
                 .collect(Collectors.toMap(Tuple2::_1, Tuple2::_2));
         for (VariableCategory category : categories) {

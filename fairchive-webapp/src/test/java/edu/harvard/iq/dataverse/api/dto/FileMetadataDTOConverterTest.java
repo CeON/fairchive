@@ -23,6 +23,7 @@ class FileMetadataDTOConverterTest {
         fileMetadata.setVersion(1L);
         fileMetadata.setTermsOfUse(new FileTermsOfUse());
         fileMetadata.setDatasetVersion(new DatasetVersion());
+        @SuppressWarnings("serial")
         DataFile dataFile = new DataFile() {
             public List<String> getTagLabels() {
                 return Stream.of("tag1", "tag2").collect(Collectors.toList());

@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
 import java.util.Objects;
+import java.io.Serializable;
 
 /**
  * Contains display info for an assignee.
@@ -8,7 +9,8 @@ import java.util.Objects;
  * @author michael
  */
 
-public class RoleAssigneeDisplayInfo implements java.io.Serializable {
+@SuppressWarnings("serial")
+public class RoleAssigneeDisplayInfo implements Serializable {
 
     private String title;
     private String emailAddress;

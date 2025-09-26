@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,7 +25,6 @@ public class ProvInvestigatorTest {
 
     private ProvInvestigator provUtilBean;
     JsonParser jsonParser;
-    private static final Logger logger = Logger.getLogger(ProvInvestigatorTest.class.getCanonicalName());
 
     @BeforeEach
     public void setUp() {

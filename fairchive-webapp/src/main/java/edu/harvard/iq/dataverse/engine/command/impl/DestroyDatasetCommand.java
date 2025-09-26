@@ -29,6 +29,7 @@ import java.util.logging.Logger;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 // Since this is used by DeleteDatasetCommand, must have at least that permission
 // (for released, user is checked for superuser)
 @RequiredPermissions(Permission.DeleteDatasetDraft)
@@ -87,7 +88,7 @@ public class DestroyDatasetCommand extends AbstractVoidCommand {
             ctxt.em().remove(ra);
         }
 
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve();
         try {
             if (idServiceBean.alreadyExists(doomed)) {
                 idServiceBean.deleteIdentifier(doomed);

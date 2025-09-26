@@ -67,6 +67,7 @@ class SearchFieldFactoryTest {
     }
 
     private static DatasetFieldType createType(FieldType type) {
+        @SuppressWarnings("serial")
         DatasetFieldType datasetFieldType = new DatasetFieldType() {
             @Override
             public String getDisplayName() { return ""; }

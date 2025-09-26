@@ -16,6 +16,7 @@ import static java.util.Collections.emptyMap;
  *
  * @author kaczynskid
  */
+@SuppressWarnings("serial")
 public class Success implements WorkflowStepResult {
 
     private final Map<String, String> data;

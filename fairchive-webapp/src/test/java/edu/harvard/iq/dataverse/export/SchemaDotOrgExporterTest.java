@@ -19,7 +19,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
 import org.assertj.core.util.Lists;
-import org.junit.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
@@ -82,7 +81,7 @@ public class SchemaDotOrgExporterTest {
 
         datasetFieldTypeSvc = new MockDatasetFieldSvc();
 
-        DatasetFieldType titleType = datasetFieldTypeSvc.add(new DatasetFieldType("title", FieldType.TEXTBOX, false));
+        datasetFieldTypeSvc.add(new DatasetFieldType("title", FieldType.TEXTBOX, false));
         DatasetFieldType authorType = datasetFieldTypeSvc.add(new DatasetFieldType("author", FieldType.TEXT, true));
         Set<DatasetFieldType> authorChildTypes = new HashSet<>();
         authorChildTypes.add(datasetFieldTypeSvc.add(new DatasetFieldType("authorName", FieldType.TEXT, false)));
@@ -134,7 +133,7 @@ public class SchemaDotOrgExporterTest {
         topicClassificationTypes.add(datasetFieldTypeSvc.add(new DatasetFieldType("topicClassVocabURI", FieldType.TEXT, false)));
         topicClassificationType.setChildDatasetFieldTypes(topicClassificationTypes);
 
-        DatasetFieldType descriptionType = datasetFieldTypeSvc.add(new DatasetFieldType("description", FieldType.TEXTBOX, false));
+        datasetFieldTypeSvc.add(new DatasetFieldType("description", FieldType.TEXTBOX, false));
 
         DatasetFieldType subjectType = datasetFieldTypeSvc.add(new DatasetFieldType("subject", FieldType.TEXT, true));
         subjectType.setAllowControlledVocabulary(true);
@@ -741,6 +740,7 @@ public class SchemaDotOrgExporterTest {
     }
 
 
+    @SuppressWarnings("serial")
     @TestBean
     static class MockDatasetFieldSvc extends DatasetFieldServiceBean {
 

@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.DeleteDatasetDraft)
 public class DeleteDatasetVersionCommand extends AbstractVoidCommand {
 

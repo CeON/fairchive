@@ -19,7 +19,6 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.List;
@@ -28,6 +27,7 @@ import java.util.Optional;
 /**
  * Class designed to help with replacing file in dataset.
  */
+@SuppressWarnings("serial")
 @Stateless
 public class ReplaceFileHandler implements Serializable {
 

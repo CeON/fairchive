@@ -4,7 +4,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.persistence.group.ExplicitGroup;
 import edu.harvard.iq.dataverse.persistence.group.GroupException;
@@ -21,6 +20,7 @@ import java.util.logging.Logger;
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ManageDataversePermissions)
 public class AddRoleAssigneesToExplicitGroupCommand extends AbstractCommand<ExplicitGroup> {
 

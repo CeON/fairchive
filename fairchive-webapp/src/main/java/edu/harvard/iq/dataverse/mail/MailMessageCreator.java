@@ -12,7 +12,6 @@ import edu.harvard.iq.dataverse.notification.NotificationParameter;
 import edu.harvard.iq.dataverse.notification.dto.EmailNotificationDto;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -169,7 +168,6 @@ public class MailMessageCreator {
         Locale notificationsEmailLanguage = notificationDto.getNotificationReceiver().getNotificationsLanguage();
         String messageText = BundleUtil.getStringFromBundleWithLocale("notification.email.greeting",
                 notificationsEmailLanguage);
-        String objectType = NotificationObjectType.DATAVERSE.toString().toLowerCase();
 
         switch (notificationDto.getNotificationType()) {
             case ASSIGNROLE:
@@ -179,14 +177,12 @@ public class MailMessageCreator {
                         .map(RoleTranslationUtil::getLocaleNameFromAlias)
                         .collect(Collectors.joining("/"));
 
-                String pattern = BundleUtil.getStringFromBundleWithLocale("notification.email.assignRole",
-                        notificationsEmailLanguage);
-
-                messageText += MessageFormat.format(pattern, joinedRoleNames, objectType, dataverse.getDisplayName(),
-                                                    getDataverseLink(dataverse));
+                messageText += BundleUtil.getStringFromBundleWithLocale("notification.email.dataverse.assignRole",
+                        notificationsEmailLanguage,
+                        joinedRoleNames, dataverse.getDisplayName(), getDataverseLink(dataverse));
 
                 if (joinedRoleNames.contains(BuiltInRole.FILE_DOWNLOADER.getAlias())) {
-                    pattern = BundleUtil.getStringFromBundleWithLocale(
+                    String pattern = BundleUtil.getStringFromBundleWithLocale(
                             "notification.access.granted.fileDownloader.additionalDataverse",
                             notificationsEmailLanguage);
                     messageText += MessageFormat.format(pattern, " ");
@@ -194,9 +190,9 @@ public class MailMessageCreator {
 
                 return messageText;
             case REVOKEROLE:
-                messageText += MessageFormat.format(
-                        BundleUtil.getStringFromBundleWithLocale("notification.email.revokeRole", notificationsEmailLanguage),
-                        objectType, dataverse.getDisplayName(), getDataverseLink(dataverse));
+                messageText += BundleUtil.getStringFromBundleWithLocale("notification.email.dataverse.revokeRole",
+                        notificationsEmailLanguage,
+                        dataverse.getDisplayName(), getDataverseLink(dataverse));
                 return messageText;
             case CREATEDV:
                 Dataverse parentDataverse = dataverse.getOwner();
@@ -217,21 +213,20 @@ public class MailMessageCreator {
         Locale notificationsEmailLanguage = notificationDto.getNotificationReceiver().getNotificationsLanguage();
         String messageText = BundleUtil.getStringFromBundleWithLocale("notification.email.greeting",
                 notificationsEmailLanguage);
-        String objectType = notificationDto.getNotificationObjectType().toString().toLowerCase();
         String pattern;
 
         switch (notificationDto.getNotificationType()) {
             case ASSIGNROLE:
 
                 String joinedRoleNames = permissionService.getRolesOfUser(notificationDto.getNotificationReceiver(), dataset).stream()
-                        .map(roleAssignment -> roleAssignment.getRole().getAlias())
+                        .map(RoleAssignment::getRole)
+                        .map(DataverseRole::getAlias)
+                        .map(RoleTranslationUtil::getLocaleNameFromAlias)
                         .collect(Collectors.joining("/"));
 
-                pattern = BundleUtil.getStringFromBundleWithLocale("notification.email.assignRole",
-                        notificationsEmailLanguage);
-
-                messageText += MessageFormat.format(pattern,
-                        joinedRoleNames, objectType, dataset.getDisplayName(), getDatasetLink(dataset));
+                messageText += BundleUtil.getStringFromBundleWithLocale("notification.email.dataset.assignRole",
+                        notificationsEmailLanguage,
+                        joinedRoleNames, dataset.getDisplayName(), getDatasetLink(dataset));
 
                 if (joinedRoleNames.contains(BuiltInRole.FILE_DOWNLOADER.getAlias())) {
                     pattern = BundleUtil.getStringFromBundleWithLocale(
@@ -240,8 +235,9 @@ public class MailMessageCreator {
                 }
                 return messageText;
             case REVOKEROLE:
-                messageText += MessageFormat.format(BundleUtil.getStringFromBundleWithLocale("notification.email.revokeRole",
-                        notificationsEmailLanguage), objectType, dataset.getDisplayName(), getDatasetLink(dataset));
+                messageText += BundleUtil.getStringFromBundleWithLocale("notification.email.dataset.revokeRole",
+                        notificationsEmailLanguage,
+                        dataset.getDisplayName(), getDatasetLink(dataset));
                 return messageText;
             case GRANTFILEACCESS:
                 pattern = BundleUtil.getStringFromBundleWithLocale("notification.email.grantFileAccess",
@@ -257,7 +253,7 @@ public class MailMessageCreator {
                 return messageText;
             case CHECKSUMFAIL:
                 String checksumFailMsg = BundleUtil.getStringFromBundleWithLocale("notification.checksumfail",
-                        notificationsEmailLanguage, dataset.getGlobalIdString());
+                        notificationsEmailLanguage, dataset.getGlobalId().toString());
                 logger.fine("checksumFailMsg: " + checksumFailMsg);
                 return messageText + checksumFailMsg;
             case GRANTFILEACCESSINFO:
@@ -344,13 +340,13 @@ public class MailMessageCreator {
                 return greetingsText +
                         BundleUtil.getStringFromBundleWithLocale("notification.mail.import.filesystem", notificationsEmailLanguage,
                                                                               systemConfig.getDataverseSiteUrl(),
-                                                                              version.getDataset().getGlobalIdString(),
+                                                                              version.getDataset().getGlobalId().toString(),
                                                                               version.getDataset().getDisplayName());
 
             case CHECKSUMIMPORT:
 
                 return greetingsText + BundleUtil.getStringFromBundleWithLocale("notification.import.checksum", notificationsEmailLanguage,
-                                                                                  version.getDataset().getGlobalIdString(),
+                                                                                  version.getDataset().getGlobalId().toString(),
                                                                                   version.getDataset().getDisplayName());
 
         }
@@ -498,11 +494,11 @@ public class MailMessageCreator {
     }
 
     private String getDatasetLink(Dataset dataset) {
-        return systemConfig.getDataverseSiteUrl() + "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString();
+        return systemConfig.getDataverseSiteUrl() + "/dataset.xhtml?persistentId=" + dataset.getGlobalId();
     }
 
     private String getDatasetDraftLink(Dataset dataset) {
-        return systemConfig.getDataverseSiteUrl() + "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&version=DRAFT";
+        return systemConfig.getDataverseSiteUrl() + "/dataset.xhtml?persistentId=" + dataset.getGlobalId() + "&version=DRAFT";
     }
 
     private String getDatasetManageFilePermissionsLink(Dataset dataset) {

@@ -8,7 +8,6 @@ import edu.harvard.iq.dataverse.search.SearchUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 
 import javax.ejb.EJB;
@@ -200,7 +199,7 @@ public class SolrIndexServiceBean {
         /**
          * @todo Do something with these responses from Solr.
          */
-        UpdateResponse addResponse = solrServer.add(inputDocs);
-        UpdateResponse commitResponse = solrServer.commit();
+        solrServer.add(inputDocs);
+        solrServer.commit();
     }
 }

@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.persistence.config;
 
-import edu.harvard.iq.dataverse.persistence.config.URLValidator;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

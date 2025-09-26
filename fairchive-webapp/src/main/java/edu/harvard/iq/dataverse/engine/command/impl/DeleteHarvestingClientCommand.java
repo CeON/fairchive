@@ -13,6 +13,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class DeleteHarvestingClientCommand extends AbstractVoidCommand {
 

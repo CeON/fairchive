@@ -3,16 +3,22 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundleWithLocale;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +38,7 @@ public class ControlledVocabularyValue implements Serializable {
             = Comparator.comparingInt(ControlledVocabularyValue::getDisplayOrder);
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     public Long getId() {
@@ -57,7 +63,7 @@ public class ControlledVocabularyValue implements Serializable {
     // @JoinColumn( nullable = false ) TODO this breaks for the N/A value. need to create an N/A type for that value.
     private DatasetFieldType datasetFieldType;
 
-    @OneToMany(mappedBy = "controlledVocabularyValue", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "controlledVocabularyValue", cascade = {REMOVE, MERGE, PERSIST})
     private Collection<ControlledVocabAlternate> controlledVocabAlternates = new ArrayList<>();
 
     @Column
@@ -67,7 +73,8 @@ public class ControlledVocabularyValue implements Serializable {
 
     public ControlledVocabularyValue() { }
 
-    public ControlledVocabularyValue(Long id, String strValue, DatasetFieldType datasetFieldType) {
+    public ControlledVocabularyValue(Long id, String strValue, 
+            DatasetFieldType datasetFieldType) {
         this.id = id;
         this.strValue = strValue;
         this.datasetFieldType = datasetFieldType;
@@ -123,11 +130,11 @@ public class ControlledVocabularyValue implements Serializable {
         key = StringUtils.stripAccents(key);
         String value;
         try {
-            value = BundleUtil.getStringFromNonDefaultBundleWithLocale(
+            value = getStringFromNonDefaultBundleWithLocale(
                     "controlledvocabulary." + this.datasetFieldType.getName() + "." + key,
                     getDatasetFieldType().getMetadataBlock().getName(), locale);
         } catch (NullPointerException npe) {
-            value = StringUtils.EMPTY;
+            value = EMPTY;
         }
         return value.isEmpty() ? getStrValue() : value;
     }

@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.io.Serializable;
 
 /**
  * A group that explicitly lists {@link RoleAssignee}s that belong to it. Implementation-wise,
@@ -36,6 +37,7 @@ import java.util.TreeSet;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "ExplicitGroup.findAll",
                 query = "SELECT eg FROM ExplicitGroup eg"),
@@ -67,7 +69,7 @@ import java.util.TreeSet;
 @Entity
 @Table(indexes = {@Index(columnList = "owner_id"),
         @Index(columnList = "groupaliasinowner")})
-public class ExplicitGroup implements Group, java.io.Serializable {
+public class ExplicitGroup implements Group, Serializable {
 
     public final static String GROUP_TYPE = "explicit";
     

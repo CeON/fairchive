@@ -47,7 +47,7 @@ public class ApiReadonlyInstanceFilterTest {
         // when
         readonlyInstanceFilter.filter(requestContext);
         // then
-        verifyZeroInteractions(requestContext);
+        verifyNoInteractions(requestContext);
     }
 
     @Test

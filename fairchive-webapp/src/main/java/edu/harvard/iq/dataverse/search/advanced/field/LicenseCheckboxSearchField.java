@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("serial")
 public class LicenseCheckboxSearchField extends CheckboxSearchField {
 
     private Map<Long, String> licenseNames = new HashMap<>();

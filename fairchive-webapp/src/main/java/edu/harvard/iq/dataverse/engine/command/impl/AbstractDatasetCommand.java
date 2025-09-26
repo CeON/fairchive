@@ -40,6 +40,7 @@ import static java.util.stream.Collectors.joining;
  * @param <T> The type of the command's result. Normally {@link Dataset}.
  * @author michael
  */
+@SuppressWarnings("serial")
 public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
 
     private static final Logger logger = Logger.getLogger(AbstractDatasetCommand.class.getName());
@@ -166,7 +167,7 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
      */
     protected void registerExternalIdentifier(Dataset theDataset, CommandContext ctxt) {
         if (!theDataset.isIdentifierRegistered()) {
-            GlobalIdServiceBean globalIdServiceBean = GlobalIdServiceBean.getBean(theDataset.getProtocol(), ctxt);
+            GlobalIdServiceBean globalIdServiceBean = ctxt.globalIdServiceBeanResolver().resolve(theDataset.getProtocol());
             if (globalIdServiceBean != null) {
                 if (globalIdServiceBean instanceof FakePidProviderServiceBean) {
                     try {

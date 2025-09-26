@@ -91,7 +91,8 @@ import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 public class Dataverse extends DvObjectContainer {
 
     public enum DataverseType {
-        RESEARCHERS, RESEARCH_PROJECTS, JOURNALS, ORGANIZATIONS_INSTITUTIONS, TEACHING_COURSES, UNCATEGORIZED, LABORATORY, RESEARCH_GROUP, DEPARTMENT
+        RESEARCHERS, RESEARCH_PROJECTS, JOURNALS, ORGANIZATIONS_INSTITUTIONS, 
+        TEACHING_COURSES, UNCATEGORIZED, LABORATORY, RESEARCH_GROUP, DEPARTMENT
     }
 
     public enum FeaturedDataversesSorting {

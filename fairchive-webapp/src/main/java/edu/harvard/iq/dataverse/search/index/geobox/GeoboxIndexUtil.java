@@ -3,15 +3,10 @@ package edu.harvard.iq.dataverse.search.index.geobox;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.search.response.GeoPoint;
-import edu.harvard.iq.dataverse.validation.field.validators.geobox.GeoboxFields;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -19,9 +14,7 @@ import java.util.stream.Collectors;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.geographicCoordinates;
 
 public class GeoboxIndexUtil {
-    private static final Logger logger = LoggerFactory.getLogger(GeoboxIndexUtil.class);
 
-    private RectangleToSolrConverter converter = new RectangleToSolrConverter();
     private PolygonToSolrConverter polygonToSolrConverter = new PolygonToSolrConverter();
 
     // -------------------- LOGIC --------------------

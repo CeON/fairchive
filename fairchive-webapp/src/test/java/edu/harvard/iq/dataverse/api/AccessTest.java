@@ -7,7 +7,6 @@ import edu.harvard.iq.dataverse.PermissionServiceBean.RequestPermissionQuery;
 import edu.harvard.iq.dataverse.dataset.EmbargoAccessService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
@@ -21,8 +20,6 @@ import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,7 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

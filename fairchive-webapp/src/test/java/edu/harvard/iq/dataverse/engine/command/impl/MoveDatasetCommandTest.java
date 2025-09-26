@@ -20,7 +20,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
-import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
@@ -160,6 +159,7 @@ public class MoveDatasetCommandTest {
         childA.setGuestbooks(includeA);
 
         testEngine = new TestDataverseEngine(new TestCommandContext() {
+            @SuppressWarnings("serial")
             @Override
             public DataverseDao dataverses() {
                 return new DataverseDao() {

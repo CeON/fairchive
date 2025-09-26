@@ -16,6 +16,7 @@ import java.io.Serializable;
  *
  * @author kaczynskid
  */
+@SuppressWarnings("serial")
 public class WorkflowExecutionMessage implements Serializable, WorkflowExecutionContextSource {
 
     private final long id;

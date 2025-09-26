@@ -5,6 +5,7 @@ import java.util.Arrays;
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 public class IPv6Address extends IpAddress implements Comparable<IPv6Address> {
 
     public static IPv6Address valueOf(String in) {

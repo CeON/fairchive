@@ -8,7 +8,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import org.apache.abdera.i18n.iri.IRI;
 import org.apache.abdera.i18n.iri.IRISyntaxException;
@@ -66,11 +65,10 @@ public class StatementManagerImpl implements StatementManager {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "couldn't find dataset with global ID of " + globalId);
             }
 
-            Dataverse dvThatOwnsDataset = dataset.getOwner();
             if (!permissionService.isUserAllowedOn(user, new GetDraftDatasetVersionCommand(dvReq, dataset), dataset)) {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "user " + user.getDisplayInfo().getTitle() + " is not authorized to view dataset with global ID " + globalId);
             }
-            String feedUri = urlManagerServiceBean.getHostnamePlusBaseUrlPath() + "/edit/study/" + dataset.getGlobalIdString();
+            String feedUri = urlManagerServiceBean.getHostnamePlusBaseUrlPath() + "/edit/study/" + dataset.getGlobalId();
             String author = dataset.getLatestVersion().getAuthorsStr();
             String title = dataset.getLatestVersion().getParsedTitle();
             // in the statement, the element is called "updated"

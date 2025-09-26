@@ -24,6 +24,7 @@ import java.util.List;
  * @see GuestbookResponseDialog
  * @see FileDownloadHelper
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("RequestedDownloadType")
 public class RequestedDownloadType implements Serializable {

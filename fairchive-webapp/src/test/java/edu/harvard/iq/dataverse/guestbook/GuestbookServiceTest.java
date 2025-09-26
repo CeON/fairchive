@@ -72,7 +72,7 @@ public class GuestbookServiceTest {
         guestbook.setName("editeGuestbook");
 
         // when
-        Dataverse dv = guestbookService.editGuestbook(guestbook);
+        guestbookService.editGuestbook(guestbook);
 
         // then
         verify(engineService, times(1)).submit(Mockito.any(UpdateDataverseGuestbookCommand.class));

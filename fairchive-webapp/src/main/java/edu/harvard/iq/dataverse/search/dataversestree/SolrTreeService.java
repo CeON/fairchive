@@ -95,6 +95,7 @@ public class SolrTreeService {
         for (SolrDocument solrDocument : queryResponse.getResults()) {
             allowedToSelect.add((Long) solrDocument.getFieldValue(SearchFields.ENTITY_ID));
             String parentId = (String) solrDocument.getFieldValue(SearchFields.PARENT_ID);
+            @SuppressWarnings("unchecked")
             List<String> paths = (List<String>) solrDocument.getFieldValue(SearchFields.SUBTREE);
             paths = paths != null ? paths : Collections.emptyList();
             Set<Long> intermediatePaths = paths.stream()

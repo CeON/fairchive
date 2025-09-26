@@ -52,9 +52,6 @@ class FileMetadataServiceTest {
         FileMetadata fileMetadata = new FileMetadata();
         fileMetadata.setDataFile(dataFile);
 
-        HashMap<String, UpdatesEntry> provenanceUpdates = of(checksum, new UpdatesEntry(dataFile, "prov", false, provFree))
-                .toJavaMap();
-
         //when
         FileMetadata updatedFile = fileMetadataService.updateFileMetadataWithProvFreeForm(fileMetadata, provFree);
 

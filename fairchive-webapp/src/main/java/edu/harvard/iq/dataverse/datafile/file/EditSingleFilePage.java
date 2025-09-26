@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("EditSingleFilePage")
 public class EditSingleFilePage implements java.io.Serializable {

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /*
@@ -29,12 +28,8 @@ import java.util.stream.Collectors;
  *
  * @author rmp553
  */
+@SuppressWarnings("serial")
 public class DataverseRolePermissionHelper implements java.io.Serializable {
-
-    private static final Logger logger = Logger.getLogger(DataverseRolePermissionHelper.class.getCanonicalName());
-
-    //@EJB
-    //DataverseRoleServiceBean roleService;
 
     public Map<Long, Boolean> rolesWithDataversePermissions = new HashMap<>();  // { role id : true }
     public Map<Long, Boolean> rolesWithDatasetPermissions = new HashMap<>();  // { role id : true }
@@ -232,11 +227,6 @@ public class DataverseRolePermissionHelper implements java.io.Serializable {
         return null;
     }
 
-    /*
-    entries = new ArrayList<Entry<Integer, String>>(map.entrySet());
-    */
-    private List<Entry<Long, String>> roleNamesAsArrayList;
-
     public List<Entry<Long, String>> getRoleNamesAsArrayList() {
         return new ArrayList<>(roleNameLookup.entrySet());
     }
@@ -254,17 +244,6 @@ public class DataverseRolePermissionHelper implements java.io.Serializable {
         }
         return roleInfoList;
     }
-
-    private void msg(String s) {
-        logger.info(s);
-    }
-
-    private void msgt(String s) {
-        msg("-------------------------------");
-        msg(s);
-        msg("-------------------------------");
-    }
-
 
     public List<Long> getRoleIdList() {
 

@@ -5,6 +5,19 @@
  */
 package edu.harvard.iq.dataverse;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -15,28 +28,18 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
 import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
 import edu.harvard.iq.dataverse.dataaccess.S3AccessIO;
 import edu.harvard.iq.dataverse.dataaccess.S3ClientFactory;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
+import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBeanResolver;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This class is for importing files added to s3 outside of dataverse.
@@ -58,6 +61,9 @@ public class S3PackageImporter extends AbstractApiBean implements java.io.Serial
 
     @EJB
     EjbDataverseEngine commandEngine;
+    
+    @EJB
+    GlobalIdServiceBeanResolver resolver;
 
     private S3ClientFactory s3ClientFactory = new S3ClientFactory();
 
@@ -208,7 +214,7 @@ public class S3PackageImporter extends AbstractApiBean implements java.io.Serial
 
         generateS3PackageStorageIdentifier(packageFile, s3ClientFactory.getDefaultBucketName());
 
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(packageFile.getProtocol(), commandEngine.getContext());
+        GlobalIdServiceBean idServiceBean = this.resolver.resolve(packageFile.getProtocol());
         if (packageFile.getIdentifier() == null || packageFile.getIdentifier().isEmpty()) {
             String packageIdentifier = dataFileServiceBean.generateDataFileIdentifier(packageFile, idServiceBean);
             packageFile.setIdentifier(packageIdentifier);
@@ -226,7 +232,7 @@ public class S3PackageImporter extends AbstractApiBean implements java.io.Serial
 
         if (!packageFile.isIdentifierRegistered()) {
             String doiRetString = "";
-            idServiceBean = GlobalIdServiceBean.getBean(commandEngine.getContext());
+            idServiceBean = this.resolver.resolve();
             try {
                 doiRetString = idServiceBean.createIdentifier(packageFile);
             } catch (Throwable e) {

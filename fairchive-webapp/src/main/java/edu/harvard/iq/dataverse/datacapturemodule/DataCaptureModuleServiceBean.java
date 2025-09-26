@@ -13,6 +13,7 @@ import java.util.logging.Logger;
  * This class contains all the methods that have external runtime dependencies
  * such as the Data Capture Module itself.
  */
+@SuppressWarnings("serial")
 @Stateless
 public class DataCaptureModuleServiceBean implements Serializable {
 

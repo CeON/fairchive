@@ -26,6 +26,7 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DatasetMetadataTab")
 public class DatasetMetadataTab implements Serializable {
@@ -129,6 +130,6 @@ public class DatasetMetadataTab implements Serializable {
 
     private String createExporterURL(Exporter exporter, String myHostURL) {
         return myHostURL + "/api/datasets/export?exporter=" + exporter.getProviderName()
-            + "&persistentId=" + dataset.getGlobalIdString();
+            + "&persistentId=" + dataset.getGlobalId();
     }
 }
