@@ -32,8 +32,8 @@ public class OAuth2AuthenticationProviderFactory implements AuthenticationProvid
                 data.get("clientSecret")));
         this.builders.put("orcid", data -> new OrcidOAuth2AP(data.get("clientId"),
                 data.get("clientSecret"), data.get("userEndpoint")));
-        this.builders.put("pbi", data -> new PBIOauth2AP(data.get("clientId"),
-                data.get("clientSecret")));
+        this.builders.put("pbi", data -> new PBIOauth2AP(data.get("host"), 
+                data.get("realm"), data.get("clientId"), data.get("clientSecret")));
     }
 
     @Override

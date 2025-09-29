@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.authorization.providers.oauth2.impl;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.String.format;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
@@ -33,17 +34,19 @@ import edu.harvard.iq.dataverse.util.StringUtil;
 
 public class PBIOauth2AP extends AbstractOAuth2AuthenticationProvider {
 
-    private static final String AUTH_URL = "https://keycloak-dev.psnc.pl/realms/pbi-dev/protocol/openid-connect/auth";
-    private static final String ACCESS_TOKEN_URL = "https://keycloak-dev.psnc.pl/realms/pbi-dev/protocol/openid-connect/token";
-    private final BaseApi<OAuth20Service> api = new PBIApi();
+    private static final String AUTH_URL = "https://%s/realms/%s/protocol/openid-connect/auth";
+    private static final String ACCESS_TOKEN_URL = "https://%s/realms/%s/protocol/openid-connect/token";
+    private final BaseApi<OAuth20Service> api;
 
-    public PBIOauth2AP(final String aClientId, final String aClientSecret) {
+    public PBIOauth2AP(final String host, final String realm, 
+            final String aClientId, final String aClientSecret) {
         this.id = "pbi";
         this.title = getStringFromBundle("auth.providers.title.pbi");
         this.clientId = aClientId;
         this.clientSecret = aClientSecret;
         this.scope = "openid";
-        this.baseUserEndpoint = AUTH_URL;
+        this.baseUserEndpoint = format(AUTH_URL, host, realm);
+        this.api = new PBIApi(host, realm);
     }
 
     @Override
@@ -137,15 +140,23 @@ public class PBIOauth2AP extends AbstractOAuth2AuthenticationProvider {
     }
 
     private static class PBIApi extends DefaultApi20 {
+        
+        private final String host;
+        private final String realm;
+        
+        public PBIApi(final String host, final String realm) {
+            this.host = host;
+            this.realm = realm;
+        }
 
         @Override
         public String getAccessTokenEndpoint() {
-            return ACCESS_TOKEN_URL;
+            return format(ACCESS_TOKEN_URL, host, realm);
         }
 
         @Override
         protected String getAuthorizationBaseUrl() {
-            return AUTH_URL;
+            return format(AUTH_URL, host, realm);
         }
 
         @Override
