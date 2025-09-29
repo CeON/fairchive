@@ -13,11 +13,11 @@ pip3 install matplotlib
 pip3 install https://github.com/rscipien/WordDetectorNN/archive/refs/heads/master.zip
 #Requirements: pip install opencv-python pillow numpy transformers torch
 
-curl -L -o trocr-line.py https://raw.githubusercontent.com/CeON/fairchive/refs/heads/feature/2957-htr/conf/glassfish-handwritting-detection/trocr-line.py
+curl -L -o trocr-line.py https://raw.githubusercontent.com/CeON/fairchive/refs/heads/develop/conf/glassfish-handwritting-detection/trocr-line.py
 
 curl -L -o weights https://github.com/rscipien/WordDetectorNN/raw/refs/heads/master/model/weights
 
-curl -L -o test-htr.jpg https://raw.githubusercontent.com/CeON/fairchive/refs/heads/feature/2957-htr/conf/glassfish-handwritting-detection/computer-architecture-test-htr.jpg
+curl -L -o test-htr.jpg https://raw.githubusercontent.com/CeON/fairchive/refs/heads/develop/conf/glassfish-handwritting-detection/computer-architecture-test-htr.jpg
 
 # after installation remove pip cache, we should save ~3GB from cache
 pip cache purge

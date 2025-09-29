@@ -49,7 +49,8 @@ import java.util.logging.Logger;
  */
 @MessageDriven(name = "IngestMessageBean", mappedName = "jms/DataverseIngest", activationConfig = {
         @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue")
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "1")
 })
 public class IngestMessageBean implements MessageListener {
     private static final Logger logger = Logger.getLogger(IngestMessageBean.class.getCanonicalName());

@@ -21,5 +21,12 @@
                 <resource-adapter-mid>activemq-rar</resource-adapter-mid>
             </mdb-resource-adapter>
         </ejb>
+        <ejb>
+            <ejb-name>IngestMessageBean</ejb-name>
+            <bean-pool>
+                <steady-pool-size>1</steady-pool-size>
+                <max-pool-size>1</max-pool-size>
+            </bean-pool>
+        </ejb>
     </enterprise-beans>
 </glassfish-ejb-jar>
