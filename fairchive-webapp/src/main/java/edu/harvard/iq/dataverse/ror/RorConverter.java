@@ -4,11 +4,14 @@ import edu.harvard.iq.dataverse.api.dto.RorEntryDTO;
 import edu.harvard.iq.dataverse.persistence.ror.RorData;
 import edu.harvard.iq.dataverse.persistence.ror.RorLabel;
 import edu.harvard.iq.dataverse.search.ror.RorDto;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.Stateless;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Simple converter for Ror objects.
@@ -20,8 +23,8 @@ public class RorConverter {
 
     // -------------------- LOGIC --------------------
 
-    public RorData toEntity(RorEntryDTO entry) {
-        RorData converted = new RorData();
+    public RorData toEntity(final RorEntryDTO entry) {
+        final RorData converted = new RorData();
 
         converted.setRorId(extractRor(entry.getId()));
         converted.setName(entry.getName());
@@ -39,21 +42,21 @@ public class RorConverter {
             converted.setCountryCode(entry.getCountry().getCountryCode());
         }
 
-        converted.getAcronyms().addAll(Arrays.asList(entry.getAcronyms()));
-        converted.getNameAliases().addAll(Arrays.asList(entry.getAliases()));
+        converted.getAcronyms().addAll(asList(entry.getAcronyms()));
+        converted.getNameAliases().addAll(asList(entry.getAliases()));
         converted.getLabels().addAll(
-                Arrays.stream(entry.getLabels())
+                stream(entry.getLabels())
                       .map(l -> new RorLabel(l.getLabel(), l.getIso639()))
-                      .collect(Collectors.toSet()));
+                      .collect(toSet()));
 
         return converted;
     }
 
     public RorDto toSolrDto(RorData entry) {
-        RorDto converted = new RorDto();
+        final RorDto converted = new RorDto();
 
         converted.setRorId(entry.getRorId());
-        converted.setRorUrl(ROR_URL_PREFIX + entry.getRorId());
+        converted.setRorUrl(ROR_URL_PREFIX.concat(entry.getRorId()));
         converted.setName(entry.getName());
 
         converted.setCity(entry.getCity());
@@ -69,17 +72,18 @@ public class RorConverter {
                 entry.getLabels()
                      .stream()
                       .map(RorLabel::getLabel)
-                      .collect(Collectors.toSet()));
+                      .collect(toSet()));
 
         return converted;
     }
 
     // -------------------- PRIVATE --------------------
 
-    private String extractRor(String rorId) {
-        if (StringUtils.isBlank(rorId) || !rorId.contains("/0")) {
-            return StringUtils.EMPTY;
+    private String extractRor(final String rorId) {
+        if (isBlank(rorId) || !rorId.contains("/0")) {
+            return EMPTY;
+        } else {
+            return rorId.substring(rorId.lastIndexOf("/") + 1);
         }
-        return rorId.substring(rorId.lastIndexOf("/") + 1);
     }
 }
