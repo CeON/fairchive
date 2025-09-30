@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.permission;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
@@ -73,8 +72,6 @@ public class ManagePermissionsPage implements java.io.Serializable {
     @Inject
     PermissionsWrapper permissionsWrapper;
     @Inject
-    private DatasetDao datasetDao;
-    @Inject
     private ManagePermissionsService managePermissionsService;
     @Inject
     private UIMessages ui;
@@ -123,7 +120,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
 
         if(dvObject instanceof Dataset || dvObject instanceof DataFile) {
             Dataset dataset = dvObject instanceof Dataset ? (Dataset) dvObject : ((DataFile) dvObject).getOwner();
-            if (datasetDao.isInReview(dataset)
+            if (dataset.isInReview()
                     && !(permissionsWrapper.canIssuePublishDatasetCommand(dataset)
                     && permissionsWrapper.canManageDatasetOrMinorDatasetPermissions(dataset))) {
                 return permissionsWrapper.notAuthorized();

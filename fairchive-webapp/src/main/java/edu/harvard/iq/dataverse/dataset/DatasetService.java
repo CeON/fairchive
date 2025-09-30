@@ -13,7 +13,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetPage;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
@@ -35,6 +34,7 @@ import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
@@ -53,7 +53,7 @@ public class DatasetService {
 
     private EjbDataverseEngine commandEngine;
     private UserNotificationService userNotificationService;
-    private DatasetDao datasetDao;
+    private DatasetRepository datasetRepo;
     private DataverseSession session;
     private DataverseRequestServiceBean dvRequestService;
     private IngestServiceBean ingestService;
@@ -70,14 +70,20 @@ public class DatasetService {
     }
 
     @Inject
-    public DatasetService(EjbDataverseEngine commandEngine, UserNotificationService userNotificationService,
-                          DatasetDao datasetDao, DataverseSession session, DataverseRequestServiceBean dvRequestService,
-                          IngestServiceBean ingestService, SettingsServiceBean settingsService,
-                          ProvPopupFragmentBean provPopupFragmentBean, PermissionServiceBean permissionService,
-                          SolrIndexServiceBean solrIndexService, IndexServiceBean indexService) {
+    public DatasetService(final EjbDataverseEngine commandEngine, 
+            final UserNotificationService userNotificationService,
+            final DatasetRepository datasetRepo, 
+            final DataverseSession session, 
+            final DataverseRequestServiceBean dvRequestService,
+            final IngestServiceBean ingestService, 
+            final SettingsServiceBean settingsService,
+            final ProvPopupFragmentBean provPopupFragmentBean, 
+            final PermissionServiceBean permissionService,
+            final SolrIndexServiceBean solrIndexService, 
+            final IndexServiceBean indexService) {
         this.commandEngine = commandEngine;
         this.userNotificationService = userNotificationService;
-        this.datasetDao = datasetDao;
+        this.datasetRepo = datasetRepo;
         this.session = session;
         this.dvRequestService = dvRequestService;
         this.ingestService = ingestService;
@@ -107,7 +113,7 @@ public class DatasetService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public AddFilesResult addFilesToDataset(long datasetId, List<DataFile> newFiles) {
 
-        Dataset dataset = datasetDao.find(datasetId);
+        Dataset dataset = this.datasetRepo.findById(datasetId).get();
         AuthenticatedUser user = retrieveAuthenticatedUser();
 
         if (settingsService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled)) {
@@ -212,13 +218,13 @@ public class DatasetService {
 
     @SuperuserRequired
     public void updateAllLastChangeForExporterTime() {
-        datasetDao.updateAllLastChangeForExporterTime();
+        this.datasetRepo.updateAllLastChangeForExporterTime();
     }
 
     @SuperuserRequired
     public void updateLastChangeForExporterTime(Dataset dataset) {
         dataset.setLastChangeForExporterTime(new Date());
-        datasetDao.merge(dataset);
+        this.datasetRepo.save(dataset);
     }
 
     // -------------------- PRIVATE --------------------
@@ -238,7 +244,7 @@ public class DatasetService {
 
         dataset.setEmbargoDate(embargoDate);
         dataset.setLastChangeForExporterTime(Date.from(Instant.now(Clock.systemDefaultZone())));
-        dataset = datasetDao.mergeAndFlush(dataset);
+        dataset = this.datasetRepo.saveAndFlush(dataset);
         this.indexService.indexDataset(dataset, false);
 
         solrIndexService.indexPermissionsForDatasetWithDataFiles(dataset);

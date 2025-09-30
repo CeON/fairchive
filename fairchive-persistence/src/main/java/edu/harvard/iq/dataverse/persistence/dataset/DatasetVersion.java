@@ -414,7 +414,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
      * @return if the dataset is being reviewed
      */
     public boolean isInReview() {
-        return DRAFT.equals(versionState) && dataset.isLockedFor(InReview);
+        return DRAFT.equals(versionState) && dataset.isInReview();
     }
     
     public boolean hasSameTermsOfUseForAllFiles() {
