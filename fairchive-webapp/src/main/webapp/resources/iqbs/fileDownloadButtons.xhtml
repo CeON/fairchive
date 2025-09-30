@@ -18,6 +18,7 @@
     <composite:attribute name="updateOnDownloadRequest" />
     <composite:attribute name="updateOnRequestAccess" />
     <composite:attribute name="OCRedFilePresent" />
+    <composite:attribute name="HTRedFilePresent" />
 </composite:interface>
 
 
@@ -258,8 +259,47 @@
                 </li>
 			</ul>
 		</div>
+
+        <div class="btn-group"
+             jsf:rendered="#{cc.attrs.fileMetadata.dataFile.image and cc.attrs.HTRedFilePresent}">
+            <!-- Download Dropdown -->
+            <button type="button"
+                    class="btn btn-default btn-download dropdown-toggle"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="glyphicon glyphicon-download-alt" />
+                #{bundle['file.download.header']}
+                <span class="caret" />
+            </button>
+            <ul class="dropdown-menu multi-level pull-right text-left"
+                role="menu">
+                <li>
+                    <p:commandLink id="imageOriginalDownloadPopupButtonHtr"
+                                   process="@this"
+                                   pt:role="menuitem"
+                                   actionListener="#{RequestedDownloadType.initDownloadTypeForOriginal(cc.attrs.fileMetadata)}"
+                                   action="#{cc.attrs.downloadRequestFunction}"
+                                   update="#{cc.attrs.updateOnDownloadRequest}"
+                                   oncomplete="if (args &amp;&amp; args.apiDownloadLink) { refreshAndClickDownloadLink(args.apiDownloadLink); }">
+                        #{bundle['file.downloadBtn.format.image']}
+                    </p:commandLink>
+                </li>
+                <li>
+                    <p:commandLink id="imageHTRDownloadPopupButton"
+                                   pt:role="menuitem"
+                                   process="@this"
+                                   actionListener="#{RequestedDownloadType.initDownloadTypeForHTR(cc.attrs.fileMetadata)}"
+                                   action="#{cc.attrs.downloadRequestFunction}"
+                                   update="#{cc.attrs.updateOnDownloadRequest}"
+                                   oncomplete="if (args &amp;&amp; args.apiDownloadLink) { refreshAndClickDownloadLink(args.apiDownloadLink); }">
+                        #{bundle['file.downloadBtn.format.htr']}
+                    </p:commandLink>
+                </li>
+            </ul>
+        </div>
 		
-		<ui:fragment rendered="#{cc.attrs.fileMetadata.dataFile.image and not cc.attrs.OCRedFilePresent}">
+		<ui:fragment rendered="#{cc.attrs.fileMetadata.dataFile.image and not (cc.attrs.OCRedFilePresent or cc.attrs.HTRedFilePresent)}">
             <p:commandLink id="standardImageDownloadButton"
                            styleClass="btn btn-default btn-download"
                            process="@this"

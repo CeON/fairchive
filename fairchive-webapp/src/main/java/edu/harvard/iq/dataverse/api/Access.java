@@ -253,6 +253,8 @@ public class Access extends AbstractApiBean {
         if (df.isImage()) {
             dInfo.addServiceAvailable(new OptionalAccessService("ocr", "text/plain",
                     "format=ocr", "Recognized text"));
+            dInfo.addServiceAvailable(new OptionalAccessService("htr", "text/plain",
+                    "format=htr", "Recognized text"));
         }
         DownloadInstance downloadInstance = new DownloadInstance(dInfo);
 
