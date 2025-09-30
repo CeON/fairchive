@@ -1,0 +1,1 @@
+ALTER TABLE public.oauth2tokendata ALTER COLUMN refreshtoken TYPE text USING refreshtoken::text;
