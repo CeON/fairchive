@@ -1,7 +1,9 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.List;
 import java.util.Map;
@@ -38,41 +40,42 @@ public class RorSuggestionHandler implements SuggestionHandler {
     }
 
     @Override
-    public List<Suggestion> generateSuggestions(Map<String, String> filteredBy, String query) {
+    public List<Suggestion> generateSuggestions(final Map<String, String> filteredBy, 
+            final String query) {
         
-        return rorSolrDataFinder.findRorData(query, 5).stream()
+        return this.rorSolrDataFinder.findRorData(query, 5).stream()
             .map(this::convertSolrRorToSuggestion)
             .collect(toList());
     }
 
     // -------------------- PRIVATE --------------------
     
-    private Suggestion convertSolrRorToSuggestion(RorDto solrRor) {
+    private Suggestion convertSolrRorToSuggestion(final RorDto solrRor) {
         return new Suggestion(solrRor.getRorUrl(), generateDisplayName(solrRor));
     }
     
-    private String generateDisplayName(RorDto solrRor) {
-        StringBuilder rorDisplay = new StringBuilder(solrRor.getName());
+    private String generateDisplayName(final RorDto solrRor) {
+        final StringBuilder builder = new StringBuilder(solrRor.getName());
         
-        if (StringUtils.isNotEmpty(solrRor.getCountryName())) {
-            rorDisplay.append(" (" + solrRor.getCountryName() + ")");
+        if (isNotEmpty(solrRor.getCountryName())) {
+            builder.append(" (").append(solrRor.getCountryName()).append(")");
         }
-        rorDisplay.append('.');
+        builder.append('.');
         
         
-        String otherNamesString = generateOtherNames(solrRor);
-        if (StringUtils.isNotEmpty(otherNamesString)) {
-            rorDisplay
+        final String otherNamesString = generateOtherNames(solrRor);
+        if (isNotEmpty(otherNamesString)) {
+            builder
                 .append(' ')
-                .append(BundleUtil.getStringFromBundle("dataset.metadata.inputRenderer.suggestion.ror.otherNames"))
+                .append(getStringFromBundle("dataset.metadata.inputRenderer.suggestion.ror.otherNames"))
                 .append(": ")
                 .append(otherNamesString);
         }
         
-        return rorDisplay.toString();
+        return builder.toString();
     }
     
-    private String generateOtherNames(RorDto solrRor) {
+    private String generateOtherNames(final RorDto solrRor) {
         List<String> otherNames = Lists.newArrayList();
         otherNames.addAll(solrRor.getNameAliases());
         otherNames.addAll(solrRor.getAcronyms());
