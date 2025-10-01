@@ -1,17 +1,17 @@
 package edu.harvard.iq.dataverse.ror;
 
-import edu.harvard.iq.dataverse.api.dto.RorEntryDTO;
-import edu.harvard.iq.dataverse.persistence.ror.RorData;
-import edu.harvard.iq.dataverse.persistence.ror.RorLabel;
-import edu.harvard.iq.dataverse.search.ror.RorDto;
-
-import javax.ejb.Stateless;
-
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import javax.ejb.Stateless;
+
+import edu.harvard.iq.dataverse.api.dto.RorEntryDTO;
+import edu.harvard.iq.dataverse.persistence.ror.RorData;
+import edu.harvard.iq.dataverse.persistence.ror.RorLabel;
+import edu.harvard.iq.dataverse.search.ror.RorDto;
 
 /**
  * Simple converter for Ror objects.
@@ -46,10 +46,17 @@ public class RorConverter {
         converted.getNameAliases().addAll(asList(entry.getAliases()));
         converted.getLabels().addAll(
                 stream(entry.getLabels())
-                      .map(l -> new RorLabel(l.getLabel(), l.getIso639()))
+                      .map(RorConverter::rorLabelFrom)
                       .collect(toSet()));
 
         return converted;
+    }
+    
+    private static RorLabel rorLabelFrom(RorEntryDTO.Label l) {
+        if(l.getIso639() == null) {
+            l.setIso639("en");
+        }
+        return new RorLabel(l.getLabel(), l.getIso639());
     }
 
     public RorDto toSolrDto(RorData entry) {
