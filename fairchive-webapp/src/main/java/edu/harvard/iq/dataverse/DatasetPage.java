@@ -492,6 +492,11 @@ public class DatasetPage implements Serializable {
                 && isExistReleasedVersion() 
                 && canPublishDataset();
     }
+    
+    public boolean displayMetricsBlock() {
+        return !(this.settingsWrapper.isRsyncDownload() 
+                || this.workingVersion.isDeaccessioned());
+    }
 
     public Dataset getDataset() {
         return dataset;
