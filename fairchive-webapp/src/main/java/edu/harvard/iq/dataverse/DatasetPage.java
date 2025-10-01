@@ -448,6 +448,10 @@ public class DatasetPage implements Serializable {
         return !this.workingVersion.isDeaccessioned()
                 || (this.workingVersion.isDeaccessioned() && canUpdateDataset());
     }
+    
+    public boolean displayShareLink() {
+        return !this.workingVersion.isDeaccessioned() && ! isViewedFromPrivateUrl();
+    }
 
     public Dataset getDataset() {
         return dataset;
