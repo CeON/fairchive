@@ -2,14 +2,16 @@ package edu.harvard.iq.dataverse.search.ror;
 
 import edu.harvard.iq.dataverse.search.RorSolrClient;
 import edu.harvard.iq.dataverse.search.query.SolrQuerySanitizer;
-import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.SolrServerException;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+
+import static org.apache.commons.lang3.StringUtils.split;
+
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -25,34 +27,31 @@ public class RorSolrDataFinder {
     @Inject
     private SolrQuerySanitizer solrQuerySanitizer;
 
-    public List<RorDto> findRorData(String searchPhrase, int maxResultsCount) {
-        StringBuilder queryBuilder = new StringBuilder();
-        String cleanQuery = solrQuerySanitizer.removeSolrSpecialChars(searchPhrase);
-
-        String[] slicedPhrases = StringUtils.split(cleanQuery);
-
-        for (int loopIndex = 0; loopIndex < slicedPhrases.length; loopIndex++) {
-            queryBuilder.append(slicedPhrases[loopIndex]);
-            queryBuilder.append('*');
-
-            if (isNotLastWord(slicedPhrases, loopIndex)){
-                queryBuilder.append(" AND ");
-            }
+    public List<RorDto> findRorData(final String phrase, final int maxResultsCount) {
+        try {
+            return this.solrClient.query(new SolrQuery(buildQuery(phrase))
+                    .setRows(maxResultsCount)).getBeans(RorDto.class);
+        } catch (final SolrServerException | IOException e) {
+            throw new RuntimeException(e);
         }
-        if (queryBuilder.length() == 0) {
-            queryBuilder.append('*');
-        }
-
-        SolrQuery solrQuery = new SolrQuery(queryBuilder.toString());
-        solrQuery.setRows(maxResultsCount);
-
-        QueryResponse response = Try.of(() -> solrClient.query(solrQuery))
-                                    .getOrElseThrow(throwable -> new IllegalStateException("Unable to query ror collection in solr.", throwable));
-
-        return response.getBeans(RorDto.class);
     }
 
-    private boolean isNotLastWord(String[] slicedPhrases, int loopIndex) {
-        return loopIndex != slicedPhrases.length - 1;
+    private String buildQuery(final String phrase) {
+        final StringBuilder builder = new StringBuilder();
+
+        for (final String slice : split(sanitize(phrase))) {
+            if (builder.length() > 0) {
+                builder.append(" AND ");
+            }
+            builder.append(slice).append('*');
+        }
+        if (builder.length() == 0) {
+            builder.append('*');
+        }
+        return builder.toString();
+    }
+
+    private String sanitize(final String s) {
+        return this.solrQuerySanitizer.removeSolrSpecialChars(s);
     }
 }
