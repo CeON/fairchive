@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.search;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaxResultsCountSavedToFile;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowAddDatasetButtonOnDataversePage;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.startsWith;
@@ -636,7 +637,7 @@ public class SearchIncludeFragment {
 
     public boolean couldCreateDatasetOrDataverseIfWasAuthenticated() throws ClassNotFoundException {
         return permissionService.userOn(AuthenticatedUsers.get(), dataverse).has(Permission.AddDataverse)
-                || permissionService.userOn(AuthenticatedUsers.get(), dataverse).has(Permission.AddDataset);
+                || (settings.isTrueForKey(ShowAddDatasetButtonOnDataversePage) && permissionService.userOn(AuthenticatedUsers.get(), dataverse).has(Permission.AddDataset));
     }
 
     public boolean isRootDv() {
