@@ -76,7 +76,8 @@
                     }
                 };
             </script>
-            <c:set var="conditionallyDisable" value="#{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview) or (settingsWrapper.dataCiteInstallation and DatasetPage.dataset.globalIdCreateTime == null) ? 'disabled' : ''}"/>
+            <c:set var="conditionallyDisable" 
+                   value="#{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview) or (settingsWrapper.dataCiteInstallation and DatasetPage.dataset.globalIdCreateTime == null) ? 'disabled' : ''}"/>
             <o:importFunctions type="edu.harvard.iq.dataverse.common.MarkupChecker"/>
             <f:metadata>
                 <o:importConstants
@@ -104,7 +105,12 @@
                 <f:viewAction action="#{privateUrlDialog.init}"/>
                 <f:viewAction action="#{anonymizedPrivateUrlDialog.init}"/>
             </f:metadata>
-            <a id="currentDownloadRequestLink" href="#" target="_blank" rel="noopener noreferrer" download="" style="display: none;">
+            <a id="currentDownloadRequestLink" 
+               href="#" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               download="" 
+               style="display: none;">
                 download requested files
             </a>
             <h:form id="datasetForm">
@@ -113,36 +119,55 @@
                 <p:fragment id="topDatasetBlockFragment">
                     <!-- static Messages -->
                     <p:outputPanel id="staticMessagesPanel">
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('Workflow')}" class="alert alert-warning" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isLockedBy('Workflow')}" 
+                             class="alert alert-warning" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.locked.message']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['dataset.locked.workflow.message.details']} "/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.locked.workflow.message.details']} "/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('InReview')}" class="alert alert-warning" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isLockedBy('InReview')}"
+                             class="alert alert-warning" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.locked.inReview.message']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['dataset.inreview.infoMessage']} "/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.inreview.infoMessage']} "/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('DcmUpload')}" class="alert alert-warning" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isLockedBy('DcmUpload')}" 
+                             class="alert alert-warning" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['file.rsyncUpload.inProgressMessage.summary']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['file.rsyncUpload.inProgressMessage.details']} "/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['file.rsyncUpload.inProgressMessage.details']} "/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('pidRegister')}" class="alert alert-warning" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isLockedBy('pidRegister')}" 
+                             class="alert alert-warning" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.publish.workflow.message']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['dataset.pidRegister.workflow.inprogress']} "/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.pidRegister.workflow.inprogress']} "/>
                             </p>
                         </div>
 
                         <div jsf:rendered="#{DatasetPage.displayPrivateUrl(false)}" 
-                             class="alert alert-info" role="alert" aria-atomic="true">
+                             class="alert alert-info" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.infoMessageAuthor.title']}</strong> –
-                                <h:outputText escape="false" value="#{DatasetPage.getPrivateUrlMessageDetails(false)}"/>
+                                <h:outputText escape="false" 
+                                              value="#{DatasetPage.getPrivateUrlMessageDetails(false)}"/>
                                 <span class="btn" 
                                       aria-label="#{bundle['dataset.copyUrl']}"
                                       tabindex="0"
@@ -154,10 +179,13 @@
                             </p>
                         </div> 
                         <div jsf:rendered="#{DatasetPage.displayPrivateUrl(true)}" 
-                            class="alert alert-info" role="alert" aria-atomic="true">
+                             class="alert alert-info" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.anonymized.infoMessageAuthor.title']}</strong> –
-                                <h:outputText escape="false" value="#{DatasetPage.getPrivateUrlMessageDetails(true)}"/>
+                                <h:outputText escape="false" 
+                                              value="#{DatasetPage.getPrivateUrlMessageDetails(true)}"/>
                                 <span class="btn" 
                                       aria-label="#{bundle['dataset.copyUrl']}"
                                       tabindex="0"
@@ -173,30 +201,43 @@
                                 </p>
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.isViewedFromPrivateUrl()}" class="alert alert-info" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isViewedFromPrivateUrl()}" 
+                             class="alert alert-info" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.infoMessageReviewer.title']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['dataset.privateurl.infoMessageReviewer.details']}"/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.privateurl.infoMessageReviewer.details']}"/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{!DatasetPage.isDoiReserved()}" class="alert alert-info" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{!DatasetPage.isDoiReserved()}" 
+                             class="alert alert-info" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;
-                                <h:outputText escape="false" value="#{bundle['dataset.datacite.reservation']}"/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.datacite.reservation']}"/>
                             </p>
                         </div>
                     </p:outputPanel>
                     <!-- END static Messages -->
                     <div id="topDatasetBlock">
-                        <div id="actionButtonBlock" class="button-block clearfix"
+                        <div id="actionButtonBlock" 
+                             class="button-block clearfix"
                              jsf:rendered="#{!widgetWrapper.widgetView}">
                             <!-- Metrics -->
-                            <div id="metrics-block" class="col-md-6"
+                            <div id="metrics-block" 
+                                 class="col-md-6"
                                  jsf:rendered="#{!(settingsWrapper.rsyncDownload or DatasetPage.workingVersion.deaccessioned)}">
-                                <div id="metrics-label" class="col-xs-4 small text-center">
+                                <div id="metrics-label" 
+                                     class="col-xs-4 small text-center">
                                     <span class="glyphicon glyphicon-stats"/> #{bundle['metrics.title']}
                                 </div>
-                                <div jsf:id="metrics-content" id="metrics-content" class="col-xs-8 small text-center">
+                                <div jsf:id="metrics-content" 
+                                     id="metrics-content" 
+                                     class="col-xs-8 small text-center">
                                     <h:outputFormat styleClass="metric metrics-downloads"
                                                     value="{0} #{bundle['metrics.downloads']}">
                                         <f:param value="#{DatasetPage.datasetDownloadCount}"/>
@@ -262,11 +303,7 @@
                                 <div class="btn-group" role="group">
                                     <!-- Edit/Publish Button Group -->
                                     <!-- Publish/Submit for Review/Return to Author Button Group -->
-                                    <ui:fragment rendered="#{DatasetPage.workingVersion == DatasetPage.dataset.latestVersion
-                                                                and DatasetPage.canPublishDataset()
-                                                                or (DatasetPage.dataset.latestVersion.versionState=='DRAFT'
-                                                                and DatasetPage.canUpdateDataset()
-                                                                and !DatasetPage.canPublishDataset())}">
+                                    <ui:fragment rendered="#{DatasetPage.displayPublishSubmitButtonGroup()}">
                                         <!-- Publish Buttons -->
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
@@ -313,21 +350,17 @@
                                         <!-- END: Publish Buttons -->
 
                                         <!-- Return to Author Button -->
-                                        <p:commandLink id="returnForModificationButton" type="button" styleClass="btn btn-default btn-access #{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview)
-                                                                                                              ? 'disabled' : ''}"
+                                        <p:commandLink id="returnForModificationButton" 
+                                                       type="button" 
+                                                       styleClass="btn btn-default btn-access #{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview) ? 'disabled' : ''}"
                                                        onclick="primeFacesShowModal('sendBackToContributor', this)"
-                                                       rendered="#{DatasetPage.dataset.latestVersion.versionState=='DRAFT' and DatasetPage.dataset.latestVersion.inReview
-                                                                   and DatasetPage.canPublishDataset()}">
+                                                       rendered="#{DatasetPage.displayReturnToAuthorButton()}">
                                             <span class="glyphicon glyphicon-repeat"/> #{bundle['dataset.rejectBtn']}
                                         </p:commandLink>
                                         <!-- END: Return to Author Button -->
 
                                         <!-- Submit for Review Button -->
-                                        <ui:fragment rendered="#{DatasetPage.workingVersion == DatasetPage.dataset.latestVersion
-                                                                    and !DatasetPage.datasetLockedInWorkflow
-                                                                    and DatasetPage.dataset.latestVersion.versionState=='DRAFT'
-                                                                    and DatasetPage.canUpdateDataset()
-                                                                    and !DatasetPage.canPublishDataset()}">
+                                        <ui:fragment rendered="#{DatasetPage.displaySubmitForReviewButton()}">
 
                                             <p:commandLink
                                                     styleClass="btn btn-default btn-access"
@@ -385,7 +418,7 @@
                                                                action="#{DatasetPage.initCurrentEmbargo()}"
                                                                update="setEmbargoPanel"
                                                                oncomplete="primeFacesShowModal('setEmbargoConfirmation', this)"
-                                                               rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo() or DatasetPage.isUserAbleToLiftEmbargo()}">
+                                                               rendered="#{DatasetPage.displaySetEmbargoButton()}">
                                                     <h:outputText
                                                             value="#{bundle['dataset.editBtn.itemLabel.embargo']}"/>
                                                 </p:commandLink>
@@ -451,7 +484,7 @@
                                                 </h:outputLink>
                                             </li>
                                             <ui:fragment
-                                                    rendered="#{!DatasetPage.dataset.released and DatasetPage.dataset.latestVersion.versionState=='DRAFT' and DatasetPage.canDeleteDataset()}">
+                                                    rendered="#{DatasetPage.displayDeleteDatasetEntry()}">
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deleteDataset"
@@ -462,7 +495,7 @@
                                                 </li>
                                             </ui:fragment>
                                             <ui:fragment
-                                                    rendered="#{DatasetPage.dataset.released and DatasetPage.dataset.latestVersion.versionState=='DRAFT' and DatasetPage.canDeleteDataset()}">
+                                                    rendered="#{DatasetPage.displayDeleteVerionEntry()}">
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deleteVersion"
@@ -473,7 +506,7 @@
                                                 </li>
                                             </ui:fragment>
                                             <ui:fragment
-                                                    rendered="#{DatasetPage.dataset.released and DatasetPage.existReleasedVersion and DatasetPage.canPublishDataset()}">
+                                                    rendered="#{DatasetPage.displayDeaccessionDatasetEntry()}">
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deaccessionDatasetLink"

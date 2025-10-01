@@ -452,6 +452,46 @@ public class DatasetPage implements Serializable {
     public boolean displayShareLink() {
         return !this.workingVersion.isDeaccessioned() && ! isViewedFromPrivateUrl();
     }
+    
+    public boolean displayPublishSubmitButtonGroup() {
+        return this.workingVersion == this.dataset.getLatestVersion() && canPublishDataset()
+                || (this.dataset.getLatestVersion().isDraft() && canUpdateDataset()
+                            && !canPublishDataset());
+    }
+    
+    public boolean displaySubmitForReviewButton() {
+        return this.workingVersion == this.dataset.getLatestVersion()
+                && !isDatasetLockedInWorkflow()
+                && this.dataset.getLatestVersion().isDraft()
+                && canUpdateDataset()
+                && !canPublishDataset();
+    }
+    
+    public boolean displayReturnToAuthorButton() {
+        return this.dataset.getLatestVersion().isDraft() 
+                && this.dataset.getLatestVersion().isInReview()
+                && canPublishDataset();
+    }
+    
+    public boolean displaySetEmbargoButton() {
+        return isUserAbleToSetOrUpdateEmbargo() || isUserAbleToLiftEmbargo();
+    }
+    
+    public boolean displayDeleteDatasetEntry() {
+        return this.dataset.canBeDeleted() && canDeleteDataset();
+    }
+    
+    public boolean displayDeleteVerionEntry() {
+        return this.dataset.isReleased() 
+                && this.dataset.getLatestVersion().isDraft()
+                && canDeleteDataset();
+    }
+    
+    public boolean displayDeaccessionDatasetEntry() {
+        return this.dataset.isReleased() 
+                && isExistReleasedVersion() 
+                && canPublishDataset();
+    }
 
     public Dataset getDataset() {
         return dataset;
