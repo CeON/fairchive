@@ -6,7 +6,123 @@
                 xmlns:jsf="http://xmlns.jcp.org/jsf"
 >
     <div class="button-block tab-header margin-bottom text-right">
-        <p:link id="editMetadataButton" 
+
+
+        <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"
+                       rendered="true"
+                       title="translate"
+                       oncomplete="primeFacesShowModal('translateDialog', this);">
+            <span class="glyphicon glyphicon-share" aria-hidden="true"/> translate
+        </p:commandLink>
+        <p:dialog id="translateDialog" header="translation"
+                  widgetVar="translateDialog" modal="true"
+                  rendered="#{!DatasetPage.workingVersion.deaccessioned}">
+            <div class="dropdown">
+                <a href="#" id="translation_language_dropdown" class="dropdown-toggle" data-toggle="dropdown"
+                   aria-haspopup="true" aria-controls="translationLanguageMenu" aria-expanded="false">
+                    <h:outputText value="#{bundle['dataset.translation.language.header']}" id="metadataTranslationTitle"/>
+                    <b class="caret"></b>
+                </a>
+                <ul id="translationLanguageMenu" style="right:0; left:unset" class="dropdown-menu"
+                    role="menu" aria-label="#{bundle['dataset.translation.language.menuLabel']}">
+                    <ui:repeat var="language" value="#{DatasetMetadataTab.getTranslationLanguages()}">
+                        <li role="none">
+                            <h:outputLink value="#" onclick="translateText('#{language._1()}')">
+                                <h:outputText value="#{language._2()}" />
+                            </h:outputLink>
+                        </li>
+                    </ui:repeat>
+                </ul>
+            </div>
+
+            <script>
+                async function translateText(targetLanguage) {
+                    var elements = document.getElementById("translatedMetadata").getElementsByClassName("datasetfield-value");
+                    for (var i = 0; i &lt; elements.length; i++) {
+                        var parent = elements[i].parentElement
+                        var originalText = parent.getElementsByClassName("datasetfield-original-value")[0].innerHTML
+                        if (elements[i].className == "datasetfield-value datasetfield-separable") {
+                            if (originalText.trim() == "") {
+                                parent.getElementsByClassName("datasetfield-original-value")[0].innerHTML += elements[i].innerHTML;
+                                parent.getElementsByClassName("datasetfield-original-value")[0].innerHTML += ' ';
+                            }
+                            originalText = parent.getElementsByClassName("datasetfield-original-value")[0].innerHTML;
+                        }
+                        var alternativeValues = parent.getElementsByClassName("datasetfield-alternative-value")
+                        var alternativesSection = parent.getElementsByClassName("alternative-translation-section")[0]
+                        for (var j = 0; j &lt; 3; j++) {
+                            alternativeValues[j].innerHTML = "";
+                        }
+                        alternativesSection.style.display = "none"
+
+                        originalText = originalText.replace(/(&lt;)br\s*\/*(&gt;)/g,' ');
+                        originalText = originalText.replace(/(&lt;)\/*p\s*\/*(&gt;)/g,' ');
+                        if (originalText.trim() != "") {
+                            var data = JSON.stringify({
+                                q: originalText,
+                                source: "auto",
+                                target: targetLanguage,
+                                format: "text",
+                                alternatives: 3,
+                                api_key: ""
+                            });
+
+                            const response = await fetch('http://localhost:5000/translate', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json; charset=utf-8'
+                                },
+                                body: data
+                            }).then(function(response) {
+                                return response.json();
+                            }).then(function(data) {
+                                if (elements[i].className == "datasetfield-value datasetfield-separable") {
+                                    var displayingChild = elements[i].children[0]
+                                    displayingChild.innerHTML = data.translatedText;
+                                    for (const child of elements[i].children) {
+                                        if (child != displayingChild) {
+                                            child.style.display = "none"
+                                        }
+                                    }
+                                } else {
+                                    elements[i].innerHTML = data.translatedText;
+                                }
+                                if (data.alternatives.length &gt; 0) {
+                                    alternativesSection.style.display = "block";
+                                }
+                                for (var j = 0; j &lt; data.alternatives.length; j++) {
+                                    alternativeValues[j].innerHTML = data.alternatives[j];
+                                }
+                            });
+
+                        }
+                    }
+                }
+            </script>
+
+
+            <div id="translateDialog-widget"
+                 data-url="#{systemConfig.dataverseSiteUrl}/dataset.xhtml?persistentId=#{DatasetPage.dataset.globalId}"
+                 data-text="#{bundle['dataset.share.datasetShare.shareText']}"
+                 data-language="#{dataverseSession.localeCode}" />
+
+
+            <ui:include src="viewTranslatedMetadata.xhtml">
+                <ui:param name="metadataBlocks"
+                          value="#{DatasetMetadataTab.metadataBlocks.entrySet().toArray()}"/>
+                <ui:param name="globalId"
+                          value="#{DatasetMetadataTab.datasetGlobalIdString}"/>
+                <ui:param name="altPID"
+                          value="#{DatasetMetadataTab.getAlternativePersistentIdentifier()}"/>
+                <ui:param name="publicationDate"
+                          value="#{DatasetMetadataTab.dataset.publicationDateFormattedYYYYMMDD}"/>
+                <ui:param name="isViewedFromAnonymizedPrivateUrl"
+                          value="#{DatasetPage.isViewedFromAnonymizedPrivateUrl()}"/>
+                <ui:param name="rendererFactory"
+                          value="#{DatasetMetadataTab}"/>
+            </ui:include>
+        </p:dialog>
+        <p:link id="editMetadataButton"
                 styleClass="btn btn-default btn-access"
                 disabled="#{DatasetPage.lockedFromEdits}"
                 outcome="editDatasetMetadata"
