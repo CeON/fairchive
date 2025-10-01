@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static java.util.stream.Collectors.joining;
+import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
@@ -11,11 +11,6 @@ import java.util.Map;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.collect.Lists;
-
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
 import edu.harvard.iq.dataverse.search.ror.RorDto;
 import edu.harvard.iq.dataverse.search.ror.RorSolrDataFinder;
@@ -62,24 +57,14 @@ public class RorSuggestionHandler implements SuggestionHandler {
         }
         builder.append('.');
         
-        
-        final String otherNamesString = generateOtherNames(solrRor);
-        if (isNotEmpty(otherNamesString)) {
-            builder
-                .append(' ')
+        final List<String> otherNames = solrRor.getOtherNames();
+        if (!otherNames.isEmpty()) {
+            builder.append(' ')
                 .append(getStringFromBundle("dataset.metadata.inputRenderer.suggestion.ror.otherNames"))
                 .append(": ")
-                .append(otherNamesString);
+                .append(join("; ", otherNames));
         }
         
         return builder.toString();
-    }
-    
-    private String generateOtherNames(final RorDto solrRor) {
-        List<String> otherNames = Lists.newArrayList();
-        otherNames.addAll(solrRor.getNameAliases());
-        otherNames.addAll(solrRor.getAcronyms());
-        otherNames.addAll(solrRor.getLabels());
-        return otherNames.stream().collect(joining("; "));
     }
 }
