@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 
+@SuppressWarnings("serial")
 @ViewScoped
 public class TermsOfUseSelectItemsFactory implements Serializable {
 

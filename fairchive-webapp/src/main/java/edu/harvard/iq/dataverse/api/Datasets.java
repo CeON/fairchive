@@ -1358,7 +1358,7 @@ public class Datasets extends AbstractApiBean {
             Dataset updatedDataset = execCommand(new SubmitDatasetForReviewCommand(createDataverseRequest(findUserOrDie()),
                     findDatasetOrDie(idSupplied), submitForReviewData.getComment()));
             JsonObjectBuilder result = Json.createObjectBuilder();
-            result.add("inReview", updatedDataset.isLockedFor(DatasetLock.Reason.InReview));
+            result.add("inReview", updatedDataset.isInReview());
             result.add("message", "Dataset id " + updatedDataset.getId() + " has been submitted for review.");
             return ok(result);
         } catch (WrappedResponse wr) {

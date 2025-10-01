@@ -521,8 +521,6 @@ public class JsonParser {
                 throw new JsonParseException("Invalid values submitted for " + compoundType.getName() + ". It should be an array of values.");
             }
 
-            JsonArray value = json.getJsonArray("value");
-
             for (JsonObject obj : json.getJsonArray("value").getValuesAs(JsonObject.class)) {
                 DatasetField parentField = new DatasetField();
                 parentField.setDatasetFieldType(compoundType);

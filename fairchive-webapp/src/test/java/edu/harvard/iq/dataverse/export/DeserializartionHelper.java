@@ -5,12 +5,14 @@ import edu.harvard.iq.dataverse.api.dto.DatasetVersionDTO;
 import edu.harvard.iq.dataverse.api.dto.MetadataBlockWithFieldsDTO;
 import edu.harvard.iq.dataverse.api.dto.DatasetFieldDTO;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class DeserializartionHelper {
 
@@ -24,7 +26,7 @@ public class DeserializartionHelper {
     public static void repairNestedDatasetFields(DatasetDTO datasetDTO) {
         Collection<MetadataBlockWithFieldsDTO> blocks = Optional.ofNullable(datasetDTO.getDatasetVersion()).map(DatasetVersionDTO::getMetadataBlocks)
                 .map(Map::values)
-                .orElse(Collections.emptyList());
+                .orElse(emptyList());
         for (MetadataBlockWithFieldsDTO block : blocks) {
             List<DatasetFieldDTO> fields = block.getFields();
             for (DatasetFieldDTO field : fields) {
@@ -32,15 +34,17 @@ public class DeserializartionHelper {
                     continue;
                 }
                 if (field.getMultiple()) {
+                    @SuppressWarnings("unchecked")
                     List<Map<String, Map<String, Object>>> values = (List<Map<String, Map<String, Object>>>) field.getValue();
                     field.setValue(values.stream()
                             .map(v -> v.entrySet().stream()
-                                    .collect(Collectors.toMap(Map.Entry::getKey, e -> createField(e.getValue()), (prev, next) -> next)))
-                            .collect(Collectors.toList()));
+                                    .collect(toMap(Map.Entry::getKey, e -> createField(e.getValue()), (prev, next) -> next)))
+                            .collect(toList()));
                 } else {
+                    @SuppressWarnings("unchecked")
                     Map<String, Map<String, Object>> value = (Map<String, Map<String, Object>>) field.getValue();
                     field.setValue(value.entrySet().stream()
-                            .collect(Collectors.toMap(Map.Entry::getKey, e -> createField(e.getValue()), (prev, next) -> next)));
+                            .collect(toMap(Map.Entry::getKey, e -> createField(e.getValue()), (prev, next) -> next)));
                 }
             }
         }

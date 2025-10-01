@@ -26,7 +26,6 @@ public class HarvestingClientsService {
     private DataverseTimerServiceBean dataverseTimerService;
     private DeleteHarvestedDatasetsService deleteHarvestedDatasetsService;
     private DeleteHarvestingClientService deleteHarvestingClientService;
-    private HarvestingClientRepository harvestingClientRepository;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -46,7 +45,6 @@ public class HarvestingClientsService {
         this.dataverseTimerService = dataverseTimerService;
         this.deleteHarvestedDatasetsService = deleteHarvestedDatasetsService;
         this.deleteHarvestingClientService = deleteHarvestingClientService;
-        this.harvestingClientRepository = harvestingClientRepository;
     }
 
     // -------------------- LOGIC --------------------

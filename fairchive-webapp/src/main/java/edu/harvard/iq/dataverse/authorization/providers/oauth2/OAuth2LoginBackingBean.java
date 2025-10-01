@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.toList;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("OAuth2Page")
 public class OAuth2LoginBackingBean implements Serializable {
@@ -44,7 +45,7 @@ public class OAuth2LoginBackingBean implements Serializable {
     private static final long STATE_TIMEOUT = TimeUnit.MINUTES.toMillis(15);
     private int responseCode;
     private String responseBody;
-    private Optional<String> redirectPage;
+    private Optional<String> redirectPage = Optional.empty();
     private OAuth2Exception error;
     private ExternalIdpUserRecord oauthUser;
 
@@ -65,7 +66,7 @@ public class OAuth2LoginBackingBean implements Serializable {
 
     public String linkFor(String idpId, String redirectPage) {
         OAuth2AuthenticationProvider idp = authenticationSvc.getOAuth2Provider(idpId);
-        return idp.createAuthorizationUrl(createState(idp, toOption(redirectPage)), getCallbackUrl());
+        return idp.createAuthorizationUrl(idp.createState(toOption(redirectPage)), getCallbackUrl());
     }
 
     public String getCallbackUrl() {
@@ -92,7 +93,9 @@ public class OAuth2LoginBackingBean implements Serializable {
         final String state = req.getParameter("state");
 
         try {
-            OAuth2AuthenticationProvider idp = parseState(state);
+            OAuth2AuthenticationProvider idp = getProvider(state);
+            
+            
             if (idp == null) {
                 throw new OAuth2Exception(-1, "", "Invalid 'state' parameter.");
             }
@@ -132,6 +135,11 @@ public class OAuth2LoginBackingBean implements Serializable {
         }
 
     }
+    
+    private OAuth2AuthenticationProvider getProvider(final String state) {
+        final int index = state.indexOf('~');
+        return authenticationSvc.getOAuth2Provider(state.substring(0, index));
+    }
 
     private OAuth2AuthenticationProvider parseState(String state) {
         String[] topFields = state.split("~", 2);
@@ -162,19 +170,6 @@ public class OAuth2LoginBackingBean implements Serializable {
             logger.info("Invalid id field: ''{}''", stateFields[0]);
             return null;
         }
-    }
-
-    private String createState(OAuth2AuthenticationProvider idp, Optional<String> redirectPage) {
-        if (idp == null) {
-            throw new IllegalArgumentException("idp cannot be null");
-        }
-        String base = idp.getId() + "~" + System.currentTimeMillis()
-                + "~" + (int) java.lang.Math.round(java.lang.Math.random() * 1000)
-                + redirectPage.map(page -> "~" + page).orElse("");
-
-        String encrypted = StringUtil.encrypt(base, idp.getClientSecret());
-        final String state = idp.getId() + "~" + encrypted;
-        return state;
     }
 
     public String getResponseBody() {

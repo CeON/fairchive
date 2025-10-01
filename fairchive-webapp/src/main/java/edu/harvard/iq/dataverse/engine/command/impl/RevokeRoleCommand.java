@@ -10,8 +10,13 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDatasetPermissions;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataversePermissions;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDatasetPermissions;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonMap;
+
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,13 +26,16 @@ import java.util.Set;
  * @author michael
  */
 // no annotations here, since permissions are dynamically decided
+@SuppressWarnings("serial")
 public class RevokeRoleCommand extends AbstractVoidCommand implements Serializable {
 
     private final RoleAssignment toBeRevoked;
 
     public RevokeRoleCommand(RoleAssignment toBeRevoked, DataverseRequest aRequest) {
         // for data file check permission on owning dataset
-        super(aRequest, toBeRevoked.getDefinitionPoint() instanceof DataFile ? toBeRevoked.getDefinitionPoint().getOwner() : toBeRevoked.getDefinitionPoint());
+        super(aRequest, toBeRevoked.getDefinitionPoint() instanceof DataFile 
+                            ? toBeRevoked.getDefinitionPoint().getOwner() 
+                            : toBeRevoked.getDefinitionPoint());
         this.toBeRevoked = toBeRevoked;
     }
 
@@ -41,14 +49,14 @@ public class RevokeRoleCommand extends AbstractVoidCommand implements Serializab
         // for data file check permission on owning dataset
 
         if (toBeRevoked.getDefinitionPoint() instanceof Dataverse) {
-            return Collections.singletonMap("", Collections.singleton(Permission.ManageDataversePermissions));
+            return singletonMap("", singleton(ManageDataversePermissions));
         }
-        if (DataverseRolePermissionHelper.getRolesAllowedToBeAssignedByManageMinorDatasetPermissions().contains(toBeRevoked.getRole().getAlias())) {
-            return Collections.singletonMap("",
-                                            ImmutableSet.of(Permission.ManageDatasetPermissions, Permission.ManageMinorDatasetPermissions));
+        if (DataverseRolePermissionHelper.getRolesAllowedToBeAssignedByManageMinorDatasetPermissions()
+                .contains(toBeRevoked.getRole().getAlias())) {
+            return singletonMap("", ImmutableSet.of(ManageDatasetPermissions, ManageMinorDatasetPermissions));
         }
 
-        return Collections.singletonMap("", Collections.singleton(Permission.ManageDatasetPermissions));
+        return singletonMap("", singleton(ManageDatasetPermissions));
     }
 
     @Override

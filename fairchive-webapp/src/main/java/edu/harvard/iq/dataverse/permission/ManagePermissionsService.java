@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @Stateless
 public class ManagePermissionsService implements Serializable {
 

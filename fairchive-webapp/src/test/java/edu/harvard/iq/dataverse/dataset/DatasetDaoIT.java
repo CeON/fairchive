@@ -1,7 +1,9 @@
 package edu.harvard.iq.dataverse.dataset;
 
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 public class DatasetDaoIT extends WebappArquillianDeployment {
 
@@ -29,6 +32,9 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
 
     @Inject
     private DatasetDao datasetDao;
+    
+    @Inject
+    private SettingsServiceBean settings;
 
     @BeforeEach
     void setUp() {
@@ -41,26 +47,21 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         Dataset dataset = this.datasetDao.find(52L);
 
         assertThat(dataset.isLockedFor(InReview)).isFalse();
+        assertThat(dataset.isInReview()).isFalse();
         
         AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
-
+        
         this.datasetDao.addDatasetLock(dataset, new DatasetLock(InReview, user));
 
         dataset = this.datasetDao.find(52L);
         assertThat(dataset.isLockedFor(InReview)).isTrue();
+        assertThat(dataset.isInReview()).isTrue();
         
         List<DatasetLock> locks = this.datasetDao.getDatasetLocksByUser(user);
         
         assertThat(locks.size()).isEqualTo(1);
         assertThat(locks.get(0).getReason()).isEqualTo(InReview);
         assertThat(locks.get(0).getUser()).isEqualTo(user);
-    }
-    
-    @Test
-    void getTitleFromLatestVersion() {
-        Dataset dataset = this.datasetDao.find(52L);
-        assertThat(this.datasetDao.getTitleFromLatestVersion(52L))
-                .isEqualTo(dataset.getLatestVersion().getTitle());
     }
     
     @Test
@@ -78,6 +79,54 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         assertThat(versions.get(1).getDatasetVersion().getId()).isEqualTo(36L);
         assertThat(versions.get(1).getId()).isEqualTo(39L);
 
+    }
+    
+    
+    @Test
+    void generateDatasetIdentifier_throwsNPE_forNullIdentifier() {
+        
+        assertThrows(Exception.class, 
+                () ->  this.datasetDao.generateDatasetIdentifier(null));
+    }
+    
+    @Test
+    void generateRandomDatasetIdentifier() {
+        
+        this.settings.setValueForKey(Shoulder, "");
+        Dataset set = new Dataset();
+        
+        String id = this.datasetDao.generateDatasetIdentifier(set);
+        
+        assertThat(id).isNotBlank();
+        assertThat(id).doesNotStartWith("ABC");
+        
+        this.settings.setValueForKey(Shoulder, "ABC");
+        
+        id = this.datasetDao.generateDatasetIdentifier(set);
+        
+        assertThat(id).isNotBlank();
+        assertThat(id).startsWith("ABC");
+    }
+    
+    @Test
+    void getDatasetByHarvestInfo_returnsNull_ifNothingMaches() {
+        
+        Dataset dataset = this.datasetDao.find(52L);
+        assertThat(dataset.getHarvestIdentifier()).isNull();
+        
+        Dataset result = this.datasetDao.getDatasetByHarvestInfo(dataset.getOwner(), "abc");
+        assertThat(result).isNull();
+    }
+    
+    @Test
+    void getDatasetByHarvestInfo_returnsResult_ifExactlyOneMaches() {
+        
+        Dataset dataset = this.datasetDao.find(52L);  
+        dataset.setHarvestIdentifier("abc");
+        this.datasetDao.mergeAndFlush(dataset);
+
+        Dataset result = this.datasetDao.getDatasetByHarvestInfo(dataset.getOwner(), "abc");
+        assertThat(result.getId()).isEqualTo(dataset.getId());
     }
 }
 

@@ -38,6 +38,7 @@ class DateRangeValidatorTest {
     })
     void validate(String from, String to, boolean expected) {
         // given
+        @SuppressWarnings("serial")
         SearchField field = new SearchField(null, null, null, null) {
             @Override
             public List<String> getValidatableValues() { return Arrays.asList(from, to); }

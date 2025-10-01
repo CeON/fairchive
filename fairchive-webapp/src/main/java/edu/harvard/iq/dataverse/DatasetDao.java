@@ -1,8 +1,8 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.InputStream;
@@ -13,23 +13,17 @@ import java.util.List;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -38,7 +32,6 @@ import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLockRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
@@ -63,7 +56,7 @@ public class DatasetDao implements java.io.Serializable {
     private static final Logger logger = getLogger(DatasetDao.class);
 
     @Inject
-    SettingsServiceBean settingsService;
+    SettingsServiceBean settings;
 
     @EJB
     DvObjectServiceBean dvObjectService;
@@ -137,16 +130,15 @@ public class DatasetDao implements java.io.Serializable {
      * @return The managed entity representing {@code ds}.
      */
     public Dataset merge(Dataset ds) {
-        return em.merge(ds);
+        return this.datasetRepository.save(ds);
+        
     }
 
     public Dataset mergeAndFlush(Dataset ds) {
-        Dataset merged = em.merge(ds);
-        em.flush();
-        return merged;
+        return this.datasetRepository.saveAndFlush(ds);
     }
 
-    public Dataset findByGlobalId(String globalId) {
+    public Dataset findByGlobalId(final String globalId) {
         Dataset retVal = (Dataset) dvObjectService.findByGlobalId(globalId, "Dataset");
         if (retVal != null) {
             return retVal;
@@ -156,46 +148,14 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    public String generateDatasetIdentifier(Dataset dataset) {
-        String identifierType = settingsService.getValueForKey(IdentifierGenerationStyle);
-        String shoulder = settingsService.getValueForKey(Shoulder);
-
-        switch (identifierType) {
-            case "randomString":
-                return generateIdentifierAsRandomString(dataset, shoulder);
-            case "sequentialNumber":
-                return generateIdentifierAsSequentialNumber(dataset, shoulder);
-            default:
-                /* Should we throw an exception instead?? -- L.A. 4.6.2 */
-                return generateIdentifierAsRandomString(dataset, shoulder);
-        }
-    }
-
-    private String generateIdentifierAsRandomString(Dataset dataset, String shoulder) {
-        String identifier = null;
-        do {
-            identifier = shoulder + RandomStringUtils.randomAlphanumeric(6).toUpperCase();
-        } while (!this.datasetRepository.isIdentifierLocallyUnique(identifier, dataset));
-
-        return identifier;
-    }
-
-    private String generateIdentifierAsSequentialNumber(Dataset dataset, String shoulder) {
-
-        String identifier;
-        do {
-            StoredProcedureQuery query = this.em.createNamedStoredProcedureQuery("Dataset.generateIdentifierAsSequentialNumber");
-            query.execute();
-            Integer identifierNumeric = (Integer) query.getOutputParameterValue(1);
-            // some diagnostics here maybe - is it possible to determine that it's failing
-            // because the stored procedure hasn't been created in the database?
-            if (identifierNumeric == null) {
-                return null;
+    public String generateDatasetIdentifier(final Dataset dataset) {
+        final String shoulder = this.settings.getValueForKey(Shoulder);  
+        for(;;) {
+            final String id = shoulder.concat(randomAlphanumeric(6).toUpperCase());
+            if(this.datasetRepository.isIdentifierLocallyUnique(id, dataset)) {
+                return id;
             }
-            identifier = shoulder + identifierNumeric.toString();
-        } while (!this.datasetRepository.isIdentifierLocallyUnique(identifier, dataset));
-
-        return identifier;
+        }
     }
 
     /**
@@ -325,73 +285,9 @@ public class DatasetDao implements java.io.Serializable {
         }
     }
 
-    /*
-    getTitleFromLatestVersion methods use native query to return a dataset title
-
-        There are two versions:
-     1) The version with datasetId param only will return the title regardless of version state
-     2)The version with the param 'includeDraft' boolean  will return the most recently published title if the param is set to false
-    If no Title found return empty string - protects against calling with
-    include draft = false with no published version
-    */
-
-    public String getTitleFromLatestVersion(Long datasetId) {
-        return getTitleFromLatestVersion(datasetId, true);
-    }
-
-    public String getTitleFromLatestVersion(Long datasetId, boolean includeDraft) {
-
-        String whereDraft = "";
-        //This clause will exclude draft versions from the select
-        if (!includeDraft) {
-            whereDraft = " and v.versionstate !='DRAFT' ";
-        }
-
-        try {
-            return (String) em.createNativeQuery("select df.fieldvalue  from dataset d "
-                                                         + " join datasetversion v on d.id = v.dataset_id "
-                                                         + " join datasetfield df on v.id = df.datasetversion_id "
-                                                         + " join datasetfieldtype dft on df.datasetfieldtype_id  = dft.id "
-                                                         + " where dft.name = '" + DatasetFieldConstant.title + "' and  v.dataset_id =" + datasetId
-                                                         + " and df.source = '" + DatasetField.DEFAULT_SOURCE + "'"
-                                                         + whereDraft
-                                                         + " order by v.versionnumber desc, v.minorVersionNumber desc limit 1 "
-                                                         + ";").getSingleResult();
-
-        } catch (Exception ex) {
-            logger.info("exception trying to get title from latest version: {0}", ex);
-            return "";
-        }
-
-    }
-
     public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
-        String queryStr = "SELECT d FROM Dataset d, DvObject o WHERE d.id = o.id AND o.owner.id = " + dataverse.getId() + " and d.harvestIdentifier = '" + harvestIdentifier + "'";
-        Query query = em.createQuery(queryStr);
-        List resultList = query.getResultList();
-        Dataset dataset = null;
-        if (resultList.size() > 1) {
-            throw new EJBException("More than one dataset found in the dataverse (id= " + dataverse.getId() + "), with harvestIdentifier= " + harvestIdentifier);
-        }
-        if (resultList.size() == 1) {
-            dataset = (Dataset) resultList.get(0);
-        }
-        return dataset;
-
-    }
-
-    public Long getDatasetVersionCardImage(Long versionId, User user) {
-        if (versionId == null) {
-            return null;
-        }
-
-
-        return null;
-    }
-
-    public void updateLastExportTimeStamp(Long datasetId) {
-        Date now = new Date();
-        em.createNativeQuery("UPDATE Dataset SET lastExportTime='" + now.toString() + "' WHERE id=" + datasetId).executeUpdate();
+        return this.datasetRepository.getDatasetByHarvestInfo(dataverse.getId(), 
+                harvestIdentifier);
     }
 
     public Dataset setNonDatasetFileAsThumbnail(Dataset dataset, InputStream inputStream) {
@@ -431,11 +327,7 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     public void assignDatasetThumbnailByNativeQuery(Dataset dataset, DataFile dataFile) {
-        try {
-            em.createNativeQuery("UPDATE dataset SET thumbnailfile_id=" + dataFile.getId() + " WHERE id=" + dataset.getId()).executeUpdate();
-        } catch (Exception ex) {
-            // it's ok to just ignore...
-        }
+        this.datasetRepository.assignThumbnail(dataset.getId(), dataFile.getId());
     }
 
     public WorkflowComment addWorkflowComment(WorkflowComment workflowComment) {
@@ -444,7 +336,8 @@ public class DatasetDao implements java.io.Serializable {
     }
 
     @Asynchronous
-    public void callFinalizePublishCommandAsynchronously(Long datasetId, CommandContext ctxt, DataverseRequest request, boolean isPidPrePublished)  {
+    public void callFinalizePublishCommandAsynchronously(Long datasetId, 
+            CommandContext ctxt, DataverseRequest request, boolean isPidPrePublished)  {
 
         // Since we are calling the next command asynchronously anyway - sleep here
         // for a few seconds, just in case, to make sure the database update of
@@ -459,32 +352,8 @@ public class DatasetDao implements java.io.Serializable {
         commandEngine.submit(new FinalizeDatasetPublicationCommand(theDataset, request, isPidPrePublished));
     }
 
-    /**
-     * @return true if dataset is In Review locked state
-     */
-    public boolean isInReview(Dataset dataset) {
-        if(dataset.getLocks().isEmpty()) {
-            return false;
-        }
-
-        List<DatasetLock> locks = em.createNamedQuery("DatasetLock.getLocksByDatasetId", DatasetLock.class)
-                .setParameter("datasetId", dataset.getId())
-                .getResultList();
-
-        for(DatasetLock lock : locks) {
-            if(lock.getReason().equals(DatasetLock.Reason.InReview)){
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void updateAllLastChangeForExporterTime() {
-        Date date = new Date();
-        Query query = em.createQuery(
-                "UPDATE Dataset ds SET ds.lastChangeForExporterTime=:date WHERE ds.harvestedFrom IS NULL");
-        query.setParameter("date", date, TemporalType.TIMESTAMP);
-        query.executeUpdate();
+        this.datasetRepository.updateAllLastChangeForExporterTime();
     }
     
 }

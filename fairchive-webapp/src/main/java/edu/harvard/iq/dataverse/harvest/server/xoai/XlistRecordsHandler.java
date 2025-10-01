@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.harvest.server.xoai;
 
-import com.lyncode.xml.exceptions.XmlWriteException;
 import org.dspace.xoai.dataprovider.exceptions.BadArgumentException;
 import org.dspace.xoai.dataprovider.exceptions.CannotDisseminateFormatException;
 import org.dspace.xoai.dataprovider.exceptions.DoesNotSupportSetsException;
@@ -15,22 +14,15 @@ import org.dspace.xoai.dataprovider.handlers.helpers.SetRepositoryHelper;
 import org.dspace.xoai.dataprovider.handlers.results.ListItemsResults;
 import org.dspace.xoai.dataprovider.model.Context;
 import org.dspace.xoai.dataprovider.model.Item;
-import org.dspace.xoai.dataprovider.model.MetadataFormat;
 import org.dspace.xoai.dataprovider.model.Set;
 import org.dspace.xoai.dataprovider.parameters.OAICompiledRequest;
 import org.dspace.xoai.dataprovider.repository.Repository;
 import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.model.oaipmh.ListRecords;
-import org.dspace.xoai.model.oaipmh.Metadata;
 import org.dspace.xoai.model.oaipmh.Record;
 import org.dspace.xoai.model.oaipmh.ResumptionToken;
-import org.dspace.xoai.xml.XSLPipeline;
-import org.dspace.xoai.xml.XmlWriter;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 
-import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
@@ -43,7 +35,6 @@ import java.util.List;
  * stream, bypassing expensive XML parsing and writing.
  */
 public class XlistRecordsHandler extends VerbHandler<ListRecords> {
-    private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger("XlistRecordsHandler");
     private final ItemRepositoryHelper itemRepositoryHelper;
     private final SetRepositoryHelper setRepositoryHelper;
 
@@ -142,7 +133,6 @@ public class XlistRecordsHandler extends VerbHandler<ListRecords> {
     private Record createRecord(OAICompiledRequest parameters, Item item)
             throws BadArgumentException,
             OAIException, NoMetadataFormatsException, CannotDisseminateFormatException {
-        MetadataFormat format = getContext().formatForPrefix(parameters.getMetadataPrefix());
         Header header = new Header();
 
         Dataset dataset = ((Xitem) item).getDataset();
@@ -162,15 +152,5 @@ public class XlistRecordsHandler extends VerbHandler<ListRecords> {
         xrecord.withMetadata(item.getMetadata());
 
         return xrecord;
-    }
-
-
-    private XSLPipeline toPipeline(Item item) throws XmlWriteException, XMLStreamException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        XmlWriter writer = new XmlWriter(output);
-        Metadata metadata = item.getMetadata();
-        metadata.write(writer);
-        writer.close();
-        return new XSLPipeline(new ByteArrayInputStream(output.toByteArray()), true);
     }
 }

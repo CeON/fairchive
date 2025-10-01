@@ -8,7 +8,6 @@ import edu.harvard.iq.dataverse.GenericDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.common.BrandingUtil;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
@@ -406,16 +405,6 @@ public class MailMessageCreatorTest {
                                         Collections.emptyMap());
     }
 
-    private EmailNotificationDto createRequestFileAccessNotificationDto() {
-        return new EmailNotificationDto(1L,
-                                        "useremail@test.com",
-                                        NotificationType.REQUESTFILEACCESS,
-                                        1L,
-                                        NotificationObjectType.DATAFILE,
-                                        new AuthenticatedUser(),
-                                        Collections.emptyMap());
-    }
-
     private EmailNotificationDto createGrantFileAccessInfoNotificationDto() {
         return new EmailNotificationDto(1L,
                 "usermail@test.com",
@@ -474,6 +463,7 @@ public class MailMessageCreatorTest {
         Dataverse dataverse = createTestDataverse();
         dataverse.setId(1L);
 
+        @SuppressWarnings("serial")
         Dataset dataset = new Dataset() {
             @Override public String getDisplayName() { return "testDataset"; }
         };

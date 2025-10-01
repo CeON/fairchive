@@ -33,7 +33,6 @@ import org.omnifaces.cdi.Param;
 import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.StreamedContent;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
@@ -86,8 +85,6 @@ public class SearchIncludeFragment {
     SearchServiceBean searchService;
     @EJB
     DataverseDao dataverseDao;
-    @EJB
-    DatasetDao datasetDao;
     @EJB
     DvObjectServiceBean dvObjectService;
     @Inject
@@ -149,8 +146,6 @@ public class SearchIncludeFragment {
     private String errorFromSolr;
     private SearchException searchException;
     private boolean solrErrorEncountered = false;
-    
-    private StreamedContent searchResultsFile;
 
     // -------------------- GETTERS --------------------
 
@@ -653,7 +648,7 @@ public class SearchIncludeFragment {
         return datafile != null && datafile.isTabularData();
     }
 
-    public void onTabChange(TabChangeEvent event) {
+    public void onTabChange(TabChangeEvent<?> event) {
         String tabId = event.getTab().getId();
         lastSearchValue.setActiveTabIndex(MAP_TAB_ID.equals(tabId) ? 1 : 0);
         search();

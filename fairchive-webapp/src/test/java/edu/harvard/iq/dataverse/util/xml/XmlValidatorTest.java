@@ -9,13 +9,11 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class XmlValidatorTest {
 
-    private static final Logger logger = Logger.getLogger(XmlValidatorTest.class.getCanonicalName());
 
     //Ignored as this relies on an external resource that has been down occasionally. 
     //May be a good test for our full vs. everytime test classifications (#4896) -MAD 4.9.1

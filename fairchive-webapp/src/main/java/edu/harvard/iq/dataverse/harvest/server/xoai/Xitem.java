@@ -9,10 +9,8 @@ import org.dspace.xoai.dataprovider.model.Item;
 import org.dspace.xoai.dataprovider.model.Set;
 import org.dspace.xoai.model.oaipmh.About;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.harvest.OAIRecord;
 import edu.harvard.iq.dataverse.util.StringUtil;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;

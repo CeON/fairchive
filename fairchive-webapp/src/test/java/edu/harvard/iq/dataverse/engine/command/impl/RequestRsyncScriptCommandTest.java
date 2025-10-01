@@ -49,6 +49,7 @@ public class RequestRsyncScriptCommandTest {
 
         testEngine = new TestDataverseEngine(new TestCommandContext() {
 
+            @SuppressWarnings("serial")
             @Override
             public DataCaptureModuleServiceBean dataCaptureModule() {
                 return new DataCaptureModuleServiceBean() {

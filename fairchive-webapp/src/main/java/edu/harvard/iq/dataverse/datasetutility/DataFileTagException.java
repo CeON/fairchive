@@ -8,6 +8,7 @@ package edu.harvard.iq.dataverse.datasetutility;
 /**
  * @author rmp553
  */
+@SuppressWarnings("serial")
 public class DataFileTagException extends Exception {
 
     public DataFileTagException(String message) {

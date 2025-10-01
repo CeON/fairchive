@@ -1,7 +1,5 @@
 package edu.harvard.iq.dataverse.search.query;
 
-import java.util.Arrays;
-
 /**
  * Enum containing all possible publication statuses that
  * can be assigned to dvObject in search.

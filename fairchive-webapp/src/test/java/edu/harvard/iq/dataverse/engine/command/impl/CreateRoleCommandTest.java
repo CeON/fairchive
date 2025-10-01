@@ -26,6 +26,7 @@ public class CreateRoleCommandTest {
     boolean saveCalled = false;
 
     TestDataverseEngine engine = new TestDataverseEngine(new TestCommandContext() {
+        @SuppressWarnings("serial")
         @Override
         public DataverseRoleServiceBean roles() {
             return new DataverseRoleServiceBean() {

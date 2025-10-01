@@ -13,13 +13,15 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class RemoveLockCommand extends AbstractVoidCommand {
 
     private final Dataset dataset;
     private final DatasetLock.Reason reason;
 
-    public RemoveLockCommand(DataverseRequest aRequest, Dataset aDataset, DatasetLock.Reason aReason) {
+    public RemoveLockCommand(DataverseRequest aRequest, Dataset aDataset, 
+            DatasetLock.Reason aReason) {
         super(aRequest, aDataset);
         dataset = aDataset;
         reason = aReason;

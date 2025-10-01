@@ -8,6 +8,7 @@ package edu.harvard.iq.dataverse.export;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class ExportException extends Exception {
     public ExportException(String message) {
         super(message);

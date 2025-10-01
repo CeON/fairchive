@@ -41,6 +41,9 @@ public abstract class AbstractGlobalIdServiceBean implements GlobalIdServiceBean
     private DataFileServiceBean datafileService;
     @EJB
     protected SystemConfig systemConfig;
+    
+    @EJB
+    private GlobalIdServiceBeanResolver resolver;
 
     // -------------------- LOGIC --------------------
 
@@ -69,7 +72,7 @@ public abstract class AbstractGlobalIdServiceBean implements GlobalIdServiceBean
         String protocol = dvObject.getProtocol() == null
                 ? settingsService.getValueForKey(SettingsServiceBean.Key.Protocol)
                 : dvObject.getProtocol();
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(protocol, commandEngine.getContext());
+        GlobalIdServiceBean idServiceBean = this.resolver.resolve(protocol);
         dvObject.setIdentifier(dvObject.isInstanceofDataset()
                 ? datasetDao.generateDatasetIdentifier((Dataset) dvObject)
                 : datafileService.generateDataFileIdentifier((DataFile) dvObject, idServiceBean));

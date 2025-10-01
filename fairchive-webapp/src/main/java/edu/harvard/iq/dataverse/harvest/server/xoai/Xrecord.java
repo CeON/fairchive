@@ -1,10 +1,8 @@
 package edu.harvard.iq.dataverse.harvest.server.xoai;
 
-import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.ExporterType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import io.vavr.control.Either;
 import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.model.oaipmh.Record;
 import org.dspace.xoai.xml.XmlWriter;
@@ -91,7 +89,7 @@ public class Xrecord extends Record {
                 }
                 outputStream.write(METADATA_END_ELEMENT.getBytes());
             } else {
-                outputStream.write(customMetadataExtensionRef(this.dataset.getGlobalIdString(), dataverseUrl).getBytes());
+                outputStream.write(customMetadataExtensionRef(this.dataset.getGlobalId().toString(), dataverseUrl).getBytes());
             }
         }
         outputStream.flush();

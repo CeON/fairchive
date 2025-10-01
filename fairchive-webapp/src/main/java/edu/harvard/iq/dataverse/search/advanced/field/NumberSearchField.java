@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * Object responsible for holding numbers such as Integer or Double.
  */
+@SuppressWarnings("serial")
 public class NumberSearchField extends SearchField {
 
     private String minimum;

@@ -155,7 +155,7 @@ public class ImportServiceBean {
 
             // A Global ID is required, in order for us to be able to harvest and import
             // this dataset:
-            if (StringUtils.isEmpty(ds.getGlobalIdString())) {
+            if (StringUtils.isEmpty(ds.getGlobalId().toString())) {
                 throw new ImportException("The harvested metadata record with the OAI server identifier " + harvestIdentifier
                         + " does not contain a global unique identifier that we could recognize, skipping.");
             }
@@ -163,20 +163,20 @@ public class ImportServiceBean {
             ds.setHarvestedFrom(harvestingClient);
             ds.setHarvestIdentifier(harvestIdentifier);
 
-            Dataset existingDs = datasetDao.findByGlobalId(ds.getGlobalIdString());
+            Dataset existingDs = datasetDao.findByGlobalId(ds.getGlobalId().toString());
 
             if (existingDs != null) {
                 // If this dataset already exists IN ANOTHER DATAVERSE
                 // we are just going to skip it!
                 if (existingDs.isNotRoot() && !owner.getId().equals(existingDs.getOwner().getId())) {
-                    throw new ImportException("The dataset with the global id " + ds.getGlobalIdString() + " already exists, in the dataverse "
+                    throw new ImportException("The dataset with the global id " + ds.getGlobalId() + " already exists, in the dataverse "
                             + existingDs.getOwner().getAlias() + ", skipping.");
                 }
                 // And if we already have a dataset with this same id, in this same
                 // dataverse, but it is  LOCAL dataset (can happen!), we're going to
                 // skip it also:
                 if (!existingDs.isHarvested()) {
-                    throw new ImportException("A LOCAL dataset with the global id " + ds.getGlobalIdString() + " already exists in this dataverse; skipping.");
+                    throw new ImportException("A LOCAL dataset with the global id " + ds.getGlobalId() + " already exists in this dataverse; skipping.");
                 }
                 // For harvested datasets, there should always only be one version.
                 // We will replace the current version with the imported version.

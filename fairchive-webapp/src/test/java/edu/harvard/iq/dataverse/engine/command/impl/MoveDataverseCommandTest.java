@@ -174,6 +174,7 @@ public class MoveDataverseCommandTest {
         grandchildEE.setMetadataBlocks(mbsEE);
 
         testEngine = new TestDataverseEngine(new TestCommandContext() {
+            @SuppressWarnings("serial")
             @Override
             public DataverseDao dataverses() {
                 return new DataverseDao() {
@@ -258,6 +259,7 @@ public class MoveDataverseCommandTest {
 
             }
 
+            @SuppressWarnings("serial")
             @Override
             public DatasetDao datasets() {
                 return new DatasetDao() {

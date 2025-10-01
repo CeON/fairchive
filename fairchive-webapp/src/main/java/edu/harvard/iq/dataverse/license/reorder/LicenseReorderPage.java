@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("LicenseReorderPage")
 public class LicenseReorderPage implements Serializable {

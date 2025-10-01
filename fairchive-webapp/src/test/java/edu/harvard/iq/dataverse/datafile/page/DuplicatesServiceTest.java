@@ -4,11 +4,11 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -21,11 +21,11 @@ class DuplicatesServiceTest {
     @Test
     void listDuplicates() {
         // given
-        List<DataFile> existingFiles = list(
+        List<DataFile> existingFiles = asList(
                 fileOf("1-1", "111"), fileOf("1-2", "111"),
                 fileOf("2-1", "222"),
                 fileOf("4-1", "444"), fileOf("4-2", "444"));
-        List<DataFile> newFiles = list(
+        List<DataFile> newFiles = asList(
                 fileOf("I-1", "111"),
                 fileOf("II-1", "222"), fileOf("II-2", "222"),
                 fileOf("III-1", "333"), fileOf("III-2", "333"));
@@ -40,16 +40,16 @@ class DuplicatesServiceTest {
                                 .map(DuplicatesService.DuplicateItem::getLabel)
                                 .collect(Collectors.toList()))
                 .containsExactlyInAnyOrder(
-                        tuple(list("1-1", "1-2"), list("I-1")),
-                        tuple(list("2-1"), list("II-1", "II-2")),
-                        tuple(list(), list("III-1", "III-2")));
+                        tuple(asList("1-1", "1-2"), asList("I-1")),
+                        tuple(asList("2-1"), asList("II-1", "II-2")),
+                        tuple(asList(), asList("III-1", "III-2")));
     }
 
     @Test
     void hasDuplicatesInUploadedFiles__noDuplicates() {
         // given
-        List<DataFile> existing = list(fileOf("a-1", "aaa"), fileOf("a-2", "aaa"));
-        List<DataFile> newFiles = list(fileOf("B-1", "bbb"), fileOf("C-1", "ccc"));
+        List<DataFile> existing = asList(fileOf("a-1", "aaa"), fileOf("a-2", "aaa"));
+        List<DataFile> newFiles = asList(fileOf("B-1", "bbb"), fileOf("C-1", "ccc"));
 
         // when
         boolean result = service.hasDuplicatesInUploadedFiles(existing, newFiles);
@@ -61,8 +61,8 @@ class DuplicatesServiceTest {
     @Test
     void hasDuplicatesInUploadedFiles__duplicatesWithExisting() {
         // given
-        List<DataFile> existing = list(fileOf("c-1", "ccc"), fileOf("c-2", "ccc"));
-        List<DataFile> newFiles = list(fileOf("A-1", "aaa"), fileOf("C-1", "ccc"));
+        List<DataFile> existing = asList(fileOf("c-1", "ccc"), fileOf("c-2", "ccc"));
+        List<DataFile> newFiles = asList(fileOf("A-1", "aaa"), fileOf("C-1", "ccc"));
 
         // when
         boolean result = service.hasDuplicatesInUploadedFiles(existing, newFiles);
@@ -74,8 +74,8 @@ class DuplicatesServiceTest {
     @Test
     void hasDuplicatesInUploadedFiles__duplicatesInNew() {
         // given
-        List<DataFile> existing = list();
-        List<DataFile> newFiles = list(fileOf("B-1", "bbb"), fileOf("B-2", "bbb"));
+        List<DataFile> existing = asList();
+        List<DataFile> newFiles = asList(fileOf("B-1", "bbb"), fileOf("B-2", "bbb"));
 
         // when
         boolean result = service.hasDuplicatesInUploadedFiles(existing, newFiles);
@@ -94,9 +94,5 @@ class DuplicatesServiceTest {
         metadata.setLabel(name);
         dataFile.setFileMetadatas(Collections.singletonList(metadata));
         return dataFile;
-    }
-
-    private <T> List<T> list(T... elements) {
-        return Arrays.stream(elements).collect(Collectors.toList());
     }
 }

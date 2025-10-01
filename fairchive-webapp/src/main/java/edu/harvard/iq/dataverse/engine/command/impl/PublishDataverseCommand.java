@@ -4,7 +4,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -12,12 +11,12 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
-import edu.harvard.iq.dataverse.search.index.IndexResponse;
 
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataverse)
 public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
 
@@ -31,14 +30,17 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
     @Override
     public Dataverse execute(CommandContext ctxt)  {
         if (dataverse.isReleased()) {
-            throw new IllegalCommandException("Dataverse " + dataverse.getAlias() + " has already been published.", this);
+            throw new IllegalCommandException("Dataverse " + 
+                        dataverse.getAlias() + " has already been published.", this);
         }
 
         Dataverse parent = dataverse.getOwner();
         // root dataverse doesn't have a parent
         if (parent != null) {
             if (!parent.isReleased()) {
-                throw new IllegalCommandException("Dataverse " + dataverse.getAlias() + " may not be published because its host dataverse (" + parent.getAlias() + ") has not been published.", this);
+                throw new IllegalCommandException("Dataverse " + dataverse.getAlias() 
+                    + " may not be published because its host dataverse (" 
+                        + parent.getAlias() + ") has not been published.", this);
             }
         }
 
@@ -60,12 +62,8 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
          * @todo consider also
          * ctxt.solrIndex().indexPermissionsOnSelfAndChildren(savedDataverse.getId());
          */
-        /**
-         * @todo what should we do with the indexRespose?
-         */
-        IndexResponse indexResponse = ctxt.solrIndex().indexPermissionsForOneDvObject(savedDataverse);
+        ctxt.solrIndex().indexPermissionsForOneDvObject(savedDataverse);
         return savedDataverse;
-
     }
 
 }

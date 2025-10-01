@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Used for adding/replacing single files.
@@ -25,7 +24,6 @@ import java.util.logging.Logger;
  */
 public class DuplicateFileChecker {
 
-    private static final Logger logger = Logger.getLogger(DuplicateFileChecker.class.getCanonicalName());
     private DatasetVersionServiceBean datasetVersionService;
 
     /**

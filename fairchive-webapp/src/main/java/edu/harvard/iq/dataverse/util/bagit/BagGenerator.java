@@ -17,7 +17,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntryRequest;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.parallel.InputStreamSupplier;
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.ClientProtocolException;
@@ -379,7 +379,7 @@ public class BagGenerator {
         ZipFile zf = null;
         InputStream is = null;
         try {
-            zf = new ZipFile(getBagFile(bagId));
+            zf =  ZipFile.builder().setFile(getBagFile(bagId)).get();
             ZipArchiveEntry entry = zf.getEntry(getValidName(bagId) + "/manifest-sha1.txt");
             if (entry != null) {
                 logger.info("SHA1 hashes used");
@@ -449,7 +449,7 @@ public class BagGenerator {
 
     private void validateBagFile(File bagFile) throws IOException {
         // Run a confirmation test - should verify all files and hashes
-        ZipFile zf = new ZipFile(bagFile);
+        ZipFile zf = ZipFile.builder().setFile(bagFile).get();
         // Check files calculates the hashes and file sizes and reports on
         // whether hashes are correct
         checkFiles(checksumMap, zf);

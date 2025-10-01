@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.github.scribejava</groupId>
             <artifactId>scribejava-apis</artifactId>
-            <version>3.1.0</version>
+            <version>6.1.0</version>
         </dependency>
         <dependency>
             <groupId>io.vavr</groupId>

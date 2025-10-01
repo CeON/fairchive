@@ -15,6 +15,7 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @RequiredPermissions({})
 public class RequestAccessCommand extends AbstractCommand<DataFile> {
 
@@ -31,8 +32,6 @@ public class RequestAccessCommand extends AbstractCommand<DataFile> {
 
     @Override
     public DataFile execute(CommandContext ctxt)  {
-
-
         file.getFileAccessRequesters().add(requester);
         return ctxt.files().save(file);
     }

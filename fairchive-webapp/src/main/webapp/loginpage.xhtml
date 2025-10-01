@@ -14,89 +14,105 @@
 
     <h:body>
         <f:metadata>
-            <f:viewParam name="redirectPage" value="#{LoginPage.redirectPage}"/>
+            <f:viewParam name="redirectPage" 
+                         value="#{LoginPage.redirectPage}"/>
             <f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}"/>
             <f:viewAction action="#{LoginPage.init}"/>
         </f:metadata>
         <ui:composition template="/dataverse_template.xhtml">
-            <ui:param name="pageTitle" value="#{bundle.login} - #{dataverseDao.findRootDataverse().name}"/>
+            <ui:param name="pageTitle" value="#{LoginPage.pageTitle}"/>
             <ui:param name="showDataverseHeader" value="false"/>
             <ui:param name="showMessagePanel" value="#{true}"/>
             <ui:param name="loginRedirectPage" value="%2Fdataverse.xhtml"/>
-            <ui:define name="body">
-                <ui:fragment rendered="#{LoginPage.listAuthenticationProviders().size() lt 1}">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="alert alert-danger">
-                                <h:outputFormat value="#{bundle['authenticationProvidersAvailable.tip']}" escape="false">
-                                    <f:param value="&lt;h3&gt;"/>
-                                    <f:param value="&lt;/h3&gt;"/>
-                                    <f:param value="&lt;br /&gt;"/>
-                                </h:outputFormat>
-                            </div>
-                        </div>
-                    </div>
-                </ui:fragment>
+            <ui:define name="body">         
+	            <div class="alert alert-danger"
+	                 jsf:rendered="#{LoginPage.displayNoProvidersWarning()}">
+	                <h:outputFormat value="#{bundle['authenticationProvidersAvailable.tip']}" 
+	                                escape="false">
+	                    <f:param value="&lt;h3&gt;"/>
+	                    <f:param value="&lt;/h3&gt;"/>
+	                    <f:param value="&lt;br /&gt;"/>
+	                    </h:outputFormat>
+	            </div>
                 <div jsf:id="login-container" class="row">
-
                     <div class="col-md-12">
                         <div class="col-md-6 col-md-offset-3">
-                            <div id="loginInfo" jsf:rendered="#{not empty LoginPage.loginInfo}" class="form-group">
+                            <div id="loginInfo" 
+                                 jsf:rendered="#{LoginPage.displayLoginInfo()}" 
+                                 class="form-group">
                                 #{LoginPage.loginInfo}
                             </div>
                             <h2><span class="glyphicon glyphicon-log-in" /> #{bundle.login}</h2>
-                            <div id="builtinProvider" jsf:rendered="#{LoginPage.authProvider.id == 'builtin'}">
-                                <h:form id="loginForm" styleClass="form-horizontal">
+                            <div id="builtinProvider" 
+                                 jsf:rendered="#{LoginPage.displayBuiltInProviderForm()}">
+                                <h:form id="loginForm" 
+                                        styleClass="form-horizontal">
                                     <p:focus context="loginForm"/>
-                                    <ui:remove>
-                                        <ui:fragment rendered="#{LoginPage.multipleProvidersAvailable}">
-                                            <div class="form-group text-left">
-                                                <label class="col-sm-4 control-label" for="loginSystemSelect">
-                                                    #{bundle['login.System']}
-                                                </label>
-                                                <div class="col-sm-8">
-                                                    <h:selectOneMenu id="loginSystemSelect" styleClass="form-control" value="#{LoginPage.credentialsAuthProviderId}">
-                                                        <f:selectItems value="#{LoginPage.listCredentialsAuthenticationProviders()}" var="ap"
-                                                                       itemLabel="#{ap.title}" itemValue="#{ap.id}" />
-                                                        <f:ajax render="@all" listener="#{LoginPage.resetFilledCredentials}"/>
-                                                    </h:selectOneMenu>
-                                                </div>
-                                            </div>
-                                        </ui:fragment>
-                                    </ui:remove>
-                                    <ui:repeat id="credentialsContainer" value="#{LoginPage.filledCredentials}" var="fc">
+                                    <ui:repeat id="credentialsContainer" 
+                                               value="#{LoginPage.filledCredentials}" 
+                                               var="fc">
                                         <div class="form-group text-left">
-                                            <label class="col-sm-4 control-label" for="credValue">
+                                            <label class="col-sm-4 control-label" 
+                                                   for="credValue">
                                                 #{bundle[fc.credential.key]}
                                             </label>
                                             <div class="col-sm-8">
-                                                <h:inputText rendered="#{not fc.credential.secret}" value="#{fc.value}" id="credValue" styleClass="form-control"/>
-                                                <p:message rendered="#{not fc.credential.secret}" for="credValue" display="text"/>
-						<h:inputSecret rendered="#{fc.credential.secret}" value="#{fc.value}" id="sCredValue" styleClass="form-control" autocomplete="off"/><!-- browsers will in general not respect autocomplete="foo", but scanners will still flag it as a potential problem -->
-                                                <p:message rendered="#{not fc.credential.secret}" for="sCredValue" display="text"/>
+                                                <h:inputText rendered="#{not fc.credential.secret}" 
+                                                             value="#{fc.value}" 
+                                                             id="credValue" 
+                                                             styleClass="form-control"/>
+                                                <p:message rendered="#{not fc.credential.secret}" 
+                                                           for="credValue" 
+                                                           display="text"/>
+												<h:inputSecret rendered="#{fc.credential.secret}" 
+												               value="#{fc.value}" 
+												               id="sCredValue" 
+												               styleClass="form-control" 
+												               autocomplete="off"/>
+												<!-- browsers will in general not respect autocomplete="foo", -->
+												<!-- but scanners will still flag it as a potential problem -->
+						                        <p:message rendered="#{not fc.credential.secret}" 
+						                                   for="sCredValue" 
+						                                   display="text"/>
                                             </div>
                                         </div>
                                     </ui:repeat>
 
                                     <!-- validation -->
-                                    <div class="form-group" jsf:rendered="#{LoginPage.requireExtraValidation}">
+                                    <div class="form-group" 
+                                         jsf:rendered="#{LoginPage.requiresExtraValidation()}">
                                         <div class="col-sm-offset-4 col-sm-8">
                                             <p>
-                                                <h:outputText styleClass="highlightBold" value="#{bundle['contact.question']}"/> <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
+                                                <h:outputText styleClass="highlightBold" 
+                                                              value="#{bundle['contact.question']}"/> 
+                                                <span class="glyphicon glyphicon-asterisk text-danger" 
+                                                      title="#{bundle.requiredField}"/>
                                             </p>
                                             <h:outputFormat value="#{LoginPage.op1} + #{LoginPage.op2} = "/>
-                                            <p:inputText id="messageSum" label="Sum" size="4" value="#{LoginPage.userSum}" converterMessage="#{bundle['contact.sum.converterMessage']}"
-                                                         required="#{param['DO_VALIDATION']}" requiredMessage="#{bundle['contact.sum.required']}"
-                                                         validatorMessage="#{bundle['contact.sum.invalid']}" validator="#{LoginPage.validateUserSum}">
-                                                <f:convertNumber integerOnly="true" type="number"/>
+                                            <p:inputText id="messageSum" 
+                                                         label="Sum" 
+                                                         size="4" 
+                                                         value="#{LoginPage.userSum}" 
+                                                         converterMessage="#{bundle['contact.sum.converterMessage']}"
+                                                         required="#{param['DO_VALIDATION']}" 
+                                                         requiredMessage="#{bundle['contact.sum.required']}"
+                                                         validatorMessage="#{bundle['contact.sum.invalid']}" 
+                                                         validator="#{LoginPage.validateUserSum}">
+                                                <f:convertNumber integerOnly="true" 
+                                                                 type="number"/>
                                             </p:inputText>
-                                            <h:message for="messageSum" styleClass="bg-danger text-danger"/>
+                                            <h:message for="messageSum" 
+                                                       styleClass="bg-danger text-danger"/>
                                         </div>
                                     </div>
 
                                     <div class="form-group">
                                         <div class="col-sm-offset-4 col-sm-8 button-block">
-                                            <p:commandButton id="login" styleClass="btn btn-default" value="#{bundle.login}" update="@all" action="#{LoginPage.login}"/>
+                                            <p:commandButton id="login" 
+                                                             styleClass="btn btn-default" 
+                                                             value="#{bundle.login}" 
+                                                             update="@all" 
+                                                             action="#{LoginPage.login}"/>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -108,10 +124,12 @@
                                     </div>
                                 </h:form>
                             </div>
-                            <div id="remoteProvider" jsf:rendered="#{LoginPage.authProvider.id == 'shib'}">
+                            <div id="remoteProvider" 
+                                 jsf:rendered="#{LoginPage.displayShibbolethProviderForm()}">
                                 <h:form>
                                     <p class="help-block">
-                                        <h:outputFormat value="#{bundle['login.institution.blurb']} " escape="false">
+                                        <h:outputFormat value="#{bundle['login.institution.blurb']} " 
+                                                        escape="false">
                                             <f:param value="#{settingsWrapper.guidesBaseUrl}"/>
                                             <f:param value="#{settingsWrapper.guidesVersion}"/>
                                         </h:outputFormat>
@@ -120,7 +138,8 @@
                                                        oncomplete="primeFacesShowModal('contactForm', this)" 
                                                        update=":contactDialog"
                                                        actionListener="#{sendFeedbackDialog.reset(null)}"/>
-                                        <h:outputText value=" #{bundle['login.institution.support.afterLink']}" escape="false"/>
+                                        <h:outputText value=" #{bundle['login.institution.support.afterLink']}" 
+                                                      escape="false"/>
                                     </p>
                                 </h:form>
 
@@ -139,11 +158,17 @@
                                     shibRedirectPage = '';
                                 </script>
 
-                                <script src="/resources/js/shib/idpselect_config.js" type="text/javascript" language="javascript"></script>
+                                <script src="/resources/js/shib/idpselect_config.js" 
+                                        type="text/javascript" 
+                                        language="javascript"></script>
 
-                                <script src="/resources/js/shib/idpselect.js" type="text/javascript" language="javascript"></script>
+                                <script src="/resources/js/shib/idpselect.js" 
+                                        type="text/javascript" 
+                                        language="javascript"></script>
 
-                                <script src="/resources/js/shib/idpselect_style.js" type="text/javascript" language="javascript"></script>
+                                <script src="/resources/js/shib/idpselect_style.js" 
+                                        type="text/javascript" 
+                                        language="javascript"></script>
 
                                 <noscript>
                                     <!-- If you need to care about non javascript browsers you will need to
@@ -167,7 +192,8 @@
                             </div>
 
                             <!--ONLY RENDER BUTTON FOR OAUTH PROVIDERS (ORCID, Google, GitHub)-->
-                            <div class="form-horizontal" jsf:rendered="#{LoginPage.authProvider.OAuthProvider}">
+                            <div class="form-horizontal" 
+                                 jsf:rendered="#{LoginPage.displayOAuthProviderForm()}">
                                 <o:form useRequestURI="true">
                                     <p class="help-block">
                                         <h:outputFormat value="#{bundle['auth.providers.blurb']}" escape="false">
@@ -185,57 +211,77 @@
                                 </o:form>
                                 <div class="form-group text-left">
                                     <div class="col-sm-12">
-                                        <h:outputLink styleClass="btn btn-default" value="#{OAuth2Page.linkFor(LoginPage.authProvider.id, LoginPage.redirectPage)}">
-                                            <h:graphicImage rendered="#{fn:contains(LoginPage.authProvider.id, 'orcid')}" value="/resources/images/orcid_16x16.png" height="16" width="16"/>
-					    <h:outputFormat rendered="#{not fn:contains(LoginPage.authProvider.id, 'orcid')}" value="#{LoginPage.getLoginButtonText()}"/>
-					    <h:outputFormat rendered="#{fn:contains(LoginPage.authProvider.id, 'orcid')}" value="#{bundle['login.button.orcid']}"/>
+                                        <h:outputLink styleClass="btn btn-default" 
+                                                      value="#{OAuth2Page.linkFor(LoginPage.authProvider.id, LoginPage.redirectPage)}">
+                                            <h:graphicImage rendered="#{fn:contains(LoginPage.authProvider.id, 'orcid')}" 
+                                                            value="/resources/images/orcid_16x16.png" 
+                                                            height="16" 
+                                                            width="16"/>
+										    <h:outputFormat rendered="#{not fn:contains(LoginPage.authProvider.id, 'orcid')}" 
+										                    value="#{LoginPage.getLoginButtonText()}"/>
+										    <h:outputFormat rendered="#{fn:contains(LoginPage.authProvider.id, 'orcid')}" 
+										                    value="#{bundle['login.button.orcid']}"/>
                                         </h:outputLink>
                                         <ui:fragment rendered="#{fn:contains(LoginPage.authProvider.id, 'orcid')}">
                                             <p class="help-block small" style="margin-top:1em;">
-                                                <h:outputText value="#{bundle['auth.providers.orcid.helpmessage1']}"  escape="false"/>
+                                                <h:outputText value="#{bundle['auth.providers.orcid.helpmessage1']}"  
+                                                              escape="false"/>
                                             </p>
                                             <p class="help-block small" style="margin-top:1em;">
-                                                <h:outputText value="#{bundle['auth.providers.orcid.helpmessage2']}"  escape="false"/>
+                                                <h:outputText value="#{bundle['auth.providers.orcid.helpmessage2']}"  
+                                                              escape="false"/>
                                             </p>
                                         </ui:fragment>
                                     </div>
                                 </div>
                             </div>
-                            <div id="SAML" jsf:rendered="#{LoginPage.authProvider.id eq 'saml'}">
+                            <div id="SAML" jsf:rendered="#{LoginPage.displaySamlProviderForm()}">
                                 <h:form>
                                     <div class="form-group text-left row">
-                                        <h:outputLabel class="col-sm-4 control-label" for="credValue">
+                                        <h:outputLabel class="col-sm-4 control-label" 
+                                                       for="credValue">
                                             #{bundle['login.saml.idp']}
                                         </h:outputLabel>
                                         <div class="col-sm-8">
-                                            <p:selectOneMenu id="idpMenu" value="#{LoginPage.selectedSamlIdpId}" >
-                                                <f:selectItems value="#{LoginPage.authProvider.registeredProviders}" var="provider"
-                                                               itemLabel="#{provider.displayName}" itemValue="#{provider.id}"
+                                            <p:selectOneMenu id="idpMenu" 
+                                                             value="#{LoginPage.selectedSamlIdpId}" >
+                                                <f:selectItems value="#{LoginPage.authProvider.registeredProviders}" 
+                                                               var="provider"
+                                                               itemLabel="#{provider.displayName}" 
+                                                               itemValue="#{provider.id}"
                                                                styleClass="form-control"/>
                                             </p:selectOneMenu>
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                         <div class="col-sm-offset-4 col-sm-8 button-block">
-                                            <p:commandButton id="login2" styleClass="btn btn-default" value="#{bundle.login}"
+                                            <p:commandButton id="login2" 
+                                                             styleClass="btn btn-default" 
+                                                             value="#{bundle.login}"
                                                              ajax="false"
                                                              action="#{LoginPage.authProvider.startLogin(LoginPage.redirectPage, LoginPage.selectedSamlIdpId)}"/>
                                         </div>
                                     </div>
                                 </h:form>
                             </div>
-                            <div id="otherProviders" jsf:rendered="#{LoginPage.listAuthenticationProviders().size() > 1}">
+                            <div id="otherProviders" 
+                                 jsf:rendered="#{LoginPage.displayOtherProvidersForm()}">
                                 <h4>#{bundle['auth.providers.title']}</h4>
                                 <h:form>
-                                    <ui:repeat value="#{LoginPage.listAuthenticationProviders()}" var="provider">
-                                        <p:commandLink rendered="#{provider.id != LoginPage.authProvider.id}" styleClass="btn btn-default" actionListener="#{LoginPage.setAuthProviderById(provider.id)}" update="login-container">
+                                    <ui:repeat value="#{LoginPage.listAuthenticationProviders()}" 
+                                               var="provider">
+                                        <p:commandLink rendered="#{LoginPage.isNotSelected(provider)}" 
+                                                       styleClass="btn btn-default" 
+                                                       actionListener="#{LoginPage.selectProviderById(provider.id)}" 
+                                                       update="login-container">
                                             <h:outputText value="#{provider.title}" />
                                         </p:commandLink>
                                     </ui:repeat>
                                 </h:form>
-                                <div jsf:rendered="#{LoginPage.authProvider.id == 'builtin'}">
+                                <div jsf:rendered="#{LoginPage.displayBuiltInProviderForm()}">
                                     <p class="help-block">
-                                        <h:outputFormat value="#{bundle['auth.providers.tip']}" escape="false">
+                                        <h:outputFormat value="#{bundle['auth.providers.tip']}" 
+                                                        escape="false">
                                             <o:param value="#{settingsWrapper.guidesBaseUrl}"/>
                                             <o:param value="#{settingsWrapper.guidesVersion}"/>
                                         </h:outputFormat>
@@ -249,7 +295,8 @@
                                 </div>
                                 <div id="signUpButton" class="form-group" >
                                     <h:form id="signUpLinkForm">
-                                        <p:commandLink id="signUpButton" styleClass="btn btn-default"
+                                        <p:commandLink id="signUpButton" 
+                                                       styleClass="btn btn-default"
                                                        action="#{LoginPage.getSignUpRedirect()}">
                                             #{bundle['login.signUp.button']}
                                         </p:commandLink>

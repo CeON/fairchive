@@ -13,6 +13,7 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ManageDataversePermissions)
 public class DeleteRoleCommand extends AbstractVoidCommand {
 

@@ -372,7 +372,7 @@ public class DataReader {
             if (number < 0) {
                 throw new IOException("<negative number of bytes in skipDefinedSection(\"tag\")?>");
             }
-            byte[] skipped_bytes = readBytes((int) number);
+            readBytes((int) number);
             readClosingTag(tag);
             logger.fine("read closing tag </" + tag + ">;");
 

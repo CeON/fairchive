@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("datasetVersionsTab")
 public class DatasetVersionsTab implements Serializable {

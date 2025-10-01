@@ -8,6 +8,7 @@ package edu.harvard.iq.dataverse.harvest.server;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class OaiSetException extends Exception {
     public OaiSetException(String message) {
         super(message);

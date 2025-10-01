@@ -8,6 +8,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ViewUnpublishedDataset)
 public class GetDraftVersionIfExists extends AbstractCommand<DatasetVersion> {
 

@@ -11,7 +11,6 @@ import javax.inject.Inject;
 @Stateless
 public class EmailNotificationMapper {
 
-    private UserNotificationService userNotificationService;
     private NotificationParametersUtil notificationParametersUtil;
 
     // -------------------- CONSTRUCTORS --------------------
@@ -24,7 +23,6 @@ public class EmailNotificationMapper {
     @Inject
     public EmailNotificationMapper(UserNotificationService userNotificationService) {
         this();
-        this.userNotificationService = userNotificationService;
     }
 
     // -------------------- LOGIC --------------------

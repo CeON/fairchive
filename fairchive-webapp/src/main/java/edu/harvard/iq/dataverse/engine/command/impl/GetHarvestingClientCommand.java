@@ -8,7 +8,10 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-import java.util.Collections;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonMap;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -22,6 +25,7 @@ import java.util.Set;
 // Everybody can view a published Dataverse; otherwise, an explicit 
 // ViewUnpublishedDataverse is needed. 
 // This is defined in the getRequiredPermissions() method, below. 
+@SuppressWarnings("serial")
 public class GetHarvestingClientCommand extends AbstractCommand<HarvestingClient> {
     private final Dataverse ownerDataverse;
     private final HarvestingClient harvestingClient;
@@ -35,18 +39,20 @@ public class GetHarvestingClientCommand extends AbstractCommand<HarvestingClient
     @Override
     public HarvestingClient execute(CommandContext ctxt) {
         if (ownerDataverse == null) {
-            throw new IllegalCommandException("GetHarvestingClientCommand called on a null Dataverse object", this);
+            throw new IllegalCommandException(
+                    "GetHarvestingClientCommand called on a null Dataverse object", this);
         }
         if (harvestingClient == null) {
-            throw new IllegalCommandException("GetHarvestigClientCommand called on a null HarvestingClient object", this);
+            throw new IllegalCommandException(
+                    "GetHarvestigClientCommand called on a null HarvestingClient object", this);
         }
         return harvestingClient;
     }
 
     @Override
     public Map<String, Set<Permission>> getRequiredPermissions() {
-        return Collections.singletonMap("",
-                                        ownerDataverse.isReleased() ? Collections.emptySet()
-                                                : Collections.singleton(Permission.ViewUnpublishedDataverse));
+        return singletonMap("", ownerDataverse.isReleased() 
+                                ? emptySet()
+                                : singleton(Permission.ViewUnpublishedDataverse));
     }
 }

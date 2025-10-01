@@ -11,6 +11,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 /**
  * @author Naomi
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ViewUnpublishedDataset)
 public class GetDraftDatasetVersionCommand extends AbstractCommand<DatasetVersion> {
     private final Dataset ds;

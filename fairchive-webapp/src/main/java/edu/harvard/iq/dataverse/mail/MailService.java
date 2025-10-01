@@ -43,6 +43,7 @@ import io.vavr.control.Try;
 /**
  * Service responsible for mail sending.
  */
+@SuppressWarnings("serial")
 @Stateless
 public class MailService implements java.io.Serializable {
 

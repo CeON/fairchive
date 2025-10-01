@@ -59,7 +59,7 @@ public class OAuth2TokenData implements Serializable {
     @Column(length = 64)
     private String refreshToken;
 
-    @Column(length = 64)
+    @Column(columnDefinition = "TEXT")
     private String scope;
 
     @Column(length = 32)

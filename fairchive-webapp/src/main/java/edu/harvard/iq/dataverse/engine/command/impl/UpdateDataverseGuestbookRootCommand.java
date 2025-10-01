@@ -9,20 +9,21 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 /**
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class UpdateDataverseGuestbookRootCommand extends AbstractCommand<Dataverse> {
 
     private final boolean newValue;
     private Dataverse dv;
 
-    public UpdateDataverseGuestbookRootCommand(boolean newValue, DataverseRequest aRequest, Dataverse anAffectedDataverse) {
+    public UpdateDataverseGuestbookRootCommand(boolean newValue, 
+            DataverseRequest aRequest, Dataverse anAffectedDataverse) {
         super(aRequest, anAffectedDataverse);
         this.newValue = newValue;
         this.dv = anAffectedDataverse;

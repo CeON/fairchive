@@ -8,6 +8,7 @@ import javax.ejb.ApplicationException;
  * 
  * @author madryk
  */
+@SuppressWarnings("serial")
 @ApplicationException(rollback = true)
 public class InputRendererInvalidConfigException extends RuntimeException {
 

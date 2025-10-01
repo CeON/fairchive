@@ -39,6 +39,7 @@ public abstract class WorkflowExecutionJMSTestBase extends WorkflowExecutionTest
     // https://activemq.apache.org/jndi-support
     // https://activemq.apache.org/vm-transport-reference
     // https://activemq.apache.org/broker-uri
+    @SuppressWarnings("serial")
     InitialContext jndi = new InitialContext(new Properties() {{
         setProperty(INITIAL_CONTEXT_FACTORY, ActiveMQInitialContextFactory.class.getCanonicalName());
         setProperty(PROVIDER_URL, "vm://localhost?broker.persistent=false&broker.useJmx=false&broker.useShutdownHook=false");

@@ -14,20 +14,21 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFeaturedDataverse
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFeaturedDataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+
+import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparing;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -35,7 +36,6 @@ import java.util.stream.Stream;
  */
 @Stateless
 public class FeaturedDataverseServiceBean {
-    private static final Logger logger = LoggerFactory.getLogger(FeaturedDataverseServiceBean.class);
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -63,9 +63,9 @@ public class FeaturedDataverseServiceBean {
 
     public List<Dataverse> sortFeaturedDataverses(List<Dataverse> featuredDataverses, FeaturedDataversesSorting sorting) {
         if (sorting == FeaturedDataversesSorting.BY_NAME_ASC) {
-            return featuredDataverses.stream().sorted(Comparator.comparing(Dataverse::getName)).collect(Collectors.toList());
+            return featuredDataverses.stream().sorted(comparing(Dataverse::getName)).collect(toList());
         } else if (sorting == FeaturedDataversesSorting.BY_NAME_DESC) {
-            return featuredDataverses.stream().sorted(Comparator.comparing(Dataverse::getName).reversed()).collect(Collectors.toList());
+            return featuredDataverses.stream().sorted(comparing(Dataverse::getName).reversed()).collect(toList());
         } else if (sorting == FeaturedDataversesSorting.BY_DATASET_COUNT) {
             return orderByDatasetCount(featuredDataverses);
         } else {
@@ -73,6 +73,7 @@ public class FeaturedDataverseServiceBean {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public List<Dataverse> findByDataverseIdQuick(Long dataverseId) {
         List<Object[]> searchResults = em.createNativeQuery("SELECT d.id, d.alias, d.name, dt.logo FROM DataverseFeaturedDataverse f "
                 + " JOIN dataverse d ON d.id = f.featureddataverse_id"
@@ -144,7 +145,8 @@ public class FeaturedDataverseServiceBean {
         dataverseFeaturedDataverseRepository.findByDataversesBySorting(automaticSorting)
                 .forEach(dataverse -> {
                     List<Dataverse> currentOrder = findByDataverseId(dataverse.getId());
-                    List<Dataverse> newOrder = findFeaturedDataversesSortedBy(dataverse.getId(), dataverse.getFeaturedDataversesSorting());
+                    List<Dataverse> newOrder = findFeaturedDataversesSortedBy(dataverse.getId(), 
+                            dataverse.getFeaturedDataversesSorting());
 
                     if (currentOrder.equals(newOrder)) {
                         return;
@@ -173,18 +175,18 @@ public class FeaturedDataverseServiceBean {
     }
 
     private List<Dataverse> orderByDatasetCount(List<Dataverse> featuredDataverses) {
-        Map<Long, Dataverse> dataversesLookup = featuredDataverses.stream().collect(Collectors
-                .toMap(Dataverse::getId, Function.identity()));
+        Map<Long, Dataverse> dataversesLookup = featuredDataverses.stream()
+                .collect(toMap(Dataverse::getId, identity()));
 
         List<Dataverse> orderedDv = featuredDataverses.stream().findFirst()
                 .map(Dataverse::getOwner)
                 .map(parent -> datasetCountService.countDatasetsInChildrenOf(parent).stream()
                         .filter(c -> dataversesLookup.containsKey(c.getDataverseId()))
-                        .sorted(Comparator.comparing(DataverseDatasetCount::getDatasetCount).reversed())
+                        .sorted(comparing(DataverseDatasetCount::getDatasetCount).reversed())
                         .map(c -> dataversesLookup.remove(c.getDataverseId()))
-                        .collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
+                        .collect(toList()))
+                .orElse(emptyList());
 
-        return Stream.concat(orderedDv.stream(), dataversesLookup.values().stream()).collect(Collectors.toList());
+        return Stream.concat(orderedDv.stream(), dataversesLookup.values().stream()).collect(toList());
     }
 }

@@ -29,7 +29,6 @@ public class S3AccessIOTest {
     @Mock
     private AmazonS3 s3client;
 
-    private S3AccessIO<Dataset> dataSetAccess;
     private S3AccessIO<DataFile> dataFileAccess;
     private Dataset dataSet;
     private DataFile dataFile;
@@ -44,24 +43,8 @@ public class S3AccessIOTest {
         dataFile.setOwner(dataSet);
         dataFileId = UUID.randomUUID().toString().substring(0, 8);
         dataFile.setStorageIdentifier("s3://bucket:" + dataFileId);
-        dataSetAccess = new S3AccessIO<>(dataSet, s3client, defaultBucketName);
         dataFileAccess = new S3AccessIO<>(dataFile, s3client, defaultBucketName);
     }
-
-    /*
-    createTempFile
-    getStorageLocation
-    getFileSystemPath
-    exists?
-    getWriteChannel
-    getOutputStream
-    getDestinationKey
-
-    DONE
-    ---------------------
-    getMainFileKey
-    getUrlExpirationMinutes
-     */
 
     @Test
     void constructor_dvObject_with_incorrect_storage_prefix() {

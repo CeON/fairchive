@@ -37,7 +37,7 @@ public class GroupServiceBeanTest {
     public void testFlattenGroupsCollection()  {
         // Setup
         MockRoleAssigneeServiceBean roleAssigneeSvc = new MockRoleAssigneeServiceBean();
-        ExplicitGroupProvider prv = new ExplicitGroupProvider(null, roleAssigneeSvc, new ArrayList<>());
+        new ExplicitGroupProvider(null, roleAssigneeSvc, new ArrayList<>());
         ExplicitGroup gA = new ExplicitGroup();
         gA.setDisplayName("A");
         ExplicitGroup gAa = new ExplicitGroup();

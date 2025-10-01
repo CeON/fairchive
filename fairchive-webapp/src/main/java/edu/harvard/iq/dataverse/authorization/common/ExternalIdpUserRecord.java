@@ -14,6 +14,7 @@ import java.util.List;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class ExternalIdpUserRecord implements Serializable {
 
     private final String serviceId;

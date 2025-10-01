@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RedirectUrlValidatorTest {
-    LoginPage loginPage = new LoginPage();
+    LoginPage loginPage = new LoginPage(null, null, null, null, null, null);
 
     @ParameterizedTest
     @ValueSource(strings = {

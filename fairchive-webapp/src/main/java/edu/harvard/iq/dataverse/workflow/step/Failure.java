@@ -13,6 +13,7 @@ import java.util.Objects;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class Failure implements WorkflowStepResult {
 
     public static final String REASON_PARAM_NAME = "reason";

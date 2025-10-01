@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.metrics;
 import edu.harvard.iq.dataverse.persistence.cache.Metric;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -11,6 +10,9 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+
+import static java.util.stream.Collectors.toList;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -22,12 +24,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_ALL;
 import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_LOCAL;
 import static edu.harvard.iq.dataverse.metrics.MetricsUtil.DATA_LOCATION_REMOTE;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MetricsCacheTimeoutMinutes;
 
+@SuppressWarnings("serial")
 @Stateless
 public class MetricsServiceBean implements Serializable {
 
@@ -72,6 +75,7 @@ public class MetricsServiceBean implements Serializable {
         return (long) query.getSingleResult();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> dataversesByCategory() throws Exception {
 
         Query query = em.createNativeQuery(""
@@ -86,11 +90,11 @@ public class MetricsServiceBean implements Serializable {
         return query.getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> dataversesBySubject() {
         Query query = em.createNativeQuery(""
                                                    + "select cvv.strvalue, count(dataverse_id) from dataversesubjects\n"
                                                    + "join controlledvocabularyvalue cvv ON cvv.id = controlledvocabularyvalue_id \n"
-                                                   //+ "where dataverse_id != ( select id from dvobject where owner_id is null) \n" //removes root, we decided to do this in the homepage js instead
                                                    + "group by cvv.strvalue\n"
                                                    + "order by count desc;"
 
@@ -103,6 +107,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Datasets
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countPublishedDatasets() {
         return mapToChartMetrics(em.createNativeQuery(
                 "SELECT\n" +
@@ -121,6 +126,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Authenticated users
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countAuthenticatedUsers() {
         return mapToChartMetrics(em.createNativeQuery(
                 "SELECT\n" +
@@ -135,6 +141,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Published files
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countPublishedFiles() {
         return mapToChartMetrics(em.createNativeQuery(
                 "select \n" +
@@ -158,6 +165,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Published files size
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countPublishedFilesStorage() {
         return mapToChartMetrics(em.createNativeQuery(
             "select \n" +
@@ -183,6 +191,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Downloaded Files
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countDownloadedFiles() {
         return mapToChartMetrics(em.createNativeQuery(
                 "SELECT" +
@@ -197,6 +206,7 @@ public class MetricsServiceBean implements Serializable {
     /**
      * Downloaded Datasets
      */
+    @SuppressWarnings("unchecked")
     public List<ChartMetrics> countDownloadedDatasets() {
         return mapToChartMetrics(em.createNativeQuery(
                 "SELECT" +
@@ -215,7 +225,7 @@ public class MetricsServiceBean implements Serializable {
                         dm[1] instanceof BigDecimal ?  ((BigDecimal) dm[1]).intValue() : ((Double)dm[1]).intValue(),
                         dm[2] instanceof BigDecimal ?  ((BigDecimal) dm[2]).longValue() : ((Long)dm[2]))
                 )
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
 
@@ -264,6 +274,7 @@ public class MetricsServiceBean implements Serializable {
         return (long) query.getSingleResult();
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> datasetsBySubjectToMonth(String yyyymm, String dataLocation) {
         // The SQL code below selects the local, non-harvested dataset versions:
         // A published local datasets may have more than one released version!
@@ -503,7 +514,7 @@ public class MetricsServiceBean implements Serializable {
         Date lastCalled = queriedMetric.getLastCalledDate();
         LocalDateTime ldt = LocalDateTime.ofInstant((new Date()).toInstant(), ZoneId.systemDefault());
 
-        long minutesUntilNextQuery = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MetricsCacheTimeoutMinutes);
+        long minutesUntilNextQuery = settingsService.getValueForKeyAsLong(MetricsCacheTimeoutMinutes);
 
         if (yyyymm.equals(thisMonthYYYYMM)) { //if this month
             LocalDateTime ldtMinus = ldt.minusMinutes(minutesUntilNextQuery);
@@ -526,7 +537,7 @@ public class MetricsServiceBean implements Serializable {
             return true;
         }
 
-        long minutesUntilNextQuery = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MetricsCacheTimeoutMinutes);
+        long minutesUntilNextQuery = settingsService.getValueForKeyAsLong(MetricsCacheTimeoutMinutes);
         Date lastCalled = queriedMetric.getLastCalledDate();
         LocalDateTime ldt = LocalDateTime.ofInstant((new Date()).toInstant(), ZoneId.systemDefault());
 

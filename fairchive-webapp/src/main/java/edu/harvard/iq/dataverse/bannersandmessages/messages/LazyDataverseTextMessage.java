@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@SuppressWarnings("serial")
 @Stateful
 public class LazyDataverseTextMessage extends LazyDataModel<DataverseTextMessageDto> {
 

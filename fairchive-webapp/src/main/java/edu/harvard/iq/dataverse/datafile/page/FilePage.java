@@ -373,6 +373,17 @@ public class FilePage implements java.io.Serializable {
         }
     }
 
+    public boolean isHTRedFilePresent() {
+        try {
+            final StorageIO<DataFile> storage = DataAccess.dataAccess()
+                    .getStorageIO(this.file);
+            return storage.isAuxObjectCached("htr");
+        } catch (final IOException e) {
+            logger.warning("Problem with checking ocr file on file page" + e.toString());
+            return false;
+        }
+    }
+
     public List<String[]> getExporters() {
         List<String[]> retList = new ArrayList<>();
 

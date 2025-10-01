@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.ingest.tabulardata.impl.plugins.dta;
 
-import edu.harvard.iq.dataverse.metrics.MetricsUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedInputStream;

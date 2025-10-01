@@ -719,6 +719,17 @@ public class DatasetFilesTab implements Serializable {
         }
     }
 
+    public boolean isHTRedFilePresent(final DataFile file) {
+        try {
+            final StorageIO<DataFile> storage = DataAccess.dataAccess()
+                    .getStorageIO(file);
+            return storage.isAuxObjectCached("htr");
+        } catch (final IOException e) {
+            logger.warning(e.toString());
+            return false;
+        }
+    }
+
     public boolean isAllFilesSelected() {
         return selectedFileIds.size() >= allCurrentFilesCount();
     }

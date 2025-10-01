@@ -39,6 +39,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
 
             if (token1 instanceof BigDecimal) {
                 if (token2 instanceof BigDecimal) {
+                    @SuppressWarnings("unchecked")
                     int compareVal = ((Comparable<BigDecimal>) token1).compareTo((BigDecimal) token2);
                     if (compareVal != 0) {
                         return compareVal;
@@ -52,6 +53,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
                 return 1; // token2 is a number, token1 is  not
 
             } else {
+                @SuppressWarnings("unchecked")
                 int compareVal = ((Comparable<String>) token1).compareTo((String) token2);
                 if (compareVal != 0) {
                     return compareVal;
