@@ -255,17 +255,21 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
     }
 
     protected String generateVariableHeader(final List<DataVariable> dvs) {
-        final StringBuilder result = new StringBuilder();
-        
-        for(final DataVariable v : dvs) {
-            if(result.length() > 0) {
-                result.append('\t');
+        if (dvs != null) {
+            final StringBuilder result = new StringBuilder();
+
+            for (final DataVariable v : dvs) {
+                if (result.length() > 0) {
+                    result.append('\t');
+                }
+                result.append(v.getName());
             }
-            result.append(v.getName());
+            result.append('\n');
+
+            return result.toString();
+        } else {
+            return null;
         }
-        result.append('\n');
-        
-        return result.toString();
     }
 
     protected boolean isWriteAccessRequested(DataAccessOption... options) throws IOException {
