@@ -59,7 +59,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
@@ -858,10 +857,9 @@ public class BagGenerator {
         if (jsonObject.get(key).isJsonPrimitive()) {
             val = jsonObject.get(key).getAsString();
         } else if (jsonObject.get(key).isJsonArray()) {
-            Iterator<JsonElement> iter = jsonObject.getAsJsonArray(key).iterator();
-            ArrayList<String> stringArray = new ArrayList<String>();
-            while (iter.hasNext()) {
-                stringArray.add(iter.next().getAsString());
+            final ArrayList<String> stringArray = new ArrayList<String>();
+            for(final JsonElement e : jsonObject.getAsJsonArray(key)) {
+                stringArray.add(e.getAsString());
             }
             if (stringArray.size() > 1) {
                 val = StringUtils.join(stringArray.toArray(), ",");
