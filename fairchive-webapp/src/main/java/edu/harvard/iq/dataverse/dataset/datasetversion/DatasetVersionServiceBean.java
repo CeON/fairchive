@@ -781,7 +781,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         try {
             em.createNativeQuery("UPDATE dataset SET thumbnailfile_id=" + dataFileId 
                     + " WHERE id in (SELECT dataset_id FROM datasetversion WHERE id=" 
-                    + versionId + ")").executeUpdate();
+                    + versionId + ')').executeUpdate();
         } catch (Exception ex) {
             // it's ok to just ignore...
         }
@@ -791,11 +791,11 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
 
         String logDir = System.getProperty("com.sun.aas.instanceRoot") + SEP + "logs" + SEP + "edit-drafts" + SEP;
         String identifier = dvd.getOriginalVersion().getDataset().getIdentifier();
-        identifier = identifier.substring(identifier.indexOf("/") + 1);
+        identifier = identifier.substring(identifier.indexOf('/') + 1);
         String datasetId = dvd.getOriginalVersion().getDataset().getId().toString();
-        String summary = au.getFirstName() + " " + au.getLastName() + " (" + au.getIdentifier() + ") updated " + dvd.getEditSummaryForLog();
+        String summary = au.getFirstName() + ' ' + au.getLastName() + " (" + au.getIdentifier() + ") updated " + dvd.getEditSummaryForLog();
         String logTimestamp = logFormatter.format(new Date());
-        String fileName = "/edit-draft-" + datasetId + "-" + identifier + "-" + logTimestamp + ".txt";
+        String fileName = "/edit-draft-" + datasetId + '-' + identifier + '-' + logTimestamp + ".txt";
         LoggingUtil.saveLogFile(summary, logDir, fileName);
 
     }
