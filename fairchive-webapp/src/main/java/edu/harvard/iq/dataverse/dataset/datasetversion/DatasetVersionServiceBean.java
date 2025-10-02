@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.dataset.datasetversion;
 
 import static edu.harvard.iq.dataverse.batch.jobs.importer.filesystem.FileRecordJobListener.SEP;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.Long.parseLong;
 import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.sort;
@@ -10,10 +11,8 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -206,10 +205,10 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         String[] versions = friendlyVersionNumber.split("\\.");
         try {
             if (versions.length == 1) {
-                majorVersionNumber = Long.parseLong(versions[0]);
+                majorVersionNumber = parseLong(versions[0]);
             } else if (versions.length == 2) {
-                majorVersionNumber = Long.parseLong(versions[0]);
-                minorVersionNumber = Long.parseLong(versions[1]);
+                majorVersionNumber = parseLong(versions[0]);
+                minorVersionNumber = parseLong(versions[1]);
             } else {
                 return null;
             }
@@ -262,14 +261,14 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         String[] vparts = version.split("\\.");
         if (vparts.length == 1) {
             try {
-                majorVersion = Long.parseLong(vparts[0]);
+                majorVersion = parseLong(vparts[0]);
             } catch (NumberFormatException n) {
                 return null;
             }
         } else if (vparts.length == 2) {
             try {
-                majorVersion = Long.parseLong(vparts[0]);
-                minorVersion = Long.parseLong(vparts[1]);
+                majorVersion = parseLong(vparts[0]);
+                minorVersion = parseLong(vparts[1]);
             } catch (NumberFormatException n) {
                 return null;
             }
@@ -872,7 +871,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
             info.add("message", "datasetVersionId was null or empty!");
             return info;
         }
-        long dsvId = Long.parseLong(datasetVersionId);
+        long dsvId = parseLong(datasetVersionId);
         DatasetVersion datasetVersion = getById(dsvId);
         if (datasetVersion == null) {
             info.add("message", "Could not find a dataset version based on datasetVersionId " 
