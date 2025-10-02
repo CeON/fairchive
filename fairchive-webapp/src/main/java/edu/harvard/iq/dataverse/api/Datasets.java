@@ -1,6 +1,69 @@
 package edu.harvard.iq.dataverse.api;
 
+import static java.util.stream.Collectors.toList;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.security.InvalidParameterException;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.ejb.EJBException;
+import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
 import com.amazonaws.services.pi.model.InvalidArgumentException;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
@@ -106,65 +169,6 @@ import edu.harvard.iq.dataverse.util.EjbUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import io.vavr.control.Try;
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
-import javax.ejb.EJBException;
-import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.security.InvalidParameterException;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Clock;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @Path("datasets")
 public class Datasets extends AbstractApiBean {
@@ -1502,27 +1506,25 @@ public class Datasets extends AbstractApiBean {
 
     @GET
     @Path("{identifier}/locks")
-    public Response getLocks(@PathParam("identifier") String id, @QueryParam("type") DatasetLock.Reason lockType) {
-        Dataset dataset;
+    public Response getLocks(@PathParam("identifier") String id,
+            @QueryParam("type") DatasetLock.Reason lockType) {
         try {
-            dataset = findDatasetOrDie(id);
-            Set<DatasetLock> locks;
-            if (lockType == null) {
-                locks = dataset.getLocks();
-            } else {
-                // request for a specific type lock:
-                DatasetLock lock = dataset.getLockFor(lockType);
-                locks = new HashSet<>();
-                if (lock != null) {
-                    locks.add(lock);
-                }
-            }
-            List<DatasetLockDTO> allLocks = locks.stream()
+            return ok(getLocksFor(lockType, findDatasetOrDie(id))
                     .map(l -> new DatasetLockDTO.Converter().convert(l))
-                    .collect(Collectors.toList());
-            return ok(allLocks);
+                    .collect(toList()));
         } catch (WrappedResponse wr) {
             return wr.getResponse();
+        }
+    }
+
+    private static Stream<DatasetLock> getLocksFor(final DatasetLock.Reason lockType,
+            final Dataset dataset) {
+        if (lockType == null) {
+            return dataset.getLocks().stream();
+        } else {
+            // request for a specific type lock:
+            final DatasetLock lock = dataset.getLockFor(lockType);
+            return lock != null ? Stream.of(lock) : Stream.empty();
         }
     }
 
