@@ -472,11 +472,12 @@
             </p>
         </div>
 
-        <ui:include src="text-messagesAndBanners.xhtml">
-
-            <ui:param name="dataverse" 
-                      value="#{dataverse != null ? dataverse : dataverseDao.findRootDataverse()}"/>
-        </ui:include>
+        <ui:fragment rendered="#{showDataverseHeader}">
+            <ui:include src="text-messagesAndBanners.xhtml">
+                <ui:param name="dataverse" 
+                         value="#{dataverse != null ? dataverse : dataverseDao.findRootDataverse()}"/>
+                </ui:include>
+        </ui:fragment>
         <!-- Noscript Error -->
         <noscript>
             <div id="noscript-alert" 
