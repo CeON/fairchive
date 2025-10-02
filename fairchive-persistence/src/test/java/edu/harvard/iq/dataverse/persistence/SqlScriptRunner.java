@@ -53,8 +53,8 @@ public class SqlScriptRunner {
      * @throws IOException 
      */
     private void runScript(Reader reader) throws IOException {
-        StringBuffer command = new StringBuffer();
-        LineNumberReader lineReader = new LineNumberReader(reader);
+        final StringBuilder command = new StringBuilder();
+        final LineNumberReader lineReader = new LineNumberReader(reader);
 
         try {
             String line = null;
