@@ -10,15 +10,19 @@
     <c:set var="banners" value="#{MessagesAndBannersFragment.banners(dataverse.id)}"/>
     
     <h:form class="top-messages">
-        <div class="alert alert-info p-grid" jsf:rendered="#{messages.size() > 0 or banners.size() > 0}">
-            <ui:repeat value="#{messages}" var="message">
-                <p class="p-col text-block" style="margin-left: auto; margin-right: auto; text-align: center">
-                    <span class="glyphicon glyphicon-info-sign"></span>&#160;
+        <div class="alert alert-info p-grid" 
+             jsf:rendered="#{messages.size() > 0 or banners.size() > 0}">
+            <ui:repeat value="#{messages}" 
+                       var="message">
+                <p class="p-col text-block" 
+                   style="margin-left: auto; margin-right: auto; text-align: center">
+                    <span class="glyphicon glyphicon-info-sign"/>&#160;
                     <h:outputText value="#{message}"/>
                 </p>
             </ui:repeat>
 
-            <ui:repeat value="#{banners}" var="banner">
+            <ui:repeat value="#{banners}" 
+                       var="banner">
                 <div style="display: flex;align-content: center;">
                   <h:commandLink style="text-align: center; display: block; margin: auto;  padding: 10px; "
                                    target="_blank" 
