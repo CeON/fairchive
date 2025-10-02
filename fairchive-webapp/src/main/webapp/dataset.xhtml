@@ -23,6 +23,7 @@
                   value="#{DatasetPage.pageTitle}"/>
         <ui:param name="dataverse" value="#{DatasetPage.dataset.owner}"/>
         <ui:param name="showMessagePanel" value="#{true}"/>
+        <ui:param name="showDataverseHeader" value="#{! DatasetPage.isViewedFromAnonymizedPrivateUrl()}"/>
         <ui:define name="dc_meta_header">
             <c:if test="#{DatasetPage.workingVersion.released}">
 	            <meta name="DC.identifier" content="#{DatasetPage.persistentId}"/>
