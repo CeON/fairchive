@@ -2,8 +2,11 @@ package edu.harvard.iq.dataverse.dataset.datasetversion;
 
 import static edu.harvard.iq.dataverse.batch.jobs.importer.filesystem.FileRecordJobListener.SEP;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.sort;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -937,42 +940,31 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         return true;
     }
 
-    private List<String> getFileUnfsInVersion(DatasetVersion datasetVersion) {
-        ArrayList<String> fileUnfs = new ArrayList<>();
+    private List<String> getFileUnfsInVersion(final DatasetVersion datasetVersion) {
+        final ArrayList<String> result = new ArrayList<>();
 
-        Iterator<FileMetadata> fileMetadataIterator = datasetVersion.getFileMetadatas().iterator();
-
-        while (fileMetadataIterator.hasNext()) {
-            FileMetadata fileMetadata = fileMetadataIterator.next();
-
-            String fileUnf = fileMetadata.getDataFile().getUnf();
-
-            if (fileUnf != null && !StringUtils.isBlank(fileUnf)) {
-                fileUnfs.add(fileUnf);
+        for(final FileMetadata metadata : datasetVersion.getFileMetadatas()) {
+            final String unf = metadata.getDataFile().getUnf();
+            if (unf != null && !isBlank(unf)) {
+                result.add(unf);
             }
         }
 
-        if (fileUnfs.size() > 0) {
-            Collections.sort(fileUnfs, String.CASE_INSENSITIVE_ORDER);
-        }
-
-        return fileUnfs;
+        sort(result, CASE_INSENSITIVE_ORDER);
+        return result;
     }
 
-    private DatasetVersion getPreviousVersionWithUnf(DatasetVersion datasetVersion) {
+    private DatasetVersion getPreviousVersionWithUnf(final DatasetVersion datasetVersion) {
         if (datasetVersion.getDataset().getVersions().size() < 2) {
             // this is the only version - so there's no previous version.
             return null;
         }
-
-        Iterator<DatasetVersion> versionIterator = datasetVersion.getDataset().getVersions().iterator();
+        
         boolean returnNext = false;
 
-        while (versionIterator.hasNext()) {
-            DatasetVersion iteratedVersion = versionIterator.next();
-
+        for(final DatasetVersion iteratedVersion : datasetVersion.getDataset().getVersions()) {
             if (returnNext) {
-                if (!StringUtils.isBlank(iteratedVersion.getUNF())) {
+                if (!isBlank(iteratedVersion.getUNF())) {
                     return iteratedVersion;
                 }
             } else if (DatasetVersion.compareByVersion.compare(datasetVersion, iteratedVersion) == 0) {
