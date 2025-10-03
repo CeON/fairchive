@@ -76,7 +76,8 @@
                     }
                 };
             </script>
-            <c:set var="conditionallyDisable" value="#{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview) or (settingsWrapper.dataCiteInstallation and DatasetPage.dataset.globalIdCreateTime == null) ? 'disabled' : ''}"/>
+            <c:set var="conditionallyDisable" 
+                   value="#{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview) or (settingsWrapper.dataCiteInstallation and DatasetPage.dataset.globalIdCreateTime == null) ? 'disabled' : ''}"/>
             <o:importFunctions type="edu.harvard.iq.dataverse.common.MarkupChecker"/>
             <f:metadata>
                 <o:importConstants
@@ -104,7 +105,12 @@
                 <f:viewAction action="#{privateUrlDialog.init}"/>
                 <f:viewAction action="#{anonymizedPrivateUrlDialog.init}"/>
             </f:metadata>
-            <a id="currentDownloadRequestLink" href="#" target="_blank" rel="noopener noreferrer" download="" style="display: none;">
+            <a id="currentDownloadRequestLink" 
+               href="#" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               download="" 
+               style="display: none;">
                 download requested files
             </a>
             <h:form id="datasetForm">
@@ -113,36 +119,55 @@
                 <p:fragment id="topDatasetBlockFragment">
                     <!-- static Messages -->
                     <p:outputPanel id="staticMessagesPanel">
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('Workflow')}" class="alert alert-warning" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isLockedBy('Workflow')}" 
+                             class="alert alert-warning" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.locked.message']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['dataset.locked.workflow.message.details']} "/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.locked.workflow.message.details']} "/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('InReview')}" class="alert alert-warning" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isLockedBy('InReview')}"
+                             class="alert alert-warning" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.locked.inReview.message']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['dataset.inreview.infoMessage']} "/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.inreview.infoMessage']} "/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('DcmUpload')}" class="alert alert-warning" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isLockedBy('DcmUpload')}" 
+                             class="alert alert-warning" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['file.rsyncUpload.inProgressMessage.summary']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['file.rsyncUpload.inProgressMessage.details']} "/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['file.rsyncUpload.inProgressMessage.details']} "/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('pidRegister')}" class="alert alert-warning" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isLockedBy('pidRegister')}" 
+                             class="alert alert-warning" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.publish.workflow.message']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['dataset.pidRegister.workflow.inprogress']} "/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.pidRegister.workflow.inprogress']} "/>
                             </p>
                         </div>
 
                         <div jsf:rendered="#{DatasetPage.displayPrivateUrl(false)}" 
-                             class="alert alert-info" role="alert" aria-atomic="true">
+                             class="alert alert-info" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.infoMessageAuthor.title']}</strong> –
-                                <h:outputText escape="false" value="#{DatasetPage.getPrivateUrlMessageDetails(false)}"/>
+                                <h:outputText escape="false" 
+                                              value="#{DatasetPage.getPrivateUrlMessageDetails(false)}"/>
                                 <span class="btn" 
                                       aria-label="#{bundle['dataset.copyUrl']}"
                                       tabindex="0"
@@ -154,10 +179,13 @@
                             </p>
                         </div> 
                         <div jsf:rendered="#{DatasetPage.displayPrivateUrl(true)}" 
-                            class="alert alert-info" role="alert" aria-atomic="true">
+                             class="alert alert-info" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.anonymized.infoMessageAuthor.title']}</strong> –
-                                <h:outputText escape="false" value="#{DatasetPage.getPrivateUrlMessageDetails(true)}"/>
+                                <h:outputText escape="false" 
+                                              value="#{DatasetPage.getPrivateUrlMessageDetails(true)}"/>
                                 <span class="btn" 
                                       aria-label="#{bundle['dataset.copyUrl']}"
                                       tabindex="0"
@@ -173,30 +201,43 @@
                                 </p>
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.isViewedFromPrivateUrl()}" class="alert alert-info" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{DatasetPage.isViewedFromPrivateUrl()}" 
+                             class="alert alert-info" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.infoMessageReviewer.title']}</strong> –
-                                <h:outputText escape="false" value="#{bundle['dataset.privateurl.infoMessageReviewer.details']}"/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.privateurl.infoMessageReviewer.details']}"/>
                             </p>
                         </div>
-                        <div jsf:rendered="#{!DatasetPage.isDoiReserved()}" class="alert alert-info" role="alert" aria-atomic="true">
+                        <div jsf:rendered="#{!DatasetPage.isDoiReserved()}" 
+                             class="alert alert-info" 
+                             role="alert" 
+                             aria-atomic="true">
                             <p class="text-block">
                                 <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;
-                                <h:outputText escape="false" value="#{bundle['dataset.datacite.reservation']}"/>
+                                <h:outputText escape="false" 
+                                              value="#{bundle['dataset.datacite.reservation']}"/>
                             </p>
                         </div>
                     </p:outputPanel>
                     <!-- END static Messages -->
                     <div id="topDatasetBlock">
-                        <div id="actionButtonBlock" class="button-block clearfix"
+                        <div id="actionButtonBlock" 
+                             class="button-block clearfix"
                              jsf:rendered="#{!widgetWrapper.widgetView}">
                             <!-- Metrics -->
-                            <div id="metrics-block" class="col-md-6"
-                                 jsf:rendered="#{!(settingsWrapper.rsyncDownload or DatasetPage.workingVersion.deaccessioned)}">
-                                <div id="metrics-label" class="col-xs-4 small text-center">
+                            <div id="metrics-block" 
+                                 class="col-md-6"
+                                 jsf:rendered="#{DatasetPage.displayMetricsBlock()}">
+                                <div id="metrics-label" 
+                                     class="col-xs-4 small text-center">
                                     <span class="glyphicon glyphicon-stats"/> #{bundle['metrics.title']}
                                 </div>
-                                <div jsf:id="metrics-content" id="metrics-content" class="col-xs-8 small text-center">
+                                <div jsf:id="metrics-content" 
+                                     id="metrics-content" 
+                                     class="col-xs-8 small text-center">
                                     <h:outputFormat styleClass="metric metrics-downloads"
                                                     value="{0} #{bundle['metrics.downloads']}">
                                         <f:param value="#{DatasetPage.datasetDownloadCount}"/>
@@ -204,7 +245,8 @@
                                     <span jsf:rendered="#{DatasetPage.datasetCitationsCount gt 0}"
                                           class="metric metrics-downloads">
                                         <a href="#{settingsWrapper.dataCiteCitationsPageUrl}/#{DatasetPage.dataset.authority}/#{DatasetPage.dataset.identifier}"
-                                                data-toggle="tooltip" data-placement="top"
+                                                data-toggle="tooltip" 
+                                                data-placement="top"
                                                 data-original-title="#{bundle['metrics.citations.datacite.tip']} #{bundle['opensInNewTab']}"
                                                 target="_blank">
                                             <h:outputFormat value="{0} #{bundle['metrics.citations']}">
@@ -218,21 +260,27 @@
 
                             <div class="pull-right">
                                 <!-- Contact/Share Button Group -->
-                                <div class="btn-group" id="datasetButtonBar" role="group">
+                                <div class="btn-group" 
+                                     id="datasetButtonBar" 
+                                     role="group">
                                     <p:commandLink class="text-button btn-contact bootstrap-button-tooltip"
                                                    title="#{bundle['dataset.email.datasetContactBtn']}"
-                                                   update=":contactDialog" oncomplete="primeFacesShowModal('contactForm', this)"
+                                                   update=":contactDialog" 
+                                                   oncomplete="primeFacesShowModal('contactForm', this)"
                                                    actionListener="#{sendFeedbackDialog.reset(DatasetPage.dataset)}">
-                                        <span class="glyphicon glyphicon-envelope" aria-hidden="true"/> #{bundle['contact.contact']}
+                                        <span class="glyphicon glyphicon-envelope" 
+                                              aria-hidden="true"/> #{bundle['contact.contact']}
                                     </p:commandLink>
                                     <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"
-                                                   rendered="#{!DatasetPage.workingVersion.deaccessioned}"
+                                                   rendered="#{DatasetPage.displayShareLink()}"
                                                    title="#{bundle['dataset.share.datasetShare']}"
                                                    oncomplete="primeFacesShowModal('shareDialog', this);sharrre();">
-                                        <span class="glyphicon glyphicon-share" aria-hidden="true"/> #{bundle['share']}
+                                        <span class="glyphicon glyphicon-share" 
+                                              aria-hidden="true"/> #{bundle['share']}
                                     </p:commandLink>
                                 </div>
-                                <p:dialog id="shareDialog" header="#{bundle['dataset.share.datasetShare']}"
+                                <p:dialog id="shareDialog" 
+                                          header="#{bundle['dataset.share.datasetShare']}"
                                           widgetVar="shareDialog" modal="true"
                                           rendered="#{!DatasetPage.workingVersion.deaccessioned}">
                                     <p class="help-block">#{bundle['dataset.share.datasetShare.tip']}</p>
@@ -243,7 +291,9 @@
                                          data-language="#{dataverseSession.localeCode}" />
 
                                     <div class="button-block">
-                                        <button type="button" onclick="PF('shareDialog').hide()" class="btn btn-default"
+                                        <button type="button" 
+                                                onclick="PF('shareDialog').hide()" 
+                                                class="btn btn-default"
                                                 value="#{bundle.close}">
                                             #{bundle.close}
                                         </button>
@@ -254,11 +304,7 @@
                                 <div class="btn-group" role="group">
                                     <!-- Edit/Publish Button Group -->
                                     <!-- Publish/Submit for Review/Return to Author Button Group -->
-                                    <ui:fragment rendered="#{DatasetPage.workingVersion == DatasetPage.dataset.latestVersion
-                                                                and DatasetPage.canPublishDataset()
-                                                                or (DatasetPage.dataset.latestVersion.versionState=='DRAFT'
-                                                                and DatasetPage.canUpdateDataset()
-                                                                and !DatasetPage.canPublishDataset())}">
+                                    <ui:fragment rendered="#{DatasetPage.displayPublishSubmitButtonGroup()}">
                                         <!-- Publish Buttons -->
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
@@ -305,21 +351,17 @@
                                         <!-- END: Publish Buttons -->
 
                                         <!-- Return to Author Button -->
-                                        <p:commandLink id="returnForModificationButton" type="button" styleClass="btn btn-default btn-access #{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview)
-                                                                                                              ? 'disabled' : ''}"
+                                        <p:commandLink id="returnForModificationButton" 
+                                                       type="button" 
+                                                       styleClass="btn btn-default btn-access #{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview) ? 'disabled' : ''}"
                                                        onclick="primeFacesShowModal('sendBackToContributor', this)"
-                                                       rendered="#{DatasetPage.dataset.latestVersion.versionState=='DRAFT' and DatasetPage.dataset.latestVersion.inReview
-                                                                   and DatasetPage.canPublishDataset()}">
+                                                       rendered="#{DatasetPage.displayReturnToAuthorButton()}">
                                             <span class="glyphicon glyphicon-repeat"/> #{bundle['dataset.rejectBtn']}
                                         </p:commandLink>
                                         <!-- END: Return to Author Button -->
 
                                         <!-- Submit for Review Button -->
-                                        <ui:fragment rendered="#{DatasetPage.workingVersion == DatasetPage.dataset.latestVersion
-                                                                    and !DatasetPage.datasetLockedInWorkflow
-                                                                    and DatasetPage.dataset.latestVersion.versionState=='DRAFT'
-                                                                    and DatasetPage.canUpdateDataset()
-                                                                    and !DatasetPage.canPublishDataset()}">
+                                        <ui:fragment rendered="#{DatasetPage.displaySubmitForReviewButton()}">
 
                                             <p:commandLink
                                                     styleClass="btn btn-default btn-access"
@@ -338,7 +380,8 @@
 
                                     <p:commandLink
                                             rendered="#{DatasetPage.canLinkDatasetToSomeDataverse()}"
-                                            type="button" styleClass="btn btn-default btn-access"
+                                            type="button" 
+                                            styleClass="btn btn-default btn-access"
                                             oncomplete="primeFacesShowModal('linkDatasetForm', this);"
                                             update="linkDatasetForm">
                                         <span class="glyphicon glyphicon-link"/> #{bundle['link']}
@@ -346,7 +389,8 @@
 
                                     <!-- Edit Button -->
                                     <ui:fragment rendered="#{DatasetPage.showEditDropdownButton()}">
-                                        <button type="button" id="editDataSet"
+                                        <button type="button" 
+                                                id="editDataSet"
                                                 class="btn btn-default btn-access dropdown-toggle #{DatasetPage.lockedFromEdits ? 'disabled' : ''}"
                                                 data-toggle="dropdown">
                                             <span class="glyphicon glyphicon-pencil"/> #{bundle['dataset.editBtn']} <span
@@ -377,7 +421,7 @@
                                                                action="#{DatasetPage.initCurrentEmbargo()}"
                                                                update="setEmbargoPanel"
                                                                oncomplete="primeFacesShowModal('setEmbargoConfirmation', this)"
-                                                               rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo() or DatasetPage.isUserAbleToLiftEmbargo()}">
+                                                               rendered="#{DatasetPage.displaySetEmbargoButton()}">
                                                     <h:outputText
                                                             value="#{bundle['dataset.editBtn.itemLabel.embargo']}"/>
                                                 </p:commandLink>
@@ -443,7 +487,7 @@
                                                 </h:outputLink>
                                             </li>
                                             <ui:fragment
-                                                    rendered="#{!DatasetPage.dataset.released and DatasetPage.dataset.latestVersion.versionState=='DRAFT' and DatasetPage.canDeleteDataset()}">
+                                                    rendered="#{DatasetPage.displayDeleteDatasetEntry()}">
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deleteDataset"
@@ -454,7 +498,7 @@
                                                 </li>
                                             </ui:fragment>
                                             <ui:fragment
-                                                    rendered="#{DatasetPage.dataset.released and DatasetPage.dataset.latestVersion.versionState=='DRAFT' and DatasetPage.canDeleteDataset()}">
+                                                    rendered="#{DatasetPage.displayDeleteVersionEntry()}">
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deleteVersion"
@@ -465,7 +509,7 @@
                                                 </li>
                                             </ui:fragment>
                                             <ui:fragment
-                                                    rendered="#{DatasetPage.dataset.released and DatasetPage.existReleasedVersion and DatasetPage.canPublishDataset()}">
+                                                    rendered="#{DatasetPage.displayDeaccessionDatasetEntry()}">
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deaccessionDatasetLink"
@@ -489,7 +533,8 @@
                                 <div class="col-xs-1 vcenter title-preview-icon-block">
                                     <img src="#{DatasetPage.thumbnailString}"
                                          jsf:rendered="#{!empty DatasetPage.thumbnailString}"/>
-                                    <span class="icon-dataset" jsf:rendered="#{empty DatasetPage.thumbnailString}"/>
+                                    <span class="icon-dataset" 
+                                          jsf:rendered="#{empty DatasetPage.thumbnailString}"/>
                                 </div>
                                 <div class="col-xs-11 vcenter">
                                     <h2 class="header-inline dataset-title-label"><h:outputText escape="false" value="#{DatasetPage.title}" /></h2>
@@ -521,7 +566,8 @@
                                 </ui:include>
                             </ui:fragment>
                             <!-- END: CITATION BLOCK -->
-                            <div id="deaccession-reason-block" class="row bg-danger"
+                            <div id="deaccession-reason-block" 
+                                 class="row bg-danger"
                                  jsf:rendered="#{DatasetPage.workingVersion.deaccessioned}">
                                 <h5 class="margin-top-half">#{bundle['dataset.deaccession.reason']}</h5>
                                 <p>#{DatasetPage.workingVersion.versionNote}</p>
@@ -532,21 +578,26 @@
                                 </ui:fragment>
                             </div>
                             <!-- BEGIN: DATASET SUMMARY -->
-                            <div jsf:id="dataset-summary-metadata" class="row panel panel-default"
+                            <div jsf:id="dataset-summary-metadata" 
+                                 class="row panel panel-default"
                                  jsf:rendered="#{!widgetWrapper.widgetView and !DatasetPage.workingVersion.deaccessioned and
                                                     (!empty DatasetPage.datasetSummaryFields or (DatasetPage.getFileSize() gt 0)) }">
                                 <div class="panel-body metadata-panel-body metadata-summary-panel-body">
-                                    <ui:repeat value="#{DatasetPage.datasetSummaryFields}" var="fieldsByType">
+                                    <ui:repeat value="#{DatasetPage.datasetSummaryFields}" 
+                                               var="fieldsByType">
 
-                                        <div id="keywords" class="form-group"
+                                        <div id="keywords" 
+                                             class="form-group"
                                              jsf:rendered="#{!empty DatasetPage.keywordsDisplaySummary and fieldsByType.datasetFieldType.name=='keyword'}">
                                             <div class="col-sm-3 control-label section-title">
                                                 #{bundle['dataset.keywordDisplay.title']}
                                                 <span class="glyphicon glyphicon-question-sign tooltip-icon"
                                                       jsf:rendered="#{not empty fieldsByType.datasetFieldType.localeDescription}"
-                                                      tabindex="0" role="button"
-                                                      data-toggle="tooltip" data-placement="auto right"
-                                                      data-original-title="#{fieldsByType.datasetFieldType.localeDescription}"></span>
+                                                      tabindex="0" 
+                                                      role="button"
+                                                      data-toggle="tooltip" 
+                                                      data-placement="auto right"
+                                                      data-original-title="#{fieldsByType.datasetFieldType.localeDescription}"/>
                                             </div>
                                             <div class="col-sm-9">
                                                 <p class="text-block">
@@ -554,15 +605,18 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        <div id="publication" class="form-group"
+                                        <div id="publication" 
+                                             class="form-group"
                                              jsf:rendered="#{!empty DatasetPage.firstRelPublication and
                                                 fieldsByType.datasetFieldType.name=='publication'}">
                                             <div class="col-sm-3 control-label section-title">
                                                 #{fieldsByType.datasetFieldType.localeTitle}
-                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
+                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                                      tabindex="0" role="button"
                                                       jsf:rendered="#{not empty fieldsByType.datasetFieldType.localeDescription}"
-                                                      data-toggle="tooltip" data-placement="auto right"
-                                                      data-original-title="#{fieldsByType.datasetFieldType.localeDescription}"></span>
+                                                      data-toggle="tooltip" 
+                                                      data-placement="auto right"
+                                                      data-original-title="#{fieldsByType.datasetFieldType.localeDescription}"/>
                                             </div>
                                             <div class="col-sm-9">
                                                 <p class="text-block">
@@ -590,15 +644,20 @@
                                         <div class="form-group"
                                              jsf:rendered="#{fieldsByType.datasetFieldType.name!='publication' and fieldsByType.datasetFieldType.name!='keyword'  }">
                                             <div class="col-sm-3 control-label section-title">
-                                                <h:outputText value="#{fieldsByType.datasetFieldType.localeTitle}" escape="false" />
-                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
+                                                <h:outputText value="#{fieldsByType.datasetFieldType.localeTitle}" 
+                                                              escape="false" />
+                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                                      tabindex="0" 
+                                                      role="button"
                                                       jsf:rendered="#{not empty fieldsByType.datasetFieldType.localeDescription}"
-                                                      data-toggle="tooltip" data-placement="auto right"
+                                                      data-toggle="tooltip" 
+                                                      data-placement="auto right"
                                                       data-original-title="#{fieldsByType.datasetFieldType.localeDescription}"></span>
                                             </div>
 
                                             <ui:include src="viewMetadataField.xhtml">
-                                                <ui:param name="fieldsByType" value="#{fieldsByType}"/>
+                                                <ui:param name="fieldsByType" 
+                                                          value="#{fieldsByType}"/>
                                             </ui:include>
                                         </div>
                                     </ui:repeat>
@@ -608,9 +667,11 @@
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label">
                                                 #{bundle['dataset.files.license']}
-                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
-                                                      data-toggle="tooltip" data-placement="auto right"
-                                                      data-original-title="#{bundle['dataset.files.license.description']}"></span>
+                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                                      tabindex="0" role="button"
+                                                      data-toggle="tooltip" 
+                                                      data-placement="auto right"
+                                                      data-original-title="#{bundle['dataset.files.license.description']}"/>
                                             </label>
                                             <div class="col-sm-9">
                                                 <p class="text-block">
@@ -625,16 +686,21 @@
                                              jsf:rendered="#{DatasetPage.termsOfUseOfFirstFile.get().termsOfUseType == termsOfUseTypeEnum.LICENSE_BASED}">
                                             <label class="col-sm-3 control-label">
                                                 #{bundle['dataset.files.license']}
-                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
-                                                      data-toggle="tooltip" data-placement="auto right"
-                                                      data-original-title="#{bundle['dataset.files.license.description']}"></span>
+                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                                      tabindex="0" 
+                                                      role="button"
+                                                      data-toggle="tooltip" 
+                                                      data-placement="auto right"
+                                                      data-original-title="#{bundle['dataset.files.license.description']}"/>
                                             </label>
                                             <div class="col-sm-9">
                                                 <p class="text-block">
                                                     #{DatasetPage.termsOfUseOfFirstFile.get().license.getLocalizedName(dataverseSession.locale)}
                                                     <ui:include src="license-icon-fragment.xhtml">
-                                                        <ui:param name="termsOfUse" value="#{DatasetPage.termsOfUseOfFirstFile.get()}"/>
-                                                        <ui:param name="licenseIcon" value="#{DatasetPage.getLicenseIconContent(DatasetPage.termsOfUseOfFirstFile.get())}"/>
+                                                        <ui:param name="termsOfUse" 
+                                                                  value="#{DatasetPage.termsOfUseOfFirstFile.get()}"/>
+                                                        <ui:param name="licenseIcon" 
+                                                                  value="#{DatasetPage.getLicenseIconContent(DatasetPage.termsOfUseOfFirstFile.get())}"/>
                                                     </ui:include>
                                                 </p>
                                             </div>
@@ -643,16 +709,20 @@
                                              jsf:rendered="#{DatasetPage.termsOfUseOfFirstFile.get().termsOfUseType == termsOfUseTypeEnum.ALL_RIGHTS_RESERVED}">
                                             <label class="col-sm-3 control-label">
                                                 #{bundle['dataset.files.termsOfAccess']}
-                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
-                                                      data-toggle="tooltip" data-placement="auto right"
-                                                      data-original-title="#{bundle['dataset.files.license.description']}"></span>
+                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                                      tabindex="0" 
+                                                      role="button"
+                                                      data-toggle="tooltip" 
+                                                      data-placement="auto right"
+                                                      data-original-title="#{bundle['dataset.files.license.description']}"/>
                                             </label>
                                             <div class="col-sm-9">
                                                 <p class="text-block">
                                                     #{bundle['file.allRightsReserved']}
                                                     <p:graphicImage value="#{DatasetPage.getAllRightsReservedIcon()}" 
                                                                     stream="false"
-                                                                    width="31" height="31"/>
+                                                                    width="31" 
+                                                                    height="31"/>
                                                 </p>
                                             </div>
                                         </div>
@@ -660,8 +730,11 @@
                                              jsf:rendered="#{DatasetPage.termsOfUseOfFirstFile.get().termsOfUseType == termsOfUseTypeEnum.RESTRICTED}">
                                             <label class="col-sm-3 control-label">
                                                 #{bundle['dataset.files.termsOfAccess']}
-                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
-                                                      data-toggle="tooltip" data-placement="auto right"
+                                                <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                                      tabindex="0" 
+                                                      role="button"
+                                                      data-toggle="tooltip" 
+                                                      data-placement="auto right"
                                                       data-original-title="#{bundle['dataset.files.termsOfAccess.description']}"></span>
                                             </label>
                                             <div class="col-sm-9">
@@ -675,7 +748,8 @@
                                                         rendered="#{DatasetPage.termsOfUseOfFirstFile.get().restrictType == restrictTypeEnum.CUSTOM}"/>
                                                     <p:graphicImage value="#{DatasetPage.getRestrictedIcon()}" 
                                                                     stream="false"
-                                                                    width="31" height="31"/>
+                                                                    width="31" 
+                                                                    height="31"/>
                                                 </p>
                                             </div>
                                         </div>
@@ -686,9 +760,11 @@
                                     <div class="form-group" >
                                         <label class="col-sm-3 control-label">
                                             #{bundle['dataset.embargo.datasetSummary.title']}
-                                            <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
-                                                  data-toggle="tooltip" data-placement="auto right"
-                                                  data-original-title="#{bundle['dataset.embargo.datasetSummary.tip']}"></span>
+                                            <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                                  tabindex="0" role="button"
+                                                  data-toggle="tooltip" 
+                                                  data-placement="auto right"
+                                                  data-original-title="#{bundle['dataset.embargo.datasetSummary.tip']}"/>
                                         </label>
                                         <div class="col-sm-9">
                                             <p class="text-block">
@@ -717,9 +793,11 @@
                     <p:fragment id="pageRefreshFragment">
                         <h:inputHidden value="#{DatasetPage.lockedForAnyReason}"
                                        id="datasetLockedForAnyReasonVariable"/>
-                        <h:inputHidden value="#{DatasetPage.stateChanged}" id="datasetStateChangedVariable"/>
+                        <h:inputHidden value="#{DatasetPage.stateChanged}" 
+                                       id="datasetStateChangedVariable"/>
 
-                        <p:remoteCommand name="refreshAllLocksCommand" process="@this"
+                        <p:remoteCommand name="refreshAllLocksCommand" 
+                                         process="@this"
                                          update=":#{p:resolveClientId('datasetForm:pageRefreshFragment', view)}"
                                          actionListener="#{DatasetPage.refreshAllLocks()}"/>
 
@@ -797,12 +875,15 @@
                 <!-- END View/Tabs infoMode -->
 
                 <!-- Popups -->
-                <p:dialog styleClass="smallPopUp" header="#{bundle['file.deleteDialog.header']}"
-                          widgetVar="deleteConfirmation" modal="true">
-                    <p class="text-warning"><span
-                            class="glyphicon glyphicon-warning-sign"/> #{bundle['file.deleteDialog.tip']}</p>
+                <p:dialog styleClass="smallPopUp" 
+                          header="#{bundle['file.deleteDialog.header']}"
+                          widgetVar="deleteConfirmation" 
+                          modal="true">
+                    <p class="text-warning">
+                        <span class="glyphicon glyphicon-warning-sign"/> #{bundle['file.deleteDialog.tip']}</p>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.continue}" onclick="PF('deleteConfirmation').hide()"
+                        <p:commandButton value="#{bundle.continue}" 
+                                         onclick="PF('deleteConfirmation').hide()"
                                          action="#{DatasetPage.deleteDataset()}"/>
                         <p:commandButton value="#{bundle.cancel}"
                                          onclick="PF('deleteConfirmation').hide();"
@@ -810,35 +891,39 @@
                     </div>
                 </p:dialog>
                 <!-- Set Embargo -->
-                <p:dialog id="SetEmbargo" styleClass="smallPopUp" header="#{bundle['dataset.embargo.header']}"
-                          widgetVar="setEmbargoConfirmation" modal="true">
+                <p:dialog id="SetEmbargo" 
+                          styleClass="smallPopUp" 
+                          header="#{bundle['dataset.embargo.header']}"
+                          widgetVar="setEmbargoConfirmation" 
+                          modal="true">
                     <p:fragment id="setEmbargoPanel">
                         <p class="help-block">
                             <h:outputFormat value="#{bundle['dataset.embargo.description.message']}"
                                             escape="false"
-                                            rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo()}"
-                            >
+                                            rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo()}">
                                 <br />
                             </h:outputFormat>
                             <h:outputFormat value="#{bundle['dataset.embargo.max.message']}"
                                             escape="false"
-                                            rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo() and DatasetPage.isMaximumEmbargoLengthSet()}"
-                            >
+                                            rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo() and DatasetPage.isMaximumEmbargoLengthSet()}">
                                 <f:param value="#{DatasetPage.getMaximumEmbargoLength()}"/>
                                 <br />
                             </h:outputFormat>
                             <h:outputFormat value="#{bundle['dataset.embargo.message']}"
                                             escape="false"
-                                            rendered="#{not empty DatasetPage.currentEmbargoDate}"
-                            >
+                                            rendered="#{not empty DatasetPage.currentEmbargoDate}">
                                 <f:param value="#{DatasetPage.currentEmbargoDateForDisplay}"/>
                                 <br />
                             </h:outputFormat>
                         </p>
                         <div jsf:rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo()}">
-                            <p:outputLabel for="embargoDatePicker" value="#{bundle['dataset.embargo.calendar.label']}" />
-                            <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
-                                  data-toggle="tooltip" data-placement="auto right"
+                            <p:outputLabel for="embargoDatePicker" 
+                                           value="#{bundle['dataset.embargo.calendar.label']}" />
+                            <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                  tabindex="0"
+                                  role="button"
+                                  data-toggle="tooltip" 
+                                  data-placement="auto right"
                                   data-original-title="#{bundle['dataset.embargo.calendar.label.tip']}"></span>
                             <p:calendar
                                     id="embargoDatePicker"
@@ -917,13 +1002,17 @@
                     </p:fragment>
                 </p:dialog>
                 <!-- Confirm embargo lift -->
-                <p:dialog styleClass="smallPopUp" header="#{bundle['dataset.embargo.header']}"
-                          widgetVar="removeEmbargoConfirmation" modal="true" closable="false">
-                    <p class="text-warning"><span
-                            class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.embargo.lift.confirmationText']}
+                <p:dialog styleClass="smallPopUp" 
+                          header="#{bundle['dataset.embargo.header']}"
+                          widgetVar="removeEmbargoConfirmation" 
+                          modal="true" 
+                          closable="false">
+                    <p class="text-warning">
+                        <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.embargo.lift.confirmationText']}
                     </p>
-                    <p jsf:rendered="#{DatasetPage.dataset.hasEverBeenPublished()}" class="text-warning"><span
-                            class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.embargo.lift.publishedConfirmationText']}
+                    <p jsf:rendered="#{DatasetPage.dataset.hasEverBeenPublished()}" 
+                       class="text-warning">
+                       <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.embargo.lift.publishedConfirmationText']}
                     </p>
                     <div class="button-block">
                         <p:commandButton value="#{bundle['dataset.embargo.lift.confirmButton']}"
@@ -937,12 +1026,16 @@
                     </div>
                 </p:dialog>
 
-                <p:dialog styleClass="smallPopUp" header="#{bundle['file.deleteDraftDialog.header']}"
-                          widgetVar="deleteVersionConfirmation" modal="true">
-                    <p class="text-warning"><span
-                            class="glyphicon glyphicon-warning-sign"/> #{bundle['file.deleteDraftDialog.tip']}</p>
+                <p:dialog styleClass="smallPopUp" 
+                          header="#{bundle['file.deleteDraftDialog.header']}"
+                          widgetVar="deleteVersionConfirmation" 
+                          modal="true">
+                    <p class="text-warning">
+                        <span class="glyphicon glyphicon-warning-sign"/> #{bundle['file.deleteDraftDialog.tip']}
+                    </p>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.continue}" onclick="PF('deleteVersionConfirmation').hide()"
+                        <p:commandButton value="#{bundle.continue}" 
+                                         onclick="PF('deleteVersionConfirmation').hide()"
                                          action="#{DatasetPage.deleteDatasetVersion()}"/>
                         <p:commandButton value="#{bundle.cancel}"
                                          onclick="PF('deleteVersionConfirmation').hide();"
@@ -966,11 +1059,16 @@
                     <ui:param name="tipText" value="#{bundle['dataset.privateurl.tip']}"/>
                 </ui:include>
 
-                <p:dialog id="linkDatasetForm" styleClass="largePopUp" header="#{bundle['dataset.link']}"
-                          widgetVar="linkDatasetForm" modal="true" rendered="#{DatasetPage.canLinkDatasetToSomeDataverse()}">
+                <p:dialog id="linkDatasetForm" 
+                          styleClass="largePopUp" 
+                          header="#{bundle['dataset.link']}"
+                          widgetVar="linkDatasetForm" 
+                          modal="true" 
+                          rendered="#{DatasetPage.canLinkDatasetToSomeDataverse()}">
                     <div class="form-horizontal">
                         <p class="help-block">
-                            <h:outputFormat value="#{bundle['dataverse.link.dataset.choose']}" escape="false">
+                            <h:outputFormat value="#{bundle['dataverse.link.dataset.choose']}" 
+                                            escape="false">
                                 <o:param>
                                     <p:commandLink value="#{installationConfig.supportTeamName}"
                                                    oncomplete="PF('linkDatasetForm').hide();PF('contactForm').show()"
@@ -985,19 +1083,25 @@
                             </label>
                             <div class="col-xs-8">
                                 <p:fragment id="linkNameContent">
-                                    <p:autoComplete id="dataverseLinkName" style="width:75%;"
+                                    <p:autoComplete id="dataverseLinkName" 
+                                                    style="width:75%;"
                                                     placeholder="#{bundle['dataverse.link.yourDataverses.inputPlaceholder']}"
                                                     emptyMessage="#{bundle['dataverse.link.dataset.none']}"
-                                                    scrollHeight="180" forceSelection="true"
-                                                    minQueryLength="1" queryDelay="1000"
+                                                    scrollHeight="180" 
+                                                    forceSelection="true"
+                                                    minQueryLength="1" 
+                                                    queryDelay="1000"
                                                     value="#{DatasetPage.selectedDataverseForLinking}"
                                                     multiple="false"
                                                     completeMethod="#{DatasetPage.completeLinkingDataverse}"
                                                     required="#{param['DO_DS_LINK_VALIDATION']}"
                                                     requiredMessage="#{bundle['dataverse.link.select']}"
-                                                    styleClass="DropdownPopup" panelStyleClass="DropdownPopupPanel"
-                                                    var="dataverseLk" itemLabel="#{dataverseLk.displayName}"
-                                                    itemValue="#{dataverseLk}" converter="dataverseConverter">
+                                                    styleClass="DropdownPopup" 
+                                                    panelStyleClass="DropdownPopupPanel"
+                                                    var="dataverseLk" 
+                                                    itemLabel="#{dataverseLk.displayName}"
+                                                    itemValue="#{dataverseLk}" 
+                                                    converter="dataverseConverter">
                                         <p:column>
                                             <h:outputText value="#{dataverseLk.displayName}"/>
                                         </p:column>
@@ -1013,20 +1117,24 @@
                         </div>
                     </div>
                     <div class="button-block">
-                        <p:commandLink id="saveLinkButton" type="button" styleClass="btn btn-default"
+                        <p:commandLink id="saveLinkButton" 
+                                       type="button" 
+                                       styleClass="btn btn-default"
                                        update="linkNameContent @([id$=Messages])"
                                        oncomplete="if (args &amp;&amp; !args.validationFailed) linkDatasetCommand();"
                                        value="#{bundle['dataset.link.save']}">
                             <f:param name="DO_DS_LINK_VALIDATION" value="true"/>
                         </p:commandLink>
-                        <button type="button" class="btn btn-default"
+                        <button type="button" 
+                                class="btn btn-default"
                                 onclick="PF('linkDatasetForm').hide();">
                             #{bundle.cancel}
                         </button>
                     </div>
                 </p:dialog>
 
-                <p:remoteCommand name="linkDatasetCommand" oncomplete="PF('linkDatasetForm').hide();"
+                <p:remoteCommand name="linkDatasetCommand" 
+                                 oncomplete="PF('linkDatasetForm').hide();"
                                  update=":messagePanel  @([id$=Messages])"
                                  actionListener="#{DatasetPage.saveLinkingDataverses}"
                                  rendered="#{DatasetPage.canLinkDatasetToSomeDataverse()}"/>
@@ -1095,7 +1203,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="returnReasonTextArea" class="col-sm-3 control-label">#{bundle['dataset.submitForReview.messageBox.label']}</label>
+                            <label for="returnReasonTextArea" 
+                                   class="col-sm-3 control-label">#{bundle['dataset.submitForReview.messageBox.label']}</label>
                             <div class="col-sm-9">
                                 <p:fragment id="submitForReviewMessageFragment">
                                     <p:inputTextarea id="submitForReviewCustomMessage"
@@ -1109,13 +1218,15 @@
                                                      styleClass="form-control"
                                     >
                                     </p:inputTextarea>
-                                    <h:message for="submitForReviewCustomMessage" styleClass="bg-danger text-danger"/>
+                                    <h:message for="submitForReviewCustomMessage" 
+                                               styleClass="bg-danger text-danger"/>
                                     <p>
                                         <h:outputText id="submitForReviewCounter"/>
                                     </p>
                                 </p:fragment>
                             </div>
-                            <p:watermark for="submitForReviewCustomMessage" value="#{bundle['dataset.submitForReview.customMessage.watermark']}"
+                            <p:watermark for="submitForReviewCustomMessage" 
+                                         value="#{bundle['dataset.submitForReview.customMessage.watermark']}"
                                          id="submitForReviewWatermark"/>
                         </div>
                         <div class="button-block">
@@ -1144,7 +1255,9 @@
                 </p:dialog>
 
                 <!-- Publish/Submit for Review Dialogs -->
-                <p:dialog width="70%" header="#{bundle['dataset.publish.header']}" widgetVar="publishConfirm"
+                <p:dialog width="70%" 
+                          header="#{bundle['dataset.publish.header']}" 
+                          widgetVar="publishConfirm"
                           modal="true"
                           rendered="#{DatasetPage.canPublishDataset()}">
 
@@ -1153,7 +1266,8 @@
                     </p>
                     <div id="terms-agreement-block" class="well"
                          jsf:rendered="#{DatasetPage.datasetPublishCustomText.length() > 0}">
-                        <h:outputText value="#{DatasetPage.datasetPublishCustomText}" escape="false"/>
+                        <h:outputText value="#{DatasetPage.datasetPublishCustomText}" 
+                                      escape="false"/>
                     </div>
                     <div class="button-block">
                         <p:commandButton value="#{bundle.continue}" onclick="PF('publishConfirm').hide();"
@@ -1166,7 +1280,9 @@
 
                 </p:dialog>
 
-                <p:dialog width="70%" header="#{bundle['dataset.publish.header']}" widgetVar="noFilesInDataset"
+                <p:dialog width="70%" 
+                          header="#{bundle['dataset.publish.header']}" 
+                          widgetVar="noFilesInDataset"
                           modal="true"
                           rendered="#{DatasetPage.canPublishDataset()}">
 
@@ -1181,11 +1297,13 @@
 
                 </p:dialog>
 
-                <p:dialog width="70%" header="#{bundle['dataset.publish.header']}" widgetVar="publishParent"
+                <p:dialog width="70%" header="#{bundle['dataset.publish.header']}"
+                          widgetVar="publishParent"
                           modal="true">
                     <p class="text-warning">
                         <span class="glyphicon glyphicon-warning-sign"/>
-                        <h:outputFormat value="#{bundle['dataset.mayNotPublish.both']}" escape="false">
+                        <h:outputFormat value="#{bundle['dataset.mayNotPublish.both']}" 
+                                        escape="false">
                             <o:param>
                                 <a href="/dataverse/#{DatasetPage.dataset.owner.alias}"
                                    title="#{DatasetPage.dataset.owner.displayName}">
@@ -1194,7 +1312,8 @@
                             </o:param>
                         </h:outputFormat>
                     </p>
-                    <div id="terms-agreement-block" class="well"
+                    <div id="terms-agreement-block" 
+                          class="well"
                          jsf:rendered="#{DatasetPage.datasetPublishCustomText.length() > 0}">
                         <h:outputText value="#{MarkupChecker:sanitizeBasicHTML(DatasetPage.datasetPublishCustomText)}"
                                       escape="false"/>
@@ -1209,7 +1328,8 @@
                                          immediate="true"/>
                         <p:commandButton value="#{bundle.cancel}"
                                          onclick="PF('publishParent').hide();"
-                                         type="button" immediate="true"/>
+                                         type="button" 
+                                         immediate="true"/>
                     </div>
                 </p:dialog>
 
@@ -1218,7 +1338,8 @@
                     <p class="text-warning">
                         <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.republish.tip']}
                     </p>
-                    <div id="terms-agreement-block" class="well"
+                    <div id="terms-agreement-block" 
+                         class="well"
                          jsf:rendered="#{DatasetPage.datasetPublishCustomText.length() > 0 and DatasetPage.isDatasetPublishPopupCustomTextOnAllVersions()}">
                         <h:outputText value="#{MarkupChecker:sanitizeBasicHTML(DatasetPage.datasetPublishCustomText)}"
                                       escape="false"/>
@@ -1251,19 +1372,24 @@
                                          onclick="PF('releaseDraft').hide();"
                                          rendered="#{DatasetPage.isMinorUpdate()}"
                                          action="#{DatasetPage.releaseDraft}"/>
-                        <p:commandButton value="#{bundle.continue}" onclick="PF('releaseDraft').hide();"
+                        <p:commandButton value="#{bundle.continue}" 
+                                         onclick="PF('releaseDraft').hide();"
                                          rendered="#{!DatasetPage.isMinorUpdate()}"
-                                         action="#{DatasetPage.releaseMajor}" immediate="true"/>
+                                         action="#{DatasetPage.releaseMajor}" 
+                                         immediate="true"/>
                         <p:commandButton value="#{bundle.cancel}"
                                          onclick="PF('releaseDraft').hide();"
                                          type="button"/>
                     </div>
                 </p:dialog>
 
-                <p:dialog header="#{bundle['dataset.publish.header']}" widgetVar="mayNotRelease" modal="true">
+                <p:dialog header="#{bundle['dataset.publish.header']}" 
+                          widgetVar="mayNotRelease" 
+                          modal="true">
                     <p class="text-danger">
                         <span class="glyphicon glyphicon-exclamation-sign"/>
-                        <h:outputFormat value="#{bundle['dataset.mayNotPublish.administrator']}" escape="false">
+                        <h:outputFormat value="#{bundle['dataset.mayNotPublish.administrator']}" 
+                                        escape="false">
                             <o:param>
                                 <a href="/dataverse.xhtml?alias=#{DatasetPage.dataset.owner.alias}"
                                    title="#{DatasetPage.dataset.owner.displayName}">
@@ -1273,15 +1399,19 @@
                         </h:outputFormat>
                     </p>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.close}" onclick="PF('mayNotRelease').hide();"
+                        <p:commandButton value="#{bundle.close}" 
+                                         onclick="PF('mayNotRelease').hide();"
                                          type="button"/>
                     </div>
                 </p:dialog>
 
-                <p:dialog header="#{bundle['dataset.publish.header']}" widgetVar="maynotPublishParent" modal="true">
+                <p:dialog header="#{bundle['dataset.publish.header']}" 
+                          widgetVar="maynotPublishParent" 
+                          modal="true">
                     <p class="text-danger">
                         <span class="glyphicon glyphicon-exclamation-sign"/>
-                        <h:outputFormat value="#{bundle['dataset.mayNotPublish.twoGenerations']}" escape="false">
+                        <h:outputFormat value="#{bundle['dataset.mayNotPublish.twoGenerations']}" 
+                                        escape="false">
                             <o:param>
                                 <a href="/dataverse/#{DatasetPage.dataset.owner.alias}"
                                    title="#{DatasetPage.dataset.owner.displayName}">
@@ -1297,17 +1427,22 @@
                         </h:outputFormat>
                     </p>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.close}" onclick="PF('maynotPublishParent').hide();"
+                        <p:commandButton value="#{bundle.close}" 
+                                         onclick="PF('maynotPublishParent').hide();"
                                          type="button"/>
                     </div>
                 </p:dialog>
 
-                <p:dialog header="#{bundle['dataset.rejectBtn']}" widgetVar="sendBackToContributor" modal="true">
+                <p:dialog header="#{bundle['dataset.rejectBtn']}" 
+                          widgetVar="sendBackToContributor" 
+                          modal="true">
                     <p:fragment id="returnReasonFragment">
                         <div class="row">
                             <div class="form-group">
-                                <label for="returnReasonTextArea" class="col-sm-4 control-label">#{bundle['dataset.reject.messageBox.label']}
-                                    <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
+                                <label for="returnReasonTextArea" 
+                                       class="col-sm-4 control-label">#{bundle['dataset.reject.messageBox.label']}
+                                    <span class="glyphicon glyphicon-asterisk text-danger" 
+                                          title="#{bundle.requiredField}"/>
                                 </label>
                                 <div class="col-sm-8">
                                     <p:inputTextarea id="returnReasonTextArea"
@@ -1322,23 +1457,29 @@
                                                      requiredMessage="#{bundle['dataset.reject.enterReason']}"
                                                      styleClass="form-control">
                                     </p:inputTextarea>
-                                    <h:message for="returnReasonTextArea" styleClass="bg-danger text-danger"/>
+                                    <h:message for="returnReasonTextArea" 
+                                               styleClass="bg-danger text-danger"/>
                                     <p>
                                         <h:outputText id="display"/>
                                     </p>
                                 </div>
-                                <p:watermark for="returnReasonTextArea" value="#{bundle['dataset.rejectWatermark']}"
+                                <p:watermark for="returnReasonTextArea" 
+                                             value="#{bundle['dataset.rejectWatermark']}"
                                              id="returnReasonwatermark"/>
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-group">
-                                <label for="replyTo" class="col-sm-4 control-label">
+                                <label for="replyTo" 
+                                       class="col-sm-4 control-label">
                                     #{bundle['dataset.reject.reply.to.label']}
-                                    <span class="glyphicon glyphicon-asterisk text-danger" title="#{bundle.requiredField}"/>
+                                    <span class="glyphicon glyphicon-asterisk text-danger" 
+                                          title="#{bundle.requiredField}"/>
                                     <span class="glyphicon glyphicon-question-sign tooltip-icon"
-                                          tabindex="0" role="button"
-                                          data-toggle="tooltip" data-placement="auto right"
+                                          tabindex="0" 
+                                          role="button"
+                                          data-toggle="tooltip" 
+                                          data-placement="auto right"
                                           data-original-title="#{bundle['dataset.reject.reply.to.tooltip']}"></span>
                                 </label>
                                 <div class="col-sm-8">

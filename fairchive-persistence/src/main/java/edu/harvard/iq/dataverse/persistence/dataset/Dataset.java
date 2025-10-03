@@ -194,6 +194,10 @@ public class Dataset extends DvObjectContainer {
     }
     
     
+    public boolean canBeDeleted() {
+        return !isReleased() && getLatestVersion().isDraft();
+    }
+    
     /**
      * Checks whether {@code this} dataset is locked for a given reason.
      *
