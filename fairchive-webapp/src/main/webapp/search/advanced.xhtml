@@ -127,6 +127,16 @@
                                                          value="#{item.fieldValue}"
                                                          rendered="#{item.searchFieldType == fieldTypeEnums.TEXT}"/>
                                             <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.GEOBOX_COORD}">
+
+                                                <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker margin-top"
+                                                                 value="#{item.fieldValue}"
+                                                                 onchange="
+                                                                this.value = this.value.replace(/,/g, '.');
+                                                                DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
+                                                                DvJS.Geo.SearchView.updateMap('#{mapId}');"
+                                                                 rows="5"
+                                                                 widgetVar="#{widgetVar}"
+                                                                 pt:data-handler="#{widgetVar}"/>
                                                 <c:set var="mapId" value="#{item.parent.isDefined()
                                                     ? (mdb.blockName).concat('_').concat(item.getParent().get().getDisplayId()) : ''}"/>
                                                 <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
@@ -137,16 +147,6 @@
 
                                                 <div id="#{mapId}" class="form-col-container geo-map">
                                                 </div>
-
-                                                <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker margin-top"
-                                                             value="#{item.fieldValue}"
-                                                             onchange="
-                                                                this.value = this.value.replace(/,/g, '.');
-                                                                DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
-                                                                DvJS.Geo.SearchView.updateMap('#{mapId}');"
-                                                             rows="5"
-                                                             widgetVar="#{widgetVar}"
-                                                             pt:data-handler="#{widgetVar}"/>
 
                                                 <script>
                                                     DvJS.Geo.SearchView.prepare('#{mapId}');
