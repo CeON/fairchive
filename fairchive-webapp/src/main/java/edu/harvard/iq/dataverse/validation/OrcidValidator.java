@@ -26,16 +26,13 @@ public class OrcidValidator {
         if (isBlank(orcid)) {
             return invalid(INVALID_FORMAT);
         }
-
         final Matcher matcher = FORMAT_PATTERN.matcher(orcid);
         if (!matcher.matches()) {
             return invalid(INVALID_FORMAT);
         }
-
         final String encoded = matcher.group(1) + matcher.group(2) + 
                                matcher.group(3) + matcher.group(4);
         final String checksum = matcher.group(5);
-
         return checksum.equals(computeChecksum(encoded))
                 ? ok()
                 : invalid(INVALID_CHECKSUM);
@@ -43,11 +40,10 @@ public class OrcidValidator {
 
     // -------------------- PRIVATE --------------------
 
-    public String computeChecksum(final String baseDigits) {
+    public String computeChecksum(final String baseDigits) {    
         final int total = stream(baseDigits.split(""))
                 .mapToInt(Integer::parseInt)
                 .reduce(0, (accumulated, digit) -> (accumulated + digit) * 2);
-
         final int result = (12 - total % 11) % 11;
         return result == 10 ? "X" : String.valueOf(result);
     }

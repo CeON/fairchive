@@ -1,52 +1,61 @@
 package edu.harvard.iq.dataverse.validation;
 
-import org.apache.commons.lang3.StringUtils;
-
 import javax.ejb.Stateless;
-import java.util.Arrays;
-import java.util.Collections;
+
+import static edu.harvard.iq.dataverse.validation.ValidationResult.invalid;
+import static edu.harvard.iq.dataverse.validation.ValidationResult.ok;
+import static java.lang.Long.parseLong;
+import static java.util.Arrays.stream;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.regex.Pattern.compile;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Stateless
 public class RorValidator {
-    public static final String INVALID_FORMAT_ERROR_CODE = "ror.invalid.format";
-    public static final String INVALID_CHECKSUM_ERROR_CODE = "ror.invalid.checksum";
-    private static final Map<String, Integer> DECODE_SYMBOL_VALUES = Initializer.initializeDecodeSymbolValues();
+    
+    public static final String INVALID_FORMAT = "ror.invalid.format";
+    public static final String INVALID_CHECKSUM = "ror.invalid.checksum";
+    private static final Map<String, Integer> SYMBOL_VALUES = symbolValues();
+    private static final Pattern FORMAT_PATTERN = 
+            compile("https://ror\\.org/0[a-hjkmnp-tv-z0-9]{6}[0-9]{2}");
 
     // -------------------- LOGIC --------------------
 
-    public ValidationResult validate(String fullRor) {
-        if (StringUtils.isBlank(fullRor)
-            || !fullRor.matches("https://ror\\.org/0[a-hjkmnp-tv-z0-9]{6}[0-9]{2}")) {
-            return ValidationResult.invalid(INVALID_FORMAT_ERROR_CODE);
+    public ValidationResult validate(final String fullRor) {
+        if (isBlank(fullRor)) {
+            return invalid(INVALID_FORMAT);
         }
-        String value = fullRor.substring(fullRor.lastIndexOf("/") + 1);
-        String encoded = value.substring(0, 7);
-        long checksum = Long.parseLong(value.substring(7));
+        final Matcher matcher = FORMAT_PATTERN.matcher(fullRor);
+        if (!matcher.matches()) {
+            return invalid(INVALID_FORMAT);
+        }
+        final String value = fullRor.substring(fullRor.lastIndexOf("/") + 1);
+        final String encoded = value.substring(0, 7);
+        final long checksum = parseLong(value.substring(7));
         return checksum == computeChecksum(encoded)
-                ? ValidationResult.ok()
-                : ValidationResult.invalid(INVALID_CHECKSUM_ERROR_CODE);
+                ? ok()
+                : invalid(INVALID_CHECKSUM);
     }
 
     // -------------------- PRIVATE --------------------
 
-    private long computeChecksum(String encoded) {
-        long decoded = Arrays.stream(encoded.split(""))
-                .mapToLong(DECODE_SYMBOL_VALUES::get)
+    private static long computeChecksum(final String encoded) {
+        long decoded = stream(encoded.split(""))
+                .mapToLong(SYMBOL_VALUES::get)
                 .reduce(0L, (accumulated, element) -> 32L * accumulated + element);
         return 98L - ((decoded * 100L) % 97);
     }
 
-    // -------------------- INNER CLASSES --------------------
-
-    static class Initializer {
-        static Map<String, Integer> initializeDecodeSymbolValues() {
-            String symbols = "0123456789abcdefghjkmnpqrstvwxyz";
-            return Collections.unmodifiableMap(
-                    Arrays.stream(symbols.split(""))
-                            .collect(Collectors.toMap(Function.identity(), symbols::indexOf)));
-        }
+    private static Map<String, Integer> symbolValues() {
+        final String symbols = "0123456789abcdefghjkmnpqrstvwxyz";
+        return unmodifiableMap(
+                stream(symbols.split(""))
+                        .collect(toMap(Function.identity(), symbols::indexOf)));
     }
 }
