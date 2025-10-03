@@ -66,13 +66,13 @@ public class SqlScriptRunner {
                 }
                 if (!trimmedLine.endsWith(DELIMITER)) {
                     command.append(line);
-                    command.append(" ");
+                    command.append(' ');
                     continue;
                 }
 
 
                 command.append(line.substring(0, line.lastIndexOf(DELIMITER)));
-                command.append(" ");
+                command.append(' ');
 
                 executeCommand(command.toString());
 

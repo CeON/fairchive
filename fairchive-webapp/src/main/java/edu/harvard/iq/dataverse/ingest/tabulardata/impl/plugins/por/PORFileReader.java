@@ -1178,7 +1178,7 @@ public class PORFileReader extends TabularDataFileReader {
                                         StringBuilder sb_time = new StringBuilder(sdf_dhms.format(new Date(dateDatum)));
 
                                         if (formatDecimalPointPosition > 0) {
-                                            sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                            sb_time.append('.').append(timeData[1], 0, formatDecimalPointPosition);
                                         }
 
                                         datum = sb_time.toString();
@@ -1206,11 +1206,11 @@ public class PORFileReader extends TabularDataFileReader {
                                         StringBuilder sb_time = new StringBuilder(sdf_ymdhms.format(new Date(dateDatum)));
 
                                         if (formatDecimalPointPosition > 0) {
-                                            sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                            sb_time.append('.').append(timeData[1], 0, formatDecimalPointPosition);
                                         }
 
                                         datum = sb_time.toString();
-                                        datumDateFormat = sdf_ymdhms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                        datumDateFormat = sdf_ymdhms.toPattern().concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                     }
 
                                 } else if (printFormatTable.get(variableNameList.get(i)).equals("TIME")) {
@@ -1226,11 +1226,11 @@ public class PORFileReader extends TabularDataFileReader {
                                         StringBuilder sb_time = new StringBuilder(sdf_hms.format(new Date(dateDatum)));
 
                                         if (formatDecimalPointPosition > 0) {
-                                            sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                            sb_time.append('.').append(timeData[1], 0, formatDecimalPointPosition);
                                         }
 
                                         datum = sb_time.toString();
-                                        datumDateFormat = sdf_hms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                        datumDateFormat = sdf_hms.toPattern().concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                     }
                                 }
 
@@ -1477,8 +1477,8 @@ public class PORFileReader extends TabularDataFileReader {
         String significand = null;
         long exponent = 0;
 
-        int plusIndex = base30StringNoSign.indexOf("+");
-        int minusIndex = base30StringNoSign.indexOf("-");
+        int plusIndex = base30StringNoSign.indexOf('+');
+        int minusIndex = base30StringNoSign.indexOf('+');
 
         if (plusIndex > 0) {
             significand = base30StringNoSign.substring(0, plusIndex);

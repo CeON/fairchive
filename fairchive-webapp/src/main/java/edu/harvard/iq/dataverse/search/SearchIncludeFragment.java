@@ -565,7 +565,7 @@ public class SearchIncludeFragment {
                         .collect(Collectors.joining(":")));
 
         for (int i = 0; i < filterQueries.size(); i++) {
-            searchUrlBuilder.append("&fq").append(i).append("=")
+            searchUrlBuilder.append("&fq").append(i).append('=')
                     .append(URLEncoder.encode(filterQueries.get(i), "UTF-8"));
         }
         searchUrlBuilder.append("&sort=").append(sortField)

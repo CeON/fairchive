@@ -1854,11 +1854,11 @@ public class Datasets extends AbstractApiBean {
                     && dsf.getDatasetFieldsChildren().isEmpty() && dsf.getFieldValue().isEmpty()) {
                 error.append("Empty multiple value for field: ")
                         .append(dsf.getDatasetFieldType().getDisplayName())
-                        .append(" ");
+                        .append(' ');
             } else if (!dsf.getDatasetFieldType().isAllowMultiples() && dsf.getDatasetFieldsChildren().isEmpty()) {
                 error.append("Empty value for field: ")
                         .append(dsf.getDatasetFieldType().getDisplayName())
-                        .append(" ");
+                        .append(' ');
             }
         }
         return !error.toString().isEmpty() ? error.toString() : "";

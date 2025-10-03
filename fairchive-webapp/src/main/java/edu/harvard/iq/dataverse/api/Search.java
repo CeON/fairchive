@@ -107,11 +107,11 @@ public class Search extends AbstractApiBean {
                                                      false);
         } catch (SearchException se) {
             Throwable cause = se;
-            StringBuilder sb = new StringBuilder().append(cause).append(" ");
+            StringBuilder sb = new StringBuilder().append(cause).append(' ');
             while (cause.getCause() != null) {
                 cause = cause.getCause();
-                sb.append(cause.getClass().getCanonicalName()).append(" ")
-                        .append(cause).append(" ");
+                sb.append(cause.getClass().getCanonicalName()).append(' ')
+                        .append(cause).append(' ');
             }
             String message = String.format("Exception running search for [%s] with filterQueries %s and paginationStart [%d]: %s",
                     query, filterQueries, paginationStart, sb.toString());
@@ -221,7 +221,7 @@ public class Search extends AbstractApiBean {
                 .collect(Collectors.joining(" OR "));
 
         if (StringUtils.isNotEmpty(subtreesFilter)) {
-            subtreesFilter = SearchFields.SUBTREE + ":(" + subtreesFilter + ")";
+            subtreesFilter = SearchFields.SUBTREE + ":(" + subtreesFilter + ')';
         }
 
         return subtreesFilter;

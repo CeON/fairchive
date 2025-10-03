@@ -357,7 +357,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
                 sb.append(ex.getLocalizedMessage());
                 while (cause.getCause() != null) {
                     cause = cause.getCause();
-                    sb.append(cause + " ");
+                    sb.append(cause).append(' ');
                     if (cause instanceof ConstraintViolationException) {
                         ConstraintViolationException constraintViolationException = (ConstraintViolationException) cause;
                         for (ConstraintViolation<?> violation : constraintViolationException.getConstraintViolations()) {
