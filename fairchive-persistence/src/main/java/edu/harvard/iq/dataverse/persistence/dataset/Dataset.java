@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
@@ -187,6 +188,15 @@ public class Dataset extends DvObjectContainer {
         versions.add(datasetVersion);
     }
 
+    public boolean isInReview() {
+        return isLockedFor(Reason.InReview);
+    }
+    
+    
+    public boolean canBeDeleted() {
+        return !isReleased() && getLatestVersion().isDraft();
+    }
+    
     /**
      * Checks whether {@code this} dataset is locked for a given reason.
      *
