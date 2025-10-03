@@ -14,17 +14,14 @@ import java.util.List;
 public class DatasetFieldValidationService {
 
     private DatasetFieldValidationDispatcherFactory dispatcherFactory;
-    private ValidationMessageResolver validationMessageResolver;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public DatasetFieldValidationService() { }
 
     @Inject
-    public DatasetFieldValidationService(DatasetFieldValidationDispatcherFactory dispatcherFactory,
-            ValidationMessageResolver validationMessageResolver) {
+    public DatasetFieldValidationService(DatasetFieldValidationDispatcherFactory dispatcherFactory) {
         this.dispatcherFactory = dispatcherFactory;
-        this.validationMessageResolver = validationMessageResolver;
     }
 
 // -------------------- LOGIC --------------------
@@ -36,7 +33,7 @@ public class DatasetFieldValidationService {
                 .executeValidations();
         fieldValidationResults.forEach(r -> {
                     ValidatableField field = r.getField();
-                    field.setValidationMessage(validationMessageResolver.resolveValidationMessage(r));
+                    field.setValidationMessage(r.getMessage());
                 });
         return fieldValidationResults;
     }

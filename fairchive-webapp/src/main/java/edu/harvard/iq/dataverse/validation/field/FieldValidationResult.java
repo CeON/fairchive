@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.validation.field;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
+
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.ValidationResult;
 
@@ -28,6 +31,18 @@ public class FieldValidationResult extends ValidationResult {
     public Object[] getErrorArgs() {
         return this.errorArgs;
     }
+    
+    public String getMessage() {
+        final String fieldTypeName = this.field.getDatasetFieldType().getName();
+        final String metadataBlockName = this.field.getDatasetFieldType()
+                .getMetadataBlock().getName();
+        final String key = "datasetfieldtype." + fieldTypeName + "." + getErrorCode();
+        final String result = getStringFromNonDefaultBundle(key, metadataBlockName,
+                this.errorArgs);
+        return result.isEmpty()
+                ? getStringFromBundle(getErrorCode(), this.errorArgs)
+                : result;
+    }
 
     // -------------------- LOGIC --------------------
 
@@ -39,5 +54,4 @@ public class FieldValidationResult extends ValidationResult {
             final String errorCode, final Object... errorArgs) {
         return new FieldValidationResult(false, errorCode, field, errorArgs);
     }
-
 }
