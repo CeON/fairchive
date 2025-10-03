@@ -481,7 +481,7 @@ public class DatasetPage implements Serializable {
         return this.dataset.canBeDeleted() && canDeleteDataset();
     }
     
-    public boolean displayDeleteVerionEntry() {
+    public boolean displayDeleteVersionEntry() {
         return this.dataset.isReleased() 
                 && this.dataset.getLatestVersion().isDraft()
                 && canDeleteDataset();
