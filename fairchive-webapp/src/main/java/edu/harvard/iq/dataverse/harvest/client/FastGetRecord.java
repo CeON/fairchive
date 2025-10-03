@@ -432,7 +432,7 @@ public class FastGetRecord {
                                         String identifier,
                                         String metadataPrefix) {
 
-        StringBuffer requestURL = new StringBuffer(baseURL);
+        StringBuilder requestURL = new StringBuilder(baseURL);
         requestURL.append("?verb=GetRecord");
         requestURL.append("&identifier=").append(identifier);
         requestURL.append("&metadataPrefix=").append(metadataPrefix);
@@ -602,7 +602,7 @@ public class FastGetRecord {
             throw new XMLStreamException("parser must be on START_ELEMENT to read next text", xmlr.getLocation());
         }
         int eventType = xmlr.next();
-        StringBuffer content = new StringBuffer();
+        StringBuilder content = new StringBuilder();
         while (eventType != XMLStreamConstants.END_ELEMENT) {
             if (eventType == XMLStreamConstants.CHARACTERS
                     || eventType == XMLStreamConstants.CDATA

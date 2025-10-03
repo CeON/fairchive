@@ -59,7 +59,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
@@ -230,46 +229,40 @@ public class BagGenerator {
         // Create manifest files
         // pid-mapping.txt - a DataOne recommendation to connect ids and
         // in-bag path/names
-        StringBuffer pidStringBuffer = new StringBuffer();
-        boolean first = true;
+        final StringBuilder pidBuilder = new StringBuilder();
         for (Entry<String, String> pidEntry : pidMap.entrySet()) {
-            if (!first) {
-                pidStringBuffer.append("\r\n");
-            } else {
-                first = false;
+            if (pidBuilder.length() > 0) {
+                pidBuilder.append("\r\n");
             }
-            String path = pidEntry.getValue();
-            pidStringBuffer.append(pidEntry.getKey() + " " + path);
+            pidBuilder.append(pidEntry.getKey()).append(' ')
+                    .append(pidEntry.getValue());
         }
         createDir("metadata/");
-        createFileFromString("metadata/pid-mapping.txt", pidStringBuffer.toString());
+        createFileFromString("metadata/pid-mapping.txt", pidBuilder.toString());
         // Hash manifest - a hash manifest is required
         // by Bagit spec
-        StringBuffer sha1StringBuffer = new StringBuffer();
-        first = true;
+        final StringBuilder sha1Builder = new StringBuilder();
         for (Entry<String, String> sha1Entry : checksumMap.entrySet()) {
-            if (!first) {
-                sha1StringBuffer.append("\r\n");
-            } else {
-                first = false;
+            if (sha1Builder.length() > 0) {
+                sha1Builder.append("\r\n");
             }
-            String path = sha1Entry.getKey();
-            sha1StringBuffer.append(sha1Entry.getValue() + " " + path);
+            sha1Builder.append(sha1Entry.getValue()).append(' ')
+                    .append(sha1Entry.getKey());
         }
         if (!(hashtype == null)) {
             String manifestName = "manifest-";
             if (hashtype.equals(DataFile.ChecksumType.SHA1)) {
-                manifestName = manifestName + "sha1.txt";
+                manifestName = "manifest-sha1.txt";
             } else if (hashtype.equals(DataFile.ChecksumType.SHA256)) {
-                manifestName = manifestName + "sha256.txt";
+                manifestName = "manifest-sha256.txt";
             } else if (hashtype.equals(DataFile.ChecksumType.SHA512)) {
-                manifestName = manifestName + "sha512.txt";
+                manifestName = "manifest-sha512.txt";
             } else if (hashtype.equals(DataFile.ChecksumType.MD5)) {
-                manifestName = manifestName + "md5.txt";
+                manifestName = "manifest-md5.txt";
             } else {
                 logger.warning("Unsupported Hash type: " + hashtype);
             }
-            createFileFromString(manifestName, sha1StringBuffer.toString());
+            createFileFromString(manifestName, sha1Builder.toString());
         } else {
             logger.warning("No Hash values sent - Bag File does not meet BagIT specification requirement");
         }
@@ -729,7 +722,7 @@ public class BagGenerator {
 
     private String generateInfoFile() {
         logger.fine("Generating info file");
-        StringBuffer info = new StringBuffer();
+        final StringBuilder info = new StringBuilder();
 
         JsonArray contactsArray = new JsonArray();
         /* Contact, and it's subfields, are terms from citation.tsv whose mapping to a formal vocabulary and label in the oremap may change
@@ -784,17 +777,17 @@ public class BagGenerator {
             logger.warning("No contact info available for BagIt Info file");
         }
 
-        info.append("Source-Organization: " + ResourceBundle.getBundle("Bundle").getString("bagit.sourceOrganization"));
+        info.append("Source-Organization: ").append(ResourceBundle.getBundle("Bundle").getString("bagit.sourceOrganization"));
         // ToDo - make configurable
         info.append(CRLF);
 
-        info.append("Organization-Address: " + WordUtils.wrap(
+        info.append("Organization-Address: ").append(WordUtils.wrap(
                 ResourceBundle.getBundle("Bundle").getString("bagit.sourceOrganizationAddress"), 78, CRLF + " ", true));
         info.append(CRLF);
 
         // Not a BagIt standard name
         info.append(
-                "Organization-Email: " + ResourceBundle.getBundle("Bundle").getString("bagit.sourceOrganizationEmail"));
+                "Organization-Email: ").append(ResourceBundle.getBundle("Bundle").getString("bagit.sourceOrganizationEmail"));
         info.append(CRLF);
 
         info.append("External-Description: ");
@@ -837,7 +830,7 @@ public class BagGenerator {
         if (aggregation.has(JsonLDTerm.schemaOrg("includedInDataCatalog").getLabel())) {
             catalog = aggregation.get(JsonLDTerm.schemaOrg("includedInDataCatalog").getLabel()).getAsString();
         }
-        info.append(catalog + ":" + aggregation.get(JsonLDTerm.schemaOrg("name").getLabel()).getAsString());
+        info.append(catalog).append(':').append(aggregation.get(JsonLDTerm.schemaOrg("name").getLabel()).getAsString());
         info.append(CRLF);
 
         return info.toString();
@@ -858,10 +851,9 @@ public class BagGenerator {
         if (jsonObject.get(key).isJsonPrimitive()) {
             val = jsonObject.get(key).getAsString();
         } else if (jsonObject.get(key).isJsonArray()) {
-            Iterator<JsonElement> iter = jsonObject.getAsJsonArray(key).iterator();
-            ArrayList<String> stringArray = new ArrayList<String>();
-            while (iter.hasNext()) {
-                stringArray.add(iter.next().getAsString());
+            final ArrayList<String> stringArray = new ArrayList<String>();
+            for(final JsonElement e : jsonObject.getAsJsonArray(key)) {
+                stringArray.add(e.getAsString());
             }
             if (stringArray.size() > 1) {
                 val = StringUtils.join(stringArray.toArray(), ",");

@@ -598,7 +598,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     public String save() {
-        return performSave.execute().getOrElse(StringUtils.EMPTY);
+        return performSave.execute().getOrElse(EMPTY);
     }
 
     private String performSave() {
@@ -1032,7 +1032,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                 this.temporaryThumbnailsMap.put(fileSystemId, previewAsBase64);
                 return true;
             } else {
-                this.temporaryThumbnailsMap.put(fileSystemId, "");
+                this.temporaryThumbnailsMap.put(fileSystemId, EMPTY);
             }
         }
         return false;
@@ -1366,7 +1366,7 @@ public class EditDatafilesPage implements java.io.Serializable {
             if (generatedTempFiles != null) {
                 for (final Path generated : generatedTempFiles) {
                     logger.fine("(Deleting generated thumbnail file " 
-                                + generated.toString() + ")");
+                                + generated.toString() + ')');
                     try {
                         Files.delete(generated);
                     } catch (final IOException ioex) {
@@ -1376,11 +1376,11 @@ public class EditDatafilesPage implements java.io.Serializable {
                 }
             }
             Files.delete(Paths.get(FileUtil.getFilesTempDirectory() 
-                    + "/" + dataFile.getStorageIdentifier()));
+                    + File.separatorChar + dataFile.getStorageIdentifier()));
         } catch (final IOException ioe) {
             // safe to ignore - it's just a temp file.
             logger.warning("Failed to delete temporary file " 
-                    + FileUtil.getFilesTempDirectory() + "/"
+                    + FileUtil.getFilesTempDirectory() + File.separatorChar
                     + dataFile.getStorageIdentifier());
         }
     }
@@ -1415,8 +1415,8 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     private String returnToDraftVersion() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId().asString() 
-                + "&version=DRAFT&faces-redirect=true";
+        return "/dataset.xhtml?version=DRAFT&faces-redirect=true&persistentId=".
+                concat(dataset.getGlobalId().asString());
     }
 
     /** Download a file from drop box */

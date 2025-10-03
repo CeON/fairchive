@@ -53,8 +53,8 @@ public class SqlScriptRunner {
      * @throws IOException 
      */
     private void runScript(Reader reader) throws IOException {
-        StringBuffer command = new StringBuffer();
-        LineNumberReader lineReader = new LineNumberReader(reader);
+        final StringBuilder command = new StringBuilder();
+        final LineNumberReader lineReader = new LineNumberReader(reader);
 
         try {
             String line = null;
@@ -66,13 +66,13 @@ public class SqlScriptRunner {
                 }
                 if (!trimmedLine.endsWith(DELIMITER)) {
                     command.append(line);
-                    command.append(" ");
+                    command.append(' ');
                     continue;
                 }
 
 
                 command.append(line.substring(0, line.lastIndexOf(DELIMITER)));
-                command.append(" ");
+                command.append(' ');
 
                 executeCommand(command.toString());
 

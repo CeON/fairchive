@@ -512,10 +512,10 @@ public class Admin extends AbstractApiBean {
             return ok(output);
         } catch (Throwable ex) {
             StringBuilder sb = new StringBuilder();
-            sb.append(ex + " ");
+            sb.append(ex).append(' ');
             while (ex.getCause() != null) {
                 ex = ex.getCause();
-                sb.append(ex + " ");
+                sb.append(ex).append(' ');
             }
             String msg = "User id " + id
                     + " could not be converted from Shibboleth to BuiltIn. Details from Exception: " + sb;
@@ -549,10 +549,10 @@ public class Admin extends AbstractApiBean {
             return ok(output);
         } catch (Throwable ex) {
             StringBuilder sb = new StringBuilder();
-            sb.append(ex + " ");
+            sb.append(ex).append(' ');
             while (ex.getCause() != null) {
                 ex = ex.getCause();
-                sb.append(ex + " ");
+                sb.append(ex).append(' ');
             }
             String msg = "User id " + id + " could not be converted from remote to BuiltIn. Details from Exception: "
                     + sb;

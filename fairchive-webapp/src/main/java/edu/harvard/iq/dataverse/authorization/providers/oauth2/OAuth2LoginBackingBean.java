@@ -82,7 +82,7 @@ public class OAuth2LoginBackingBean implements Serializable {
                 StringBuilder sb = new StringBuilder();
                 String line;
                 while ((line = rdr.readLine()) != null) {
-                    sb.append(line).append("\n");
+                    sb.append(line).append('\n');
                 }
                 error = new OAuth2Exception(-1, sb.toString(), "Remote system did not return an authorization code.");
                 logger.info("OAuth2Exception getting code parameter. HTTP return code: {}. Message: {} Message body: {}", error.getHttpReturnCode(), error.getLocalizedMessage(), error.getMessageBody());

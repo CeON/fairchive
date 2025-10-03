@@ -182,11 +182,11 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
                 // where you can view it as an admin)
                 StringBuilder sb = new StringBuilder("https://").append(host);
                 if (!"443".equals(port)) {
-                    sb.append(":").append(port);
+                    sb.append(':').append(port);
                 }
                 sb.append("/duradmin/spaces/sm/")
                         .append(store.getStoreId())
-                        .append("/").append(spaceName).append("/")
+                        .append('/').append(spaceName).append('/')
                         .append(fileName);
                 dv.setArchivalCopyLocation(sb.toString());
                 logger.fine("DuraCloud Submission step complete: " + sb.toString());
