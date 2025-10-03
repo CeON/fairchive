@@ -1478,7 +1478,7 @@ public class PORFileReader extends TabularDataFileReader {
         long exponent = 0;
 
         int plusIndex = base30StringNoSign.indexOf('+');
-        int minusIndex = base30StringNoSign.indexOf('+');
+        int minusIndex = base30StringNoSign.indexOf('-');
 
         if (plusIndex > 0) {
             significand = base30StringNoSign.substring(0, plusIndex);
