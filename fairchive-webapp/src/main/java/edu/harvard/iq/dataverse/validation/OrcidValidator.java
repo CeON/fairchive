@@ -1,48 +1,50 @@
 package edu.harvard.iq.dataverse.validation;
 
-import org.apache.commons.lang3.StringUtils;
-
 import javax.ejb.Stateless;
-import java.util.Arrays;
+
+import static edu.harvard.iq.dataverse.validation.ValidationResult.invalid;
+import static edu.harvard.iq.dataverse.validation.ValidationResult.ok;
+import static java.util.Arrays.stream;
+import static java.util.regex.Pattern.compile;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Stateless
 public class OrcidValidator {
 
-    public static final String INVALID_FORMAT_ERROR_CODE = "orcid.invalid.format";
-    public static final String INVALID_CHECKSUM_ERROR_CODE = "orcid.invalid.checksum";
+    public static final String INVALID_FORMAT = "orcid.invalid.format";
+    public static final String INVALID_CHECKSUM = "orcid.invalid.checksum";
 
-    private static final Pattern ORCID_FORMAT_PATTERN = Pattern.compile("([0-9]{4})-([0-9]{4})-([0-9]{4})-([0-9]{3})([0-9X])");
+    private static final Pattern FORMAT_PATTERN = 
+            compile("([0-9]{4})-([0-9]{4})-([0-9]{4})-([0-9]{3})([0-9X])");
 
     // -------------------- LOGIC --------------------
 
-    public ValidationResult validate(String orcid) {
-        if (StringUtils.isEmpty(orcid)) {
-            return ValidationResult.invalid(INVALID_FORMAT_ERROR_CODE);
+    public ValidationResult validate(final String orcid) {
+        if (isBlank(orcid)) {
+            return invalid(INVALID_FORMAT);
         }
-
-        Matcher matcher = ORCID_FORMAT_PATTERN.matcher(orcid);
-        if (StringUtils.isBlank(orcid) || !matcher.matches()) {
-            return ValidationResult.invalid(INVALID_FORMAT_ERROR_CODE);
+        final Matcher matcher = FORMAT_PATTERN.matcher(orcid);
+        if (!matcher.matches()) {
+            return invalid(INVALID_FORMAT);
         }
-
-        String encoded = matcher.group(1) + matcher.group(2) + matcher.group(3) + matcher.group(4);
-        String checksum = matcher.group(5);
-
+        final String encoded = matcher.group(1) + matcher.group(2) + 
+                               matcher.group(3) + matcher.group(4);
+        final String checksum = matcher.group(5);
         return checksum.equals(computeChecksum(encoded))
-                ? ValidationResult.ok()
-                : ValidationResult.invalid(INVALID_CHECKSUM_ERROR_CODE);
+                ? ok()
+                : invalid(INVALID_CHECKSUM);
     }
 
     // -------------------- PRIVATE --------------------
 
-    public String computeChecksum(String baseDigits) {
-        int total = Arrays.stream(baseDigits.split(""))
+    public String computeChecksum(final String baseDigits) {    
+        final int total = stream(baseDigits.split(""))
                 .mapToInt(Integer::parseInt)
                 .reduce(0, (accumulated, digit) -> (accumulated + digit) * 2);
-
-        int result = (12 - total % 11) % 11;
+        final int result = (12 - total % 11) % 11;
         return result == 10 ? "X" : String.valueOf(result);
     }
 }

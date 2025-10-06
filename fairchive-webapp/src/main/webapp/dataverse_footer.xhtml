@@ -7,16 +7,19 @@
 >
 
     <footer id="footer" class="#{widgetView ? 'widget-view' : ''}">
-        <o:resourceInclude path="/CustomizationFilesServlet?customFileType=footer" rendered="#{!widgetWrapper.widgetView}"/>
+        <o:resourceInclude path="/CustomizationFilesServlet?customFileType=footer" 
+                           rendered="#{!widgetWrapper.widgetView}"/>
 
         <div class="container footer-links">
             <div class="row">
                 <div class="col-sm-9">
                     <p>
-                        <h:outputFormat value="#{bundle['footer.copyright']}" escape="false" >
+                        <h:outputFormat value="#{bundle['footer.copyright']}" 
+                                        escape="false" >
                             <o:param>#{of:formatDate(now, 'yyyy')}</o:param>
                         </h:outputFormat>
-                        <h:outputText value=" #{settingsWrapper.getSettingValue(':FooterCopyright')}" escape="false"/>
+                        <h:outputText value=" #{settingsWrapper.getSettingValue(':FooterCopyright')}" 
+                                      escape="false"/>
                         <span jsf:rendered="#{systemConfig.showPrivacyPolicyFooterLinkRendered}">
                             <h:outputLink value="/privacy-policy.xhtml">
                                 <h:outputText value="#{bundle['footer.privacyPolicy']}"/>
@@ -37,9 +40,12 @@
                                 <h:outputText value="#{bundle['footer.sitemap.link.name']}"/>
                             </h:outputLink>
                         </span>
-                        <ui:repeat value="#{settingsWrapper.getConfiguredFooterUrls().entrySet().toArray()}" var="url">
+                        <ui:repeat value="#{settingsWrapper.getConfiguredFooterUrls().entrySet().toArray()}" 
+                                   var="url">
                             <span>
-                                <h:outputLink value="#{url.key}" target="_blank" title="#{bundle['opensInNewTab']}">
+                                <h:outputLink value="#{url.key}" 
+                                              target="_blank" 
+                                              title="#{bundle['opensInNewTab']}">
                                     <h:outputText value="#{url.value}"/>
                                 </h:outputLink>
                             </span>
@@ -49,7 +55,9 @@
                 <div class="col-sm-3 text-right">
                     <div class="poweredbylogo">
                         #{bundle['footer.poweredby']} #{bundle['footer.repod']}, #{bundle['footer.basedOn']}
-                        <a href="http://dataverse.org/" title="#{bundle['footer.dataverseProject']} #{bundle['opensInNewTab']}" target="_blank">#{bundle['footer.dataverse']}</a> #{bundle['footer.dataverse.version']}
+                        <a href="http://dataverse.org/" 
+                           title="#{bundle['footer.dataverseProject']} #{bundle['opensInNewTab']}" 
+                           target="_blank">#{bundle['footer.dataverse']}</a> #{bundle['footer.dataverse.version']}
                     </div>
                 </div>
             </div>

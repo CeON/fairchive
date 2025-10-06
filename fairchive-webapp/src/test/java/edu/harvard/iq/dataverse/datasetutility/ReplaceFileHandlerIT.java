@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static java.lang.System.currentTimeMillis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Transactional(TransactionMode.ROLLBACK)
@@ -78,20 +79,9 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
     public void setUp() {
         System.setProperty(SystemConfig.FILES_DIRECTORY, tempFiles.getAbsolutePath());
     }
-
-    private static boolean isWindows() {
-
-        return System.getProperty("os.name").toLowerCase().contains("win");
-    }
     
     @Test
     public void shouldCreateDataFile() {
-        
-        // this test fails under Windows - the fix will require longer investigation
-        if(isWindows()) {
-            System.out.println("Skipped ReplaceFileHandlerIT.shouldReplaceFile. Windows detected");
-            return;
-        }
         
         //given
         Dataset dataset = new Dataset();
@@ -113,12 +103,6 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
 
     @Test
     public void shouldReplaceFile() throws IOException {
-        
-        // this test fails under Windows - the fix will require longer investigation
-        if(isWindows()) {
-            System.out.println("Skipped ReplaceFileHandlerIT.shouldReplaceFile. Windows detected");
-            return;
-        }
         
         //given
         dataverseSession.logIn(authenticationServiceBean.getAdminUser());
@@ -168,9 +152,14 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
         Assertions.assertEquals(dbDataset.getFiles().get(0).getId(), dbDataset.getFiles().get(0).getRootDataFileId());
 
         StorageIO<DataFile> newFileStorageIO = DataAccess.dataAccess().getStorageIO(dbDataset.getFiles().get(1));
-        newFileStorageIO.open();
-        byte[] newFileContent = IOUtils.toByteArray(newFileStorageIO.getInputStream());
-        Assertions.assertArrayEquals(bytes, newFileContent);
+        try {
+            newFileStorageIO.open();
+            byte[] newFileContent = IOUtils
+                    .toByteArray(newFileStorageIO.getInputStream());
+            Assertions.assertArrayEquals(bytes, newFileContent);
+        } finally {
+            newFileStorageIO.closeQuietly();
+        }
 
     }
     private DataFile createTestDataFile(String filename, String fileContentType2) {
@@ -208,8 +197,8 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
         dataverse.setAlias("TestDataverseAlias");
         dataverse.setOwner(dataverseDao.findRootDataverse());
         dataverse.setDataverseType(Dataverse.DataverseType.LABORATORY);
-        dataverse.setCreateDate(new Timestamp(System.currentTimeMillis()));
-        dataverse.setModificationTime(new Timestamp(System.currentTimeMillis()));
+        dataverse.setCreateDate(new Timestamp(currentTimeMillis()));
+        dataverse.setModificationTime(new Timestamp(currentTimeMillis()));
 
         DataverseContact dataverseContact = new DataverseContact();
         dataverseContact.setContactEmail("testmail@test.com");
