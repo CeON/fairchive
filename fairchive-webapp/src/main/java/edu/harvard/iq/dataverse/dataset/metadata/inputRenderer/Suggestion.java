@@ -16,12 +16,12 @@ public class Suggestion {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public Suggestion(String value) {
+    public Suggestion(final String value) {
         this.value = value;
         this.details = value;
     }
 
-    public Suggestion(String value, String details) {
+    public Suggestion(final String value, final String details) {
         this.value = value;
         this.details = details;
     }
@@ -43,15 +43,14 @@ public class Suggestion {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
+    public boolean equals(final Object obj) {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
+        } else {
+            final Suggestion other = (Suggestion) obj;
+            return Objects.equals(details, other.details)
+                    && Objects.equals(value, other.value);
         }
-        Suggestion other = (Suggestion) obj;
-        return Objects.equals(details, other.details) && Objects.equals(value, other.value);
     }
 
     // -------------------- toString --------------------
@@ -62,6 +61,6 @@ public class Suggestion {
      */
     @Override
     public String toString() {
-        return value + " " + details;
+        return this.value;
     }
 }
