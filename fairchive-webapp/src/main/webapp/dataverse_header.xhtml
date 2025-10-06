@@ -11,24 +11,29 @@
 
     <!--@elvariable id="dataverse" type="edu.harvard.iq.dataverse.persistence.dataverse.Dataverse"-->
 
-    <o:resourceInclude path="/CustomizationFilesServlet?customFileType=header" rendered="#{!widgetWrapper.widgetView}"/>
+    <o:resourceInclude path="/CustomizationFilesServlet?customFileType=header" 
+                       rendered="#{!widgetWrapper.widgetView}"/>
 
     <!-- Navbar Panel -->
-    <div id="navbarFixed" class="navbar navbar-default navbar-fixed-top" jsf:rendered="#{!widgetWrapper.widgetView}">
-        <div id="navbar-underline"></div>
-        <div id="cookie-banner" jsf:rendered="#{empty cookie['ConsentCookie']}">
+    <div id="navbarFixed" 
+         class="navbar navbar-default navbar-fixed-top" 
+         jsf:rendered="#{!widgetWrapper.widgetView}">
+        <div id="navbar-underline"/>
+        <div id="cookie-banner" 
+             jsf:rendered="#{empty cookie['ConsentCookie']}">
             <h:form class="container">
                 #{bundle['header.cookie.consent.text']}
                 <h:outputLink value="/privacy-policy.xhtml">
                     <h:outputText value="#{bundle['header.cookie.consent.privacy.policy.link']}"/>
                 </h:outputLink>.
                 <p:commandButton id="hide-cookie-banner"
-                                    value="#{bundle['header.cookie.consent.button']}"
-                                    action="#{cookieConsent.addCookie()}"
-                                    oncomplete="document.getElementById('cookie-banner').style.display='none'"/>
+                                 value="#{bundle['header.cookie.consent.button']}"
+                                 action="#{cookieConsent.addCookie()}"
+                                 oncomplete="document.getElementById('cookie-banner').style.display='none'"/>
             </h:form>
         </div>
-        <div id="unconfirmed-mail-banner" jsf:rendered="#{dataverseHeaderFragment.shouldShowUnconfirmedMailInfoBanner()}">
+        <div id="unconfirmed-mail-banner" 
+             jsf:rendered="#{dataverseHeaderFragment.shouldShowUnconfirmedMailInfoBanner()}">
             <h:form class="container">
                 #{bundle['unconfirmed.mail.banner.text']}
                 <h:outputLink value="/dataverseuser.xhtml?selectTab=accountInfo">
@@ -41,7 +46,11 @@
         </div>
         <div class="container">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#topNavBar" aria-expanded="false">
+                <button type="button" 
+                        class="navbar-toggle" 
+                        data-toggle="collapse" 
+                        data-target="#topNavBar"
+                        aria-expanded="false">
                     <span class="sr-only">#{bundle.toggleNavigation}</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
@@ -50,19 +59,26 @@
                 <div class="logos-container">
                     <ui:fragment rendered="#{systemConfig.isSuperiorLogoDefined(dataverseSession.locale)}">
                         <div class="superior-logo-container">
-                            <a href="#{systemConfig.getSuperiorLogoLink(dataverseSession.locale)}" target="_blank" title="#{bundle['opensInNewTab']}" class="superior-logo-link">
+                            <a href="#{systemConfig.getSuperiorLogoLink(dataverseSession.locale)}" 
+                               target="_blank" 
+                               title="#{bundle['opensInNewTab']}" 
+                               class="superior-logo-link">
                                 <img src="#{resource[systemConfig.getSuperiorLogoPath(dataverseSession.locale)]}"
                                      jsf:rendered="#{not empty systemConfig.getSuperiorLogoPath(dataverseSession.locale)}"
-                                     alt="#{systemConfig.getSuperiorLogoAlt(dataverseSession.locale)}" class="superior-logo regular big"></img>
+                                     alt="#{systemConfig.getSuperiorLogoAlt(dataverseSession.locale)}" 
+                                     class="superior-logo regular big"/>
                                 <img src="#{resource[systemConfig.getSuperiorLogoResponsivePath(dataverseSession.locale)]}"
                                      jsf:rendered="#{not empty systemConfig.getSuperiorLogoResponsivePath(dataverseSession.locale)}"
-                                     alt="#{systemConfig.getSuperiorLogoAlt(dataverseSession.locale)}" class="superior-logo regular responsive"></img>
+                                     alt="#{systemConfig.getSuperiorLogoAlt(dataverseSession.locale)}" 
+                                     class="superior-logo regular responsive"/>
                                 <img src="#{resource[systemConfig.getSuperiorLogoContrastPath(dataverseSession.locale)]}"
                                      jsf:rendered="#{not empty systemConfig.getSuperiorLogoContrastPath(dataverseSession.locale)}"
-                                     alt="#{systemConfig.getSuperiorLogoAlt(dataverseSession.locale)}" class="superior-logo contrast big"></img>
+                                     alt="#{systemConfig.getSuperiorLogoAlt(dataverseSession.locale)}" 
+                                     class="superior-logo contrast big"/>
                                 <img src="#{resource[systemConfig.getSuperiorLogoContrastResponsivePath(dataverseSession.locale)]}"
                                      jsf:rendered="#{not empty systemConfig.getSuperiorLogoContrastResponsivePath(dataverseSession.locale)}"
-                                     alt="#{systemConfig.getSuperiorLogoAlt(dataverseSession.locale)}" class="superior-logo contrast responsive"></img>
+                                     alt="#{systemConfig.getSuperiorLogoAlt(dataverseSession.locale)}" 
+                                     class="superior-logo contrast responsive"/>
                             </a>
                         </div>
                     </ui:fragment>
@@ -72,10 +88,12 @@
                                 <i id="site-logo" class="icon-dataverse"></i>
                                 <span>
                                     <span id="site-title">
-                                        <h:outputText value="#{systemConfig.getSiteName(dataverseSession.locale)}" escape="false"/>
+                                        <h:outputText value="#{systemConfig.getSiteName(dataverseSession.locale)}" 
+                                                      escape="false"/>
                                     </span>
                                     <span id="site-subtitle">
-                                        <h:outputText value="#{systemConfig.getSiteFullName(dataverseSession.locale)}" escape="false"/>
+                                        <h:outputText value="#{systemConfig.getSiteFullName(dataverseSession.locale)}" 
+                                                      escape="false"/>
                                     </span>
                                 </span>
                             </ui:fragment>
@@ -93,17 +111,21 @@
                             <h:outputText value="#{bundle['header.accessibility.wcagText']}" />:
                             <ul id="eighty-limit-mode-selector">
                                 <li>
-                                    <button class="toggle" title="#{bundle['header.accessibility.eightyLimit.toggle']}"
-                                        aria-label="#{bundle['header.accessibility.eightyLimit.toggle']}">
-                                        <span class="selected-option-check" role="presentation"></span>
+                                    <button class="toggle" 
+                                            title="#{bundle['header.accessibility.eightyLimit.toggle']}"
+                                            aria-label="#{bundle['header.accessibility.eightyLimit.toggle']}">
+                                        <span class="selected-option-check" 
+                                              role="presentation"/>
                                     </button>
                                 </li>
                             </ul>
                             <ul id="wcag-text-mode-selector">
                                 <li>
-                                    <button class="toggle" title="#{bundle['header.accessibility.wcagText.toggle']}"
-                                        aria-label="#{bundle['header.accessibility.wcagText.toggle']}">
-                                        <span class="selected-option-check" role="presentation"></span>
+                                    <button class="toggle" 
+                                            title="#{bundle['header.accessibility.wcagText.toggle']}"
+                                            aria-label="#{bundle['header.accessibility.wcagText.toggle']}">
+                                        <span class="selected-option-check" 
+                                              role="presentation"/>
                                     </button>
                                 </li>
                             </ul>
@@ -113,21 +135,27 @@
                             <h:outputText value="#{bundle['header.accessibility.font']}" />:
                             <ul id="font-size-mode-selector">
                                 <li>
-                                    <button class="default" title="100%"
-                                        aria-label="#{bundle['header.accessibility.font.change']}: 100%">
-                                        <span class="selected-option-check" role="presentation"></span>
+                                    <button class="default" 
+                                            title="100%"
+                                            aria-label="#{bundle['header.accessibility.font.change']}: 100%">
+                                        <span class="selected-option-check" 
+                                              role="presentation"/>
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="percent-150" title="120%"
-                                        aria-label="#{bundle['header.accessibility.font.change']}: 120%">
-                                        <span class="selected-option-check" role="presentation"></span>
+                                    <button class="percent-150" 
+                                            title="120%"
+                                            aria-label="#{bundle['header.accessibility.font.change']}: 120%">
+                                        <span class="selected-option-check" 
+                                              role="presentation"/>
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="percent-200" title="140%"
-                                        aria-label="#{bundle['header.accessibility.font.change']}: 140%">
-                                        <span class="selected-option-check" role="presentation"></span>
+                                    <button class="percent-200" 
+                                            title="140%"
+                                            aria-label="#{bundle['header.accessibility.font.change']}: 140%">
+                                        <span class="selected-option-check" 
+                                              role="presentation"/>
                                     </button>
                                 </li>
                             </ul>
@@ -137,15 +165,19 @@
                             <h:outputText value="#{bundle['header.accessibility.contrast']}" />:
                             <ul id="high-contrast-mode-selector">
                                 <li>
-                                    <button class="default" title="#{bundle['header.accessibility.contrast.default']}"
-                                        aria-label="#{bundle['header.accessibility.contrast.change']}: #{bundle['header.accessibility.contrast.default']}">
-                                        <span class="selected-option-check" role="presentation"></span>
+                                    <button class="default" 
+                                            title="#{bundle['header.accessibility.contrast.default']}"
+                                            aria-label="#{bundle['header.accessibility.contrast.change']}: #{bundle['header.accessibility.contrast.default']}">
+                                        <span class="selected-option-check" 
+                                              role="presentation"/>
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="yellow-on-black" title="#{bundle['header.accessibility.contrast.yellowOnBlack']}"
-                                        aria-label="#{bundle['header.accessibility.contrast.change']}: #{bundle['header.accessibility.contrast.yellowOnBlack']}">
-                                        <span class="selected-option-check" role="presentation"></span>
+                                    <button class="yellow-on-black" 
+                                            title="#{bundle['header.accessibility.contrast.yellowOnBlack']}"
+                                            aria-label="#{bundle['header.accessibility.contrast.change']}: #{bundle['header.accessibility.contrast.yellowOnBlack']}">
+                                        <span class="selected-option-check" 
+                                              role="presentation"/>
                                     </button>
                                 </li>
                             </ul>
@@ -159,7 +191,8 @@
                         <ul class="nav navbar-nav">
                             <li jsf:rendered="#{dataverseHeaderFragment.shouldShowAddDatasetButton()}">
                                 <h:form styleClass="navbar-form navbar-left navbar-form-link navbar-highlighted-link">
-                                    <p:commandLink action="#{CreateDatasetDialog.init()}" update="create-dataset-dialog"
+                                    <p:commandLink action="#{CreateDatasetDialog.init()}" 
+                                                   update="create-dataset-dialog"
                                                    oncomplete="primeFacesShowModal('createDatasetDialog', this)"
                                                    rendered="#{!dataverseHeaderFragment.shouldShowLoginRedirect()}">
                                         <h:outputText value="#{bundle['add.dataset.button']}"/>
@@ -171,19 +204,32 @@
                                 </h:form>
                             </li>
                             <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-                                        aria-haspopup="true" aria-controls="navbarsearch-modal" aria-expanded="false">
+                                <a href="#" 
+                                   class="dropdown-toggle" 
+                                   data-toggle="dropdown"
+                                   aria-haspopup="true" 
+                                   aria-controls="navbarsearch-modal" 
+                                   aria-expanded="false">
                                     #{bundle.search} <b class="caret"></b>
                                 </a>
-                                <ul id="navbarsearch-modal" class="dropdown-menu" style="padding:12px;min-width:350px;">
+                                <ul id="navbarsearch-modal" 
+                                    class="dropdown-menu" 
+                                    style="padding:12px;min-width:350px;">
                                     <li>
-                                    <form class="form-inline" role="search">
+                                    <form class="form-inline" 
+                                          role="search">
                                         <label class="sr-only" for="navbarsearch">#{bundle.search}</label>
                                         <div class="input-group">
-                                            <input id="navbarsearch" type="text" class="form-control" size="28" value="" placeholder="#{bundle['header.search.title']}"/>
+                                            <input id="navbarsearch" 
+                                                   type="text" 
+                                                   class="form-control" 
+                                                   size="28" 
+                                                   value="" 
+                                                   placeholder="#{bundle['header.search.title']}"/>
                                             <span class="input-group-btn">
-                                                <button type="submit" class="btn btn-default btn-access" onclick="window.location = '/dataverse/#{dataverseDao.findRootDataverse().alias}&#63;q=' + document.getElementById('navbarsearch').value;
-                                                        return false;">
+                                                <button type="submit" 
+                                                        class="btn btn-default btn-access" 
+                                                        onclick="window.location = '/dataverse/#{dataverseDao.findRootDataverse().alias}&#63;q=' + document.getElementById('navbarsearch').value; return false;">
                                                     <span class="glyphicon glyphicon-search"/> #{bundle.find}
                                                 </button>
                                             </span>
@@ -194,22 +240,32 @@
                             </li>
 
                             <li jsf:rendered="#{settingsWrapper.getConfiguredAboutUrls().size() == 1}">
-                                <ui:repeat value="#{settingsWrapper.getConfiguredAboutUrls().entrySet().toArray()}" var="about">
-                                    <h:outputLink value="#{about.key}" target="_blank" title="#{bundle['opensInNewTab']}">
+                                <ui:repeat value="#{settingsWrapper.getConfiguredAboutUrls().entrySet().toArray()}" 
+                                           var="about">
+                                    <h:outputLink value="#{about.key}" 
+                                                  target="_blank" 
+                                                  title="#{bundle['opensInNewTab']}">
                                         <h:outputText value="#{about.value}"/>
                                     </h:outputLink>
                                 </ui:repeat>
                             </li>
 
-                            <li class="dropdown" jsf:rendered="#{settingsWrapper.getConfiguredAboutUrls().size() > 1}">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-                                   aria-haspopup="true" aria-controls="navbarsearch-modal" aria-expanded="false">
+                            <li class="dropdown" 
+                                jsf:rendered="#{settingsWrapper.getConfiguredAboutUrls().size() > 1}">
+                                <a href="#" class="dropdown-toggle" 
+                                   data-toggle="dropdown"
+                                   aria-haspopup="true" 
+                                   aria-controls="navbarsearch-modal" 
+                                   aria-expanded="false">
                                     #{bundle['header.about']} <b class="caret"></b>
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <ui:repeat value="#{settingsWrapper.getConfiguredAboutUrls().entrySet().toArray()}" var="about">
+                                    <ui:repeat value="#{settingsWrapper.getConfiguredAboutUrls().entrySet().toArray()}" 
+                                               var="about">
                                         <li>
-                                            <h:outputLink value="#{about.key}" target="_blank" title="#{bundle['opensInNewTab']}">
+                                            <h:outputLink value="#{about.key}" 
+                                                          target="_blank" 
+                                                          title="#{bundle['opensInNewTab']}">
                                                 <h:outputText value="#{about.value}"/>
                                             </h:outputLink>
                                         </li>
@@ -218,14 +274,18 @@
                             </li>
 
                             <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-                                   aria-haspopup="true" aria-expanded="false">
+                                <a href="#" 
+                                   class="dropdown-toggle" 
+                                   data-toggle="dropdown"
+                                   aria-haspopup="true" 
+                                   aria-expanded="false">
                                     #{bundle['header.help']} <b class="caret"></b>
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li>
                                         <h:outputLink value="#{settingsWrapper.guidesBaseUrl}/#{settingsWrapper.guidesVersion}/user/index.html"
-                                                      target="_blank" title="#{bundle['opensInNewTab']}">
+                                                      target="_blank" 
+                                                      title="#{bundle['opensInNewTab']}">
                                             <h:outputText value="#{bundle['header.guides.user']}"/>
                                         </h:outputLink>
                                     </li>
@@ -239,7 +299,8 @@
 
                                     <ui:fragment rendered="#{empty settingsWrapper.getSettingValue(':NavbarSupportUrl')}">
                                         <li>
-                                            <o:form useRequestURI="true" class="navbar-form navbar-left navbar-form-link">
+                                            <o:form useRequestURI="true" 
+                                                    class="navbar-form navbar-left navbar-form-link">
                                                 <p:commandLink oncomplete="primeFacesShowModal('contactForm', this)" 
                                                                update=":contactDialog" 
                                                                actionListener="#{sendFeedbackDialog.reset(null)}">
@@ -251,15 +312,24 @@
                                 </ul>
                             </li>
 
-                            <li class="dropdown" jsf:rendered="#{settingsWrapper.localesConfigured}">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="#{bundle.language}" aria-expanded="false">
-                                    <img alt="" class="header-flag" src="#{resource['images/flags/'
-                                        .concat(dataverseSession.getLocale().toLanguageTag()).concat('.svg')]}" height="20" width="20" />
+                            <li class="dropdown" 
+                                jsf:rendered="#{settingsWrapper.localesConfigured}">
+                                <a href="#" 
+                                   class="dropdown-toggle" 
+                                   data-toggle="dropdown" 
+                                   title="#{bundle.language}" 
+                                   aria-expanded="false">
+                                    <img alt="" 
+                                         class="header-flag" 
+                                         src="#{resource['images/flags/'.concat(dataverseSession.getLocale().toLanguageTag()).concat('.svg')]}" 
+                                         height="20" 
+                                         width="20" />
                                     #{dataverseSession.localeTitle} <b class="caret"></b>
                                 </a>
                                 <h:form class="form-inline">
                                     <ul class="dropdown-menu language-select">
-                                        <ui:repeat value="#{settingsWrapper.configuredLocales.entrySet().toArray()}" var="language">
+                                        <ui:repeat value="#{settingsWrapper.configuredLocales.entrySet().toArray()}" 
+                                                   var="language">
                                             <li jsf:rendered="#{language.value ne dataverseSession.localeTitle}">
                                                 <p:commandLink value="#{language.value}"
                                                                pt:lang="#{language.key}"
@@ -283,59 +353,91 @@
 
                             <ui:fragment rendered="#{dataverseSession.user.authenticated}">
                                 <li class="dropdown accountName">
-                                    <a href="#" id="lnk_header_account_dropdown" class="dropdown-toggle" data-toggle="dropdown"
-                                            aria-haspopup="true" aria-controls="accountHeaderMenu" aria-expanded="false">
+                                    <a href="#" 
+                                       id="lnk_header_account_dropdown" 
+                                       class="dropdown-toggle" 
+                                       data-toggle="dropdown"
+                                       aria-haspopup="true" 
+                                       aria-controls="accountHeaderMenu" 
+                                       aria-expanded="false">
                                         <ui:fragment rendered="#{dataverseSession.user.superuser}">
-                                            <span class="glyphicon glyphicon-user text-danger" aria-hidden="true"></span>
+                                            <span class="glyphicon glyphicon-user text-danger" 
+                                                  aria-hidden="true"/>
                                         </ui:fragment>
-                                        <h:outputText styleClass="sr-only" value="#{bundle['header.user.loggedAs']} " />
-                                        <h:outputText styleClass="#{dataverseSession.user.superuser ? 'text-danger' : ''}" value="#{dataverseSession.user.displayInfo.title}" id="userDisplayInfoTitle"/>
-                                        <h:outputText styleClass="sr-only" value=", #{bundle['header.user.unreadNotifications']} " rendered="#{ dataverseHeaderFragment.getUnreadNotificationCount() > 0 }" />
-                                        <h:outputText styleClass="label label-danger" rendered="#{ dataverseHeaderFragment.getUnreadNotificationCount() > 0 }"
-                                                        value="#{ dataverseHeaderFragment.getUnreadNotificationCount() }" />
+                                        <h:outputText styleClass="sr-only" 
+                                                      value="#{bundle['header.user.loggedAs']} " />
+                                        <h:outputText styleClass="#{dataverseSession.user.superuser ? 'text-danger' : ''}" 
+                                                      value="#{dataverseSession.user.displayInfo.title}" 
+                                                      id="userDisplayInfoTitle"/>
+                                        <h:outputText styleClass="sr-only" 
+                                                      value=", #{bundle['header.user.unreadNotifications']} " 
+                                                      rendered="#{ dataverseHeaderFragment.getUnreadNotificationCount() > 0 }" />
+                                        <h:outputText styleClass="label label-danger" 
+                                                      rendered="#{ dataverseHeaderFragment.getUnreadNotificationCount() > 0 }"
+                                                      value="#{ dataverseHeaderFragment.getUnreadNotificationCount() }" />
                                         <b class="caret"></b>
                                     </a>
-                                    <ul id="accountHeaderMenu" class="dropdown-menu"
-                                            role="menu" aria-label="#{bundle['header.user.menuLabel']}">
+                                    <ul id="accountHeaderMenu" 
+                                        class="dropdown-menu"
+                                        role="menu" 
+                                        aria-label="#{bundle['header.user.menuLabel']}">
                                         <li role="none">
-                                            <h:outputLink value="/dataverseuser.xhtml" role="menuitem">
-                                                <f:param name="selectTab" value="dataRelatedToMe" />
+                                            <h:outputLink value="/dataverseuser.xhtml" 
+                                                          role="menuitem">
+                                                <f:param name="selectTab" 
+                                                         value="dataRelatedToMe" />
                                                 <h:outputText value="#{bundle['header.user.selectTab.dataRelated']}" />
                                             </h:outputLink>
                                         </li>
                                         <li role="none">
-                                            <h:outputLink value="/dataverseuser.xhtml" role="menuitem">
-                                                <f:param name="selectTab" value="notifications" />
+                                            <h:outputLink value="/dataverseuser.xhtml" 
+                                                          role="menuitem">
+                                                <f:param name="selectTab" 
+                                                         value="notifications" />
                                                 <h:outputText value="#{bundle['header.user.selectTab.notifications']}" />
-                                                <h:outputText styleClass="label label-danger" rendered="#{ dataverseHeaderFragment.getUnreadNotificationCount() > 0 }"
-                                                                value="#{dataverseHeaderFragment.getUnreadNotificationCount()}" />
-                                                <h:outputText styleClass="sr-only" value="#{bundle['header.user.selectTab.notifications.unread']}" rendered="#{ dataverseHeaderFragment.getUnreadNotificationCount() > 0 }"/>
+                                                <h:outputText styleClass="label label-danger" 
+                                                              rendered="#{ dataverseHeaderFragment.getUnreadNotificationCount() > 0 }"
+                                                              value="#{dataverseHeaderFragment.getUnreadNotificationCount()}" />
+                                                <h:outputText styleClass="sr-only" value="#{bundle['header.user.selectTab.notifications.unread']}" 
+                                                              rendered="#{ dataverseHeaderFragment.getUnreadNotificationCount() > 0 }"/>
                                             </h:outputLink>
                                         </li>
                                         <li role="none">
-                                            <h:outputLink value="/dataverseuser.xhtml" role="menuitem">
-                                                <f:param name="selectTab" value="accountInfo" />
+                                            <h:outputLink value="/dataverseuser.xhtml" 
+                                                          role="menuitem">
+                                                <f:param name="selectTab" 
+                                                         value="accountInfo" />
                                                 <h:outputText value="#{bundle['header.accountInfo']}" />
                                             </h:outputLink>
                                         </li>
                                         <li role="none">
-                                            <h:outputLink value="/dataverseuser.xhtml" role="menuitem">
-                                                <f:param name="selectTab" value="apiTokenTab" />
+                                            <h:outputLink value="/dataverseuser.xhtml" 
+                                                          role="menuitem">
+                                                <f:param name="selectTab" 
+                                                         value="apiTokenTab" />
                                                 <h:outputText value="#{bundle['header.user.selectTab.apiToken']}" />
                                             </h:outputLink>
                                         </li>
-                                        <li class="divider" role="none"></li>
-                                        <li role="none" jsf:rendered="#{dataverseSession.user.superuser}">
-                                            <h:outputLink value="/dashboard.xhtml" role="menuitem">
-                                                <f:param name="dataverseId" value="#{dataverseDao.findRootDataverse().id}" />
+                                        <li class="divider" role="none"/>
+                                        <li role="none" 
+                                            jsf:rendered="#{dataverseSession.user.superuser}">
+                                            <h:outputLink value="/dashboard.xhtml" 
+                                                          role="menuitem">
+                                                <f:param name="dataverseId" 
+                                                         value="#{dataverseDao.findRootDataverse().id}" />
                                                 <h:outputText value="#{bundle['header.dashboard']}" />
                                             </h:outputLink>
                                         </li>
-                                        <li role="none" class="divider" jsf:rendered="#{dataverseSession.user.superuser}"></li>
+                                        <li role="none" 
+                                            class="divider" 
+                                            jsf:rendered="#{dataverseSession.user.superuser}"/>
                                         <li role="none" class="logout">
-                                            <o:form useRequestURI="true" pt:role="none">
+                                            <o:form useRequestURI="true" 
+                                                    pt:role="none">
                                                 <f:ajax>
-                                                <h:commandLink action="#{dataverseHeaderFragment.logout}" id="lnk_header_logout" role="menuitem">
+                                                <h:commandLink action="#{dataverseHeaderFragment.logout}" 
+                                                               id="lnk_header_logout" 
+                                                               role="menuitem">
                                                     <h:outputText value="#{bundle['header.logOut']}" />
                                                 </h:commandLink>
                                                 </f:ajax>
@@ -361,20 +463,25 @@
     </div>
 
     <div id="dataverse-header-block" class="container">
-        <div class="alert alert-warning" jsf:rendered="#{systemConfig.isReadonlyMode()}">
-            <p class="text-block text-center" style="margin: 0 auto;">
-                <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;
+        <div class="alert alert-warning" 
+             jsf:rendered="#{systemConfig.isReadonlyMode()}">
+            <p class="text-block text-center" 
+               style="margin: 0 auto;">
+                <span class="glyphicon glyphicon-exclamation-sign"/>&#160;
                 <h:outputText value="#{bundle['header.readonlyMode.description']}"/>
             </p>
         </div>
 
-        <ui:include src="text-messagesAndBanners.xhtml">
-
-            <ui:param name="dataverse" value="#{dataverse != null ? dataverse : dataverseDao.findRootDataverse()}"/>
-        </ui:include>
+        <ui:fragment rendered="#{showDataverseHeader}">
+            <ui:include src="text-messagesAndBanners.xhtml">
+                <ui:param name="dataverse" 
+                         value="#{dataverse != null ? dataverse : dataverseDao.findRootDataverse()}"/>
+                </ui:include>
+        </ui:fragment>
         <!-- Noscript Error -->
         <noscript>
-            <div id="noscript-alert" class="bg-danger">
+            <div id="noscript-alert" 
+                 class="bg-danger">
                 <div class="alert container text-danger no-margin-bottom">
                     <h:outputText value="#{bundle['header.noscript']}"/>
                 </div>
@@ -382,15 +489,20 @@
         </noscript>
         <!-- Status Alert -->
         <o:form class="form-inline">
-            <div id="status-alert" class="bg-warning"
+            <div id="status-alert" 
+                 class="bg-warning"
                  jsf:rendered="#{!empty settingsWrapper.getSettingValue(':StatusMessageText') and !empty settingsWrapper.getSettingValue(':StatusMessageHeader') and !dataverseSession.isStatusDismissed()}">
                 <div class="alert alert-dismissible container text-warning">
-                    <p:commandButton class="close" id="closeButton" actionListener="#{dataverseSession.setStatusDismissed(true)}" update="@form" value="&#215;" />
-<!--                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&#215;</span></button>-->
+                    <p:commandButton class="close" 
+                                     id="closeButton" 
+                                     actionListener="#{dataverseSession.setStatusDismissed(true)}" 
+                                     update="@form" 
+                                     value="&#215;" />
                     <h:outputText styleClass="highlightBold"
                                   value="#{!empty settingsWrapper.getSettingValue(':StatusMessageHeader') ? settingsWrapper.getSettingValue(':StatusMessageHeader') : bundle['header.status.header']}"/>
                     <h:outputText rendered="#{!empty settingsWrapper.getSettingValue(':StatusMessageText')}"
-                                  value=" – #{settingsWrapper.getSettingValue(':StatusMessageText')}" escape="false"/>
+                                  value=" – #{settingsWrapper.getSettingValue(':StatusMessageText')}" 
+                                  escape="false"/>
                 </div>
             </div>
         </o:form>
@@ -401,57 +513,94 @@
                 jsf:rendered="#{showDataverseHeader and !widgetWrapper.widgetView and !dataverseHeaderFragment.isRootDataverseThemeDisabled(dataverse)}">
              <o:importFunctions type="org.apache.commons.lang.StringEscapeUtils"/>
             <!-- FIXME: Rather than hard-coding "inherit", get it from the backend (ThemeWidgetFragment.DEFAULT_LOGO_BACKGROUND_COLOR). -->
-            <div class="dataverseHeaderLogo" style="text-align:#{!empty dataverse.dataverseTheme.logoAlignment ? dataverse.dataverseTheme.logoAlignment : 'center'};background:##{!empty dataverse.dataverseTheme.logoBackgroundColor ? dataverse.dataverseTheme.logoBackgroundColor : 'inherit'};"
+            <div class="dataverseHeaderLogo" 
+                 style="text-align:#{!empty dataverse.dataverseTheme.logoAlignment ? dataverse.dataverseTheme.logoAlignment : 'center'};background:##{!empty dataverse.dataverseTheme.logoBackgroundColor ? dataverse.dataverseTheme.logoBackgroundColor : 'inherit'};"
                  jsf:rendered="#{!empty dataverse.dataverseTheme.logo and dataverse.dataverseTheme.logoFormat == 'RECTANGLE'}">
-                <img src="/logos/#{dataverse.logoOwnerId}/#{dataverse.dataverseTheme.logo}" alt="#{dataverse.name} #{bundle['header.dataverse.logo.alt']}"/>
+                <img src="/logos/#{dataverse.logoOwnerId}/#{dataverse.dataverseTheme.logo}" 
+                     alt="#{dataverse.name} #{bundle['header.dataverse.logo.alt']}"/>
             </div>
             <div class="dataverseHeaderBlock">
-                <div class="dataverseHeaderCell dataverseHeaderLogo" jsf:rendered="#{!empty dataverse.dataverseTheme.logo and dataverse.dataverseTheme.logoFormat == 'SQUARE'}">
-                    <img src="/logos/#{dataverse.logoOwnerId}/#{dataverse.dataverseTheme.logo}" alt="#{dataverse.name} #{bundle['header.dataverse.logo.alt']}"/>
+                <div class="dataverseHeaderCell dataverseHeaderLogo" 
+                     jsf:rendered="#{!empty dataverse.dataverseTheme.logo and dataverse.dataverseTheme.logoFormat == 'SQUARE'}">
+                    <img src="/logos/#{dataverse.logoOwnerId}/#{dataverse.dataverseTheme.logo}" 
+                         alt="#{dataverse.name} #{bundle['header.dataverse.logo.alt']}"/>
                 </div>
-                <div class="dataverseHeaderCell dataverseHeaderName" jsf:rendered="#{!empty dataverse.id}">
+                <div class="dataverseHeaderCell dataverseHeaderName" 
+                     jsf:rendered="#{!empty dataverse.id}">
                     <ui:fragment rendered="#{empty dataverse.dataverseTheme.linkColor}">
                         <h1 class="header-inline">
-                            <a href="/dataverse/#{dataverse.alias}" class="dataverseHeaderDataverseName" >#{dataverse.name}</a>
+                            <a href="/dataverse/#{dataverse.alias}" 
+                               class="dataverseHeaderDataverseName" >#{dataverse.name}</a>
                         </h1>
-                        <h:outputText value=" (#{dataverse.affiliation})" rendered="#{!empty dataverse.affiliation}"/>
+                        <h:outputText value=" (#{dataverse.affiliation})" 
+                                      rendered="#{!empty dataverse.affiliation}"/>
                     </ui:fragment>
                     <ui:fragment rendered="#{!empty dataverse.dataverseTheme.linkColor}">
                         <h1 class="header-inline">
-                            <a href="/dataverse/#{dataverse.alias}" class="dataverseHeaderDataverseName" style="color:##{dataverse.dataverseTheme.linkColor}">#{dataverse.name}</a>
+                            <a href="/dataverse/#{dataverse.alias}" 
+                               class="dataverseHeaderDataverseName" 
+                               style="color:##{dataverse.dataverseTheme.linkColor}">#{dataverse.name}</a>
                         </h1>
-                        <h:outputText style="color:##{dataverse.dataverseTheme.textColor};" value=" (#{dataverse.affiliation})" rendered="#{!empty dataverse.affiliation}"/>
+                        <h:outputText style="color:##{dataverse.dataverseTheme.textColor};" 
+                                      value=" (#{dataverse.affiliation})" 
+                                      rendered="#{!empty dataverse.affiliation}"/>
                     </ui:fragment>
-                    <h:outputText value="#{bundle.unpublished}" styleClass="label label-warning label-unpublished" rendered="#{!dataverse.released}"/>
+                    <h:outputText value="#{bundle.unpublished}" 
+                                  styleClass="label label-warning label-unpublished" 
+                                  rendered="#{!dataverse.released}"/>
                 </div>
-                <div class="dataverseHeaderCell dataverseHeaderName" jsf:rendered="#{empty dataverse.id}">
-                    <h1><h:outputText styleClass="dataverseHeaderDataverseName" value="#{bundle.newDataverse}"/></h1>
+                <div class="dataverseHeaderCell dataverseHeaderName" 
+                     jsf:rendered="#{empty dataverse.id}">
+                    <h1><h:outputText styleClass="dataverseHeaderDataverseName" 
+                                      value="#{bundle.newDataverse}"/></h1>
                 </div>
-                <div class="dataverseHeaderCell dataverseHeaderTagline" jsf:rendered="#{!empty dataverse.dataverseTheme.tagline and empty dataverse.dataverseTheme.linkUrl}">
-                    <h:outputText escape="false" style="color:##{!empty dataverse.dataverseTheme.textColor ? dataverse.dataverseTheme.textColor : 'inherit'};" value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" />
+                <div class="dataverseHeaderCell dataverseHeaderTagline" 
+                     jsf:rendered="#{!empty dataverse.dataverseTheme.tagline and empty dataverse.dataverseTheme.linkUrl}">
+                    <h:outputText escape="false" 
+                                  style="color:##{!empty dataverse.dataverseTheme.textColor ? dataverse.dataverseTheme.textColor : 'inherit'};" 
+                                  value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" />
                 </div>
-                <div class="dataverseHeaderCell dataverseHeaderLink" jsf:rendered="#{!empty dataverse.dataverseTheme.tagline and !empty dataverse.dataverseTheme.linkUrl}">
-                    <h:outputLink rendered="#{empty dataverse.dataverseTheme.linkColor}" value="#{dataverse.dataverseTheme.linkUrl}" target="_blank">
-                        <h:outputText value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" escape="false"/>
+                <div class="dataverseHeaderCell dataverseHeaderLink" 
+                     jsf:rendered="#{!empty dataverse.dataverseTheme.tagline and !empty dataverse.dataverseTheme.linkUrl}">
+                    <h:outputLink rendered="#{empty dataverse.dataverseTheme.linkColor}" 
+                                  value="#{dataverse.dataverseTheme.linkUrl}" target="_blank">
+                        <h:outputText value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" 
+                                      escape="false"/>
                     </h:outputLink>
-                    <h:outputLink rendered="#{!empty dataverse.dataverseTheme.linkColor}" value="#{dataverse.dataverseTheme.linkUrl}" style="color:##{dataverse.dataverseTheme.linkColor};" target="_blank">
-                        <h:outputText value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" escape="false"/>
+                    <h:outputLink rendered="#{!empty dataverse.dataverseTheme.linkColor}" 
+                                  value="#{dataverse.dataverseTheme.linkUrl}" style="color:##{dataverse.dataverseTheme.linkColor};" 
+                                  target="_blank">
+                        <h:outputText value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" 
+                                      escape="false"/>
                     </h:outputLink>
                 </div>
             </div>
         </div>
 
-        <nav id="breadcrumbNavBlock" class="container" jsf:rendered="#{dataverseHeaderFragment.displayBreadcrumbs()}"
-                aria-label="#{bundle['header.breadcrumb.regionLabel']}">
-            <ui:repeat value="#{dataverseHeaderFragment.breadcrumbs}" var="breadcrumb" varStatus="status">
-                <h:outputText value=" > " styleClass="breadcrumbCarrot" rendered="#{!status.first}"/>
+        <nav id="breadcrumbNavBlock" 
+             class="container" 
+             jsf:rendered="#{dataverseHeaderFragment.displayBreadcrumbs()}"
+             aria-label="#{bundle['header.breadcrumb.regionLabel']}">
+            <ui:repeat value="#{dataverseHeaderFragment.breadcrumbs}" 
+                       var="breadcrumb" 
+                       varStatus="status">
+                <h:outputText value=" > " 
+                              styleClass="breadcrumbCarrot" 
+                              rendered="#{!status.first}"/>
                 <div class="breadcrumbBlock">
-                    <h:outputText value="#{breadcrumb.breadcrumbText}" styleClass="breadcrumbActive" rendered="#{status.last}" escape="false"/>
+                    <h:outputText value="#{breadcrumb.breadcrumbText}" 
+                                  styleClass="breadcrumbActive" 
+                                  rendered="#{status.last}" 
+                                  escape="false"/>
                     <ui:fragment rendered="#{!status.last}">
-                        <h:outputText value="#{breadcrumb.breadcrumbText}" rendered="#{empty breadcrumb.url}"/>
+                        <h:outputText value="#{breadcrumb.breadcrumbText}" 
+                                      rendered="#{empty breadcrumb.url}"/>
                         <ui:fragment rendered="#{!empty breadcrumb.url}">
-                            <a id="breadcrumbLnk#{status.index}" href="${breadcrumb.url}" target="#{breadcrumb.openUrlInNewTab ? '_blank' : ''}">
-                                <h:outputText value="#{breadcrumb.breadcrumbText}" escape="false" />
+                            <a id="breadcrumbLnk#{status.index}" 
+                               href="${breadcrumb.url}" 
+                               target="#{breadcrumb.openUrlInNewTab ? '_blank' : ''}">
+                                <h:outputText value="#{breadcrumb.breadcrumbText}" 
+                                              escape="false" />
                             </a>
                         </ui:fragment>
                     </ui:fragment>
@@ -460,18 +609,18 @@
         </nav>
 
         <!-- Message Panel -->
-        <p:fragment id="messagePanel" rendered="#{showMessagePanel}">
+        <p:fragment id="messagePanel" 
+                    rendered="#{showMessagePanel}">
             <div class="container messagePanel">
-                <ui:remove>
-                    <!--change this to <h:messages id="messages"/> to see otherwise hidden errors such as `Conversion Error setting value 'foo.jpg' for 'null Converter'`-->
-                </ui:remove>
-
                 <iqbs:messages id="messages" collapsible="true" />
             </div>
         </p:fragment>
     </div>
 
-    <p:dialog id="createDataset" header="#{bundle['add.dataset.dialog.header']}" widgetVar="createDatasetDialog" modal="true">
+    <p:dialog id="createDataset" 
+              header="#{bundle['add.dataset.dialog.header']}" 
+              widgetVar="createDatasetDialog" 
+              modal="true">
         <div class="form-horizontal">
             <h:form id="create-dataset-dialog">
                 <p jsf:rendered="#{not empty CreateDatasetDialog.selectDataverseInfo}">#{CreateDatasetDialog.selectDataverseInfo}</p>
@@ -491,33 +640,47 @@
                     </div>
                     <div class="col-md-2">
                         <span class="glyphicon glyphicon-question-sign tooltip-icon"
-                              tabindex="0" role="button"
-                              data-toggle="tooltip" data-placement="auto right"
-                              data-original-title="#{bundle['add.dataset.dialog.select.tree.tooltip']}"></span>
+                              tabindex="0" 
+                              role="button"
+                              data-toggle="tooltip" 
+                              data-placement="auto right"
+                              data-original-title="#{bundle['add.dataset.dialog.select.tree.tooltip']}"/>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-12">
-                        <p:tree id="selectDvTree" value="#{CreateDatasetDialog.rootNode}" var="node"
+                        <p:tree id="selectDvTree" 
+                                value="#{CreateDatasetDialog.rootNode}" 
+                                var="node"
                                 styleClass="no-border full-width"
-                                dynamic="true" animate="true"
-                                selectionMode="single" selection="#{CreateDatasetDialog.selectedNode}"
+                                dynamic="true" 
+                                animate="true"
+                                selectionMode="single" 
+                                selection="#{CreateDatasetDialog.selectedNode}"
                                 required="true"
                                 requiredMessage="#{bundle['add.dataset.dialog.tree.required']}">
-                            <p:ajax event="expand" listener="#{CreateDatasetDialog.onNodeExpand}" />
+                            <p:ajax event="expand" 
+                                    listener="#{CreateDatasetDialog.onNodeExpand}" />
                             <p:treeNode>
                                 <h:outputText value="#{node.name}"/>
                             </p:treeNode>
                         </p:tree>
-                        <p:message id="treeMsg" for="selectDvTree" styleClass="bg-danger text-danger" display="text"/>
+                        <p:message id="treeMsg" 
+                                   for="selectDvTree" 
+                                   styleClass="bg-danger text-danger" 
+                                   display="text"/>
                     </div>
                 </div>
                 <div class="row button-block">
                     <p:commandButton value="#{bundle['add.dataset.dialog.button.create']}"
-                                     action="#{CreateDatasetDialog.createDataset()}" update="@form"
+                                     action="#{CreateDatasetDialog.createDataset()}" 
+                                     update="@form"
                                      styleClass="btn btn-default btn-access"
                                      oncomplete="if (args &amp;&amp; !args.validationFailed) PF('createDatasetDialog').hide();"/>
-                    <button type="button" onclick="PF('createDatasetDialog').hide()" class="btn btn-default" value="#{bundle.cancel}">
+                    <button type="button" 
+                            onclick="PF('createDatasetDialog').hide()" 
+                            class="btn btn-default" 
+                            value="#{bundle.cancel}">
                         #{bundle.cancel}
                     </button>
                 </div>
@@ -525,16 +688,22 @@
         </div>
     </p:dialog>
 
-    <p:dialog id="loginRedirectDialog" header="#{bundle['add.dataset.dialog.login.redirect.header']}" widgetVar="loginRedirectDialog" modal="true">
+    <p:dialog id="loginRedirectDialog" 
+              header="#{bundle['add.dataset.dialog.login.redirect.header']}" 
+              widgetVar="loginRedirectDialog" modal="true">
         <div class="form-horizontal">
             <h:form id="login-redirect-dialog">
                 <p>
-                    <h:outputFormat value="#{bundle['add.dataset.dialog.login.redirect.info']}" escape="false">
+                    <h:outputFormat value="#{bundle['add.dataset.dialog.login.redirect.info']}" 
+                                    escape="false">
                         <f:param value="/loginpage.xhtml#{navigationWrapper.redirectPage}"/>
                     </h:outputFormat>
                 </p>
                 <div class="row button-block">
-                    <button type="button" onclick="PF('loginRedirectDialog').hide()" class="btn btn-default" value="#{bundle.close}">
+                    <button type="button" 
+                            onclick="PF('loginRedirectDialog').hide()" 
+                            class="btn btn-default" 
+                            value="#{bundle.close}">
                         #{bundle.close}
                     </button>
                 </div>
