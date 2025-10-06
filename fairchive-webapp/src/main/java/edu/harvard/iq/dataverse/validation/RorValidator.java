@@ -29,7 +29,7 @@ public class RorValidator {
     }
 
     private static boolean isChecksumValid(final String fullRor) {
-        int index = fullRor.lastIndexOf('/') + 1;
+        int index = fullRor.length() - 9;
         final int end = index + 7;
         long decoded = 0;
         while (index < end) {
