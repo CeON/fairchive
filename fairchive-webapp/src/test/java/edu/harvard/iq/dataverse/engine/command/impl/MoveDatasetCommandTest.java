@@ -447,11 +447,13 @@ public class MoveDatasetCommandTest {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public Query createQuery(CriteriaUpdate updateQuery) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public Query createQuery(CriteriaDelete deleteQuery) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -477,6 +479,7 @@ public class MoveDatasetCommandTest {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public Query createNativeQuery(String sqlString, Class resultClass) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -497,6 +500,7 @@ public class MoveDatasetCommandTest {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public StoredProcedureQuery createStoredProcedureQuery(String procedureName, Class... resultClasses) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
