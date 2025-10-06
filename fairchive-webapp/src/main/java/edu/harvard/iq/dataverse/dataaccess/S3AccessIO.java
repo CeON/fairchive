@@ -3,6 +3,9 @@ package edu.harvard.iq.dataverse.dataaccess;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
+import com.amazonaws.event.ProgressEvent;
+import com.amazonaws.event.ProgressEventType;
+import com.amazonaws.event.ProgressListener;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -17,9 +20,13 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.ResponseHeaderOverrides;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.Transfer;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
+import com.amazonaws.services.s3.transfer.Transfer.TransferState;
+import com.amazonaws.services.s3.transfer.internal.TransferStateChangeListener;
+import com.amazonaws.services.s3.transfer.internal.UploadImpl;
 import com.google.common.base.Preconditions;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -669,7 +676,25 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
                 .withS3Client(s3).build();
         
         try {
-            Upload s3Upload = s3Transfer.upload(putRequest);
+            UploadImpl s3Upload = (UploadImpl)s3Transfer.upload(putRequest);
+            s3Upload.addStateChangeListener(new TransferStateChangeListener() {
+				
+				@Override
+				public void transferStateChanged(Transfer transfer, TransferState state) {
+					logger.warning("Transfer state changed");
+					logger.warning("" +transfer.getProgress().getBytesTransferred());
+					logger.warning("" +transfer.getProgress().getPercentTransferred());
+					logger.warning("" +transfer.getProgress().getTotalBytesToTransfer());
+					logger.warning(state.name());
+				}
+			});
+            s3Upload.addProgressListener(new ProgressListener() {
+				
+				@Override
+				public void progressChanged(ProgressEvent progressEvent) {
+					logger.warning(progressEvent.getEventType() + ", bytes=" + progressEvent.getBytes() + ", bytesTransferred+" + progressEvent.getBytesTransferred());
+				}
+			});
             s3Upload.waitForCompletion();
             if (!verifyUploadedFileIfPossible(putRequest))  {
                 s3.deleteObject(putRequest.getBucketName(), putRequest.getKey());
