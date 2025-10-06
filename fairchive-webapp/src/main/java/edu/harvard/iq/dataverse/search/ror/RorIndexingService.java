@@ -30,8 +30,7 @@ public class RorIndexingService {
     @RorSolrClient
     private SolrClient solrServer;
 
-    @Inject
-    private RorConverter rorConverter;
+    private RorConverter rorConverter = new RorConverter();
 
     @Asynchronous
     public Future<UpdateResponse> indexRorRecordsAsync(Collection<RorData> rorData) {

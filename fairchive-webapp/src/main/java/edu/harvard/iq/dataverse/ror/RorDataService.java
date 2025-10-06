@@ -6,15 +6,17 @@ import edu.harvard.iq.dataverse.api.dto.RorEntryDTO;
 import edu.harvard.iq.dataverse.interceptors.SuperuserRequired;
 import edu.harvard.iq.dataverse.persistence.ror.RorData;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
+
+import static javax.ejb.TransactionManagementType.BEAN;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -29,14 +31,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @Stateless
-@TransactionManagement(TransactionManagementType.BEAN) // We don't want to start txs automatically here
+@TransactionManagement(BEAN) // We don't want to start txs automatically here
 public class RorDataService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RorDataService.class);
+    private static final Logger logger = getLogger(RorDataService.class);
 
-    private RorConverter rorConverter;
+    private RorConverter converter;
 
-    private RorTransactionsService rorTransactionsService;
+    private RorTransactionsService transactionsService;
 
     private static int DEFAULT_BATCH_SIZE_FOR_TX = 100;
     private int batchSizeForTx = DEFAULT_BATCH_SIZE_FOR_TX;
@@ -47,14 +49,17 @@ public class RorDataService {
     }
 
     @Inject
-    public RorDataService(RorConverter rorConverter, RorTransactionsService rorTransactionsService) {
-        this.rorConverter = rorConverter;
-        this.rorTransactionsService = rorTransactionsService;
+    public RorDataService(final RorConverter rorConverter, 
+            final RorTransactionsService rorTransactionsService) {
+        this.converter = rorConverter;
+        this.transactionsService = rorTransactionsService;
     }
 
-    public RorDataService(RorConverter rorConverter, RorTransactionsService rorTransactionsService, int transactionBatchSize) {
-        this.rorConverter = rorConverter;
-        this.rorTransactionsService = rorTransactionsService;
+    public RorDataService(RorConverter rorConverter, 
+            final RorTransactionsService rorTransactionsService, 
+            final int transactionBatchSize) {
+        this.converter = rorConverter;
+        this.transactionsService = rorTransactionsService;
         batchSizeForTx = transactionBatchSize;
     }
 
@@ -64,34 +69,36 @@ public class RorDataService {
      * Method dedicated for refreshing ror data, dropping old data and then adding fresh entries.
      */
     @SuperuserRequired
-    public UpdateResult refreshRorData(File file, FormDataContentDisposition header) {
-        File processed = selectFileToProcess(file, header);
-        UpdateResult updateResult = new UpdateResult();
-        try (FileReader fileReader = new FileReader(processed);
-             JsonReader jsonReader = new JsonReader(fileReader)) {
+    public UpdateResult refreshRorData(final File file, 
+            final FormDataContentDisposition header) {
+        
+        final File processed = selectFileToProcess(file, header);
+        final UpdateResult updateResult = new UpdateResult();
+        
+        try (final FileReader fileReader = new FileReader(processed);
+            final JsonReader jsonReader = new JsonReader(fileReader)) {
             jsonReader.beginArray();
 
-            Gson gson = new Gson();
-            RorEntryDTO rorEntry;
+            final Gson gson = new Gson();
             int count = 0;
-            Set<RorData> toSave = new HashSet<>();
+            final Set<RorData> toSave = new HashSet<>();
             while (jsonReader.hasNext()) {
                 count++;
-                rorEntry = gson.fromJson(jsonReader, RorEntryDTO.class);
+                final RorEntryDTO rorEntry = gson.fromJson(jsonReader, RorEntryDTO.class);
                 updateResult.update(rorEntry);
 
                 if (count == 1) {
-                    rorTransactionsService.truncateAll();
+                    transactionsService.truncateAll();
                 }
 
                 if (count % batchSizeForTx == 0) {
-                    rorTransactionsService.saveMany(toSave);
+                    transactionsService.saveMany(toSave);
                     updateResult.getSavedRorData().addAll(toSave);
                     toSave.clear();
                 }
-                toSave.add(rorConverter.toEntity(rorEntry));
+                toSave.add(converter.toEntity(rorEntry));
             }
-            rorTransactionsService.saveMany(toSave);
+            transactionsService.saveMany(toSave);
             updateResult.getSavedRorData().addAll(toSave);
 
             jsonReader.endArray();
@@ -105,7 +112,8 @@ public class RorDataService {
 
     // -------------------- PRIVATE --------------------
 
-    private File selectFileToProcess(File file, FormDataContentDisposition header) {
+    private File selectFileToProcess(final File file, 
+            final FormDataContentDisposition header) {
         if (hasExtension(header.getFileName(), ".zip")) {
             return decompressJson(file);
         } else if (hasExtension(header.getFileName(), ".json")) {
@@ -115,20 +123,19 @@ public class RorDataService {
         }
     }
 
-    private File decompressJson(File zipped) {
+    private File decompressJson(final File zipped) {
         File decompressed = null;
-        try (FileInputStream fileInputStream = new FileInputStream(zipped);
-             ZipInputStream zipInputStream = new ZipInputStream(fileInputStream)) {
-            ZipEntry currentEntry;
-            while ((currentEntry = zipInputStream.getNextEntry()) != null) {
-                if (!currentEntry.isDirectory() && hasExtension(currentEntry.getName(), ".json")) {
+        try (final ZipInputStream in = new ZipInputStream(new FileInputStream(zipped))) {
+            ZipEntry entry;
+            while ((entry = in.getNextEntry()) != null) {
+                if (!entry.isDirectory() && hasExtension(entry.getName(), ".json")) {
                     break;
                 }
-                zipInputStream.closeEntry();
+                in.closeEntry();
             }
-            if (currentEntry != null) {
-                decompressed = FileUtil.inputStreamToFile(zipInputStream, 8192);
-                zipInputStream.closeEntry();
+            if (entry != null) {
+                decompressed = FileUtil.inputStreamToFile(in, 8192);
+                in.closeEntry();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -139,8 +146,8 @@ public class RorDataService {
         return decompressed;
     }
 
-    private boolean hasExtension(String fileName, String extension) {
-        return StringUtils.isNotBlank(fileName) && fileName.toLowerCase().endsWith(extension);
+    private boolean hasExtension(final String fileName, final String extension) {
+        return isNotBlank(fileName) && fileName.toLowerCase().endsWith(extension);
     }
 
     // -------------------- INNER CLASSES --------------------

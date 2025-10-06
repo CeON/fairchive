@@ -1,7 +1,9 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion;
 
-import static java.util.stream.Collectors.joining;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.List;
 import java.util.Map;
@@ -9,11 +11,6 @@ import java.util.Map;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.collect.Lists;
-
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
 import edu.harvard.iq.dataverse.search.ror.RorDto;
 import edu.harvard.iq.dataverse.search.ror.RorSolrDataFinder;
@@ -38,45 +35,36 @@ public class RorSuggestionHandler implements SuggestionHandler {
     }
 
     @Override
-    public List<Suggestion> generateSuggestions(Map<String, String> filteredBy, String query) {
+    public List<Suggestion> generateSuggestions(final Map<String, String> filteredBy, 
+            final String query) {
         
-        return rorSolrDataFinder.findRorData(query, 5).stream()
+        return this.rorSolrDataFinder.findRorData(query, 5).stream()
             .map(this::convertSolrRorToSuggestion)
             .collect(toList());
     }
 
     // -------------------- PRIVATE --------------------
     
-    private Suggestion convertSolrRorToSuggestion(RorDto solrRor) {
+    private Suggestion convertSolrRorToSuggestion(final RorDto solrRor) {
         return new Suggestion(solrRor.getRorUrl(), generateDisplayName(solrRor));
     }
     
-    private String generateDisplayName(RorDto solrRor) {
-        StringBuilder rorDisplay = new StringBuilder(solrRor.getName());
+    private String generateDisplayName(final RorDto solrRor) {
+        final StringBuilder builder = new StringBuilder(solrRor.getName());
         
-        if (StringUtils.isNotEmpty(solrRor.getCountryName())) {
-            rorDisplay.append(" (" + solrRor.getCountryName() + ")");
+        if (isNotEmpty(solrRor.getCountryName())) {
+            builder.append(" (").append(solrRor.getCountryName()).append(')');
         }
-        rorDisplay.append('.');
+        builder.append('.');
         
-        
-        String otherNamesString = generateOtherNames(solrRor);
-        if (StringUtils.isNotEmpty(otherNamesString)) {
-            rorDisplay
-                .append(' ')
-                .append(BundleUtil.getStringFromBundle("dataset.metadata.inputRenderer.suggestion.ror.otherNames"))
+        final List<String> otherNames = solrRor.getOtherNames();
+        if (!otherNames.isEmpty()) {
+            builder.append(' ')
+                .append(getStringFromBundle("dataset.metadata.inputRenderer.suggestion.ror.otherNames"))
                 .append(": ")
-                .append(otherNamesString);
+                .append(join("; ", otherNames));
         }
         
-        return rorDisplay.toString();
-    }
-    
-    private String generateOtherNames(RorDto solrRor) {
-        List<String> otherNames = Lists.newArrayList();
-        otherNames.addAll(solrRor.getNameAliases());
-        otherNames.addAll(solrRor.getAcronyms());
-        otherNames.addAll(solrRor.getLabels());
-        return otherNames.stream().collect(joining("; "));
+        return builder.toString();
     }
 }
