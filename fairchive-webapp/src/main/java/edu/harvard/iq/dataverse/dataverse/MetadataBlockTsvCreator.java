@@ -31,11 +31,11 @@ public class MetadataBlockTsvCreator {
     private static final Logger logger = LoggerFactory.getLogger(MetadataBlockTsvCreator.class);
     private static final JsonMapConverter jsonMapConverter = new JsonMapConverter();
 
-    private static final CSVFormat TSV = CSVFormat.DEFAULT
-            .withEscape('\\')
-            .withQuote(null)
-            .withQuoteMode(QuoteMode.NONE)
-            .withDelimiter('\t');
+    private static final CSVFormat TSV = CSVFormat.DEFAULT.builder()
+            .setEscape('\\')
+            .setQuote(null)
+            .setQuoteMode(QuoteMode.NONE)
+            .setDelimiter('\t').build();
 
     // -------------------- LOGIC --------------------
 
