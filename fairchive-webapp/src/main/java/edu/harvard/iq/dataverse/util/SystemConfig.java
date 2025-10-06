@@ -130,7 +130,7 @@ public class SystemConfig {
         return this.settingsService.isTrueForKey(UseOAIStrictIdentifierScheme);
     }
 
-    public int getMinutesUntilPasswordResetTokenExpires() {
+    public Integer getMinutesUntilPasswordResetTokenExpires() {
         return settingsService.getValueForKeyAsInt(SettingsServiceBean.Key.MinutesUntilPasswordResetTokenExpires);
     }
 
