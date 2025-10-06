@@ -2,15 +2,17 @@ package edu.harvard.iq.dataverse.dataset.datasetversion;
 
 import static edu.harvard.iq.dataverse.batch.jobs.importer.filesystem.FileRecordJobListener.SEP;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.Long.parseLong;
+import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.sort;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -203,10 +205,10 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         String[] versions = friendlyVersionNumber.split("\\.");
         try {
             if (versions.length == 1) {
-                majorVersionNumber = Long.parseLong(versions[0]);
+                majorVersionNumber = parseLong(versions[0]);
             } else if (versions.length == 2) {
-                majorVersionNumber = Long.parseLong(versions[0]);
-                minorVersionNumber = Long.parseLong(versions[1]);
+                majorVersionNumber = parseLong(versions[0]);
+                minorVersionNumber = parseLong(versions[1]);
             } else {
                 return null;
             }
@@ -259,14 +261,14 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         String[] vparts = version.split("\\.");
         if (vparts.length == 1) {
             try {
-                majorVersion = Long.parseLong(vparts[0]);
+                majorVersion = parseLong(vparts[0]);
             } catch (NumberFormatException n) {
                 return null;
             }
         } else if (vparts.length == 2) {
             try {
-                majorVersion = Long.parseLong(vparts[0]);
-                minorVersion = Long.parseLong(vparts[1]);
+                majorVersion = parseLong(vparts[0]);
+                minorVersion = parseLong(vparts[1]);
             } catch (NumberFormatException n) {
                 return null;
             }
@@ -779,7 +781,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         try {
             em.createNativeQuery("UPDATE dataset SET thumbnailfile_id=" + dataFileId 
                     + " WHERE id in (SELECT dataset_id FROM datasetversion WHERE id=" 
-                    + versionId + ")").executeUpdate();
+                    + versionId + ')').executeUpdate();
         } catch (Exception ex) {
             // it's ok to just ignore...
         }
@@ -789,11 +791,11 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
 
         String logDir = System.getProperty("com.sun.aas.instanceRoot") + SEP + "logs" + SEP + "edit-drafts" + SEP;
         String identifier = dvd.getOriginalVersion().getDataset().getIdentifier();
-        identifier = identifier.substring(identifier.indexOf("/") + 1);
+        identifier = identifier.substring(identifier.indexOf('/') + 1);
         String datasetId = dvd.getOriginalVersion().getDataset().getId().toString();
-        String summary = au.getFirstName() + " " + au.getLastName() + " (" + au.getIdentifier() + ") updated " + dvd.getEditSummaryForLog();
+        String summary = au.getFirstName() + ' ' + au.getLastName() + " (" + au.getIdentifier() + ") updated " + dvd.getEditSummaryForLog();
         String logTimestamp = logFormatter.format(new Date());
-        String fileName = "/edit-draft-" + datasetId + "-" + identifier + "-" + logTimestamp + ".txt";
+        String fileName = "/edit-draft-" + datasetId + '-' + identifier + '-' + logTimestamp + ".txt";
         LoggingUtil.saveLogFile(summary, logDir, fileName);
 
     }
@@ -869,7 +871,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
             info.add("message", "datasetVersionId was null or empty!");
             return info;
         }
-        long dsvId = Long.parseLong(datasetVersionId);
+        long dsvId = parseLong(datasetVersionId);
         DatasetVersion datasetVersion = getById(dsvId);
         if (datasetVersion == null) {
             info.add("message", "Could not find a dataset version based on datasetVersionId " 
@@ -937,42 +939,31 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         return true;
     }
 
-    private List<String> getFileUnfsInVersion(DatasetVersion datasetVersion) {
-        ArrayList<String> fileUnfs = new ArrayList<>();
+    private List<String> getFileUnfsInVersion(final DatasetVersion datasetVersion) {
+        final ArrayList<String> result = new ArrayList<>();
 
-        Iterator<FileMetadata> fileMetadataIterator = datasetVersion.getFileMetadatas().iterator();
-
-        while (fileMetadataIterator.hasNext()) {
-            FileMetadata fileMetadata = fileMetadataIterator.next();
-
-            String fileUnf = fileMetadata.getDataFile().getUnf();
-
-            if (fileUnf != null && !StringUtils.isBlank(fileUnf)) {
-                fileUnfs.add(fileUnf);
+        for(final FileMetadata metadata : datasetVersion.getFileMetadatas()) {
+            final String unf = metadata.getDataFile().getUnf();
+            if (unf != null && !isBlank(unf)) {
+                result.add(unf);
             }
         }
 
-        if (fileUnfs.size() > 0) {
-            Collections.sort(fileUnfs, String.CASE_INSENSITIVE_ORDER);
-        }
-
-        return fileUnfs;
+        sort(result, CASE_INSENSITIVE_ORDER);
+        return result;
     }
 
-    private DatasetVersion getPreviousVersionWithUnf(DatasetVersion datasetVersion) {
+    private DatasetVersion getPreviousVersionWithUnf(final DatasetVersion datasetVersion) {
         if (datasetVersion.getDataset().getVersions().size() < 2) {
             // this is the only version - so there's no previous version.
             return null;
         }
-
-        Iterator<DatasetVersion> versionIterator = datasetVersion.getDataset().getVersions().iterator();
+        
         boolean returnNext = false;
 
-        while (versionIterator.hasNext()) {
-            DatasetVersion iteratedVersion = versionIterator.next();
-
+        for(final DatasetVersion iteratedVersion : datasetVersion.getDataset().getVersions()) {
             if (returnNext) {
-                if (!StringUtils.isBlank(iteratedVersion.getUNF())) {
+                if (!isBlank(iteratedVersion.getUNF())) {
                     return iteratedVersion;
                 }
             } else if (DatasetVersion.compareByVersion.compare(datasetVersion, iteratedVersion) == 0) {

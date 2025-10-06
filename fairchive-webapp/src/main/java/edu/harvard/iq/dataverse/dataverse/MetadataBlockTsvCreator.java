@@ -56,7 +56,7 @@ public class MetadataBlockTsvCreator {
     private void printMetadataBlockRecord(CSVPrinter csvPrinter, MetadataBlock metadataBlock) throws IOException {
         MetadataBlockRecord[] columns = MetadataBlockRecord.values();
         printHeader(csvPrinter, columns);
-        csvPrinter.getOut().append("\t");
+        csvPrinter.getOut().append('\t');
         List<Object> values = Arrays.stream(columns)
                 .map(c -> c.valueGetter().apply(metadataBlock))
                 .collect(Collectors.toList());
@@ -67,9 +67,9 @@ public class MetadataBlockTsvCreator {
         if (columns.length < 1) {
             return;
         }
-        csvPrinter.getOut().append("#")
+        csvPrinter.getOut().append('#')
                 .append(columns[0].recordName())
-                .append("\t")
+                .append('\t')
                 .append(Arrays.stream(columns)
                         .map(Record::columnName)
                         .collect(Collectors.joining("\t")));
@@ -82,7 +82,7 @@ public class MetadataBlockTsvCreator {
         DatasetFieldTypeRecord[] columns = DatasetFieldTypeRecord.values();
         printHeader(csvPrinter, columns);
         for (DatasetFieldType fieldType : fieldTypes) {
-            csvPrinter.getOut().append("\t");
+            csvPrinter.getOut().append('\t');
             List<Object> values = Arrays.stream(columns)
                     .map(c -> c.formatter().apply(c.valueGetter().apply(fieldType)))
                     .collect(Collectors.toList());
@@ -102,7 +102,7 @@ public class MetadataBlockTsvCreator {
                         .sorted(Comparator.comparingInt(ControlledVocabularyValue::getDisplayOrder)))
                 .collect(Collectors.toList());
         for (ControlledVocabularyValue vocabularyValue : vocabularyValues) {
-            csvPrinter.getOut().append("\t");
+            csvPrinter.getOut().append('\t');
             List<Object> values = Arrays.stream(columns)
                     .map(c -> c.valueGetter().apply(vocabularyValue))
                     .collect(Collectors.toList());

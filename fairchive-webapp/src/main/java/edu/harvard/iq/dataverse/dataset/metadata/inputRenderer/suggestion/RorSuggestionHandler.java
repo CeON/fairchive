@@ -53,7 +53,7 @@ public class RorSuggestionHandler implements SuggestionHandler {
         final StringBuilder builder = new StringBuilder(solrRor.getName());
         
         if (isNotEmpty(solrRor.getCountryName())) {
-            builder.append(" (").append(solrRor.getCountryName()).append(")");
+            builder.append(" (").append(solrRor.getCountryName()).append(')');
         }
         builder.append('.');
         

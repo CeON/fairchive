@@ -22,7 +22,6 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +32,7 @@ import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfU
 import static java.lang.Integer.max;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -60,7 +60,7 @@ public class OpenAireExportUtil {
 
         xmlw.writeAttribute("xmlns:xsi", XSI_NAMESPACE);
         xmlw.writeAttribute("xmlns", RESOURCE_NAMESPACE);
-        xmlw.writeAttribute("xsi:schemaLocation", RESOURCE_NAMESPACE + " " + RESOURCE_SCHEMA_LOCATION);
+        xmlw.writeAttribute("xsi:schemaLocation", RESOURCE_NAMESPACE + ' ' + RESOURCE_SCHEMA_LOCATION);
 
         createOpenAire(xmlw, datasetDto);
 
@@ -193,8 +193,8 @@ public class OpenAireExportUtil {
             } else if (StringUtils.containsIgnoreCase(identifier, GlobalId.HDL_RESOLVER_URL)) {
                 identifier_map.put("identifierType", "Handle");
                 if (contains(identifier, "http")) {
-                    identifier = identifier.replace(identifier.substring(0, identifier.indexOf("/") + 2), "");
-                    identifier = identifier.substring(identifier.indexOf("/") + 1);
+                    identifier = identifier.replace(identifier.substring(0, identifier.indexOf('/') + 2), EMPTY);
+                    identifier = identifier.substring(identifier.indexOf('/') + 1);
                 }
             }
             writeFullElement(xmlw, null, "identifier", identifier_map, identifier, language);
@@ -223,8 +223,7 @@ public class OpenAireExportUtil {
                             String nameIdentifier = null;
                             String nameIdentifierScheme = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.authorName.equals(next.getTypeName())) {
                                     creatorName = next.getSinglePrimitive();
                                 }
@@ -252,13 +251,12 @@ public class OpenAireExportUtil {
                                     creator_map.clear();
 
                                     if (StringUtils.contains(nameIdentifier, "http")) {
-                                        String site = nameIdentifier.substring(0, nameIdentifier.indexOf("/") + 2);
-                                        nameIdentifier = nameIdentifier.replace(nameIdentifier.substring(0,
-                                                                                                         nameIdentifier.indexOf(
-                                                                                                                 "/") + 2),
-                                                                                "");
-                                        site = site + nameIdentifier.substring(0, nameIdentifier.indexOf("/") + 1);
-                                        nameIdentifier = nameIdentifier.substring(nameIdentifier.indexOf("/") + 1);
+                                        String site = nameIdentifier.substring(0, nameIdentifier.indexOf('/') + 2);
+                                        nameIdentifier = nameIdentifier.
+                                                replace(nameIdentifier.substring(0,nameIdentifier.indexOf('/') + 2),
+                                                EMPTY);
+                                        site = site + nameIdentifier.substring(0, nameIdentifier.indexOf('/') + 1);
+                                        nameIdentifier = nameIdentifier.substring(nameIdentifier.indexOf('/') + 1);
 
                                         creator_map.put("SchemeURI", site);
                                     }
@@ -399,8 +397,7 @@ public class OpenAireExportUtil {
                             String subjectScheme = null;
                             String schemeURI = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.keywordValue.equals(next.getTypeName())) {
                                     subject = next.getSinglePrimitive();
                                 }
@@ -414,7 +411,7 @@ public class OpenAireExportUtil {
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(subject)) {
+                            if (isNotBlank(subject)) {
                                 subject_check = writeOpenTag(xmlw, "subjects", subject_check);
                                 writeSubjectElement(xmlw, subjectScheme, schemeURI, subject, language);
                             }
@@ -427,8 +424,7 @@ public class OpenAireExportUtil {
                             String subjectScheme = null;
                             String schemeURI = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.topicClassValue.equals(next.getTypeName())) {
                                     subject = next.getSinglePrimitive();
                                 }
@@ -442,7 +438,7 @@ public class OpenAireExportUtil {
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(subject)) {
+                            if (isNotBlank(subject)) {
                                 subject_check = writeOpenTag(xmlw, "subjects", subject_check);
                                 writeSubjectElement(xmlw, subjectScheme, schemeURI, subject, language);
                             }
@@ -664,7 +660,7 @@ public class OpenAireExportUtil {
         xmlw.writeStartElement("contributor"); // <contributor>
 
         if (isNotBlank(contributorType)) {
-            xmlw.writeAttribute("contributorType", contributorType.replaceAll(" ", ""));
+            xmlw.writeAttribute("contributorType", contributorType.replaceAll(" ", EMPTY));
         }
 
         Map<String, String> contributor_map = new HashMap<String, String>();
@@ -741,8 +737,7 @@ public class OpenAireExportUtil {
                             String dateOfCollectionStart = null;
                             String dateOfCollectionEnd = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.dateOfCollectionStart.equals(next.getTypeName())) {
                                     dateOfCollectionStart = next.getSinglePrimitive();
                                 }
@@ -826,8 +821,7 @@ public class OpenAireExportUtil {
                             String alternateIdentifier = null;
                             String alternateIdentifierType = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.otherIdValue.equals(next.getTypeName())) {
                                     alternateIdentifier = next.getSinglePrimitive();
                                 }
@@ -1046,8 +1040,7 @@ public class OpenAireExportUtil {
                         for (Set<DatasetFieldDTO> foo : fieldDTO.getMultipleCompound()) {
                             String descriptionOfAbstract = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.descriptionText.equals(next.getTypeName())) {
                                     descriptionOfAbstract = MarkupChecker.stripAllTags(next.getSinglePrimitive());
                                     descriptionOfAbstract = StringEscapeUtils.unescapeHtml(descriptionOfAbstract);
@@ -1074,8 +1067,7 @@ public class OpenAireExportUtil {
                             String softwareName = null;
                             String softwareVersion = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.softwareName.equals(next.getTypeName())) {
                                     softwareName = next.getSinglePrimitive();
                                 }
@@ -1125,8 +1117,7 @@ public class OpenAireExportUtil {
                         String seriesInformation = null;
 
                         Set<DatasetFieldDTO> foo = fieldDTO.getSingleCompound();
-                        for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                            DatasetFieldDTO next = iterator.next();
+                        for (final DatasetFieldDTO next : foo) {
                             if (DatasetFieldConstant.seriesInformation.equals(next.getTypeName())) {
                                 seriesInformation = next.getSinglePrimitive();
                             }
@@ -1210,10 +1201,10 @@ public class OpenAireExportUtil {
     public static boolean writeGeoLocationsElement(XMLStreamWriter xmlw, 
             Set<DatasetFieldDTO> foo, String geoLocationPlace, String language) throws XMLStreamException {
 
-        String northLatitude = StringUtils.EMPTY;
-        String southLatitude = StringUtils.EMPTY;
-        String eastLongitude = StringUtils.EMPTY;
-        String westLongitude = StringUtils.EMPTY;
+        String northLatitude = EMPTY;
+        String southLatitude = EMPTY;
+        String eastLongitude = EMPTY;
+        String westLongitude = EMPTY;
         GeoPoint point = null;
 
         for (DatasetFieldDTO next : foo) {
@@ -1241,8 +1232,8 @@ public class OpenAireExportUtil {
         }
 
         if (hasValidLocationBox(northLatitude, southLatitude, eastLongitude, westLongitude)) {
-            String locationBoxValue = southLatitude + " " + westLongitude 
-                    + " " + northLatitude + " " + eastLongitude;
+            String locationBoxValue = southLatitude + ' ' + westLongitude 
+                    + ' ' + northLatitude + ' ' + eastLongitude;
 
             writeOpenTag(xmlw, "geoLocation", false);
             writeFullElement(xmlw, null, "geoLocationBox", null, 

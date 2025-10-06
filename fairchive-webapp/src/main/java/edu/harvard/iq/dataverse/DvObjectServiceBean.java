@@ -334,7 +334,7 @@ public class DvObjectServiceBean implements java.io.Serializable {
             path.append(getDataverseHierarchyFor(dvObject.getOwner()));
         }
         if (dvObject instanceof Dataverse) {
-            path.append("/").append(((Dataverse) dvObject).getAlias());
+            path.append('/').append(((Dataverse) dvObject).getAlias());
         }
         return path.toString();
     }

@@ -193,23 +193,29 @@ public class Index extends AbstractApiBean {
         } catch (EJBException ex) {
             Throwable cause = ex;
             StringBuilder sb = new StringBuilder();
-            sb.append(ex + " ");
+            sb.append(ex).append(' ');
             while (cause.getCause() != null) {
                 cause = cause.getCause();
-                sb.append(cause.getClass().getCanonicalName() + " ");
-                sb.append(cause.getMessage()).append(" ");
+                sb.append(cause.getClass().getCanonicalName()).append(' ');
+                sb.append(cause.getMessage()).append(' ');
                 if (cause instanceof ConstraintViolationException) {
                     ConstraintViolationException constraintViolationException = (ConstraintViolationException) cause;
                     for (ConstraintViolation<?> violation : constraintViolationException.getConstraintViolations()) {
-                        sb.append("(invalid value: <<<").append(violation.getInvalidValue()).append(">>> for ").append(violation.getPropertyPath()).append(" at ").append(violation.getLeafBean()).append(" - ").append(violation.getMessage()).append(")");
+                        sb.append("(invalid value: <<<").
+                            append(violation.getInvalidValue()).append(">>> for ").
+                            append(violation.getPropertyPath()).append(" at ").
+                            append(violation.getLeafBean()).append(" - ").
+                            append(violation.getMessage()).append(')');
                     }
                 } else if (cause instanceof NullPointerException) {
                     for (int i = 0; i < 2; i++) {
                         StackTraceElement stacktrace = cause.getStackTrace()[i];
                         if (stacktrace != null) {
                             int lineNumber = stacktrace.getLineNumber();
-                            String error = "at " + stacktrace.getClassName() + "." + stacktrace.getMethodName() + "(" + stacktrace.getFileName() + ":" + lineNumber + ") ";
-                            sb.append(error);
+                            sb.append("at ").append(stacktrace.getClassName()).
+                                append('.').append(stacktrace.getMethodName()).
+                                append('(').append(stacktrace.getFileName()).
+                                append(':').append(lineNumber).append(") ");
                         }
                     }
                 }
@@ -271,31 +277,36 @@ public class Index extends AbstractApiBean {
                  */
                 boolean doNormalSolrDocCleanUp = true;
                 indexService.indexDataset(datasetThatOwnsTheFile, doNormalSolrDocCleanUp);
-                return ok("started reindexing " + type + "/" + id);
+                return ok("started reindexing " + type + '/' + id);
             } else {
                 return error(Status.BAD_REQUEST, "illegal type: " + type);
             }
         } catch (EJBException ex) {
             Throwable cause = ex;
             StringBuilder sb = new StringBuilder();
-            sb.append("Problem indexing ").append(type).append("/").append(id).append(": ");
+            sb.append("Problem indexing ").append(type).append('/').append(id).append(": ");
             sb.append(ex).append(" ");
             while (cause.getCause() != null) {
                 cause = cause.getCause();
-                sb.append(cause.getClass().getCanonicalName()).append(" ");
-                sb.append(cause.getMessage()).append(" ");
+                sb.append(cause.getClass().getCanonicalName()).append(' ');
+                sb.append(cause.getMessage()).append(' ');
                 if (cause instanceof ConstraintViolationException) {
                     ConstraintViolationException constraintViolationException = (ConstraintViolationException) cause;
                     for (ConstraintViolation<?> violation : constraintViolationException.getConstraintViolations()) {
-                        sb.append("(invalid value: <<<").append(violation.getInvalidValue()).append(">>> for ").append(violation.getPropertyPath()).append(" at ").append(violation.getLeafBean()).append(" - ").append(violation.getMessage()).append(")");
+                        sb.append("(invalid value: <<<").append(violation.getInvalidValue()).
+                            append(">>> for ").append(violation.getPropertyPath()).
+                            append(" at ").append(violation.getLeafBean()).
+                            append(" - ").append(violation.getMessage()).append(')');
                     }
                 } else if (cause instanceof NullPointerException) {
                     for (int i = 0; i < 2; i++) {
                         StackTraceElement stacktrace = cause.getStackTrace()[i];
                         if (stacktrace != null) {
                             int lineNumber = stacktrace.getLineNumber();
-                            String error = "at " + stacktrace.getClassName() + "." + stacktrace.getMethodName() + "(" + stacktrace.getFileName() + ":" + lineNumber + ") ";
-                            sb.append(error);
+                            sb.append("at ").append(stacktrace.getClassName()).
+                                append('.').append(stacktrace.getMethodName()).
+                                append('(').append(stacktrace.getFileName()).
+                                append(':').append(lineNumber).append(") ");
                         }
                     }
                 }
@@ -314,7 +325,8 @@ public class Index extends AbstractApiBean {
         try {
             dataset = datasetDao.findByGlobalId(persistentId);
         } catch (Exception ex) {
-            return error(Status.BAD_REQUEST, "Problem looking up dataset with persistent id \"" + persistentId + "\". Error: " + ex.getMessage());
+            return error(Status.BAD_REQUEST, "Problem looking up dataset with persistent id \"" 
+                    + persistentId + "\". Error: " + ex.getMessage());
         }
         if (dataset != null) {
             boolean doNormalSolrDocCleanUp = true;
@@ -365,7 +377,9 @@ public class Index extends AbstractApiBean {
         try {
             contentInSolrButNotDatabase = getContentInSolrButNotDatabase();
         } catch (SearchException ex) {
-            return error(Response.Status.INTERNAL_SERVER_ERROR, "Can not determine index status. " + ex.getLocalizedMessage() + ". Is Solr down? Exception: " + ex.getCause().getLocalizedMessage());
+            return error(Response.Status.INTERNAL_SERVER_ERROR, "Can not determine index status. " + 
+                    ex.getLocalizedMessage() + ". Is Solr down? Exception: " + 
+                    ex.getCause().getLocalizedMessage());
         }
 
         JsonObjectBuilder permissionsInDatabaseButStaleInOrMissingFromSolr = getPermissionsInDatabaseButStaleInOrMissingFromSolr();
@@ -475,7 +489,9 @@ public class Index extends AbstractApiBean {
             }
             String multivalued = dsfSolrField.isAllowedToBeMultivalued().toString();
             // <field name="datasetId" type="text_general" multiValued="false" stored="true" indexed="true"/>
-            sb.append("    <field name=\"" + nameSearchable + "\" type=\"" + type + "\" multiValued=\"" + multivalued + "\" stored=\"true\" indexed=\"true\"/>\n");
+            sb.append("    <field name=\"").append(nameSearchable).
+                append("\" type=\"").append(type).append("\" multiValued=\"").
+                append(multivalued).append("\" stored=\"true\" indexed=\"true\"/>\n");
         }
 
         List<String> listOfStaticFields = new ArrayList<>();
@@ -524,7 +540,9 @@ public class Index extends AbstractApiBean {
             }
 
             // <copyField source="*_i" dest="_text_" maxChars="3000"/>
-            sb.append("    <copyField source=\"").append(nameSearchable).append("\" dest=\"" + SearchFields.FULL_TEXT + "\" maxChars=\"3000\"/>\n");
+            sb.append("    <copyField source=\"").append(nameSearchable).
+                append("\" dest=\"").append(SearchFields.FULL_TEXT).
+                append("\" maxChars=\"3000\"/>\n");
         }
 
         return sb.toString();
@@ -571,7 +589,7 @@ public class Index extends AbstractApiBean {
         JsonArrayBuilder itemsArrayBuilder = Json.createArrayBuilder();
         List<SolrSearchResult> solrSearchResults = solrQueryResponse.getSolrSearchResults();
         for (SolrSearchResult solrSearchResult : solrSearchResults) {
-            itemsArrayBuilder.add(solrSearchResult.getType().getSolrValue() + ":" + solrSearchResult.getNameSort());
+            itemsArrayBuilder.add(solrSearchResult.getType().getSolrValue() + ':' + solrSearchResult.getNameSort());
         }
 
         return ok(itemsArrayBuilder);
@@ -624,7 +642,9 @@ public class Index extends AbstractApiBean {
         Set<RoleAssignment> roleAssignments = rolesSvc.rolesAssignments(dvObject);
         JsonArrayBuilder roleAssignmentsData = Json.createArrayBuilder();
         for (RoleAssignment roleAssignment : roleAssignments) {
-            roleAssignmentsData.add(roleAssignment.getRole() + " has been granted to " + roleAssignment.getAssigneeIdentifier() + " on " + roleAssignment.getDefinitionPoint());
+            roleAssignmentsData.add(roleAssignment.getRole() + " has been granted to " + 
+                    roleAssignment.getAssigneeIdentifier() + " on " + 
+                    roleAssignment.getDefinitionPoint());
         }
         data.add("timestamps", timestamps);
         data.add("roleAssignments", roleAssignmentsData);

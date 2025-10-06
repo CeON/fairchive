@@ -80,7 +80,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
         List<Object> tokenizedList = new ArrayList<>();
         char[] charArray = value.trim().toCharArray();
 
-        StringBuffer currentToken = new StringBuffer();
+        StringBuilder currentToken = new StringBuilder();
         boolean isCurrentTokenNumeric = false;
 
         for (int i = 0; i < charArray.length; i++) {
@@ -95,7 +95,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
 
                 if (!isCurrentTokenNumeric) { // reset
                     tokenizedList.add(currentToken.toString());
-                    currentToken = new StringBuffer();
+                    currentToken = new StringBuilder();
                 }
 
                 if (c != ',') { // if comma, don't append as it's just a visual separator
@@ -111,7 +111,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
                     } catch (NumberFormatException nfe) {
                         tokenizedList.add(currentToken.toString()); // something went wrong, but go ahead and add a a String
                     }
-                    currentToken = new StringBuffer();
+                    currentToken = new StringBuilder();
                 }
 
                 currentToken.append(c);

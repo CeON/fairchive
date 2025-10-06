@@ -839,11 +839,11 @@ public class AuthenticationServiceBean {
         } catch (EJBException ex) {
             Throwable cause = ex;
             StringBuilder sb = new StringBuilder();
-            sb.append(ex).append(" ");
+            sb.append(ex).append(' ');
             while (cause.getCause() != null) {
                 cause = cause.getCause();
-                sb.append(cause.getClass().getCanonicalName()).append(" ")
-                        .append(cause.getMessage()).append(" ");
+                sb.append(cause.getClass().getCanonicalName()).append(' ')
+                        .append(cause.getMessage()).append(' ');
                 /*
                  * @todo Investigate why authSvc.authenticate is throwing
                  * NullPointerException. If you convert a Shib user or an OAuth
@@ -854,8 +854,8 @@ public class AuthenticationServiceBean {
                         StackTraceElement stacktrace = cause.getStackTrace()[i];
                         if (stacktrace != null) {
                             int lineNumber = stacktrace.getLineNumber();
-                            String error = "at " + stacktrace.getClassName() + "." + stacktrace.getMethodName()
-                                    + "(" + stacktrace.getFileName() + ":" + lineNumber + ") ";
+                            String error = "at " + stacktrace.getClassName() + '.' + stacktrace.getMethodName()
+                                    + '(' + stacktrace.getFileName() + ':' + lineNumber + ") ";
                             sb.append(error);
                         }
                     }

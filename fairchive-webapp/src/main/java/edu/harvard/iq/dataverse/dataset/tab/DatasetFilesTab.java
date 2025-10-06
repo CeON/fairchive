@@ -945,20 +945,17 @@ public class DatasetFilesTab implements Serializable {
             dataset = datasetFilesTabFacade.retrieveDataset(submittedDataset.getId());
             logger.fine("Successfully executed SaveDatasetCommand.");
         } catch (EJBException ex) {
-            StringBuilder error = new StringBuilder();
-            error.append(ex).append(" ");
-            error.append(ex.getMessage()).append(" ");
+            final StringBuilder error = new StringBuilder();
+            error.append(ex).append(' ').append(ex.getMessage()).append(' ');
             Throwable cause = ex;
             while (cause.getCause() != null) {
                 cause = cause.getCause();
-                error.append(cause).append(" ");
-                error.append(cause.getMessage()).append(" ");
+                error.append(cause).append(' ').append(cause.getMessage()).append(' ');
             }
             logger.log(Level.FINE, "Couldn''t save dataset: {0}", error.toString());
             populateDatasetUpdateFailureMessage();
             return returnToDraftVersion();
         } catch (CommandException ex) {
-            // FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Dataset Save Failed", " - " + ex.toString()));
             logger.log(Level.SEVERE, "CommandException, when attempting to update the dataset: " + ex.getMessage(), ex);
             populateDatasetUpdateFailureMessage();
             return returnToDraftVersion();
