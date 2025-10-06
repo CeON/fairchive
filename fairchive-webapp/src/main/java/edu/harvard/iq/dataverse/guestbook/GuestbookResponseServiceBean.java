@@ -376,6 +376,7 @@ public class GuestbookResponseServiceBean {
         return selectCustomQuestionAnswers(dataverseId, guestbookId, true, null, null);
     }
 
+    @SuppressWarnings("unchecked")
     private Map<Integer, Object> selectCustomQuestionAnswers(Long dataverseId, Long guestbookId, boolean asString, Integer lastResponse, Integer firstResponse) {
         
         Map<Integer, Object> ret = new HashMap<>();
@@ -403,7 +404,6 @@ public class GuestbookResponseServiceBean {
         cqString += ";";
         logger.fine("custom questions query: " + cqString);
 
-        @SuppressWarnings("unchecked")
         List<Object[]> customResponses = em.createNativeQuery(cqString).getResultList();
 
         if (customResponses != null) {
@@ -427,7 +427,7 @@ public class GuestbookResponseServiceBean {
                     if (!ret.containsKey(responseId)) {
                         ret.put(responseId, new ArrayList<>());
                     }
-                    ((List) ret.get(responseId)).add(response);
+                    ((List<Object[]>) ret.get(responseId)).add(response);
                 }
 
                 count++;
