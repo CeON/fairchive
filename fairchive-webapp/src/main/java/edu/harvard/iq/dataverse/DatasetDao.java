@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -29,7 +28,6 @@ import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.FinalizeDatasetPublicationCommand;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
-import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
@@ -93,10 +91,6 @@ public class DatasetDao implements java.io.Serializable {
 
     public List<Dataset> findAll() {
         return this.datasetRepository.findAllOrderedById();
-    }
-    
-    public List<Dataset> findStaleOrMissingDatasets() {
-        return findAll().stream().filter(DvObject::isStale).collect(toList());
     }
 
     public List<Dataset> findNotIndexedAfterEmbargo() {

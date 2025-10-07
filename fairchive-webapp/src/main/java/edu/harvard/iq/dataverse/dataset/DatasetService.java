@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.dataset;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.InputStream;
 import java.time.Clock;
 import java.time.Instant;
@@ -17,6 +19,7 @@ import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetPage;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.annotations.PermissionNeeded;
@@ -26,17 +29,20 @@ import edu.harvard.iq.dataverse.engine.command.impl.CreateNewDatasetCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetGuestbookCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetThumbnailCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
+import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.interceptors.LoggedCall;
 import edu.harvard.iq.dataverse.interceptors.Restricted;
 import edu.harvard.iq.dataverse.interceptors.SuperuserRequired;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
+import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -63,6 +69,7 @@ public class DatasetService {
     private SolrIndexServiceBean solrIndexService;
     private IndexServiceBean indexService;
     private DatasetDao datasetDao;
+    private DvObjectServiceBean dvObjectService;
 
 
     // -------------------- CONSTRUCTORS --------------------
@@ -83,7 +90,8 @@ public class DatasetService {
             final PermissionServiceBean permissionService,
             final SolrIndexServiceBean solrIndexService, 
             final IndexServiceBean indexService,
-            final DatasetDao datasetDao) {
+            final DatasetDao datasetDao,
+            final DvObjectServiceBean dvObjectService) {
         this.commandEngine = commandEngine;
         this.userNotificationService = userNotificationService;
         this.datasetRepo = datasetRepo;
@@ -95,6 +103,7 @@ public class DatasetService {
         this.solrIndexService = solrIndexService;
         this.indexService = indexService;      
         this.datasetDao = datasetDao;
+        this.dvObjectService = dvObjectService;
     }
 
 
@@ -105,16 +114,43 @@ public class DatasetService {
     }
     
     public List<Dataset> findAll() {
-        return this.datasetDao.findAll();
+        return this.datasetRepo.findAllOrderedById();
     }
     
     public List<Long> findAllLocalDatasetIds() {
         return this.datasetDao.findAllLocalDatasetIds();
     }
     
-    public Dataset findByGlobalId(final String globalId) {
-        return this.datasetDao.findByGlobalId(globalId);
+    public List<Dataset> findStaleOrMissingDatasets() {
+        return findAll().stream().filter(DvObject::isStale).collect(toList());
     }
+    
+    public Dataset findByGlobalId(final String globalId) {
+        final Dataset retVal = (Dataset) this.dvObjectService.findByGlobalId(globalId, "Dataset");
+        if (retVal != null) {
+            return retVal;
+        } else {
+            //try to find with alternative PID
+            return (Dataset) this.dvObjectService.findByGlobalId(globalId, "Dataset", true);
+        }
+    }
+    
+    public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
+        return this.datasetDao.getDatasetByHarvestInfo(dataverse, harvestIdentifier);
+    }
+    
+    public String generateDatasetIdentifier(final Dataset dataset) {
+        return this.datasetDao.generateDatasetIdentifier(dataset);
+    }
+    
+    public boolean isIdentifierUnique(String userIdentifier, Dataset dataset, GlobalIdServiceBean persistentIdSvc) { 
+        return this.datasetDao.isIdentifierUnique(userIdentifier, dataset, persistentIdSvc);
+    }
+    
+    public boolean isIdentifierLocallyUnique(final Dataset dataset) {
+        return this.datasetDao.isIdentifierLocallyUnique(dataset);
+    }
+    
     
     public Dataset createDataset(Dataset dataset, Template usedTemplate) {
 
