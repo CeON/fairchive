@@ -110,6 +110,7 @@ public class FileRecordReader extends AbstractItemReader {
             totalRecordNumber = (long) files.size();
             getJobLogger().log(Level.INFO, "Files found = " + totalRecordNumber);
             // report if checksum total not equal to file total
+            @SuppressWarnings("unchecked")
             int checksumCount = ((HashMap<String, String>) jobContext.getTransientUserData()).size();
             if (checksumCount != files.size()) {
                 getJobLogger().log(Level.SEVERE, "Checksum mismatch: " + checksumCount + " checksums found in the manifest "

@@ -91,6 +91,7 @@ public class HarvesterParamsTest {
         return getSpecific(type);
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends HarvesterParams> Class<T> getSpecific(String type) {
         return (Class<T>) paramClasses.get(type);
     }

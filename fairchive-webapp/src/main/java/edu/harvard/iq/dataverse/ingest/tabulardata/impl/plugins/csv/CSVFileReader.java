@@ -117,7 +117,8 @@ public class CSVFileReader extends TabularDataFileReader {
 
         if (trySemicolonFormat) {
             try (PrintWriter tabFileWriter = new PrintWriter(tabFileDestination.getAbsolutePath())) {
-                readFile(streamAndFile._2(), dataTable, tabFileWriter, firstPassTempFile, inFormat.withHeader().withDelimiter(';'));
+                readFile(streamAndFile._2(), dataTable, tabFileWriter, firstPassTempFile, 
+                        inFormat.builder().setHeader().setDelimiter(';').build());
             } catch (IngestException ie) {
                 logger.log(Level.WARNING, "Semicolon-format ingest failed – deleting intermediate files " +
                         "and trying again with default settings", ie);
@@ -134,7 +135,8 @@ public class CSVFileReader extends TabularDataFileReader {
                 if (!firstPassTempFile.exists()) {
                     firstPassTempFile.createNewFile();
                 }
-                readFile(streamAndFile._2(), dataTable, tabFileWriter, firstPassTempFile, inFormat.withHeader());
+                readFile(streamAndFile._2(), dataTable, tabFileWriter, firstPassTempFile, 
+                        inFormat.builder().setHeader().build());
             } finally {
                 firstPassTempFile.delete();
             }
@@ -334,7 +336,7 @@ public class CSVFileReader extends TabularDataFileReader {
         }
         // Second, final pass.
         try (BufferedReader secondPassReader = new BufferedReader(new FileReader(firstPassTempFile))) {
-            parser = new CSVParser(secondPassReader, inFormat.withHeader());
+            parser = new CSVParser(secondPassReader, inFormat.builder().setHeader().build());
             String[] caseRow = new String[headers.size()];
 
             for (CSVRecord record : parser) {

@@ -117,7 +117,8 @@ public class ChangeUserIdentifierServiceTest {
         // given
         AuthenticatedUser user = MocksFactory.makeAuthenticatedUser("Jurek","Kiler");
         user.setSuperuser(true);
-        Mockito.when(authenticationService.getAuthenticatedUser(anyString())).thenReturn(user, null);
+        Mockito.when(authenticationService.getAuthenticatedUser(anyString())).
+            thenReturn(user, (AuthenticatedUser)null);
 
         BuiltinUser builtinUser = new BuiltinUser();
         builtinUser.setId(1L);

@@ -129,8 +129,9 @@ public class PasswordResetServiceBean {
 
         String pattern = BundleUtil.getStringFromBundleWithLocale("notification.email.passwordReset", authUser.getNotificationsLanguage());
 
-        String[] paramArray = {authUser.getName(), aUser.getUserName(), passwordResetUrl, systemConfig.getMinutesUntilPasswordResetTokenExpires() + ""};
-        String messageBody = MessageFormat.format(pattern, paramArray);
+        String messageBody = MessageFormat.format(pattern, 
+                authUser.getName(), aUser.getUserName(), 
+                passwordResetUrl, systemConfig.getMinutesUntilPasswordResetTokenExpires().toString());
 
         String toAddress = authUser.getEmail();
         String subject = BundleUtil.getStringFromBundleWithLocale("notification.email.passwordReset.subject", authUser.getNotificationsLanguage());

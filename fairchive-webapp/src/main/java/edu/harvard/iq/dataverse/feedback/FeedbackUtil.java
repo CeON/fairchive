@@ -19,6 +19,7 @@ public class FeedbackUtil {
 
     private static final String NO_DATASET_CONTACT_INTRO = getStringFromBundle("contact.context.dataset.noContact");
 
+    @SuppressWarnings("unchecked")
     public static <T extends DvObject> List<Feedback> gatherFeedback(FeedbackInfo<T> feedbackInfo) {
         if (feedbackInfo.getFeedbackTarget() == null) {
             return Lists.newArrayList(getFeedbackToRepoSupport(feedbackInfo));

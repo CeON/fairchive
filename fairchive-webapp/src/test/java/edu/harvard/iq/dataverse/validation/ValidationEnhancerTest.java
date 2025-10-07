@@ -18,6 +18,7 @@ class ValidationEnhancerTest {
     private ValidationEnhancer enhancer = new ValidationEnhancer();
 
     @Test
+    @SuppressWarnings("unchecked")
     void createDatasetFieldType() {
         // given
         StandardNumberValidator validator = new StandardNumberValidator();

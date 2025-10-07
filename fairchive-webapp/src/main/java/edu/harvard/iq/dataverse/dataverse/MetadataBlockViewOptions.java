@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import java.io.Serializable;
-import java.util.List;
 
 @SuppressWarnings("serial")
 public class MetadataBlockViewOptions implements Serializable {
@@ -51,7 +50,6 @@ public class MetadataBlockViewOptions implements Serializable {
         private boolean showDatasetFieldTypes;
         private boolean editableDatasetFieldTypes;
         private boolean selected;
-        private List<DatasetFieldViewOptions> datasetFieldViewOptions;
 
         private Builder() {
         }
@@ -68,11 +66,6 @@ public class MetadataBlockViewOptions implements Serializable {
 
         public Builder selected(boolean val) {
             selected = val;
-            return this;
-        }
-
-        public Builder datasetFieldViewOptions(List<DatasetFieldViewOptions> val) {
-            datasetFieldViewOptions = val;
             return this;
         }
 
