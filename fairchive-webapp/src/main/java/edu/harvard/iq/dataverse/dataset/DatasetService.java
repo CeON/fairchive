@@ -41,6 +41,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
@@ -109,8 +110,8 @@ public class DatasetService {
 
     // -------------------- LOGIC --------------------
 
-    public Dataset find(Object pk) {
-        return this.datasetDao.find(pk);
+    public Dataset find(Long id) {
+        return this.datasetRepo.getById(id);
     }
     
     public List<Dataset> findAll() {
@@ -118,7 +119,14 @@ public class DatasetService {
     }
     
     public List<Long> findAllLocalDatasetIds() {
-        return this.datasetDao.findAllLocalDatasetIds();
+        return this.datasetRepo.findAllLocalDatasetIds();
+    }
+    
+    public List<Long> findAllOrSubset(final long numPartitions, 
+            final long partitionId, final boolean skipIndexed) { 
+        return skipIndexed 
+                ? this.datasetRepo.findAllOrSubsetSkippingIndexed(numPartitions, partitionId)
+                : this.datasetRepo.findAllOrSubset(numPartitions, partitionId);
     }
     
     public List<Dataset> findStaleOrMissingDatasets() {
@@ -135,6 +143,18 @@ public class DatasetService {
         }
     }
     
+    public List<Dataset> findByOwnerId(Long ownerId) {
+        return datasetRepo.findByOwnerId(ownerId);
+    }
+    
+    public List<Dataset> findNotIndexedAfterEmbargo() {
+        return this.datasetRepo.findNotIndexedAfterEmbargo();
+    }
+    
+    public Dataset saveAndFlush(Dataset ds) {
+        return this.datasetRepo.saveAndFlush(ds);
+    }
+    
     public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
         return this.datasetDao.getDatasetByHarvestInfo(dataverse, harvestIdentifier);
     }
@@ -149,6 +169,31 @@ public class DatasetService {
     
     public boolean isIdentifierLocallyUnique(final Dataset dataset) {
         return this.datasetDao.isIdentifierLocallyUnique(dataset);
+    }
+    
+    public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason, Long userId, String info) {
+        return this.datasetDao.addDatasetLock(datasetId, reason, userId, info);
+    }
+    
+    public DatasetLock addDatasetLock(Dataset dataset, DatasetLock lock) {
+        return this.datasetDao.addDatasetLock(dataset, lock);
+    }
+    
+    public void removeDatasetLocks(Dataset dataset, DatasetLock.Reason aReason) {
+        this.datasetDao.removeDatasetLocks(dataset, aReason);
+    }
+    
+    public List<DatasetLock> getDatasetLocksByUser(final AuthenticatedUser user) {
+        return this.datasetDao.getDatasetLocksByUser(user);
+    }
+    
+    public List<DatasetVersionUser> getDatasetVersionUsersByAuthenticatedUser(
+            final AuthenticatedUser user) {
+        return this.datasetDao.getDatasetVersionUsersByAuthenticatedUser(user);
+    }
+    
+    public void assignDatasetThumbnailByNativeQuery(Dataset dataset, DataFile dataFile) {
+        this.datasetRepo.assignThumbnail(dataset.getId(), dataFile.getId());
     }
     
     

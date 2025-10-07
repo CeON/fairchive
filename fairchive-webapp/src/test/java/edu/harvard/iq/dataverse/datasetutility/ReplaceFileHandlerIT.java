@@ -1,35 +1,8 @@
 package edu.harvard.iq.dataverse.datasetutility;
 
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.dataaccess.DataAccess;
-import edu.harvard.iq.dataverse.dataaccess.StorageIO;
-import edu.harvard.iq.dataverse.datafile.file.ReplaceFileHandler;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
-import edu.harvard.iq.dataverse.util.FileUtil;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.io.IOUtils;
-import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
-import org.jboss.arquillian.transaction.api.annotation.Transactional;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static java.lang.System.currentTimeMillis;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -43,8 +16,37 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static java.lang.System.currentTimeMillis;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.io.IOUtils;
+import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
+import org.jboss.arquillian.transaction.api.annotation.Transactional;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.dataaccess.DataAccess;
+import edu.harvard.iq.dataverse.dataaccess.StorageIO;
+import edu.harvard.iq.dataverse.datafile.file.ReplaceFileHandler;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
+import edu.harvard.iq.dataverse.util.FileUtil;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @Transactional(TransactionMode.ROLLBACK)
 public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
@@ -69,7 +71,7 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
     private DataverseSession dataverseSession;
 
     @EJB
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     @TempDir
     public File tempFiles;
@@ -132,7 +134,7 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
         replaceFileHandler.replaceFile(dataset.getFiles().get(0), dataset, newDataFile);
 
         //then
-        Dataset dbDataset = datasetDao.find(dataset.getId());
+        Dataset dbDataset = datasetService.find(dataset.getId());
 
         List<DatasetVersion> dbDatasetVersions = dbDataset.getVersions();
         Assertions.assertEquals(2, dbDatasetVersions.size());

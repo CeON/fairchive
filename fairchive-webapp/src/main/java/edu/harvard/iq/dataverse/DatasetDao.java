@@ -93,14 +93,6 @@ public class DatasetDao implements java.io.Serializable {
         return this.datasetRepository.findAllOrderedById();
     }
 
-    public List<Dataset> findNotIndexedAfterEmbargo() {
-        return this.datasetRepository.findNotIndexedAfterEmbargo();
-    }
-
-    public List<Long> findAllLocalDatasetIds() {
-        return this.datasetRepository.findAllLocalDatasetIds();
-    }
-
     /**
      * For docs, see the equivalent method on the DataverseServiceBean.
      *
@@ -318,10 +310,6 @@ public class DatasetDao implements java.io.Serializable {
         dataset.setThumbnailFile(null);
         dataset.setUseGenericThumbnail(true);
         return merge(dataset);
-    }
-
-    public void assignDatasetThumbnailByNativeQuery(Dataset dataset, DataFile dataFile) {
-        this.datasetRepository.assignThumbnail(dataset.getId(), dataFile.getId());
     }
 
     public WorkflowComment addWorkflowComment(WorkflowComment workflowComment) {

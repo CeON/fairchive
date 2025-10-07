@@ -28,11 +28,11 @@ import org.slf4j.Logger;
 
 import com.google.api.client.util.Preconditions;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.datafile.FileIntegrityChecker;
 import edu.harvard.iq.dataverse.datafile.pojo.FilesIntegrityReport;
 import edu.harvard.iq.dataverse.dataset.DatasetCitationsCountUpdater;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.harvest.client.HarvestTimerInfo;
@@ -87,7 +87,7 @@ public class DataverseTimerServiceBean implements Serializable {
     FeaturedDataverseServiceBean featuredDataverseServiceBean;
 
     @Inject
-    DatasetDao datasetDao;
+    DatasetService datasetService;
     
     @Inject
     IndexServiceBean indexServiceBean;
@@ -226,7 +226,7 @@ public class DataverseTimerServiceBean implements Serializable {
     }
 
     private void reindexAfterEmbargo() {
-        List<Dataset> datasetsAfterEmbargo = datasetDao.findNotIndexedAfterEmbargo();
+        List<Dataset> datasetsAfterEmbargo = datasetService.findNotIndexedAfterEmbargo();
         for (Dataset dataset:datasetsAfterEmbargo) {
             indexServiceBean.indexDataset(dataset, true);
         }

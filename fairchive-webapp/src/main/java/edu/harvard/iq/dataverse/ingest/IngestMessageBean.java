@@ -20,13 +20,9 @@
 
 package edu.harvard.iq.dataverse.ingest;
 
-import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
-import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
@@ -37,9 +33,14 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import edu.harvard.iq.dataverse.DataFileServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
+import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 
 /**
  * This is an experimental, JMS-based implementation of asynchronous
@@ -56,7 +57,7 @@ public class IngestMessageBean implements MessageListener {
     private static final Logger logger = Logger.getLogger(IngestMessageBean.class.getCanonicalName());
 
     @EJB
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
     private DataFileServiceBean datafileService;
     @EJB
@@ -139,7 +140,7 @@ public class IngestMessageBean implements MessageListener {
                 if (datafile != null) {
                     Dataset dataset = datafile.getOwner();
                     if (dataset != null && dataset.getId() != null) {
-                        datasetDao.removeDatasetLocks(dataset, DatasetLock.Reason.Ingest);
+                        datasetService.removeDatasetLocks(dataset, DatasetLock.Reason.Ingest);
                     }
                 }
             }

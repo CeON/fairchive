@@ -1,7 +1,15 @@
 package edu.harvard.iq.dataverse.dataset.tab;
 
-import edu.harvard.iq.dataverse.DatasetDao;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadHelper;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -11,13 +19,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * Class which is designed as a workaround for memory problems with keeping ViewScoped beans and all it's data in memory.
  */
@@ -26,16 +27,18 @@ public class DatasetFilesTabFacade {
 
     private DatasetVersionRepository datasetVersionRepository;
     private FileDownloadHelper fileDownloadHelper;
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     public DatasetFilesTabFacade() {
     }
 
     @Inject
-    public DatasetFilesTabFacade(DatasetVersionRepository datasetVersionRepository, FileDownloadHelper fileDownloadHelper, DatasetDao datasetDao) {
+    public DatasetFilesTabFacade(DatasetVersionRepository datasetVersionRepository, 
+                                 FileDownloadHelper fileDownloadHelper, 
+                                 DatasetService datasetService) {
         this.datasetVersionRepository = datasetVersionRepository;
         this.fileDownloadHelper = fileDownloadHelper;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
     }
 
     public boolean isVersionContainsDownloadableFiles(Long datasetVersionId) {
@@ -113,11 +116,11 @@ public class DatasetFilesTabFacade {
     }
 
     public Dataset retrieveDataset(Long datasetId) {
-        return datasetDao.find(datasetId);
+        return datasetService.find(datasetId);
     }
 
     public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason, Long userId, String info) {
-        return datasetDao.addDatasetLock(datasetId, reason, userId, info);
+        return datasetService.addDatasetLock(datasetId, reason, userId, info);
     }
 
     public int fileSize(Long dsvId) {
@@ -127,11 +130,11 @@ public class DatasetFilesTabFacade {
     }
 
     public List<DataFileCategory> retrieveDatasetFileCategories(Long datasetId) {
-        return datasetDao.find(datasetId).getCategories();
+        return datasetService.find(datasetId).getCategories();
     }
 
     public void removeDatasetFileCategories(Long datasetId, List<DataFileCategory> categoriesToRemove) {
-        datasetDao.find(datasetId).getCategories().removeAll(categoriesToRemove);
+        datasetService.find(datasetId).getCategories().removeAll(categoriesToRemove);
     }
 
     private void setTagsForTabularData(Collection<String> selectedDataFileTags, FileMetadata fmd) {

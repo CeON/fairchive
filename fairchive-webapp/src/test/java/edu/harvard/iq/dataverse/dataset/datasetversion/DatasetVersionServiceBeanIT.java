@@ -1,11 +1,26 @@
 package edu.harvard.iq.dataverse.dataset.datasetversion;
 
-import edu.harvard.iq.dataverse.DatasetDao;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
+import org.jboss.arquillian.transaction.api.annotation.Transactional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.MockMetadataFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -15,21 +30,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 
-import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
-import org.jboss.arquillian.transaction.api.annotation.Transactional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 public class DatasetVersionServiceBeanIT extends WebappArquillianDeployment {
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
@@ -38,7 +38,7 @@ public class DatasetVersionServiceBeanIT extends WebappArquillianDeployment {
     @Inject
     private DatasetVersionServiceBean datasetVersionService;
     @Inject
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     @Inject
     private DatasetFieldServiceBean datasetFieldService;
     @Inject
@@ -59,7 +59,7 @@ public class DatasetVersionServiceBeanIT extends WebappArquillianDeployment {
     @Transactional(TransactionMode.ROLLBACK)
     public void updateDatasetVersion__dataset_with_draft() {
         // given
-        Dataset dataset = datasetDao.find(52L);
+        Dataset dataset = datasetService.find(52L);
         modifyFileLicense(dataset);
         dataset.setGuestbook(guestbookRepo.find(2L));
 
@@ -67,14 +67,14 @@ public class DatasetVersionServiceBeanIT extends WebappArquillianDeployment {
         datasetVersionService.updateDatasetVersion(dataset.getEditVersion(), true);
 
         // then
-        Dataset dbDataset = datasetDao.find(52L);
+        Dataset dbDataset = datasetService.find(52L);
         assertEquals(2L, (long) dbDataset.getGuestbook().getId());
     }
 
     @Test
     public void updateDatasetVersion__dataset_without_draft() {
         // given
-        Dataset dataset = datasetDao.find(57L);
+        Dataset dataset = datasetService.find(57L);
         DatasetVersion editDatasetVersion = dataset.getEditVersion();
 
         DatasetFieldType depositorFieldType = datasetFieldService.findByName(DatasetFieldConstant.depositor);
@@ -86,7 +86,7 @@ public class DatasetVersionServiceBeanIT extends WebappArquillianDeployment {
         datasetVersionService.updateDatasetVersion(editDatasetVersion, true);
 
         // then
-        Dataset dbDataset = datasetDao.find(57L);
+        Dataset dbDataset = datasetService.find(57L);
 
         assertThat(dbDataset.getVersions(), hasSize(3));
 
