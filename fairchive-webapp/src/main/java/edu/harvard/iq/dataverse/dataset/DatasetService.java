@@ -165,7 +165,8 @@ public class DatasetService {
         
     }
     
-    public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
+    public Dataset getDatasetByHarvestInfo(final Dataverse dataverse, 
+            final String harvestIdentifier) {
         return this.datasetRepo.getDatasetByHarvestInfo(dataverse.getId(), 
                 harvestIdentifier);
     }
