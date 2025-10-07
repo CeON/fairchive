@@ -92,7 +92,7 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
         if (!oldDvType.equals(editedDv.getDataverseType())
                 || !oldDvName.equals(editedDv.getName())
                 || !oldDvAlias.equals(editedDv.getAlias())) {
-            List<Dataset> datasets = ctxt.datasets().findByOwnerId(editedDv.getId());
+            List<Dataset> datasets = ctxt.datasetService().findByOwnerId(editedDv.getId());
             ctxt.index().asyncIndexDatasetList(datasets, true);
         }
         return result;

@@ -4,7 +4,6 @@ import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticate
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
 import static java.time.temporal.ChronoUnit.DAYS;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -13,7 +12,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;

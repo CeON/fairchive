@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse.dataset;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 
 import java.io.InputStream;
 import java.time.Clock;
@@ -71,6 +73,7 @@ public class DatasetService {
     private IndexServiceBean indexService;
     private DatasetDao datasetDao;
     private DvObjectServiceBean dvObjectService;
+    private DatasetThumbnailService datasetThumbnailService;
 
 
     // -------------------- CONSTRUCTORS --------------------
@@ -92,7 +95,8 @@ public class DatasetService {
             final SolrIndexServiceBean solrIndexService, 
             final IndexServiceBean indexService,
             final DatasetDao datasetDao,
-            final DvObjectServiceBean dvObjectService) {
+            final DvObjectServiceBean dvObjectService,
+            final DatasetThumbnailService datasetThumbnailService) {
         this.commandEngine = commandEngine;
         this.userNotificationService = userNotificationService;
         this.datasetRepo = datasetRepo;
@@ -105,6 +109,7 @@ public class DatasetService {
         this.indexService = indexService;      
         this.datasetDao = datasetDao;
         this.dvObjectService = dvObjectService;
+        this.datasetThumbnailService = datasetThumbnailService;
     }
 
 
@@ -155,23 +160,58 @@ public class DatasetService {
         return this.datasetRepo.saveAndFlush(ds);
     }
     
+    public Dataset save(Dataset ds) {
+        return this.datasetRepo.save(ds);
+        
+    }
+    
     public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
-        return this.datasetDao.getDatasetByHarvestInfo(dataverse, harvestIdentifier);
+        return this.datasetRepo.getDatasetByHarvestInfo(dataverse.getId(), 
+                harvestIdentifier);
     }
     
     public String generateDatasetIdentifier(final Dataset dataset) {
-        return this.datasetDao.generateDatasetIdentifier(dataset);
+        final String shoulder = this.settingsService.getValueForKey(Shoulder);  
+        for(;;) {
+            final String id = shoulder.concat(randomAlphanumeric(6).toUpperCase());
+            if(this.datasetRepo.isIdentifierLocallyUnique(id, dataset)) {
+                return id;
+            }
+        }
     }
     
-    public boolean isIdentifierUnique(String userIdentifier, Dataset dataset, GlobalIdServiceBean persistentIdSvc) { 
-        return this.datasetDao.isIdentifierUnique(userIdentifier, dataset, persistentIdSvc);
+    /**
+     * Check that a identifier entered by the user is unique (not currently used
+     * for any other study in this Dataverse Network) also check for duplicate
+     * in EZID if needed
+     *
+     * @param userIdentifier
+     * @param dataset
+     * @param persistentIdSvc
+     * @return {@code true} if the identifier is unique, {@code false} otherwise.
+     */
+    public boolean isIdentifierUnique(String userIdentifier, Dataset dataset, 
+            GlobalIdServiceBean persistentIdSvc) {
+        if (!this.datasetRepo.isIdentifierLocallyUnique(userIdentifier, dataset)) {
+            return false; // duplication found in local database
+        }
+
+        // not in local DB, look in the persistent identifier service
+        try {
+            return !persistentIdSvc.alreadyExists(dataset);
+        } catch (Exception e) {
+            //we can live with failure - means identifier not found remotely
+            return true;
+        }
     }
     
     public boolean isIdentifierLocallyUnique(final Dataset dataset) {
-        return this.datasetDao.isIdentifierLocallyUnique(dataset);
+        return this.datasetRepo.isIdentifierLocallyUnique(dataset.getIdentifier(), 
+                dataset);
     }
     
-    public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason, Long userId, String info) {
+    public DatasetLock addDatasetLock(Long datasetId, DatasetLock.Reason reason, 
+            Long userId, String info) {
         return this.datasetDao.addDatasetLock(datasetId, reason, userId, info);
     }
     
@@ -327,7 +367,34 @@ public class DatasetService {
         dataset.setLastChangeForExporterTime(new Date());
         this.datasetRepo.save(dataset);
     }
+    
+    public Dataset setNonDatasetFileAsThumbnail(Dataset dataset, InputStream inputStream) {
+        if (dataset == null) {
+            return null;
+        }
+        if (inputStream == null) {
+            return null;
+        }
+        dataset = this.datasetThumbnailService.persistDatasetLogoToStorageAndCreateThumbnail(dataset, inputStream);
+        dataset.setThumbnailFile(null);
+        dataset.setUseGenericThumbnail(false);
+        return this.datasetRepo.save(dataset);
+    }
 
+    public Dataset setDatasetFileAsThumbnail(Dataset dataset, 
+            DataFile datasetFileThumbnailToSwitchTo) {
+        if (dataset == null) {
+            return null;
+        }
+        if (datasetFileThumbnailToSwitchTo == null) {
+            return null;
+        }
+        this.datasetThumbnailService.deleteDatasetLogo(dataset);
+        dataset.setThumbnailFile(datasetFileThumbnailToSwitchTo);
+        dataset.setUseGenericThumbnail(false);
+        return this.datasetRepo.save(dataset);
+    }
+    
     // -------------------- PRIVATE --------------------
 
     private AuthenticatedUser retrieveAuthenticatedUser() {
