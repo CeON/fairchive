@@ -1,0 +1,23 @@
+<ui:composition
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+
+    <div class="form-group"
+         style="display: flex">
+    <p:outputLabel for="geoNameIdentifier"
+                   value="#{bundle['geoname.id']}"
+                   style="white-space: pre; margin-right: 4px"/>
+    <p:inputText id="geoNameIdentifier" 
+                 style="flex: 1;"
+                 value="#{item.id}"/>
+    </div>
+    <div class="form-group"
+         style="display: flex">
+    <p:outputLabel for="geoNameLabel"
+                   value="#{bundle['geoname.name']}"
+                   style="white-space: pre; margin-right: 4px"/>
+    <p:inputText id="geoNameLabel" 
+                 style="flex: 1;"
+                 value="#{item.label}"/>
+    </div>
+</ui:composition>

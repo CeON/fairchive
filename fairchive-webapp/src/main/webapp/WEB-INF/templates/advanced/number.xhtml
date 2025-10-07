@@ -1,0 +1,20 @@
+<ui:composition
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+
+    <div style="display: inline-block;">
+        <p:outputLabel for="rangeSearchMinimum"
+                       value="#{bundle['advanced.search.metadata.from']} "
+                       style="white-space: pre"/>
+        <p:inputNumber id="rangeSearchMinimum" class="input-number-right"
+                       value="#{item.minimum}"/>
+    </div>
+    <div style="display: inline-block;">
+        <p:outputLabel for="rangeSearchMaximum"
+                       value=" #{bundle['advanced.search.metadata.to']} "
+                       style="white-space: pre"/>
+        <p:inputNumber id="rangeSearchMaximum" class="input-number-left"
+                       value="#{item.maximum}"/>
+    </div>
+
+</ui:composition>

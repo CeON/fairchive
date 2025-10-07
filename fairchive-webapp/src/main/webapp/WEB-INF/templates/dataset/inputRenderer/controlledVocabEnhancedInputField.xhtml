@@ -33,10 +33,11 @@
                     converter="controlledVocabularyValueConverter"
                     forceSelection="true"
                     scrollHeight="350"
-                    minQueryLength="3" dropdown="true" placeholder="Type 3 characters..."
+                    minQueryLength="3" dropdown="true"
                     unique="true"
                     widgetVar="#{widgetVar}"
-                    moreText="Load more"
+                    placeholder="#{bundle['common.forms.autocomplete.placeholder']}"
+                    moreText="#{bundle['common.forms.autocomplete.loadMore']}"
                     maxResults="#{inputRenderer.numberOfResults-1}"
     >
 
@@ -58,10 +59,11 @@
                     converter="controlledVocabularyValueConverter"
                     forceSelection="true"
                     scrollHeight="350"
-                    minQueryLength="3" dropdown="true" placeholder="Type 3 characters..."
+                    minQueryLength="3" dropdown="true"
                     unique="true"
                     widgetVar="#{widgetVar}"
-                    moreText="Load more"
+                    placeholder="#{bundle['common.forms.autocomplete.placeholder']}"
+                    moreText="#{bundle['common.forms.autocomplete.loadMore']}"
                     maxResults="#{inputRenderer.numberOfResults-1}"
     >
         <p:ajax event="moreText"

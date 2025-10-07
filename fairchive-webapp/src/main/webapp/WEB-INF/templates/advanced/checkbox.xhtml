@@ -1,0 +1,18 @@
+<ui:composition
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+
+    <p:selectCheckboxMenu value="#{item.checkedFieldValues}"
+                          style="width: 100%"
+                          panelStyleClass="without-select-all"
+                          multiple="true" label="#{bundle.select}"
+                          updateLabel="true"
+                          filter="true" filterMatchMode="contains">
+        <f:selectItems value="#{item.checkboxLabelAndValue}"
+                       var="checkBoxTuple"
+                       itemLabel="#{checkBoxTuple._1()}"
+                       itemValue="#{checkBoxTuple._2()}"/>
+    </p:selectCheckboxMenu>
+
+</ui:composition>

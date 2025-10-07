@@ -1,0 +1,22 @@
+<ui:composition
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+
+    <div style="display: inline-block; ">
+        <p:outputLabel for="daterangeSearchMinimum"
+                       value="#{bundle['advanced.search.metadata.from']} "
+                       style="white-space: pre"/>
+        <p:inputText id="daterangeSearchMinimum" style="padding-right: 5px"
+                       value="#{item.lowerLimit}">
+        </p:inputText>
+    </div>
+    <div style="display: inline-block;" >
+        <p:outputLabel for="daterangeSearchMaximum"
+                       value=" #{bundle['advanced.search.metadata.to']} "
+                       style="white-space: pre"/>
+        <p:inputText id="daterangeSearchMaximum" style="padding-left: 5px"
+                       value="#{item.upperLimit}">
+        </p:inputText>
+    </div>
+
+</ui:composition>

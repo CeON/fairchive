@@ -59,6 +59,7 @@ public class AdvancedSearchPage implements Serializable {
 
     private Map<String, SearchField> searchFieldIndex = new HashMap<>();
     private Map<String, SearchField> nonSearchFieldIndex = new HashMap<>();
+    private SearchField testSearchField;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -92,6 +93,15 @@ public class AdvancedSearchPage implements Serializable {
         metadataSearchBlocks = advancedSearchBlocksBuilder.createDatasetMetadataBlocks(dataverse);
         searchFieldIndex = buildSearchFieldIndex(metadataSearchBlocks);
         nonSearchFieldIndex = createParentFieldsForSearchFields(searchFieldIndex);
+        testSearchField = searchFieldIndex.get("taxonomic_coverage");
+    }
+
+    public SearchField getTestSearchField() {
+        return testSearchField;
+    }
+
+    public void setTestSearchField(SearchField testSearchField) {
+        this.testSearchField = testSearchField;
     }
 
     /** Composes query and redirects to the page with results. */
