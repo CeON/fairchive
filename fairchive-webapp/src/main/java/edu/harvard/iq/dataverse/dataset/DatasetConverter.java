@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.dataset;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import org.apache.commons.lang.StringUtils;
 
@@ -14,11 +13,11 @@ import javax.inject.Inject;
 public class DatasetConverter implements Converter {
 
     @Inject
-    DatasetDao datasetDao;
+    DatasetService datasetService;
 
     @Override
     public Object getAsObject(FacesContext facesContext, UIComponent component, String submittedValue) {
-        return datasetDao.find(new Long(submittedValue));
+        return datasetService.find(new Long(submittedValue));
     }
 
     @Override

@@ -21,7 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import edu.harvard.iq.dataverse.DatasetDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.harvest.OAIRecord;
@@ -36,7 +36,7 @@ public class XitemRepositoryTest {
     @Mock
     private OAIRecordServiceBean recordService;
     @Mock
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     @Mock 
     private SystemConfig systemConfig;
     // -------------------- TESTS --------------------
@@ -51,7 +51,7 @@ public class XitemRepositoryTest {
         dataset.setId(1L);
         when(recordService.findOaiRecordsByGlobalId("id"))
             .thenReturn(asList(oaiRecord2, oaiRecord1, oaiRecord3));
-        when(datasetDao.findByGlobalId("id")).thenReturn(dataset);
+        when(datasetService.findByGlobalId("id")).thenReturn(dataset);
 
         // when
         Item item = xitemRepository.getItem("id");
@@ -94,7 +94,7 @@ public class XitemRepositoryTest {
                 dateFrom("1990-01-01T10:00:00.00Z"));
         when(this.recordService.findOaiRecordsBySetName(null, null, null))
                 .thenReturn(asList(record));
-        when(this.datasetDao.findByGlobalId(any())).thenReturn(new Dataset());
+        when(this.datasetService.findByGlobalId(any())).thenReturn(new Dataset());
 
         List<Item> items = this.xitemRepository.getItems(emptyList(), 0, 1)
                 .getResults();

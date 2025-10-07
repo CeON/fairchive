@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.dataset;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
@@ -44,7 +43,7 @@ public class DatasetReportService {
 
     private static final Logger logger = LoggerFactory.getLogger(DatasetReportService.class);
 
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private GuestbookResponseServiceBean guestbookResponseService;
     private DvObjectServiceBean dvObjectService;
 
@@ -55,10 +54,10 @@ public class DatasetReportService {
     public DatasetReportService() { }
 
     @Inject
-    public DatasetReportService(DatasetDao datasetDao,
+    public DatasetReportService(DatasetService datasetService,
                                 GuestbookResponseServiceBean guestbookResponseService,
                                 DvObjectServiceBean dvObjectService) {
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.guestbookResponseService = guestbookResponseService;
         this.dvObjectService = dvObjectService;
     }
@@ -81,9 +80,9 @@ public class DatasetReportService {
     // -------------------- PRIVATE --------------------
 
     private void processDatasets(CSVPrinter csvPrinter) throws IOException {
-        List<Long> datasetIds = datasetDao.findAllLocalDatasetIds();
+        List<Long> datasetIds = datasetService.findAllLocalDatasetIds();
         for (Long id : datasetIds) {
-            Dataset dataset = datasetDao.find(id);
+            Dataset dataset = datasetService.find(id);
             if (dataset != null) {
                 processDataset(dataset, csvPrinter);
             }

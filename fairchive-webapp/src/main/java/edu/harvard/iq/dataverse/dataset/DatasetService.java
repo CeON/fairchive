@@ -13,6 +13,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 
+import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetPage;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
@@ -61,6 +62,7 @@ public class DatasetService {
     private ProvPopupFragmentBean provPopupFragmentBean;
     private SolrIndexServiceBean solrIndexService;
     private IndexServiceBean indexService;
+    private DatasetDao datasetDao;
 
 
     // -------------------- CONSTRUCTORS --------------------
@@ -80,7 +82,8 @@ public class DatasetService {
             final ProvPopupFragmentBean provPopupFragmentBean, 
             final PermissionServiceBean permissionService,
             final SolrIndexServiceBean solrIndexService, 
-            final IndexServiceBean indexService) {
+            final IndexServiceBean indexService,
+            final DatasetDao datasetDao) {
         this.commandEngine = commandEngine;
         this.userNotificationService = userNotificationService;
         this.datasetRepo = datasetRepo;
@@ -90,12 +93,29 @@ public class DatasetService {
         this.settingsService = settingsService;
         this.provPopupFragmentBean = provPopupFragmentBean;
         this.solrIndexService = solrIndexService;
-        this.indexService = indexService;        
+        this.indexService = indexService;      
+        this.datasetDao = datasetDao;
     }
 
 
     // -------------------- LOGIC --------------------
 
+    public Dataset find(Object pk) {
+        return this.datasetDao.find(pk);
+    }
+    
+    public List<Dataset> findAll() {
+        return this.datasetDao.findAll();
+    }
+    
+    public List<Long> findAllLocalDatasetIds() {
+        return this.datasetDao.findAllLocalDatasetIds();
+    }
+    
+    public Dataset findByGlobalId(final String globalId) {
+        return this.datasetDao.findByGlobalId(globalId);
+    }
+    
     public Dataset createDataset(Dataset dataset, Template usedTemplate) {
 
         AuthenticatedUser user = retrieveAuthenticatedUser();
