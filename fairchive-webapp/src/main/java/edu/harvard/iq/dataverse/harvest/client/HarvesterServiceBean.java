@@ -163,6 +163,7 @@ public class HarvesterServiceBean {
         logger.severe(fullMessage);
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends HarvesterParams> Harvester<T> resolveHarvester(HarvestingClient client) {
         Harvester<?> harvester = harvesterMap.get(client.getHarvestType());
         if (harvester == null) {
