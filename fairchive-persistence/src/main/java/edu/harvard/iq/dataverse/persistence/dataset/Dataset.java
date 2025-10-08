@@ -212,6 +212,11 @@ public class Dataset extends DvObjectContainer {
         return stream(reasons).anyMatch(this::isLockedFor);
     }
     
+    public boolean isLockedForOtherThan(final DatasetLock.Reason reason) {
+        return isLocked() &&
+                getLocks().stream().anyMatch(l -> l.getReason() != reason);
+    }
+    
 
     /**
      * Retrieves the dataset lock for the passed reason.

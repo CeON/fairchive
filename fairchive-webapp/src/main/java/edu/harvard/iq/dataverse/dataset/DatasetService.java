@@ -1,6 +1,9 @@
 package edu.harvard.iq.dataverse.dataset;
 
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
+import static java.time.Clock.systemDefaultZone;
+import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 
@@ -351,7 +354,7 @@ public class DatasetService {
     }
 
     String getDatasetLockedMessage(Dataset dataset) {
-        return DATASET_LOCKED_FOR_UPDATE_MESSAGE + dataset.getLocks().toString();
+        return DATASET_LOCKED_FOR_UPDATE_MESSAGE.concat(dataset.getLocks().toString());
     }
 
     String getDatasetInWrongStateMessage() {
@@ -405,14 +408,15 @@ public class DatasetService {
         return (AuthenticatedUser) session.getUser();
     }
 
-    private Dataset updateDatasetEmbargoDate(Dataset dataset, Date embargoDate) throws IllegalStateException {
-        if(dataset.isLocked() && dataset.getLocks().stream().anyMatch(l -> l.getReason() != DatasetLock.Reason.InReview)) {
+    private Dataset updateDatasetEmbargoDate(Dataset dataset, final Date embargoDate) 
+            throws IllegalStateException {
+        if(dataset.isLockedForOtherThan(InReview)) {
             logger.log(Level.WARNING, "Dataset is locked. Cannot perform update embargo date");
             throw new IllegalStateException(getDatasetLockedMessage(dataset));
         }
 
         dataset.setEmbargoDate(embargoDate);
-        dataset.setLastChangeForExporterTime(Date.from(Instant.now(Clock.systemDefaultZone())));
+        dataset.setLastChangeForExporterTime(Date.from(now(systemDefaultZone())));
         dataset = this.datasetRepo.saveAndFlush(dataset);
         this.indexService.indexDataset(dataset, false);
 
