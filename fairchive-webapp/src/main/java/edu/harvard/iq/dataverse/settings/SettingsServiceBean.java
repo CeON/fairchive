@@ -863,6 +863,10 @@ public class SettingsServiceBean {
     public String getValueForKey(Key key) {
         return get(key.toString());
     }
+    
+    public String getValueForKey(final Key key, final String defaultValue) {
+        return get(key.toString());
+    }
 
     /**
      * Returns value of setting with key that is postfixed.

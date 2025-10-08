@@ -1,14 +1,12 @@
 package edu.harvard.iq.dataverse.util;
 
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.DevOAuthAccountType;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Try;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,12 +14,55 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import static edu.harvard.iq.dataverse.authorization.providers.oauth2.DevOAuthAccountType.PRODUCTION;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AccessibilityStatement;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowSignUp;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowedExternalRedirectionUrlAfterLogin;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ApiTermsOfUse;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ApplicationTermsOfUse;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AuthenticatedSessionTimeout;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CookieDomain;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CookieName;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CookieSecure;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DebugOAuthAccountType;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DownloadMethods;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GuidesBaseUrl;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GuidesVersion;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Languages;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.LoginInfo;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MinutesUntilPasswordResetTokenExpires;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OAuth2CallbackUrl;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OcrCommand;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.PrivacyPolicy;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ReadonlyMode;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RserveConfigured;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SelectDataverseInfo;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowAccessibilityStatementFooterLink;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowPrivacyPolicyFooterLink;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowTermsOfUseFooterLink;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SiteFullName;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SiteName;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SiteUrl;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SuperiorLogoAlt;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SuperiorLogoContrastPath;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SuperiorLogoContrastResponsivePath;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SuperiorLogoLink;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SuperiorLogoPath;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SuperiorLogoResponsivePath;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.TabularIngestSizeLimit;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.TimerServer;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UploadMethods;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UseOAIStrictIdentifierScheme;
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.System.getProperty;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.math.NumberUtils.toLong;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -42,6 +83,7 @@ public class SystemConfig {
     private static final String VERSION_COMMIT_ID = "git.commit.id.full";
     private static final String VERSION_PLACEHOLDER = "${project.version}";
     private static final String VERSION_FALLBACK = "4.0";
+    private static final long defaultThumbnailSizeLimit = 10_000_000;
 
     public static final String DATAVERSE_PATH = "/dataverse/";
 
@@ -53,14 +95,14 @@ public class SystemConfig {
     public static final String FILES_DIRECTORY = "dataverse.files.directory";
 
     @Inject
-    private SettingsServiceBean settingsService;
+    private SettingsServiceBean settings;
     
     public SystemConfig() {
     }
     
     
-    public SystemConfig(final SettingsServiceBean settingsService) {
-        this.settingsService = settingsService;
+    public SystemConfig(final SettingsServiceBean settings) {
+        this.settings = settings;
     }
 
     private static String appVersionWithBuild = null;
@@ -127,30 +169,27 @@ public class SystemConfig {
     }
     
     public boolean useOAIStrictIdentifierScheme() {
-        return this.settingsService.isTrueForKey(UseOAIStrictIdentifierScheme);
+        return isTrueForKey(UseOAIStrictIdentifierScheme);
     }
 
     public Integer getMinutesUntilPasswordResetTokenExpires() {
-        return settingsService.getValueForKeyAsInt(SettingsServiceBean.Key.MinutesUntilPasswordResetTokenExpires);
+        return getValueForKeyAsInt(MinutesUntilPasswordResetTokenExpires);
     }
 
     public String getDataverseSiteUrl() {
-        return settingsService.getValueForKey(SettingsServiceBean.Key.SiteUrl);
+        return getValueForKey(SiteUrl);
     }
 
     public boolean isReadonlyMode() {
-        return settingsService.isTrueForKey(SettingsServiceBean.Key.ReadonlyMode);
+        return isTrueForKey(ReadonlyMode);
     }
 
     public boolean isUnconfirmedMailRestrictionModeEnabled() {
-        return settingsService.isTrueForKey(Key.UnconfirmedMailRestrictionModeEnabled);
+        return isTrueForKey(Key.UnconfirmedMailRestrictionModeEnabled);
     }
 
     public boolean isSignupAllowed() {
-        if (isReadonlyMode()) {
-            return false;
-        }
-        return settingsService.isTrueForKey(SettingsServiceBean.Key.AllowSignUp);
+        return isReadonlyMode() ? false: isTrueForKey(AllowSignUp);
     }
 
     public String getFilesDirectory() {
@@ -158,11 +197,7 @@ public class SystemConfig {
     }
 
     public static String getFilesDirectoryStatic() {
-        String filesDirectory = System.getProperty(SystemConfig.FILES_DIRECTORY);
-        if (StringUtils.isEmpty(filesDirectory)) {
-            filesDirectory = "/tmp/files";
-        }
-        return filesDirectory;
+        return getProperty(FILES_DIRECTORY, "/tmp/files");
     }
 
     /**
@@ -170,75 +205,70 @@ public class SystemConfig {
      */
     public String getDataverseServer() {
         try {
-            return new URL(settingsService.getValueForKey(SettingsServiceBean.Key.SiteUrl)).getHost();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+            return new URL(getValueForKey(SiteUrl)).getHost();
+        } catch (final MalformedURLException e) {
             return "localhost";
         }
     }
 
-    public String getSiteName(Locale locale) {
-        return getLocalizedProperty(Key.SiteName, locale);
+    public String getSiteName(final Locale locale) {
+        return getLocalizedProperty(SiteName, locale);
     }
 
-    public String getSiteFullName(Locale locale) {
-        return getLocalizedProperty(Key.SiteFullName, locale);
+    public String getSiteFullName(final Locale locale) {
+        return getLocalizedProperty(SiteFullName, locale);
     }
 
-    public boolean isSuperiorLogoDefined(Locale locale) {
-        return !getLocalizedProperty(Key.SuperiorLogoPath, locale).isEmpty() 
-                || !getLocalizedProperty(Key.SuperiorLogoResponsivePath, locale).isEmpty();
+    public boolean isSuperiorLogoDefined(final Locale locale) {
+        return !getLocalizedProperty(SuperiorLogoPath, locale).isEmpty() 
+                || !getLocalizedProperty(SuperiorLogoResponsivePath, locale).isEmpty();
     }
     
     public boolean isOcrEnabled() {
-        return isNotBlank(this.settingsService.getValueForKey(Key.OcrCommand));
+        return isNotBlank(getValueForKey(OcrCommand));
     }
 
-    public String getSuperiorLogoLink(Locale locale) {
-        return getLocalizedProperty(Key.SuperiorLogoLink, locale);
+    public String getSuperiorLogoLink(final Locale locale) {
+        return getLocalizedProperty(SuperiorLogoLink, locale);
     }
 
-    public String getSuperiorLogoPath(Locale locale) {
-        return getLocalizedProperty(Key.SuperiorLogoPath, locale);
+    public String getSuperiorLogoPath(final Locale locale) {
+        return getLocalizedProperty(SuperiorLogoPath, locale);
     }
 
     public String getSuperiorLogoResponsivePath(Locale locale) {
-        return getLocalizedProperty(Key.SuperiorLogoResponsivePath, locale);
+        return getLocalizedProperty(SuperiorLogoResponsivePath, locale);
     }
 
-    public String getSuperiorLogoContrastPath(Locale locale) {
-        return getLocalizedProperty(Key.SuperiorLogoContrastPath, locale);
+    public String getSuperiorLogoContrastPath(final Locale locale) {
+        return getLocalizedProperty(SuperiorLogoContrastPath, locale);
     }
 
-    public String getSuperiorLogoContrastResponsivePath(Locale locale) {
-        return getLocalizedProperty(Key.SuperiorLogoContrastResponsivePath, locale);
+    public String getSuperiorLogoContrastResponsivePath(final Locale locale) {
+        return getLocalizedProperty(SuperiorLogoContrastResponsivePath, locale);
     }
 
-    public String getSuperiorLogoAlt(Locale locale) {
-        return getLocalizedProperty(Key.SuperiorLogoAlt, locale);
+    public String getSuperiorLogoAlt(final Locale locale) {
+        return getLocalizedProperty(SuperiorLogoAlt, locale);
     }
 
-    public String getGuidesBaseUrl(Locale locale) {
-        String guidesBaseUrl = settingsService.getValueForKey(SettingsServiceBean.Key.GuidesBaseUrl);
-        return guidesBaseUrl + "/" + locale;
+    public String getGuidesBaseUrl(final Locale locale) {
+        return getValueForKey(GuidesBaseUrl) + '/' + locale;
     }
 
     public String getGuidesVersion() {
-        String guidesVersion = settingsService.getValueForKey(SettingsServiceBean.Key.GuidesVersion);
-
-        return guidesVersion.equals(StringUtils.EMPTY) ? getVersion() : guidesVersion;
+        final String guidesVersion = getValueForKey(GuidesVersion);
+        return isNotBlank(guidesVersion) ? guidesVersion : getVersion();
     }
 
     public boolean isRserveConfigured() {
-        return settingsService.isTrueForKey(SettingsServiceBean.Key.RserveConfigured);
+        return isTrueForKey(RserveConfigured);
     }
 
     public long getUploadLogoSizeLimit() {
         return 500000;
     }
 
-    // TODO: (?)
-    // create sensible defaults for these things? -- 4.2.2
     public long getThumbnailSizeLimitImage() {
         return getThumbnailSizeLimit("Image");
     }
@@ -247,24 +277,24 @@ public class SystemConfig {
         return getThumbnailSizeLimit("PDF");
     }
 
-    private long getThumbnailSizeLimit(String type) {
+    private long getThumbnailSizeLimit(final String type) {
         if (isReadonlyMode()) {
             return -1;
+        } else {
+            switch (type) {
+            case "Image":
+                return toLong(getProperty( "dataverse.dataAccess.thumbnail.image.limit"),
+                        defaultThumbnailSizeLimit);
+            case "PDF":
+                return toLong(getProperty("dataverse.dataAccess.thumbnail.pdf.limit"),
+                        defaultThumbnailSizeLimit);
+            default:
+                return defaultThumbnailSizeLimit;
+            }
         }
-        String option = null;
-
-        //get options via jvm options
-
-        if ("Image".equals(type)) {
-            option = System.getProperty("dataverse.dataAccess.thumbnail.image.limit");
-        } else if ("PDF".equals(type)) {
-            option = System.getProperty("dataverse.dataAccess.thumbnail.pdf.limit");
-        }
-
-        return NumberUtils.toLong(option, 10_000_000);
     }
 
-    private boolean isThumbnailGenerationDisabledForType(String type) {
+    private boolean isThumbnailGenerationDisabledForType(final String type) {
         return getThumbnailSizeLimit(type) == -1l;
     }
 
@@ -276,111 +306,111 @@ public class SystemConfig {
         return isThumbnailGenerationDisabledForType("PDF");
     }
 
-    public String getApplicationTermsOfUse(Locale locale) {
-        return getFromBundleIfEmptyLocalizedProperty(SettingsServiceBean.Key.ApplicationTermsOfUse, locale, "system.app.terms");
+    public String getApplicationTermsOfUse(final Locale locale) {
+        return getFromBundleIfEmptyLocalizedProperty(ApplicationTermsOfUse, 
+                locale, "system.app.terms");
     }
 
     public String getApiTermsOfUse() {
-        return getFromBundleIfEmptyProperty(SettingsServiceBean.Key.ApiTermsOfUse, "system.api.terms");
+        return getFromBundleIfEmptyProperty(ApiTermsOfUse, "system.api.terms");
     }
 
-    public String getPrivacyPolicy(Locale locale) {
-        return getFromBundleIfEmptyLocalizedProperty(SettingsServiceBean.Key.PrivacyPolicy, locale, "system.privacy.policy");
+    public String getPrivacyPolicy(final Locale locale) {
+        return getFromBundleIfEmptyLocalizedProperty(PrivacyPolicy, locale, 
+                "system.privacy.policy");
     }
 
-    public String getAccessibilityStatement(Locale locale) {
-        return getFromBundleIfEmptyLocalizedProperty(Key.AccessibilityStatement, locale, "system.accessibility.statement");
+    public String getAccessibilityStatement(final Locale locale) {
+        return getFromBundleIfEmptyLocalizedProperty(AccessibilityStatement, 
+                locale, "system.accessibility.statement");
     }
 
-    public String getLoginInfo(Locale locale) {
-        return getLocalizedProperty(SettingsServiceBean.Key.LoginInfo, locale);
+    public String getLoginInfo(final Locale locale) {
+        return getLocalizedProperty(LoginInfo, locale);
     }
 
-    public String getSelectDataverseInfo(Locale locale) {
-        return getLocalizedProperty(SettingsServiceBean.Key.SelectDataverseInfo, locale);
+    public String getSelectDataverseInfo(final Locale locale) {
+        return getLocalizedProperty(SelectDataverseInfo, locale);
     }
 
 
     public String getAllowedExternalRedirectionUrl() {
-        return settingsService.getValueForKey(SettingsServiceBean.Key.AllowedExternalRedirectionUrlAfterLogin);
+        return getValueForKey(AllowedExternalRedirectionUrlAfterLogin);
     }
 
     public String getCookieName() {
-        return settingsService.getValueForKey(Key.CookieName);
+        return getValueForKey(CookieName);
     }
 
     public String getCookieDomain() {
-        return settingsService.getValueForKey(Key.CookieDomain);
+        return getValueForKey(CookieDomain);
     }
 
     public Boolean getCookieSecure() {
-        return Boolean.parseBoolean(settingsService.getValueForKey(Key.CookieSecure));
+        return parseBoolean(getValueForKey(CookieSecure));
     }
-
+    /**
+     * This method will return the blanket ingestable size limit, if
+     * set on the system. I.e., the universal limit that applies to all
+     * tabular ingests, regardless of fromat:
+     **/
     public long getTabularIngestSizeLimit() {
-        // This method will return the blanket ingestable size limit, if
-        // set on the system. I.e., the universal limit that applies to all
-        // tabular ingests, regardless of fromat:
-        return settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.TabularIngestSizeLimit);
+        return getValueForKeyAsLong(TabularIngestSizeLimit);
     }
-
-    public long getTabularIngestSizeLimit(String formatName) {
-        // This method returns the size limit set specifically for this format name,
-        // if available, otherwise - the blanket limit that applies to all tabular
-        // ingests regardless of a format.
-
-        if (StringUtils.isEmpty(formatName)) {
+    /**
+     *  This method returns the size limit set specifically for this format name,
+     *  if available, otherwise - the blanket limit that applies to all tabular
+     *  ingests regardless of a format.
+     * */
+    public long getTabularIngestSizeLimit(final String formatName) {
+        if (isEmpty(formatName)) {
             return getTabularIngestSizeLimit();
+        } else {
+            final String limit = this.settings
+                    .get(TabularIngestSizeLimit + ":" + formatName);
+            return toLong(limit, getTabularIngestSizeLimit());
         }
-
-        String limitEntry = settingsService.get(SettingsServiceBean.Key.TabularIngestSizeLimit.toString() + ":" + formatName);
-
-        if (StringUtils.isNotEmpty(limitEntry)) {
-            try {
-                Long sizeOption = new Long(limitEntry);
-                return sizeOption;
-            } catch (NumberFormatException nfe) {
-                logger.warning("Invalid value for TabularIngestSizeLimit:" + formatName + "? - " + limitEntry);
-            }
-        }
-
-        return getTabularIngestSizeLimit();
     }
 
     public boolean isTimerServer() {
-        return settingsService.isTrueForKey(SettingsServiceBean.Key.TimerServer);
+        return isTrueForKey(TimerServer);
     }
 
     public DevOAuthAccountType getDevOAuthAccountType() {
-        DevOAuthAccountType saneDefault = DevOAuthAccountType.PRODUCTION;
-        String settingReturned = settingsService.getValueForKey(SettingsServiceBean.Key.DebugOAuthAccountType);
-        logger.fine("setting returned: " + settingReturned);
-        if (StringUtils.isNotEmpty(settingReturned)) {
-            try {
-                DevOAuthAccountType parsedValue = DevOAuthAccountType.valueOf(settingReturned);
-                return parsedValue;
-            } catch (IllegalArgumentException ex) {
-                logger.info("Couldn't parse value: " + ex + " - returning a sane default: " + saneDefault);
-                return saneDefault;
-            }
-        } else {
-            logger.fine("OAuth dev mode has not been configured. Returning a sane default: " + saneDefault);
-            return saneDefault;
-        }
+        return DevOAuthAccountType.valueOf(getValueForKey(DebugOAuthAccountType), 
+                PRODUCTION);
     }
 
     public String getOAuth2CallbackUrl() {
-        String saneDefault = getDataverseSiteUrl() + "/oauth2/callback.xhtml";
-        String settingReturned = settingsService.getValueForKey(SettingsServiceBean.Key.OAuth2CallbackUrl);
-        logger.fine("getOAuth2CallbackUrl setting returned: " + settingReturned);
-        if (StringUtils.isNotEmpty(settingReturned)) {
-            return settingReturned;
-        }
-        return saneDefault;
+        final String value = getValueForKey(OAuth2CallbackUrl);
+        return isNotEmpty(value) 
+                ? value 
+                : getDataverseSiteUrl().concat("/oauth2/callback.xhtml");
     }
 
     public Integer getAuthenticatedSessionTimeoutMinutes() {
-        return settingsService.getValueForKeyAsInt(Key.AuthenticatedSessionTimeout, DEFAULT_AUTHENTICATED_SESSION_TIMEOUT_MINUTES);
+        return getValueForKeyAsInt(AuthenticatedSessionTimeout, 
+                DEFAULT_AUTHENTICATED_SESSION_TIMEOUT_MINUTES);
+    }
+    
+    private String getValueForKey(final Key key) {
+        return this.settings.getValueForKey(key);
+    }
+    
+    private boolean isTrueForKey(final Key key) {
+        return this.settings.isTrueForKey(key);
+    }
+    
+    private Integer getValueForKeyAsInt(final Key key) {
+        return this.settings.getValueForKeyAsInt(key);
+    }
+    
+    private Long getValueForKeyAsLong(final Key key) {
+        return this.settings.getValueForKeyAsLong(key);
+    }
+    
+    private Integer getValueForKeyAsInt(final Key key, final Integer defaultValue) {
+        return this.settings.getValueForKeyAsInt(key, defaultValue);
     }
 
     /**
@@ -395,7 +425,6 @@ public class SystemConfig {
      * There is a good chance these will be consolidated in the future.
      */
     public enum FileUploadMethods {
-
         /**
          * DCM stands for Data Capture Module. Right now it supports upload over
          * rsync+ssh but DCM may support additional methods in the future.
@@ -407,31 +436,34 @@ public class SystemConfig {
          */
         NATIVE("native/http");
 
-
         private final String text;
 
         FileUploadMethods(final String text) {
             this.text = text;
         }
-
-        public static FileUploadMethods fromString(String text) {
-            if (text != null) {
-                for (FileUploadMethods fileUploadMethods : FileUploadMethods.values()) {
-                    if (text.equals(fileUploadMethods.text)) {
-                        return fileUploadMethods;
-                    }
-                }
-            }
-            throw new IllegalArgumentException("FileUploadMethods must be one of these values: " + Arrays.asList(FileUploadMethods
-                                                                                                                         .values()) + ".");
+        
+        private boolean equalsIgnoreCase(final String text) {
+            return StringUtils.equalsIgnoreCase(this.text, text);
+        }
+        
+        private boolean isPresentIn(final String text) {
+            return StringUtils.containsIgnoreCase(text, this.text);
         }
 
         @Override
         public String toString() {
-            return text;
+            return this.text;
         }
-
-
+        
+        public static FileUploadMethods fromString(final String text) {
+            for (final FileUploadMethods methods : FileUploadMethods.values()) {
+                if (methods.text.equals(text)) {
+                    return methods;
+                }
+            }
+            throw new IllegalArgumentException(
+                    "Must be one of: " + FileUploadMethods.values() + '.');
+        }
     }
 
     /**
@@ -452,29 +484,35 @@ public class SystemConfig {
         FileDownloadMethods(final String text) {
             this.text = text;
         }
-
-        public static FileUploadMethods fromString(String text) {
-            if (text != null) {
-                for (FileUploadMethods fileUploadMethods : FileUploadMethods.values()) {
-                    if (text.equals(fileUploadMethods.text)) {
-                        return fileUploadMethods;
-                    }
-                }
-            }
-            throw new IllegalArgumentException("FileDownloadMethods must be one of these values: " + Arrays.asList(FileDownloadMethods
-                                                                                                                           .values()) + ".");
+        
+        private boolean equalsIgnoreCase(final String text) {
+            return StringUtils.equalsIgnoreCase(this.text, text);
+        }
+        
+        private boolean isPresentIn(final String text) {
+            return StringUtils.containsIgnoreCase(text, this.text);
         }
 
         @Override
         public String toString() {
-            return text;
+            return this.text;
         }
-
+        
+        public static FileUploadMethods fromString(final String text) {
+            for (final FileUploadMethods methods : FileUploadMethods.values()) {
+                if (methods.text.equals(text)) {
+                    return methods;
+                }
+            }
+            throw new IllegalArgumentException(
+                    "Must be one of: " + FileDownloadMethods.values() + '.');
+        }
     }
 
     public enum DataFilePIDFormat {
         DEPENDENT("DEPENDENT"),
         INDEPENDENT("INDEPENDENT");
+        
         private final String text;
 
         public String getText() {
@@ -487,7 +525,7 @@ public class SystemConfig {
 
         @Override
         public String toString() {
-            return text;
+            return this.text;
         }
 
     }
@@ -511,128 +549,88 @@ public class SystemConfig {
             this.text = text;
         }
 
-        public static TransferProtocols fromString(String text) {
-            if (text != null) {
-                for (TransferProtocols transferProtocols : TransferProtocols.values()) {
-                    if (text.equals(transferProtocols.text)) {
-                        return transferProtocols;
-                    }
-                }
-            }
-            throw new IllegalArgumentException("TransferProtocols must be one of these values: " + Arrays.asList(TransferProtocols
-                                                                                                                         .values()) + ".");
-        }
-
         @Override
         public String toString() {
-            return text;
+            return this.text;
         }
 
+        public static TransferProtocols fromString(final String text) {
+            for (final TransferProtocols protocoles : TransferProtocols.values()) {
+                if (protocoles.text.equals(text)) {
+                    return protocoles;
+                }
+            }
+            throw new IllegalArgumentException(
+                    "Must be one of: " + TransferProtocols.values() + '.');
+        }
     }
 
     public boolean isRsyncUpload() {
-        return getUploadMethodAvailable(SystemConfig.FileUploadMethods.RSYNC.toString());
+        return FileUploadMethods.RSYNC.isPresentIn(getValueForKey(UploadMethods));
     }
 
-    // Controls if HTTP upload is enabled for both GUI and API.
     public boolean isHTTPUpload() {
-        return getUploadMethodAvailable(SystemConfig.FileUploadMethods.NATIVE.toString());
+        return FileUploadMethods.NATIVE.isPresentIn(getValueForKey(UploadMethods));
     }
 
     public boolean isRsyncOnly() {
-        String downloadMethods = settingsService.getValueForKey(SettingsServiceBean.Key.DownloadMethods);
-        if (StringUtils.isEmpty(downloadMethods)) {
-            return false;
-        }
-        if (!downloadMethods.toLowerCase().equals(SystemConfig.FileDownloadMethods.RSYNC.toString())) {
-            return false;
-        }
-        String uploadMethods = settingsService.getValueForKey(SettingsServiceBean.Key.UploadMethods);
-        if (StringUtils.isEmpty(uploadMethods)) {
-            return false;
-        } else {
-            return Arrays.asList(uploadMethods.toLowerCase().split("\\s*,\\s*")).size() == 1 && uploadMethods
-                    .toLowerCase()
-                    .equals(SystemConfig.FileUploadMethods.RSYNC.toString());
-        }
+        return FileDownloadMethods.RSYNC.equalsIgnoreCase(getValueForKey(DownloadMethods))
+            && FileUploadMethods.RSYNC.equalsIgnoreCase(getValueForKey(UploadMethods));
     }
 
     public boolean isRsyncDownload() {
-        String downloadMethods = settingsService.getValueForKey(SettingsServiceBean.Key.DownloadMethods);
-        return downloadMethods != null && downloadMethods
-                .toLowerCase()
-                .contains(SystemConfig.FileDownloadMethods.RSYNC.toString());
+        return FileDownloadMethods.RSYNC.isPresentIn(getValueForKey(DownloadMethods));
     }
 
     public boolean isHTTPDownload() {
-        String downloadMethods = settingsService.getValueForKey(SettingsServiceBean.Key.DownloadMethods);
-        logger.fine("Download Methods:" + downloadMethods);
-        return downloadMethods != null && downloadMethods
-                .toLowerCase()
-                .contains(SystemConfig.FileDownloadMethods.NATIVE.toString());
+        return FileDownloadMethods.NATIVE.isPresentIn(getValueForKey(DownloadMethods));
     }
 
-    private Boolean getUploadMethodAvailable(String method) {
-        String uploadMethods = settingsService.getValueForKey(SettingsServiceBean.Key.UploadMethods);
-        if (StringUtils.isEmpty(uploadMethods)) {
-            return false;
-        } else {
-            return Arrays.asList(uploadMethods.toLowerCase().split("\\s*,\\s*")).contains(method);
-        }
-    }
-
-    public Integer getUploadMethodCount() {
-        String uploadMethods = settingsService.getValueForKey(SettingsServiceBean.Key.UploadMethods);
-        if (StringUtils.isEmpty(uploadMethods)) {
-            return 0;
-        } else {
-            return Arrays.asList(uploadMethods.toLowerCase().split("\\s*,\\s*")).size();
-        }
+    public int getUploadMethodCount() {
+        final int rsync = isRsyncUpload() ? 1 : 0;
+        final int http = isHTTPUpload() ? 1 : 0;
+        return rsync + http;
     }
 
     public Map<String, String> getConfiguredLocales() {
-        Map<String, String> configuredLocales = new LinkedHashMap<>();
+        final Map<String, String> result = new LinkedHashMap<>();
 
-        JSONArray entries = new JSONArray(settingsService.getValueForKey(SettingsServiceBean.Key.Languages));
-        for (Object obj : entries) {
-            JSONObject entry = (JSONObject) obj;
-            String locale = entry.getString("locale");
-            String title = entry.getString("title");
-
-            configuredLocales.put(locale, title);
+        for (final Object obj : new JSONArray(getValueForKey(Languages))) {
+            final JSONObject entry = (JSONObject) obj;
+            result.put(entry.getString("locale"), entry.getString("title"));
         }
 
-        return configuredLocales;
+        return result;
     }
 
     public boolean isShowPrivacyPolicyFooterLinkRendered() {
-        return settingsService.isTrueForKey(Key.ShowPrivacyPolicyFooterLink);
+        return isTrueForKey(ShowPrivacyPolicyFooterLink);
     }
 
     public boolean isShowTermsOfUseFooterLinkRendered() {
-        return settingsService.isTrueForKey(Key.ShowTermsOfUseFooterLink);
+        return isTrueForKey(ShowTermsOfUseFooterLink);
     }
 
     public boolean isShowAccessibilityStatementFooterLinkRendered() {
-        return settingsService.isTrueForKey(Key.ShowAccessibilityStatementFooterLink);
+        return isTrueForKey(ShowAccessibilityStatementFooterLink);
     }
 
-    private String getFromBundleIfEmptyLocalizedProperty(Key key, Locale locale, String bundleKey) {
-        String result = getLocalizedProperty(key, locale);
-
-        return result.isEmpty() ? getFromBundleIfEmptyProperty(key, bundleKey) : result;
+    private String getFromBundleIfEmptyLocalizedProperty(final Key key, 
+            final Locale locale, final String bundleKey) {
+        final String result = getLocalizedProperty(key, locale);
+        return isNotBlank(result) ? result : getFromBundleIfEmptyProperty(key, bundleKey);
     }
 
-    private String getFromBundleIfEmptyProperty(SettingsServiceBean.Key key, String bundleKey) {
-        String result = settingsService.getValueForKey(key);
-
-        return result.equals(StringUtils.EMPTY) ? BundleUtil.getStringFromBundle(bundleKey) : result;
+    private String getFromBundleIfEmptyProperty(final SettingsServiceBean.Key key, 
+            final String bundleKey) {
+        final String result = getValueForKey(key);
+        return isNotBlank(result) ? result : getStringFromBundle(bundleKey) ;
     }
 
-    private String getLocalizedProperty(Key key, Locale locale) {
-        String result = settingsService.getValueForKeyWithPostfix(key, locale.toLanguageTag());
-
-        return result.isEmpty() ? settingsService.getValueForKey(key) : result;
+    private String getLocalizedProperty(final Key key, final Locale locale) {
+        final String result = this.settings.
+                getValueForKeyWithPostfix(key, locale.toLanguageTag());
+        return isNotBlank(result) ? result : getValueForKey(key);
     }
 
 }
