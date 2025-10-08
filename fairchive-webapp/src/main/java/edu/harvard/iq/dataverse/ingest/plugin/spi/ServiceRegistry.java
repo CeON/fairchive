@@ -437,6 +437,7 @@ public class ServiceRegistry {
      * @throws IllegalArgumentException if there is no category
      *                                  corresponding to <code>category</code>.
      */
+    @SuppressWarnings("unchecked")
     public <T> Iterator<T> getServiceProviders(Class<T> category,
                                                boolean useOrdering) {
         SubRegistry reg = categoryMap.get(category);
@@ -733,6 +734,7 @@ class SubRegistry {
         return poset.unsetOrdering(firstProvider, secondProvider);
     }
 
+    @SuppressWarnings("rawtypes")
     public Iterator getServiceProviders(boolean useOrdering) {
         if (useOrdering) {
             return poset.iterator();
@@ -741,6 +743,7 @@ class SubRegistry {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getServiceProviderByClass(Class<T> providerClass) {
         return (T) map.get(providerClass);
     }
