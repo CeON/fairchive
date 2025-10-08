@@ -270,40 +270,30 @@ public class SystemConfig {
     }
 
     public long getThumbnailSizeLimitImage() {
-        return getThumbnailSizeLimit("Image");
+        return getThumbnailSizeLimit("dataverse.dataAccess.thumbnail.image.limit");
     }
 
     public long getThumbnailSizeLimitPDF() {
-        return getThumbnailSizeLimit("PDF");
+        return getThumbnailSizeLimit("dataverse.dataAccess.thumbnail.pdf.limit");
+            
     }
 
-    private long getThumbnailSizeLimit(final String type) {
-        if (isReadonlyMode()) {
-            return -1;
-        } else {
-            switch (type) {
-            case "Image":
-                return toLong(getProperty( "dataverse.dataAccess.thumbnail.image.limit"),
-                        defaultThumbnailSizeLimit);
-            case "PDF":
-                return toLong(getProperty("dataverse.dataAccess.thumbnail.pdf.limit"),
-                        defaultThumbnailSizeLimit);
-            default:
-                return defaultThumbnailSizeLimit;
-            }
-        }
-    }
-
-    private boolean isThumbnailGenerationDisabledForType(final String type) {
-        return getThumbnailSizeLimit(type) == -1l;
+    private long getThumbnailSizeLimit(final String key) {
+        return isReadonlyMode() 
+                ? -1
+                : toLong(getProperty(key), defaultThumbnailSizeLimit);
     }
 
     public boolean isThumbnailGenerationDisabledForImages() {
-        return isThumbnailGenerationDisabledForType("Image");
+        return isReadonlyMode();
     }
 
     public boolean isThumbnailGenerationDisabledForPDF() {
-        return isThumbnailGenerationDisabledForType("PDF");
+        return isReadonlyMode();
+    }
+    
+    public long getDefaultThumbnailSizeLimit() {
+        return defaultThumbnailSizeLimit;
     }
 
     public String getApplicationTermsOfUse(final Locale locale) {
@@ -367,7 +357,7 @@ public class SystemConfig {
             return getTabularIngestSizeLimit();
         } else {
             final String limit = this.settings
-                    .get(TabularIngestSizeLimit + ":" + formatName);
+                    .get(TabularIngestSizeLimit.toString() + ':' + formatName);
             return toLong(limit, getTabularIngestSizeLimit());
         }
     }
@@ -454,115 +444,6 @@ public class SystemConfig {
         public String toString() {
             return this.text;
         }
-        
-        public static FileUploadMethods fromString(final String text) {
-            for (final FileUploadMethods methods : FileUploadMethods.values()) {
-                if (methods.text.equals(text)) {
-                    return methods;
-                }
-            }
-            throw new IllegalArgumentException(
-                    "Must be one of: " + FileUploadMethods.values() + '.');
-        }
-    }
-
-    /**
-     * See FileUploadMethods.
-     * <p>
-     * TODO: Consider if dataverse.files.s3-download-redirect belongs here since
-     * it's a way to bypass Glassfish when downloading.
-     */
-    public enum FileDownloadMethods {
-        /**
-         * RSAL stands for Repository Storage Abstraction Layer. Downloads don't
-         * go through Glassfish.
-         */
-        RSYNC("rsal/rsync"),
-        NATIVE("native/http");
-        private final String text;
-
-        FileDownloadMethods(final String text) {
-            this.text = text;
-        }
-        
-        private boolean equalsIgnoreCase(final String text) {
-            return StringUtils.equalsIgnoreCase(this.text, text);
-        }
-        
-        private boolean isPresentIn(final String text) {
-            return StringUtils.containsIgnoreCase(text, this.text);
-        }
-
-        @Override
-        public String toString() {
-            return this.text;
-        }
-        
-        public static FileUploadMethods fromString(final String text) {
-            for (final FileUploadMethods methods : FileUploadMethods.values()) {
-                if (methods.text.equals(text)) {
-                    return methods;
-                }
-            }
-            throw new IllegalArgumentException(
-                    "Must be one of: " + FileDownloadMethods.values() + '.');
-        }
-    }
-
-    public enum DataFilePIDFormat {
-        DEPENDENT("DEPENDENT"),
-        INDEPENDENT("INDEPENDENT");
-        
-        private final String text;
-
-        public String getText() {
-            return text;
-        }
-
-        DataFilePIDFormat(final String text) {
-            this.text = text;
-        }
-
-        @Override
-        public String toString() {
-            return this.text;
-        }
-
-    }
-
-    /**
-     * See FileUploadMethods.
-     */
-    public enum TransferProtocols {
-
-        RSYNC("rsync"),
-        /**
-         * POSIX includes NFS. This is related to Key.LocalDataAccessPath in
-         * SettingsServiceBean.
-         */
-        POSIX("posix"),
-        GLOBUS("globus");
-
-        private final String text;
-
-        TransferProtocols(final String text) {
-            this.text = text;
-        }
-
-        @Override
-        public String toString() {
-            return this.text;
-        }
-
-        public static TransferProtocols fromString(final String text) {
-            for (final TransferProtocols protocoles : TransferProtocols.values()) {
-                if (protocoles.text.equals(text)) {
-                    return protocoles;
-                }
-            }
-            throw new IllegalArgumentException(
-                    "Must be one of: " + TransferProtocols.values() + '.');
-        }
     }
 
     public boolean isRsyncUpload() {
@@ -633,4 +514,87 @@ public class SystemConfig {
         return isNotBlank(result) ? result : getValueForKey(key);
     }
 
+    /**
+     * See FileUploadMethods.
+     * <p>
+     * TODO: Consider if dataverse.files.s3-download-redirect belongs here since
+     * it's a way to bypass Glassfish when downloading.
+     */
+    private enum FileDownloadMethods {
+        /**
+         * RSAL stands for Repository Storage Abstraction Layer. Downloads don't
+         * go through Glassfish.
+         */
+        RSYNC("rsal/rsync"),
+        NATIVE("native/http");
+        private final String text;
+
+        FileDownloadMethods(final String text) {
+            this.text = text;
+        }
+        
+        private boolean equalsIgnoreCase(final String text) {
+            return StringUtils.equalsIgnoreCase(this.text, text);
+        }
+        
+        private boolean isPresentIn(final String text) {
+            return StringUtils.containsIgnoreCase(text, this.text);
+        }
+    }
+
+    public enum DataFilePIDFormat {
+        DEPENDENT("DEPENDENT"),
+        INDEPENDENT("INDEPENDENT");
+        
+        private final String text;
+
+        public String getText() {
+            return text;
+        }
+
+        DataFilePIDFormat(final String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return this.text;
+        }
+
+    }
+
+    /**
+     * See FileUploadMethods.
+     */
+    public enum TransferProtocols {
+
+        RSYNC("rsync"),
+        /**
+         * POSIX includes NFS. This is related to Key.LocalDataAccessPath in
+         * SettingsServiceBean.
+         */
+        POSIX("posix"),
+        GLOBUS("globus");
+
+        private final String text;
+
+        TransferProtocols(final String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return this.text;
+        }
+
+        public static TransferProtocols fromString(final String text) {
+            for (final TransferProtocols protocoles : TransferProtocols.values()) {
+                if (protocoles.text.equals(text)) {
+                    return protocoles;
+                }
+            }
+            throw new IllegalArgumentException(
+                    "Must be one of: " + TransferProtocols.values() + '.');
+        }
+    }
 }
