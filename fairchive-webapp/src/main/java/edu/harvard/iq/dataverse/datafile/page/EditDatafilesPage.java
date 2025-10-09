@@ -71,7 +71,6 @@ import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
-import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.datafile.pojo.RsyncInfo;
@@ -1439,7 +1438,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private void setUpRsync() {
         logger.fine("setUpRsync called...");
-        if (DataCaptureModuleUtil.rsyncSupportEnabled(this.settings.getValueForKey(Key.UploadMethods))
+        if (this.systemConfig.isRsyncUpload()
                 && dataset.getFiles().isEmpty()) {
 
             Try<Option<RsyncInfo>> rsyncFetchOperation = Try.of(() -> this.fileService.retrieveRsyncScript(this.dataset, this.workingVersion))

@@ -65,7 +65,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -89,6 +88,9 @@ public class SystemConfig {
     private static final String VERSION_FALLBACK = "4.0";
     private static final long defaultThumbnailSizeLimit = 10_000_000;
     public static final String DATAVERSE_PATH = "/dataverse/";
+    public static final String RSYNC_DOWNLOAD_METHOD = "rsal/rsync";
+    private static final String RSYNC_UPLOAD_METHOD = "dcm/rsync+ssh";
+    
 
     private static final Integer DEFAULT_AUTHENTICATED_SESSION_TIMEOUT_MINUTES = 1440;
 
@@ -376,64 +378,21 @@ public class SystemConfig {
         return this.settings.getValueForKeyAsInt(key, defaultValue);
     }
 
-    /**
-     * Below are three related enums having to do with big data support:
-     * <p>
-     * - FileUploadMethods
-     * <p>
-     * - FileDownloadMethods
-     * <p>
-     * - TransferProtocols
-     * <p>
-     * There is a good chance these will be consolidated in the future.
-     */
-    public enum FileUploadMethods {
-        /**
-         * DCM stands for Data Capture Module. Right now it supports upload over
-         * rsync+ssh but DCM may support additional methods in the future.
-         */
-        RSYNC("dcm/rsync+ssh"),
-        /**
-         * Traditional Dataverse file handling, which tends to involve users
-         * uploading and downloading files using a browser or APIs.
-         */
-        NATIVE("native/http");
-
-        private final String text;
-
-        FileUploadMethods(final String text) {
-            this.text = text;
-        }
-        
-        private boolean equalsIgnoreCase(final String text) {
-            return StringUtils.equalsIgnoreCase(this.text, text);
-        }
-        
-        private boolean isPresentIn(final String text) {
-            return StringUtils.containsIgnoreCase(text, this.text);
-        }
-
-        @Override
-        public String toString() {
-            return this.text;
-        }
-    }
-
     public boolean isRsyncUpload() {
-        return FileUploadMethods.RSYNC.isPresentIn(getValueForKey(UploadMethods));
+        return containsIgnoreCase(getValueForKey(UploadMethods), RSYNC_UPLOAD_METHOD);
     }
 
     public boolean isHTTPUpload() {
-        return FileUploadMethods.NATIVE.isPresentIn(getValueForKey(UploadMethods));
+        return containsIgnoreCase(getValueForKey(UploadMethods), "native/http");
     }
 
     public boolean isRsyncOnly() {
-        return equalsIgnoreCase("rsal/rsync", getValueForKey(DownloadMethods))
-            && FileUploadMethods.RSYNC.equalsIgnoreCase(getValueForKey(UploadMethods));
+        return equalsIgnoreCase(RSYNC_DOWNLOAD_METHOD, getValueForKey(DownloadMethods))
+            && equalsIgnoreCase(RSYNC_UPLOAD_METHOD, getValueForKey(UploadMethods));
     }
 
     public boolean isRsyncDownload() {
-        return containsIgnoreCase(getValueForKey(DownloadMethods), "rsal/rsync");
+        return containsIgnoreCase(getValueForKey(DownloadMethods), RSYNC_DOWNLOAD_METHOD);
     }
 
     public boolean isHTTPDownload() {

@@ -60,6 +60,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,6 +90,8 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
     EmbargoAccessService embargoAccess;
     @Inject
     SettingsServiceBean settingsService;
+    @Inject
+    SystemConfig config;;
     @Inject
     EjbDataverseEngine commandEngine;
     @Inject
@@ -142,7 +145,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                 fileDownloadRequestHelper, 
                 guestbookResponseDialog, imageThumbConverter,
                 fileMetadataService, datasetFilesTabFacade,
-                confirmEmailService, fieldValidationService);
+                confirmEmailService, fieldValidationService, config);
         this.filesTab.init(this.dataset.getLatestVersion());
         this.filesTab.setFileLabelSearchTerm("");
 
@@ -392,7 +395,8 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                 FileMetadataService fileMetadataService,
                 DatasetFilesTabFacade datasetFilesTabFacade,
                 ConfirmEmailServiceBean confirmEmailService,
-                DatasetFieldValidationService fieldValidationService) {
+                DatasetFieldValidationService fieldValidationService,
+                SystemConfig config) {
             super(fileDownloadHelper, datafileService, permissionService,
                     permissionsWrapper,
                     dvRequestService, session, guestbookResponseService,
@@ -402,7 +406,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                     fileDownloadRequestHelper, 
                     guestbookResponseDialog,
                     imageThumbConverter, fileMetadataService, datasetFilesTabFacade,
-                    confirmEmailService, fieldValidationService);
+                    confirmEmailService, fieldValidationService, config);
         }
 
         @Override

@@ -87,7 +87,6 @@ import edu.harvard.iq.dataverse.api.dto.UningestableItemDTO;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.batch.jobs.importer.ImportMode;
 import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datacapturemodule.ScriptRequestResponse;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.file.FileDownloadAPIHandler;
@@ -200,6 +199,7 @@ public class Datasets extends AbstractApiBean {
     private DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter;
     private UningestInfoService uningestInfoService;
     private UningestService uningestService;
+    private SystemConfig config;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -220,7 +220,8 @@ public class Datasets extends AbstractApiBean {
                     FileLabelsService fileLabelsService,
                     DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter,
                     UningestInfoService uningestInfoService,
-                    UningestService uningestService) {
+                    UningestService uningestService,
+                    SystemConfig config) {
         this.datasetDao = datasetDao;
         this.dataverseDao = dataverseDao;
         this.userNotificationService = userNotificationService;
@@ -246,6 +247,7 @@ public class Datasets extends AbstractApiBean {
         this.fileDownloadUrlCsvWriter = fileDownloadUrlCsvWriter;
         this.uningestInfoService = uningestInfoService;
         this.uningestService = uningestService;
+        this.config = config;
     }
 
     // -------------------- LOGIC --------------------
@@ -1200,10 +1202,11 @@ public class Datasets extends AbstractApiBean {
     @ApiWriteOperation
     @Path("{identifier}/dataCaptureModule/rsync")
     public Response getRsync(@PathParam("identifier") String id) {
-        //TODO - does it make sense to switch this to dataset identifier for consistency with the rest of the DCM APIs?
-        if (!DataCaptureModuleUtil.rsyncSupportEnabled(settingsSvc.getValueForKey(SettingsServiceBean.Key.UploadMethods))) {
+        if(this.config.isRsyncUpload()) {
             return error(Response.Status.METHOD_NOT_ALLOWED,
-                         SettingsServiceBean.Key.UploadMethods + " does not contain " + SystemConfig.FileUploadMethods.RSYNC + ".");
+                         SettingsServiceBean.Key.UploadMethods + 
+                         " does not contain " + 
+                         SystemConfig.RSYNC_DOWNLOAD_METHOD + '.');
         }
         Dataset dataset;
         try {
