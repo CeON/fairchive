@@ -43,6 +43,8 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UseOAISt
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.System.getProperty;
 import static java.util.logging.Logger.getLogger;
+import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
@@ -426,16 +428,16 @@ public class SystemConfig {
     }
 
     public boolean isRsyncOnly() {
-        return FileDownloadMethods.RSYNC.equalsIgnoreCase(getValueForKey(DownloadMethods))
+        return equalsIgnoreCase("rsal/rsync", getValueForKey(DownloadMethods))
             && FileUploadMethods.RSYNC.equalsIgnoreCase(getValueForKey(UploadMethods));
     }
 
     public boolean isRsyncDownload() {
-        return FileDownloadMethods.RSYNC.isPresentIn(getValueForKey(DownloadMethods));
+        return containsIgnoreCase(getValueForKey(DownloadMethods), "rsal/rsync");
     }
 
     public boolean isHTTPDownload() {
-        return FileDownloadMethods.NATIVE.isPresentIn(getValueForKey(DownloadMethods));
+        return containsIgnoreCase(getValueForKey(DownloadMethods), "native/http");
     }
 
     public int getUploadMethodCount() {
@@ -483,34 +485,6 @@ public class SystemConfig {
         final String result = this.settings.
                 getValueForKeyWithPostfix(key, locale.toLanguageTag());
         return isNotBlank(result) ? result : getValueForKey(key);
-    }
-
-    /**
-     * See FileUploadMethods.
-     * <p>
-     * TODO: Consider if dataverse.files.s3-download-redirect belongs here since
-     * it's a way to bypass Glassfish when downloading.
-     */
-    private enum FileDownloadMethods {
-        /**
-         * RSAL stands for Repository Storage Abstraction Layer. Downloads don't
-         * go through Glassfish.
-         */
-        RSYNC("rsal/rsync"),
-        NATIVE("native/http");
-        private final String text;
-
-        FileDownloadMethods(final String text) {
-            this.text = text;
-        }
-        
-        private boolean equalsIgnoreCase(final String text) {
-            return StringUtils.equalsIgnoreCase(this.text, text);
-        }
-        
-        private boolean isPresentIn(final String text) {
-            return StringUtils.containsIgnoreCase(text, this.text);
-        }
     }
 
     public enum DataFilePIDFormat {
