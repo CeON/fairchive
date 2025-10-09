@@ -34,7 +34,7 @@ public class Setting implements Serializable {
     public Setting() {
     }
 
-    public Setting(String name, String content) {
+    public Setting(final String name, final String content) {
         this.name = name;
         this.content = content;
     }
@@ -42,20 +42,20 @@ public class Setting implements Serializable {
     // -------------------- GETTERS --------------------
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public String getContent() {
-        return content;
+        return this.content;
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
-    public void setContent(String content) {
+    public void setContent(final String content) {
         this.content = content;
     }
 
