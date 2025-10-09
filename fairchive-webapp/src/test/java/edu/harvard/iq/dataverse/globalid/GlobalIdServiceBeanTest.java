@@ -41,27 +41,27 @@ public class GlobalIdServiceBeanTest {
     public void testGetBean_String_CommandContext_OK() {
         ctxt.settings().setValueForKey(SettingsServiceBean.Key.DoiProvider, "EZID");
         assertEquals(ezidServiceBean,
-                     GlobalIdServiceBean.getBean("doi", ctxt));
+                      ctxt.globalIdServiceBeanResolver().resolve("doi"));
 
         ctxt.settings().setValueForKey(SettingsServiceBean.Key.DoiProvider, "DataCite");
         assertEquals(dataCiteServiceBean,
-                     GlobalIdServiceBean.getBean("doi", ctxt));
+                ctxt.globalIdServiceBeanResolver().resolve("doi"));
 
         ctxt.settings().setValueForKey(SettingsServiceBean.Key.DoiProvider, "FAKE");
         assertEquals(fakePidProviderServiceBean,
-                     GlobalIdServiceBean.getBean("doi", ctxt));
+                ctxt.globalIdServiceBeanResolver().resolve("doi"));
 
         assertEquals(hdlServiceBean,
-                     GlobalIdServiceBean.getBean("hdl", ctxt));
+                ctxt.globalIdServiceBeanResolver().resolve("hdl"));
     }
 
     @Test
     public void testGetBean_String_CommandContext_BAD() {
         ctxt.settings().setValueForKey(SettingsServiceBean.Key.DoiProvider, "non-existent-provider");
-        assertNull(GlobalIdServiceBean.getBean("doi", ctxt));
+        assertNull(ctxt.globalIdServiceBeanResolver().resolve("doi"));
 
 
-        assertNull(GlobalIdServiceBean.getBean("non-existent-protocol", ctxt));
+        assertNull(ctxt.globalIdServiceBeanResolver().resolve("non-existent-protocol"));
     }
 
     /**
@@ -73,11 +73,11 @@ public class GlobalIdServiceBeanTest {
         ctxt.settings().setValueForKey(SettingsServiceBean.Key.DoiProvider, "EZID");
 
         assertEquals(ezidServiceBean,
-                     GlobalIdServiceBean.getBean("doi", ctxt));
+                ctxt.globalIdServiceBeanResolver().resolve("doi"));
 
         ctxt.settings().setValueForKey(SettingsServiceBean.Key.Protocol, "hdl");
         assertEquals(hdlServiceBean,
-                     GlobalIdServiceBean.getBean("hdl", ctxt));
+                ctxt.globalIdServiceBeanResolver().resolve("hdl"));
     }
 
 

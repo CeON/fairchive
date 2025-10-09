@@ -7,7 +7,10 @@ import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-import java.util.Collections;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonMap;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +21,7 @@ import java.util.Set;
  * @author michael
  */
 // no annotations here, since permissions are dynamically decided
+@SuppressWarnings("serial")
 public class ListMetadataBlocksCommand extends AbstractCommand<List<MetadataBlock>> {
 
     private final Dataverse dv;
@@ -34,9 +38,9 @@ public class ListMetadataBlocksCommand extends AbstractCommand<List<MetadataBloc
 
     @Override
     public Map<String, Set<Permission>> getRequiredPermissions() {
-        return Collections.singletonMap("",
-                                        dv.isReleased() ? Collections.emptySet()
-                                                : Collections.singleton(Permission.ViewUnpublishedDataverse));
+        return singletonMap("", dv.isReleased() 
+                                ? emptySet()
+                                : singleton(Permission.ViewUnpublishedDataverse));
     }
 
 }

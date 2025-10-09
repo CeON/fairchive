@@ -6,6 +6,9 @@ import edu.harvard.iq.dataverse.persistence.ror.RorDataRepository;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+
+import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
+
 import java.util.Set;
 
 /**
@@ -21,19 +24,19 @@ public class RorTransactionsService {
     public RorTransactionsService() { }
 
     @Inject
-    public RorTransactionsService(RorDataRepository rorRepository) {
+    public RorTransactionsService(final RorDataRepository rorRepository) {
         this.rorRepository = rorRepository;
     }
 
     // -------------------- PUBLIC --------------------
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    @Transactional(REQUIRES_NEW)
     public void truncateAll() {
-        rorRepository.truncateAll();
+        this.rorRepository.truncateAll();
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void saveMany(Set<RorData> entities) {
-        entities.forEach(e -> rorRepository.save(e));
+    @Transactional(REQUIRES_NEW)
+    public void saveMany(final Set<RorData> entities) {
+        entities.forEach(rorRepository::save);
     }
 }

@@ -17,17 +17,16 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 /**
  * @author qqmyers
  * <p>
  * Adapted from UpdateDatasetVersionCommand
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class CuratePublishedDatasetVersionCommand extends AbstractDatasetCommand<Dataset> {
 
-    private static final Logger logger = Logger.getLogger(CuratePublishedDatasetVersionCommand.class.getCanonicalName());
     final private boolean validateLenient = true;
 
     public CuratePublishedDatasetVersionCommand(Dataset theDataset, DataverseRequest aRequest) {

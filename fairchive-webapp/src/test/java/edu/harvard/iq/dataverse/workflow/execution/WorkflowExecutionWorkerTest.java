@@ -41,6 +41,7 @@ class WorkflowExecutionWorkerTest extends WorkflowExecutionJMSTestBase implement
 
     WorkflowArtifactRepository artifacts = persistence.stub(WorkflowArtifactRepository.class);
     WorkflowStepRegistry steps = new WorkflowStepRegistry();
+    @SuppressWarnings("unchecked")
     Instance<WorkflowExecutionListener> executionListeners = mock(Instance.class);
 
     WorkflowExecutionScheduler scheduler = new WorkflowExecutionScheduler() {{

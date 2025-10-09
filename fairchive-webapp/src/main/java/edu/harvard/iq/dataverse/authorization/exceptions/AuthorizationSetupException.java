@@ -7,6 +7,7 @@ package edu.harvard.iq.dataverse.authorization.exceptions;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class AuthorizationSetupException extends AuthorizationException {
 
     public AuthorizationSetupException(String message) {

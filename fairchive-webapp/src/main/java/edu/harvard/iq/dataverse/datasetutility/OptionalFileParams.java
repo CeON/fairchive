@@ -166,10 +166,8 @@ public class OptionalFileParams implements Serializable {
 
     private void loadParamsFromJson(String jsonData) throws DataFileTagException {
 
-        msgt("jsonData: " + jsonData);
         if (jsonData == null || jsonData.isEmpty()) {
             return;
-//            logger.log(Level.SEVERE, "jsonData is null");
         }
         JsonObject jsonObj;
         try {
@@ -192,7 +190,6 @@ public class OptionalFileParams implements Serializable {
         // -------------------------------
         Gson gson = new Gson();
 
-        //Type objType = new TypeToken<List<String[]>>() {}.getType();
         Type listType = new TypeToken<List<String>>() {
         }.getType();
 
@@ -259,17 +256,6 @@ public class OptionalFileParams implements Serializable {
         if (dataFileTags.isEmpty()) {
             dataFileTags = null;
         }
-    }
-
-
-    private void msg(String s) {
-        System.out.println(s);
-    }
-
-    private void msgt(String s) {
-        msg("-------------------------------");
-        msg(s);
-        msg("-------------------------------");
     }
 
     /**
@@ -354,8 +340,6 @@ public class OptionalFileParams implements Serializable {
         if (!hasCategories()) {
             return;
         }
-
-        List<String> currentCategories = fileMetadata.getCategoryNames();
 
         // Add categories to the file metadata object
         //

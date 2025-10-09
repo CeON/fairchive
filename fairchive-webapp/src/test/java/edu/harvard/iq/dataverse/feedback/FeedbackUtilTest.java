@@ -69,7 +69,7 @@ public class FeedbackUtilTest {
         systemAddress = new InternetAddress(systemEmail, supportTeamName);
 
         datasetFieldTypeSvc = new MockDatasetFieldSvc();
-        DatasetFieldType titleType = datasetFieldTypeSvc.add(new DatasetFieldType("title", FieldType.TEXTBOX, false));
+        datasetFieldTypeSvc.add(new DatasetFieldType("title", FieldType.TEXTBOX, false));
         DatasetFieldType authorType = datasetFieldTypeSvc.add(new DatasetFieldType("author", FieldType.TEXT, true));
         Set<DatasetFieldType> authorChildTypes = new HashSet<>();
         authorChildTypes.add(datasetFieldTypeSvc.add(new DatasetFieldType("authorName", FieldType.TEXT, false)));
@@ -107,8 +107,8 @@ public class FeedbackUtilTest {
         }
         dsDescriptionType.setChildDatasetFieldTypes(dsDescriptionTypes);
 
-        DatasetFieldType keywordType = datasetFieldTypeSvc.add(new DatasetFieldType("keyword", FieldType.TEXT, true));
-        DatasetFieldType descriptionType = datasetFieldTypeSvc.add(new DatasetFieldType("description", FieldType.TEXTBOX, false));
+        datasetFieldTypeSvc.add(new DatasetFieldType("keyword", FieldType.TEXT, true));
+        datasetFieldTypeSvc.add(new DatasetFieldType("description", FieldType.TEXTBOX, false));
 
         DatasetFieldType subjectType = datasetFieldTypeSvc.add(new DatasetFieldType("subject", FieldType.TEXT, true));
         subjectType.setAllowControlledVocabulary(true);
@@ -811,7 +811,6 @@ public class FeedbackUtilTest {
         assertEquals(1, feedbacks2.size());
         feedback = feedbacks2.get(0);
         assertEquals(null, feedback.getToEmail());
-        String nullUserMessage = null;
         List<Feedback> feedbacks3 = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
                 .withMessageSubject(messageSubject)
                 .withUserEmail(userEmail)
@@ -848,6 +847,7 @@ public class FeedbackUtilTest {
     }
 
     // We are starting to accumulate a lot of these. See DDIExporterTest, SchemaDotOrgExporterTest, JsonParserTest.
+    @SuppressWarnings("serial")
     @TestBean
     static class MockDatasetFieldSvc extends DatasetFieldServiceBean {
 

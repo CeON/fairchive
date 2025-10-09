@@ -1,52 +1,45 @@
 package edu.harvard.iq.dataverse.validation;
 
-import org.apache.commons.lang3.StringUtils;
-
 import javax.ejb.Stateless;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static edu.harvard.iq.dataverse.validation.ValidationResult.invalid;
+import static edu.harvard.iq.dataverse.validation.ValidationResult.ok;
+import static java.util.Arrays.binarySearch;
+import static java.util.regex.Pattern.compile;
+
+import java.util.regex.Pattern;
 
 @Stateless
 public class RorValidator {
-    public static final String INVALID_FORMAT_ERROR_CODE = "ror.invalid.format";
-    public static final String INVALID_CHECKSUM_ERROR_CODE = "ror.invalid.checksum";
-    private static final Map<String, Integer> DECODE_SYMBOL_VALUES = Initializer.initializeDecodeSymbolValues();
+    
+    private static final char[] SYMBOL_VALUES = 
+        {'0','1','2','3','4','5','6','7','8','9',
+        'a','b','c','d','e','f','g','h','j','k','m','n','p','q','r','s','t','v','w','x','y','z'};
+    private static final Pattern FORMAT_PATTERN = 
+            compile("https://ror\\.org/0[a-hjkmnp-tv-z0-9]{6}[0-9]{2}");
 
-    // -------------------- LOGIC --------------------
-
-    public ValidationResult validate(String fullRor) {
-        if (StringUtils.isBlank(fullRor)
-            || !fullRor.matches("https://ror\\.org/0[a-hjkmnp-tv-z0-9]{6}[0-9]{2}")) {
-            return ValidationResult.invalid(INVALID_FORMAT_ERROR_CODE);
+    public ValidationResult validate(final String fullRor) {
+        if (fullRor != null && FORMAT_PATTERN.matcher(fullRor).matches()) {
+            return isChecksumValid(fullRor)
+                    ? ok()
+                    : invalid("ror.invalid.checksum");
+        } else {
+            return invalid("ror.invalid.format");
         }
-        String value = fullRor.substring(fullRor.lastIndexOf("/") + 1);
-        String encoded = value.substring(0, 7);
-        long checksum = Long.parseLong(value.substring(7));
-        return checksum == computeChecksum(encoded)
-                ? ValidationResult.ok()
-                : ValidationResult.invalid(INVALID_CHECKSUM_ERROR_CODE);
     }
 
-    // -------------------- PRIVATE --------------------
-
-    private long computeChecksum(String encoded) {
-        long decoded = Arrays.stream(encoded.split(""))
-                .mapToLong(DECODE_SYMBOL_VALUES::get)
-                .reduce(0L, (accumulated, element) -> 32L * accumulated + element);
-        return 98L - ((decoded * 100L) % 97);
-    }
-
-    // -------------------- INNER CLASSES --------------------
-
-    static class Initializer {
-        static Map<String, Integer> initializeDecodeSymbolValues() {
-            String symbols = "0123456789abcdefghjkmnpqrstvwxyz";
-            return Collections.unmodifiableMap(
-                    Arrays.stream(symbols.split(""))
-                            .collect(Collectors.toMap(Function.identity(), symbols::indexOf)));
+    private static boolean isChecksumValid(final String fullRor) {
+        int index = fullRor.length() - 9;
+        final int end = index + 7;
+        long decoded = 0;
+        while (index < end) {
+            decoded = 32L * decoded + binarySearch(SYMBOL_VALUES, fullRor.charAt(index));
+            ++index;
         }
+        decoded = 98L - ((decoded * 100L) % 97);
+        
+        final long checksum = 10*(fullRor.charAt(index) - '0') +
+                (fullRor.charAt(++index) - '0');
+        return decoded == checksum;
     }
 }

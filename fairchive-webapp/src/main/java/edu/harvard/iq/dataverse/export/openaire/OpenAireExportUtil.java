@@ -15,8 +15,6 @@ import edu.harvard.iq.dataverse.search.response.GeoPoint;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -24,18 +22,24 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Logger;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.ALL_RIGHTS_RESERVED;
+import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
+import static java.lang.Integer.max;
+import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.contains;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.substring;
 
 public class OpenAireExportUtil {
-
-    private static final Logger logger = Logger.getLogger(OpenAireExportUtil.class.getCanonicalName());
 
     private static final String RIGHTS_URI_CLOSED_ACCESS = "info:eu-repo/semantics/closedAccess";
     private static final String RIGHTS_URI_RESTRICTED_ACCESS = "info:eu-repo/semantics/restrictedAccess";
@@ -48,14 +52,15 @@ public class OpenAireExportUtil {
     public static String RESOURCE_NAMESPACE = "http://datacite.org/schema/kernel-3";
     public static String RESOURCE_SCHEMA_LOCATION = "http://schema.datacite.org/meta/kernel-3.1/metadata.xsd";
 
-    public static void datasetJson2openaire(DatasetDTO datasetDto, OutputStream outputStream) throws XMLStreamException {
+    public static void datasetJson2openaire(DatasetDTO datasetDto, OutputStream outputStream) 
+            throws XMLStreamException {
         XMLStreamWriter xmlw = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream);
 
         xmlw.writeStartElement("resource"); // <resource>
 
         xmlw.writeAttribute("xmlns:xsi", XSI_NAMESPACE);
         xmlw.writeAttribute("xmlns", RESOURCE_NAMESPACE);
-        xmlw.writeAttribute("xsi:schemaLocation", RESOURCE_NAMESPACE + " " + RESOURCE_SCHEMA_LOCATION);
+        xmlw.writeAttribute("xsi:schemaLocation", RESOURCE_NAMESPACE + ' ' + RESOURCE_SCHEMA_LOCATION);
 
         createOpenAire(xmlw, datasetDto);
 
@@ -64,7 +69,8 @@ public class OpenAireExportUtil {
         xmlw.flush();
     }
 
-    private static void createOpenAire(XMLStreamWriter xmlw, DatasetDTO datasetDto) throws XMLStreamException {
+    private static void createOpenAire(XMLStreamWriter xmlw, DatasetDTO datasetDto) 
+            throws XMLStreamException {
         DatasetVersionDTO version = datasetDto.getDatasetVersion();
         String persistentAgency = datasetDto.getProtocol();
         String persistentAuthority = datasetDto.getAuthority();
@@ -143,7 +149,8 @@ public class OpenAireExportUtil {
     /**
      * Get the language value or null
      */
-    public static String getLanguage(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO) throws XMLStreamException {
+    public static String getLanguage(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO) 
+            throws XMLStreamException {
         String language = null;
 
         // set the default language (using language attribute)
@@ -154,7 +161,7 @@ public class OpenAireExportUtil {
                 for (DatasetFieldDTO fieldDTO : value.getFields()) {
                     if (DatasetFieldConstant.language.equals(fieldDTO.getTypeName())) {
                         for (String language_found : fieldDTO.getMultipleVocabulary()) {
-                            if (StringUtils.isNotBlank(language_found)) {
+                            if (isNotBlank(language_found)) {
                                 language = language_found;
                                 break;
                             }
@@ -174,19 +181,20 @@ public class OpenAireExportUtil {
      * @param identifier The identifier url like https://doi.org/10.123/123
      * @throws XMLStreamException
      */
-    public static void writeIdentifierElement(XMLStreamWriter xmlw, String identifier, String language) throws XMLStreamException {
+    public static void writeIdentifierElement(XMLStreamWriter xmlw, String identifier, 
+            String language) throws XMLStreamException {
         // identifier with identifierType attribute
-        if (StringUtils.isNotBlank(identifier)) {
+        if (isNotBlank(identifier)) {
             Map<String, String> identifier_map = new HashMap<String, String>();
 
-            if (StringUtils.containsIgnoreCase(identifier, GlobalId.DOI_RESOLVER_URL)) {
+            if (containsIgnoreCase(identifier, GlobalId.DOI_RESOLVER_URL)) {
                 identifier_map.put("identifierType", "DOI");
-                identifier = StringUtils.substring(identifier, identifier.indexOf("10."));
+                identifier = substring(identifier, identifier.indexOf("10."));
             } else if (StringUtils.containsIgnoreCase(identifier, GlobalId.HDL_RESOLVER_URL)) {
                 identifier_map.put("identifierType", "Handle");
-                if (StringUtils.contains(identifier, "http")) {
-                    identifier = identifier.replace(identifier.substring(0, identifier.indexOf("/") + 2), "");
-                    identifier = identifier.substring(identifier.indexOf("/") + 1);
+                if (contains(identifier, "http")) {
+                    identifier = identifier.replace(identifier.substring(0, identifier.indexOf('/') + 2), EMPTY);
+                    identifier = identifier.substring(identifier.indexOf('/') + 1);
                 }
             }
             writeFullElement(xmlw, null, "identifier", identifier_map, identifier, language);
@@ -197,7 +205,8 @@ public class OpenAireExportUtil {
      * 2, Creator (with optional name identifier and
      * affiliation sub-properties) (M)
      */
-    public static void writeCreatorsElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeCreatorsElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // creators -> creator -> creatorName -> nameIdentifier
         // write all creators
         boolean creator_check = false;
@@ -214,8 +223,7 @@ public class OpenAireExportUtil {
                             String nameIdentifier = null;
                             String nameIdentifierScheme = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.authorName.equals(next.getTypeName())) {
                                     creatorName = next.getSinglePrimitive();
                                 }
@@ -243,13 +251,12 @@ public class OpenAireExportUtil {
                                     creator_map.clear();
 
                                     if (StringUtils.contains(nameIdentifier, "http")) {
-                                        String site = nameIdentifier.substring(0, nameIdentifier.indexOf("/") + 2);
-                                        nameIdentifier = nameIdentifier.replace(nameIdentifier.substring(0,
-                                                                                                         nameIdentifier.indexOf(
-                                                                                                                 "/") + 2),
-                                                                                "");
-                                        site = site + nameIdentifier.substring(0, nameIdentifier.indexOf("/") + 1);
-                                        nameIdentifier = nameIdentifier.substring(nameIdentifier.indexOf("/") + 1);
+                                        String site = nameIdentifier.substring(0, nameIdentifier.indexOf('/') + 2);
+                                        nameIdentifier = nameIdentifier.
+                                                replace(nameIdentifier.substring(0,nameIdentifier.indexOf('/') + 2),
+                                                EMPTY);
+                                        site = site + nameIdentifier.substring(0, nameIdentifier.indexOf('/') + 1);
+                                        nameIdentifier = nameIdentifier.substring(nameIdentifier.indexOf('/') + 1);
 
                                         creator_map.put("SchemeURI", site);
                                     }
@@ -283,7 +290,8 @@ public class OpenAireExportUtil {
     /**
      * 3, Title (with optional type sub-properties) (M)
      */
-    public static void writeTitlesElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeTitlesElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // titles -> title with titleType attribute
         boolean title_check = false;
 
@@ -308,17 +316,18 @@ public class OpenAireExportUtil {
      * @param title_check
      * @param language    current language
      */
-    private static boolean writeTitleElement(XMLStreamWriter xmlw, String titleType, String title, boolean title_check, String language) throws XMLStreamException {
+    private static boolean writeTitleElement(XMLStreamWriter xmlw, String titleType, 
+            String title, boolean title_check, String language) throws XMLStreamException {
         // write a title
-        if (StringUtils.isNotBlank(title)) {
+        if (isNotBlank(title)) {
             title_check = writeOpenTag(xmlw, "titles", title_check);
             xmlw.writeStartElement("title"); // <title>
 
-            if (StringUtils.isNotBlank(language)) {
+            if (isNotBlank(language)) {
                 xmlw.writeAttribute("xml:lang", language);
             }
 
-            if (StringUtils.isNotBlank(titleType)) {
+            if (isNotBlank(titleType)) {
                 xmlw.writeAttribute("titleType", titleType);
             }
 
@@ -331,11 +340,12 @@ public class OpenAireExportUtil {
     /**
      * 5, PublicationYear (M)
      */
-    public static void writePublicationYearElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String publicationDate, String language) throws XMLStreamException {
+    public static void writePublicationYearElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String publicationDate, String language) 
+                    throws XMLStreamException {
 
         // publicationYear
         String distributionDate = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.distributionDate);
-        //String publicationDate = datasetDto.getPublicationDate();
         String depositDate = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.dateOfDeposit);
 
         int distributionYear = -1;
@@ -344,16 +354,16 @@ public class OpenAireExportUtil {
         int pubYear = 0;
 
         if (distributionDate != null) {
-            distributionYear = Integer.parseInt(distributionDate.substring(0, 4));
+            distributionYear = parseInt(distributionDate.substring(0, 4));
         }
         if (publicationDate != null) {
-            publicationYear = Integer.parseInt(publicationDate.substring(0, 4));
+            publicationYear = parseInt(publicationDate.substring(0, 4));
         }
         if (depositDate != null) {
-            yearOfDeposit = Integer.parseInt(depositDate.substring(0, 4));
+            yearOfDeposit = parseInt(depositDate.substring(0, 4));
         }
 
-        pubYear = Integer.max(Integer.max(distributionYear, publicationYear), yearOfDeposit);
+        pubYear = max(max(distributionYear, publicationYear), yearOfDeposit);
         if (pubYear > -1) {
             writeFullElement(xmlw, null, "publicationYear", null, String.valueOf(pubYear), language);
         }
@@ -362,7 +372,8 @@ public class OpenAireExportUtil {
     /**
      * 6, Subject (with scheme sub-property) R
      */
-    public static void writeSubjectsElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeSubjectsElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // subjects -> subject with subjectScheme and schemeURI attributes
         boolean subject_check = false;
 
@@ -373,7 +384,7 @@ public class OpenAireExportUtil {
                 for (DatasetFieldDTO fieldDTO : value.getFields()) {
                     if (DatasetFieldConstant.subject.equals(fieldDTO.getTypeName())) {
                         for (String subject : fieldDTO.getMultipleVocabulary()) {
-                            if (StringUtils.isNotBlank(subject)) {
+                            if (isNotBlank(subject)) {
                                 subject_check = writeOpenTag(xmlw, "subjects", subject_check);
                                 writeSubjectElement(xmlw, null, null, subject, language);
                             }
@@ -386,8 +397,7 @@ public class OpenAireExportUtil {
                             String subjectScheme = null;
                             String schemeURI = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.keywordValue.equals(next.getTypeName())) {
                                     subject = next.getSinglePrimitive();
                                 }
@@ -401,7 +411,7 @@ public class OpenAireExportUtil {
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(subject)) {
+                            if (isNotBlank(subject)) {
                                 subject_check = writeOpenTag(xmlw, "subjects", subject_check);
                                 writeSubjectElement(xmlw, subjectScheme, schemeURI, subject, language);
                             }
@@ -414,8 +424,7 @@ public class OpenAireExportUtil {
                             String subjectScheme = null;
                             String schemeURI = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.topicClassValue.equals(next.getTypeName())) {
                                     subject = next.getSinglePrimitive();
                                 }
@@ -429,7 +438,7 @@ public class OpenAireExportUtil {
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(subject)) {
+                            if (isNotBlank(subject)) {
                                 subject_check = writeOpenTag(xmlw, "subjects", subject_check);
                                 writeSubjectElement(xmlw, subjectScheme, schemeURI, subject, language);
                             }
@@ -444,18 +453,19 @@ public class OpenAireExportUtil {
     /**
      * 6, Subject (with scheme sub-property) R
      */
-    private static void writeSubjectElement(XMLStreamWriter xmlw, String subjectScheme, String schemeURI, String value, String language) throws XMLStreamException {
+    private static void writeSubjectElement(XMLStreamWriter xmlw, String subjectScheme, 
+            String schemeURI, String value, String language) throws XMLStreamException {
         // write a subject
         Map<String, String> subject_map = new HashMap<String, String>();
 
-        if (StringUtils.isNotBlank(language)) {
+        if (isNotBlank(language)) {
             subject_map.put("xml:lang", language);
         }
 
-        if (StringUtils.isNotBlank(subjectScheme)) {
+        if (isNotBlank(subjectScheme)) {
             subject_map.put("subjectScheme", subjectScheme);
         }
-        if (StringUtils.isNotBlank(schemeURI)) {
+        if (isNotBlank(schemeURI)) {
             subject_map.put("schemeURI", schemeURI);
         }
 
@@ -471,7 +481,8 @@ public class OpenAireExportUtil {
      * and affiliation sub-properties)
      * @see #writeContributorElement(XMLStreamWriter, String, String, String, String)
      */
-    public static void writeContributorsElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeContributorsElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // contributors -> contributor with ContributorType attribute -> contributorName, affiliation
         boolean contributor_check = false;
 
@@ -561,7 +572,7 @@ public class OpenAireExportUtil {
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(contributorName)) {
+                            if (isNotBlank(contributorName)) {
                                 contributor_check = writeOpenTag(xmlw, "contributors", contributor_check);
                                 writeContributorElement(xmlw, contributorType, contributorName, null, language);
                             }
@@ -606,13 +617,15 @@ public class OpenAireExportUtil {
     /**
      * 7, Writes info about funder in compliance with documentation.
      */
-    private static void writeGrantElement(XMLStreamWriter xmlw, GrantInfo grantInfo, String language) throws XMLStreamException {
+    private static void writeGrantElement(XMLStreamWriter xmlw, 
+            GrantInfo grantInfo, String language) throws XMLStreamException {
 
         xmlw.writeStartElement("contributor");
 
         xmlw.writeAttribute("contributorType", "Funder");
 
-        writeFullElement(xmlw, null, "contributorName", new HashMap<>(), grantInfo.getGrantFunder(), language);
+        writeFullElement(xmlw, null, "contributorName", new HashMap<>(), 
+                grantInfo.getGrantFunder(), language);
 
         HashMap<String, String> nameIdAttributes = new HashMap<>();
         nameIdAttributes.put("nameIdentifierScheme", "info");
@@ -640,13 +653,14 @@ public class OpenAireExportUtil {
      * @param language               current language
      * @throws XMLStreamException
      */
-    public static void writeContributorElement(XMLStreamWriter xmlw, String contributorType, String contributorName,
-                                               String contributorAffiliation, String language) throws XMLStreamException {
+    public static void writeContributorElement(XMLStreamWriter xmlw, 
+                String contributorType, String contributorName,
+                String contributorAffiliation, String language) throws XMLStreamException {
         // write a contributor
         xmlw.writeStartElement("contributor"); // <contributor>
 
-        if (StringUtils.isNotBlank(contributorType)) {
-            xmlw.writeAttribute("contributorType", contributorType.replaceAll(" ", ""));
+        if (isNotBlank(contributorType)) {
+            xmlw.writeAttribute("contributorType", contributorType.replaceAll(" ", EMPTY));
         }
 
         Map<String, String> contributor_map = new HashMap<String, String>();
@@ -654,7 +668,7 @@ public class OpenAireExportUtil {
 
         writeFullElement(xmlw, null, "contributorName", contributor_map, contributorName, language);
 
-        if (StringUtils.isNotBlank(contributorAffiliation)) {
+        if (isNotBlank(contributorAffiliation)) {
             writeFullElement(xmlw, null, "affiliation", null, contributorAffiliation, language);
         }
         xmlw.writeEndElement(); // </contributor>
@@ -663,7 +677,8 @@ public class OpenAireExportUtil {
     /**
      * 8, Date (with type sub-property) (R)
      */
-    public static void writeDatesElement(XMLStreamWriter xmlw, DatasetDTO dataset, String language) throws XMLStreamException {
+    public static void writeDatesElement(XMLStreamWriter xmlw, DatasetDTO dataset, 
+            String language) throws XMLStreamException {
         if (dataset.getEmbargoActive()) {
             embargoDatesElement(xmlw, dataset, language);
         } else {
@@ -671,36 +686,38 @@ public class OpenAireExportUtil {
         }
     }
 
-    private static void embargoDatesElement(XMLStreamWriter xmlw, DatasetDTO dataset, String language) throws XMLStreamException {
+    private static void embargoDatesElement(XMLStreamWriter xmlw, DatasetDTO dataset, 
+            String language) throws XMLStreamException {
         xmlw.writeStartElement("dates");
         writeFullElement(xmlw, null, "date", createMap("dateType", "Accepted"), dataset.getPublicationDate(), language);
         writeFullElement(xmlw, null, "date", createMap("dateType", "Available"), dataset.getEmbargoDate(), language);
         xmlw.writeEndElement();
     }
 
-    private static void standardDatesElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    private static void standardDatesElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         boolean date_check = false;
         String dateOfDistribution = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.distributionDate);
-        if (StringUtils.isNotBlank(dateOfDistribution)) {
+        if (isNotBlank(dateOfDistribution)) {
             date_check = writeOpenTag(xmlw, "dates", date_check);
             writeFullElement(xmlw, null, "date", createMap("dateType", "Issued"), dateOfDistribution, language);
         }
         // dates -> date with dateType attribute
 
         String dateOfProduction = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.productionDate);
-        if (StringUtils.isNotBlank(dateOfProduction)) {
+        if (isNotBlank(dateOfProduction)) {
             date_check = writeOpenTag(xmlw, "dates", date_check);
             writeFullElement(xmlw, null, "date", createMap("dateType", "Created"), dateOfProduction, language);
         }
 
         String dateOfDeposit = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.dateOfDeposit);
-        if (StringUtils.isNotBlank(dateOfDeposit)) {
+        if (isNotBlank(dateOfDeposit)) {
             date_check = writeOpenTag(xmlw, "dates", date_check);
             writeFullElement(xmlw, null, "date", createMap("dateType", "Submitted"), dateOfDeposit, language);
         }
 
         String dateOfVersion = datasetVersionDTO.getReleaseTime();
-        if (StringUtils.isNotBlank(dateOfVersion)) {
+        if (isNotBlank(dateOfVersion)) {
             date_check = writeOpenTag(xmlw, "dates", date_check);
             writeFullElement(xmlw,
                              null,
@@ -720,8 +737,7 @@ public class OpenAireExportUtil {
                             String dateOfCollectionStart = null;
                             String dateOfCollectionEnd = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.dateOfCollectionStart.equals(next.getTypeName())) {
                                     dateOfCollectionStart = next.getSinglePrimitive();
                                 }
@@ -730,7 +746,7 @@ public class OpenAireExportUtil {
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(dateOfCollectionStart) && StringUtils.isNotBlank(
+                            if (isNotBlank(dateOfCollectionStart) && isNotBlank(
                                     dateOfCollectionEnd)) {
                                 date_check = writeOpenTag(xmlw, "dates", date_check);
                                 writeFullElement(xmlw,
@@ -757,7 +773,8 @@ public class OpenAireExportUtil {
     /**
      * 10, ResourceType (with optional general type description sub- property)
      */
-    public static void writeResourceTypeElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeResourceTypeElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // resourceType with resourceTypeGeneral attribute
         boolean resourceTypeFound = false;
         for (Map.Entry<String, MetadataBlockWithFieldsDTO> entry : datasetVersionDTO.getMetadataBlocks().entrySet()) {
@@ -767,7 +784,7 @@ public class OpenAireExportUtil {
                 for (DatasetFieldDTO fieldDTO : value.getFields()) {
                     if (DatasetFieldConstant.kindOfData.equals(fieldDTO.getTypeName())) {
                         for (String resourceType : fieldDTO.getMultipleVocabulary()) {
-                            if (StringUtils.isNotBlank(resourceType)) {
+                            if (isNotBlank(resourceType)) {
                                 Map<String, String> resourceType_map = new HashMap<String, String>();
                                 resourceType_map.put("resourceTypeGeneral", "Dataset");
                                 writeFullElement(xmlw, null, "resourceType", resourceType_map, resourceType, language);
@@ -789,7 +806,8 @@ public class OpenAireExportUtil {
     /**
      * 11 AlternateIdentifier (with type sub-property) (O)
      */
-    public static void writeAlternateIdentifierElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeAlternateIdentifierElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // alternateIdentifiers -> alternateIdentifier with alternateIdentifierType attribute
         boolean alternateIdentifier_check = false;
 
@@ -803,8 +821,7 @@ public class OpenAireExportUtil {
                             String alternateIdentifier = null;
                             String alternateIdentifierType = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.otherIdValue.equals(next.getTypeName())) {
                                     alternateIdentifier = next.getSinglePrimitive();
                                 }
@@ -813,12 +830,12 @@ public class OpenAireExportUtil {
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(alternateIdentifier)) {
+                            if (isNotBlank(alternateIdentifier)) {
                                 alternateIdentifier_check = writeOpenTag(xmlw,
                                                                          "alternateIdentifiers",
                                                                          alternateIdentifier_check);
 
-                                if (StringUtils.isNotBlank(alternateIdentifierType)) {
+                                if (isNotBlank(alternateIdentifierType)) {
                                     Map<String, String> alternateIdentifier_map = new HashMap<String, String>();
                                     alternateIdentifier_map.put("alternateIdentifierType", alternateIdentifierType);
                                     writeFullElement(xmlw,
@@ -847,7 +864,8 @@ public class OpenAireExportUtil {
     /**
      * 12, RelatedIdentifier (with type and relation type sub-properties) (R)
      */
-    public static void writeRelatedIdentifierElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeRelatedIdentifierElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // relatedIdentifiers -> relatedIdentifier with relatedIdentifierType and relationType attributes
         boolean relatedIdentifier_check = false;
 
@@ -888,7 +906,7 @@ public class OpenAireExportUtil {
                     }
                 }
 
-                if (StringUtils.isNotBlank(relatedIdentifierType)) {
+                if (isNotBlank(relatedIdentifierType)) {
                     relatedIdentifier_check = writeOpenTag(xmlw, "relatedIdentifiers", relatedIdentifier_check);
 
                     // fix case
@@ -913,7 +931,8 @@ public class OpenAireExportUtil {
     /**
      * 13, Size (O)
      */
-    public static void writeSizeElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeSizeElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // sizes -> size
         boolean size_check = false;
 
@@ -932,14 +951,15 @@ public class OpenAireExportUtil {
     /**
      * 14, Format (O)
      */
-    public static void writeFormatElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeFormatElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // formats -> format
         boolean format_check = false;
 
         if (datasetVersionDTO.getFiles() != null) {
             for (int i = 0; i < datasetVersionDTO.getFiles().size(); i++) {
                 String format = datasetVersionDTO.getFiles().get(i).getDataFile().getContentType();
-                if (StringUtils.isNotBlank(format)) {
+                if (isNotBlank(format)) {
                     format_check = writeOpenTag(xmlw, "formats", format_check);
                     writeFullElement(xmlw, null, "format", null, format, language);
                 }
@@ -951,12 +971,13 @@ public class OpenAireExportUtil {
     /**
      * 15, Version (O)
      */
-    public static void writeVersionElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeVersionElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         Long majorVersionNumber = datasetVersionDTO.getVersionNumber();
         Long minorVersionNumber = datasetVersionDTO.getVersionMinorNumber();
 
-        if (majorVersionNumber != null && StringUtils.isNotBlank(majorVersionNumber.toString())) {
-            if (minorVersionNumber != null && StringUtils.isNotBlank(minorVersionNumber.toString())) {
+        if (majorVersionNumber != null && isNotBlank(majorVersionNumber.toString())) {
+            if (minorVersionNumber != null && isNotBlank(minorVersionNumber.toString())) {
                 writeFullElement(xmlw,
                                  null,
                                  "version",
@@ -972,7 +993,8 @@ public class OpenAireExportUtil {
     /**
      * 16 Rights (O)
      */
-    public static void writeAccessRightsElement(XMLStreamWriter xmlw, DatasetDTO dataset) throws XMLStreamException {
+    public static void writeAccessRightsElement(XMLStreamWriter xmlw, 
+            DatasetDTO dataset) throws XMLStreamException {
         // rightsList -> rights with rightsURI attribute
         xmlw.writeStartElement("rightsList"); // <rightsList>
         if (dataset.getEmbargoActive()) {
@@ -1004,7 +1026,8 @@ public class OpenAireExportUtil {
     /**
      * 17 Descriptions (R)
      */
-    public static void writeDescriptionsElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeDescriptionsElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // descriptions -> description with descriptionType attribute
         boolean description_check = false;
 
@@ -1017,15 +1040,14 @@ public class OpenAireExportUtil {
                         for (Set<DatasetFieldDTO> foo : fieldDTO.getMultipleCompound()) {
                             String descriptionOfAbstract = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.descriptionText.equals(next.getTypeName())) {
                                     descriptionOfAbstract = MarkupChecker.stripAllTags(next.getSinglePrimitive());
                                     descriptionOfAbstract = StringEscapeUtils.unescapeHtml(descriptionOfAbstract);
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(descriptionOfAbstract)) {
+                            if (isNotBlank(descriptionOfAbstract)) {
                                 description_check = writeOpenTag(xmlw, "descriptions", description_check);
                                 writeDescriptionElement(xmlw, "Abstract", descriptionOfAbstract, language);
                             }
@@ -1045,8 +1067,7 @@ public class OpenAireExportUtil {
                             String softwareName = null;
                             String softwareVersion = null;
 
-                            for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                                DatasetFieldDTO next = iterator.next();
+                            for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.softwareName.equals(next.getTypeName())) {
                                     softwareName = next.getSinglePrimitive();
                                 }
@@ -1055,7 +1076,7 @@ public class OpenAireExportUtil {
                                 }
                             }
 
-                            if (StringUtils.isNotBlank(softwareName) && StringUtils.isNotBlank(softwareVersion)) {
+                            if (isNotBlank(softwareName) && isNotBlank(softwareVersion)) {
                                 description_check = writeOpenTag(xmlw, "descriptions", description_check);
                                 writeDescriptionElement(xmlw,
                                                         "Methods",
@@ -1069,20 +1090,20 @@ public class OpenAireExportUtil {
         }
 
         String descriptionOfMethodsOrigin = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.originOfSources);
-        if (StringUtils.isNotBlank(descriptionOfMethodsOrigin)) {
+        if (isNotBlank(descriptionOfMethodsOrigin)) {
             description_check = writeOpenTag(xmlw, "descriptions", description_check);
             writeDescriptionElement(xmlw, "Methods", descriptionOfMethodsOrigin, language);
         }
 
         String descriptionOfMethodsCharacteristic = dto2Primitive(datasetVersionDTO,
                                                                   DatasetFieldConstant.characteristicOfSources);
-        if (StringUtils.isNotBlank(descriptionOfMethodsCharacteristic)) {
+        if (isNotBlank(descriptionOfMethodsCharacteristic)) {
             description_check = writeOpenTag(xmlw, "descriptions", description_check);
             writeDescriptionElement(xmlw, "Methods", descriptionOfMethodsCharacteristic, language);
         }
 
         String descriptionOfMethodsAccess = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.accessToSources);
-        if (StringUtils.isNotBlank(descriptionOfMethodsAccess)) {
+        if (isNotBlank(descriptionOfMethodsAccess)) {
             description_check = writeOpenTag(xmlw, "descriptions", description_check);
             writeDescriptionElement(xmlw, "Methods", descriptionOfMethodsAccess, language);
         }
@@ -1093,26 +1114,15 @@ public class OpenAireExportUtil {
             if ("citation".equals(key)) {
                 for (DatasetFieldDTO fieldDTO : value.getFields()) {
                     if (DatasetFieldConstant.series.equals(fieldDTO.getTypeName())) {
-                        // String seriesName = null;
                         String seriesInformation = null;
 
                         Set<DatasetFieldDTO> foo = fieldDTO.getSingleCompound();
-                        for (Iterator<DatasetFieldDTO> iterator = foo.iterator(); iterator.hasNext(); ) {
-                            DatasetFieldDTO next = iterator.next();
-                            /*if (DatasetFieldConstant.seriesName.equals(next.getTypeName())) {
-                                seriesName =  next.getSinglePrimitive();
-                            }*/
+                        for (final DatasetFieldDTO next : foo) {
                             if (DatasetFieldConstant.seriesInformation.equals(next.getTypeName())) {
                                 seriesInformation = next.getSinglePrimitive();
                             }
                         }
-
-                        /*if (StringUtils.isNotBlank(seriesName)){
-                        	contributor_check = writeOpenTag(xmlw, "descriptions", description_check);
-
-                        	writeDescriptionElement(xmlw, "SeriesInformation", seriesName);
-                        }*/
-                        if (StringUtils.isNotBlank(seriesInformation)) {
+                        if (isNotBlank(seriesInformation)) {
                             description_check = writeOpenTag(xmlw, "descriptions", description_check);
                             writeDescriptionElement(xmlw, "SeriesInformation", seriesInformation, language);
                         }
@@ -1122,7 +1132,7 @@ public class OpenAireExportUtil {
         }
 
         String descriptionOfOther = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.notesText);
-        if (StringUtils.isNotBlank(descriptionOfOther)) {
+        if (isNotBlank(descriptionOfOther)) {
             description_check = writeOpenTag(xmlw, "descriptions", description_check);
             writeDescriptionElement(xmlw, "Other", descriptionOfOther, language);
         }
@@ -1132,11 +1142,12 @@ public class OpenAireExportUtil {
     /**
      * 17 Descriptions (R)
      */
-    private static void writeDescriptionElement(XMLStreamWriter xmlw, String descriptionType, String description, String language) throws XMLStreamException {
+    private static void writeDescriptionElement(XMLStreamWriter xmlw, 
+            String descriptionType, String description, String language) throws XMLStreamException {
         // write a description
         Map<String, String> description_map = new HashMap<String, String>();
 
-        if (StringUtils.isNotBlank(language)) {
+        if (isNotBlank(language)) {
             description_map.put("xml:lang", language);
         }
 
@@ -1147,7 +1158,8 @@ public class OpenAireExportUtil {
     /**
      * 18 GeoLocation (R)
      */
-    public static void writeFullGeoLocationsElement(XMLStreamWriter xmlw, DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
+    public static void writeFullGeoLocationsElement(XMLStreamWriter xmlw, 
+            DatasetVersionDTO datasetVersionDTO, String language) throws XMLStreamException {
         // geoLocation -> geoLocationPlace
         String geoLocationPlace = dto2Primitive(datasetVersionDTO, DatasetFieldConstant.productionPlace);
         boolean geoLocations_check = false;
@@ -1171,7 +1183,7 @@ public class OpenAireExportUtil {
             }
         }
 
-        if (!hasValidBoxLocation && StringUtils.isNotBlank(geoLocationPlace)) {
+        if (!hasValidBoxLocation && isNotBlank(geoLocationPlace)) {
             if (!geoLocations_check) {
                 geoLocations_check = writeOpenTag(xmlw, "geoLocations", geoLocations_check);
                 writeOpenTag(xmlw, "geoLocation", false);
@@ -1186,12 +1198,13 @@ public class OpenAireExportUtil {
     /**
      * 18 GeoLocation (R)
      */
-    public static boolean writeGeoLocationsElement(XMLStreamWriter xmlw, Set<DatasetFieldDTO> foo, String geoLocationPlace, String language) throws XMLStreamException {
+    public static boolean writeGeoLocationsElement(XMLStreamWriter xmlw, 
+            Set<DatasetFieldDTO> foo, String geoLocationPlace, String language) throws XMLStreamException {
 
-        String northLatitude = StringUtils.EMPTY;
-        String southLatitude = StringUtils.EMPTY;
-        String eastLongitude = StringUtils.EMPTY;
-        String westLongitude = StringUtils.EMPTY;
+        String northLatitude = EMPTY;
+        String southLatitude = EMPTY;
+        String eastLongitude = EMPTY;
+        String westLongitude = EMPTY;
         GeoPoint point = null;
 
         for (DatasetFieldDTO next : foo) {
@@ -1212,16 +1225,19 @@ public class OpenAireExportUtil {
 
         if (point != null) {
             writeOpenTag(xmlw, "geoLocation", false);
-            writeFullElement(xmlw, null, "geoLocationPoint", null, point.getLatitude() + " " + point.getLongitude(), language);
+            writeFullElement(xmlw, null, "geoLocationPoint", null, point.getLatitude() 
+                    + " " + point.getLongitude(), language);
             writeEndTag(xmlw, true);
             return true;
         }
 
         if (hasValidLocationBox(northLatitude, southLatitude, eastLongitude, westLongitude)) {
-            String locationBoxValue = southLatitude + " " + westLongitude + " " + northLatitude + " " + eastLongitude;
+            String locationBoxValue = southLatitude + ' ' + westLongitude 
+                    + ' ' + northLatitude + ' ' + eastLongitude;
 
             writeOpenTag(xmlw, "geoLocation", false);
-            writeFullElement(xmlw, null, "geoLocationBox", null, locationBoxValue.trim().replaceAll(" +", " "), language);
+            writeFullElement(xmlw, null, "geoLocationBox", null, 
+                    locationBoxValue.trim().replaceAll(" +", " "), language);
             if (StringUtils.isNotBlank(geoLocationPlace)) {
                 writeFullElement(xmlw, null, "geoLocationPlace", null, geoLocationPlace, language);
             }
@@ -1233,7 +1249,8 @@ public class OpenAireExportUtil {
         return false;
     }
 
-    private static boolean hasValidLocationBox(String north, String south, String east, String west) {
+    private static boolean hasValidLocationBox(String north, String south, 
+            String east, String west) {
         return isValidLatitude(north) &&
                 isValidLatitude(south) &&
                 isValidLongitude(east) &&
@@ -1259,7 +1276,8 @@ public class OpenAireExportUtil {
     }
 
 
-    private static String dto2Primitive(DatasetVersionDTO datasetVersionDTO, String datasetFieldTypeName) {
+    private static String dto2Primitive(DatasetVersionDTO datasetVersionDTO, 
+            String datasetFieldTypeName) {
         // give the single value of the given metadata
         for (Map.Entry<String, MetadataBlockWithFieldsDTO> entry : datasetVersionDTO.getMetadataBlocks().entrySet()) {
             MetadataBlockWithFieldsDTO value = entry.getValue();
@@ -1275,25 +1293,26 @@ public class OpenAireExportUtil {
     /**
      * Write a full tag.
      */
-    public static void writeFullElement(XMLStreamWriter xmlw, String tag_parent, String tag_son,
-                                        Map<String, String> map, String value, String language) throws XMLStreamException {
+    public static void writeFullElement(XMLStreamWriter xmlw, String tag_parent, 
+            String tag_son,  Map<String, String> map, String value, String language)
+                    throws XMLStreamException {
         // write a full generic metadata
-        if (StringUtils.isNotBlank(value)) {
+        if (isNotBlank(value)) {
             boolean tag_parent_check = false;
-            if (StringUtils.isNotBlank(tag_parent)) {
+            if (isNotBlank(tag_parent)) {
                 xmlw.writeStartElement(tag_parent); // <value of tag_parent>
                 tag_parent_check = true;
             }
             boolean tag_son_check = false;
-            if (StringUtils.isNotBlank(tag_son)) {
+            if (isNotBlank(tag_son)) {
                 xmlw.writeStartElement(tag_son); // <value of tag_son>
                 tag_son_check = true;
             }
 
             if (map != null) {
-                if (StringUtils.isNotBlank(language)) {
-                    if (StringUtils.containsIgnoreCase(tag_son, "subject")
-                            || StringUtils.containsIgnoreCase(tag_parent, "subject")) {
+                if (isNotBlank(language)) {
+                    if (containsIgnoreCase(tag_son, "subject")
+                            || containsIgnoreCase(tag_parent, "subject")) {
                         map.put("xml:lang", language);
                     }
                 }
@@ -1307,19 +1326,21 @@ public class OpenAireExportUtil {
         }
     }
 
-    private static void writeAttribute(XMLStreamWriter xmlw, Map<String, String> map) throws XMLStreamException {
+    private static void writeAttribute(XMLStreamWriter xmlw, Map<String, 
+            String> map) throws XMLStreamException {
         // write attribute(s) of the current tag
         for (Map.Entry<String, String> entry : map.entrySet()) {
             String map_key = entry.getKey();
             String map_value = entry.getValue();
 
-            if (StringUtils.isNotBlank(map_key) && StringUtils.isNotBlank(map_value)) {
+            if (isNotBlank(map_key) && isNotBlank(map_value)) {
                 xmlw.writeAttribute(map_key, map_value);
             }
         }
     }
 
-    private static boolean writeOpenTag(XMLStreamWriter xmlw, String tag, boolean element_check) throws XMLStreamException {
+    private static boolean writeOpenTag(XMLStreamWriter xmlw, String tag, 
+            boolean element_check) throws XMLStreamException {
         // check if the current tag isn't opened
         if (!element_check) {
             xmlw.writeStartElement(tag); // <value of tag>
@@ -1327,28 +1348,16 @@ public class OpenAireExportUtil {
         return true;
     }
 
-    private static void writeEndTag(XMLStreamWriter xmlw, boolean element_check) throws XMLStreamException {
+    private static void writeEndTag(XMLStreamWriter xmlw, boolean element_check) 
+            throws XMLStreamException {
         // close the current tag
         if (element_check) {
             xmlw.writeEndElement(); // </value of current tag>
         }
     }
 
-    /**
-     * Check if the string is a valid email.
-     */
-    private static boolean isValidEmailAddress(String email) {
-        boolean result = true;
-        try {
-            InternetAddress emailAddr = new InternetAddress(email);
-            emailAddr.validate();
-        } catch (AddressException ex) {
-            result = false;
-        }
-        return result;
-    }
-
-    private static void writeRightsUriLicenseInfoAttribute(XMLStreamWriter xmlw, List<FileMetadataDTO> files) throws XMLStreamException {
+    private static void writeRightsUriLicenseInfoAttribute(XMLStreamWriter xmlw, 
+            List<FileMetadataDTO> files) throws XMLStreamException {
         if (!Lists.isEmpty(files)) {
             writeRightsHeader(xmlw);
 
@@ -1370,7 +1379,8 @@ public class OpenAireExportUtil {
         }
     }
 
-    private static void writeRightsUriInfoAttribute(XMLStreamWriter xmlw, List<FileMetadataDTO> files, boolean hasActiveGuestbook) throws XMLStreamException {
+    private static void writeRightsUriInfoAttribute(XMLStreamWriter xmlw, 
+            List<FileMetadataDTO> files, boolean hasActiveGuestbook) throws XMLStreamException {
         writeRightsHeader(xmlw);
 
         if (Lists.isEmpty(files)) {
@@ -1387,7 +1397,7 @@ public class OpenAireExportUtil {
 
     public static boolean areAllFilesUnderSameLincese(List<FileMetadataDTO> files) {
         final String firstFileLicense = files.get(0).getLicenseName();
-        if (StringUtils.isNotEmpty(firstFileLicense)) {
+        if (isNotEmpty(firstFileLicense)) {
             return files
                     .stream()
                     .allMatch(fileDTO -> firstFileLicense.equals(fileDTO.getLicenseName()));
@@ -1398,24 +1408,25 @@ public class OpenAireExportUtil {
     public static boolean areAllFilesAllRightsReserved(List<FileMetadataDTO> files) {
         return files
                 .stream()
-                .allMatch(fileDTO -> isOfTermsOfUseType(fileDTO, FileTermsOfUse.TermsOfUseType.ALL_RIGHTS_RESERVED));
+                .allMatch(fileDTO -> isOfTermsOfUseType(fileDTO, ALL_RIGHTS_RESERVED));
     }
 
     public static boolean areAllFilesRestricted(List<FileMetadataDTO> files) {
         return files
                 .stream()
-                .allMatch(fileDTO -> isOfTermsOfUseType(fileDTO, FileTermsOfUse.TermsOfUseType.RESTRICTED));
+                .allMatch(fileDTO -> isOfTermsOfUseType(fileDTO, RESTRICTED));
     }
 
 
     public static boolean hasRestrictedFile(List<FileMetadataDTO> files) {
         return files
                 .stream()
-                .anyMatch(fileDTO -> isOfTermsOfUseType(fileDTO, FileTermsOfUse.TermsOfUseType.RESTRICTED));
+                .anyMatch(fileDTO -> isOfTermsOfUseType(fileDTO, RESTRICTED));
     }
 
 
-    public static boolean isOfTermsOfUseType(FileMetadataDTO fileDTO, FileTermsOfUse.TermsOfUseType termsOfUseType) {
+    public static boolean isOfTermsOfUseType(FileMetadataDTO fileDTO, 
+            FileTermsOfUse.TermsOfUseType termsOfUseType) {
         return fileDTO.getTermsOfUseType().equals(termsOfUseType.toString());
     }
 }

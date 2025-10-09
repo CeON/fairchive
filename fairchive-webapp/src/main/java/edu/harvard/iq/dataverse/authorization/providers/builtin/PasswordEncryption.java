@@ -28,6 +28,7 @@ import java.util.Random;
  * @author Ellen Kraffmiller
  * @author Michael Bar-Sinai
  */
+@SuppressWarnings("serial")
 public final class PasswordEncryption implements java.io.Serializable {
 
     public interface Algorithm {

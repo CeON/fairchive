@@ -26,6 +26,7 @@ import java.util.Map;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class ManageTemplatesPage implements java.io.Serializable {

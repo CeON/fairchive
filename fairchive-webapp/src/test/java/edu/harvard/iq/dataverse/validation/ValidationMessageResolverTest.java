@@ -10,8 +10,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 
 public class ValidationMessageResolverTest {
-
-    private ValidationMessageResolver validationMessageResolver = new ValidationMessageResolver();
     
     @Test
     void resolveValidationMessage__message_from_metadatablock_translations_file() {
@@ -26,11 +24,9 @@ public class ValidationMessageResolverTest {
         
         FieldValidationResult result = FieldValidationResult.invalid(field, "customValidationError");
         
-        // when
-        String message = validationMessageResolver.resolveValidationMessage(result);
         
         // then
-        assertThat(message).isEqualTo("Custom validation message");
+        assertThat(result.getMessage()).isEqualTo("Custom validation message");
     }
     
     @Test
@@ -46,10 +42,7 @@ public class ValidationMessageResolverTest {
         
         FieldValidationResult result = FieldValidationResult.invalid(field, "isrequired", "Some field");
         
-        // when
-        String message = validationMessageResolver.resolveValidationMessage(result);
-        
         // then
-        assertThat(message).isEqualTo("Some field is required.");
+        assertThat(result.getMessage()).isEqualTo("Some field is required.");
     }
 }

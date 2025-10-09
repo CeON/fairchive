@@ -35,6 +35,7 @@ public class CreatePrivateUrlCommandTest {
     public void setUp() {
         dataset = new Dataset();
         testEngine = new TestDataverseEngine(new TestCommandContext() {
+            @SuppressWarnings("serial")
             @Override
             public PrivateUrlServiceBean privateUrl() {
                 return new PrivateUrlServiceBean() {
@@ -58,6 +59,7 @@ public class CreatePrivateUrlCommandTest {
                 };
             }
 
+            @SuppressWarnings("serial")
             @Override
             public DataverseRoleServiceBean roles() {
                 return new DataverseRoleServiceBean() {

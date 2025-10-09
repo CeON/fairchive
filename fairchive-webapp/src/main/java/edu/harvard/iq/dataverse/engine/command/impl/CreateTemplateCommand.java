@@ -11,15 +11,15 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class CreateTemplateCommand extends AbstractCommand<Template> {
     private final Template created;
-    private final Dataverse dv;
+
 
     public CreateTemplateCommand(Template template, DataverseRequest aRequest, Dataverse anAffectedDataverse) {
         super(aRequest, anAffectedDataverse);
         created = template;
-        dv = anAffectedDataverse;
     }
 
     @Override

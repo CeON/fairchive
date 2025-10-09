@@ -168,7 +168,7 @@ public class ApiBlockingFilter implements javax.servlet.Filter {
             HttpServletResponse resp = (HttpServletResponse) sr1;
             resp.setStatus(500);
             resp.setHeader("PROCUDER", "ApiBlockingFilter");
-            resp.getWriter().append("Error: " + se.getMessage());
+            resp.getWriter().append("Error: ").append(se.getMessage());
         }
     }
 

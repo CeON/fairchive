@@ -11,7 +11,6 @@ import edu.harvard.iq.dataverse.search.advanced.field.NumberSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SelectOneSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.TextSearchField;
-import edu.harvard.iq.dataverse.search.advanced.query.QueryPartType;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryWrapper;
 import edu.harvard.iq.dataverse.validation.field.validators.geobox.GeoboxTestUtil;
 import org.junit.jupiter.api.Test;
@@ -195,6 +194,7 @@ class QueryWrapperCreatorTest {
     }
 
     private static DatasetFieldType createType(String name, String displayName, String description) {
+        @SuppressWarnings("serial")
         DatasetFieldType type = new DatasetFieldType() {
             @Override
             public String getDisplayName() { return displayName; }

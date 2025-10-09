@@ -10,13 +10,15 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class UpdateDataverseTemplateRootCommand extends AbstractCommand<Dataverse> {
 
     private final boolean newValue;
     private Dataverse dv;
 
-    public UpdateDataverseTemplateRootCommand(boolean newValue, DataverseRequest aRequest, Dataverse anAffectedDataverse) {
+    public UpdateDataverseTemplateRootCommand(boolean newValue, DataverseRequest aRequest, 
+            Dataverse anAffectedDataverse) {
         super(aRequest, anAffectedDataverse);
         this.newValue = newValue;
         this.dv = anAffectedDataverse;

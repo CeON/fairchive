@@ -6,9 +6,11 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.validation.field.FieldValidator;
 import edu.harvard.iq.dataverse.validation.field.ValidationDescriptor;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.Map;
 
 /**
@@ -17,28 +19,34 @@ import java.util.Map;
  * fields).
  */
 public class ValidationEnhancer {
-    private static final Logger logger = LoggerFactory.getLogger(ValidationEnhancer.class);
+    private static final Logger logger = getLogger(ValidationEnhancer.class);
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     // -------------------- LOGIC --------------------
 
-    public DatasetFieldType createDatasetFieldType(String name, String displayName, String desctiprtion, ValidationDescriptor validation) {
-        SimpleDatasetFieldType simpleDatasetFieldType = new SimpleDatasetFieldType();
-        simpleDatasetFieldType.setName(name);
-        simpleDatasetFieldType.setDisplayName(displayName);
-        simpleDatasetFieldType.setDescription(desctiprtion);
+    public DatasetFieldType createDatasetFieldType(final String name, 
+            final String displayName, final String desctiprtion, 
+            final ValidationDescriptor validation) {
+        
+        final SimpleDatasetFieldType fieldType = new SimpleDatasetFieldType();
+        fieldType.setName(name);
+        fieldType.setDisplayName(displayName);
+        fieldType.setDescription(desctiprtion);
         try {
-            String validationJson = mapper.writeValueAsString(Collections.singletonList(validation));
-            simpleDatasetFieldType.setValidation(validationJson);
-        } catch (JsonProcessingException jpe) {
+            final String validationJson = 
+                    this.mapper.writeValueAsString(singletonList(validation));
+            fieldType.setValidation(validationJson);
+        } catch (final JsonProcessingException jpe) {
             logger.warn("Cannot write validator as string", jpe);
         }
-        return simpleDatasetFieldType;
+        return fieldType;
     }
 
-    public ValidationDescriptor createValidation(FieldValidator validator, Map<String, Object> params) {
-        ValidationDescriptor descriptor = new ValidationDescriptor();
+    public ValidationDescriptor createValidation(final FieldValidator validator, 
+            final Map<String, Object> params) {
+        
+        final ValidationDescriptor descriptor = new ValidationDescriptor();
         descriptor.setName(validator.getName());
         descriptor.getParameters().putAll(params);
         return descriptor;
@@ -46,19 +54,20 @@ public class ValidationEnhancer {
 
     // -------------------- INNER CLASSES --------------------
 
-    public static class SimpleDatasetFieldType extends DatasetFieldType {
+    @SuppressWarnings("serial")
+    private final static class SimpleDatasetFieldType extends DatasetFieldType {
         private String displayName;
 
         public SimpleDatasetFieldType() {
-            setControlledVocabularyValues(Collections.emptyList());
+            setControlledVocabularyValues(emptyList());
         }
 
         @Override
         public String getDisplayName() {
-            return displayName;
+            return this.displayName;
         }
 
-        public void setDisplayName(String displayName) {
+        public void setDisplayName(final String displayName) {
             this.displayName = displayName;
         }
     }

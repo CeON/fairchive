@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("serial")
 public class SamlLoginIssue implements Serializable {
 
     public final Type type;

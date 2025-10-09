@@ -15,15 +15,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.util.Locale;
-import java.util.logging.Logger;
 
 /**
  * @author Leonid Andreev
  */
 
 public abstract class FileMetadataExtractorSpi extends IngestServiceProvider {
-    private static Logger dbgLog =
-            Logger.getLogger(FileMetadataExtractorSpi.class.getPackage().getName());
 
 
     protected FileMetadataExtractorSpi() {

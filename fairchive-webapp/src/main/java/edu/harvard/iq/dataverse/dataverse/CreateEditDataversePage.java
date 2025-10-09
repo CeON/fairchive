@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("CreateEditDataversePage")
 public class CreateEditDataversePage implements Serializable {

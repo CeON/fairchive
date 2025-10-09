@@ -285,7 +285,8 @@ public class MapLayerMetadataServiceBean {
 
         logger.info("-- new token id: " + token.getId());
         // Callback url for geoConnect:
-        String callback_url = URLEncoder.encode(systemConfig.getDataverseSiteUrl() + WorldMapRelatedData.GET_WORLDMAP_DATAFILE_API_PATH);
+        String callback_url = URLEncoder.encode(systemConfig.getDataverseSiteUrl() 
+                + WorldMapRelatedData.GET_WORLDMAP_DATAFILE_API_PATH, "UTF-8");
 
         String geoConnectAddress = token.getApplication().getMapitLink();
         /*

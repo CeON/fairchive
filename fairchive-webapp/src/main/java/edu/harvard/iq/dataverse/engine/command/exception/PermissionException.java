@@ -12,12 +12,13 @@ import java.util.Set;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class PermissionException extends CommandException {
 
     private final Set<Permission> missingPermissions;
     private final DvObject dvObject;
 
-    public PermissionException(String message, Command failedCommand, Set<Permission> missingPermissions, DvObject aDvObject) {
+    public PermissionException(String message, Command<?> failedCommand, Set<Permission> missingPermissions, DvObject aDvObject) {
         super(message, failedCommand);
         this.missingPermissions = missingPermissions;
         dvObject = aDvObject;

@@ -383,6 +383,7 @@ public class FileIntegrityCheckerTest {
     }
 
     private StorageIO<DataFile> mockDataFileStorageIO(boolean exists, long size, boolean isMD5Supported, String md5) throws IOException {
+        @SuppressWarnings("unchecked")
         StorageIO<DataFile> storageIO = mock(StorageIO.class);
         when(storageIO.exists()).thenReturn(exists);
         when(storageIO.getSize()).thenReturn(size);
@@ -392,6 +393,7 @@ public class FileIntegrityCheckerTest {
     }
 
     private StorageIO<DataFile> mockDataFileStorageIOWithAuxObject(boolean exists, long size, boolean isMD5Supported, String md5) throws IOException {
+        @SuppressWarnings("unchecked")
         StorageIO<DataFile> storageIO = mock(StorageIO.class);
         when(storageIO.isAuxObjectCached(StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION)).thenReturn(exists);
         when(storageIO.getAuxObjectSize(StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION)).thenReturn(size);

@@ -7,7 +7,6 @@ import static java.util.stream.Collectors.toList;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.ejb.Stateless;

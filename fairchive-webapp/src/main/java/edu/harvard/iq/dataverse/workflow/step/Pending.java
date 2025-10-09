@@ -10,6 +10,7 @@ import static java.util.Collections.emptyMap;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class Pending implements WorkflowStepResult {
 
     private final Map<String, String> data;

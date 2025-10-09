@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("EditSingleFilePage")
 public class EditSingleFilePage implements java.io.Serializable {
@@ -167,7 +168,7 @@ public class EditSingleFilePage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (dataset.isInReview() && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 

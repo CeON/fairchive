@@ -19,11 +19,13 @@ import org.dspace.xoai.serviceprovider.model.Context;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import edu.harvard.iq.dataverse.harvest.client.FastGetRecord;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import org.apache.commons.lang.StringUtils;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+
+import static org.apache.commons.lang.StringUtils.isEmpty;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -36,6 +38,7 @@ import java.util.List;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class OaiHandler implements Serializable {
 
     public OaiHandler() {
@@ -46,20 +49,21 @@ public class OaiHandler implements Serializable {
         this.baseOaiUrl = baseOaiUrl;
     }
 
-    public OaiHandler(HarvestingClient harvestingClient) throws OaiHandlerException, IdDoesNotExistException {
+    public OaiHandler(HarvestingClient harvestingClient) 
+            throws OaiHandlerException, IdDoesNotExistException {
         this.baseOaiUrl = harvestingClient.getHarvestingUrl();
 
-        if (StringUtils.isEmpty(baseOaiUrl)) {
+        if (isEmpty(baseOaiUrl)) {
             throw new OaiHandlerException("Valid OAI url is needed to create a handler");
         }
         this.baseOaiUrl = harvestingClient.getHarvestingUrl();
 
         this.metadataPrefix = harvestingClient.getMetadataPrefix();
-        if (StringUtils.isEmpty(metadataPrefix)) {
+        if (isEmpty(metadataPrefix)) {
             throw new OaiHandlerException("HarvestingClient must have a metadataPrefix to create a handler");
         }
 
-        if (!StringUtils.isEmpty(harvestingClient.getHarvestingSet())) {
+        if (!isEmpty(harvestingClient.getHarvestingSet())) {
             try {
                 this.setName = URLEncoder.encode(harvestingClient.getHarvestingSet(), "UTF-8");
             } catch (UnsupportedEncodingException uee) {
@@ -72,8 +76,8 @@ public class OaiHandler implements Serializable {
         this.harvestingClient = harvestingClient;
     }
 
-    private String baseOaiUrl; //= harvestingClient.getHarvestingUrl();
-    private String metadataPrefix; // = harvestingClient.getMetadataPrefix();
+    private String baseOaiUrl; 
+    private String metadataPrefix; 
     private MetadataFormat metadataFormat;
     private String setName;
     private Date fromDate;
@@ -144,7 +148,8 @@ public class OaiHandler implements Serializable {
     /**
      * Fetches all available metadata formats from the remote and searches for the set metadata prefix.
      */
-    public OaiHandler withFetchedMetadataFormat() throws OaiHandlerException, IdDoesNotExistException {
+    public OaiHandler withFetchedMetadataFormat() 
+            throws OaiHandlerException, IdDoesNotExistException {
         if (this.metadataPrefix == null) {
             throw new OaiHandlerException("Can't fetch metadata format, prefix not set.");
         }
@@ -152,87 +157,67 @@ public class OaiHandler implements Serializable {
         this.metadataFormat = runListMetadataFormats().stream()
                 .filter(format -> metadataPrefix.equals(format.getMetadataPrefix()))
                 .findFirst()
-                .orElseThrow(() -> new OaiHandlerException("Couldn't find meta data format with prefix:" + metadataPrefix));
+                .orElseThrow(() -> new OaiHandlerException("Couldn't find meta data format with prefix:" 
+                        + metadataPrefix));
 
         return this;
     }
 
     public List<String> runListSets() throws OaiHandlerException {
-
-        ServiceProvider sp = getServiceProvider();
-
-        Iterator<Set> setIter;
-
         try {
-            setIter = sp.listSets();
-        } catch (NoSetHierarchyException nshe) {
-            return null;
-        } catch (InvalidOAIResponse ior) {
-            throw new OaiHandlerException("No valid response received from the OAI server.");
-        }
-
-        List<String> sets = new ArrayList<>();
-
-        while (setIter.hasNext()) {
-            Set set = setIter.next();
-            String setSpec = set.getSpec();
-            /*
-            if (set.getDescriptions() != null && !set.getDescriptions().isEmpty()) {
-                Description description = set.getDescriptions().get(0);
-
+            final List<String> sets = new ArrayList<>();
+            final Iterator<Set> it = getServiceProvider().listSets();
+            
+            while (it.hasNext()) {
+                final String setSpec = it.next().getSpec();
+                if (!isEmpty(setSpec)) {
+                    sets.add(setSpec);
+                }
             }
-            */
-            if (!StringUtils.isEmpty(setSpec)) {
-                sets.add(setSpec);
-            }
-        }
-
-        if (sets.size() < 1) {
+            
+            return sets.isEmpty() ? null: sets;
+        } catch (final NoSetHierarchyException e) {
             return null;
+        } catch (final InvalidOAIResponse e) {
+            throw new OaiHandlerException(
+                    "No valid response received from the OAI server.");
         }
-        return sets;
-
     }
 
-    public List<MetadataFormat> runListMetadataFormats() throws OaiHandlerException, IdDoesNotExistException {
-        ServiceProvider sp = getServiceProvider();
-
-        Iterator<MetadataFormat> mfIter;
-
+    public List<MetadataFormat> runListMetadataFormats()
+            throws OaiHandlerException, IdDoesNotExistException {
         try {
-            mfIter = sp.listMetadataFormats();
-        } catch (InvalidOAIResponse ior) {
-            throw new OaiHandlerException("No valid response received from the OAI server.");
-        }
-
-        List<MetadataFormat> formats = new ArrayList<>();
-
-        while (mfIter.hasNext()) {
-            MetadataFormat format = mfIter.next();
-            String formatName = format.getMetadataPrefix();
-            if (!StringUtils.isEmpty(formatName)) {
-                formats.add(format);
+            final List<MetadataFormat> formats = new ArrayList<>();
+            final Iterator<MetadataFormat> it = getServiceProvider().listMetadataFormats();
+            
+            while (it.hasNext()) {
+                final MetadataFormat format = it.next();
+                if (!isEmpty(format.getMetadataPrefix())) {
+                    formats.add(format);
+                }
             }
+            return formats;
+        } catch (InvalidOAIResponse ior) {
+            throw new OaiHandlerException(
+                    "No valid response received from the OAI server.");
         }
-
-        return formats;
     }
 
     public Iterator<Header> runListIdentifiers() throws OaiHandlerException {
-        ListIdentifiersParameters parameters = buildListIdentifiersParams();
         try {
-            return getServiceProvider().listIdentifiers(parameters);
+            return getServiceProvider().listIdentifiers(buildListIdentifiersParams());
         } catch (BadArgumentException bae) {
             throw new OaiHandlerException("BadArgumentException thrown when attempted to run ListIdentifiers");
         }
 
     }
 
-    public FastGetRecord runGetRecord(String identifier) throws OaiHandlerException {
-        if (StringUtils.isEmpty(this.baseOaiUrl)) {
+    public FastGetRecord runGetRecord(String identifier)
+            throws OaiHandlerException {
+        if (isEmpty(this.baseOaiUrl)) {
             throw new OaiHandlerException("Attempted to execute GetRecord without server URL specified.");
         }
-        if (StringUtils.isEmpty(this.metadataPrefix)) {
+        if (isEmpty(this.metadataPrefix)) {
             throw new OaiHandlerException("Attempted to execute GetRecord without metadataPrefix specified");
         }
 
@@ -250,10 +235,11 @@ public class OaiHandler implements Serializable {
     }
 
 
-    private ListIdentifiersParameters buildListIdentifiersParams() throws OaiHandlerException {
+    private ListIdentifiersParameters buildListIdentifiersParams() 
+            throws OaiHandlerException {
         ListIdentifiersParameters mip = ListIdentifiersParameters.request();
 
-        if (StringUtils.isEmpty(this.metadataPrefix)) {
+        if (isEmpty(this.metadataPrefix)) {
             throw new OaiHandlerException("Attempted to create a ListIdentifiers request without metadataPrefix specified");
         }
         mip.withMetadataPrefix(metadataPrefix);
@@ -262,7 +248,7 @@ public class OaiHandler implements Serializable {
             mip.withFrom(this.fromDate);
         }
 
-        if (!StringUtils.isEmpty(this.setName)) {
+        if (!isEmpty(this.setName)) {
             mip.withSetSpec(this.setName);
         }
 

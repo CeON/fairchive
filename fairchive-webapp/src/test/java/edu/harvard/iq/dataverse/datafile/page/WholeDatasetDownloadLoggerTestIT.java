@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.datafile.page;
 
 import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.GenericDao;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.datafile.DatasetIntegrationTestsHelper;
@@ -38,9 +37,6 @@ public class WholeDatasetDownloadLoggerTestIT extends WebappArquillianDeployment
 
     @Inject
     private AuthenticationServiceBean authenticationServiceBean;
-
-    @Inject
-    private GenericDao genericDao;
 
     @Test
     public void incrementLogIfDownloadingWholeDataset_whenDownloadingAllFiles() {

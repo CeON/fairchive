@@ -39,6 +39,7 @@ public class BannerDAO {
         return em.find(DataverseBanner.class, bannerId);
     }
 
+    @SuppressWarnings("unchecked")
     public List<ImageWithLinkDto> getBannersForDataverse(Long dataverseId, String localeCode) {
         if (dataverseId == null) {
             return Lists.newArrayList();
@@ -76,7 +77,8 @@ public class BannerDAO {
 
         return banners.stream()
                 .map(localizedBanner -> new ImageWithLinkDto(
-                        new DefaultStreamedContent(new ByteArrayInputStream((byte[]) localizedBanner[0])),
+                        DefaultStreamedContent.builder().
+                        stream(() -> new ByteArrayInputStream((byte[]) localizedBanner[0])).build(),
                         (String) localizedBanner[1]))
                 .collect(Collectors.toList());
     }

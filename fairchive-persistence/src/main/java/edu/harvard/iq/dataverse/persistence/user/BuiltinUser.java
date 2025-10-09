@@ -186,9 +186,8 @@ public class BuiltinUser implements Serializable {
      * We use this along with the transient BuiltinUser attributes to gather
      * needed data for user creation.
      *
-     * @deprecated
      */
-    @Deprecated()
+
     public AuthenticatedUserDisplayInfo getDisplayInfoForApiCreation() {
         return new AuthenticatedUserDisplayInfo(firstName, lastName, email, affiliation, position);
     }

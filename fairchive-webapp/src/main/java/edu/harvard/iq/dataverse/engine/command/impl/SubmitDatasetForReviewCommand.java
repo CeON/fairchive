@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
@@ -14,7 +13,9 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.User;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowDatasetPublishWithoutFiles;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class SubmitDatasetForReviewCommand extends AbstractDatasetCommand<Dataset> {
 
@@ -36,16 +38,17 @@ public class SubmitDatasetForReviewCommand extends AbstractDatasetCommand<Datase
     public Dataset execute(CommandContext ctxt)  {
 
         if (getDataset().getLatestVersion().isReleased()) {
-            throw new IllegalCommandException(BundleUtil.getStringFromBundle("dataset.submit.failure.isReleased"), this);
+            throw new IllegalCommandException(getStringFromBundle("dataset.submit.failure.isReleased"), this);
         }
 
         if (getDataset().getLatestVersion().isInReview()) {
-            throw new IllegalCommandException(BundleUtil.getStringFromBundle("dataset.submit.failure.inReview"), this);
+            throw new IllegalCommandException(getStringFromBundle("dataset.submit.failure.inReview"), this);
         }
 
-        if (!ctxt.settings().isTrueForKey(SettingsServiceBean.Key.AllowDatasetPublishWithoutFiles)
+        if (!ctxt.settings().isTrueForKey(AllowDatasetPublishWithoutFiles)
                 && getDataset().getLatestVersion().getFileMetadatas().isEmpty()) {
-            throw new NoDatasetFilesException("There was no files for dataset version with id: " + getDataset().getLatestVersion().getId());
+            throw new NoDatasetFilesException("There was no files for dataset version with id: " 
+                    + getDataset().getLatestVersion().getId());
         }
 
         //SEK 9-1 Add Lock before saving dataset

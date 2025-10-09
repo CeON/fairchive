@@ -11,10 +11,8 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Used for adding/replacing single files.
@@ -25,7 +23,6 @@ import java.util.logging.Logger;
  */
 public class DuplicateFileChecker {
 
-    private static final Logger logger = Logger.getLogger(DuplicateFileChecker.class.getCanonicalName());
     private DatasetVersionServiceBean datasetVersionService;
 
     /**
@@ -124,17 +121,18 @@ public class DuplicateFileChecker {
      * @param fileMetadata
      * @return
      */
-    public static boolean isDuplicateOriginalWay(DatasetVersion workingVersion, FileMetadata fileMetadata) {
+    public static boolean isDuplicateOriginalWay(final DatasetVersion workingVersion, 
+            final FileMetadata fileMetadata) {
         if (workingVersion == null) {
             throw new NullPointerException("datasetVersion cannot be null");
         }
 
-        String selectedCheckSum = fileMetadata.getDataFile().getChecksumValue();
+        final String selectedCheckSum = fileMetadata.getDataFile().getChecksumValue();
         if (selectedCheckSum == null) {
             return false;
         }
 
-        Map<String, Integer> checkSumMap = new HashMap<String, Integer>();
+        final Map<String, Integer> checkSumMap = new HashMap<String, Integer>();
 
         // TODO: 
         // think of a way to do this that doesn't involve populating this 
@@ -146,12 +144,10 @@ public class DuplicateFileChecker {
 
         // make a "defensive copy" to avoid java.util.ConcurrentModificationException from being thrown
         // when uploading 100+ files
-        List<FileMetadata> wvCopy = new ArrayList<>(workingVersion.getFileMetadatas());
-        Iterator<FileMetadata> fmIt = wvCopy.iterator();
+        final List<FileMetadata> wvCopy = new ArrayList<>(workingVersion.getFileMetadatas());
 
-        while (fmIt.hasNext()) {
-            FileMetadata fm = fmIt.next();
-            String currentCheckSum = fm.getDataFile().getChecksumValue();
+        for(final FileMetadata fm : wvCopy) {
+            final String currentCheckSum = fm.getDataFile().getChecksumValue();
             if (currentCheckSum != null) {
                 if (checkSumMap.get(currentCheckSum) != null) {
                     checkSumMap.put(currentCheckSum, checkSumMap.get(currentCheckSum).intValue() + 1);
@@ -160,7 +156,7 @@ public class DuplicateFileChecker {
                 }
             }
         }
-        return checkSumMap.get(selectedCheckSum) != null; // && checkSumMap.get(selectedCheckSum).intValue() > 1;
+        return checkSumMap.get(selectedCheckSum) != null; 
 
     }
 

@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.passwordreset;
 
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.authorization.providers.builtin.BuiltinAuthenticationProvider;
@@ -35,6 +34,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("PasswordResetPage")
 public class PasswordResetPage implements java.io.Serializable {
@@ -53,8 +53,6 @@ public class PasswordResetPage implements java.io.Serializable {
     SettingsServiceBean settingsService;
     @Inject
     private SystemConfig systemConfig;
-    @Inject
-    private PermissionsWrapper permissionsWrapper;
 
     @EJB
     ActionLogServiceBean actionLogSvc;
@@ -132,7 +130,6 @@ public class PasswordResetPage implements java.io.Serializable {
             PasswordResetInitResponse passwordResetInitResponse = passwordResetService.requestReset(emailAddress);
             PasswordResetData passwordResetData = passwordResetInitResponse.getPasswordResetData();
             if (passwordResetData != null) {
-                BuiltinUser foundUser = passwordResetData.getBuiltinUser();
                 passwordResetUrl = passwordResetInitResponse.getResetUrl();
                 actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.BuiltinUser, "passwordResetSent")
                                          .setInfo("Email Address: " + emailAddress));

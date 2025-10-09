@@ -11,16 +11,14 @@ import org.omnifaces.cdi.ViewScoped;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.logging.Logger;
 
 /**
  * @author bsilverstein
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("ConfirmEmailPage")
 public class ConfirmEmailPage implements java.io.Serializable {
-
-    private static final Logger logger = Logger.getLogger(ConfirmEmailPage.class.getCanonicalName());
 
     @EJB
     ConfirmEmailServiceBean confirmEmailService;

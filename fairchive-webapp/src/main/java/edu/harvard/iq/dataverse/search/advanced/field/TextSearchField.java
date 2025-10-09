@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** Class responsible for holding field value represented as String. */
+@SuppressWarnings("serial")
 public class TextSearchField extends SearchField {
 
     private String fieldValue;

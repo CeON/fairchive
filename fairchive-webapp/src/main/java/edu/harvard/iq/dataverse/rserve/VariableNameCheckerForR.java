@@ -88,7 +88,6 @@ public class VariableNameCheckerForR {
     public String[] getFilteredVarNames() {
         // safeVarNames: all variables
         safeVarNames = new String[rawVarNames.length];
-        int counter = 0;
         for (int i = 0; i < rawVarNames.length; i++) {
 
             if (R_RESERVED_WORDS_MAPPING_TABLE.containsKey(rawVarNames[i])) {

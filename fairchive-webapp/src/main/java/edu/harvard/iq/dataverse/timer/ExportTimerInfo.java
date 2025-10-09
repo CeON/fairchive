@@ -30,6 +30,7 @@ import java.io.Serializable;
  * If we have to add more configurable exports further down the road, more settings
  * can be added here.
  */
+@SuppressWarnings("serial")
 public class ExportTimerInfo implements Serializable {
 
 }

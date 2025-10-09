@@ -13,6 +13,7 @@ import java.util.List;
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ManageDataversePermissions)
 public class ListRoleAssignments extends AbstractCommand<List<RoleAssignment>> {
 

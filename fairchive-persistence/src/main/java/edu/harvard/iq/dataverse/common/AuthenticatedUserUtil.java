@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.common;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
 public class AuthenticatedUserUtil {
 
     /**
@@ -13,13 +15,11 @@ public class AuthenticatedUserUtil {
      */
     public static String getAuthenticationProviderFriendlyName(String authProviderId) {
         if (authProviderId == null) {
-            return BundleUtil.getStringFromBundle("authenticationProvider.name.null");
+            return getStringFromBundle("authenticationProvider.name.null");
+        } else {
+            final String friendlyName = getStringFromBundle(
+                    "authenticationProvider.name.".concat(authProviderId));
+            return friendlyName.isEmpty() ? authProviderId : friendlyName;
         }
-
-        String friendlyName = BundleUtil.getStringFromBundle("authenticationProvider.name." + authProviderId);
-        if (friendlyName.isEmpty()) {
-            return authProviderId;
-        }
-        return friendlyName;
     }
 }

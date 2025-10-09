@@ -16,6 +16,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 /**
  * @author Naomi
  */
+@SuppressWarnings("serial")
 // No permission needed to view published dvObjects
 @RequiredPermissions({})
 public class GetSpecificPublishedDatasetVersionCommand extends AbstractCommand<DatasetVersion> {
@@ -23,7 +24,8 @@ public class GetSpecificPublishedDatasetVersionCommand extends AbstractCommand<D
     private final long majorVersion;
     private final long minorVersion;
 
-    public GetSpecificPublishedDatasetVersionCommand(DataverseRequest aRequest, Dataset anAffectedDataset, long majorVersionNum, long minorVersionNum) {
+    public GetSpecificPublishedDatasetVersionCommand(DataverseRequest aRequest, 
+            Dataset anAffectedDataset, long majorVersionNum, long minorVersionNum) {
         super(aRequest, anAffectedDataset);
         ds = anAffectedDataset;
         majorVersion = majorVersionNum;
@@ -34,7 +36,8 @@ public class GetSpecificPublishedDatasetVersionCommand extends AbstractCommand<D
     public DatasetVersion execute(CommandContext ctxt) {
         for (DatasetVersion dsv : ds.getVersions()) {
             if (dsv.isReleased()) {
-                if (dsv.getVersionNumber().equals(majorVersion) && dsv.getMinorVersionNumber().equals(minorVersion)) {
+                if (dsv.getVersionNumber().equals(majorVersion) 
+                        && dsv.getMinorVersionNumber().equals(minorVersion)) {
                     return dsv;
                 }
             }

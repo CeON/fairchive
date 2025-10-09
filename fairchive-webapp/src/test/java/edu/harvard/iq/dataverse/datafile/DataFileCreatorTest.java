@@ -10,7 +10,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import edu.harvard.iq.dataverse.util.JhoveConfigurationInitializer;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
@@ -24,14 +23,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.inject.Inject;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;

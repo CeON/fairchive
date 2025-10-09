@@ -4,7 +4,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_NO_PRIMARY_SOURCE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_WITH_PRIMARY_SOURCE;
-import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.ARCHIVED;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DEACCESSIONED;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DRAFT;
@@ -414,7 +413,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
      * @return if the dataset is being reviewed
      */
     public boolean isInReview() {
-        return DRAFT.equals(versionState) && dataset.isLockedFor(InReview);
+        return DRAFT.equals(versionState) && dataset.isInReview();
     }
     
     public boolean hasSameTermsOfUseForAllFiles() {

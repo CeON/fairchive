@@ -59,10 +59,10 @@ class SendNewsletterEmailAction implements Action{
                 .append("\n\n")
                 .append("First name: ")
                 .append(actionContent.getRecipientFirstName())
-                .append("\n")
+                .append('\n')
                 .append("Last name: ")
                 .append(actionContent.getRecipientLastName())
-                .append("\n")
+                .append('\n')
                 .append("E-mail: ")
                 .append(actionContent.getRecipientEmail())
                 .toString();

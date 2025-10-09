@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * Class responsible for holding field value represented as Date String.
  */
+@SuppressWarnings("serial")
 public class DateSearchField extends SearchField {
 
     private String lowerLimit;

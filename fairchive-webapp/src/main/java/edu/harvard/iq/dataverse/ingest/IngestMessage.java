@@ -29,6 +29,7 @@ import java.util.List;
  *
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class IngestMessage implements Serializable {
     public static final int INGEST_MESAGE_LEVEL_ERROR = 1;
     public static final int INGEST_MESAGE_LEVEL_INFO = 2;

@@ -55,11 +55,11 @@ public class DataciteHarvesterParamsTest {
         assertThat(params).isInstanceOf(DataciteHarvesterParams.class);
     }
 
-    private Class<HarvesterParams> getParams() {
+    private Class<? extends HarvesterParams> getParams() {
         return getSpecific();
     }
 
-    private <T extends HarvesterParams> Class<T> getSpecific() {
-        return (Class<T>) DataciteHarvesterParams.class;
+    private Class<? extends HarvesterParams> getSpecific() {
+        return DataciteHarvesterParams.class;
     }
 }

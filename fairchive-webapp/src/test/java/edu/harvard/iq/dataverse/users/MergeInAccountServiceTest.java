@@ -96,7 +96,8 @@ public class MergeInAccountServiceTest {
         // given
         AuthenticatedUser user = MocksFactory.makeAuthenticatedUser("Jurek","Kiler");
         user.setSuperuser(true);
-        Mockito.when(authenticationService.getAuthenticatedUser(anyString())).thenReturn(new AuthenticatedUser(), null);
+        Mockito.when(authenticationService.getAuthenticatedUser(anyString())).
+            thenReturn(new AuthenticatedUser(), (AuthenticatedUser)null);
 
         // when
         Exception exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {

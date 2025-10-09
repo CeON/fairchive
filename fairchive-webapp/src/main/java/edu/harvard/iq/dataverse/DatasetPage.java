@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.valueOf;
 import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -447,6 +448,55 @@ public class DatasetPage implements Serializable {
         return !this.workingVersion.isDeaccessioned()
                 || (this.workingVersion.isDeaccessioned() && canUpdateDataset());
     }
+    
+    public boolean displayShareLink() {
+        return !this.workingVersion.isDeaccessioned() && ! isViewedFromPrivateUrl();
+    }
+    
+    public boolean displayPublishSubmitButtonGroup() {
+        return this.workingVersion == this.dataset.getLatestVersion() && canPublishDataset()
+                || (this.dataset.getLatestVersion().isDraft() && canUpdateDataset()
+                            && !canPublishDataset());
+    }
+    
+    public boolean displaySubmitForReviewButton() {
+        return this.workingVersion == this.dataset.getLatestVersion()
+                && !isDatasetLockedInWorkflow()
+                && this.dataset.getLatestVersion().isDraft()
+                && canUpdateDataset()
+                && !canPublishDataset();
+    }
+    
+    public boolean displayReturnToAuthorButton() {
+        return this.dataset.getLatestVersion().isDraft() 
+                && this.dataset.getLatestVersion().isInReview()
+                && canPublishDataset();
+    }
+    
+    public boolean displaySetEmbargoButton() {
+        return isUserAbleToSetOrUpdateEmbargo() || isUserAbleToLiftEmbargo();
+    }
+    
+    public boolean displayDeleteDatasetEntry() {
+        return this.dataset.canBeDeleted() && canDeleteDataset();
+    }
+    
+    public boolean displayDeleteVersionEntry() {
+        return this.dataset.isReleased() 
+                && this.dataset.getLatestVersion().isDraft()
+                && canDeleteDataset();
+    }
+    
+    public boolean displayDeaccessionDatasetEntry() {
+        return this.dataset.isReleased() 
+                && isExistReleasedVersion() 
+                && canPublishDataset();
+    }
+    
+    public boolean displayMetricsBlock() {
+        return !(this.settingsWrapper.isRsyncDownload() 
+                || this.workingVersion.isDeaccessioned());
+    }
 
     public Dataset getDataset() {
         return dataset;
@@ -740,8 +790,9 @@ public class DatasetPage implements Serializable {
         return dataset.isIdentifierRegistered();
     }
 
-    public boolean isLockedBy(String reason) {
-        return dataset.isLocked() && canUpdateDataset() && dataset.isLockedFor(reason);
+    public boolean isLockedBy(final String reason) {
+        return dataset.isLocked() && canUpdateDataset() && 
+                dataset.isLockedFor(valueOf(reason));
     }
 
     public String releaseDraft() {

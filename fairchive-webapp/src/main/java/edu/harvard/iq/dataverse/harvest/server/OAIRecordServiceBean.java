@@ -27,6 +27,7 @@ import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
  * DVN 3*, by Gustavo Durand.
  */
 
+@SuppressWarnings("serial")
 @Stateless
 public class OAIRecordServiceBean implements java.io.Serializable {
     private static final Logger logger = Logger.getLogger(OAIRecordServiceBean.class.getCanonicalName());
@@ -41,7 +42,8 @@ public class OAIRecordServiceBean implements java.io.Serializable {
     public OAIRecordServiceBean() { }
 
     @Inject
-    public OAIRecordServiceBean(DatasetRepository datasetRepository, OAIRecordRepository oaiRecordRepository) {
+    public OAIRecordServiceBean(DatasetRepository datasetRepository, 
+            OAIRecordRepository oaiRecordRepository) {
         this.datasetRepository = datasetRepository;
         this.oaiRecordRepository = oaiRecordRepository;
     }
@@ -49,7 +51,8 @@ public class OAIRecordServiceBean implements java.io.Serializable {
     // -------------------- LOGIC --------------------
 
     @TransactionAttribute(REQUIRES_NEW)
-    public void updateOaiRecords(String setName, List<Long> datasetIds, Logger setUpdateLogger) {
+    public void updateOaiRecords(String setName, List<Long> datasetIds, 
+            Logger setUpdateLogger) {
 
         // create Map of OaiRecords
         Map<String, OAIRecord> recordMap = oaiRecordRepository.findBySetName(setName)
@@ -69,7 +72,7 @@ public class OAIRecordServiceBean implements java.io.Serializable {
 
             datasetWithReleasedVersion.ifPresent(dataset -> {
                     setUpdateLogger.fine("found published dataset.");
-                    OAIRecord record = recordMap.remove(dataset.getGlobalIdString());
+                    OAIRecord record = recordMap.remove(dataset.getGlobalId().toString());
 
                     if (record == null) {
                         createOaiRecordForDataset(dataset, setName, setUpdateLogger);
@@ -111,9 +114,11 @@ public class OAIRecordServiceBean implements java.io.Serializable {
 
     // -------------------- PRIVATE --------------------
 
-    private OAIRecord createOaiRecordForDataset(Dataset dataset, String setName, Logger setUpdateLogger) {
-        setUpdateLogger.info("creating a new OAI Record for " + dataset.getGlobalIdString());
-        OAIRecord record = new OAIRecord(setName, dataset.getGlobalIdString(), Date.from(Instant.now(systemClock)));
+    private OAIRecord createOaiRecordForDataset(Dataset dataset, String setName, 
+            Logger setUpdateLogger) {
+        setUpdateLogger.info("creating a new OAI Record for " + dataset.getGlobalId());
+        OAIRecord record = new OAIRecord(setName, dataset.getGlobalId().toString(), 
+                Date.from(Instant.now(systemClock)));
         return oaiRecordRepository.save(record);
     }
 
@@ -121,9 +126,10 @@ public class OAIRecordServiceBean implements java.io.Serializable {
      * This method updates - /refreshes/un-marks-as-deleted - one OAI
      * record at a time.
      */
-    private void updateOaiRecordForDataset(Dataset dataset, OAIRecord record, Logger setUpdateLogger) {
+    private void updateOaiRecordForDataset(Dataset dataset, OAIRecord record, 
+            Logger setUpdateLogger) {
         if (record.isRemoved()) {
-            setUpdateLogger.info("\"un-deleting\" an existing OAI Record for " + dataset.getGlobalIdString());
+            setUpdateLogger.info("\"un-deleting\" an existing OAI Record for " + dataset.getGlobalId());
             record.setRemoved(false);
             record.setLastUpdateTime(Date.from(Instant.now(systemClock)));
         } else if (isDatasetUpdated(dataset, record)) {
@@ -132,16 +138,19 @@ public class OAIRecordServiceBean implements java.io.Serializable {
         }
     }
 
-    private void markOaiRecordsAsRemoved(Collection<OAIRecord> records, Logger setUpdateLogger) {
+    private void markOaiRecordsAsRemoved(Collection<OAIRecord> records, 
+            Logger setUpdateLogger) {
         Date updateTime = Date.from(Instant.now(systemClock));
 
         for (OAIRecord oaiRecord : records) {
             if (!oaiRecord.isRemoved()) {
-                setUpdateLogger.fine("marking OAI record " + oaiRecord.getGlobalId() + " as removed");
+                setUpdateLogger.fine("marking OAI record " 
+                            + oaiRecord.getGlobalId() + " as removed");
                 oaiRecord.setRemoved(true);
                 oaiRecord.setLastUpdateTime(updateTime);
             } else {
-                setUpdateLogger.fine("OAI record " + oaiRecord.getGlobalId() + " is already marked as removed.");
+                setUpdateLogger.fine("OAI record " + oaiRecord.getGlobalId() 
+                    + " is already marked as removed.");
             }
         }
     }
@@ -153,7 +162,9 @@ public class OAIRecordServiceBean implements java.io.Serializable {
                 .map(modificationTime -> modificationTime.after(record.getLastUpdateTime()))
                 .getOrElse(false);
 
-        return publishTime.after(record.getLastUpdateTime()) || isLastModificationTimeAfterOaiTime || hasEmbargoExpiredSinceLastOaiTime(dataset, record);
+        return publishTime.after(record.getLastUpdateTime()) 
+                || isLastModificationTimeAfterOaiTime 
+                || hasEmbargoExpiredSinceLastOaiTime(dataset, record);
     }
 
     /**
@@ -162,7 +173,8 @@ public class OAIRecordServiceBean implements java.io.Serializable {
      * that {@value dataset} metadata changed.
      * @return true if embargo expired between last time the check was run and this run
      */
-    private boolean hasEmbargoExpiredSinceLastOaiTime(Dataset dataset, OAIRecord record) {
+    private boolean hasEmbargoExpiredSinceLastOaiTime(Dataset dataset, 
+            OAIRecord record) {
         return dataset.getEmbargoDate()
                     .map(embargoDate -> embargoDate.after(record.getLastUpdateTime()) && embargoDate.before(Date.from(Instant.now(systemClock))))
                     .getOrElse(false);

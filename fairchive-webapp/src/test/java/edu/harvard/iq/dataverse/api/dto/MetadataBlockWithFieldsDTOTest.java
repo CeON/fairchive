@@ -139,6 +139,7 @@ class MetadataBlockWithFieldsDTOTest {
         assertThat(block.getFields())
                 .extracting(DatasetFieldDTO::getTypeName)
                 .containsExactly("emailAndFieldContainer");
+        @SuppressWarnings("unchecked")
         List<Map<String, DatasetFieldDTO>> values = (List<Map<String, DatasetFieldDTO>>) block.getFields().get(0).getValue();
         assertThat(values.get(0))
                 .hasSize(1)
@@ -154,8 +155,8 @@ class MetadataBlockWithFieldsDTOTest {
         }
         return result;
     }
-
-    private <T> List<T> list(T... values) {
+    @SafeVarargs
+    private static <T> List<T> list( T... values) {
         List<T> result = new ArrayList<>();
         Collections.addAll(result, values);
         return result;

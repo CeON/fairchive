@@ -7,6 +7,7 @@ import javax.ejb.EJB;
 import javax.inject.Named;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class InstallationConfig implements Serializable {

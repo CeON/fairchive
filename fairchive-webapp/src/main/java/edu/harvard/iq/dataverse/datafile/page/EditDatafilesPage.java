@@ -56,7 +56,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.PrimeFaces;
@@ -171,6 +170,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private String versionString = "";
 
     private long currentBatchSize = 0L;
+    private boolean ignoringMaxUploadLimit = false;
 
     private boolean saveEnabled = false;
 
@@ -263,6 +263,10 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     // -------------------- GETTERS --------------------
 
+    public boolean isIgnoringMaxUploadLimit() {
+        return this.ignoringMaxUploadLimit;
+    }
+    
     public String getSelectedFileIds() {
         return this.selectedFileIdsString;
     }
@@ -469,7 +473,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(this.dataset)) {
             return this.permissionsWrapper.notAuthorized();
         }
-        if (this.datasetDao.isInReview(this.dataset) && 
+        if (this.dataset.isInReview() && 
                 !this.permissionsWrapper.canUpdateAndPublishDataset(this.dataset)) {
             return this.permissionsWrapper.notAuthorized();
         }
@@ -593,7 +597,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     public String save() {
-        return performSave.execute().getOrElse(StringUtils.EMPTY);
+        return performSave.execute().getOrElse(EMPTY);
     }
 
     private String performSave() {
@@ -931,58 +935,65 @@ public class EditDatafilesPage implements java.io.Serializable {
     public Long getMaxBatchSize() {
         return this.settings.getValueForKeyAsLong(Key.SingleUploadBatchMaxSize);
     }
+    
+    private boolean sizeExceedsLimit(final long fileSize) {
+        if (isSuperuserLoggedIn() && this.ignoringMaxUploadLimit) {
+            return false;
+        } else {
+            return getMaxBatchSize() > 0
+                    && (this.currentBatchSize + fileSize) > getMaxBatchSize();
+        }
+    }
 
     /**
      * Handle native file replace
      */
     public void handleFileUpload(final FileUploadEvent event) throws IOException {
-        if (!this.uploadInProgress) {
-            this.uploadInProgress = true;
-        }
-
         final UploadedFile uploadedFile = event.getFile();
+        final long fileSize = uploadedFile.getSize();
 
-        long fileSize = uploadedFile.getSize();
-        if (getMaxBatchSize() > 0 && (this.currentBatchSize + fileSize) > getMaxBatchSize()) {
+        if (sizeExceedsLimit(fileSize)) {
             this.uploadWarningMessage = getUploadBatchTooBigMessage();
             this.uploadComponentId = event.getComponent().getClientId();
-            return;
-        }
-        this.currentBatchSize += fileSize;
+        } else {
+            this.uploadInProgress = true;
+            this.currentBatchSize += fileSize;
 
-        List<DataFile> dFileList;
+            try (final InputStream inputStream = uploadedFile.getInputStream()) {
+                // Note: A single uploaded file may produce multiple datafiles -
+                // for example, multiple files can be extracted from an uncompressed
+                // zip file.
+                final List<DataFile> files = this.dataFileCreator.createDataFiles(
+                        inputStream, uploadedFile.getFileName(), 
+                        uploadedFile.getContentType(), this.ignoringMaxUploadLimit);
+                this.dataFileUploadInfo.addSizeAndDataFiles(fileSize, files);
 
-        try (final InputStream inputStream = uploadedFile.getInputStream()) {
-            // Note: A single uploaded file may produce multiple datafiles -
-            // for example, multiple files can be extracted from an uncompressed
-            // zip file.
-            dFileList = this.dataFileCreator.createDataFiles(inputStream, 
-                    uploadedFile.getFileName(), uploadedFile.getContentType());
-            this.dataFileUploadInfo.addSizeAndDataFiles(fileSize, dFileList);
-        } catch (final EJBException | IOException | FileExceedsMaxSizeException ex) {
-            logger.warning("Failed to process and/or save the file " + 
+                // These raw datafiles are then post-processed, in order to drop any
+                // files
+                // already in the dataset/already uploaded, and to correct duplicate
+                // file names, etc.
+                final String warningMessage = processUploadedFileList(files);
+
+                if (warningMessage != null) {
+                    this.uploadWarningMessage = warningMessage;
+                    // save the component id of the p:upload widget, so that we could
+                    // send an info message there, from elsewhere in the code:
+                    this.uploadComponentId = event.getComponent().getClientId();
+                }
+                if (!this.uploadInProgress) {
+                    logger.warning("Upload in progress cancelled");
+                    files.forEach(this::deleteTempFile);
+                }
+            } catch (final EJBException | IOException
+                    | FileExceedsMaxSizeException ex) {
+                logger.warning("Failed to process and/or save the file " +
                         uploadedFile.getFileName() + "; " + ex.getMessage());
-            return;
-        } catch (final VirusFoundException e) {
-            this.uploadWarningMessage = getStringFromBundle("dataset.file.uploadScannerWarning");
-            this.uploadComponentId = event.getComponent().getClientId();
-            return;
-        }
-
-        // These raw datafiles are then post-processed, in order to drop any files
-        // already in the dataset/already uploaded, and to correct duplicate file names, etc.
-        final String warningMessage = processUploadedFileList(dFileList);
-
-        if (warningMessage != null) {
-            this.uploadWarningMessage = warningMessage;
-            // save the component id of the p:upload widget, so that we could
-            // send an info message there, from elsewhere in the code:
-            this.uploadComponentId = event.getComponent().getClientId();
-        }
-        if (!this.uploadInProgress) {
-            logger.warning("Upload in progress cancelled");
-            for (final DataFile newFile : dFileList) {
-                deleteTempFile(newFile);
+                this.uploadWarningMessage = getUploadBatchTooBigMessage();
+                this.uploadComponentId = event.getComponent().getClientId();
+            } catch (final VirusFoundException e) {
+                this.uploadWarningMessage = getStringFromBundle(
+                        "dataset.file.uploadScannerWarning");
+                this.uploadComponentId = event.getComponent().getClientId();
             }
         }
     }
@@ -1020,7 +1031,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                 this.temporaryThumbnailsMap.put(fileSystemId, previewAsBase64);
                 return true;
             } else {
-                this.temporaryThumbnailsMap.put(fileSystemId, "");
+                this.temporaryThumbnailsMap.put(fileSystemId, EMPTY);
             }
         }
         return false;
@@ -1029,6 +1040,11 @@ public class EditDatafilesPage implements java.io.Serializable {
     public String getTemporaryPreviewAsBase64(final String fileSystemId) {
         return this.temporaryThumbnailsMap.get(fileSystemId);
     }
+    
+    public boolean isSuperuserLoggedIn() {
+        return this.session.isSuperUserLoggedIn();
+    }
+    
 
     public boolean isLocked() {
         if (this.dataset != null) {
@@ -1349,7 +1365,7 @@ public class EditDatafilesPage implements java.io.Serializable {
             if (generatedTempFiles != null) {
                 for (final Path generated : generatedTempFiles) {
                     logger.fine("(Deleting generated thumbnail file " 
-                                + generated.toString() + ")");
+                                + generated.toString() + ')');
                     try {
                         Files.delete(generated);
                     } catch (final IOException ioex) {
@@ -1359,11 +1375,11 @@ public class EditDatafilesPage implements java.io.Serializable {
                 }
             }
             Files.delete(Paths.get(FileUtil.getFilesTempDirectory() 
-                    + "/" + dataFile.getStorageIdentifier()));
+                    + File.separatorChar + dataFile.getStorageIdentifier()));
         } catch (final IOException ioe) {
             // safe to ignore - it's just a temp file.
             logger.warning("Failed to delete temporary file " 
-                    + FileUtil.getFilesTempDirectory() + "/"
+                    + FileUtil.getFilesTempDirectory() + File.separatorChar
                     + dataFile.getStorageIdentifier());
         }
     }
@@ -1398,8 +1414,8 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     private String returnToDraftVersion() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId().asString() 
-                + "&version=DRAFT&faces-redirect=true";
+        return "/dataset.xhtml?version=DRAFT&faces-redirect=true&persistentId=".
+                concat(dataset.getGlobalId().asString());
     }
 
     /** Download a file from drop box */
@@ -1530,6 +1546,10 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     // -------------------- SETTERS --------------------
 
+    public void setIgnoringMaxUploadLimit(final boolean value) {
+        this.ignoringMaxUploadLimit = value;
+    }
+    
     public void setFileMetadatas(final List<FileMetadata> etadatas) {
         this.fileMetadatas = etadatas;
     }

@@ -21,7 +21,6 @@ import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
@@ -110,8 +109,6 @@ public class RestrictedInterceptor {
     }
 
     private List<MissingPermissions> checkPermissions(Set<RestrictedObject> restrictedObjects, DataverseRequest request) {
-        List<MissingPermissions> missingPermissions = new ArrayList<>();
-
         return restrictedObjects.stream()
                 .flatMap(r -> r.objects.stream()
                         .map(d -> new DvObjectWithUserPermissions(d, r, fetchGrantedPermissions(d, request))))
@@ -150,19 +147,14 @@ public class RestrictedInterceptor {
     private static class MissingPermissions {
         public final DvObject dvObject;
         public final String dvObjectName;
-        public final Set<Permission> required;
         public final Set<Permission> missing;
 
         public MissingPermissions(DvObjectWithUserPermissions source) {
             this.dvObject = source.dvObject;
             this.dvObjectName = extractSafelyObjectName(source.dvObject);
-            this.required = source.required;
             this.missing = SetUtils.difference(source.required, source.granted);
         }
 
-        public Set<Permission> getMissing() {
-            return missing;
-        }
 
         @Override
         public String toString() {

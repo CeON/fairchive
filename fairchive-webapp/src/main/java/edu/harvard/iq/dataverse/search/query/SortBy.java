@@ -29,25 +29,19 @@ public class SortBy {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.field);
-        hash = 97 * hash + Objects.hashCode(this.order);
-        return hash;
+        return Objects.hash(field, order);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (this == obj)
             return true;
-        }
-        if (obj == null) {
+        if (obj == null)
             return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass())
             return false;
-        }
-        final SortBy other = (SortBy) obj;
-        return true;
+        SortBy other = (SortBy) obj;
+        return Objects.equals(this.field, other.field) && this.order == other.order;
     }
 
 }

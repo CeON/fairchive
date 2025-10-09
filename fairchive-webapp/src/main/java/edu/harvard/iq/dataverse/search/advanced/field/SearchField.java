@@ -11,6 +11,7 @@ import edu.harvard.iq.dataverse.search.advanced.SearchFieldType;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
 import io.vavr.control.Option;
 
+@SuppressWarnings("serial")
 public abstract class SearchField implements Serializable, ValidatableField {
     public static final SearchField EMPTY = new SearchField(null, null, null, null) {
         @Override public List<String> getValidatableValues() {

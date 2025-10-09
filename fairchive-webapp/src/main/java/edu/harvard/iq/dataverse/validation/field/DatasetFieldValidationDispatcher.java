@@ -8,7 +8,11 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
-import org.apache.commons.lang3.StringUtils;
+
+import static edu.harvard.iq.dataverse.validation.field.FieldValidationResult.invalid;
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.groupingBy;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -20,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class DatasetFieldValidationDispatcher {
     private ObjectMapper objectMapper = new ObjectMapper();
-    private Map<String, List<DatasetField>> fieldIndex = Collections.emptyMap();
+    private Map<String, List<DatasetField>> fieldIndex = emptyMap();
     private Map<String, List<ValidationDescriptor>> descriptorsCache = new HashMap<>();
 
     private FieldValidatorRegistry registry;
@@ -28,21 +32,22 @@ public class DatasetFieldValidationDispatcher {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    DatasetFieldValidationDispatcher(FieldValidatorRegistry registry, InputFieldRendererManager inputFieldRendererManager) {
+    DatasetFieldValidationDispatcher(final FieldValidatorRegistry registry, 
+            final InputFieldRendererManager inputFieldRendererManager) {
         this.registry = registry;
         this.inputFieldRendererManager = inputFieldRendererManager;
     }
 
     // -------------------- LOGIC --------------------
 
-    DatasetFieldValidationDispatcher init(List<DatasetField> parentAndChildrenFields) {
-        fieldIndex = parentAndChildrenFields.stream()
-                .collect(Collectors.groupingBy(DatasetField::getTypeName));
+    DatasetFieldValidationDispatcher init(final List<DatasetField> parentAndChildrenFields) {
+        this.fieldIndex = parentAndChildrenFields.stream()
+                .collect(groupingBy(DatasetField::getTypeName));
         return this;
     }
 
     public List<FieldValidationResult> executeValidations() {
-        return fieldIndex.values().stream()
+        return this.fieldIndex.values().stream()
                 .flatMap(Collection::stream)
                 .filter(this::isNotTemplateField)
                 .map(this::validateField)
@@ -58,20 +63,25 @@ public class DatasetFieldValidationDispatcher {
 
     private FieldValidationResult validateField(DatasetField field) {
         DatasetFieldType fieldType = field.getDatasetFieldType();
-        if (StringUtils.isBlank(field.getValue()) && fieldType.isPrimitive() && isRequiredInDataverse(field)) {
-            return FieldValidationResult.invalid(field, "isrequired", fieldType.getDisplayName());
+        if (isBlank(field.getValue()) && fieldType.isPrimitive() 
+                && isRequiredInDataverse(field)) {
+            return invalid(field, "isrequired", fieldType.getDisplayName());
         }
-        boolean effectivelyEmptyValue = StringUtils.isBlank(field.getValue())
+        final boolean effectivelyEmptyValue = isBlank(field.getValue())
                 || DatasetField.NA_VALUE.equals(field.getValue());
-        for (ValidationDescriptor descriptor : retrieveDescriptors(field)) {
-            Map<String, Object> parameters = descriptor.getParameters();
-            @SuppressWarnings("unchecked") List<String> contexts = (List<String>) parameters.get(ValidationDescriptor.CONTEXT_PARAM);
-            boolean properContext = contexts == null || contexts.contains(ValidationDescriptor.DATASET_CONTEXT);
-            if (!properContext || (effectivelyEmptyValue && !parameters.containsKey(ValidationDescriptor.RUN_ON_EMPTY_PARAM))) {
+        for (final ValidationDescriptor descriptor : retrieveDescriptors(field)) {
+            final Map<String, Object> parameters = descriptor.getParameters();
+            @SuppressWarnings("unchecked") final List<String> contexts = 
+                    (List<String>) parameters.get(ValidationDescriptor.CONTEXT_PARAM);
+            final boolean properContext = contexts == null 
+                    || contexts.contains(ValidationDescriptor.DATASET_CONTEXT);
+            if (!properContext || 
+                    (effectivelyEmptyValue 
+                            && !parameters.containsKey(ValidationDescriptor.RUN_ON_EMPTY_PARAM))) {
                 continue;
             }
-            FieldValidator validator = registry.getOrThrow(descriptor.getName());
-            FieldValidationResult result = validator.validate(field, parameters, fieldIndex);
+            final FieldValidator validator = registry.getOrThrow(descriptor.getName());
+            final FieldValidationResult result = validator.validate(field, parameters, fieldIndex);
             if (!result.isOk()) {
                 return result;
             }
@@ -79,17 +89,17 @@ public class DatasetFieldValidationDispatcher {
         return FieldValidationResult.ok();
     }
 
-    private boolean isRequiredInDataverse(DatasetField field) {
-        DatasetFieldType fieldType = field.getDatasetFieldType();
+    private  boolean isRequiredInDataverse(final DatasetField field) {
+        final DatasetFieldType fieldType = field.getDatasetFieldType();
         if (fieldType.isRequired()) {
             return isFieldRendered(field);
         }
 
-        Dataverse dataverse = field.getTopParentDatasetField()
+        final Dataverse dataverse = field.getTopParentDatasetField()
                 .getDatasetVersion()
                 .getDataset()
                 .getOwner().getMetadataBlockRootDataverse();
-        boolean inputLevelRequired =  dataverse.getDataverseFieldTypeInputLevels().stream()
+        final boolean inputLevelRequired =  dataverse.getDataverseFieldTypeInputLevels().stream()
                 .filter(inputLevel -> inputLevel.getDatasetFieldType().equals(field.getDatasetFieldType()))
                 .map(DataverseFieldTypeInputLevel::isRequired)
                 .findFirst()
@@ -99,10 +109,11 @@ public class DatasetFieldValidationDispatcher {
     }
 
     private boolean isFieldRendered(DatasetField field) {
-        InputFieldRenderer renderer = this.inputFieldRendererManager.obtainRenderer(field.getDatasetFieldType());
+        final InputFieldRenderer renderer = this.inputFieldRendererManager.
+                obtainRenderer(field.getDatasetFieldType());
         if (renderer != null && renderer.getConditionalRendering().isDefined()) {
-            ConditionalRendering conditionalRendering = renderer.getConditionalRendering().get();
-            List<DatasetField> subfields = field.getParent()
+            final ConditionalRendering conditionalRendering = renderer.getConditionalRendering().get();
+            final List<DatasetField> subfields = field.getParent()
                     .map(DatasetField::getDatasetFieldsChildren)
                     .getOrElse(Collections.emptyList());
             return conditionalRendering.shouldRender(subfields);
@@ -112,18 +123,19 @@ public class DatasetFieldValidationDispatcher {
         return true;
     }
 
-    private List<ValidationDescriptor> retrieveDescriptors(DatasetField field) {
-        String configJson = field.getDatasetFieldType().getValidation();
-        List<ValidationDescriptor> existing = descriptorsCache.get(configJson);
+    private List<ValidationDescriptor> retrieveDescriptors(final DatasetField field) {
+        final String configJson = field.getDatasetFieldType().getValidation();
+        final List<ValidationDescriptor> existing = descriptorsCache.get(configJson);
         if (existing != null) {
             return existing;
         }
         try {
-            List<ValidationDescriptor> descriptors = objectMapper.readValue(configJson,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, ValidationDescriptor.class));
+            final List<ValidationDescriptor> descriptors = objectMapper.readValue(configJson,
+                    objectMapper.getTypeFactory().
+                    constructCollectionType(List.class, ValidationDescriptor.class));
             descriptorsCache.put(configJson, descriptors);
             return descriptors;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }

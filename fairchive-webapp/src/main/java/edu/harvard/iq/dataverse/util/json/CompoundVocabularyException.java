@@ -15,6 +15,7 @@ import java.util.List;
  *
  * @author ellenk
  */
+@SuppressWarnings("serial")
 public class CompoundVocabularyException extends JsonParseException {
     private String message;
     private List<ControlledVocabularyException> exList = new ArrayList<>();

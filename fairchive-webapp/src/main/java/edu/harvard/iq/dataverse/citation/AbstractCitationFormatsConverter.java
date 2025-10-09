@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.citation;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.stream.XMLStreamException;

@@ -77,17 +77,17 @@ import java.util.Set;
  * user to set a preference order for service provider objects
  * supplied by a trusted vendor over those supplied by another.
  */
-class PartiallyOrderedSet extends AbstractSet {
+class PartiallyOrderedSet extends AbstractSet<Object> {
 
     // The topological sort (roughly) follows the algorithm described in
     // Horowitz and Sahni, _Fundamentals of Data Structures_ (1976),
     // p. 315.
 
     // Maps Objects to DigraphNodes that contain them
-    private Map poNodes = new HashMap();
+    private Map<Object, DigraphNode> poNodes = new HashMap<>();
 
     // The set of Objects
-    private Set nodes = poNodes.keySet();
+    private Set<Object> nodes = poNodes.keySet();
 
     /**
      * Constructs a <code>PartiallyOrderedSet</code>.
@@ -108,7 +108,7 @@ class PartiallyOrderedSet extends AbstractSet {
      * collection, with an ordering that respects the orderings set
      * by the <code>setOrdering</code> method.
      */
-    public Iterator iterator() {
+    public Iterator<Object> iterator() {
         return new PartialOrderIterator(poNodes.values().iterator());
     }
 
@@ -131,7 +131,7 @@ class PartiallyOrderedSet extends AbstractSet {
      * <code>PartiallyOrderedSet</code>.
      */
     public boolean remove(Object o) {
-        DigraphNode node = (DigraphNode) poNodes.get(o);
+        DigraphNode node = poNodes.get(o);
         if (node == null) {
             return false;
         }
@@ -155,10 +155,8 @@ class PartiallyOrderedSet extends AbstractSet {
      * between the nodes, <code>false</code>otherwise.
      */
     public boolean setOrdering(Object first, Object second) {
-        DigraphNode firstPONode =
-                (DigraphNode) poNodes.get(first);
-        DigraphNode secondPONode =
-                (DigraphNode) poNodes.get(second);
+        DigraphNode firstPONode = poNodes.get(first);
+        DigraphNode secondPONode = poNodes.get(second);
 
         secondPONode.removeEdge(firstPONode);
         return firstPONode.addEdge(secondPONode);
@@ -170,10 +168,8 @@ class PartiallyOrderedSet extends AbstractSet {
      * @return true if a prior prefence existed between the nodes.
      */
     public boolean unsetOrdering(Object first, Object second) {
-        DigraphNode firstPONode =
-                (DigraphNode) poNodes.get(first);
-        DigraphNode secondPONode =
-                (DigraphNode) poNodes.get(second);
+        DigraphNode firstPONode = poNodes.get(first);
+        DigraphNode secondPONode = poNodes.get(second);
 
         return firstPONode.removeEdge(secondPONode) ||
                 secondPONode.removeEdge(firstPONode);
@@ -184,24 +180,22 @@ class PartiallyOrderedSet extends AbstractSet {
      * nodes.
      */
     public boolean hasOrdering(Object preferred, Object other) {
-        DigraphNode preferredPONode =
-                (DigraphNode) poNodes.get(preferred);
-        DigraphNode otherPONode =
-                (DigraphNode) poNodes.get(other);
+        DigraphNode preferredPONode = poNodes.get(preferred);
+        DigraphNode otherPONode = poNodes.get(other);
 
         return preferredPONode.hasEdge(otherPONode);
     }
 }
 
-class PartialOrderIterator implements Iterator {
+class PartialOrderIterator implements Iterator<Object> {
 
-    LinkedList zeroList = new LinkedList();
-    Map inDegrees = new HashMap(); // DigraphNode -> Integer
+    LinkedList<DigraphNode> zeroList = new LinkedList<>();
+    Map<DigraphNode, Integer> inDegrees = new HashMap<>();
 
-    public PartialOrderIterator(Iterator iter) {
+    public PartialOrderIterator(Iterator<DigraphNode> iter) {
         // Initialize scratch in-degree values, zero list
         while (iter.hasNext()) {
-            DigraphNode node = (DigraphNode) iter.next();
+            DigraphNode node = iter.next();
             int inDegree = node.getInDegree();
             inDegrees.put(node, new Integer(inDegree));
 
@@ -220,9 +214,9 @@ class PartialOrderIterator implements Iterator {
         DigraphNode first = (DigraphNode) zeroList.removeFirst();
 
         // For each out node of the output node, decrement its in-degree
-        Iterator outNodes = first.getOutNodes();
+        Iterator<DigraphNode> outNodes = first.getOutNodes();
         while (outNodes.hasNext()) {
-            DigraphNode node = (DigraphNode) outNodes.next();
+            DigraphNode node = outNodes.next();
             int inDegree = ((Integer) inDegrees.get(node)).intValue() - 1;
             inDegrees.put(node, new Integer(inDegree));
 

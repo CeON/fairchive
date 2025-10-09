@@ -4,7 +4,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractVoidCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -18,12 +17,14 @@ import java.util.List;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public abstract class UpdateDataverseMetadataBlocksCommand extends AbstractVoidCommand {
 
     final Dataverse updatedDv;
 
-    public UpdateDataverseMetadataBlocksCommand(DataverseRequest aRequest, Dataverse anAffectedDataverse) {
+    public UpdateDataverseMetadataBlocksCommand(DataverseRequest aRequest, 
+            Dataverse anAffectedDataverse) {
         super(aRequest, anAffectedDataverse);
         updatedDv = anAffectedDataverse;
     }
@@ -33,7 +34,8 @@ public abstract class UpdateDataverseMetadataBlocksCommand extends AbstractVoidC
 
         private final boolean isRoot;
 
-        public SetRoot(DataverseRequest aRequest, Dataverse anAffectedDataverse, boolean shouldBeRoot) {
+        public SetRoot(DataverseRequest aRequest, Dataverse anAffectedDataverse, 
+                boolean shouldBeRoot) {
             super(aRequest, anAffectedDataverse);
             isRoot = shouldBeRoot;
         }
@@ -50,7 +52,8 @@ public abstract class UpdateDataverseMetadataBlocksCommand extends AbstractVoidC
 
         private final List<MetadataBlock> blocks;
 
-        public SetBlocks(DataverseRequest aRequest, Dataverse anAffectedDataverse, List<MetadataBlock> someBlocks) {
+        public SetBlocks(DataverseRequest aRequest, Dataverse anAffectedDataverse, 
+                List<MetadataBlock> someBlocks) {
             super(aRequest, anAffectedDataverse);
             blocks = someBlocks;
         }

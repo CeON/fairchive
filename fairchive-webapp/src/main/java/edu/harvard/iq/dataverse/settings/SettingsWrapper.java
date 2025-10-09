@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toMap;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class SettingsWrapper implements java.io.Serializable {

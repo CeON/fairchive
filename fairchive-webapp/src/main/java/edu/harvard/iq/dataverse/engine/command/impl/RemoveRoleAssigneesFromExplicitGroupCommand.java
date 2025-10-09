@@ -4,7 +4,6 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.group.ExplicitGroup;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
@@ -13,13 +12,15 @@ import java.util.Set;
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ManageDataversePermissions)
 public class RemoveRoleAssigneesFromExplicitGroupCommand extends AbstractCommand<ExplicitGroup> {
 
     private final Set<String> roleAssigneeIdentifiers;
     private final ExplicitGroup explicitGroup;
 
-    public RemoveRoleAssigneesFromExplicitGroupCommand(DataverseRequest aRequest, ExplicitGroup anExplicitGroup, Set<String> someRoleAssigneeIdentifiers) {
+    public RemoveRoleAssigneesFromExplicitGroupCommand(DataverseRequest aRequest, 
+            ExplicitGroup anExplicitGroup, Set<String> someRoleAssigneeIdentifiers) {
         super(aRequest, anExplicitGroup.getOwner());
         roleAssigneeIdentifiers = someRoleAssigneeIdentifiers;
         explicitGroup = anExplicitGroup;

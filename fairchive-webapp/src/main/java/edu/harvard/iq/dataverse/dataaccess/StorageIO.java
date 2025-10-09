@@ -27,7 +27,6 @@ import java.io.OutputStream;
 import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -255,27 +254,22 @@ public abstract class StorageIO<T extends DvObject> implements AutoCloseable {
         }
     }
 
-    protected String generateVariableHeader(List<DataVariable> dvs) {
-        String varHeader = null;
-
+    protected String generateVariableHeader(final List<DataVariable> dvs) {
         if (dvs != null) {
-            Iterator<DataVariable> iter = dvs.iterator();
-            DataVariable dv;
+            final StringBuilder result = new StringBuilder();
 
-            if (iter.hasNext()) {
-                dv = iter.next();
-                varHeader = dv.getName();
+            for (final DataVariable v : dvs) {
+                if (result.length() > 0) {
+                    result.append('\t');
+                }
+                result.append(v.getName());
             }
+            result.append('\n');
 
-            while (iter.hasNext()) {
-                dv = iter.next();
-                varHeader = varHeader + "\t" + dv.getName();
-            }
-
-            varHeader = varHeader + "\n";
+            return result.toString();
+        } else {
+            return null;
         }
-
-        return varHeader;
     }
 
     protected boolean isWriteAccessRequested(DataAccessOption... options) throws IOException {

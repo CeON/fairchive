@@ -33,6 +33,8 @@ import io.vavr.Tuple2;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -63,8 +65,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
-//import edu.harvard.iq.dataverse.datavariable.VariableFormatType;
-//import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
 
 
 /**
@@ -83,8 +83,6 @@ public class DTAFileReader extends TabularDataFileReader {
 
     private static final Logger logger = Logger.getLogger(DTAFileReader.class.getCanonicalName());
 
-    //@Inject
-    //VariableServiceBean varService;
     // static fields, STATA-specific constants, etc.
     // (should it all be isolated in some other class?)
 
@@ -1674,287 +1672,273 @@ public class DTAFileReader extends TabularDataFileReader {
         // save the temp tab-delimited file in the return ingest object:
         ingesteddata.setTabDelimitedFile(tabDelimitedDataFile);
 
-        FileOutputStream fileOutTab = new FileOutputStream(tabDelimitedDataFile);
-        PrintWriter pwout = new PrintWriter(new OutputStreamWriter(fileOutTab, StandardCharsets.UTF_8), true);
+        try(PrintWriter pwout = new PrintWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(tabDelimitedDataFile), UTF_8), true)) {
 
-        /* Should we lose this dateFormat thing in 4.0?
-         * the UNF should be calculatable on the app side solely from the data
-         * stored in the tab file and the type information stored the dataVariable
-         * object.
-         * furthermore, the very idea of storing a format entry not just for
-         * every variable, but for every value/observation is a bit strange.
-         * TODO: review and confirm that, in the 3.* implementation, every
-         * entry in dateFormat[nvar][*] is indeed the same - except for the
-         * missing value entries. -- L.A. 4.0
-          (OK, I got rid of the dateFormat; instead I kinda sorta assume
-          that the format is the same for every value in a column, save for
-          the missing values... like this:
-          dataTable.getDataVariables().get(columnCounter).setFormatSchemaName(ddt.format);
-          BUT, this needs to be reviewed/confirmed etc!
-         */
-        //String[][] dateFormat = new String[nvar][nobs];
-
-        for (int i = 0; i < nobs; i++) {
-            byte[] dataRowBytes = new byte[bytes_per_row];
-            Object[] dataRow = new Object[nvar];
-
-            int nbytes = stream.read(dataRowBytes, 0, bytes_per_row);
-
-            if (nbytes == 0) {
-                String errorMessage = "reading data: no data were read at("
-                        + i + "th row)";
-                throw new IOException(errorMessage);
-            }
-            // decoding each row
-            int byte_offset = 0;
-            for (int columnCounter = 0; columnCounter < variableTypes.length; columnCounter++) {
-                Integer varType
-                        = variableTypeMap.get(variableTypes[columnCounter]);
-                // 4.0 Check if this is a time/date variable:
-                boolean isDateTimeDatum = false;
-                String formatCategory = dataTable.getDataVariables().get(columnCounter).getFormatCategory();
-                if (formatCategory != null && (formatCategory.equals("time") || formatCategory.equals("date"))) {
-                    isDateTimeDatum = true;
+            /* Should we lose this dateFormat thing in 4.0?
+             * the UNF should be calculatable on the app side solely from the data
+             * stored in the tab file and the type information stored the dataVariable
+             * object.
+             * furthermore, the very idea of storing a format entry not just for
+             * every variable, but for every value/observation is a bit strange.
+             * TODO: review and confirm that, in the 3.* implementation, every
+             * entry in dateFormat[nvar][*] is indeed the same - except for the
+             * missing value entries. -- L.A. 4.0
+              (OK, I got rid of the dateFormat; instead I kinda sorta assume
+              that the format is the same for every value in a column, save for
+              the missing values... like this:
+              dataTable.getDataVariables().get(columnCounter).setFormatSchemaName(ddt.format);
+              BUT, this needs to be reviewed/confirmed etc!
+             */
+    
+            for (int i = 0; i < nobs; i++) {
+                byte[] dataRowBytes = new byte[bytes_per_row];
+                Object[] dataRow = new Object[nvar];
+    
+                int nbytes = stream.read(dataRowBytes, 0, bytes_per_row);
+    
+                if (nbytes == 0) {
+                    String errorMessage = "reading data: no data were read at("
+                            + i + "th row)";
+                    throw new IOException(errorMessage);
                 }
-
-                String variableFormat = dateVariableFormats[columnCounter];
-
-                switch (varType != null ? varType : 256) {
-                    case -5:
-                        // Byte case
-                        // note: 1 byte signed
-                        byte byte_datum = dataRowBytes[byte_offset];
-
-                        if (dbgLog.isLoggable(Level.FINER)) {
-                            dbgLog.finer(i + "-th row " + columnCounter
-                                                 + "=th column byte =" + byte_datum);
-                        }
-                        if (byte_datum >= BYTE_MISSING_VALUE) {
+                // decoding each row
+                int byte_offset = 0;
+                for (int columnCounter = 0; columnCounter < variableTypes.length; columnCounter++) {
+                    Integer varType
+                            = variableTypeMap.get(variableTypes[columnCounter]);
+                    // 4.0 Check if this is a time/date variable:
+                    boolean isDateTimeDatum = false;
+                    String formatCategory = dataTable.getDataVariables().get(columnCounter).getFormatCategory();
+                    if (formatCategory != null && (formatCategory.equals("time") || formatCategory.equals("date"))) {
+                        isDateTimeDatum = true;
+                    }
+    
+                    String variableFormat = dateVariableFormats[columnCounter];
+    
+                    switch (varType != null ? varType : 256) {
+                        case -5:
+                            // Byte case
+                            // note: 1 byte signed
+                            byte byte_datum = dataRowBytes[byte_offset];
+    
                             if (dbgLog.isLoggable(Level.FINER)) {
                                 dbgLog.finer(i + "-th row " + columnCounter
-                                                     + "=th column byte MV=" + byte_datum);
+                                                     + "=th column byte =" + byte_datum);
                             }
-                            dataRow[columnCounter] = MissingValueForTabDelimitedFile;
-                        } else {
-                            dataRow[columnCounter] = byte_datum;
-                        }
-                        byte_offset++;
-                        break;
-                    case -4:
-                        // Stata-int (=java's short: 2byte) case
-                        // note: 2-byte signed int, not java's int
-                        ByteBuffer int_buffer
-                                = ByteBuffer.wrap(dataRowBytes, byte_offset, 2);
-                        if (isLittleEndian) {
-                            int_buffer.order(ByteOrder.LITTLE_ENDIAN);
-
-                        }
-                        short short_datum = int_buffer.getShort();
-
-                        if (dbgLog.isLoggable(Level.FINER)) {
-                            dbgLog.finer(i + "-th row " + columnCounter
-                                                 + "=th column stata int =" + short_datum);
-                        }
-                        if (short_datum >= INT_MISSIG_VALUE) {
-                            if (dbgLog.isLoggable(Level.FINER)) {
-                                dbgLog.finer(i + "-th row " + columnCounter
-                                                     + "=th column stata long missing value=" + short_datum);
-                            }
-                            dataRow[columnCounter] = MissingValueForTabDelimitedFile;
-                        } else {
-                            if (isDateTimeDatum) {
-                                DecodedDateTime ddt = decodeDateTimeData("short", variableFormat, Short.toString(short_datum));
+                            if (byte_datum >= BYTE_MISSING_VALUE) {
                                 if (dbgLog.isLoggable(Level.FINER)) {
-                                    dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
+                                    dbgLog.finer(i + "-th row " + columnCounter
+                                                         + "=th column byte MV=" + byte_datum);
                                 }
-                                dataRow[columnCounter] = ddt.decodedDateTime;
-                                //dateFormat[columnCounter][i] = ddt.format;
-                                dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
+                                dataRow[columnCounter] = MissingValueForTabDelimitedFile;
                             } else {
-                                dataRow[columnCounter] = short_datum;
+                                dataRow[columnCounter] = byte_datum;
                             }
-                        }
-                        byte_offset += 2;
-                        break;
-                    case -3:
-                        // stata-Long (= java's int: 4 byte) case
-                        // note: 4-byte singed, not java's long
-                        //dbgLog.fine("DATreader: stata long");
-                        ByteBuffer long_buffer
-                                = ByteBuffer.wrap(dataRowBytes, byte_offset, 4);
-                        if (isLittleEndian) {
-                            long_buffer.order(ByteOrder.LITTLE_ENDIAN);
-
-                        }
-                        int int_datum = long_buffer.getInt();
-
-                        if (dbgLog.isLoggable(Level.FINE)) {
-                            //dbgLog.fine(i + "-th row " + columnCounter
-                            //        + "=th column stata long =" + int_datum);
-                        }
-                        if (int_datum >= LONG_MISSING_VALUE) {
-                            if (dbgLog.isLoggable(Level.FINE)) {
-                                //dbgLog.fine(i + "-th row " + columnCounter
-                                //        + "=th column stata long missing value=" + int_datum);
+                            byte_offset++;
+                            break;
+                        case -4:
+                            // Stata-int (=java's short: 2byte) case
+                            // note: 2-byte signed int, not java's int
+                            ByteBuffer int_buffer
+                                    = ByteBuffer.wrap(dataRowBytes, byte_offset, 2);
+                            if (isLittleEndian) {
+                                int_buffer.order(ByteOrder.LITTLE_ENDIAN);
+    
                             }
-                            dataRow[columnCounter] = MissingValueForTabDelimitedFile;
-                        } else {
-                            if (isDateTimeDatum) {
-                                DecodedDateTime ddt = decodeDateTimeData("int", variableFormat, Integer.toString(int_datum));
-                                if (dbgLog.isLoggable(Level.FINER)) {
-                                    dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
-                                }
-                                dataRow[columnCounter] = ddt.decodedDateTime;
-                                dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
-
-                            } else {
-                                dataRow[columnCounter] = int_datum;
-                            }
-
-                        }
-                        byte_offset += 4;
-                        break;
-                    case -2:
-                        // float case
-                        // note: 4-byte
-                        ByteBuffer float_buffer
-                                = ByteBuffer.wrap(dataRowBytes, byte_offset, 4);
-                        if (isLittleEndian) {
-                            float_buffer.order(ByteOrder.LITTLE_ENDIAN);
-                        }
-                        float float_datum = float_buffer.getFloat();
-
-                        if (dbgLog.isLoggable(Level.FINER)) {
-                            dbgLog.finer(i + "-th row " + columnCounter
-                                                 + "=th column float =" + float_datum);
-                        }
-                        if (FLOAT_MISSING_VALUE_SET.contains(float_datum)) {
+                            short short_datum = int_buffer.getShort();
+    
                             if (dbgLog.isLoggable(Level.FINER)) {
                                 dbgLog.finer(i + "-th row " + columnCounter
-                                                     + "=th column float missing value=" + float_datum);
+                                                     + "=th column stata int =" + short_datum);
                             }
-                            dataRow[columnCounter] = MissingValueForTabDelimitedFile;
-
-                        } else {
-
-                            if (isDateTimeDatum) {
-                                DecodedDateTime ddt = decodeDateTimeData("float", variableFormat, doubleNumberFormatter.format(float_datum));
+                            if (short_datum >= INT_MISSIG_VALUE) {
                                 if (dbgLog.isLoggable(Level.FINER)) {
-                                    dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
+                                    dbgLog.finer(i + "-th row " + columnCounter
+                                                         + "=th column stata long missing value=" + short_datum);
                                 }
-                                dataRow[columnCounter] = ddt.decodedDateTime;
-                                dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
+                                dataRow[columnCounter] = MissingValueForTabDelimitedFile;
                             } else {
-                                dataRow[columnCounter] = float_datum;
-                                // This may be temporary - but for now (as in, while I'm testing
-                                // 4.0 ingest against 3.* ingest, I need to be able to tell if a
-                                // floating point value was a single, or double float in the
-                                // original STATA file: -- L.A. Jul. 2014
-                                dataTable.getDataVariables().get(columnCounter).setFormat("float");
+                                if (isDateTimeDatum) {
+                                    DecodedDateTime ddt = decodeDateTimeData("short", variableFormat, Short.toString(short_datum));
+                                    if (dbgLog.isLoggable(Level.FINER)) {
+                                        dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
+                                    }
+                                    dataRow[columnCounter] = ddt.decodedDateTime;
+                                    dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
+                                } else {
+                                    dataRow[columnCounter] = short_datum;
+                                }
                             }
-                        }
-                        byte_offset += 4;
-                        break;
-                    case -1:
-                        // double case
-                        // note: 8-byte
-                        ByteBuffer double_buffer
-                                = ByteBuffer.wrap(dataRowBytes, byte_offset, 8);
-                        if (isLittleEndian) {
-                            double_buffer.order(ByteOrder.LITTLE_ENDIAN);
-                        }
-                        double double_datum = double_buffer.getDouble();
-
-                        if (DOUBLE_MISSING_VALUE_SET.contains(double_datum)) {
+                            byte_offset += 2;
+                            break;
+                        case -3:
+                            // stata-Long (= java's int: 4 byte) case
+                            // note: 4-byte singed, not java's long
+                            ByteBuffer long_buffer
+                                    = ByteBuffer.wrap(dataRowBytes, byte_offset, 4);
+                            if (isLittleEndian) {
+                                long_buffer.order(ByteOrder.LITTLE_ENDIAN);
+    
+                            }
+                            int int_datum = long_buffer.getInt();
+    
+                            if (int_datum >= LONG_MISSING_VALUE) {
+                                dataRow[columnCounter] = MissingValueForTabDelimitedFile;
+                            } else {
+                                if (isDateTimeDatum) {
+                                    DecodedDateTime ddt = decodeDateTimeData("int", variableFormat, Integer.toString(int_datum));
+                                    if (dbgLog.isLoggable(Level.FINER)) {
+                                        dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
+                                    }
+                                    dataRow[columnCounter] = ddt.decodedDateTime;
+                                    dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
+    
+                                } else {
+                                    dataRow[columnCounter] = int_datum;
+                                }
+    
+                            }
+                            byte_offset += 4;
+                            break;
+                        case -2:
+                            // float case
+                            // note: 4-byte
+                            ByteBuffer float_buffer
+                                    = ByteBuffer.wrap(dataRowBytes, byte_offset, 4);
+                            if (isLittleEndian) {
+                                float_buffer.order(ByteOrder.LITTLE_ENDIAN);
+                            }
+                            float float_datum = float_buffer.getFloat();
+    
                             if (dbgLog.isLoggable(Level.FINER)) {
                                 dbgLog.finer(i + "-th row " + columnCounter
-                                                     + "=th column double missing value=" + double_datum);
+                                                     + "=th column float =" + float_datum);
                             }
-                            dataRow[columnCounter] = MissingValueForTabDelimitedFile;
-                        } else {
-
-                            if (isDateTimeDatum) {
-                                DecodedDateTime ddt = decodeDateTimeData("double", variableFormat, doubleNumberFormatter.format(double_datum));
+                            if (FLOAT_MISSING_VALUE_SET.contains(float_datum)) {
                                 if (dbgLog.isLoggable(Level.FINER)) {
-                                    dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
+                                    dbgLog.finer(i + "-th row " + columnCounter
+                                                         + "=th column float missing value=" + float_datum);
                                 }
-                                dataRow[columnCounter] = ddt.decodedDateTime;
-                                dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
+                                dataRow[columnCounter] = MissingValueForTabDelimitedFile;
+    
                             } else {
-                                dataRow[columnCounter] = doubleNumberFormatter.format(double_datum);
+    
+                                if (isDateTimeDatum) {
+                                    DecodedDateTime ddt = decodeDateTimeData("float", variableFormat, doubleNumberFormatter.format(float_datum));
+                                    if (dbgLog.isLoggable(Level.FINER)) {
+                                        dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
+                                    }
+                                    dataRow[columnCounter] = ddt.decodedDateTime;
+                                    dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
+                                } else {
+                                    dataRow[columnCounter] = float_datum;
+                                    // This may be temporary - but for now (as in, while I'm testing
+                                    // 4.0 ingest against 3.* ingest, I need to be able to tell if a
+                                    // floating point value was a single, or double float in the
+                                    // original STATA file: -- L.A. Jul. 2014
+                                    dataTable.getDataVariables().get(columnCounter).setFormat("float");
+                                }
                             }
-
-                        }
-                        byte_offset += 8;
-                        break;
-                    case 0:
-                        // String case
-                        int strVarLength = StringLengthTable.get(columnCounter);
-                        String raw_datum = new String(Arrays.copyOfRange(dataRowBytes, byte_offset,
-                                                                         (byte_offset + strVarLength)), StandardCharsets.ISO_8859_1);
-                        // TODO:
-                        // is it the right thing to do, to default to "ISO-8859-1"?
-                        // (it may be; since there's no mechanism for specifying
-                        // alternative encodings in Stata, this may be their default;
-                        // it just needs to be verified. -- L.A. Jul. 2014)
-                        String string_datum = getNullStrippedString(raw_datum);
-                        if (dbgLog.isLoggable(Level.FINER)) {
-                            dbgLog.finer(i + "-th row " + columnCounter
-                                                 + "=th column string =" + string_datum);
-                        }
-                        if (string_datum.isEmpty()) {
-                            if (dbgLog.isLoggable(Level.FINER)) {
-                                dbgLog.finer(i + "-th row " + columnCounter
-                                                     + "=th column string missing value=" + string_datum);
+                            byte_offset += 4;
+                            break;
+                        case -1:
+                            // double case
+                            // note: 8-byte
+                            ByteBuffer double_buffer
+                                    = ByteBuffer.wrap(dataRowBytes, byte_offset, 8);
+                            if (isLittleEndian) {
+                                double_buffer.order(ByteOrder.LITTLE_ENDIAN);
                             }
+                            double double_datum = double_buffer.getDouble();
+    
+                            if (DOUBLE_MISSING_VALUE_SET.contains(double_datum)) {
+                                if (dbgLog.isLoggable(Level.FINER)) {
+                                    dbgLog.finer(i + "-th row " + columnCounter
+                                                         + "=th column double missing value=" + double_datum);
+                                }
+                                dataRow[columnCounter] = MissingValueForTabDelimitedFile;
+                            } else {
+    
+                                if (isDateTimeDatum) {
+                                    DecodedDateTime ddt = decodeDateTimeData("double", variableFormat, doubleNumberFormatter.format(double_datum));
+                                    if (dbgLog.isLoggable(Level.FINER)) {
+                                        dbgLog.finer(i + "-th row , decodedDateTime " + ddt.decodedDateTime + ", format=" + ddt.format);
+                                    }
+                                    dataRow[columnCounter] = ddt.decodedDateTime;
+                                    dataTable.getDataVariables().get(columnCounter).setFormat(ddt.format);
+                                } else {
+                                    dataRow[columnCounter] = doubleNumberFormatter.format(double_datum);
+                                }
+    
+                            }
+                            byte_offset += 8;
+                            break;
+                        case 0:
+                            // String case
+                            int strVarLength = StringLengthTable.get(columnCounter);
+                            String raw_datum = new String(Arrays.copyOfRange(dataRowBytes, byte_offset,
+                                                                             (byte_offset + strVarLength)), StandardCharsets.ISO_8859_1);
                             // TODO:
-                            /* Is this really a missing value case?
-                             * Or is it an honest empty string?
-                             * Is there such a thing as a missing value for a String in Stata?
-                             * -- L.A. 4.0
-                             */
-                            dataRow[columnCounter] = MissingValueForTabDelimitedFile;
-                        } else {
-                            /*
-                             * Some special characters, like new lines and tabs need to
-                             * be escaped - otherwise they will break our TAB file
-                             * structure!
-                             * But before we escape anything, all the back slashes
-                             * already in the string need to be escaped themselves.
-                             */
-                            String escapedString = string_datum.replace("\\", "\\\\");
-                            // escape quotes:
-                            escapedString = escapedString.replaceAll("\"", Matcher.quoteReplacement("\\\""));
-                            // escape tabs and new lines:
-                            escapedString = escapedString.replaceAll("\t", Matcher.quoteReplacement("\\t"));
-                            escapedString = escapedString.replaceAll("\n", Matcher.quoteReplacement("\\n"));
-                            escapedString = escapedString.replaceAll("\r", Matcher.quoteReplacement("\\r"));
-                            // the escaped version of the string is stored in the tab file
-                            // enclosed in double-quotes; this is in order to be able
-                            // to differentiate between an empty string (tab-delimited empty string in
-                            // double quotes) and a missing value (tab-delimited empty string).
-                            // Although the question still remains - is it even possible
-                            // to store an empty string, that's not a missing value, in Stata?
-                            // - see the comment in the missing value case above. -- L.A. 4.0
-                            dataRow[columnCounter] = "\"" + escapedString + "\"";
-                        }
-                        byte_offset += strVarLength;
-                        break;
-                    default:
-                        dbgLog.fine("unknown variable type found");
-                        String errorMessage
-                                = "unknow variable Type found at data section";
-                        throw new InvalidObjectException(errorMessage);
-                } // switch
-            } // for-columnCounter
-            // Dump the row of data to the tab-delimited file we are producing:
-            pwout.println(StringUtils.join(dataRow, "\t"));
-            if (dbgLog.isLoggable(Level.FINE)) {
-                //dbgLog.fine(i + "-th row's data={" + StringUtils.join(dataRow, ",") + "};");
-            }
-        }  // for- i (row)
-
-        pwout.close();
+                            // is it the right thing to do, to default to "ISO-8859-1"?
+                            // (it may be; since there's no mechanism for specifying
+                            // alternative encodings in Stata, this may be their default;
+                            // it just needs to be verified. -- L.A. Jul. 2014)
+                            String string_datum = getNullStrippedString(raw_datum);
+                            if (dbgLog.isLoggable(Level.FINER)) {
+                                dbgLog.finer(i + "-th row " + columnCounter
+                                                     + "=th column string =" + string_datum);
+                            }
+                            if (string_datum.isEmpty()) {
+                                if (dbgLog.isLoggable(Level.FINER)) {
+                                    dbgLog.finer(i + "-th row " + columnCounter
+                                                         + "=th column string missing value=" + string_datum);
+                                }
+                                // TODO:
+                                /* Is this really a missing value case?
+                                 * Or is it an honest empty string?
+                                 * Is there such a thing as a missing value for a String in Stata?
+                                 * -- L.A. 4.0
+                                 */
+                                dataRow[columnCounter] = MissingValueForTabDelimitedFile;
+                            } else {
+                                /*
+                                 * Some special characters, like new lines and tabs need to
+                                 * be escaped - otherwise they will break our TAB file
+                                 * structure!
+                                 * But before we escape anything, all the back slashes
+                                 * already in the string need to be escaped themselves.
+                                 */
+                                String escapedString = string_datum.replace("\\", "\\\\");
+                                // escape quotes:
+                                escapedString = escapedString.replaceAll("\"", Matcher.quoteReplacement("\\\""));
+                                // escape tabs and new lines:
+                                escapedString = escapedString.replaceAll("\t", Matcher.quoteReplacement("\\t"));
+                                escapedString = escapedString.replaceAll("\n", Matcher.quoteReplacement("\\n"));
+                                escapedString = escapedString.replaceAll("\r", Matcher.quoteReplacement("\\r"));
+                                // the escaped version of the string is stored in the tab file
+                                // enclosed in double-quotes; this is in order to be able
+                                // to differentiate between an empty string (tab-delimited empty string in
+                                // double quotes) and a missing value (tab-delimited empty string).
+                                // Although the question still remains - is it even possible
+                                // to store an empty string, that's not a missing value, in Stata?
+                                // - see the comment in the missing value case above. -- L.A. 4.0
+                                dataRow[columnCounter] = "\"" + escapedString + "\"";
+                            }
+                            byte_offset += strVarLength;
+                            break;
+                        default:
+                            dbgLog.fine("unknown variable type found");
+                            String errorMessage
+                                    = "unknow variable Type found at data section";
+                            throw new InvalidObjectException(errorMessage);
+                    } // switch
+                } // for-columnCounter
+                // Dump the row of data to the tab-delimited file we are producing:
+                pwout.println(StringUtils.join(dataRow, "\t"));
+            }  // for- i (row)
+        }
 
         if (dbgLog.isLoggable(Level.FINE)) {
             dbgLog.fine("variableTypes:\n" + Arrays.deepToString(variableTypes));
@@ -2014,7 +1998,6 @@ public class DTAFileReader extends TabularDataFileReader {
                 if (left == 52L) {
                     left = 0L;
                 }
-                //out.println("left="+left);
                 years = (Math.abs(weekYears) - 1) / 52L + 1L;
                 years *= -1L;
             } else {
@@ -2040,7 +2023,6 @@ public class DTAFileReader extends TabularDataFileReader {
             long years;
             if (monthYears < 0L) {
                 left = 12L - left;
-                //out.println("left="+left);
                 years = (Math.abs(monthYears) - 1) / 12L + 1L;
                 years *= -1L;
             } else {
@@ -2072,7 +2054,6 @@ public class DTAFileReader extends TabularDataFileReader {
             long years;
             if (quaterYears < 0L) {
                 left = 4L - left;
-                //out.println("left="+left);
                 years = (Math.abs(quaterYears) - 1) / 4L + 1L;
                 years *= -1L;
             } else {

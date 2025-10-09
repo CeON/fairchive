@@ -338,10 +338,6 @@ public class FileAccessIO<T extends DvObject> extends StorageIO<T> {
         return new FileInputStream(getFileSystemPath().toFile());
     }
 
-    private FileOutputStream openLocalFileAsOutputStream() throws IOException {
-        return new FileOutputStream(getFileSystemPath().toFile());
-    }
-
     private Path getDatasetDirectory() throws IOException {
         if (dvObject == null) {
             throw new IOException("No DvObject defined in the Data Access Object");

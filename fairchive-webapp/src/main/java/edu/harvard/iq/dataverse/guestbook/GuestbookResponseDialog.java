@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("GuestbookResponseDialog")
 public class GuestbookResponseDialog implements Serializable {

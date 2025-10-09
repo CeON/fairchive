@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DatasetWidgetsPage")
 public class DatasetWidgetsPage implements java.io.Serializable {
@@ -75,7 +76,7 @@ public class DatasetWidgetsPage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (dataset.isInReview() && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 
@@ -194,7 +195,8 @@ public class DatasetWidgetsPage implements java.io.Serializable {
     }
 
     public String redirectToDatasetPage() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + "&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId() 
+            + "&faces-redirect=true";
     }
 
     private void handleThumbnailExceptions(Throwable exception) {

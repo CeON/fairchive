@@ -677,10 +677,11 @@ public class ImportDDIServiceBeanTest {
                                                                               .getResource("xml/imports/legacyDdi.xml")), StandardCharsets.UTF_8);
         //when
         DatasetDTO datasetDTO = importDdiService.doImport(ImportType.HARVEST, ddiXml);
+        @SuppressWarnings("unchecked")
         List<Map<String, DatasetFieldDTO>> relatedMaterials = (List<Map<String, DatasetFieldDTO>>)
                 getField(DatasetFieldConstant.relatedMaterial, datasetDTO.getDatasetVersion().getMetadataBlocks().get("citation"))
                 .getValue();
-
+        @SuppressWarnings("unchecked")
         List<Map<String, DatasetFieldDTO>> relatedDatasets = (List<Map<String, DatasetFieldDTO>>)
                 getField(DatasetFieldConstant.relatedDataset, datasetDTO.getDatasetVersion().getMetadataBlocks().get("citation"))
                 .getValue();
@@ -703,6 +704,7 @@ public class ImportDDIServiceBeanTest {
                 .orElse(null);
     }
 
+    @SuppressWarnings("unchecked")
     private DatasetFieldDTO extractValues(DatasetDTO datasetDTO, String citationParentField, String childField) {
         return ((List<Map<String, DatasetFieldDTO>>) getField(citationParentField,
                 datasetDTO.getDatasetVersion().getMetadataBlocks().get("citation")).getValue())

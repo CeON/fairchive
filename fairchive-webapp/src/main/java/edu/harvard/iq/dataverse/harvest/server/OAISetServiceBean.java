@@ -38,6 +38,7 @@ import static java.util.stream.Collectors.toList;
  * for the Harvesting server.
  */
 
+@SuppressWarnings("serial")
 @Stateless
 public class OAISetServiceBean implements java.io.Serializable {
     private static final Logger logger = Logger.getLogger("edu.harvard.iq.dataverse.harvest.server.OAISetServiceBean");

@@ -7,10 +7,8 @@ package edu.harvard.iq.dataverse.guestbook;
 
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.guestbook.CustomQuestion;
 import edu.harvard.iq.dataverse.persistence.guestbook.CustomQuestionResponse;
 import edu.harvard.iq.dataverse.persistence.guestbook.CustomQuestionValue;
@@ -132,9 +130,10 @@ public class GuestbookResponseServiceBean {
     }
 
     public List<GuestbookResponse> findByAuthenticatedUserId(AuthenticatedUser user) {
-        Query query = em.createNamedQuery("GuestbookResponse.findByAuthenticatedUserId");
-        query.setParameter("authenticatedUserId", user.getId());
-        return query.getResultList();
+        return em.createNamedQuery("GuestbookResponse.findByAuthenticatedUserId",
+                 GuestbookResponse.class)
+                .setParameter("authenticatedUserId", user.getId())
+                .getResultList();
     }
 
     /*
@@ -165,6 +164,7 @@ public class GuestbookResponseServiceBean {
         queryString += ";";
         logger.fine("stream responses query: " + queryString);
 
+        @SuppressWarnings("unchecked")
         List<Object[]> guestbookResults = em.createNativeQuery(queryString).getResultList();
 
         // the CSV header:
@@ -300,6 +300,7 @@ public class GuestbookResponseServiceBean {
 
         logger.fine("search query: " + queryString);
 
+        @SuppressWarnings("unchecked")
         List<Object[]> guestbookResults = em.createNativeQuery(queryString).getResultList();
 
         if (guestbookResults == null || guestbookResults.size() == 0) {
@@ -375,7 +376,9 @@ public class GuestbookResponseServiceBean {
         return selectCustomQuestionAnswers(dataverseId, guestbookId, true, null, null);
     }
 
+    @SuppressWarnings("unchecked")
     private Map<Integer, Object> selectCustomQuestionAnswers(Long dataverseId, Long guestbookId, boolean asString, Integer lastResponse, Integer firstResponse) {
+        
         Map<Integer, Object> ret = new HashMap<>();
 
         int count = 0;
@@ -410,7 +413,8 @@ public class GuestbookResponseServiceBean {
                 if (asString) {
                     // as combined strings of comma-separated question and answer values
 
-                    String qa = SEPARATOR + "\"" + ((String) response[0]).replace("\"", "\"\"") + SEPARATOR + (response[1] == null ? "" : ((String) response[1]).replace("\"", "\"\"")) + "\"";
+                    String qa = SEPARATOR + "\"" + ((String) response[0]).replace("\"", "\"\"") 
+                            + SEPARATOR + (response[1] == null ? "" : ((String) response[1]).replace("\"", "\"\"")) + "\"";
 
                     if (ret.containsKey(responseId)) {
                         ret.put(responseId, ret.get(responseId) + qa);
@@ -423,7 +427,7 @@ public class GuestbookResponseServiceBean {
                     if (!ret.containsKey(responseId)) {
                         ret.put(responseId, new ArrayList<>());
                     }
-                    ((List) ret.get(responseId)).add(response);
+                    ((List<Object[]>) ret.get(responseId)).add(response);
                 }
 
                 count++;

@@ -27,8 +27,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.logging.Logger;
 
@@ -153,38 +153,37 @@ public class SAVFileReaderSpi extends TabularDataFileReaderSpi {
 
     @Override
     public boolean canDecodeInput(File file) throws IOException {
-        if (file == null) {
-            throw new IllegalArgumentException("file == null!");
-        }
         if (!file.canRead()) {
             throw new IOException("cannot read the input file");
         }
 
         dbgLog.fine("applying the sav test\n");
 
-        // set-up a FileChannel instance for a given file object
-        FileChannel srcChannel = new FileInputStream(file).getChannel();
-
-        // create a read-only MappedByteBuffer
-        MappedByteBuffer buff = srcChannel.map(FileChannel.MapMode.READ_ONLY, 0, SAV_HEADER_SIZE);
-
-        dbgLog.fine("hex dump of the 1st 4 bytes[$FL2 == 24 46 4C 32]=" +
-                            new String(Hex.encodeHex(buff.array())));
-
-        buff.rewind();
-
-        byte[] hdr4 = new byte[4];
-        buff.get(hdr4, 0, 4);
-        String hdr4sav = new String(hdr4);
-        dbgLog.fine("from string[hdr4]=" + new String(Hex.encodeHex(hdr4)).toUpperCase());
-
-        if (hdr4sav.equals("$FL2")) {
-            dbgLog.fine("this file is spss-sav type");
-            return true;
-        } else {
-            dbgLog.fine("this file is NOT spss-sav type");
-        }
-        return false;
+        try(final InputStream in = new FileInputStream(file)) {
+            final byte[] bytes = new byte[SAV_HEADER_SIZE];
+            if(in.read(bytes) < SAV_HEADER_SIZE) {
+                dbgLog.fine("this file is NOT SAV type");
+                return false;
+            }
+            final ByteBuffer buff = ByteBuffer.wrap(bytes);
+            dbgLog.fine("hex dump of the 1st 4 bytes[$FL2 == 24 46 4C 32]=" +
+                                new String(Hex.encodeHex(buff.array())));
+    
+            buff.rewind();
+    
+            byte[] hdr4 = new byte[4];
+            buff.get(hdr4, 0, 4);
+            String hdr4sav = new String(hdr4);
+            dbgLog.fine("from string[hdr4]=" + new String(Hex.encodeHex(hdr4)).toUpperCase());
+    
+            if (hdr4sav.equals("$FL2")) {
+                dbgLog.fine("this file is spss-sav type");
+                return true;
+            } else {
+                dbgLog.fine("this file is NOT spss-sav type");
+            }
+            return false;
+            }
     }
 
 

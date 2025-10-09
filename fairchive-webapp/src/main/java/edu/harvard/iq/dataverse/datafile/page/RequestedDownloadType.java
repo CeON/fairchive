@@ -24,6 +24,7 @@ import java.util.List;
  * @see GuestbookResponseDialog
  * @see FileDownloadHelper
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("RequestedDownloadType")
 public class RequestedDownloadType implements Serializable {
@@ -88,6 +89,11 @@ public class RequestedDownloadType implements Serializable {
     public void initDownloadTypeForOCR(FileMetadata fileMetadata) {
         this.fileMetadatas = Lists.newArrayList(fileMetadata);
         this.fileFormat = DownloadType.OCR;
+    }
+
+    public void initDownloadTypeForHTR(FileMetadata fileMetadata) {
+        this.fileMetadatas = Lists.newArrayList(fileMetadata);
+        this.fileFormat = DownloadType.HTR;
     }
     
     

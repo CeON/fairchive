@@ -11,6 +11,7 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticationProviderRow;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class AuthenticationProviderFactoryNotFoundException extends AuthorizationSetupException {
 
     private final String factoryAlias;

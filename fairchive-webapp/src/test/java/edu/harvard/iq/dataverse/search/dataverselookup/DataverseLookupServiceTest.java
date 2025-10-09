@@ -109,6 +109,7 @@ class DataverseLookupServiceTest {
 
     // -------------------- PRIVATE --------------------
 
+    @SuppressWarnings("unchecked")
     private static Tuple2<String, Object>[] fields(Long id, String solrId, String identifier,
                                                    String name, String parentId, String parentName) {
         return new Tuple2[] {

@@ -7,7 +7,6 @@ import edu.harvard.iq.dataverse.authorization.common.ExternalIdpUserRecord;
 import edu.harvard.iq.dataverse.authorization.providers.common.ExternalIdpFirstLoginPage;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.OAuth2TokenData;
-import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.omnifaces.cdi.ViewScoped;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static edu.harvard.iq.dataverse.util.StringUtil.toOption;
 import static java.util.stream.Collectors.toList;
@@ -36,15 +34,15 @@ import static java.util.stream.Collectors.toList;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("OAuth2Page")
 public class OAuth2LoginBackingBean implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuth2LoginBackingBean.class);
-    private static final long STATE_TIMEOUT = TimeUnit.MINUTES.toMillis(15);
     private int responseCode;
     private String responseBody;
-    private Optional<String> redirectPage;
+    private Optional<String> redirectPage = Optional.empty();
     private OAuth2Exception error;
     private ExternalIdpUserRecord oauthUser;
 
@@ -65,7 +63,7 @@ public class OAuth2LoginBackingBean implements Serializable {
 
     public String linkFor(String idpId, String redirectPage) {
         OAuth2AuthenticationProvider idp = authenticationSvc.getOAuth2Provider(idpId);
-        return idp.createAuthorizationUrl(createState(idp, toOption(redirectPage)), getCallbackUrl());
+        return idp.createAuthorizationUrl(idp.createState(toOption(redirectPage)), getCallbackUrl());
     }
 
     public String getCallbackUrl() {
@@ -81,7 +79,7 @@ public class OAuth2LoginBackingBean implements Serializable {
                 StringBuilder sb = new StringBuilder();
                 String line;
                 while ((line = rdr.readLine()) != null) {
-                    sb.append(line).append("\n");
+                    sb.append(line).append('\n');
                 }
                 error = new OAuth2Exception(-1, sb.toString(), "Remote system did not return an authorization code.");
                 logger.info("OAuth2Exception getting code parameter. HTTP return code: {}. Message: {} Message body: {}", error.getHttpReturnCode(), error.getLocalizedMessage(), error.getMessageBody());
@@ -92,7 +90,9 @@ public class OAuth2LoginBackingBean implements Serializable {
         final String state = req.getParameter("state");
 
         try {
-            OAuth2AuthenticationProvider idp = parseState(state);
+            OAuth2AuthenticationProvider idp = getProvider(state);
+            
+            
             if (idp == null) {
                 throw new OAuth2Exception(-1, "", "Invalid 'state' parameter.");
             }
@@ -132,49 +132,10 @@ public class OAuth2LoginBackingBean implements Serializable {
         }
 
     }
-
-    private OAuth2AuthenticationProvider parseState(String state) {
-        String[] topFields = state.split("~", 2);
-        if (topFields.length != 2) {
-            logger.info("Wrong number of fields in state string: {}", state);
-            return null;
-        }
-        OAuth2AuthenticationProvider idp = authenticationSvc.getOAuth2Provider(topFields[0]);
-        if (idp == null) {
-            logger.info("Can''t find IDP ''{}''", topFields[0]);
-            return null;
-        }
-        String raw = StringUtil.decrypt(topFields[1], idp.getClientSecret());
-        String[] stateFields = raw.split("~", -1);
-        if (idp.getId().equals(stateFields[0])) {
-            long timeOrigin = Long.parseLong(stateFields[1]);
-            long timeDifference = System.currentTimeMillis() - timeOrigin;
-            if (timeDifference > 0 && timeDifference < STATE_TIMEOUT) {
-                if (stateFields.length > 3) {
-                    redirectPage = Optional.ofNullable(stateFields[3]);
-                }
-                return idp;
-            } else {
-                logger.info("State timeout");
-                return null;
-            }
-        } else {
-            logger.info("Invalid id field: ''{}''", stateFields[0]);
-            return null;
-        }
-    }
-
-    private String createState(OAuth2AuthenticationProvider idp, Optional<String> redirectPage) {
-        if (idp == null) {
-            throw new IllegalArgumentException("idp cannot be null");
-        }
-        String base = idp.getId() + "~" + System.currentTimeMillis()
-                + "~" + (int) java.lang.Math.round(java.lang.Math.random() * 1000)
-                + redirectPage.map(page -> "~" + page).orElse("");
-
-        String encrypted = StringUtil.encrypt(base, idp.getClientSecret());
-        final String state = idp.getId() + "~" + encrypted;
-        return state;
+    
+    private OAuth2AuthenticationProvider getProvider(final String state) {
+        final int index = state.indexOf('~');
+        return authenticationSvc.getOAuth2Provider(state.substring(0, index));
     }
 
     public String getResponseBody() {

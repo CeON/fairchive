@@ -14,6 +14,7 @@ import java.util.Set;
  * @author Naomi
  */
 // no annotations here, since permissions are dynamically decided
+@SuppressWarnings("serial")
 public class GetDataverseCommand extends AbstractCommand<Dataverse> {
     private final Dataverse dv;
 

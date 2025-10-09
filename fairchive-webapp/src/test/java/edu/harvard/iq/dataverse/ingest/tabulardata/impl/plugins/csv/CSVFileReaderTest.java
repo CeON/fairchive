@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.ingest.tabulardata.impl.plugins.csv;
 
-import edu.harvard.iq.dataverse.dataaccess.TabularSubsetGenerator;
 import edu.harvard.iq.dataverse.dataaccess.ingest.InMemoryIngestDataProvider;
 import edu.harvard.iq.dataverse.dataaccess.ingest.IngestDataProvider;
 import edu.harvard.iq.dataverse.ingest.tabulardata.TabularDataIngest;

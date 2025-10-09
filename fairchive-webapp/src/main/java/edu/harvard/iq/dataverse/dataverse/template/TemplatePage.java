@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("TemplatePage")
 public class TemplatePage implements java.io.Serializable {

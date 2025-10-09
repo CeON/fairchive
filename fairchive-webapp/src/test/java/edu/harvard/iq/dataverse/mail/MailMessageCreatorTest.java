@@ -8,7 +8,6 @@ import edu.harvard.iq.dataverse.GenericDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.common.BrandingUtil;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
@@ -132,6 +131,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForCreateDataverse() {
         // given
         EmailNotificationDto testEmailNotificationDto = createDataverseEmailNotificationDto();
@@ -147,6 +147,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForCreateDataverse_WithDifferentLocale() {
         // given
         AuthenticatedUser userFromDifferentCountry = new AuthenticatedUser();
@@ -167,6 +168,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForCreateDataverse_WrongArgument() {
         // given
         EmailNotificationDto testEmailNotificationDto = createIncorrectNotificationDto();
@@ -182,6 +184,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForAssignRoleInDataverse() {
         // given
         EmailNotificationDto testEmailNotificationDto = createAssignRoleEmailInDataverseNotificationDto();
@@ -199,6 +202,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForAssignRoleInDataset() {
         // given
         EmailNotificationDto testEmailNotificationDto = createAssignRoleEmailInDatasetNotificationDto();
@@ -216,6 +220,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForDatasetVersion_ReturnToAuthor() {
         // given
         EmailNotificationDto notificationDto = createReturnToAuthorNotificationDto();
@@ -231,6 +236,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForDatasetVersion_SubmitForReviewWithMessage() {
         // given
         AuthenticatedUser requestor = MocksFactory.makeAuthenticatedUser("Notifcation", "Requester");
@@ -247,6 +253,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForDataset_GrantFileAccessInfo() {
         // given
         EmailNotificationDto notificationDto = createGrantFileAccessInfoNotificationDto();
@@ -261,6 +268,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForDataset_RejectFileAccessInfo() {
         // given
         EmailNotificationDto notificationDto = createRejectFileAccessInfoNotificationDto();
@@ -406,16 +414,6 @@ public class MailMessageCreatorTest {
                                         Collections.emptyMap());
     }
 
-    private EmailNotificationDto createRequestFileAccessNotificationDto() {
-        return new EmailNotificationDto(1L,
-                                        "useremail@test.com",
-                                        NotificationType.REQUESTFILEACCESS,
-                                        1L,
-                                        NotificationObjectType.DATAFILE,
-                                        new AuthenticatedUser(),
-                                        Collections.emptyMap());
-    }
-
     private EmailNotificationDto createGrantFileAccessInfoNotificationDto() {
         return new EmailNotificationDto(1L,
                 "usermail@test.com",
@@ -474,6 +472,7 @@ public class MailMessageCreatorTest {
         Dataverse dataverse = createTestDataverse();
         dataverse.setId(1L);
 
+        @SuppressWarnings("serial")
         Dataset dataset = new Dataset() {
             @Override public String getDisplayName() { return "testDataset"; }
         };

@@ -23,7 +23,6 @@ import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
 import edu.harvard.iq.dataverse.notification.NotificationParametersUtil;
-import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.consent.AcceptedConsent;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -89,7 +88,6 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
     @EJB private ExplicitGroupDao explicitGroupDao;
     @EJB private AcceptedConsentDao acceptedConsentDao;
     @EJB private OAuthTokenDataDao oAuthTokenDataDao;
-    @Inject private UserNotificationService userNotificationService;
     private NotificationParametersUtil notificationParametersUtil = new NotificationParametersUtil();
 
     @PersistenceContext(unitName = "VDCNet-ejbPU") private EntityManager entityManager;

@@ -23,6 +23,7 @@ public class FieldValueDivider {
 
     // -------------------- LOGIC --------------------
 
+    @SuppressWarnings("unchecked")
     public static FieldValueDivider create(DatasetFieldType fieldType) {
         boolean hasDivider = fieldType.hasMetadata("divider");
         if (!hasDivider) {

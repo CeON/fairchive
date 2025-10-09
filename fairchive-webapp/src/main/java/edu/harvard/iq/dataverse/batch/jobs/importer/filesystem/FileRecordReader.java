@@ -110,6 +110,7 @@ public class FileRecordReader extends AbstractItemReader {
             totalRecordNumber = (long) files.size();
             getJobLogger().log(Level.INFO, "Files found = " + totalRecordNumber);
             // report if checksum total not equal to file total
+            @SuppressWarnings("unchecked")
             int checksumCount = ((HashMap<String, String>) jobContext.getTransientUserData()).size();
             if (checksumCount != files.size()) {
                 getJobLogger().log(Level.SEVERE, "Checksum mismatch: " + checksumCount + " checksums found in the manifest "
@@ -143,7 +144,7 @@ public class FileRecordReader extends AbstractItemReader {
      */
     private List<File> getFiles(final File directory) {
         // create filter from job xml excludes property
-        FileFilter excludeFilter = new NotFileFilter(new WildcardFileFilter(Arrays.asList(excludes.split("\\s*,\\s*"))));
+        FileFilter excludeFilter = new NotFileFilter(WildcardFileFilter.builder().setWildcards(Arrays.asList(excludes.split("\\s*,\\s*"))).get());
         List<File> files = new ArrayList<>();
         File[] filesList = directory.listFiles(excludeFilter);
         if (filesList != null) {

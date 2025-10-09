@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.engine;
 
 import edu.harvard.iq.dataverse.engine.command.Command;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 
 /**
  * Base interface for the Dataverse Engine - the entity responsible for

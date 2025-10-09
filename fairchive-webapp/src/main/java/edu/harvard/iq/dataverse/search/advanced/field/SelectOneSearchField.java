@@ -13,6 +13,7 @@ import java.util.List;
 /**
  * Class that holds fields for select one item from list display and value that was checked.
  */
+@SuppressWarnings("serial")
 public class SelectOneSearchField extends SearchField {
     private String checkedFieldValue;
     private List<Tuple2<String, String>> listLabelAndValue = new ArrayList<>();

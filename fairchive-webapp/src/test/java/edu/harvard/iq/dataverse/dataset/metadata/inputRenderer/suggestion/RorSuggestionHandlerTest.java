@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion;
 
 import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.arquillian.facesmock.FacesContextMocker;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
 import edu.harvard.iq.dataverse.search.ror.RorDto;
 import edu.harvard.iq.dataverse.search.ror.RorSolrDataFinder;
@@ -14,8 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import javax.faces.context.FacesContext;
 
 import java.util.HashMap;
 import java.util.List;

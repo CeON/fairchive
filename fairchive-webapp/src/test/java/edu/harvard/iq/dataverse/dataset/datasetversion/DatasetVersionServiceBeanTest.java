@@ -64,6 +64,7 @@ class DatasetVersionServiceBeanTest {
         //given
         DatasetVersion testDatasetVersion = prepareDataset();
 
+        @SuppressWarnings("unchecked")
         TypedQuery<DatasetVersion> dbQuery = mock(TypedQuery.class);
         when(dbQuery.setParameter("datasetId", 1L)).thenReturn(dbQuery);
         when(dbQuery.setMaxResults(1)).thenReturn(dbQuery);
