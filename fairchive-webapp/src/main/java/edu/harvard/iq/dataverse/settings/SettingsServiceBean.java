@@ -823,7 +823,7 @@ public class SettingsServiceBean {
     private static final Logger log = getLogger(SettingsServiceBean.class);
 
     @EJB
-    private SettingRepository settingDao;
+    private SettingRepository settingRepo;
 
     @EJB
     private ActionLogServiceBean actionLogSvc;
@@ -834,13 +834,13 @@ public class SettingsServiceBean {
     private final CacheLoader<String, String> settingCacheLoader = new CacheLoader<String, String>() {
         @Override
         public String load(final String key) {
-            final Setting s = settingDao.find(key);
+            final Setting s = settingRepo.find(key);
             return (s != null) ? s.getContent() : fileBasedSettingsFetcher.getSetting(key);
         }
     };
 
     private final LoadingCache<String, String> settingCache = CacheBuilder.newBuilder()
-            .build(settingCacheLoader);
+            .build(this.settingCacheLoader);
 
     // -------------------- LOGIC --------------------
 
@@ -945,7 +945,7 @@ public class SettingsServiceBean {
 
     public Setting set(final String name, final String content) {
         this.settingCache.invalidate(name);
-        final Setting s = this.settingDao.save(new Setting(name, content));
+        final Setting s = this.settingRepo.save(new Setting(name, content));
         this.actionLogSvc.log(new ActionLogRecord(Setting, "set")
                                  .setInfo(name + ": " + content));
         return s;
@@ -977,7 +977,7 @@ public class SettingsServiceBean {
     public void delete(final String name) {
         this.settingCache.invalidate(name);
         this.actionLogSvc.log(new ActionLogRecord(Setting, "delete").setInfo(name));
-        this.settingDao.delete(name);
+        this.settingRepo.delete(name);
     }
 
     public Map<String, String> listAll() {
@@ -986,7 +986,7 @@ public class SettingsServiceBean {
         final Map<String, String> fileSettings = this.fileBasedSettingsFetcher.getAllSettings();
         mergedSettings.putAll(fileSettings);
 
-        final List<Setting> dbSettings = this.settingDao.findAll();
+        final List<Setting> dbSettings = this.settingRepo.findAll();
         dbSettings.forEach(s -> mergedSettings.put(s.getName(), s.getContent()));
 
         return mergedSettings;
