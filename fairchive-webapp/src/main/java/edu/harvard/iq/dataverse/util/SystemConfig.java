@@ -1,19 +1,5 @@
 package edu.harvard.iq.dataverse.util;
 
-import edu.harvard.iq.dataverse.authorization.providers.oauth2.DevOAuthAccountType;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-import io.vavr.control.Try;
-import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import static edu.harvard.iq.dataverse.authorization.providers.oauth2.DevOAuthAccountType.PRODUCTION;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AccessibilityStatement;
@@ -56,18 +42,34 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UploadMe
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UseOAIStrictIdentifierScheme;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.System.getProperty;
+import static java.util.logging.Logger.getLogger;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.math.NumberUtils.toLong;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.logging.Logger;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import edu.harvard.iq.dataverse.authorization.providers.oauth2.DevOAuthAccountType;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 
 /**
  * System-wide configuration
@@ -76,15 +78,14 @@ import java.util.logging.Logger;
 @Named
 public class SystemConfig {
 
-    private static final Logger logger = Logger.getLogger(SystemConfig.class.getCanonicalName());
+    private static final Logger logger = getLogger(SystemConfig.class.getCanonicalName());
 
-    private static final String VERSION_PROPERTIES_CLASSPATH = "/config/version.properties";
-    private static final String VERSION_PROPERTIES_KEY = "dataverse.version";
-    private static final String VERSION_COMMIT_ID = "git.commit.id.full";
+    private static final String VERSION_PROPERTIES = "/config/version.properties";
+    private static final String VERSION_KEY = "dataverse.version";
+    private static final String COMMIT_ID = "git.commit.id.full";
     private static final String VERSION_PLACEHOLDER = "${project.version}";
     private static final String VERSION_FALLBACK = "4.0";
     private static final long defaultThumbnailSizeLimit = 10_000_000;
-
     public static final String DATAVERSE_PATH = "/dataverse/";
 
     private static final Integer DEFAULT_AUTHENTICATED_SESSION_TIMEOUT_MINUTES = 1440;
@@ -97,75 +98,56 @@ public class SystemConfig {
     @Inject
     private SettingsServiceBean settings;
     
-    public SystemConfig() {
-    }
+    private String appVersionWithBuild = null;
+    private String appVersion = null;
     
+    public SystemConfig() {
+        
+    }
     
     public SystemConfig(final SettingsServiceBean settings) {
         this.settings = settings;
     }
 
-    private static String appVersionWithBuild = null;
-    private static String appVersion = null;
-
     public String getVersionWithBuild() {
 
-        if (appVersionWithBuild == null) {
-
-            // We'll rely on Maven placing the version number into the
-            // version.properties file using resource filtering
-
-            Try<Tuple2<String, String>> appVersionTry = Try
-                    .withResources(() -> getClass().getResourceAsStream(VERSION_PROPERTIES_CLASSPATH))
-                    .of(is -> {
-                        Properties properties = new Properties();
-                        properties.load(is);
-                        return properties;
-                    })
-                    .map(p -> Tuple.of(p.getProperty(VERSION_PROPERTIES_KEY), p.getProperty(VERSION_COMMIT_ID)));
-
-            if (appVersionTry.isFailure()) {
-                appVersionWithBuild = VERSION_FALLBACK;
-                logger.warning("Failed to read the " + VERSION_PROPERTIES_CLASSPATH + " file");
-
-            } else if (StringUtils.equals(appVersionTry.get()._1(), VERSION_PLACEHOLDER)) {
-                appVersionWithBuild = VERSION_FALLBACK;
-                logger.warning(VERSION_PROPERTIES_CLASSPATH + " was not filtered by maven (check your pom.xml configuration)");
-
-            } else {
-                appVersionWithBuild = appVersionTry.get()._1() + "-" + appVersionTry.get()._2();
-            }
+        if (this.appVersionWithBuild == null) {
+            this.appVersionWithBuild = getVersion(VERSION_PROPERTIES, 
+                    p-> p.getProperty(VERSION_KEY) + '-' + p.getProperty(COMMIT_ID));
         }
-
         return appVersionWithBuild;
     }
 
     public String getVersion() {
 
-        if (appVersion == null) {
-            Try<String> appVersionTry = Try
-                    .withResources(() -> getClass().getResourceAsStream(VERSION_PROPERTIES_CLASSPATH))
-                    .of(is -> {
-                        Properties properties = new Properties();
-                        properties.load(is);
-                        return properties;
-                    })
-                    .map(p -> p.getProperty(VERSION_PROPERTIES_KEY));
-
-            if (appVersionTry.isFailure()) {
-                appVersion = VERSION_FALLBACK;
-                logger.warning("Failed to read the " + VERSION_PROPERTIES_CLASSPATH + " file");
-
-            } else if (StringUtils.equals(appVersionTry.get(), VERSION_PLACEHOLDER)) {
-                appVersion = VERSION_FALLBACK;
-                logger.warning(VERSION_PROPERTIES_CLASSPATH + " was not filtered by maven (check your pom.xml configuration)");
-
-            } else {
-                appVersion = appVersionTry.get();
-            }
+        if (this.appVersion == null) {
+            this.appVersion = getVersion(VERSION_PROPERTIES, 
+                    p-> p.getProperty(VERSION_KEY));
         }
+        return this.appVersion;
+    }
+    
+    private String getVersion(final String path, 
+            final Function<Properties, String> extractor) {
 
-        return appVersion;
+        try (final InputStream in = getClass().getResourceAsStream(path)) {
+            if (in != null) {
+                final Properties properties = new Properties();
+                properties.load(in);
+                final String version = extractor.apply(properties);
+                if (VERSION_PLACEHOLDER.equals(version)) {
+                    logger.warning(path +
+                            " was not filtered by maven (check your pom.xml configuration)");
+                    return VERSION_FALLBACK;
+                } else {
+                    return version;
+                }
+            }
+        } catch (final IOException e) {
+            // ignore
+        }
+        logger.warning("Failed to read the " + path + " file");
+        return VERSION_FALLBACK;
     }
     
     public boolean useOAIStrictIdentifierScheme() {

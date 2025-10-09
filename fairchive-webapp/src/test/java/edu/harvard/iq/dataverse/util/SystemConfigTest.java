@@ -200,5 +200,4 @@ class SystemConfigTest {
         assertThat(this.config.getThumbnailSizeLimitImage()).isEqualTo(2L);
         assertThat(this.config.getThumbnailSizeLimitPDF()).isEqualTo(3L);
     }
-
 }
