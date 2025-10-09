@@ -446,27 +446,6 @@ public class SystemConfig {
         return isNotBlank(result) ? result : getValueForKey(key);
     }
 
-    public enum DataFilePIDFormat {
-        DEPENDENT("DEPENDENT"),
-        INDEPENDENT("INDEPENDENT");
-        
-        private final String text;
-
-        public String getText() {
-            return text;
-        }
-
-        DataFilePIDFormat(final String text) {
-            this.text = text;
-        }
-
-        @Override
-        public String toString() {
-            return this.text;
-        }
-
-    }
-
     /**
      * See FileUploadMethods.
      */
