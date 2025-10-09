@@ -3,8 +3,6 @@ package edu.harvard.iq.dataverse.persistence;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -14,12 +12,6 @@ import java.util.Objects;
  * @author michael
  */
 @SuppressWarnings("serial")
-@NamedQueries({
-        @NamedQuery(name = "Setting.deleteByName",
-                query = "DELETE FROM Setting s WHERE s.name=:name"),
-        @NamedQuery(name = "Setting.findAll",
-                query = "SELECT s FROM Setting s")
-})
 @Entity
 public class Setting implements Serializable {
 

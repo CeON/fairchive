@@ -6,7 +6,7 @@ import com.google.common.cache.LoadingCache;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.Setting;
-import edu.harvard.iq.dataverse.persistence.SettingDao;
+import edu.harvard.iq.dataverse.persistence.SettingRepository;
 import edu.harvard.iq.dataverse.util.StringUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -823,7 +823,7 @@ public class SettingsServiceBean {
     private static final Logger log = getLogger(SettingsServiceBean.class);
 
     @EJB
-    private SettingDao settingDao;
+    private SettingRepository settingDao;
 
     @EJB
     private ActionLogServiceBean actionLogSvc;
