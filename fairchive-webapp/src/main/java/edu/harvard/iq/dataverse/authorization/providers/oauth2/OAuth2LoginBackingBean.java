@@ -52,7 +52,7 @@ public class OAuth2LoginBackingBean implements Serializable {
     @EJB
     OAuth2TokenDataServiceBean oauth2Tokens;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @Inject

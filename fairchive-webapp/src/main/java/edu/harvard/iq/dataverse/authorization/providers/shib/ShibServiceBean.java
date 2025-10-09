@@ -36,7 +36,7 @@ public class ShibServiceBean {
     BuiltinUserServiceBean builtinUserService;
     @EJB
     AuthTestDataServiceBean authTestDataService;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @Inject
     SettingsServiceBean settingsService;

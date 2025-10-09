@@ -75,7 +75,7 @@ public class DataverseTimerServiceBean implements Serializable {
     AuthenticationServiceBean authSvc;
     @EJB
     OAISetServiceBean oaiSetService;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @Inject
     SettingsServiceBean settingsService;

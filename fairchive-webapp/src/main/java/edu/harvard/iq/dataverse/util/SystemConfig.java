@@ -56,10 +56,10 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
-import javax.ejb.Stateless;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -74,7 +74,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 /**
  * System-wide configuration
  */
-@Stateless
+@ApplicationScoped
 @Named
 public class SystemConfig {
 
@@ -98,8 +98,8 @@ public class SystemConfig {
     @Inject
     private SettingsServiceBean settings;
     
-    private String appVersionWithBuild = null;
-    private String appVersion = null;
+    private String commitId = "";
+    private String appVersion = VERSION_FALLBACK;
     
     public SystemConfig() {
         
@@ -108,46 +108,35 @@ public class SystemConfig {
     public SystemConfig(final SettingsServiceBean settings) {
         this.settings = settings;
     }
+    
+    @PostConstruct
+    void init() {
+        try (final InputStream in = getClass()
+                .getResourceAsStream(VERSION_PROPERTIES)) {
+            final Properties properties = new Properties();
+            properties.load(in);
+            final String version = properties.getProperty(VERSION_KEY);
+            if (VERSION_PLACEHOLDER.equals(version)) {
+                logger.warning(VERSION_PROPERTIES +
+                        " was not filtered by maven (check your pom.xml configuration)");
+                return;
+            } else {
+                this.appVersion = version;
+                this.commitId = properties.getProperty(COMMIT_ID);
+            }
+        } catch (final IOException e) {
+            logger.warning(e.toString());
+        }
+        logger.warning("Failed to read the " + VERSION_FALLBACK + " file");
+    }
+    
 
     public String getVersionWithBuild() {
-
-        if (this.appVersionWithBuild == null) {
-            this.appVersionWithBuild = getVersion(VERSION_PROPERTIES, 
-                    p-> p.getProperty(VERSION_KEY) + '-' + p.getProperty(COMMIT_ID));
-        }
-        return appVersionWithBuild;
+        return this.appVersion + '-' + this.commitId;
     }
 
     public String getVersion() {
-
-        if (this.appVersion == null) {
-            this.appVersion = getVersion(VERSION_PROPERTIES, 
-                    p-> p.getProperty(VERSION_KEY));
-        }
         return this.appVersion;
-    }
-    
-    private String getVersion(final String path, 
-            final Function<Properties, String> extractor) {
-
-        try (final InputStream in = getClass().getResourceAsStream(path)) {
-            if (in != null) {
-                final Properties properties = new Properties();
-                properties.load(in);
-                final String version = extractor.apply(properties);
-                if (VERSION_PLACEHOLDER.equals(version)) {
-                    logger.warning(path +
-                            " was not filtered by maven (check your pom.xml configuration)");
-                    return VERSION_FALLBACK;
-                } else {
-                    return version;
-                }
-            }
-        } catch (final IOException e) {
-            // ignore
-        }
-        logger.warning("Failed to read the " + path + " file");
-        return VERSION_FALLBACK;
     }
     
     public boolean useOAIStrictIdentifierScheme() {

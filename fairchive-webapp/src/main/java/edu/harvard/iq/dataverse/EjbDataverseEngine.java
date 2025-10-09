@@ -166,7 +166,7 @@ public class EjbDataverseEngine {
     @EJB
     AuthenticationServiceBean authentication;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @EJB

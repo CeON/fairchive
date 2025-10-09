@@ -30,7 +30,7 @@ public class SettingsWrapper implements java.io.Serializable {
     @Inject
     DataverseSession session;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     private final LazyLoaded<Map<String, String>> configuredLocales = new LazyLoaded<>(this::languagesLoader);

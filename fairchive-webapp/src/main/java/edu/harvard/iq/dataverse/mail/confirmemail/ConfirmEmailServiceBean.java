@@ -47,7 +47,7 @@ public class ConfirmEmailServiceBean {
     @Inject
     SettingsServiceBean settingsService;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @EJB

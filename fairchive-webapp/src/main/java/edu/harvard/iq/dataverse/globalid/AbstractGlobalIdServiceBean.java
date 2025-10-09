@@ -39,7 +39,7 @@ public abstract class AbstractGlobalIdServiceBean implements GlobalIdServiceBean
     private DatasetDao datasetDao;
     @EJB
     private DataFileServiceBean datafileService;
-    @EJB
+    @Inject
     protected SystemConfig systemConfig;
     
     @EJB

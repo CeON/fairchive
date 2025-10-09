@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
@@ -27,7 +28,7 @@ public class PrivateUrlServiceBean implements Serializable {
     @EJB
     DatasetDao datasetDao;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     /**

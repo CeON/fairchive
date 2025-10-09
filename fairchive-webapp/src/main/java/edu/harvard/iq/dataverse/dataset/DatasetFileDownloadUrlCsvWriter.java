@@ -8,8 +8,9 @@ import org.apache.commons.csv.CSVPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,7 +30,7 @@ public class DatasetFileDownloadUrlCsvWriter {
 
     private static final Logger logger = LoggerFactory.getLogger(DatasetFileDownloadUrlCsvWriter.class);
 
-    @EJB
+    @Inject
     protected SystemConfig systemConfig;
 
     // -------------------- LOGIC --------------------

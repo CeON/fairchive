@@ -80,7 +80,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
     @EJB
     AuthenticationServiceBean authService;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @EJB

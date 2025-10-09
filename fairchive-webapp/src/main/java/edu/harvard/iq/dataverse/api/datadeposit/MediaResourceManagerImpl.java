@@ -66,7 +66,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
     PermissionServiceBean permissionService;
     @Inject
     SettingsServiceBean settingsSvc;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @Inject
     SwordAuth swordAuth;

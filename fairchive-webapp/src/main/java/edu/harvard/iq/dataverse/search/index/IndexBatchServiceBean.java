@@ -9,6 +9,7 @@ import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
@@ -30,7 +31,7 @@ public class IndexBatchServiceBean {
     DataverseDao dataverseDao;
     @EJB
     DatasetDao datasetDao;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @Asynchronous
