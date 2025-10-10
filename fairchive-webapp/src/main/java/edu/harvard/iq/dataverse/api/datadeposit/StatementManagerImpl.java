@@ -35,16 +35,16 @@ import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.joining;
 
-public class StatementManagerImpl implements StatementManager {
+final class StatementManagerImpl implements StatementManager {
 
     private static final Logger logger = Logger.getLogger(StatementManagerImpl.class.getCanonicalName());
 
     @EJB
-    DatasetService datasetService;
+    private DatasetService datasetService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
 
@@ -128,18 +128,6 @@ public class StatementManagerImpl implements StatementManager {
                     finalFileFormat = contentType;
                 }
                 resourcePart.setMediaType(finalFileFormat);
-                /**
-                 * @todo: Why are properties set on a ResourcePart not exposed
-                 * when you GET a Statement? Asked about this at
-                 * http://www.mail-archive.com/sword-app-tech@lists.sourceforge.net/msg00394.html
-                 */
-//                    Map<String, String> properties = new HashMap<String, String>();
-//                    properties.put("filename", studyFile.getFileName());
-//                    properties.put("category", studyFile.getLatestCategory());
-//                    properties.put("originalFileType", studyFile.getOriginalFileType());
-//                    properties.put("id", studyFile.getId().toString());
-//                    properties.put("UNF", studyFile.getUnf());
-//                    resourcePart.setProperties(properties);
                 statement.addResource(resourcePart);
                 /**
                  * @todo it's been noted at

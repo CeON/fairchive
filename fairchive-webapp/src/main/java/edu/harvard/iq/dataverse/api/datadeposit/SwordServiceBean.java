@@ -20,7 +20,7 @@ public class SwordServiceBean {
     private static final Logger logger = Logger.getLogger(SwordServiceBean.class.getCanonicalName());
 
     @EJB
-    DatasetFieldServiceBean datasetFieldService;
+    private DatasetFieldServiceBean datasetFieldService;
 
     /**
      * Mutate the dataset version, adding a datasetContact (email address) from

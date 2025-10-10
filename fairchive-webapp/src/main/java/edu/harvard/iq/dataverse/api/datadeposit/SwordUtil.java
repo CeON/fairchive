@@ -6,14 +6,14 @@ import org.swordapp.server.UriRegistry;
 /**
  * @todo move all this to the newer SwordService Bean
  */
-public class SwordUtil {
+final class SwordUtil {
 
     static String DCTERMS = "http://purl.org/dc/terms/";
 
     /*
      * @todo get rid of this method
      */
-    public static SwordError throwSpecialSwordErrorWithoutStackTrace(String SwordUriRegistryError, String error) {
+    static SwordError throwSpecialSwordErrorWithoutStackTrace(String SwordUriRegistryError, String error) {
         if (SwordUriRegistryError == null) {
             SwordUriRegistryError = UriRegistry.ERROR_BAD_REQUEST;
         }
@@ -29,7 +29,7 @@ public class SwordUtil {
     /*
      * @todo get rid of this method
      */
-    public static SwordError throwRegularSwordErrorWithoutStackTrace(String error) {
+    static SwordError throwRegularSwordErrorWithoutStackTrace(String error) {
         if (error == null) {
             error = "UNKNOWN";
         }
@@ -44,7 +44,7 @@ public class SwordUtil {
      * 
      * @throws SwordError - if expression is false
      */
-    public static void checkState(boolean expression, String errorUri, String message) throws SwordError {
+    static void checkState(boolean expression, String errorUri, String message) throws SwordError {
         if (!expression) {
             throw new SwordError(errorUri, message);
         }

@@ -29,16 +29,16 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-public class CollectionListManagerImpl implements CollectionListManager {
+final class CollectionListManagerImpl implements CollectionListManager {
 
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
-    DatasetService datasetService;
+    private DatasetService datasetService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
 
