@@ -66,43 +66,43 @@ import edu.harvard.iq.dataverse.util.FileUtil;
 public class FileRecordWriter extends AbstractItemWriter {
 
     @Inject
-    JobContext jobContext;
+    private JobContext jobContext;
 
     @Inject
-    StepContext stepContext;
-
-    @Inject
-    @BatchProperty
-    String checksumType;
+    private  StepContext stepContext;
 
     @Inject
     @BatchProperty
-    String checksumManifest;
-
-    @EJB
-    DatasetService datasetService;
-
-    @EJB
-    AuthenticationServiceBean authenticationServiceBean;
+    private  String checksumType;
 
     @Inject
-    SettingsServiceBean settingsService;
+    @BatchProperty
+    private String checksumManifest;
 
     @EJB
-    DataFileServiceBean dataFileServiceBean;
+    private DatasetService datasetService;
 
     @EJB
-    EjbDataverseEngine commandEngine;
+    private AuthenticationServiceBean authenticationServiceBean;
+
+    @Inject
+    private SettingsServiceBean settingsService;
+
+    @EJB
+    private DataFileServiceBean dataFileServiceBean;
+
+    @EJB
+    private EjbDataverseEngine commandEngine;
     
     @EJB
-    GlobalIdServiceBeanResolver resolver;
+    private GlobalIdServiceBeanResolver resolver;
 
-    Dataset dataset;
-    AuthenticatedUser user;
-    int fileCount;
-    String fileMode;
-    Long suppliedSize = null;
-    String uploadFolder;
+    private Dataset dataset;
+    private AuthenticatedUser user;
+    private int fileCount;
+    private String fileMode;
+    private Long suppliedSize = null;
+    private String uploadFolder;
 
     public static String FILE_MODE_INDIVIDUAL_FILES = "individual_files";
     public static String FILE_MODE_PACKAGE_FILE = "package_file";

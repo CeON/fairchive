@@ -1,48 +1,47 @@
 package edu.harvard.iq.dataverse.util;
 
 import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
-import org.apache.commons.lang.StringUtils;
+
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 public class FileSortFieldAndOrder {
 
-    private String sortField;
-    private SortOrder sortOrder;
+    private final String sortField;
+    private final SortOrder sortOrder;
 
     private static String displayOrder = "displayOrder";
-    public static String label = "label";
-    public static String createDate = "dataFile.createDate";
-    public static String size = "dataFile.filesize";
-    public static String type = "dataFile.contentType";
+    private static String label = "label";
+    private static String createDate = "dataFile.createDate";
+    private static String size = "dataFile.filesize";
+    private static String type = "dataFile.contentType";
 
-    public FileSortFieldAndOrder(String userSuppliedSortField, SortOrder userSuppliedSortOrder) {
-        if (StringUtils.isBlank(userSuppliedSortField)) {
-            sortField = displayOrder;
+    public FileSortFieldAndOrder(final String userSuppliedSortField, 
+            final SortOrder userSuppliedSortOrder) {
+        if (isBlank(userSuppliedSortField)) {
+            this.sortField = displayOrder;
         } else if (isUserSuppliedSortField(userSuppliedSortField)) {
-            sortField = userSuppliedSortField;
+            this.sortField = userSuppliedSortField;
         } else {
-            sortField = label;
-        }
-        
-        if (userSuppliedSortOrder == null) {
-            sortOrder = SortOrder.asc;
-        } else {
-            sortOrder = userSuppliedSortOrder;
-        }
+            this.sortField = label;
+        }  
+        this.sortOrder = userSuppliedSortOrder != null 
+                ? userSuppliedSortOrder 
+                : SortOrder.asc;
     }
 
     public String getSortField() {
-        return sortField;
+        return this.sortField;
     }
 
     public SortOrder getSortOrder() {
-        return sortOrder;
+        return this.sortOrder;
     }
 
-    private boolean isUserSuppliedSortField(String userSuppliedSortField) {
-        return userSuppliedSortField.equals(displayOrder) ||
-                userSuppliedSortField.equals(label) ||
-                userSuppliedSortField.equals(createDate) ||
-                userSuppliedSortField.equals(size) ||
-                userSuppliedSortField.equals(type);
+    private boolean isUserSuppliedSortField(final String field) {
+        return field.equals(displayOrder) ||
+                field.equals(label) ||
+                field.equals(createDate) ||
+                field.equals(size) ||
+                field.equals(type);
     }
 }
