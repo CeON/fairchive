@@ -42,7 +42,7 @@ public abstract class AbstractGlobalIdServiceBean implements GlobalIdServiceBean
     private DatasetService datasetService;
     @EJB
     private DataFileServiceBean datafileService;
-    @EJB
+    @Inject
     protected SystemConfig systemConfig;
     
     @EJB

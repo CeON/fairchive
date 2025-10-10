@@ -33,7 +33,7 @@ public class DashboardPage implements java.io.Serializable {
     HarvestingClientDao harvestingClientService;
     @EJB
     OAISetServiceBean oaiSetService;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @Inject
     SettingsServiceBean settingsService;

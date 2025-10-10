@@ -108,7 +108,7 @@ public abstract class AbstractApiBean {
     @EJB
     protected PrivateUrlServiceBean privateUrlSvc;
 
-    @EJB
+    @Inject
     protected SystemConfig systemConfig;
 
     @EJB

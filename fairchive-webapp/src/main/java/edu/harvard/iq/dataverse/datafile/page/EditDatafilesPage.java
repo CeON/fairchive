@@ -70,7 +70,6 @@ import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
-import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.datafile.pojo.RsyncInfo;
@@ -101,7 +100,6 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.provenance.ProvPopupFragmentBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -138,7 +136,6 @@ public class EditDatafilesPage implements java.io.Serializable {
     private PermissionsWrapper permissionsWrapper;
     private FileDownloadHelper fileDownloadHelper;
     private ProvPopupFragmentBean provPopupFragmentBean;
-    private SettingsWrapper settingsWrapper;
     private DatasetVersionServiceBean datasetVersionService;
     private TermsOfUseFormMapper termsOfUseFormMapper;
     private TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory;
@@ -226,7 +223,6 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final PermissionsWrapper permissionsWrapper,
                              final FileDownloadHelper fileDownloadHelper, 
                              final ProvPopupFragmentBean provPopupFragmentBean,
-                             final SettingsWrapper settingsWrapper, 
                              final DatasetVersionServiceBean datasetVersionService,
                              final TermsOfUseFormMapper termsOfUseFormMapper, 
                              final TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory,
@@ -246,7 +242,6 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.permissionsWrapper = permissionsWrapper;
         this.fileDownloadHelper = fileDownloadHelper;
         this.provPopupFragmentBean = provPopupFragmentBean;
-        this.settingsWrapper = settingsWrapper;
         this.datasetVersionService = datasetVersionService;
         this.termsOfUseFormMapper = termsOfUseFormMapper;
         this.termsOfUseSelectItemsFactory = termsOfUseSelectItemsFactory;
@@ -497,7 +492,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         this.saveEnabled = true;
         if (this.mode == FileEditMode.UPLOAD && this.workingVersion.getFileMetadatas().isEmpty() 
-                && this.settingsWrapper.isRsyncUpload()) {
+                && this.systemConfig.isRsyncUpload()) {
             setUpRsync();
         }
         return null;
@@ -1435,7 +1430,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private void setUpRsync() {
         logger.fine("setUpRsync called...");
-        if (DataCaptureModuleUtil.rsyncSupportEnabled(this.settings.getValueForKey(Key.UploadMethods))
+        if (this.systemConfig.isRsyncUpload()
                 && dataset.getFiles().isEmpty()) {
 
             Try<Option<RsyncInfo>> rsyncFetchOperation = Try.of(() -> this.fileService.retrieveRsyncScript(this.dataset, this.workingVersion))

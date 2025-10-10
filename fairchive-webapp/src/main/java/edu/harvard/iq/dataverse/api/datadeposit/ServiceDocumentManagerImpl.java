@@ -27,7 +27,7 @@ public class ServiceDocumentManagerImpl implements ServiceDocumentManager {
     DataverseDao dataverseDao;
     @EJB
     PermissionServiceBean permissionService;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @Inject
     SwordAuth swordAuth;

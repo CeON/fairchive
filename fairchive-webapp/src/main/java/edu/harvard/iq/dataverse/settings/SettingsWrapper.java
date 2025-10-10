@@ -5,7 +5,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.omnifaces.cdi.ViewScoped;
 
-import javax.ejb.EJB;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,7 +29,7 @@ public class SettingsWrapper implements java.io.Serializable {
     @Inject
     DataverseSession session;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     private final LazyLoaded<Map<String, String>> configuredLocales = new LazyLoaded<>(this::languagesLoader);

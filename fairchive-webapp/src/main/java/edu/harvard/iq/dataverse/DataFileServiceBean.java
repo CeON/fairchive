@@ -21,7 +21,6 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
-import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -688,7 +687,7 @@ public class DataFileServiceBean implements java.io.Serializable {
         String doiDataFileFormat = settingsService.getValueForKey(DataFilePIDFormat);
 
         String prepend = "";
-        if (doiDataFileFormat.equals(SystemConfig.DataFilePIDFormat.DEPENDENT.toString())) {
+        if (doiDataFileFormat.equals("DEPENDENT")) {
             // If format is dependent then pre-pend the dataset identifier
             prepend = datafile.getOwner().getIdentifier() + "/";
         } else {
@@ -700,7 +699,7 @@ public class DataFileServiceBean implements java.io.Serializable {
             case "randomString":
                 return generateIdentifierAsRandomString(datafile, idServiceBean, prepend);
             case "sequentialNumber":
-                return doiDataFileFormat.equals(SystemConfig.DataFilePIDFormat.INDEPENDENT.toString())
+                return doiDataFileFormat.equals("INDEPENDENT")
                         ? generateIdentifierAsIndependentSequentialNumber(datafile, idServiceBean, prepend)
                         : generateIdentifierAsDependentSequentialNumber(datafile, idServiceBean, prepend);
             default:

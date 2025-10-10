@@ -1,14 +1,15 @@
 package edu.harvard.iq.dataverse.dataset;
 
-import edu.harvard.iq.dataverse.persistence.dataset.DownloadDatasetLog;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.logging.Logger;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import edu.harvard.iq.dataverse.persistence.dataset.DownloadDatasetLog;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @Stateless
 public class DownloadDatasetLogService {
@@ -18,7 +19,7 @@ public class DownloadDatasetLogService {
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
 
-    @EJB
+    @Inject
     protected SystemConfig systemConfig;
 
     // -------------------- LOGIC --------------------

@@ -96,7 +96,7 @@ public class DataverseUserPage extends BaseUserPage {
     AuthenticationServiceBean authenticationService;
     @EJB
     ConfirmEmailServiceBean confirmEmailService;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @EJB
     PasswordValidatorServiceBean passwordValidatorService;
