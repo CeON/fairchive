@@ -1,9 +1,8 @@
 package edu.harvard.iq.dataverse.search.index;
 
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.util.SystemConfig;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
@@ -14,9 +13,10 @@ import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 
-import java.util.List;
-import java.util.concurrent.Future;
-import java.util.logging.Logger;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @Stateless
 public class IndexBatchServiceBean {
@@ -30,8 +30,8 @@ public class IndexBatchServiceBean {
     @EJB
     DataverseDao dataverseDao;
     @EJB
-    DatasetDao datasetDao;
-    @Inject
+    DatasetService datasetService;
+    @EJB
     SystemConfig systemConfig;
 
     @Asynchronous
@@ -56,7 +56,7 @@ public class IndexBatchServiceBean {
             dataverseIdsJson.add(id);
         }
 
-        List<Long> datasetIds = datasetDao.findAllOrSubset(numPartitions, partitionId, skipIndexed);
+        List<Long> datasetIds = datasetService.findAllOrSubset(numPartitions, partitionId, skipIndexed);
 
         JsonArrayBuilder datasetIdsJson = Json.createArrayBuilder();
         for (Long id : datasetIds) {
@@ -99,7 +99,7 @@ public class IndexBatchServiceBean {
 
         int datasetIndexCount = 0;
         int datasetFailureCount = 0;
-        List<Long> datasetIds = datasetDao.findAllOrSubset(numPartitions, partitionId, skipIndexed);
+        List<Long> datasetIds = datasetService.findAllOrSubset(numPartitions, partitionId, skipIndexed);
         for (Long id : datasetIds) {
             try {
                 datasetIndexCount++;

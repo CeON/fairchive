@@ -5,6 +5,7 @@
  */
 package edu.harvard.iq.dataverse;
 
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 
 import javax.ejb.EJB;
@@ -21,7 +22,7 @@ import java.io.IOException;
 public class CitationServlet extends HttpServlet {
 
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,7 +38,7 @@ public class CitationServlet extends HttpServlet {
 
         String persistentId = request.getParameter("persistentId");
         if (persistentId != null) {
-            Dataset ds = datasetDao.findByGlobalId(persistentId);
+            Dataset ds = datasetService.findByGlobalId(persistentId);
             if (ds != null) {
                 response.sendRedirect("dataset.xhtml?persistentId=" + persistentId);
                 return;

@@ -6,7 +6,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
-import edu.harvard.iq.dataverse.DatasetDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignmentRepository;
@@ -26,7 +26,7 @@ public class PrivateUrlServiceBean implements Serializable {
     private RoleAssignmentRepository roleAssignmentRepo;
 
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
 
     @Inject
     SystemConfig systemConfig;
@@ -35,7 +35,7 @@ public class PrivateUrlServiceBean implements Serializable {
      * @return A PrivateUrl if the dataset has one or null.
      */
     public PrivateUrl getPrivateUrlFromDatasetId(long datasetId, final boolean anonymized) {
-        RoleAssignment roleAssignment = this.roleAssignmentRepo.getPrivateUrlRoleAssignmentFromDataset(datasetDao.find(datasetId), anonymized);
+        RoleAssignment roleAssignment = this.roleAssignmentRepo.getPrivateUrlRoleAssignmentFromDataset(datasetService.find(datasetId), anonymized);
         return PrivateUrlUtil.getPrivateUrlFromRoleAssignment(roleAssignment, systemConfig.getDataverseSiteUrl());
     }
 

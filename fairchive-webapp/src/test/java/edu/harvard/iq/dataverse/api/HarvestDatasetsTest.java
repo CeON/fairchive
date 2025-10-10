@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.api;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -29,9 +28,6 @@ class HarvestDatasetsTest {
 
     @Mock
     private DatasetService datasetService;
-
-    @Mock
-    private DatasetDao datasetDao;
 
     @Mock
     private HttpServletRequest request;
@@ -84,7 +80,7 @@ class HarvestDatasetsTest {
     void updateDatasetLastChangeTime() {
         // given
         Dataset dataset = new Dataset();
-        when(datasetDao.find(1L)).thenReturn(dataset);
+        when(datasetService.find(1L)).thenReturn(dataset);
 
         // when
         harvestDatasets.updateDatasetLastChangeTime("1");

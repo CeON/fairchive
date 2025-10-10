@@ -1,10 +1,11 @@
 package edu.harvard.iq.dataverse.harvest.server.xoai;
 
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.harvest.OAIRecord;
-import edu.harvard.iq.dataverse.util.SystemConfig;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.xoai.dataprovider.exceptions.IdDoesNotExistException;
@@ -17,12 +18,11 @@ import org.dspace.xoai.dataprovider.model.ItemIdentifier;
 import org.dspace.xoai.dataprovider.repository.ItemRepository;
 import org.dspace.xoai.util.URLEncoder;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.harvest.OAIRecord;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 /**
  * @author Leonid Andreev
@@ -34,15 +34,15 @@ public class XitemRepository implements ItemRepository {
     private static Logger logger = Logger.getLogger(XitemRepository.class.getCanonicalName());
 
     private final OAIRecordServiceBean recordService;
-    private final DatasetDao datasetDao;
+    private final DatasetService datasetService;
     private final SystemConfig systemConfig;
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public XitemRepository(OAIRecordServiceBean recordService, DatasetDao datasetDao, 
+    public XitemRepository(OAIRecordServiceBean recordService, DatasetService datasetService, 
             final SystemConfig systemConfig) {
         this.recordService = recordService;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.systemConfig = systemConfig;
     }
 
@@ -57,7 +57,7 @@ public class XitemRepository implements ItemRepository {
             throw new IdDoesNotExistException();
         }
 
-        Dataset dataset = datasetDao.findByGlobalId(identifier);
+        Dataset dataset = datasetService.findByGlobalId(identifier);
         if (dataset == null) {
             throw new IdDoesNotExistException();
         }
@@ -189,7 +189,7 @@ public class XitemRepository implements ItemRepository {
         }
         for (int i = offset; i < offset + length && i < oaiRecords.size(); i++) {
             OAIRecord oaiRecord = oaiRecords.get(i);
-            Dataset dataset = datasetDao.findByGlobalId(oaiRecord.getGlobalId());
+            Dataset dataset = datasetService.findByGlobalId(oaiRecord.getGlobalId());
             if (dataset != null) {
                 Xitem xItem = new Xitem(getIdOf(oaiRecord), oaiRecord.getLastUpdateTime(), 
                         oaiRecord.isRemoved())

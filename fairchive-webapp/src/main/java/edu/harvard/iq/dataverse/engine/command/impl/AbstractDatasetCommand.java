@@ -184,7 +184,7 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
                         int attempts = 0;
 
                         while (globalIdServiceBean.alreadyExists(theDataset) && attempts < FOOLPROOF_RETRIAL_ATTEMPTS_LIMIT) {
-                            theDataset.setIdentifier(ctxt.datasets().generateDatasetIdentifier(theDataset));
+                            theDataset.setIdentifier(ctxt.datasetService().generateDatasetIdentifier(theDataset));
                             logger.log(Level.INFO, "Attempting to register external identifier for dataset {0} (trying: {1}).",
                                        new Object[]{theDataset.getId(), theDataset.getIdentifier()});
                             attempts++;

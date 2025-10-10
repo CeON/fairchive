@@ -65,7 +65,6 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import com.amazonaws.services.pi.model.InvalidArgumentException;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -174,7 +173,6 @@ public class Datasets extends AbstractApiBean {
 
     private static final Logger logger = Logger.getLogger(Datasets.class.getCanonicalName());
 
-    private DatasetDao datasetDao;
     private DataverseDao dataverseDao;
     private UserNotificationService userNotificationService;
     private PermissionServiceBean permissionService;
@@ -206,7 +204,7 @@ public class Datasets extends AbstractApiBean {
     public Datasets() { }
 
     @Inject
-    public Datasets(DatasetDao datasetDao, DataverseDao dataverseDao,
+    public Datasets(DataverseDao dataverseDao,
                     UserNotificationService userNotificationService,
                     PermissionServiceBean permissionService, AuthenticationServiceBean authenticationServiceBean,
                     DataFileServiceBean fileService, IngestServiceBean ingestService,
@@ -291,7 +289,7 @@ public class Datasets extends AbstractApiBean {
             return error(BAD_REQUEST, exporter + " is not a valid exporter");
         }
 
-        Dataset dataset = datasetDao.findByGlobalId(persistentId);
+        Dataset dataset = datasetSvc.findByGlobalId(persistentId);
         if (dataset == null) {
             return error(NOT_FOUND, "A dataset with the persistentId " + persistentId + " could not be found.");
         }
@@ -660,7 +658,7 @@ public class Datasets extends AbstractApiBean {
     @Path("/modifyRegistrationAll")
     public Response updateDatasetTargetURLAll() {
         return response(req -> {
-            datasetDao.findAll().forEach(ds -> {
+            datasetSvc.findAll().forEach(ds -> {
                 try {
                     execCommand(new UpdateDatasetTargetURLCommand(findDatasetOrDie(ds.getId().toString()), req));
                 } catch (WrappedResponse ex) {
@@ -697,7 +695,7 @@ public class Datasets extends AbstractApiBean {
     @Path("/modifyRegistrationPIDMetadataAll")
     public Response updateDatasetPIDMetadataAll() {
         return response(req -> {
-            datasetDao.findAll().forEach(ds -> {
+            datasetSvc.findAll().forEach(ds -> {
                 try {
                     execCommand(new UpdateDvObjectPIDMetadataCommand(findDatasetOrDie(ds.getId().toString()), req));
                 } catch (WrappedResponse ex) {
@@ -1215,7 +1213,7 @@ public class Datasets extends AbstractApiBean {
             ScriptRequestResponse scriptRequestResponse = execCommand(
                     new RequestRsyncScriptCommand(createDataverseRequest(user), dataset));
 
-            DatasetLock lock = datasetDao.addDatasetLock(
+            DatasetLock lock = datasetSvc.addDatasetLock(
                     dataset.getId(), DatasetLock.Reason.DcmUpload, user.getId(), "script downloaded");
             if (lock == null) {
                 logger.log(Level.WARNING, "Failed to lock the dataset (dataset id={0})", dataset.getId());
@@ -1304,7 +1302,7 @@ public class Datasets extends AbstractApiBean {
                         if (dcmLock == null) {
                             logger.log(Level.WARNING, "Dataset not locked for DCM upload");
                         } else {
-                            datasetDao.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
+                            datasetSvc.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
                             dataset.removeLock(dcmLock);
                         }
 

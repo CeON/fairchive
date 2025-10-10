@@ -10,6 +10,7 @@ import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleServiceBean;
 import edu.harvard.iq.dataverse.datafile.FileDownloadServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.DownloadDatasetLogDao;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
@@ -78,6 +79,9 @@ public class EjbDataverseEngine {
 
     @EJB
     DatasetDao datasetDao;
+    
+    @EJB
+    DatasetService datasetService;
 
     @EJB
     DataverseDao dataverseDao;
@@ -324,6 +328,11 @@ public class EjbDataverseEngine {
                 @Override
                 public DatasetDao datasets() {
                     return datasetDao;
+                }
+                
+                @Override
+                public DatasetService datasetService() {
+                    return datasetService;
                 }
 
                 @Override

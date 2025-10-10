@@ -1,13 +1,13 @@
 package edu.harvard.iq.dataverse.api;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
 import edu.harvard.iq.dataverse.common.NullSafeJsonBuilder;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean.RetrieveDatasetVersionResponse;
 import edu.harvard.iq.dataverse.notification.NotificationObjectResolver;
@@ -89,7 +89,7 @@ public class Index extends AbstractApiBean {
     @EJB
     DataverseDao dataverseDao;
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
     @EJB
     DatasetVersionServiceBean datasetVersionService;
     @EJB
@@ -256,7 +256,7 @@ public class Index extends AbstractApiBean {
                     return notFound("Could not find dataverse with id of " + id + ". Result from deletion attempt: " + response);
                 }
             } else if (type.equals("datasets")) {
-                Dataset dataset = datasetDao.find(id);
+                Dataset dataset = datasetService.find(id);
                 if (dataset != null) {
                     boolean doNormalSolrDocCleanUp = true;
                     indexService.indexDataset(dataset, doNormalSolrDocCleanUp);
@@ -271,7 +271,7 @@ public class Index extends AbstractApiBean {
                 }
             } else if (type.equals("files")) {
                 DataFile dataFile = dataFileService.find(id);
-                Dataset datasetThatOwnsTheFile = datasetDao.find(dataFile.getOwner().getId());
+                Dataset datasetThatOwnsTheFile = datasetService.find(dataFile.getOwner().getId());
                 /**
                  * @todo How can we display the result to the user?
                  */
@@ -323,7 +323,7 @@ public class Index extends AbstractApiBean {
         }
         Dataset dataset = null;
         try {
-            dataset = datasetDao.findByGlobalId(persistentId);
+            dataset = datasetService.findByGlobalId(persistentId);
         } catch (Exception ex) {
             return error(Status.BAD_REQUEST, "Problem looking up dataset with persistent id \"" 
                     + persistentId + "\". Error: " + ex.getMessage());
@@ -671,7 +671,7 @@ public class Index extends AbstractApiBean {
     @GET
     @Path("filesearch")
     public Response filesearch(@QueryParam("persistentId") String persistentId, @QueryParam("semanticVersion") String semanticVersion, @QueryParam("q") String userSuppliedQuery) {
-        Dataset dataset = datasetDao.findByGlobalId(persistentId);
+        Dataset dataset = datasetService.findByGlobalId(persistentId);
         if (dataset == null) {
             return error(Status.BAD_REQUEST, "Could not find dataset with persistent id " + persistentId);
         }

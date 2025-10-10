@@ -23,12 +23,12 @@ import org.swordapp.server.SwordServerException;
 import org.swordapp.server.UriRegistry;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.api.imports.ImportGenericServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandExecutionException;
@@ -55,7 +55,7 @@ public class ContainerManagerImpl implements ContainerManager {
     @EJB
     DataverseDao dataverseDao;
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
     @EJB
     IndexServiceBean indexService;
     @EJB
@@ -91,7 +91,7 @@ public class ContainerManagerImpl implements ContainerManager {
             logger.fine("operating on target type: " + urlManager.getTargetType());
             if ("study".equals(targetType)) {
                 String globalId = urlManager.getTargetIdentifier();
-                Dataset dataset = datasetDao.findByGlobalId(globalId);
+                Dataset dataset = datasetService.findByGlobalId(globalId);
                 if (dataset != null) {
                     if (!permissionService.isUserAllowedOn(user, new GetDraftDatasetVersionCommand(dvReq, dataset), dataset)) {
                         throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "User " + user.getDisplayInfo().getTitle() +
@@ -142,7 +142,7 @@ public class ContainerManagerImpl implements ContainerManager {
                 }
 
                 String globalId = urlManager.getTargetIdentifier();
-                Dataset dataset = datasetDao.findByGlobalId(globalId);
+                Dataset dataset = datasetService.findByGlobalId(globalId);
                 if (dataset != null) {
                     Dataverse dvThatOwnsDataset = dataset.getOwner();
                     UpdateDatasetVersionCommand updateDatasetCommand = new UpdateDatasetVersionCommand(dataset, dvReq);
@@ -229,7 +229,7 @@ public class ContainerManagerImpl implements ContainerManager {
                 String globalId = urlManager.getTargetIdentifier();
                 logger.fine("globalId: " + globalId);
                 if (globalId != null) {
-                    Dataset dataset = datasetDao.findByGlobalId(globalId);
+                    Dataset dataset = datasetService.findByGlobalId(globalId);
                     if (dataset != null) {
                         Dataverse dvThatOwnsDataset = dataset.getOwner();
                         /**
@@ -341,7 +341,7 @@ public class ContainerManagerImpl implements ContainerManager {
                 if (globalId != null) {
                     Dataset dataset = null;
                     try {
-                        dataset = datasetDao.findByGlobalId(globalId);
+                        dataset = datasetService.findByGlobalId(globalId);
                     } catch (EJBException ex) {
                         throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "Could not find dataset based on global id (" + globalId + ") in URL: " + uri);
                     }

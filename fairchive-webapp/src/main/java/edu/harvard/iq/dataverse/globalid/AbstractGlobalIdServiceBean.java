@@ -1,12 +1,24 @@
 package edu.harvard.iq.dataverse.globalid;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.export.datacite.DataCiteResource;
 import edu.harvard.iq.dataverse.export.datacite.DataCiteResourceCreator;
 import edu.harvard.iq.dataverse.persistence.DvObject;
@@ -14,15 +26,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public abstract class AbstractGlobalIdServiceBean implements GlobalIdServiceBean {
 
@@ -36,7 +39,7 @@ public abstract class AbstractGlobalIdServiceBean implements GlobalIdServiceBean
     @EJB
     private EjbDataverseEngine commandEngine;
     @EJB
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
     private DataFileServiceBean datafileService;
     @Inject
@@ -74,7 +77,7 @@ public abstract class AbstractGlobalIdServiceBean implements GlobalIdServiceBean
                 : dvObject.getProtocol();
         GlobalIdServiceBean idServiceBean = this.resolver.resolve(protocol);
         dvObject.setIdentifier(dvObject.isInstanceofDataset()
-                ? datasetDao.generateDatasetIdentifier((Dataset) dvObject)
+                ? datasetService.generateDatasetIdentifier((Dataset) dvObject)
                 : datafileService.generateDataFileIdentifier((DataFile) dvObject, idServiceBean));
         if (dvObject.getProtocol() == null) {
             dvObject.setProtocol(protocol);

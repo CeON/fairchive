@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.dataset;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
@@ -15,7 +14,6 @@ import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
 
-import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.File;
@@ -31,9 +29,6 @@ import java.util.logging.Logger;
 public class DatasetWidgetsPage implements java.io.Serializable {
 
     private static final Logger logger = Logger.getLogger(DatasetWidgetsPage.class.getCanonicalName());
-
-    @EJB
-    private DatasetDao datasetDao;
 
     @Inject
     private PermissionsWrapper permissionsWrapper;
@@ -64,7 +59,7 @@ public class DatasetWidgetsPage implements java.io.Serializable {
         if (datasetId == null || datasetId.intValue() <= 0) {
             return permissionsWrapper.notFound();
         }
-        dataset = datasetDao.find(datasetId);
+        dataset = datasetService.find(datasetId);
         if (dataset == null) {
             return permissionsWrapper.notFound();
         }
