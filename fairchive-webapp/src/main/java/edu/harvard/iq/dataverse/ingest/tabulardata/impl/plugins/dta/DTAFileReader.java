@@ -1206,7 +1206,7 @@ public class DTAFileReader extends TabularDataFileReader {
     }
 
 
-    void parseValueLabelsRelease105(BufferedInputStream stream) throws IOException {
+    private void parseValueLabelsRelease105(BufferedInputStream stream) throws IOException {
 
         dbgLog.fine("parseValueLabelsRelease105(): start");
 

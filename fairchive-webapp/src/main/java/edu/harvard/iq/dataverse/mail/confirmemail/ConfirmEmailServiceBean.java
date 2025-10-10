@@ -119,7 +119,7 @@ public class ConfirmEmailServiceBean {
                 .getResultList();
     }
 
-    public List<ConfirmEmailData> findAllConfirmEmailData() {
+    private List<ConfirmEmailData> findAllConfirmEmailData() {
         TypedQuery<ConfirmEmailData> typedQuery = em.createNamedQuery("ConfirmEmailData.findAll", ConfirmEmailData.class);
         return typedQuery.getResultList();
     }

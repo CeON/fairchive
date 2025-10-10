@@ -24,7 +24,6 @@ import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -40,6 +39,7 @@ import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 import java.io.IOException;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashMap;
@@ -55,6 +55,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
 import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
 import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author Leonid Andreev
@@ -65,13 +66,13 @@ import static java.util.stream.Collectors.toList;
 @SuppressWarnings("serial")
 @Stateless
 @Named
-public class DataFileServiceBean implements java.io.Serializable {
+public class DataFileServiceBean implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(DataFileServiceBean.class.getCanonicalName());
+    private static final Logger logger = getLogger(DataFileServiceBean.class.getCanonicalName());
     @EJB
-    DvObjectServiceBean dvObjectService;
+    private DvObjectServiceBean dvObjectService;
     @Inject
-    SettingsServiceBean settingsService;
+    private SettingsServiceBean settingsService;
     @Inject
     private ImageThumbConverter imageThumbConverter;
 

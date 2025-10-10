@@ -9,7 +9,7 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
  *
  * @author michael
  */
-public class AuthenticationResponse {
+public final class AuthenticationResponse {
 
     public static AuthenticationResponse makeSuccess(String userId, AuthenticatedUserDisplayInfo disInf) {
         return new AuthenticationResponse()
@@ -79,7 +79,7 @@ public class AuthenticationResponse {
         return message;
     }
 
-    public AuthenticationResponse setMessage(String message) {
+    private AuthenticationResponse setMessage(String message) {
         this.message = message;
         return this;
     }
@@ -88,7 +88,7 @@ public class AuthenticationResponse {
         return error;
     }
 
-    public AuthenticationResponse setError(Throwable error) {
+    private AuthenticationResponse setError(Throwable error) {
         this.error = error;
         return this;
     }
@@ -97,7 +97,7 @@ public class AuthenticationResponse {
         return userId;
     }
 
-    public AuthenticationResponse setUserId(String userId) {
+    private AuthenticationResponse setUserId(String userId) {
         this.userId = userId;
         return this;
     }
@@ -106,7 +106,7 @@ public class AuthenticationResponse {
         return userDisplayInfo;
     }
 
-    public AuthenticationResponse setUserDisplayInfo(AuthenticatedUserDisplayInfo userDisplayInfo) {
+    private AuthenticationResponse setUserDisplayInfo(AuthenticatedUserDisplayInfo userDisplayInfo) {
         this.userDisplayInfo = userDisplayInfo;
         return this;
     }
