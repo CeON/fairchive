@@ -19,7 +19,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
 
     // -------------------- INNER CLASSES --------------------
 
-    protected static class CitationBuilder {
+    protected static final class CitationBuilder {
         private final boolean escapeHtml;
         private final StringBuilder citation = new StringBuilder();
         private final List<Token> partElements = new ArrayList<>();
@@ -105,7 +105,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
     }
 
 
-    protected static class BibTeXCitationBuilder {
+    protected static final class BibTeXCitationBuilder {
         private StringBuilder sb = new StringBuilder();
 
         // -------------------- CONSTRUCTORS --------------------
@@ -148,7 +148,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
         }
     }
 
-    protected static class RISCitationBuilder {
+    protected static final class RISCitationBuilder {
         private StringBuilder sb = new StringBuilder();
 
         // -------------------- CONSTRUCTORS --------------------
@@ -190,7 +190,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
         }
     }
 
-    protected static class EndNoteCitationBuilder {
+    protected static final class EndNoteCitationBuilder {
         private XMLStreamWriter writer;
 
         // -------------------- CONSTRUCTORS --------------------
