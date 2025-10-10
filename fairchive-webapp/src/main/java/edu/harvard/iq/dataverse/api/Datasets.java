@@ -220,7 +220,6 @@ public class Datasets extends AbstractApiBean {
                     UningestInfoService uningestInfoService,
                     UningestService uningestService,
                     SystemConfig config) {
-        this.datasetDao = datasetDao;
         this.dataverseDao = dataverseDao;
         this.userNotificationService = userNotificationService;
         this.permissionService = permissionService;
