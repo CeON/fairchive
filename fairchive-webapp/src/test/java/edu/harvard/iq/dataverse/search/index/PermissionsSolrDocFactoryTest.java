@@ -41,8 +41,6 @@ public class PermissionsSolrDocFactoryTest {
     private SolrPermissionsFinder searchPermissionsService;
     @Mock
     private DvObjectServiceBean dvObjectService;
-    @Mock
-    private DatasetDao datasetDao;
 
     private static SolrPermission EMPTY_PERMISSION = new SolrPermission(Permission.AddDataset, Collections.emptyList());
     private static String[] PERMS_DOC_ASSERTIONS = new String[] { "dvObjectId", "solrId", "datasetVersionId",

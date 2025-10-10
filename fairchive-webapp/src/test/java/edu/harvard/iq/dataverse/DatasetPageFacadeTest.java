@@ -1,5 +1,23 @@
 package edu.harvard.iq.dataverse;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.difference.DatasetFileTermDifferenceItem;
 import edu.harvard.iq.dataverse.dataset.difference.LicenseDifferenceFinder;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -14,22 +32,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.group.IPv4Address;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -48,7 +50,7 @@ class DatasetPageFacadeTest {
     private TermsOfUseRepository termsOfUseRepository;
 
     @Mock
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     @Mock
     private DataverseDao dataverseDao;
@@ -162,7 +164,7 @@ class DatasetPageFacadeTest {
         dataset.setId(1L);
 
         //when
-        Mockito.when(datasetDao.find(dsId)).thenReturn(dataset);
+        Mockito.when(datasetService.find(dsId)).thenReturn(dataset);
         Dataset foundDataset = datasetPageFacade.retrieveDataset(dsId);
 
         //then
@@ -177,7 +179,7 @@ class DatasetPageFacadeTest {
         dataset.setGlobalId(new GlobalId(globalId));
 
         //when
-        Mockito.when(datasetDao.findByGlobalId(globalId)).thenReturn(dataset);
+        Mockito.when(datasetService.findByGlobalId(globalId)).thenReturn(dataset);
         Dataset foundDataset = datasetPageFacade.findByGlobalId(globalId);
 
         //then
@@ -209,7 +211,7 @@ class DatasetPageFacadeTest {
         datasetPageFacade.assignDatasetThumbnailByNativeQuery(dataset, file);
 
         //then
-        Mockito.verify(datasetDao, Mockito.times(1)).assignDatasetThumbnailByNativeQuery(dataset, file);
+        Mockito.verify(datasetService, Mockito.times(1)).assignDatasetThumbnailByNativeQuery(dataset, file);
     }
 
     @Test

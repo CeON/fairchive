@@ -1,7 +1,12 @@
 package edu.harvard.iq.dataverse.users;
 
+import java.util.List;
+import java.util.Optional;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+
 import edu.harvard.iq.dataverse.AcceptedConsentDao;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.GenericDao;
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
@@ -10,6 +15,7 @@ import edu.harvard.iq.dataverse.authorization.OAuthTokenDataDao;
 import edu.harvard.iq.dataverse.authorization.groups.ExplicitGroupDao;
 import edu.harvard.iq.dataverse.authorization.providers.builtin.BuiltinUserServiceBean;
 import edu.harvard.iq.dataverse.datafile.FileAccessRequestDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.interceptors.LoggedCall;
 import edu.harvard.iq.dataverse.interceptors.SuperuserRequired;
@@ -32,11 +38,6 @@ import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.search.index.SolrIndexServiceBean;
 import edu.harvard.iq.dataverse.search.savedsearch.SavedSearchServiceBean;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import java.util.List;
-import java.util.Optional;
-
 @Stateless
 public class MergeInAccountService {
 
@@ -44,7 +45,7 @@ public class MergeInAccountService {
     @EJB private RoleAssigneeServiceBean roleAssigneeService;
     @EJB private SolrIndexServiceBean solrIndexService;
     @EJB private IndexServiceBean indexService;
-    @EJB private DatasetDao datasetDao;
+    @EJB private DatasetService datasetService;
     @EJB private DvObjectServiceBean dvObjectService;
     @EJB private GuestbookResponseServiceBean guestbookResponseService;
     @EJB private UserNotificationRepository userNotificationRepository;
@@ -154,14 +155,14 @@ public class MergeInAccountService {
     }
 
     private void updateDatasetVersionUser(AuthenticatedUser consumedAU, AuthenticatedUser baseAU) {
-        for (DatasetVersionUser user : datasetDao.getDatasetVersionUsersByAuthenticatedUser(consumedAU)) {
+        for (DatasetVersionUser user : datasetService.getDatasetVersionUsersByAuthenticatedUser(consumedAU)) {
             user.setAuthenticatedUser(baseAU);
             genericDao.merge(user);
         }
     }
 
     private void updateDatasetLocks(AuthenticatedUser consumedAU, AuthenticatedUser baseAU) {
-        for (DatasetLock lock : datasetDao.getDatasetLocksByUser(consumedAU)) {
+        for (DatasetLock lock : datasetService.getDatasetLocksByUser(consumedAU)) {
             lock.setUser(baseAU);
             genericDao.merge(lock);
         }

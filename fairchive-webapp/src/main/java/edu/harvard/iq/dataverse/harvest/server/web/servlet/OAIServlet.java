@@ -43,8 +43,8 @@ import org.dspace.xoai.xml.XmlWriter;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
@@ -78,7 +78,7 @@ public class OAIServlet extends HttpServlet {
     private OAIRecordServiceBean recordService;
     private SettingsServiceBean settingsService;
     private DataverseDao dataverseDao;
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private SystemConfig systemConfig;
     private ExportService exportService;
 
@@ -96,13 +96,13 @@ public class OAIServlet extends HttpServlet {
     @Inject
     public OAIServlet(OAISetServiceBean setService, OAIRecordServiceBean recordService,
                       SettingsServiceBean settingsService, DataverseDao dataverseDao,
-                      DatasetDao datasetDao, SystemConfig systemConfig,
+                      DatasetService datasetService, SystemConfig systemConfig,
                       ExportService exportService) {
         this.setService = setService;
         this.recordService = recordService;
         this.settingsService = settingsService;
         this.dataverseDao = dataverseDao;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.systemConfig = systemConfig;
         this.exportService = exportService;
     }
@@ -137,7 +137,7 @@ public class OAIServlet extends HttpServlet {
         }
 
         setRepository = new XsetRepository(setService);
-        itemRepository = new XitemRepository(recordService, datasetDao, systemConfig);
+        itemRepository = new XitemRepository(recordService, datasetService, systemConfig);
 
         repositoryConfiguration = createRepositoryConfiguration();
 

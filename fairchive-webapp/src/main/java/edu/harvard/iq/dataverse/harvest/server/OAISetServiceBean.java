@@ -146,7 +146,7 @@ public class OAISetServiceBean implements java.io.Serializable {
             exportLogger.setUseParentHandlers(false);
             fileHandlerSuceeded = true;
         } catch (IOException | SecurityException ex) {
-            Logger.getLogger(DatasetDao.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
 
         if (fileHandlerSuceeded) {

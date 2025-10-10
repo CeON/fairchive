@@ -29,7 +29,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.primefaces.event.SelectEvent;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -40,6 +39,7 @@ import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.datafile.file.FileMetadataService;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadHelper;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadRequestHelper;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.EmbargoAccessService;
 import edu.harvard.iq.dataverse.dataverse.DataverseService;
 import edu.harvard.iq.dataverse.engine.command.impl.PublishDatasetCommand;
@@ -110,7 +110,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
     @Inject
     DatasetFieldValidationService fieldValidationService;
     @Inject
-    DatasetDao datasetDao;
+    DatasetService datasetService;
     @Inject
     DatasetVersionRepository datasetVersionRepository;
     @Inject
@@ -131,7 +131,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
     public void setUp() {
         this.dataset = this.datasetRepo.getById(52L);
         this.datasetFilesTabFacade = new DatasetFilesTabFacade(
-                datasetVersionRepository, fileDownloadHelper, datasetDao);
+                datasetVersionRepository, fileDownloadHelper, datasetService);
         this.filesTab = new DatasetFilesTabStubbed(fileDownloadHelper,
                 datafileService,
                 permissionService, permissionsWrapper,

@@ -1,14 +1,10 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
-import edu.harvard.iq.dataverse.engine.TestCommandContext;
-import edu.harvard.iq.dataverse.engine.TestDataverseEngine;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
-import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetThumbnailCommand.UserIntent;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,10 +14,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import edu.harvard.iq.dataverse.DataFileServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
+import edu.harvard.iq.dataverse.engine.TestCommandContext;
+import edu.harvard.iq.dataverse.engine.TestDataverseEngine;
+import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
+import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetThumbnailCommand.UserIntent;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -32,7 +33,7 @@ public class UpdateDatasetThumbnailCommandTest {
     @Mock
     private DataFileServiceBean dataFileService;
     @Mock
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     @Mock
     private DatasetThumbnailService datasetThumbnailService;
     
@@ -45,7 +46,7 @@ public class UpdateDatasetThumbnailCommandTest {
     public void setUp() {
         
         when(dataFileService.find(thumbnailUnexpectedlyAbsent)).thenReturn(new DataFile());
-        when(datasetDao.setDatasetFileAsThumbnail(any(), any())).thenAnswer((invocation) -> invocation.getArgument(0));
+        when(datasetService.setDatasetFileAsThumbnail(any(), any())).thenAnswer((invocation) -> invocation.getArgument(0));
         
         testEngine = new TestDataverseEngine(new TestCommandContext() {
 
@@ -55,8 +56,8 @@ public class UpdateDatasetThumbnailCommandTest {
             }
 
             @Override
-            public DatasetDao datasets() {
-                return datasetDao;
+            public DatasetService datasetService() {
+                return datasetService;
             }
             
             @Override
