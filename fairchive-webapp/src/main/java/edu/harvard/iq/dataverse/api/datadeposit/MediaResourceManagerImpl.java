@@ -20,7 +20,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -64,8 +63,6 @@ final class MediaResourceManagerImpl implements MediaResourceManager {
     private IngestServiceBean ingestService;
     @EJB
     private PermissionServiceBean permissionService;
-    @Inject
-    private SettingsServiceBean settingsSvc;
     @Inject
     private SystemConfig systemConfig;
     @Inject

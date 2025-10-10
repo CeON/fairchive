@@ -8,8 +8,6 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 
 import java.io.InputStream;
-import java.time.Clock;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;

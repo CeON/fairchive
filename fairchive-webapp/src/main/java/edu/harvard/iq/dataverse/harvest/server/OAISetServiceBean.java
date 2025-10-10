@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.harvest.server;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.harvest.OAIRecordRepository;
 import edu.harvard.iq.dataverse.persistence.harvest.OAISet;

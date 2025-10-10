@@ -36,7 +36,6 @@ import javax.batch.api.chunk.AbstractItemWriter;
 import javax.batch.operations.JobOperator;
 import javax.batch.runtime.BatchRuntime;
 import javax.batch.runtime.context.JobContext;
-import javax.batch.runtime.context.StepContext;
 import javax.ejb.EJB;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -69,9 +68,6 @@ public class FileRecordWriter extends AbstractItemWriter {
     private JobContext jobContext;
 
     @Inject
-    private  StepContext stepContext;
-
-    @Inject
     @BatchProperty
     private  String checksumType;
 
@@ -84,9 +80,6 @@ public class FileRecordWriter extends AbstractItemWriter {
 
     @EJB
     private AuthenticationServiceBean authenticationServiceBean;
-
-    @Inject
-    private SettingsServiceBean settingsService;
 
     @EJB
     private DataFileServiceBean dataFileServiceBean;

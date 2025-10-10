@@ -22,7 +22,7 @@ public class SystemProcessStep extends FilesystemAccessingWorkflowStep {
 
     private static final Logger log = LoggerFactory.getLogger(SystemProcessStep.class);
 
-    public static final String STEP_ID = "system-process";
+    static final String STEP_ID = "system-process";
 
     /**
      * The binary to run. Used as is, so consider absolute path if necessary.
@@ -42,7 +42,7 @@ public class SystemProcessStep extends FilesystemAccessingWorkflowStep {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public SystemProcessStep(WorkflowStepParams inputParams) {
+    SystemProcessStep(WorkflowStepParams inputParams) {
         super(inputParams);
         command = inputParams.getRequired(COMMAND_PARAM_NAME);
         arguments = inputParams.getList(ARGUMENTS_PARAM_NAME, "\\|");
@@ -87,7 +87,7 @@ public class SystemProcessStep extends FilesystemAccessingWorkflowStep {
                 .waitFor();
     }
 
-    Path outLogPath(String processId, Path workDir) {
+    private Path outLogPath(String processId, Path workDir) {
         return workDir.resolve("out-" + processId + ".log");
     }
 

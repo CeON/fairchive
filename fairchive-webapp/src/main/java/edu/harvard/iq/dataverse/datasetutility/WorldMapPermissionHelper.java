@@ -10,7 +10,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.MapLayerMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import org.omnifaces.cdi.ViewScoped;
@@ -18,7 +17,6 @@ import org.omnifaces.cdi.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import static edu.harvard.iq.dataverse.persistence.user.Permission.DownloadFile;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.EditDataset;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GeoconnectCreateEditMaps;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.GeoconnectViewMaps;
@@ -88,26 +86,6 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
             loadMapLayerMetadataLookup(df.getOwner());
         }
         return this.mapLayerMetadataLookup.get(df.getId());
-    }
-
-
-    /*
-     * Call this when using the API
-     *   - calls private method canUserSeeExploreWorldMapButton
-     */
-    public boolean canUserSeeExploreWorldMapButtonFromAPI(FileMetadata fm, User user) {
-
-        if (fm == null) {
-            return false;
-        }
-        if (user == null) {
-            return false;
-        }
-        if (!this.permissionService.userOn(user, fm.getDataFile()).has(DownloadFile)) {
-            return false;
-        }
-
-        return this.canUserSeeExploreWorldMapButton(fm);
     }
 
     /**
@@ -224,7 +202,7 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
     
      The MapLayerMetadata objects have been fetched at page inception by "loadMapLayerMetadataLookup()" 
      */
-    public boolean hasMapLayerMetadata(FileMetadata fm) {
+    private boolean hasMapLayerMetadata(FileMetadata fm) {
         if (fm == null) {
             return false;
         }
@@ -304,32 +282,6 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
 
     }
 
-
-    /**
-     * Call this when using the API
-     * - calls private method canSeeMapButtonReminderToPublish
-     *
-     * @param fm
-     * @param user
-     * @return
-     */
-    public boolean canSeeMapButtonReminderToPublishFromAPI(FileMetadata fm, User user) {
-        if (fm == null) {
-            return false;
-        }
-        if (user == null) {
-            return false;
-        }
-
-        if (!this.permissionService.userOn(user, fm.getDataFile().getOwner()).has(EditDataset)) {
-            return false;
-        }
-
-        return this.canSeeMapButtonReminderToPublish(fm);
-
-    }
-
-
     /**
      * Assumes permissions have been checked!!
      * <p>
@@ -397,31 +349,6 @@ public class WorldMapPermissionHelper implements java.io.Serializable {
             loadMapLayerMetadataLookup(fm.getDatasetVersion().getDataset());
         }
         return this.canUserSeeMapDataButton(fm);
-    }
-
-
-    /**
-     * Call this when using the API
-     * - calls private method canUserSeeMapDataButton
-     *
-     * @param fm
-     * @param user
-     * @return
-     */
-    public boolean canUserSeeMapDataButtonFromAPI(FileMetadata fm, User user) {
-        if (fm == null) {
-            return false;
-        }
-        if (user == null) {
-            return false;
-        }
-
-        if (!this.permissionService.userOn(user, fm.getDataFile().getOwner()).has(Permission.EditDataset)) {
-            return false;
-        }
-
-        return this.canUserSeeMapDataButton(fm);
-
     }
 
     /**

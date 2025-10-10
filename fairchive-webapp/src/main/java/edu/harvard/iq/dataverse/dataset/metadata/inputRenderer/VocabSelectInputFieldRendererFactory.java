@@ -63,10 +63,6 @@ public class VocabSelectInputFieldRendererFactory implements InputFieldRendererF
             return conditionalRendering;
         }
 
-        public boolean hasConditionalRendering() {
-            return conditionalRendering != null;
-        }
-
         // -------------------- SETTERS --------------------
 
         public void setBySortLocalisedStringsOrder(boolean sortByLocalisedStringsOrder) {

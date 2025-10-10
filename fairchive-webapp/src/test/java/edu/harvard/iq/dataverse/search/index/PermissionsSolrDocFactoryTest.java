@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.search.index;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
