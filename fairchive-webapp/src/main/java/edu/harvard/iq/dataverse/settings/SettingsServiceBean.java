@@ -903,7 +903,7 @@ public class SettingsServiceBean {
         final String val = this.getValueForKey(key);
         try {
             return parseLong(val);
-        } catch (final Exception ex) {
+        } catch (final NumberFormatException ex) {
             log.warn("Incorrect setting. Could not convert \"" +
                     val + "\" from setting " + key + " to long.");
             return null;
