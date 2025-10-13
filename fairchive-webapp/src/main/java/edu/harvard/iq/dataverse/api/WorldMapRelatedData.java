@@ -98,7 +98,7 @@ public class WorldMapRelatedData extends AbstractApiBean {
     @EJB
     PermissionServiceBean permissionService;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @Inject

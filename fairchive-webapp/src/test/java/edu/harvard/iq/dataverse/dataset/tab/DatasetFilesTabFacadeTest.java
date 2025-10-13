@@ -1,8 +1,28 @@
 package edu.harvard.iq.dataverse.dataset.tab;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
+
+import org.assertj.core.api.Condition;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.DatasetDao;
+
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadHelper;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -13,24 +33,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import org.assertj.core.api.Condition;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetFilesTabFacadeTest {
@@ -42,7 +44,7 @@ class DatasetFilesTabFacadeTest {
     private DatasetVersionRepository datasetVersionRepository;
 
     @Mock
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     @InjectMocks
     private DatasetFilesTabFacade datasetFilesTabFacade;
@@ -224,7 +226,7 @@ class DatasetFilesTabFacadeTest {
         dataset.setId(id);
 
         //when
-        when(datasetDao.find(id)).thenReturn(dataset);
+        when(datasetService.find(id)).thenReturn(dataset);
 
         Dataset foundDataset = datasetFilesTabFacade.retrieveDataset(id);
 
@@ -240,7 +242,7 @@ class DatasetFilesTabFacadeTest {
         datasetLock.setId(1L);
 
         //when
-        when(datasetDao.addDatasetLock(any(), any(), any(), any())).thenReturn(datasetLock);
+        when(datasetService.addDatasetLock(any(), any(), any(), any())).thenReturn(datasetLock);
 
         DatasetLock addedLock = datasetFilesTabFacade.addDatasetLock(1L, DatasetLock.Reason.InReview, 1L, "");
 
@@ -272,7 +274,7 @@ class DatasetFilesTabFacadeTest {
         dataset.addFileCategory(new DataFileCategory());
 
         //when
-        when(datasetDao.find(any())).thenReturn(dataset);
+        when(datasetService.find(any())).thenReturn(dataset);
 
         List<DataFileCategory> dataFileCategories = datasetFilesTabFacade.retrieveDatasetFileCategories(1L);
 
@@ -289,7 +291,7 @@ class DatasetFilesTabFacadeTest {
         dataset.addFileCategory(category);
 
         //when
-        when(datasetDao.find(any())).thenReturn(dataset);
+        when(datasetService.find(any())).thenReturn(dataset);
 
         datasetFilesTabFacade.removeDatasetFileCategories(1L, Lists.newArrayList(category));
 

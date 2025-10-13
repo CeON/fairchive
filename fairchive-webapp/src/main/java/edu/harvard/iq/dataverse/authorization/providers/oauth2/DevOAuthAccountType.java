@@ -5,5 +5,14 @@ public enum DevOAuthAccountType {
     RANDOM_EMAIL0,
     RANDOM_EMAIL1,
     RANDOM_EMAIL2,
-    RANDOM_EMAIL3,
+    RANDOM_EMAIL3;
+    
+    public static DevOAuthAccountType valueOf(final String s,
+            final DevOAuthAccountType defaultValue) {
+        try {
+            return DevOAuthAccountType.valueOf(s);
+        } catch (final IllegalArgumentException e) {
+            return defaultValue;
+        }
+    }
 }

@@ -95,7 +95,7 @@ public class MoveDataverseCommand extends AbstractVoidCommand {
         logger.info("Getting dataset children of dataverse...");
         List<Dataset> datasetChildren = new ArrayList<>();
         List<Long> datasetChildrenIds = ctxt.dataverses().findAllDataverseDatasetChildren(moved.getId());
-        datasetChildrenIds.forEach((dsId) -> datasetChildren.add(ctxt.datasets().find(dsId)));
+        datasetChildrenIds.forEach((dsId) -> datasetChildren.add(ctxt.datasetService().find(dsId)));
 
         logger.info("Getting dataverse children of dataverse...");
         List<Dataverse> dataverseChildren = new ArrayList<>();
@@ -313,7 +313,7 @@ public class MoveDataverseCommand extends AbstractVoidCommand {
         //Reindex datasets linked to moved dv
         if (moved.getDatasetLinkingDataverses() != null && !moved.getDatasetLinkingDataverses().isEmpty()) {
             for (DatasetLinkingDataverse dld : moved.getDatasetLinkingDataverses()) {
-                Dataset linkedDS = ctxt.datasets().find(dld.getDataset().getId());
+                Dataset linkedDS = ctxt.datasetService().find(dld.getDataset().getId());
                 ctxt.index().indexDataset(linkedDS, true);
             }
         }

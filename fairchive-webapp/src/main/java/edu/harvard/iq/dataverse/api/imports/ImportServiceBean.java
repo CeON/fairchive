@@ -1,10 +1,30 @@
 package edu.harvard.iq.dataverse.api.imports;
 
+import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
+
+import java.io.StringReader;
+import java.util.List;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.xml.stream.XMLStreamException;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import edu.harvard.iq.dataverse.DatasetDao;
+
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.api.dto.DatasetDTO;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateHarvestedDatasetCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.DeleteDatasetCommand;
@@ -19,23 +39,6 @@ import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
-import org.apache.commons.lang.StringUtils;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.xml.stream.XMLStreamException;
-import java.io.StringReader;
-import java.util.List;
-import java.util.logging.Logger;
-
-import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 
 /**
  * @author ellenk
@@ -50,7 +53,7 @@ public class ImportServiceBean {
     @EJB
     protected EjbDataverseEngine engineSvc;
     @EJB
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
     private ImportDDIServiceBean importDDIService;
     @EJB
@@ -115,7 +118,7 @@ public class ImportServiceBean {
 
     @TransactionAttribute(REQUIRES_NEW)
     public void doDeleteHarvestedDataset(DataverseRequest request, HarvestingClient harvestingClient, String identifier) throws ImportException {
-        Dataset dataset = datasetDao.getDatasetByHarvestInfo(harvestingClient.getDataverse(), identifier);
+        Dataset dataset = datasetService.getDatasetByHarvestInfo(harvestingClient.getDataverse(), identifier);
         if (dataset != null) {
             // Purge all the SOLR documents associated with this client from the
             // index server:
@@ -163,7 +166,7 @@ public class ImportServiceBean {
             ds.setHarvestedFrom(harvestingClient);
             ds.setHarvestIdentifier(harvestIdentifier);
 
-            Dataset existingDs = datasetDao.findByGlobalId(ds.getGlobalId().toString());
+            Dataset existingDs = datasetService.findByGlobalId(ds.getGlobalId().toString());
 
             if (existingDs != null) {
                 // If this dataset already exists IN ANOTHER DATAVERSE

@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -34,8 +33,6 @@ public class CollectionDepositManagerImplTest {
 
     @Mock
     private DataverseDao dataverseDao;
-    @Mock
-    private DatasetDao datasetDao;
     @Mock
     private PermissionServiceBean permissionService;
     @Mock

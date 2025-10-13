@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
@@ -35,8 +34,6 @@ public class ContainerManagerImplTest {
     private EjbDataverseEngine engineSvc;
     @Mock
     private DataverseDao dataverseDao;
-    @Mock
-    private DatasetDao datasetDao;
     @Mock
     private IndexServiceBean indexService;
     @Mock

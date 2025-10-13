@@ -2,12 +2,12 @@ package edu.harvard.iq.dataverse.api.datadeposit;
 
 import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -55,7 +55,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
     @EJB
     EjbDataverseEngine commandEngine;
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
     @EJB
     DataFileServiceBean dataFileService;
     @Inject
@@ -66,7 +66,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
     PermissionServiceBean permissionService;
     @Inject
     SettingsServiceBean settingsSvc;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @Inject
     SwordAuth swordAuth;
@@ -87,7 +87,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
         String globalId = urlManager.getTargetIdentifier();
         if (urlManager.getTargetType().equals("study") && globalId != null) {
             logger.fine("looking up dataset with globalId " + globalId);
-            Dataset dataset = datasetDao.findByGlobalId(globalId);
+            Dataset dataset = datasetService.findByGlobalId(globalId);
             if (dataset != null) {
                 /**
                  * @todo: support downloading of files (SWORD 2.0 Profile 6.4. -
@@ -246,7 +246,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
         String globalId = urlManager.getTargetIdentifier();
         if (urlManager.getTargetType().equals("study") && globalId != null) {
             logger.fine("looking up dataset with globalId " + globalId);
-            Dataset dataset = datasetDao.findByGlobalId(globalId);
+            Dataset dataset = datasetService.findByGlobalId(globalId);
             if (dataset == null) {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "Could not find dataset with global ID of " + globalId);
             }

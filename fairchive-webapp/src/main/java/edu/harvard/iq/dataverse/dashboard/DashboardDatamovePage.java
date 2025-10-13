@@ -19,12 +19,12 @@ import javax.inject.Named;
 import org.apache.commons.lang.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.NavigationWrapper;
 import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.move.AdditionalMoveStatus;
@@ -46,7 +46,7 @@ public class DashboardDatamovePage implements Serializable {
             .getLogger(DashboardDatamovePage.class.getCanonicalName());
 
     private final DataverseRequestServiceBean requestService;
-    private final DatasetDao datasetDao;
+    private final DatasetService datasetService;
     private final DataverseRepository dataverseRepo;
     private final DataverseSession session;
     private final NavigationWrapper navigation;
@@ -63,7 +63,7 @@ public class DashboardDatamovePage implements Serializable {
 
     @Inject
     public DashboardDatamovePage(final DataverseRequestServiceBean requestService,
-            final DatasetDao datasetDao,
+            final DatasetService datasetService,
             final DataverseRepository dataverseRepo,
             final DataverseSession session,
             final NavigationWrapper navigation,
@@ -71,7 +71,7 @@ public class DashboardDatamovePage implements Serializable {
             final SettingsWrapper settings,
             final UIMessages uiMessages) {
         this.requestService = requestService;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.dataverseRepo = dataverseRepo;
         this.session = session;
         this.navigation = navigation;
@@ -105,7 +105,7 @@ public class DashboardDatamovePage implements Serializable {
 
     public List<Dataset> completeSourceDataset(final String query) {
         if (query.contains("/")) {
-            final Dataset ds = datasetDao.findByGlobalId(query);
+            final Dataset ds = this.datasetService.findByGlobalId(query);
             return ds != null ? singletonList(ds) : emptyList();
         } else {
             return emptyList();

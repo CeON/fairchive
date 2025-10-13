@@ -8,8 +8,8 @@ package edu.harvard.iq.dataverse.api;
 
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.EmbargoAccessService;
 import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
 import edu.harvard.iq.dataverse.export.DDIExportServiceBean;
@@ -69,7 +69,7 @@ public class Meta {
     private EmbargoAccessService embargoAccessService;
 
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
 
 
     @Deprecated
@@ -160,7 +160,7 @@ public class Meta {
     @Produces({"application/xml"})
     public String dataset(@PathParam("datasetId") Long datasetId, @QueryParam("exclude") String exclude, @QueryParam("include") String include, @Context HttpHeaders header, @Context HttpServletResponse response) throws NotFoundException /*, ServiceUnavailableException, PermissionDeniedException, AuthorizationRequiredException*/ {
 
-        Dataset dataset = datasetDao.find(datasetId);
+        Dataset dataset = datasetService.find(datasetId);
         if (dataset == null) {
             throw new NotFoundException();
         }

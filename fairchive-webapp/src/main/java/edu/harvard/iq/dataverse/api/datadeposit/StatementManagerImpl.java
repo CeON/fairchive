@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.GetDraftDatasetVersionCommand;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -40,7 +40,7 @@ public class StatementManagerImpl implements StatementManager {
     private static final Logger logger = Logger.getLogger(StatementManagerImpl.class.getCanonicalName());
 
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
     @EJB
     PermissionServiceBean permissionService;
     @Inject
@@ -60,7 +60,7 @@ public class StatementManagerImpl implements StatementManager {
         if (urlManager.getTargetType().equals("study") && globalId != null) {
 
             logger.fine("request for sword statement by user " + user.getDisplayInfo().getTitle());
-            Dataset dataset = datasetDao.findByGlobalId(globalId);
+            Dataset dataset = datasetService.findByGlobalId(globalId);
             if (dataset == null) {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "couldn't find dataset with global ID of " + globalId);
             }

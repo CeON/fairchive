@@ -1,8 +1,28 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticatedUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Future;
+
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletRequest;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.DatasetDao;
+
 import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
 import edu.harvard.iq.dataverse.engine.NoOpTestEntityManager;
 import edu.harvard.iq.dataverse.engine.TestCommandContext;
@@ -18,23 +38,6 @@ import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.search.index.IndexBatchServiceBean;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Future;
-
-import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticatedUser;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author michael
@@ -259,17 +262,16 @@ public class MoveDataverseCommandTest {
 
             }
 
-            @SuppressWarnings("serial")
             @Override
-            public DatasetDao datasets() {
-                return new DatasetDao() {
+            public DatasetService datasetService() {
+                return new DatasetService() {
                     @Override
                     public List<Dataset> findByOwnerId(Long ownerId) {
                         return new ArrayList<>();
                     }
 
                     @Override
-                    public Dataset find(Object pk) {
+                    public Dataset find(Long pk) {
                         // fake this for what we need
                         if (pk instanceof Long) {
                             if ((Long) pk == 2) {

@@ -22,7 +22,6 @@ package edu.harvard.iq.dataverse.ingest;
 
 import com.google.api.client.util.Preconditions;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
@@ -35,6 +34,7 @@ import edu.harvard.iq.dataverse.dataaccess.ingest.IngestDataProvider;
 import edu.harvard.iq.dataverse.datafile.FileTypeDetector;
 import edu.harvard.iq.dataverse.datafile.HtrService;
 import edu.harvard.iq.dataverse.datafile.OcrService;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
 import edu.harvard.iq.dataverse.ingest.StartIngestResult.DataFileExceededSizeInfo;
 import edu.harvard.iq.dataverse.ingest.metadataextraction.FileMetadataExtractor;
@@ -138,7 +138,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class IngestServiceBean {
     private static final Logger logger = getLogger(IngestServiceBean.class);
 
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private DataFileServiceBean fileService;
     private SystemConfig systemConfig;
     private SettingsServiceBean settingsService;
@@ -155,7 +155,7 @@ public class IngestServiceBean {
     public IngestServiceBean() { }
 
     @Inject
-    public IngestServiceBean(DatasetDao datasetDao, 
+    public IngestServiceBean(DatasetService datasetService, 
                              DataFileServiceBean fileService,
                              SystemConfig systemConfig, 
                              SettingsServiceBean settingsService,
@@ -164,7 +164,7 @@ public class IngestServiceBean {
                              FinalizeIngestService finalizeIngestService, 
                              OcrService ocrService, 
                              HtrService htrService) {
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.fileService = fileService;
         this.systemConfig = systemConfig;
         this.settingsService = settingsService;
@@ -442,7 +442,7 @@ public class IngestServiceBean {
         if (count > 0) {
             String info = "Ingest of " + count + " tabular data file(s) is in progress.";
             logger.info(info);
-            datasetDao.addDatasetLock(scheduledFiles.get(0).getOwner().getId(),
+            datasetService.addDatasetLock(scheduledFiles.get(0).getOwner().getId(),
                                       DatasetLock.Reason.Ingest,
                                       (user != null) ? user.getId() : null,
                                       info);

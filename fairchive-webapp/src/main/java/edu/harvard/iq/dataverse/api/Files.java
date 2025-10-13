@@ -58,7 +58,7 @@ public class Files extends AbstractApiBean {
     EjbDataverseEngine commandEngine;
     @Inject
     private DataFileCreator dataFileCreator;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @Inject
     private OptionalFileParams optionalFileParams;

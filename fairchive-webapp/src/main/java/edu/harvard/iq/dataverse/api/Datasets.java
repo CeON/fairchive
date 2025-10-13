@@ -65,7 +65,6 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import com.amazonaws.services.pi.model.InvalidArgumentException;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -87,7 +86,6 @@ import edu.harvard.iq.dataverse.api.dto.UningestableItemDTO;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.batch.jobs.importer.ImportMode;
 import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datacapturemodule.ScriptRequestResponse;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.file.FileDownloadAPIHandler;
@@ -175,7 +173,6 @@ public class Datasets extends AbstractApiBean {
 
     private static final Logger logger = Logger.getLogger(Datasets.class.getCanonicalName());
 
-    private DatasetDao datasetDao;
     private DataverseDao dataverseDao;
     private UserNotificationService userNotificationService;
     private PermissionServiceBean permissionService;
@@ -200,13 +197,14 @@ public class Datasets extends AbstractApiBean {
     private DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter;
     private UningestInfoService uningestInfoService;
     private UningestService uningestService;
+    private SystemConfig config;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public Datasets() { }
 
     @Inject
-    public Datasets(DatasetDao datasetDao, DataverseDao dataverseDao,
+    public Datasets(DataverseDao dataverseDao,
                     UserNotificationService userNotificationService,
                     PermissionServiceBean permissionService, AuthenticationServiceBean authenticationServiceBean,
                     DataFileServiceBean fileService, IngestServiceBean ingestService,
@@ -220,8 +218,8 @@ public class Datasets extends AbstractApiBean {
                     FileLabelsService fileLabelsService,
                     DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter,
                     UningestInfoService uningestInfoService,
-                    UningestService uningestService) {
-        this.datasetDao = datasetDao;
+                    UningestService uningestService,
+                    SystemConfig config) {
         this.dataverseDao = dataverseDao;
         this.userNotificationService = userNotificationService;
         this.permissionService = permissionService;
@@ -246,6 +244,7 @@ public class Datasets extends AbstractApiBean {
         this.fileDownloadUrlCsvWriter = fileDownloadUrlCsvWriter;
         this.uningestInfoService = uningestInfoService;
         this.uningestService = uningestService;
+        this.config = config;
     }
 
     // -------------------- LOGIC --------------------
@@ -289,7 +288,7 @@ public class Datasets extends AbstractApiBean {
             return error(BAD_REQUEST, exporter + " is not a valid exporter");
         }
 
-        Dataset dataset = datasetDao.findByGlobalId(persistentId);
+        Dataset dataset = datasetSvc.findByGlobalId(persistentId);
         if (dataset == null) {
             return error(NOT_FOUND, "A dataset with the persistentId " + persistentId + " could not be found.");
         }
@@ -658,7 +657,7 @@ public class Datasets extends AbstractApiBean {
     @Path("/modifyRegistrationAll")
     public Response updateDatasetTargetURLAll() {
         return response(req -> {
-            datasetDao.findAll().forEach(ds -> {
+            datasetSvc.findAll().forEach(ds -> {
                 try {
                     execCommand(new UpdateDatasetTargetURLCommand(findDatasetOrDie(ds.getId().toString()), req));
                 } catch (WrappedResponse ex) {
@@ -695,7 +694,7 @@ public class Datasets extends AbstractApiBean {
     @Path("/modifyRegistrationPIDMetadataAll")
     public Response updateDatasetPIDMetadataAll() {
         return response(req -> {
-            datasetDao.findAll().forEach(ds -> {
+            datasetSvc.findAll().forEach(ds -> {
                 try {
                     execCommand(new UpdateDvObjectPIDMetadataCommand(findDatasetOrDie(ds.getId().toString()), req));
                 } catch (WrappedResponse ex) {
@@ -1200,10 +1199,11 @@ public class Datasets extends AbstractApiBean {
     @ApiWriteOperation
     @Path("{identifier}/dataCaptureModule/rsync")
     public Response getRsync(@PathParam("identifier") String id) {
-        //TODO - does it make sense to switch this to dataset identifier for consistency with the rest of the DCM APIs?
-        if (!DataCaptureModuleUtil.rsyncSupportEnabled(settingsSvc.getValueForKey(SettingsServiceBean.Key.UploadMethods))) {
+        if(this.config.isRsyncUpload()) {
             return error(Response.Status.METHOD_NOT_ALLOWED,
-                         SettingsServiceBean.Key.UploadMethods + " does not contain " + SystemConfig.FileUploadMethods.RSYNC + ".");
+                         SettingsServiceBean.Key.UploadMethods + 
+                         " does not contain " + 
+                         SystemConfig.RSYNC_DOWNLOAD_METHOD + '.');
         }
         Dataset dataset;
         try {
@@ -1212,7 +1212,7 @@ public class Datasets extends AbstractApiBean {
             ScriptRequestResponse scriptRequestResponse = execCommand(
                     new RequestRsyncScriptCommand(createDataverseRequest(user), dataset));
 
-            DatasetLock lock = datasetDao.addDatasetLock(
+            DatasetLock lock = datasetSvc.addDatasetLock(
                     dataset.getId(), DatasetLock.Reason.DcmUpload, user.getId(), "script downloaded");
             if (lock == null) {
                 logger.log(Level.WARNING, "Failed to lock the dataset (dataset id={0})", dataset.getId());
@@ -1301,7 +1301,7 @@ public class Datasets extends AbstractApiBean {
                         if (dcmLock == null) {
                             logger.log(Level.WARNING, "Dataset not locked for DCM upload");
                         } else {
-                            datasetDao.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
+                            datasetSvc.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
                             dataset.removeLock(dcmLock);
                         }
 

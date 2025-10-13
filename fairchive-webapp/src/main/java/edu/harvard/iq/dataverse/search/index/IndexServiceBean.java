@@ -55,7 +55,6 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetLinkingServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
@@ -63,6 +62,7 @@ import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
@@ -112,7 +112,7 @@ public class IndexServiceBean {
 
     private DvObjectServiceBean dvObjectService;
     private DataverseDao dataverseDao;
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private SystemConfig systemConfig;
     private SolrIndexServiceBean solrIndexService;
     private DatasetLinkingServiceBean dsLinkingService;
@@ -130,14 +130,20 @@ public class IndexServiceBean {
     public IndexServiceBean() { }
 
     @Inject
-    public IndexServiceBean(DvObjectServiceBean dvObjectService, DataverseDao dataverseDao,
-                            DatasetDao datasetDao, SystemConfig systemConfig,
-                            SolrIndexServiceBean solrIndexService, DatasetLinkingServiceBean dsLinkingService,
-                            DataverseLinkingService dvLinkingService, SettingsServiceBean settingsService,
-                            SolrClient solrServer, CitationFactory citationFactory, GeoNameDataFinder geonames) {
+    public IndexServiceBean(DvObjectServiceBean dvObjectService, 
+                            DataverseDao dataverseDao,
+                            DatasetService datasetService, 
+                            SystemConfig systemConfig,
+                            SolrIndexServiceBean solrIndexService, 
+                            DatasetLinkingServiceBean dsLinkingService,
+                            DataverseLinkingService dvLinkingService, 
+                            SettingsServiceBean settingsService,
+                            SolrClient solrServer, 
+                            CitationFactory citationFactory, 
+                            GeoNameDataFinder geonames) {
         this.dvObjectService = dvObjectService;
         this.dataverseDao = dataverseDao;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.systemConfig = systemConfig;
         this.solrIndexService = solrIndexService;
         this.dsLinkingService = dsLinkingService;
@@ -259,7 +265,7 @@ public class IndexServiceBean {
     @TransactionAttribute(REQUIRES_NEW)
     public Future<String> indexDatasetInNewTransaction(Long datasetId) {
         boolean doNormalSolrDocCleanUp = false;
-        Dataset dataset = datasetDao.find(datasetId);
+        Dataset dataset = datasetService.find(datasetId);
         return indexDataset(dataset, doNormalSolrDocCleanUp);
     }
 
@@ -675,7 +681,7 @@ public class IndexServiceBean {
      * been indexed or their index time is before their modification time.
      */
     public List<Dataset> findStaleOrMissingDatasets() {
-        return this.datasetDao.findStaleOrMissingDatasets();
+        return this.datasetService.findStaleOrMissingDatasets();
     }
 
     // This is a convenience method for deleting all the SOLR documents
