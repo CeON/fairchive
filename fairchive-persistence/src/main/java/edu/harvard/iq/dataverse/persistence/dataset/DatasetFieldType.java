@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
+import static edu.harvard.iq.dataverse.common.BundleUtil.hasKeyInNonDefaultBundle;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.EMAIL;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.NONE;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXT;
@@ -511,44 +512,39 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     }
 
     public String getLocaleTitle() {
-        if (getMetadataBlock() == null) {
-            return title;
-        } else {
-            String key = "datasetfieldtype." + getName() + ".title";
-            String bundleName = getMetadataBlock().getName();
-            String localeTitle = getStringFromNonDefaultBundle(key, bundleName);
-            return localeTitle.isEmpty() ? title : localeTitle;
+        String key = "datasetfieldtype." + getName() + ".title";
+
+        if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return title;
     }
 
     public String getLocaleDescription() {
-        if (getMetadataBlock() == null || StringUtils.isEmpty(description)) {
-            return description;
-        } else {
-            String localeDescription = getStringFromNonDefaultBundle(
-                    "datasetfieldtype." + getName() + ".description", getMetadataBlock().getName());
-            return localeDescription.isEmpty() ? description : localeDescription;
+        String key = "datasetfieldtype." + getName() + ".description";
+
+        if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return description;
     }
 
     public String getLocaleWatermark() {
-        if (getMetadataBlock() == null) {
-            return watermark;
-        } else {
-            String localeWatermark = getStringFromNonDefaultBundle(
-                    "datasetfieldtype." + getName() + ".watermark", getMetadataBlock().getName());
-            return localeWatermark.isEmpty() ? watermark : localeWatermark;
+        String key = "datasetfieldtype." + getName() + ".watermark";
+
+        if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return watermark;
     }
 
     public String getLocaleVocab(String value) {
-        if (getMetadataBlock() == null) {
-            return value;
-        } else {
-            String localeVocab = getStringFromNonDefaultBundle(
-                    "controlledvocabulary." + getName() + "." + value, getMetadataBlock().getName());
-            return localeVocab.isEmpty() ? value : localeVocab;
+        String key = "controlledvocabulary." + getName() + "." + value;
+
+        if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return value;
     }
 
     /**
@@ -581,13 +577,12 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     // -------------------- PRIVATE --------------------
 
     private String getLocaleTitleWithParent() {
-        try {
-            String key = "datasetfieldtype." + getName() + ".withParent.title";
-            String bundleName = getMetadataBlock().getName();
-            return getStringFromNonDefaultBundle(key, bundleName);
-        } catch (NullPointerException e) {
-            return StringUtils.EMPTY;
+        String key = "datasetfieldtype." + getName() + ".withParent.title";
+
+        if (getMetadataBlock() != null) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return StringUtils.EMPTY;
     }
 
     private boolean isParentAllowsMutlipleValues() {
