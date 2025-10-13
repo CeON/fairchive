@@ -5,7 +5,7 @@ import org.swordapp.server.SwordConfiguration;
 /**
  * pure model class for Sword Configuration implementation
  */
-public class SwordConfigurationImpl implements SwordConfiguration {
+final class SwordConfigurationImpl implements SwordConfiguration {
 
     private String tempDirectory;
     private int maxUploadSize;

@@ -31,7 +31,6 @@ import org.apache.commons.lang.SerializationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DatasetLinkingServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
@@ -43,6 +42,7 @@ import edu.harvard.iq.dataverse.api.dto.ApiResponseDTO;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.Util;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -82,7 +82,7 @@ public abstract class AbstractApiBean {
     protected EjbDataverseEngine engineSvc;
 
     @EJB
-    protected DatasetDao datasetSvc;
+    protected DatasetService datasetSvc;
 
     @EJB
     protected DataFileServiceBean fileService;
@@ -108,7 +108,7 @@ public abstract class AbstractApiBean {
     @EJB
     protected PrivateUrlServiceBean privateUrlSvc;
 
-    @EJB
+    @Inject
     protected SystemConfig systemConfig;
 
     @EJB
@@ -177,7 +177,7 @@ public abstract class AbstractApiBean {
          *
          * @return the content of a message field, or {@code null}.
          */
-        String getWrappedMessageWhenJson() {
+        private String getWrappedMessageWhenJson() {
             if (response.getMediaType().equals(MediaType.APPLICATION_JSON_TYPE)) {
                 Object entity = response.getEntity();
                 if (entity == null) {

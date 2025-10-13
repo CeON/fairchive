@@ -6,22 +6,21 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserLookup;
 import io.vavr.control.Option;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
-import java.io.BufferedWriter;
+
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Writes a CSV file with authenticated user details.
@@ -29,28 +28,23 @@ import java.util.stream.Collectors;
 @Stateless
 public class AuthenticatedUserCsvWriter {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticatedUserCsvWriter.class);
-
     // -------------------- LOGIC --------------------
 
-    public void write(OutputStream outputStream, List<AuthenticatedUser> authenticatedUsers) throws IOException {
-        try (Writer writer = new OutputStreamWriter(outputStream);
-             BufferedWriter streamWriter = new BufferedWriter(writer);
-             CSVPrinter csvPrinter = new CSVPrinter(streamWriter, CSVFormat.DEFAULT)) {
+    public void write(final OutputStream outputStream, 
+            final List<AuthenticatedUser> authenticatedUsers) throws IOException {
+        try (final Writer writer = new OutputStreamWriter(outputStream);
+             final CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
 
             csvPrinter.printRecord(AuthenticatedUserCSVRecord.getHeaders());
-            for(AuthenticatedUser user : authenticatedUsers) {
+            for(final AuthenticatedUser user : authenticatedUsers) {
                 csvPrinter.printRecord(buildRecord(user).getValues());
             }
-        } catch (IOException ioe) {
-            logger.error("Couldn't write user data to csv", ioe);
-            throw ioe;
-        }
+        } 
     }
 
     // -------------------- PRIVATE --------------------
 
-    private AuthenticatedUserCSVRecord buildRecord(AuthenticatedUser user) {
+    private AuthenticatedUserCSVRecord buildRecord(final AuthenticatedUser user) {
         AuthenticatedUserCSVRecord record = new AuthenticatedUserCSVRecord();
 
         record.setId(user.getId());
@@ -70,7 +64,7 @@ public class AuthenticatedUserCsvWriter {
 
     // -------------------- INNER CLASSES --------------------
 
-    enum AuthenticatedUserCsvColumn {
+    private enum AuthenticatedUserCsvColumn {
         ID("ID"),
         USERNAME("Username"),
         NAME("Name"),
@@ -84,22 +78,23 @@ public class AuthenticatedUserCsvWriter {
         LAST_LOGIN("Last login"),
         LAST_API_USE("Last API use");
 
-        final String columnName;
+        private final String columnName;
 
-        AuthenticatedUserCsvColumn(String columnName) {
+        AuthenticatedUserCsvColumn(final String columnName) {
             this.columnName = columnName;
         }
 
         public String getColumnName() {
-            return columnName;
+            return this.columnName;
         }
     }
 
-    static class AuthenticatedUserCSVRecord {
+    private final static class AuthenticatedUserCSVRecord {
 
-        private static final List<String> CSV_HEADERS = Arrays.stream(AuthenticatedUserCsvColumn.values())
+        private static final List<String> CSV_HEADERS = 
+                stream(AuthenticatedUserCsvColumn.values())
                 .map(AuthenticatedUserCsvColumn::getColumnName)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         private Map<AuthenticatedUserCsvColumn, String> data = new HashMap<>();
 
@@ -108,9 +103,9 @@ public class AuthenticatedUserCsvWriter {
         }
 
         public List<String> getValues() {
-            return Arrays.stream(AuthenticatedUserCsvColumn.values())
+            return stream(AuthenticatedUserCsvColumn.values())
                     .map(data::get)
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
 
         public void setId(Long id) {

@@ -48,9 +48,10 @@ public class DatasetReportServiceIT extends WebappArquillianDeployment {
 
         // then
         StringReader stringReader = new StringReader(output);
-        List<CSVRecord> records = CSVFormat.DEFAULT
-                .withHeader(Arrays.stream(FileDataField.values()).map(Enum::name).toArray(String[]::new))
-                .withSkipHeaderRecord()
+        List<CSVRecord> records = CSVFormat.DEFAULT.builder()
+                .setHeader(Arrays.stream(FileDataField.values()).map(Enum::name).toArray(String[]::new))
+                .setSkipHeaderRecord(true)
+                .build()
                 .parse(stringReader)
                 .getRecords();
         int expectedRecordSize = FileDataField.values().length;

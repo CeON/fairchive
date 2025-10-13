@@ -2,14 +2,12 @@ package edu.harvard.iq.dataverse.dataset.tab;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter.DEFAULT_THUMBNAIL_SIZE;
-import static edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil.rsyncSupportEnabled;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.CONFIGURE;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EXPLORE;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.DcmUpload;
 import static edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder.asc;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UploadMethods;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashErrorMessage;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashSuccessMessage;
@@ -90,6 +88,7 @@ import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.PrimefacesUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import io.vavr.Tuple;
@@ -125,6 +124,7 @@ public class DatasetFilesTab implements Serializable {
     private PermissionServiceBean permissionService;
     private PermissionsWrapper permissionsWrapper;
     private SettingsServiceBean settingsService;
+    private SystemConfig config;
 
     private DataverseSession session;
     private DataverseRequestServiceBean dvRequestService;
@@ -200,16 +200,26 @@ public class DatasetFilesTab implements Serializable {
     public DatasetFilesTab() { }
 
     @Inject
-    public DatasetFilesTab(FileDownloadHelper fileDownloadHelper, DataFileServiceBean datafileService,
-                           PermissionServiceBean permissionService, PermissionsWrapper permissionsWrapper,
-                           DataverseRequestServiceBean dvRequestService, DataverseSession session,
-                           GuestbookResponseServiceBean guestbookResponseService, EmbargoAccessService embargoAccess,
-                           SettingsServiceBean settingsService, EjbDataverseEngine commandEngine,
-                           ExternalToolServiceBean externalToolService, TermsOfUseFormMapper termsOfUseFormMapper,
+    public DatasetFilesTab(FileDownloadHelper fileDownloadHelper, 
+                           DataFileServiceBean datafileService,
+                           PermissionServiceBean permissionService, 
+                           PermissionsWrapper permissionsWrapper,
+                           DataverseRequestServiceBean dvRequestService, 
+                           DataverseSession session,
+                           GuestbookResponseServiceBean guestbookResponseService, 
+                           EmbargoAccessService embargoAccess,
+                           SettingsServiceBean settingsService, 
+                           EjbDataverseEngine commandEngine,
+                           ExternalToolServiceBean externalToolService, 
+                           TermsOfUseFormMapper termsOfUseFormMapper,
                            FileDownloadRequestHelper fileDownloadRequestHelper,
-                           GuestbookResponseDialog guestbookResponseDialog, ImageThumbConverter imageThumbConverter,
-                           FileMetadataService fileMetadataService, DatasetFilesTabFacade datasetFilesTabFacade,
-                           ConfirmEmailServiceBean confirmEmailService, DatasetFieldValidationService fieldValidationService) {
+                           GuestbookResponseDialog guestbookResponseDialog, 
+                           ImageThumbConverter imageThumbConverter,
+                           FileMetadataService fileMetadataService, 
+                           DatasetFilesTabFacade datasetFilesTabFacade,
+                           ConfirmEmailServiceBean confirmEmailService, 
+                           DatasetFieldValidationService fieldValidationService,
+                           SystemConfig config) {
         this.fileDownloadHelper = fileDownloadHelper;
         this.datafileService = datafileService;
         this.permissionService = permissionService;
@@ -229,6 +239,7 @@ public class DatasetFilesTab implements Serializable {
         this.datasetFilesTabFacade = datasetFilesTabFacade;
         this.confirmEmailService = confirmEmailService;
         this.fieldValidationService = fieldValidationService;
+        this.config = config;
     }
 
     public void init(DatasetVersion workingVersion) {
@@ -238,7 +249,7 @@ public class DatasetFilesTab implements Serializable {
 
         logger.fine("Checking if rsync support is enabled.");
         Dataset tempDataset = datasetFilesTabFacade.retrieveDataset(this.dataset.getId());
-        if (rsyncSupportEnabled(settingsService.getValueForKey(UploadMethods))
+        if (this.config.isRsyncUpload()
                 && tempDataset.getFiles().isEmpty()) { //only check for rsync if no files exist
             try {
                 ScriptRequestResponse scriptRequestResponse = commandEngine.submit(new RequestRsyncScriptCommand(dvRequestService

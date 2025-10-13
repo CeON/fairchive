@@ -61,6 +61,7 @@ class SamlGroupServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findById() {
         // given
         when(repository.findById(34L))

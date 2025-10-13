@@ -1,14 +1,12 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.PermissionServiceBean;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.Permission;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.namespace.QName;
+
 import org.apache.abdera.Abdera;
 import org.apache.abdera.i18n.iri.IRI;
 import org.apache.abdera.model.Entry;
@@ -21,29 +19,35 @@ import org.swordapp.server.SwordError;
 import org.swordapp.server.SwordServerException;
 import org.swordapp.server.UriRegistry;
 
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.namespace.QName;
-import java.util.List;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-public class CollectionListManagerImpl implements CollectionListManager {
+final class CollectionListManagerImpl implements CollectionListManager {
 
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
-    DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
 
     private HttpServletRequest request;
 
     @Override
-    public Feed listCollectionContents(IRI iri, AuthCredentials authCredentials, SwordConfiguration swordConfiguration) throws SwordServerException, SwordAuthException, SwordError {
+    public Feed listCollectionContents(IRI iri, AuthCredentials authCredentials, 
+            SwordConfiguration swordConfiguration) 
+                    throws SwordServerException, SwordAuthException, SwordError {
         AuthenticatedUser user = swordAuth.auth(authCredentials);
         DataverseRequest dvReq = new DataverseRequest(user, request);
         UrlManager urlManager = urlManagerServiceBean.getUrlManager(iri.toString());
@@ -67,7 +71,7 @@ public class CollectionListManagerImpl implements CollectionListManager {
                 Feed feed = abdera.newFeed();
                 feed.setTitle(dv.getName());
                 String baseUrl = urlManagerServiceBean.getHostnamePlusBaseUrlPath();
-                List<Dataset> datasets = datasetDao.findByOwnerId(dv.getId());
+                List<Dataset> datasets = datasetService.findByOwnerId(dv.getId());
                 for (Dataset dataset : datasets) {
                     /**
                      * @todo Will this be performant enough with production

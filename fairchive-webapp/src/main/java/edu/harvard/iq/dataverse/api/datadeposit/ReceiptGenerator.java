@@ -8,7 +8,7 @@ import org.swordapp.server.DepositReceipt;
 
 import java.util.logging.Logger;
 
-public class ReceiptGenerator {
+final class ReceiptGenerator {
 
     private static final Logger logger = Logger.getLogger(ReceiptGenerator.class.getCanonicalName());
 
@@ -16,7 +16,7 @@ public class ReceiptGenerator {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public ReceiptGenerator(CitationFactory citationFactory) {
+    ReceiptGenerator(CitationFactory citationFactory) {
         this.citationFactory = citationFactory;
     }
 

@@ -40,7 +40,6 @@ import static com.google.common.collect.Sets.newHashSet;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.engine.command.CommandHelper.CH;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.DcmUpload;
-import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Ingest;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.pidRegister;

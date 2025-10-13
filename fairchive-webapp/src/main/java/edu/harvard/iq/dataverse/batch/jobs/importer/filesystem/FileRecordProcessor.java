@@ -19,11 +19,10 @@
 
 package edu.harvard.iq.dataverse.batch.jobs.importer.filesystem;
 
-import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import java.io.File;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.batch.api.chunk.ItemProcessor;
@@ -33,10 +32,12 @@ import javax.batch.runtime.context.JobContext;
 import javax.ejb.EJB;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
-import java.io.File;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import edu.harvard.iq.dataverse.DataFileServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 
 @Dependent
@@ -46,7 +47,7 @@ public class FileRecordProcessor implements ItemProcessor {
     JobContext jobContext;
 
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
 
     @EJB
     DataFileServiceBean dataFileServiceBean;
@@ -57,7 +58,7 @@ public class FileRecordProcessor implements ItemProcessor {
     public void init() {
         JobOperator jobOperator = BatchRuntime.getJobOperator();
         Properties jobParams = jobOperator.getParameters(jobContext.getInstanceId());
-        dataset = datasetDao.find(new Long(jobParams.getProperty("datasetId")));
+        dataset = datasetService.find(new Long(jobParams.getProperty("datasetId")));
     }
 
     // TODO: This method may be meaningles when used in the context of a "package file"

@@ -12,23 +12,18 @@ import static com.google.common.base.Predicates.isNull;
  * insists that it starts with 0, while the XOAI implementation uses 1
  * as the initial offset.
  */
-public class XresumptionTokenHelper {
+final class XresumptionTokenHelper {
 
     private ResumptionToken.Value current;
     private long maxPerPage;
     private Long totalResults;
 
-    public XresumptionTokenHelper(ResumptionToken.Value current, long maxPerPage) {
+    XresumptionTokenHelper(ResumptionToken.Value current, long maxPerPage) {
         this.current = current;
         this.maxPerPage = maxPerPage;
     }
 
-    public XresumptionTokenHelper withTotalResults(long totalResults) {
-        this.totalResults = totalResults;
-        return this;
-    }
-
-    public ResumptionToken resolve(boolean hasMoreResults) {
+    ResumptionToken resolve(boolean hasMoreResults) {
         if (isInitialOffset() && !hasMoreResults) {
             return null;
         } else {

@@ -30,10 +30,10 @@ import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 public class WorldMapTokenServiceBean {
 
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
 
     @EJB
-    TokenApplicationTypeServiceBean tokenApplicationService;
+    private TokenApplicationTypeServiceBean tokenApplicationService;
 
     private static final Logger logger = Logger.getLogger(TokenApplicationTypeServiceBean.class.getCanonicalName());
 
@@ -97,7 +97,7 @@ public class WorldMapTokenServiceBean {
         em.remove(em.merge(wmToken));
     }
 
-    public WorldMapToken save(WorldMapToken dvToken) {
+    private WorldMapToken save(WorldMapToken dvToken) {
 
         if (dvToken == null) {
             return null;
@@ -243,45 +243,6 @@ public class WorldMapTokenServiceBean {
         // Check 3:  Does this WorldMap token's user have permission for the requested datafile?
         //
         if (!(this.canTokenUserDownloadFile(token))) {
-            logger.info("WorldMap token-based auth: Token's User is not authorized for the requested datafile.");
-            return false;
-        }
-
-
-        logger.info("WorldMap token-based auth: Token is valid for the requested datafile");
-        return true;
-
-    }
-
-
-    /*
-        Given a string for a WorldMapToken, check:
-    
-            (1) Is this token valid?
-            (2) Re-verify that can edit the Dataset connected to the token's DataFile
-    
-        @return boolean if token is valid and corresponds to the given DataFile
-    
-    */
-    public boolean isWorldMapTokenAuthorizedForMetadataRetrievalAndUpdates(String worldmapTokenParam) {
-        logger.info("-- isWorldMapTokenAuthorizedForDataFile?");
-        if (worldmapTokenParam == null) {
-            logger.info("nope: worldmapTokenParam or data file is null");
-            return false;
-        }
-
-        // Check 1:  Is this a valid WorldMap token?
-        //
-        WorldMapToken token = this.retrieveAndRefreshValidToken(worldmapTokenParam);
-        if (token == null) {
-            logger.info("WorldMap token-based auth: Token is not invalid.");
-            return false;
-        }
-
-
-        // Check 2:  Does this WorldMap token's user still have edit permission for the requested datafile?
-        //
-        if (!(this.canTokenUserEditFile(token))) {
             logger.info("WorldMap token-based auth: Token's User is not authorized for the requested datafile.");
             return false;
         }

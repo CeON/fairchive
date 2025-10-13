@@ -67,7 +67,7 @@ public abstract class AbstractCreateDatasetCommand extends AbstractDatasetComman
 
         Dataset theDataset = getDataset();
         if (isEmpty(theDataset.getIdentifier())) {
-            theDataset.setIdentifier(ctxt.datasets().generateDatasetIdentifier(theDataset));
+            theDataset.setIdentifier(ctxt.datasetService().generateDatasetIdentifier(theDataset));
         }
 
         DatasetVersion dsv = getVersionToPersist(theDataset);
@@ -99,7 +99,7 @@ public abstract class AbstractCreateDatasetCommand extends AbstractDatasetComman
             }
         }
         if (theDataset.getIdentifier() == null) {
-            theDataset.setIdentifier(ctxt.datasets().generateDatasetIdentifier(theDataset));
+            theDataset.setIdentifier(ctxt.datasetService().generateDatasetIdentifier(theDataset));
         }
 
         // Attempt the registration if importing dataset through the API, or the app (but not harvest)

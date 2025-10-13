@@ -60,7 +60,7 @@ public class ImportDatasetCommand extends AbstractCreateDatasetCommand {
             throw new IllegalCommandException("Imported datasets must have a persistent global identifier.", this);
         }
 
-        if (!ctxt.datasets().isIdentifierLocallyUnique(ds)) {
+        if (!ctxt.datasetService().isIdentifierLocallyUnique(ds)) {
             throw new IllegalCommandException("Persistent identifier " + 
                     ds.getGlobalId() + " already exists in this Dataverse installation.", this);
         }

@@ -11,27 +11,28 @@ import java.util.List;
  * @author madryk
  */
 @Stateless
-public class SettingDao {
+public class SettingRepository {
 
     @PersistenceContext
     private EntityManager em;
 
     // -------------------- LOGIC --------------------
 
-    public Setting find(String name) {
-        return em.find(Setting.class, name);
+    public Setting find(final String name) {
+        return this.em.find(Setting.class, name);
     }
 
     public List<Setting> findAll() {
-        return em.createNamedQuery("Setting.findAll", Setting.class).getResultList();
+        return this.em.createQuery("SELECT s FROM Setting s", Setting.class)
+                .getResultList();
     }
 
-    public Setting save(Setting setting) {
-        return em.merge(setting);
+    public Setting save(final Setting setting) {
+        return this.em.merge(setting);
     }
 
-    public void delete(String name) {
-        em.createNamedQuery("Setting.deleteByName")
+    public void delete(final String name) {
+        this.em.createQuery("DELETE FROM Setting s WHERE s.name=:name")
                 .setParameter("name", name)
                 .executeUpdate();
     }

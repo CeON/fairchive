@@ -10,10 +10,10 @@ import javax.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -35,7 +35,7 @@ public class DatasetMetadataTab implements Serializable {
     private ExportService exportService;
     private SystemConfig systemConfig;
     private DatasetFieldsInitializer datasetFieldsInitializer;
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private DataverseSession session;
 
     private Dataset dataset;
@@ -54,13 +54,13 @@ public class DatasetMetadataTab implements Serializable {
                               ExportService exportService,
                               SystemConfig systemConfig,
                               DatasetFieldsInitializer datasetVersionUI,
-                              DatasetDao datasetDao) {
+                              DatasetService datasetService) {
         this.permissionsWrapper = permissionsWrapper;
         this.session = session;
         this.exportService = exportService;
         this.systemConfig = systemConfig;
         this.datasetFieldsInitializer = datasetVersionUI;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
     }
 
     // -------------------- GETTERS --------------------
@@ -123,7 +123,7 @@ public class DatasetMetadataTab implements Serializable {
     }
 
     public String getAlternativePersistentIdentifier() {
-        return datasetDao.find(dataset.getId()).getAlternativePersistentIdentifier();
+        return datasetService.find(dataset.getId()).getAlternativePersistentIdentifier();
     }
 
     // -------------------- PRIVATE --------------------

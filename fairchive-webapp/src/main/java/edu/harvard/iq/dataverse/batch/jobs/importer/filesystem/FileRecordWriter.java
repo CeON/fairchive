@@ -36,17 +36,16 @@ import javax.batch.api.chunk.AbstractItemWriter;
 import javax.batch.operations.JobOperator;
 import javax.batch.runtime.BatchRuntime;
 import javax.batch.runtime.context.JobContext;
-import javax.batch.runtime.context.StepContext;
 import javax.ejb.EJB;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -66,43 +65,37 @@ import edu.harvard.iq.dataverse.util.FileUtil;
 public class FileRecordWriter extends AbstractItemWriter {
 
     @Inject
-    JobContext jobContext;
-
-    @Inject
-    StepContext stepContext;
+    private JobContext jobContext;
 
     @Inject
     @BatchProperty
-    String checksumType;
+    private  String checksumType;
 
     @Inject
     @BatchProperty
-    String checksumManifest;
+    private String checksumManifest;
 
     @EJB
-    DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     @EJB
-    AuthenticationServiceBean authenticationServiceBean;
-
-    @Inject
-    SettingsServiceBean settingsService;
+    private AuthenticationServiceBean authenticationServiceBean;
 
     @EJB
-    DataFileServiceBean dataFileServiceBean;
+    private DataFileServiceBean dataFileServiceBean;
 
     @EJB
-    EjbDataverseEngine commandEngine;
+    private EjbDataverseEngine commandEngine;
     
     @EJB
-    GlobalIdServiceBeanResolver resolver;
+    private GlobalIdServiceBeanResolver resolver;
 
-    Dataset dataset;
-    AuthenticatedUser user;
-    int fileCount;
-    String fileMode;
-    Long suppliedSize = null;
-    String uploadFolder;
+    private Dataset dataset;
+    private AuthenticatedUser user;
+    private int fileCount;
+    private String fileMode;
+    private Long suppliedSize = null;
+    private String uploadFolder;
 
     public static String FILE_MODE_INDIVIDUAL_FILES = "individual_files";
     public static String FILE_MODE_PACKAGE_FILE = "package_file";
@@ -112,7 +105,7 @@ public class FileRecordWriter extends AbstractItemWriter {
     public void init() {
         JobOperator jobOperator = BatchRuntime.getJobOperator();
         Properties jobParams = jobOperator.getParameters(jobContext.getInstanceId());
-        dataset = datasetDao.find(Long.parseLong(jobParams.getProperty("datasetId")));
+        dataset = datasetService.find(Long.parseLong(jobParams.getProperty("datasetId")));
         user = authenticationServiceBean.getAuthenticatedUser(jobParams.getProperty("userId"));
         //jobLogger = Logger.getLogger("job-"+Long.toString(jobContext.getInstanceId()));
         fileCount = ((Map<String, String>) jobContext.getTransientUserData()).size();
@@ -169,7 +162,7 @@ public class FileRecordWriter extends AbstractItemWriter {
                 if (dcmLock == null) {
                     getJobLogger().log(Level.WARNING, "Dataset not locked for DCM upload");
                 } else {
-                    datasetDao.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
+                    datasetService.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
                     dataset.removeLock(dcmLock);
                 }
                 updateDatasetVersion(dataset.getLatestVersion());

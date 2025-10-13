@@ -56,7 +56,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.PrimeFaces;
@@ -64,7 +63,6 @@ import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
@@ -72,7 +70,6 @@ import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
-import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.datafile.pojo.RsyncInfo;
@@ -103,7 +100,6 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.provenance.ProvPopupFragmentBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -129,7 +125,6 @@ public class EditDatafilesPage implements java.io.Serializable {
         EDIT, UPLOAD, CREATE
     }
 
-    private DatasetDao datasetDao;
     private DataFileServiceBean datafileDao;
     private DataFileCreator dataFileCreator;
     private PermissionServiceBean permissionService;
@@ -141,7 +136,6 @@ public class EditDatafilesPage implements java.io.Serializable {
     private PermissionsWrapper permissionsWrapper;
     private FileDownloadHelper fileDownloadHelper;
     private ProvPopupFragmentBean provPopupFragmentBean;
-    private SettingsWrapper settingsWrapper;
     private DatasetVersionServiceBean datasetVersionService;
     private TermsOfUseFormMapper termsOfUseFormMapper;
     private TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory;
@@ -218,8 +212,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     public EditDatafilesPage() { }
 
     @Inject
-    public EditDatafilesPage(final DatasetDao datasetDao, 
-                             final DataFileServiceBean datafileDao,
+    public EditDatafilesPage(final DataFileServiceBean datafileDao,
                              final DataFileCreator dataFileCreator, 
                              final PermissionServiceBean permissionService,
                              final IngestServiceBean ingestService, 
@@ -230,7 +223,6 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final PermissionsWrapper permissionsWrapper,
                              final FileDownloadHelper fileDownloadHelper, 
                              final ProvPopupFragmentBean provPopupFragmentBean,
-                             final SettingsWrapper settingsWrapper, 
                              final DatasetVersionServiceBean datasetVersionService,
                              final TermsOfUseFormMapper termsOfUseFormMapper, 
                              final TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory,
@@ -239,7 +231,6 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final DatasetThumbnailService datasetThumbnailService, 
                              final ImageThumbConverter imageThumbConverter,
                              final DuplicatesService duplicatesService) {
-        this.datasetDao = datasetDao;
         this.datafileDao = datafileDao;
         this.dataFileCreator = dataFileCreator;
         this.permissionService = permissionService;
@@ -251,7 +242,6 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.permissionsWrapper = permissionsWrapper;
         this.fileDownloadHelper = fileDownloadHelper;
         this.provPopupFragmentBean = provPopupFragmentBean;
-        this.settingsWrapper = settingsWrapper;
         this.datasetVersionService = datasetVersionService;
         this.termsOfUseFormMapper = termsOfUseFormMapper;
         this.termsOfUseSelectItemsFactory = termsOfUseSelectItemsFactory;
@@ -461,7 +451,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         if (this.dataset.getId() != null) {
             // Set Working Version and Dataset by Dataset Id
-            this.dataset = this.datasetDao.find(this.dataset.getId());
+            this.dataset = this.datasetService.find(this.dataset.getId());
             // Is the Dataset harvested? (we don't allow editing of harvested files)
             if (this.dataset == null || this.dataset.isHarvested()) {
                 return this.permissionsWrapper.notFound();
@@ -502,7 +492,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         this.saveEnabled = true;
         if (this.mode == FileEditMode.UPLOAD && this.workingVersion.getFileMetadatas().isEmpty() 
-                && this.settingsWrapper.isRsyncUpload()) {
+                && this.systemConfig.isRsyncUpload()) {
             setUpRsync();
         }
         return null;
@@ -617,7 +607,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         if (newFilesNumber > 0) {
             // SEK 10/15/2018 only apply the following tests if dataset has already been saved.
             if (this.dataset.getId() != null) {
-                final Dataset lockTest = this.datasetDao.find(this.dataset.getId());
+                final Dataset lockTest = this.datasetService.find(this.dataset.getId());
                 // SEK 09/19/18 Get Dataset again to test for lock just in case the user downloads the rsync script via
                 // the api while the edit files page is open and has already loaded a file in http upload for Dual Mode
                 if (this.dataset.isLockedFor(Reason.DcmUpload) 
@@ -731,7 +721,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     public String returnToDatasetOnly() {
-        this.dataset = this.datasetDao.find(dataset.getId());
+        this.dataset = this.datasetService.find(dataset.getId());
         return "/dataset.xhtml?persistentId=" + this.dataset.getGlobalId().asString() 
                 + "&faces-redirect=true";
     }
@@ -870,7 +860,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         // If the script has been successfully downloaded, lock the dataset:
         final String lockInfoMessage = "script downloaded";
-        final DatasetLock lock = this.datasetDao.addDatasetLock(dataset.getId(), Reason.DcmUpload, this.session.isUserLoggedIn() 
+        final DatasetLock lock = this.datasetService.addDatasetLock(dataset.getId(), Reason.DcmUpload, this.session.isUserLoggedIn() 
                 ? ((AuthenticatedUser) session.getUser()).getId() 
                 : null, lockInfoMessage);
         if (lock != null) {
@@ -1050,7 +1040,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     public boolean isLocked() {
         if (this.dataset != null) {
             logger.log(Level.FINE, "checking lock status of dataset {0}", this.dataset.getId());
-            final Dataset lookedupDataset = datasetDao.find(dataset.getId());
+            final Dataset lookedupDataset = datasetService.find(dataset.getId());
             if (lookedupDataset != null && lookedupDataset.isLocked()) {
                 logger.fine("locked!");
                 return true;
@@ -1146,7 +1136,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         Try.of(() -> this.datasetService.changeDatasetThumbnail(dataset, fileMetadataSelectedForThumbnailPopup.getDataFile()))
                 .onFailure(ex -> logger.log(SEVERE, "Problem setting thumbnail for dataset id " + dataset.getId(), ex))
-                .onSuccess(datasetThumbnail -> this.dataset = this.datasetDao.find(dataset.getId()));
+                .onSuccess(datasetThumbnail -> this.dataset = this.datasetService.find(dataset.getId()));
     }
 
     public boolean isThumbnailIsFromDatasetLogoRatherThanDatafile() {
@@ -1440,7 +1430,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private void setUpRsync() {
         logger.fine("setUpRsync called...");
-        if (DataCaptureModuleUtil.rsyncSupportEnabled(this.settings.getValueForKey(Key.UploadMethods))
+        if (this.systemConfig.isRsyncUpload()
                 && dataset.getFiles().isEmpty()) {
 
             Try<Option<RsyncInfo>> rsyncFetchOperation = Try.of(() -> this.fileService.retrieveRsyncScript(this.dataset, this.workingVersion))

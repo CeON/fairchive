@@ -8,11 +8,12 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.sort;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,12 +37,10 @@ import javax.validation.ValidationException;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.batch.util.LoggingUtil;
 import edu.harvard.iq.dataverse.common.MarkupChecker;
 import edu.harvard.iq.dataverse.dataset.difference.DatasetVersionDifference;
@@ -68,23 +67,20 @@ import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 @SuppressWarnings("serial")
 @Named
 @Stateless
-public class DatasetVersionServiceBean implements java.io.Serializable {
+public class DatasetVersionServiceBean implements Serializable {
 
-    private static final Logger log = LoggerFactory.getLogger(DatasetVersionServiceBean.class);
+    private static final Logger log = getLogger(DatasetVersionServiceBean.class);
 
     private static final SimpleDateFormat logFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss");
 
     @EJB
-    DataFileServiceBean datafileService;
+    private DataFileServiceBean datafileService;
+
+    @Inject
+    private SystemConfig systemConfig;
 
     @EJB
-    AuthenticationServiceBean authService;
-
-    @EJB
-    SystemConfig systemConfig;
-
-    @EJB
-    IndexServiceBean indexService;
+    private IndexServiceBean indexService;
 
     @Inject
     private EjbDataverseEngine commandEngine;
@@ -134,7 +130,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         private String actualVersion = null;
         private String requestedVersion = null;
 
-        public RetrieveDatasetVersionResponse(DatasetVersion datasetVersion, String requestedVersion) {
+        private RetrieveDatasetVersionResponse(DatasetVersion datasetVersion, String requestedVersion) {
             if (datasetVersion == null) {
                 throw new IllegalArgumentException("datasetVersion cannot be null");
             }
@@ -218,7 +214,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         return findByVersionNumber(datasetId, majorVersionNumber, minorVersionNumber);
     }
 
-    public DatasetVersion findByVersionNumber(Long datasetId, Long majorVersionNumber, Long minorVersionNumber) {
+    private DatasetVersion findByVersionNumber(Long datasetId, Long majorVersionNumber, Long minorVersionNumber) {
         if (majorVersionNumber == null) {
             return null;
         }
@@ -250,7 +246,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
      * @return Long[] with [ major_version, minor_version ]
      * - either or both may be null
      */
-    public Long[] parseVersionNumber(String version) {
+    private Long[] parseVersionNumber(String version) {
         if (version == null) {
             return null;
         }
@@ -442,7 +438,7 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
     } // end getDatasetVersionByQuery
 
 
-    public DatasetVersion retrieveDatasetVersionByIdentiferClause(String identifierClause, String version) {
+    private DatasetVersion retrieveDatasetVersionByIdentiferClause(String identifierClause, String version) {
 
         if (identifierClause == null) {
             return null;
@@ -623,54 +619,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
         return null;
     }
 
-    /**
-     * Find a DatasetVersion using the persisentID and version string
-     *
-     * @param datasetId
-     * @param version   "DRAFT", 1.0, 2, 3.4, null, etc
-     * @return
-     */
-    public RetrieveDatasetVersionResponse retrieveDatasetVersionById(Long datasetId, String version) {
-        if (datasetId == null) {
-            return null;
-        }
-
-        String identifierClause = " AND ds.id = " + datasetId;
-
-        DatasetVersion ds = retrieveDatasetVersionByIdentiferClause(identifierClause, version);
-
-        if (ds != null) {
-            return new RetrieveDatasetVersionResponse(ds, version);
-        }
-
-        return null;
-
-
-    } // end: retrieveDatasetVersionById
-
-
-    /**
-     * Find a DatasetVersion using the dataset versionId
-     *
-     * @param versionId DatasetVersion id
-     * @return
-     */
-    public RetrieveDatasetVersionResponse retrieveDatasetVersionByVersionId(Long versionId) {
-        if (versionId == null) {
-            return null;
-        }
-
-        // Try versionId - release state doesn't matte
-        //
-        String retrieveSpecifiedDSVQuery = "SELECT dv.* FROM DatasetVersion dv WHERE dv.id = " + versionId;
-
-        DatasetVersion chosenVersion = this.getDatasetVersionByQuery(retrieveSpecifiedDSVQuery);
-        if (chosenVersion != null) {
-            return new RetrieveDatasetVersionResponse(chosenVersion, "");
-        }
-        return null;
-    } // end: retrieveDatasetVersionByVersionId
-
     // This is an optimized, native query-based method for picking an image
     // that can be used as the thumbnail for a given dataset/version.
     // It is primarily designed to be used when thumbnails are requested
@@ -801,22 +749,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
     }
 
     /**
-     * Return a list of the checksum Strings for files in the specified DatasetVersion
-     * <p>
-     * This is used to help check for duplicate files within a DatasetVersion
-     *
-     * @param datasetVersion
-     * @return a list of checksum Strings for files in the specified DatasetVersion
-     */
-    @SuppressWarnings("unchecked")
-    public List<String> getChecksumListForDatasetVersion(DatasetVersion datasetVersion) {
-        String query = "SELECT df.md5 FROM datafile df, filemetadata fm WHERE fm.datasetversion_id = " 
-                + datasetVersion.getId() + " AND fm.datafile_id = df.id;";
-        return em.createNativeQuery(query).getResultList();
-    }
-
-
-    /**
      * Check for the existence of a single checksum value within a DatasetVersion's files
      *
      * @param datasetVersion
@@ -834,36 +766,6 @@ public class DatasetVersionServiceBean implements java.io.Serializable {
 
         return !checksumList.isEmpty();
     }
-
-
-    @SuppressWarnings("unchecked")
-    public List<HashMap<String, Object>> getBasicDatasetVersionInfo(Dataset dataset) {
-        String query = "SELECT id, dataset_id, releasetime, versionnumber,"
-                + " minorversionnumber, versionstate, versionnote"
-                + " FROM datasetversion"
-                + " WHERE dataset_id = " + dataset.getId()
-                + " ORDER BY versionnumber DESC,"
-                + " minorversionnumber DESC,"
-                + " versionstate;";
-        Query nativeQuery = em.createNativeQuery(query);
-        List<Object[]> datasetVersionInfoList = nativeQuery.getResultList();
-
-        List<HashMap<String, Object>> hashList = new ArrayList<>();
-
-        HashMap<String, Object> mMap = new HashMap<>();
-        for (Object[] dvInfo : datasetVersionInfoList) {
-            mMap = new HashMap<>();
-            mMap.put("datasetVersionId", dvInfo[0]);
-            mMap.put("datasetId", dvInfo[1]);
-            mMap.put("releaseTime", dvInfo[2]);
-            mMap.put("versionnumber", dvInfo[3]);
-            mMap.put("minorversionnumber", dvInfo[4]);
-            mMap.put("versionstate", dvInfo[5]);
-            mMap.put("versionnote", dvInfo[6]);
-            hashList.add(mMap);
-        }
-        return hashList;
-    } // end getBasicDatasetVersionInfo
 
     public JsonObjectBuilder fixMissingUnf(String datasetVersionId, boolean forceRecalculate) {
         JsonObjectBuilder info = Json.createObjectBuilder();

@@ -22,13 +22,13 @@ package edu.harvard.iq.dataverse.batch.jobs.importer.filesystem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.batch.entities.JobExecutionEntity;
 import edu.harvard.iq.dataverse.batch.jobs.importer.ImportMode;
 import edu.harvard.iq.dataverse.batch.util.LoggingUtil;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
@@ -86,36 +86,36 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
     private SystemConfig systemConfig;
 
     @EJB
-    UserNotificationService userNotificationService;
+    private UserNotificationService userNotificationService;
 
     @EJB
-    AuthenticationServiceBean authenticationServiceBean;
+    private AuthenticationServiceBean authenticationServiceBean;
 
     @EJB
-    ActionLogServiceBean actionLogServiceBean;
+    private ActionLogServiceBean actionLogServiceBean;
 
     @EJB
-    DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     @EJB
-    DataFileServiceBean dataFileServiceBean;
+    private DataFileServiceBean dataFileServiceBean;
 
     @EJB
-    PermissionServiceBean permissionServiceBean;
+    private PermissionServiceBean permissionServiceBean;
 
     @Inject
     @BatchProperty
-    String checksumManifest;
+    private String checksumManifest;
 
     @Inject
     @BatchProperty
-    String checksumType;
+    private String checksumType;
 
-    Properties jobParams;
-    Dataset dataset;
-    String mode;
-    String uploadFolder;
-    AuthenticatedUser user;
+    private Properties jobParams;
+    private Dataset dataset;
+    private String mode;
+    private String uploadFolder;
+    private AuthenticatedUser user;
 
     @Override
     public void afterStep() throws Exception {
@@ -351,7 +351,7 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
 
             String datasetId = jobParams.getProperty("datasetId");
 
-            dataset = datasetDao.find(new Long(datasetId));
+            dataset = datasetService.find(new Long(datasetId));
 
             if (dataset != null) {
                 getJobLogger().log(Level.INFO, "Dataset Identifier (datasetId=" + datasetId + "): " + dataset.getIdentifier());
@@ -360,7 +360,7 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
         }
         if (jobParams.containsKey("datasetPrimaryKey")) {
             long datasetPrimaryKey = Long.parseLong(jobParams.getProperty("datasetPrimaryKey"));
-            dataset = datasetDao.find(datasetPrimaryKey);
+            dataset = datasetService.find(datasetPrimaryKey);
             if (dataset != null) {
                 getJobLogger().log(Level.INFO, "Dataset Identifier (datasetPrimaryKey=" + datasetPrimaryKey + "): "
                         + dataset.getIdentifier());

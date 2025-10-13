@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
@@ -31,8 +30,6 @@ public class MediaResourceManagerImplTest {
     
     @Mock
     private EjbDataverseEngine commandEngine;
-    @Mock
-    private DatasetDao datasetDao;
     @Mock
     private DataFileServiceBean dataFileService;
     @Mock

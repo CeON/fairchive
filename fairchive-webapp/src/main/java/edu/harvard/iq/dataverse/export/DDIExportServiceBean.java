@@ -5,12 +5,31 @@
  */
 package edu.harvard.iq.dataverse.export;
 
+import java.io.File;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.dataaccess.StorageIOUtils;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
 import edu.harvard.iq.dataverse.export.ddi.DdiConstants;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
@@ -24,24 +43,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.datavariable.VariableMetada
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.VariableRange;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.File;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Leonid Andreev
@@ -78,7 +79,7 @@ public class DDIExportServiceBean {
     // Internal service objects:
     private XMLOutputFactory xmlOutputFactory = javax.xml.stream.XMLOutputFactory.newInstance();
 
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private DataFileServiceBean fileService;
     private VariableServiceBean variableService;
     private CitationFactory citationFactory;
@@ -89,10 +90,10 @@ public class DDIExportServiceBean {
     public DDIExportServiceBean() { }
 
     @Inject
-    public DDIExportServiceBean(DatasetDao datasetDao, DataFileServiceBean fileService,
+    public DDIExportServiceBean(DatasetService datasetService, DataFileServiceBean fileService,
                                 VariableServiceBean variableService, CitationFactory citationFactory,
                                 IngestServiceBean ingestServiceBean) {
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.fileService = fileService;
         this.variableService = variableService;
         this.citationFactory = citationFactory;
@@ -180,7 +181,7 @@ public class DDIExportServiceBean {
                 throw new IllegalArgumentException("Metadata Export: Invalid datafile id supplied.");
             }
         } else if (OBJECT_TAG_DATASET.equals(objectTag)) {
-            dataObject = datasetDao.find(objectId);
+            dataObject = datasetService.find(objectId);
             if (dataObject == null) {
                 throw new IllegalArgumentException("Metadata Export: Invalid dataset id supplied.");
             }

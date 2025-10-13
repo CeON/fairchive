@@ -7,7 +7,6 @@ import edu.harvard.iq.dataverse.authorization.common.ExternalIdpUserRecord;
 import edu.harvard.iq.dataverse.authorization.providers.common.ExternalIdpFirstLoginPage;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.OAuth2TokenData;
-import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.omnifaces.cdi.ViewScoped;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static edu.harvard.iq.dataverse.util.StringUtil.toOption;
 import static java.util.stream.Collectors.toList;
@@ -42,7 +40,6 @@ import static java.util.stream.Collectors.toList;
 public class OAuth2LoginBackingBean implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuth2LoginBackingBean.class);
-    private static final long STATE_TIMEOUT = TimeUnit.MINUTES.toMillis(15);
     private int responseCode;
     private String responseBody;
     private Optional<String> redirectPage = Optional.empty();
@@ -55,7 +52,7 @@ public class OAuth2LoginBackingBean implements Serializable {
     @EJB
     OAuth2TokenDataServiceBean oauth2Tokens;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @Inject
@@ -139,37 +136,6 @@ public class OAuth2LoginBackingBean implements Serializable {
     private OAuth2AuthenticationProvider getProvider(final String state) {
         final int index = state.indexOf('~');
         return authenticationSvc.getOAuth2Provider(state.substring(0, index));
-    }
-
-    private OAuth2AuthenticationProvider parseState(String state) {
-        String[] topFields = state.split("~", 2);
-        if (topFields.length != 2) {
-            logger.info("Wrong number of fields in state string: {}", state);
-            return null;
-        }
-        OAuth2AuthenticationProvider idp = authenticationSvc.getOAuth2Provider(topFields[0]);
-        if (idp == null) {
-            logger.info("Can''t find IDP ''{}''", topFields[0]);
-            return null;
-        }
-        String raw = StringUtil.decrypt(topFields[1], idp.getClientSecret());
-        String[] stateFields = raw.split("~", -1);
-        if (idp.getId().equals(stateFields[0])) {
-            long timeOrigin = Long.parseLong(stateFields[1]);
-            long timeDifference = System.currentTimeMillis() - timeOrigin;
-            if (timeDifference > 0 && timeDifference < STATE_TIMEOUT) {
-                if (stateFields.length > 3) {
-                    redirectPage = Optional.ofNullable(stateFields[3]);
-                }
-                return idp;
-            } else {
-                logger.info("State timeout");
-                return null;
-            }
-        } else {
-            logger.info("Invalid id field: ''{}''", stateFields[0]);
-            return null;
-        }
     }
 
     public String getResponseBody() {

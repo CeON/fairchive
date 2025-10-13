@@ -5,27 +5,16 @@ import com.mashape.unirest.http.JsonNode;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class DataCaptureModuleUtil {
 
     private static final Logger logger = Logger.getLogger(DataCaptureModuleUtil.class.getCanonicalName());
 
-    public static boolean rsyncSupportEnabled(String uploadMethodsSettings) {
-        logger.fine("uploadMethodsSettings: " + uploadMethodsSettings);
-        if (StringUtils.isEmpty(uploadMethodsSettings)) {
-            return false;
-        } else {
-            return Arrays.asList(uploadMethodsSettings.toLowerCase().split("\\s*,\\s*")).contains(SystemConfig.FileUploadMethods.RSYNC.toString());
-        }
-    }
 
     /**
      * generate JSON to send to DCM

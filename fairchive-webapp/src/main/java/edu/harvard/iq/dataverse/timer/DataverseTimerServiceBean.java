@@ -28,11 +28,11 @@ import org.slf4j.Logger;
 
 import com.google.api.client.util.Preconditions;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.datafile.FileIntegrityChecker;
 import edu.harvard.iq.dataverse.datafile.pojo.FilesIntegrityReport;
 import edu.harvard.iq.dataverse.dataset.DatasetCitationsCountUpdater;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.harvest.client.HarvestTimerInfo;
@@ -65,32 +65,32 @@ public class DataverseTimerServiceBean implements Serializable {
     private static final Logger logger = getLogger(DataverseTimerServiceBean.class);
 
     @Resource
-    javax.ejb.TimerService timerService;
+    private javax.ejb.TimerService timerService;
 
     @EJB
-    HarvesterServiceBean harvesterService;
+    private HarvesterServiceBean harvesterService;
     @EJB
-    HarvestingClientDao harvestingClientService;
+    private HarvestingClientDao harvestingClientService;
     @EJB
-    AuthenticationServiceBean authSvc;
+    private AuthenticationServiceBean authSvc;
     @EJB
-    OAISetServiceBean oaiSetService;
-    @EJB
-    SystemConfig systemConfig;
+    private OAISetServiceBean oaiSetService;
     @Inject
-    SettingsServiceBean settingsService;
+    private SystemConfig systemConfig;
+    @Inject
+    private SettingsServiceBean settingsService;
     @EJB
-    FileIntegrityChecker fileIntegrityChecker;
+    private FileIntegrityChecker fileIntegrityChecker;
     @Inject
-    DatasetCitationsCountUpdater datasetCitationsCountUpdater;
+    private DatasetCitationsCountUpdater datasetCitationsCountUpdater;
     @Inject
-    FeaturedDataverseServiceBean featuredDataverseServiceBean;
+    private FeaturedDataverseServiceBean featuredDataverseServiceBean;
 
     @Inject
-    DatasetDao datasetDao;
+    private DatasetService datasetService;
     
     @Inject
-    IndexServiceBean indexServiceBean;
+    private IndexServiceBean indexServiceBean;
 
     @PostConstruct
     public void init() {
@@ -226,13 +226,13 @@ public class DataverseTimerServiceBean implements Serializable {
     }
 
     private void reindexAfterEmbargo() {
-        List<Dataset> datasetsAfterEmbargo = datasetDao.findNotIndexedAfterEmbargo();
+        List<Dataset> datasetsAfterEmbargo = datasetService.findNotIndexedAfterEmbargo();
         for (Dataset dataset:datasetsAfterEmbargo) {
             indexServiceBean.indexDataset(dataset, true);
         }
     }
 
-    public void removeAllTimers() {
+    private void removeAllTimers() {
         logger.info("Removing ALL existing timers.");
 
         int i = 0;
@@ -245,7 +245,7 @@ public class DataverseTimerServiceBean implements Serializable {
         logger.info("Done!");
     }
 
-    public void removeHarvestTimers() {
+    private void removeHarvestTimers() {
         // Remove all the harvest timers, if exist:
         //
         // (the logging messages below are set to level INFO; it's ok,
@@ -267,7 +267,7 @@ public class DataverseTimerServiceBean implements Serializable {
         }
     }
 
-    public void createMotherTimer() {
+    private void createMotherTimer() {
         MotherTimerInfo info = new MotherTimerInfo();
         Calendar initExpiration = Calendar.getInstance();
         long intervalDuration = 60 * 60 * 1000; // every hour
@@ -284,7 +284,7 @@ public class DataverseTimerServiceBean implements Serializable {
         createTimer(initExpirationDate, intervalDuration, info);
     }
 
-    public void createHarvestTimer(HarvestingClient harvestingClient) {
+    private void createHarvestTimer(HarvestingClient harvestingClient) {
 
         if (harvestingClient.isScheduled()) {
             long intervalDuration = 0;
@@ -325,7 +325,7 @@ public class DataverseTimerServiceBean implements Serializable {
         }
     }
 
-    public void createExportTimer() {
+    private void createExportTimer() {
         ExportTimerInfo info = new ExportTimerInfo();
         Calendar initExpiration = Calendar.getInstance();
         long intervalDuration = 24 * 60 * 60 * 1000; // every day
@@ -344,7 +344,7 @@ public class DataverseTimerServiceBean implements Serializable {
         createTimer(initExpirationDate, intervalDuration, info);
     }
 
-    public void createIntegrityCheckTimer() {
+    private void createIntegrityCheckTimer() {
         String cronExpression = settingsService.getValueForKey(Key.FilesIntegrityCheckTimerExpression);
 
         if (StringUtils.isNotBlank(cronExpression)) {
@@ -357,7 +357,7 @@ public class DataverseTimerServiceBean implements Serializable {
         }
     }
 
-    public void createCitationCountUpdateTimer() {
+    private void createCitationCountUpdateTimer() {
         String cronExpression = settingsService.getValueForKey(Key.CitationCountUpdateTimerExpression);
 
         if (StringUtils.isNotBlank(cronExpression)) {
@@ -374,7 +374,7 @@ public class DataverseTimerServiceBean implements Serializable {
 
     }
 
-    public void createFeaturedDataversesSortingUpdateTimer() {
+    private void createFeaturedDataversesSortingUpdateTimer() {
         String cronExpression = settingsService.getValueForKey(Key.FeaturedDataversesSortingUpdateTimerExpression);
 
         if (StringUtils.isNotBlank(cronExpression)) {

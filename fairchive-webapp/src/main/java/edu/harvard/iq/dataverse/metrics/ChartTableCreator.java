@@ -1,15 +1,17 @@
 package edu.harvard.iq.dataverse.metrics;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.common.BundleUtil;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.ejb.Stateless;
+
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.primefaces.model.chart.AxisType;
 import org.primefaces.model.chart.BarChartModel;
 
-import javax.ejb.Stateless;
-import java.util.List;
-import java.util.stream.Collectors;
+import edu.harvard.iq.dataverse.common.BundleUtil;
 
 @Stateless
 public class ChartTableCreator {
@@ -36,7 +38,9 @@ public class ChartTableCreator {
 
     private List<Pair<String, String>> loadDataForChartTable(BarChartModel chartModel) {
         if(chartModel.getSeries().isEmpty()) {
-            return Lists.newArrayList(new ImmutablePair<>("NO DATA", "NO DATA"));
+            List<Pair<String, String>> result = new ArrayList<>();
+            result.add(new ImmutablePair<>("NO DATA", "NO DATA"));
+            return result;
         }
 
         return chartModel.getSeries().get(0).getData().entrySet().stream()
