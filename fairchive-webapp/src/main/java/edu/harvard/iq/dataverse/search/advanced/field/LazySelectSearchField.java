@@ -72,7 +72,7 @@ public class LazySelectSearchField extends SearchField {
      * input field.
      */
     public String getAutocompletePlaceholderMessage() {
-        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".advanced.search.autocomplete.placeholder";
+        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".autocomplete.placeholder";
         return getStringFromMetadataBlockBundle(key, "common.forms.autocomplete.placeholder");
     }
 
@@ -82,7 +82,7 @@ public class LazySelectSearchField extends SearchField {
      * currently displayed.
      */
     public String getAutocompleteLoadMoreMessage() {
-        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".advanced.search.autocomplete.loadMore";
+        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".autocomplete.loadMore";
         return getStringFromMetadataBlockBundle(key, "common.forms.autocomplete.loadMore");
     }
 
@@ -90,7 +90,7 @@ public class LazySelectSearchField extends SearchField {
      * Text to display when there is no data to display.
      */
     public String getAutocompleteEmptyMessage() {
-        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".advanced.search.autocomplete.emptySuggestionMessage";
+        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".autocomplete.emptySuggestionMessage";
         return getStringFromMetadataBlockBundle(key, "common.forms.autocomplete.emptySuggestionMessage");
     }
 
@@ -100,7 +100,7 @@ public class LazySelectSearchField extends SearchField {
      * up and down arrow keys to navigate".
      */
     public String getAutocompleteResultsMessage() {
-        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".advanced.search.autocomplete.resultsMessage";
+        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".autocomplete.resultsMessage";
         return getStringFromMetadataBlockBundle(key, "common.forms.autocomplete.resultsMessage");
     }
 
@@ -133,7 +133,7 @@ public class LazySelectSearchField extends SearchField {
                 .collect(Collectors.toList());
     }
 
-    public String getStringFromMetadataBlockBundle(String key, String fallbackKey) {
+    private String getStringFromMetadataBlockBundle(String key, String fallbackKey) {
 
         if (getDatasetFieldType().getMetadataBlock() != null &&
                 hasKeyInNonDefaultBundle(key, getDatasetFieldType().getMetadataBlock().getName())) {

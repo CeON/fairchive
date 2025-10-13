@@ -22,8 +22,8 @@
                     id="controlledVocabEnhancedInputFieldSingleSelect"
                     value="#{datasetField.singleControlledVocabularyValue}"
                     completeMethod="#{inputRenderer.complete(datasetField, 'controlledVocabEnhancedInputFieldSingleSelect')}"
-                    resultsMessage="#{bundle['common.forms.autocomplete.resultsMessage']}"
-                    emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
+                    resultsMessage="#{inputRenderer.getAutocompleteResultsMessage(datasetField)}"
+                    emptyMessage="#{inputRenderer.getAutocompleteEmptyMessage(datasetField)}"
                     var="item" itemLabel="#{item.strValue}" itemValue="#{item.id}"
                     multiple="false"
                     autoSelection="false"
@@ -36,8 +36,8 @@
                     minQueryLength="3" dropdown="true"
                     unique="true"
                     widgetVar="#{widgetVar}"
-                    placeholder="#{bundle['common.forms.autocomplete.placeholder']}"
-                    moreText="#{bundle['common.forms.autocomplete.loadMore']}"
+                    placeholder="#{inputRenderer.getAutocompletePlaceholderMessage(datasetField)}"
+                    moreText="#{inputRenderer.getAutocompleteLoadMoreMessage(datasetField)}"
                     maxResults="#{inputRenderer.numberOfResults-1}"
     >
 
@@ -51,8 +51,8 @@
                     id="controlledVocabEnhancedInputFieldMultipleSelect"
                     value="#{datasetField.controlledVocabularyValues}"
                     completeMethod="#{inputRenderer.complete(datasetField, 'controlledVocabEnhancedInputFieldMultipleSelect')}"
-                    resultsMessage="#{bundle['common.forms.autocomplete.resultsMessage']}"
-                    emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
+                    resultsMessage="#{inputRenderer.getAutocompleteResultsMessage(datasetField)}"
+                    emptyMessage="#{inputRenderer.getAutocompleteEmptyMessage(datasetField)}"
                     var="item" itemLabel="#{item.strValue}" itemValue="#{item.id}"
                     multiple="true"
 
@@ -62,8 +62,8 @@
                     minQueryLength="3" dropdown="true"
                     unique="true"
                     widgetVar="#{widgetVar}"
-                    placeholder="#{bundle['common.forms.autocomplete.placeholder']}"
-                    moreText="#{bundle['common.forms.autocomplete.loadMore']}"
+                    placeholder="#{inputRenderer.getAutocompletePlaceholderMessage(datasetField)}"
+                    moreText="#{inputRenderer.getAutocompleteLoadMoreMessage(datasetField)}"
                     maxResults="#{inputRenderer.numberOfResults-1}"
     >
         <p:ajax event="moreText"
