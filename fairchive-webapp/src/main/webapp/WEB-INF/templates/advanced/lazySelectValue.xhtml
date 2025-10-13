@@ -5,16 +5,16 @@
     <p:autoComplete
             value="#{item.allowMultiple ? item.selected : item.oneSelected}"
             completeMethod="#{item.complete}"
-            resultsMessage="#{bundle['common.forms.autocomplete.resultsMessage']}"
-            emptyMessage="#{bundle['common.forms.autocomplete.emptySuggestionMessage']}"
+            resultsMessage="#{item.autocompleteResultsMessage}"
+            emptyMessage="#{item.autocompleteEmptyMessage}"
             var="itemVar" itemLabel="#{itemVar}" itemValue="#{itemVar}"
             multiple="#{item.allowMultiple}"
             forceSelection="true"
             scrollHeight="350"
             minQueryLength="3" dropdown="true"
             unique="true"
-            placeholder="#{bundle['common.forms.autocomplete.placeholder']}"
-            moreText="#{bundle['common.forms.autocomplete.loadMore']}"
+            placeholder="#{item.autocompletePlaceholderMessage}"
+            moreText="#{item.autocompleteLoadMoreMessage}"
             widgetVar="#{component.clientId}_widget"
             maxResults="#{item.numberOfResults-1}" >
 

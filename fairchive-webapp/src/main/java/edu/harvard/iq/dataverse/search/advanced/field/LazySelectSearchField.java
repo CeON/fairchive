@@ -1,11 +1,14 @@
 package edu.harvard.iq.dataverse.search.advanced.field;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.hasKeyInNonDefaultBundle;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.search.advanced.SearchFieldType;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
@@ -64,6 +67,43 @@ public class LazySelectSearchField extends SearchField {
         return allowMultiple;
     }
 
+    /**
+     * Text providing a short hint that describes what to enter in autocomplete
+     * input field.
+     */
+    public String getAutocompletePlaceholderMessage() {
+        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".advanced.search.autocomplete.placeholder";
+        return getStringFromMetadataBlockBundle(key, "common.forms.autocomplete.placeholder");
+    }
+
+    /**
+     * Text to display in load more button. It is shown only when there are
+     * more results matching the autocomplete input text but they are not
+     * currently displayed.
+     */
+    public String getAutocompleteLoadMoreMessage() {
+        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".advanced.search.autocomplete.loadMore";
+        return getStringFromMetadataBlockBundle(key, "common.forms.autocomplete.loadMore");
+    }
+
+    /**
+     * Text to display when there is no data to display.
+     */
+    public String getAutocompleteEmptyMessage() {
+        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".advanced.search.autocomplete.emptySuggestionMessage";
+        return getStringFromMetadataBlockBundle(key, "common.forms.autocomplete.emptySuggestionMessage");
+    }
+
+    /**
+     * Hint text for screen readers to provide information about the search
+     * results. Default is [NUMBER_OF_RESULTS] + "results are available, use
+     * up and down arrow keys to navigate".
+     */
+    public String getAutocompleteResultsMessage() {
+        String key = "datasetfieldtype." + getDatasetFieldType().getName() + ".advanced.search.autocomplete.resultsMessage";
+        return getStringFromMetadataBlockBundle(key, "common.forms.autocomplete.resultsMessage");
+    }
+
     public void onSelection() {
         queryControlledVocabularyValues("");
     }
@@ -93,6 +133,15 @@ public class LazySelectSearchField extends SearchField {
                 .collect(Collectors.toList());
     }
 
+    public String getStringFromMetadataBlockBundle(String key, String fallbackKey) {
+
+        if (getDatasetFieldType().getMetadataBlock() != null &&
+                hasKeyInNonDefaultBundle(key, getDatasetFieldType().getMetadataBlock().getName())) {
+
+            BundleUtil.getStringFromNonDefaultBundle(key, getDatasetFieldType().getMetadataBlock().getName());
+        }
+        return BundleUtil.getStringFromBundle(fallbackKey);
+    }
 
     public void setSelected(List<String> selected) {
         this.selected = selected;
