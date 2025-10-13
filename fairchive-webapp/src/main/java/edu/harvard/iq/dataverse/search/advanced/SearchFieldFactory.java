@@ -3,10 +3,12 @@ package edu.harvard.iq.dataverse.search.advanced;
 import javax.ejb.Stateless;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import edu.harvard.iq.dataverse.search.advanced.field.CheckboxSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.DateSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.GeoNameSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.GeoboxCoordSearchField;
+import edu.harvard.iq.dataverse.search.advanced.field.LazySelectSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.NumberSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.PeriodoSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
@@ -22,7 +24,7 @@ public class SearchFieldFactory {
     public SearchField create(DatasetFieldType fieldType) {
         if (fieldType.containsControlledVocabularyValues()) {
             return fieldType.isThisOrParentAllowsMultipleValues()
-                    ? mapCheckBoxValues(fieldType) : mapSelectOneValues(fieldType);
+                    ? mapSelectMultipleValues(fieldType) : mapSelectOneValues(fieldType);
         } else if (fieldType.isTextual()) {
             return new TextSearchField(fieldType);
         } else if (fieldType.isDate()) {
@@ -42,7 +44,10 @@ public class SearchFieldFactory {
 
     // -------------------- PRIVATE --------------------
 
-    private CheckboxSearchField mapCheckBoxValues(DatasetFieldType fieldType) {
+    private SearchField mapSelectMultipleValues(DatasetFieldType fieldType) {
+        if (fieldType.getInputRendererType() == InputRendererType.VOCABULARY_ENHANCED_SELECT) {
+            return new LazySelectSearchField(fieldType, true);
+        }
         CheckboxSearchField checkboxSearchField = new CheckboxSearchField(fieldType);
 
         fieldType.getControlledVocabularyValues()
@@ -51,7 +56,11 @@ public class SearchFieldFactory {
         return checkboxSearchField;
     }
 
-    private SelectOneSearchField mapSelectOneValues(DatasetFieldType fieldType) {
+    private SearchField mapSelectOneValues(DatasetFieldType fieldType) {
+        if (fieldType.getInputRendererType() == InputRendererType.VOCABULARY_ENHANCED_SELECT) {
+            return new LazySelectSearchField(fieldType, false);
+        }
+
         SelectOneSearchField selectOneSearchField = new SelectOneSearchField(fieldType);
 
         fieldType.getControlledVocabularyValues()
