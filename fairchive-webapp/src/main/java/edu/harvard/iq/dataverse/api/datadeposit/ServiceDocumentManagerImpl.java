@@ -21,16 +21,16 @@ import javax.ejb.EJB;
 import javax.inject.Inject;
 import java.util.List;
 
-public class ServiceDocumentManagerImpl implements ServiceDocumentManager {
+final class ServiceDocumentManagerImpl implements ServiceDocumentManager {
 
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
-    SystemConfig systemConfig;
+    private SystemConfig systemConfig;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
 

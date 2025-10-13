@@ -46,32 +46,32 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 
-public class ContainerManagerImpl implements ContainerManager {
+final class ContainerManagerImpl implements ContainerManager {
 
     private static final Logger logger = Logger.getLogger(ContainerManagerImpl.class.getCanonicalName());
 
     @EJB
-    protected EjbDataverseEngine engineSvc;
+    private EjbDataverseEngine engineSvc;
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
-    DatasetService datasetService;
+    private DatasetService datasetService;
     @EJB
-    IndexServiceBean indexService;
+    private IndexServiceBean indexService;
     @EJB
-    ImportGenericServiceBean importGenericService;
+    private ImportGenericServiceBean importGenericService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @EJB
-    DataFileServiceBean datafileService;
+    private DataFileServiceBean datafileService;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
     @Inject
     private SystemConfig systemConfig;
     @EJB
-    SwordServiceBean swordService;
+    private  SwordServiceBean swordService;
     @Inject
     private CitationFactory citationFactory;
 

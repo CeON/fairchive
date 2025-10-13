@@ -86,36 +86,36 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
     private SystemConfig systemConfig;
 
     @EJB
-    UserNotificationService userNotificationService;
+    private UserNotificationService userNotificationService;
 
     @EJB
-    AuthenticationServiceBean authenticationServiceBean;
+    private AuthenticationServiceBean authenticationServiceBean;
 
     @EJB
-    ActionLogServiceBean actionLogServiceBean;
+    private ActionLogServiceBean actionLogServiceBean;
 
     @EJB
-    DatasetService datasetService;
+    private DatasetService datasetService;
 
     @EJB
-    DataFileServiceBean dataFileServiceBean;
+    private DataFileServiceBean dataFileServiceBean;
 
     @EJB
-    PermissionServiceBean permissionServiceBean;
+    private PermissionServiceBean permissionServiceBean;
 
     @Inject
     @BatchProperty
-    String checksumManifest;
+    private String checksumManifest;
 
     @Inject
     @BatchProperty
-    String checksumType;
+    private String checksumType;
 
-    Properties jobParams;
-    Dataset dataset;
-    String mode;
-    String uploadFolder;
-    AuthenticatedUser user;
+    private Properties jobParams;
+    private Dataset dataset;
+    private String mode;
+    private String uploadFolder;
+    private AuthenticatedUser user;
 
     @Override
     public void afterStep() throws Exception {

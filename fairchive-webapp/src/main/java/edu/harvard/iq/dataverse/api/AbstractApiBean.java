@@ -177,7 +177,7 @@ public abstract class AbstractApiBean {
          *
          * @return the content of a message field, or {@code null}.
          */
-        String getWrappedMessageWhenJson() {
+        private String getWrappedMessageWhenJson() {
             if (response.getMediaType().equals(MediaType.APPLICATION_JSON_TYPE)) {
                 Object entity = response.getEntity();
                 if (entity == null) {

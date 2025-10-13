@@ -206,7 +206,7 @@ public class DataCiteResourceCreator {
                 .collect(Collectors.toList());
     }
 
-    public List<Contributor> extractDatasetProducersAsContributors(Dataset dataset) {
+    private List<Contributor> extractDatasetProducersAsContributors(Dataset dataset) {
         return dataset.getLatestVersion().extractFieldWithSubfields(DatasetFieldConstant.producer,
                 Arrays.asList(DatasetFieldConstant.producerName, DatasetFieldConstant.producerAffiliation))
                 .stream()

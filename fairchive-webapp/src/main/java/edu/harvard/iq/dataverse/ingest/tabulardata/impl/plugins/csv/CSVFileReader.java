@@ -148,7 +148,7 @@ public class CSVFileReader extends TabularDataFileReader {
         return ingesteddata;
     }
 
-    public int readFile(File file, DataTable dataTable, PrintWriter finalOut, File firstPassTempFile, CSVFormat csvFormat) throws IOException {
+    private int readFile(File file, DataTable dataTable, PrintWriter finalOut, File firstPassTempFile, CSVFormat csvFormat) throws IOException {
 
         if (file == null) {
             throw new IngestException(IngestError.UNKNOWN_ERROR);

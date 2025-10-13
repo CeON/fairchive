@@ -20,7 +20,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -49,27 +48,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-public class MediaResourceManagerImpl implements MediaResourceManager {
+final class MediaResourceManagerImpl implements MediaResourceManager {
 
     private static final Logger logger = Logger.getLogger(MediaResourceManagerImpl.class.getCanonicalName());
     @EJB
-    EjbDataverseEngine commandEngine;
+    private EjbDataverseEngine commandEngine;
     @EJB
-    DatasetService datasetService;
+    private DatasetService datasetService;
     @EJB
-    DataFileServiceBean dataFileService;
+    private DataFileServiceBean dataFileService;
     @Inject
     private DataFileCreator dataFileCreator;
     @EJB
-    IngestServiceBean ingestService;
+    private IngestServiceBean ingestService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
-    SettingsServiceBean settingsSvc;
+    private SystemConfig systemConfig;
     @Inject
-    SystemConfig systemConfig;
-    @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
     @Inject

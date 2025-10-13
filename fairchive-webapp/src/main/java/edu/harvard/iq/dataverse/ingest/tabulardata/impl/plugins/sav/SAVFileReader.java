@@ -203,11 +203,11 @@ public class SAVFileReader extends TabularDataFileReader {
     private static Logger dbgLog = Logger.getLogger(SAVFileReader.class.getPackage().getName());
 
 
-    TabularDataIngest ingesteddata = new TabularDataIngest();
+    private TabularDataIngest ingesteddata = new TabularDataIngest();
     private DataTable dataTable = new DataTable();
 
-    Map<String, String> shortToLongVariableNameTable = new LinkedHashMap<String, String>();
-    Map<String, String> formatCategoryTable = new LinkedHashMap<String, String>();
+    private Map<String, String> shortToLongVariableNameTable = new LinkedHashMap<String, String>();
+    private Map<String, String> formatCategoryTable = new LinkedHashMap<String, String>();
 
 
     private boolean isLittleEndian = false;
@@ -221,32 +221,32 @@ public class SAVFileReader extends TabularDataFileReader {
     private List<Integer> variableTypelList = new ArrayList<Integer>();
     private List<Integer> OBSwiseTypelList = new ArrayList<Integer>();
 
-    Map<String, String> printFormatTable = new LinkedHashMap<String, String>();
+    private Map<String, String> printFormatTable = new LinkedHashMap<String, String>();
 
 
-    Set<Integer> obsNonVariableBlockSet = new LinkedHashSet<Integer>();
+    private Set<Integer> obsNonVariableBlockSet = new LinkedHashSet<Integer>();
 
 
-    Map<String, String> valueVariableMappingTable = new LinkedHashMap<String, String>();
+    private Map<String, String> valueVariableMappingTable = new LinkedHashMap<String, String>();
 
-    Map<String, Integer> extendedVariablesSizeTable = new LinkedHashMap<String, Integer>();
-
-
-    List<String> variableNameList = new ArrayList<String>();
+    private Map<String, Integer> extendedVariablesSizeTable = new LinkedHashMap<String, Integer>();
 
 
-    Map<String, InvalidData> invalidDataTable = new LinkedHashMap<String, InvalidData>(); // this variable used in 2 methods; only one uses it to set the smd value -- ??
-
-    NumberFormat doubleNumberFormatter = new DecimalFormat();
-
-    Set<Integer> decimalVariableSet = new HashSet<Integer>();
-
-    String[] variableFormatTypeList = null;
-
-    List<Integer> formatDecimalPointPositionList = new ArrayList<Integer>();
+    private List<String> variableNameList = new ArrayList<String>();
 
 
-    int caseWeightVariableOBSIndex = 0;
+    private Map<String, InvalidData> invalidDataTable = new LinkedHashMap<String, InvalidData>(); // this variable used in 2 methods; only one uses it to set the smd value -- ??
+
+    private NumberFormat doubleNumberFormatter = new DecimalFormat();
+
+    private Set<Integer> decimalVariableSet = new HashSet<Integer>();
+
+    private String[] variableFormatTypeList = null;
+
+    private List<Integer> formatDecimalPointPositionList = new ArrayList<Integer>();
+
+
+    private int caseWeightVariableOBSIndex = 0;
 
 
     // date/time data formats
@@ -257,7 +257,7 @@ public class SAVFileReader extends TabularDataFileReader {
     private SimpleDateFormat sdf_hms = new SimpleDateFormat("HH:mm:ss");
 
 
-    Map<String, String> OBSTypeHexValue = new LinkedHashMap<String, String>();
+    private Map<String, String> OBSTypeHexValue = new LinkedHashMap<String, String>();
 
     /*
      * TODO: add a comment explaining the whole thing about this default
@@ -284,7 +284,7 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    String MissingValueForTextDataFileString = "";
+    private String MissingValueForTextDataFileString = "";
 
 
     public String getMissingValueForTextDataFileString() {
@@ -524,7 +524,7 @@ public class SAVFileReader extends TabularDataFileReader {
         return ingesteddata;
     }
 
-    void decodeHeader(BufferedInputStream stream) throws IOException {
+    private void decodeHeader(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeHeader(): start");
 
         if (stream == null) {
@@ -867,7 +867,7 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    void decodeRecordType2(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType2(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordType2(): start");
         if (stream == null) {
             throw new IllegalArgumentException("stream == null!");
@@ -1416,7 +1416,7 @@ public class SAVFileReader extends TabularDataFileReader {
         dbgLog.fine("decodeRecordType2(): end");
     }
 
-    void decodeRecordType3and4(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType3and4(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordType3and4(): start");
         Map<String, Map<String, String>> valueLabelTable
                 = new LinkedHashMap<String, Map<String, String>>();
@@ -1635,7 +1635,7 @@ public class SAVFileReader extends TabularDataFileReader {
         dbgLog.fine("***** decodeRecordType3and4(): end *****");
     }
 
-    void assignValueLabels(Map<String, Map<String, String>> valueLabelTable) {
+    private void assignValueLabels(Map<String, Map<String, String>> valueLabelTable) {
         // Let's go through all the categorical value label mappings and
         // assign them to the correct variables:
 
@@ -1659,7 +1659,7 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    void decodeRecordType6(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType6(BufferedInputStream stream) throws IOException {
         dbgLog.fine("***** decodeRecordType6(): start *****");
         try {
             if (stream == null) {
@@ -1735,7 +1735,7 @@ public class SAVFileReader extends TabularDataFileReader {
      * and what information it stores. This is not obvious from the code
      * below. -- L.A. 4.0 alpha
      */
-    void decodeRecordType7(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType7(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordType7(): start");
         int counter = 0;
         int[] headerSection = new int[2];
@@ -2042,7 +2042,7 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    void decodeRecordType999(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType999(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordType999(): start");
         try {
             if (stream == null) {
@@ -2126,7 +2126,7 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    void decodeRecordTypeData(BufferedInputStream stream) throws IOException {
+    private void decodeRecordTypeData(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordTypeData(): start");
 
         if (stream == null) {
@@ -2143,7 +2143,7 @@ public class SAVFileReader extends TabularDataFileReader {
         dbgLog.fine("***** decodeRecordTypeData(): end *****");
     }
 
-    PrintWriter createOutputWriter(BufferedInputStream stream) throws IOException {
+    private PrintWriter createOutputWriter(BufferedInputStream stream) throws IOException {
         try {
             // create a File object to save the tab-delimited data file
             File tabDelimitedDataFile = File.createTempFile("tempTabfile.", ".tab");
@@ -2156,7 +2156,7 @@ public class SAVFileReader extends TabularDataFileReader {
         } 
     }
 
-    void decodeRecordTypeDataCompressed(BufferedInputStream stream) throws IOException {
+    private void decodeRecordTypeDataCompressed(BufferedInputStream stream) throws IOException {
 
         dbgLog.fine("***** decodeRecordTypeDataCompressed(): start *****");
 
@@ -3276,14 +3276,6 @@ public class SAVFileReader extends TabularDataFileReader {
                 dbgLog.finer("");
             }
     }
-
-    void print2Darray(Object[][] datatable, String title) {
-        dbgLog.fine(title);
-        for (int i = 0; i < datatable.length; i++) {
-            dbgLog.fine(StringUtils.join(datatable[i], "|"));
-        }
-    }
-
 
 }
 

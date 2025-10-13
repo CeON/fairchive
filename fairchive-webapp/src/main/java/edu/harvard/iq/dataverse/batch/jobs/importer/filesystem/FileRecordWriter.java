@@ -36,7 +36,6 @@ import javax.batch.api.chunk.AbstractItemWriter;
 import javax.batch.operations.JobOperator;
 import javax.batch.runtime.BatchRuntime;
 import javax.batch.runtime.context.JobContext;
-import javax.batch.runtime.context.StepContext;
 import javax.ejb.EJB;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -66,43 +65,37 @@ import edu.harvard.iq.dataverse.util.FileUtil;
 public class FileRecordWriter extends AbstractItemWriter {
 
     @Inject
-    JobContext jobContext;
-
-    @Inject
-    StepContext stepContext;
+    private JobContext jobContext;
 
     @Inject
     @BatchProperty
-    String checksumType;
+    private  String checksumType;
 
     @Inject
     @BatchProperty
-    String checksumManifest;
+    private String checksumManifest;
 
     @EJB
-    DatasetService datasetService;
+    private DatasetService datasetService;
 
     @EJB
-    AuthenticationServiceBean authenticationServiceBean;
-
-    @Inject
-    SettingsServiceBean settingsService;
+    private AuthenticationServiceBean authenticationServiceBean;
 
     @EJB
-    DataFileServiceBean dataFileServiceBean;
+    private DataFileServiceBean dataFileServiceBean;
 
     @EJB
-    EjbDataverseEngine commandEngine;
+    private EjbDataverseEngine commandEngine;
     
     @EJB
-    GlobalIdServiceBeanResolver resolver;
+    private GlobalIdServiceBeanResolver resolver;
 
-    Dataset dataset;
-    AuthenticatedUser user;
-    int fileCount;
-    String fileMode;
-    Long suppliedSize = null;
-    String uploadFolder;
+    private Dataset dataset;
+    private AuthenticatedUser user;
+    private int fileCount;
+    private String fileMode;
+    private Long suppliedSize = null;
+    private String uploadFolder;
 
     public static String FILE_MODE_INDIVIDUAL_FILES = "individual_files";
     public static String FILE_MODE_PACKAGE_FILE = "package_file";

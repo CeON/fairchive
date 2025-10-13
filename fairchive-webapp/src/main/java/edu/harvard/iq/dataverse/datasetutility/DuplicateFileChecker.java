@@ -21,9 +21,9 @@ import java.util.Map;
  *
  * @author rmp553
  */
-public class DuplicateFileChecker {
+public final class DuplicateFileChecker {
 
-    private DatasetVersionServiceBean datasetVersionService;
+    private final DatasetVersionServiceBean datasetVersionService;
 
     /**
      * Constructor
@@ -66,7 +66,7 @@ public class DuplicateFileChecker {
      * @param checksum
      * @return
      */
-    public boolean isFileInSavedDatasetVersion(DatasetVersion datasetVersion, String checkSum) {
+    private boolean isFileInSavedDatasetVersion(DatasetVersion datasetVersion, String checkSum) {
 
         if (datasetVersion == null) {
             throw new NullPointerException("datasetVersion cannot be null");

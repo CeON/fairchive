@@ -67,7 +67,7 @@ public class ChartCreator {
         return model;
     }
 
-    public BarChartModel createBarModel(List<ChartMetrics> metrics,
+    private BarChartModel createBarModel(List<ChartMetrics> metrics,
                                         String title,
                                         String xAxisLabel,
                                         String yAxisLabel) {

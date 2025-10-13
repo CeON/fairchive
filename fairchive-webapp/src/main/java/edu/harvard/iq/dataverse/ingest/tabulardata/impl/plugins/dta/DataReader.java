@@ -293,7 +293,7 @@ public class DataReader {
         return ret;
     }
 
-    public byte[] readPrimitiveSection(String tag, int length) throws IOException {
+    private byte[] readPrimitiveSection(String tag, int length) throws IOException {
         readOpeningTag(tag);
         byte[] ret = readBytes(length);
         readClosingTag(tag);
