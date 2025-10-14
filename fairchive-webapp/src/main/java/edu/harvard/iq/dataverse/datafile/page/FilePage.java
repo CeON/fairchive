@@ -360,6 +360,11 @@ public class FilePage implements java.io.Serializable {
         return this.fileMetadata.getDatasetVersion().getDataset().isReleased() 
                 && this.fileMetadata.getDatasetVersion().isDraft();
     }
+    
+    public boolean displayUnlockIcon() {
+        return this.fileMetadata.getTermsOfUse().getTermsOfUseType() == RESTRICTED 
+                && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata);
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(

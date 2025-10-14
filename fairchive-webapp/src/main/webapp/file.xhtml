@@ -272,7 +272,7 @@
                                     <span class="glyphicon glyphicon-lock text-danger" 
                                           jsf:rendered="#{FilePage.displayRestrictedIcon()}" />
                                     <span class="icon-unlock text-success" 
-                                          jsf:rendered="#{FilePage.fileMetadata.termsOfUse.termsOfUseType eq termsOfUseTypeEnum.RESTRICTED  and fileDownloadHelper.canUserDownloadFile(FilePage.fileMetadata) }" />
+                                          jsf:rendered="#{FilePage.displayUnlockIcon()}" />
 
                                     <!-- Title/Label -->
                                     <h2 class="header-inline file-title-label">#{FilePage.fileMetadata.label}</h2>
