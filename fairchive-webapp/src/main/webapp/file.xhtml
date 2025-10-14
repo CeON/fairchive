@@ -328,7 +328,7 @@
                                                 <span class="glyphicon glyphicon-question-sign text-primary" 
                                                       tabindex="0" 
                                                       role="button" 
-                                                      jsf:rendered="#{FilePage.fileMetadata.datasetVersion.dataset.released and FilePage.fileMetadata.datasetVersion.draft}"
+                                                      jsf:rendered="#{FilePage.displayDraftIcon()}"
                                                       data-toggle="tooltip" 
                                                       data-placement="top" 
                                                       data-original-title="#{bundle['dataset.cite.title.draft']}"/>
@@ -349,7 +349,7 @@
                                                             aria-haspopup="true" 
                                                             aria-controls="downloadDatasetCitationMenu" 
                                                             aria-expanded="false">
-                                                        <span class="glyphicon glyphicon-list"/> #{bundle['dataset.cite.downloadBtn']} <span class="caret"></span>
+                                                        <span class="glyphicon glyphicon-list"/> #{bundle['dataset.cite.downloadBtn']} <span class="caret"/>
                                                     </button>
                                                     <ul id="downloadDatasetCitationMenu" 
                                                         class="dropdown-menu pull-right text-left" 
@@ -357,20 +357,20 @@
                                                         aria-labelledby="downloadDatasetCitation">
                                                         <li role="none">
                                                             <a jsf:id="endNoteLink" 
-                                                               jsf:action="#{fileDownloadService.downloadDatasetCitationXML(FilePage.fileMetadata.datasetVersion)}"
+                                                               jsf:action="#{FilePage.downloadDatasetCitationXML()}"
                                                                role="menuitem" >
                                                                 #{bundle['dataset.cite.downloadBtn.xml']}
                                                             </a>
                                                         </li>
                                                         <li role="none">
-                                                            <a jsf:id="risLink" jsf:actionListener="#{fileDownloadService.downloadDatasetCitationRIS(FilePage.fileMetadata.datasetVersion)}"
+                                                            <a jsf:id="risLink" jsf:actionListener="#{FilePage.downloadDatasetCitationRIS()}"
                                                                     role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.ris']}
                                                             </a>
                                                         </li>
                                                         <li role="none">
                                                             <a jsf:id="bibLink" 
-                                                               jsf:actionListener="#{fileDownloadService.downloadDatasetCitationBibtex(FilePage.fileMetadata.datasetVersion)}" target="_blank"
+                                                               jsf:actionListener="#{FilePage.downloadDatasetCitationBibtex()}" target="_blank"
                                                                role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.bib']}
                                                             </a>
@@ -410,7 +410,7 @@
                                                       data-original-title="#{bundle['dataset.cite.title.released']}"/>
                                                 <span class="glyphicon glyphicon-question-sign text-primary" 
                                                       tabindex="0" role="button" 
-                                                      jsf:rendered="#{FilePage.fileMetadata.datasetVersion.dataset.released and FilePage.fileMetadata.datasetVersion.draft}"
+                                                      jsf:rendered="#{FilePage.displayDraftIcon()}"
                                                       data-toggle="tooltip" 
                                                       data-placement="top" 
                                                       data-original-title="#{bundle['dataset.cite.title.draft']}"/>
@@ -425,7 +425,7 @@
                                                             aria-haspopup="true" 
                                                             aria-controls="downloadFileCitationMenu" 
                                                             aria-expanded="false">
-                                                        <span class="glyphicon glyphicon-list"/> #{bundle['file.cite.file.downloadBtn']} <span class="caret"></span>
+                                                        <span class="glyphicon glyphicon-list"/> #{bundle['file.cite.file.downloadBtn']} <span class="caret"/>
                                                     </button>
                                                     <ul id="downloadFileCitationMenu" 
                                                         class="dropdown-menu pull-right text-left"
@@ -433,21 +433,21 @@
                                                         aria-labelledby="downloadFileCitation">
                                                         <li role="none">
                                                             <a jsf:id="endNoteLink-2" 
-                                                               jsf:action="#{fileDownloadService.downloadCitationXML(FilePage.fileMetadata, null, FilePage.fileMetadata.dataFile.isIdentifierRegistered())}"
+                                                               jsf:action="#{FilePage.donwloadCitationXML()}"
                                                                role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.xml']}
                                                             </a>
                                                         </li>
                                                         <li role="none">
                                                             <a jsf:id="risLink-2" 
-                                                               jsf:actionListener="#{fileDownloadService.downloadCitationRIS(FilePage.fileMetadata, null, FilePage.fileMetadata.dataFile.isIdentifierRegistered())}"
+                                                               jsf:actionListener="#{FilePage.donwloadCitationRIS()}"
                                                                role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.ris']}
                                                             </a>
                                                         </li>
                                                         <li role="none">
                                                             <a jsf:id="bibLink-2" 
-                                                               jsf:actionListener="#{fileDownloadService.downloadCitationBibtex(FilePage.fileMetadata, null, FilePage.fileMetadata.dataFile.isIdentifierRegistered())}" target="_blank"
+                                                               jsf:actionListener="#{FilePage.donwloadCitationBibtex()}" target="_blank"
                                                                role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.bib']}
                                                             </a>
@@ -598,8 +598,7 @@
                             <p:tab id="accessTab" 
                                    class="padding-none" 
                                    title="#{bundle['file.dataFilesTab.dataAccess']}"
-                                   rendered="#{settingsWrapper.rsyncDownload and FilePage.fileMetadata.dataFile.filePackage and systemConfig.rsyncDownload
-                                        and !FilePage.fileMetadata.getDataFile().getOwner().getStorageIdentifier().startsWith('s3://') }">
+                                   rendered="#{FilePage.displayAccessTab()}">
                                 <ui:include src="file-data-access-fragment.xhtml">
                                     <ui:param name="datasetVersion" 
                                               value="#{FilePage.fileMetadata.datasetVersion}"/>
