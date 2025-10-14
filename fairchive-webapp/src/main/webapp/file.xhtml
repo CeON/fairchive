@@ -111,7 +111,7 @@
                                 <div class="button-container btn-group" 
                                      jsf:rendered="#{!widgetWrapper.widgetView}">
 
-                                    <ui:fragment rendered="#{FilePage.file.ingestProblem and FilePage.canUpdateDataset()}">
+                                    <ui:fragment rendered="#{FilePage.displayIngestProblem()}">
                                         <!-- Ingest Problem - this is the infamous "red triangle" error. As of 4.2, we only want to show it to the owner of the dataset: -->
                                         <span class="ingest-warning" 
                                               data-toggle="popover" 

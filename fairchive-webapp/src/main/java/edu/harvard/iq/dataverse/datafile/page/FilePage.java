@@ -370,6 +370,10 @@ public class FilePage implements java.io.Serializable {
         return isPubliclyDownloadable()
                 && !this.fileMetadata.getDataFile().isFilePackage();
     }
+    
+    public boolean displayIngestProblem() {
+        return this.file.isIngestProblem() && canUpdateDataset();
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
