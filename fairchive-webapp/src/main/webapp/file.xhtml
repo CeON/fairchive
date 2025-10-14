@@ -653,13 +653,14 @@
                                             </div>
                                             <!--Only show Public download url if identifier is available -->
                                             <div class="form-group" 
-                                                 jsf:rendered="#{FilePage.publiclyDownloadable and !FilePage.fileMetadata.dataFile.filePackage}">
+                                                 jsf:rendered="#{FilePage.displayPublicDownloadUrl()}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.downloadUrl.label']}
                                                 </div>
                                                 <div class="col-sm-9">
                                                     <p class="help-block">
-                                                        <h:outputFormat value="#{bundle['file.metadataTab.fileMetadata.downloadUrl.info']}" escape="false">
+                                                        <h:outputFormat value="#{bundle['file.metadataTab.fileMetadata.downloadUrl.info']}" 
+                                                                        escape="false">
                                                             <f:param value="#{settingsWrapper.guidesBaseUrl}"/>
                                                             <f:param value="#{settingsWrapper.guidesVersion}"/>
                                                         </h:outputFormat>
@@ -667,7 +668,8 @@
                                                     <code><h:outputText value="#{FilePage.publicDownloadUrl}"/></code>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.unf)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.unf)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.unf.label']}
                                                 </div>
@@ -675,7 +677,8 @@
                                                     <h:outputText value="#{FilePage.file.unf}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.checksumValue)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.checksumValue)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{FilePage.file.tabularData ? FilePage.file.originalChecksumType : FilePage.file.checksumType}
                                                 </div>
@@ -683,7 +686,8 @@
                                                     <h:outputText value="#{FilePage.file.checksumValue}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{FilePage.file.released}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{FilePage.file.released}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.publicationDate.label']}
                                                 </div>
@@ -691,7 +695,8 @@
                                                     <h:outputText value="#{FilePage.file.publicationDateFormattedYYYYMMDD}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.friendlySize)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.friendlySize)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.size.label']}
                                                 </div>
@@ -699,7 +704,8 @@
                                                     <h:outputText value="#{FilePage.file.friendlySize}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.friendlyType)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.friendlyType)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.type.label']}
                                                 </div>
@@ -707,7 +713,8 @@
                                                     <h:outputText value="#{FilePage.file.friendlyType}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.dataTable.varQuantity)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.dataTable.varQuantity)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metaData.dataFile.dataTab.variables']}
                                                 </div>
@@ -715,7 +722,8 @@
                                                     <h:outputText value="#{FilePage.file.dataTable.varQuantity}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.dataTable.caseQuantity)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.dataTable.caseQuantity)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metaData.dataFile.dataTab.observations']}
                                                 </div>
@@ -723,7 +731,8 @@
                                                     <h:outputText value="#{FilePage.file.dataTable.caseQuantity}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.fileMetadata.description)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.fileMetadata.description)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.description.label']}
                                                 </div>
@@ -745,7 +754,7 @@
                             </p:tab>
                             <p:tab id="versionsTab" 
                                    title="#{bundle['file.dataFilesTab.versions']}">
-                                <ui:include src="file-versions.xhtml"></ui:include>
+                                <ui:include src="file-versions.xhtml"/>
                             </p:tab>
                         </p:tabView>
                     </div>

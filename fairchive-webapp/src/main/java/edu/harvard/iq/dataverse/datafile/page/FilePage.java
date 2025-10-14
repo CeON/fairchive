@@ -365,6 +365,11 @@ public class FilePage implements java.io.Serializable {
         return this.fileMetadata.getTermsOfUse().getTermsOfUseType() == RESTRICTED 
                 && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata);
     }
+    
+    public boolean displayPublicDownloadUrl() {
+        return isPubliclyDownloadable()
+                && !this.fileMetadata.getDataFile().isFilePackage();
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
