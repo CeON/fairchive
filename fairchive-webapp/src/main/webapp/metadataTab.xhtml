@@ -9,7 +9,7 @@
 
 
         <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"
-                       rendered="true"
+                       rendered="#{DatasetMetadataTab.showMachineTranslation()}"
                        title="translate"
                        oncomplete="primeFacesShowModal('translateDialog', this);">
             <span class="glyphicon glyphicon-share" aria-hidden="true"/>  #{bundle['dataset.translation.language.button']}
@@ -27,7 +27,7 @@
                     role="menu" aria-label="#{bundle['dataset.translation.language.menuLabel']}">
                     <ui:repeat var="language" value="#{DatasetMetadataTab.getTranslationLanguages()}">
                         <li role="none">
-                            <h:outputLink value="#" onclick="translateText('#{language._1()}')">
+                            <h:outputLink value="#" onclick="translateText('#{language._1()}', '#{DatasetMetadataTab.getMachineTranslationURL()}')">
                                 <h:outputText value="#{language._2()}" />
                             </h:outputLink>
                         </li>
@@ -36,7 +36,7 @@
             </div>
 
             <script>
-                async function translateText(targetLanguage) {
+                async function translateText(targetLanguage, url) {
                     var elements = document.getElementById("translatedMetadata").getElementsByClassName("datasetfield-value");
                     for (var i = 0; i &lt; elements.length; i++) {
                         var parent = elements[i].parentElement
@@ -67,7 +67,7 @@
                                 api_key: ""
                             });
 
-                            const response = await fetch('http://localhost:5000/translate', {
+                            const response = await fetch(url, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json; charset=utf-8'

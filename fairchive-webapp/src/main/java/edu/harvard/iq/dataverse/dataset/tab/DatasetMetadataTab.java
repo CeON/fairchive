@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import org.omnifaces.cdi.ViewScoped;
 
 import edu.harvard.iq.dataverse.DatasetDao;
@@ -26,6 +27,9 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowMachineTranslation;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MachineTranslationURL;
+
 @SuppressWarnings("serial")
 @ViewScoped
 @Named("DatasetMetadataTab")
@@ -41,6 +45,7 @@ public class DatasetMetadataTab implements Serializable {
     private Dataset dataset;
     private boolean isDatasetLocked;
     private Map<MetadataBlock, List<DatasetFieldsByType>> metadataBlocks;
+    private SettingsServiceBean settingService;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -54,13 +59,15 @@ public class DatasetMetadataTab implements Serializable {
                               ExportService exportService,
                               SystemConfig systemConfig,
                               DatasetFieldsInitializer datasetVersionUI,
-                              DatasetDao datasetDao) {
+                              DatasetDao datasetDao,
+                              SettingsServiceBean settingService) {
         this.permissionsWrapper = permissionsWrapper;
         this.session = session;
         this.exportService = exportService;
         this.systemConfig = systemConfig;
         this.datasetFieldsInitializer = datasetVersionUI;
         this.datasetDao = datasetDao;
+        this.settingService = settingService;
     }
 
     // -------------------- GETTERS --------------------
@@ -180,6 +187,14 @@ public class DatasetMetadataTab implements Serializable {
         result.add(Tuple.of("uk","Ukrainian"));
         result.add(Tuple.of("ur","Urdu"));
         return result;
+    }
+
+    public boolean showMachineTranslation() {
+        return settingService.isTrueForKey(ShowMachineTranslation);
+    }
+
+    public String getMachineTranslationURL() {
+        return settingService.getValueForKey(MachineTranslationURL);
     }
 
     // -------------------- PRIVATE --------------------
