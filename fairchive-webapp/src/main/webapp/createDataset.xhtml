@@ -13,9 +13,12 @@
 </h:head>
 <h:body>
     <ui:composition template="/dataverse_template.xhtml">
-        <ui:param name="pageTitle" value="#{bundle['dataset.pageTitle']} - #{CreateDatasetPage.dataset.owner.name}"/>
-        <ui:param name="dataverse" value="#{CreateDatasetPage.dataset.owner}"/>
-        <ui:param name="showMessagePanel" value="#{true}"/>
+        <ui:param name="pageTitle" 
+                  value="#{bundle['dataset.pageTitle']} - #{CreateDatasetPage.dataset.owner.name}"/>
+        <ui:param name="dataverse" 
+                  value="#{CreateDatasetPage.dataset.owner}"/>
+        <ui:param name="showMessagePanel" 
+                  value="#{true}"/>
         
         <ui:define name="body">
             <f:metadata>
