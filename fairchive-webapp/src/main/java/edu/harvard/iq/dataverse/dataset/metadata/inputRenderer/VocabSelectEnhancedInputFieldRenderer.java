@@ -138,7 +138,7 @@ public class VocabSelectEnhancedInputFieldRenderer implements InputFieldRenderer
         if (datasetFieldType.getMetadataBlock() != null &&
                 hasKeyInNonDefaultBundle(key, datasetFieldType.getMetadataBlock().getName())) {
 
-            BundleUtil.getStringFromNonDefaultBundle(key, datasetFieldType.getMetadataBlock().getName());
+            return BundleUtil.getStringFromNonDefaultBundle(key, datasetFieldType.getMetadataBlock().getName());
         }
         return BundleUtil.getStringFromBundle(fallbackKey);
     }

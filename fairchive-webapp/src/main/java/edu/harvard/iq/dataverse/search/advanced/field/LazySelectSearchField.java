@@ -138,7 +138,7 @@ public class LazySelectSearchField extends SearchField {
         if (getDatasetFieldType().getMetadataBlock() != null &&
                 hasKeyInNonDefaultBundle(key, getDatasetFieldType().getMetadataBlock().getName())) {
 
-            BundleUtil.getStringFromNonDefaultBundle(key, getDatasetFieldType().getMetadataBlock().getName());
+            return BundleUtil.getStringFromNonDefaultBundle(key, getDatasetFieldType().getMetadataBlock().getName());
         }
         return BundleUtil.getStringFromBundle(fallbackKey);
     }
