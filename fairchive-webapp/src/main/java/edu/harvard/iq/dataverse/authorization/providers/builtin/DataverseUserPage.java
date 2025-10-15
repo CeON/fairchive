@@ -67,6 +67,7 @@ import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toList;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("DataverseUserPage")
 public class DataverseUserPage extends BaseUserPage {
@@ -95,7 +96,7 @@ public class DataverseUserPage extends BaseUserPage {
     AuthenticationServiceBean authenticationService;
     @EJB
     ConfirmEmailServiceBean confirmEmailService;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @EJB
     PasswordValidatorServiceBean passwordValidatorService;
@@ -482,13 +483,13 @@ public class DataverseUserPage extends BaseUserPage {
         }
     }
 
-    public void onNotificationSelect(SelectEvent event) {
+    public void onNotificationSelect(SelectEvent<?> event) {
         UserNotificationDTO selectedNotification = (UserNotificationDTO) event.getObject();
         selectedNotificationIds.add(selectedNotification.getId());
         setSelectedAllNotifications(false);
     }
 
-    public void onNotificationUnSelect(UnselectEvent event) {
+    public void onNotificationUnSelect(UnselectEvent<?> event) {
         UserNotificationDTO selectedNotification = (UserNotificationDTO) event.getObject();
         selectedNotificationIds.remove(selectedNotification.getId());
         setSelectedAllNotifications(false);
@@ -529,7 +530,7 @@ public class DataverseUserPage extends BaseUserPage {
         return notificationsList.getRowCount();
     }
 
-    public void onTabChange(TabChangeEvent event) {
+    public void onTabChange(TabChangeEvent<?> event) {
         if ("notifications".equals(event.getTab().getId())) {
             displayNotification();
         }

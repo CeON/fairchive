@@ -26,6 +26,7 @@ import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import javax.batch.runtime.JobExecution;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -55,7 +56,7 @@ public class LoggingUtil {
                 logger.log(Level.SEVERE, "Couldn't create directory: " + dir.getAbsolutePath());
             }
             File logFile = new File(dir.getAbsolutePath() + fileName);
-            FileUtils.writeStringToFile(logFile, fileContent);
+            FileUtils.writeStringToFile(logFile, fileContent, Charset.defaultCharset());
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error saving log report: " + fileName + " " + e.getMessage());
         }

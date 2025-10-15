@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataset)
 public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<DatasetVersion> {
 

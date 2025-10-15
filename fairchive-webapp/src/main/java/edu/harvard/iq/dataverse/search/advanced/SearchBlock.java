@@ -10,6 +10,7 @@ import java.util.List;
  * Model for Advanced Search Page,
  * it is responsible for gathering different types of field values for search blocks (mainly Metadata blocks).
  */
+@SuppressWarnings("serial")
 public class SearchBlock implements Serializable {
 
     private String blockName;

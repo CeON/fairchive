@@ -1593,7 +1593,7 @@ public class ImportDDIServiceBean {
             int event = xmlr.next();
             if (event == XMLStreamConstants.CHARACTERS) {
                 if (sb.length() > 0) {
-                    sb.append("\n");
+                    sb.append('\n');
                 }
                 sb.append(xmlr.getText().trim().replace('\n', ' '));
             } else if (event == XMLStreamConstants.START_ELEMENT) {
@@ -1623,7 +1623,7 @@ public class ImportDDIServiceBean {
 
         while (true) {
             if (!sb.toString().equals("")) {
-                sb.append("\n");
+                sb.append('\n');
             }
             int event = xmlr.next();
             if (event == XMLStreamConstants.CHARACTERS) {

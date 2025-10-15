@@ -13,6 +13,7 @@ import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,14 +46,22 @@ public class BundleUtil {
 
     // -------------------- LOGIC --------------------
 
+    public static boolean hasKeyInBundle(String key) {
+        return hasKeyInPropertyFile(key, DEFAULT_BUNDLE_FILE, getCurrentLocale());
+    }
+
     public static String getStringFromBundle(String key, Object ... arguments) {
         return getStringFromBundleWithLocale(key, getCurrentLocale(), arguments);
     }
 
     public static String getStringFromBundleWithLocale(String key, Locale locale, Object... arguments) {
-        String message = getStringFromPropertyFile(key, DEFAULT_BUNDLE_FILE, locale);
+        return getStringFromPropertyFile(key, DEFAULT_BUNDLE_FILE, locale)
+                .map(m -> MessageFormat.format(m, arguments))
+                .orElse(StringUtils.EMPTY);
+    }
 
-        return MessageFormat.format(message, arguments);
+    public static boolean hasKeyInNonDefaultBundle(String key, String bundleName) {
+        return hasKeyInPropertyFile(key, bundleName, getCurrentLocale());
     }
 
     public static String getStringFromNonDefaultBundle(String key, String bundleName, Object... arguments) {
@@ -60,15 +69,15 @@ public class BundleUtil {
     }
 
     public static String getStringFromNonDefaultBundleWithLocale(String key, String bundleName, Locale locale, Object... arguments) {
-        String stringFromPropertyFile = getStringFromPropertyFile(key, bundleName, locale);
-
-        return MessageFormat.format(stringFromPropertyFile, arguments);
+        return getStringFromPropertyFile(key, bundleName, locale)
+                .map(m -> MessageFormat.format(m, arguments))
+                .orElse(StringUtils.EMPTY);
     }
 
     public static String getStringFromClasspathBundle(String key, String bundleName, Object... arguments) {
-        String stringFromPropertyFile = getStringFromInternalBundle(key, bundleName, getCurrentLocale());
-
-        return MessageFormat.format(stringFromPropertyFile, arguments);
+        return getStringFromPropertyFile(key, bundleName, getCurrentLocale())
+                .map(m -> MessageFormat.format(m, arguments))
+                .orElse(StringUtils.EMPTY);
     }
 
     public static Locale getCurrentLocale() {
@@ -85,6 +94,19 @@ public class BundleUtil {
 
     // -------------------- PRIVATE --------------------
 
+    private static boolean hasKeyInPropertyFile(String bundleKey, String bundleName, Locale locale) {
+
+        if (shouldCheckForExternalBundle(bundleName) && hasKeyInExternalBundle(bundleKey, bundleName, locale)) {
+            return true;
+        }
+        ResourceBundle resourceBundle = getCachedBundle(bundleName + "_" + EXTENSION_SUFFIX, locale);
+        if (!EMPTY_BUNDLE.equals(resourceBundle) && resourceBundle.containsKey(bundleKey)) {
+            return true;
+        }
+        resourceBundle = getCachedBundle(bundleName, locale);
+        return !EMPTY_BUNDLE.equals(resourceBundle) && resourceBundle.containsKey(bundleKey);
+    }
+
     /**
      * Gets display name for specified bundle key. If it is external bundle,
      * method tries to access external directory (jvm property - dataverse.lang.directory)
@@ -93,47 +115,47 @@ public class BundleUtil {
      * If it is default bundle or default metadata block #{@link DefaultMetadataBlocks#METADATA_BLOCK_NAMES}
      * method tries to get the name from default bundles otherwise it returns empty string.
      */
-    private static String getStringFromPropertyFile(String bundleKey, String bundleName, Locale locale) throws MissingResourceException {
-        String displayNameFromExternalBundle = StringUtils.EMPTY;
+    private static Optional<String> getStringFromPropertyFile(String bundleKey, String bundleName, Locale locale) {
+        Optional<String> resolvedValue = Optional.empty();
 
-        if ((!DefaultMetadataBlocks.METADATA_BLOCK_NAMES.contains(bundleName) && !INTERNAL_BUNDLE_NAMES.contains(bundleName))
-                && System.getProperty("dataverse.lang.directory") != null) {
-            displayNameFromExternalBundle = getStringFromExternalBundle(bundleKey, bundleName, locale);
+        if (shouldCheckForExternalBundle(bundleName)) {
+            resolvedValue = getStringFromExternalBundle(bundleKey, bundleName, locale);
+            if (resolvedValue.isPresent()) {
+                return resolvedValue;
+            }
         }
 
-        return StringUtils.isBlank(displayNameFromExternalBundle)
-                ? getStringFromInternalBundle(bundleKey, bundleName, locale)
-                : displayNameFromExternalBundle;
-    }
-
-    private static String getStringFromInternalBundle(String bundleKey, String bundleName, Locale locale) {
-        String displayNameFromExtensionBundle = getStringFromInternalBundle(bundleKey, bundleName, EXTENSION_SUFFIX, locale);
-        if (StringUtils.isNotBlank(displayNameFromExtensionBundle)) {
-            return  displayNameFromExtensionBundle;
+        resolvedValue = getStringFromInternalBundle(bundleKey, bundleName + "_" + EXTENSION_SUFFIX, locale);
+        if (resolvedValue.isPresent()) {
+            return resolvedValue;
         }
 
-        return getStringFromInternalBundle(bundleKey, bundleName, "", locale);
+        return getStringFromInternalBundle(bundleKey, bundleName, locale);
     }
 
-    private static String getStringFromInternalBundle(String bundleKey, String bundleName, String extension, Locale locale) {
-        String bundleNameToUse = StringUtils.isNotBlank(extension)
-                ? bundleName + "_" + extension
-                : bundleName;
+    private static Optional<String> getStringFromInternalBundle(String bundleKey, String bundleName, Locale locale) {
 
-        String cacheKey = bundleNameToUse + "_" + locale.getLanguage();
-        ResourceBundle resourceBundle = getCachedBundle(cacheKey, bundleNameToUse, locale);
+        Optional<String> displayNameFromExtensionBundle = getStringFromInternalBundle(bundleKey, bundleName, EXTENSION_SUFFIX, locale);
+        return displayNameFromExtensionBundle.isPresent() ?
+                    displayNameFromExtensionBundle : getStringFromInternalBundle(bundleKey, bundleName, "", locale);
+    }
+
+    private static Optional<String> getStringFromInternalBundle(String bundleKey, String bundleName, String extension, Locale locale) {
+
+        ResourceBundle resourceBundle = getCachedBundle(bundleName, locale);
 
         try {
             return !EMPTY_BUNDLE.equals(resourceBundle)
-                    ? resourceBundle.getString(bundleKey)
-                    : StringUtils.EMPTY;
+                    ? Optional.of(resourceBundle.getString(bundleKey))
+                    : Optional.empty();
         } catch (Exception ex) {
             logger.finest("Could not find key \"" + bundleKey + "\" in bundle file: " + bundleName);
-            return StringUtils.EMPTY;
+            return Optional.empty();
         }
     }
 
-    private static ResourceBundle getCachedBundle(String cacheKey, String bundleName, Locale locale) {
+    private static ResourceBundle getCachedBundle(String bundleName, Locale locale) {
+        String cacheKey = bundleName + "_" + locale.getLanguage();
         ResourceBundle resourceBundle = bundleCache.get(cacheKey);
         if (resourceBundle == null) {
             try {
@@ -146,11 +168,9 @@ public class BundleUtil {
         return resourceBundle;
     }
 
-    // IMPORTANT: this method is nearly exact copy of getStringFromInternalBundle(…), however
-    // any attempt in extracting common code from these two and pass differing parts as lambdas
-    // would cause great decrease in performance of WHOLE dataverse app.
-    private static String getStringFromExternalBundle(String bundleKey, String bundleName, Locale locale) {
-        String key = bundleName + "_" + locale.getLanguage();
+    private static ResourceBundle getCachedExternalBundle(String bundleName, Locale locale) {
+        String key = bundleName + "_ext_" + locale.getLanguage();
+
         ResourceBundle resourceBundle = bundleCache.get(key);
         if (resourceBundle == null) {
             try {
@@ -162,13 +182,33 @@ public class BundleUtil {
             }
             bundleCache.putIfAbsent(key, resourceBundle);
         }
+        return resourceBundle;
+    }
+
+    private static boolean shouldCheckForExternalBundle(String bundleName) {
+        return (!DefaultMetadataBlocks.METADATA_BLOCK_NAMES.contains(bundleName) && !INTERNAL_BUNDLE_NAMES.contains(bundleName))
+                && System.getProperty("dataverse.lang.directory") != null;
+    }
+
+    private static boolean hasKeyInExternalBundle(String bundleKey, String bundleName, Locale locale) {
+        ResourceBundle resourceBundle = getCachedExternalBundle(bundleName, locale);
+
+        return !EMPTY_BUNDLE.equals(resourceBundle) && resourceBundle.containsKey(bundleKey);
+    }
+
+    // IMPORTANT: this method is nearly exact copy of getStringFromInternalBundle(…), however
+    // any attempt in extracting common code from these two and pass differing parts as lambdas
+    // would cause great decrease in performance of WHOLE dataverse app.
+    private static Optional<String> getStringFromExternalBundle(String bundleKey, String bundleName, Locale locale) {
+        ResourceBundle resourceBundle = getCachedExternalBundle(bundleName, locale);
+
         try {
             return !EMPTY_BUNDLE.equals(resourceBundle)
-                    ? resourceBundle.getString(bundleKey)
-                    : StringUtils.EMPTY;
+                    ? Optional.of(resourceBundle.getString(bundleKey))
+                    : Optional.empty();
         } catch (Exception ex) {
             logger.finest("Could not find key \"" + bundleKey + "\" in bundle file: " + bundleName);
-            return StringUtils.EMPTY;
+            return Optional.empty();
         }
     }
 }

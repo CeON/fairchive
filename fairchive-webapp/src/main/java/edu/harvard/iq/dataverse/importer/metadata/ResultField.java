@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.importer.metadata;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

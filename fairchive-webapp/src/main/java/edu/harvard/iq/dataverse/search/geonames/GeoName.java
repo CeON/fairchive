@@ -8,6 +8,8 @@ import org.apache.solr.client.solrj.beans.Field;
 
 public class GeoName {    
     
+    private static final int MAX_ALT_NAMES_LENGTH = 50;
+    
     private int id;
     @Field
     private String name;
@@ -16,16 +18,17 @@ public class GeoName {
     @Field
     private String featureCode;
     private String countryCode;
-    private String admin1Code;    
+    private String admin1Code;
     private String admin2Code;
     private String admin3Code;
     private String admin4Code;
     @Field
     private String hierarchy;
-    
+
     public String getId() {
         return Integer.toString(this.id);
     }
+
     @Field
     public void setId(final String id) {
         this.id = Integer.parseInt(id);
@@ -94,47 +97,47 @@ public class GeoName {
     public void setAdmin4Code(final String admin4Code) {
         this.admin4Code = admin4Code;
     }
-    
+
     boolean isTier0() {
         return this.admin1Code == null;
     }
-    
+
     boolean isTier1() {
         return this.admin1Code != null & this.admin2Code == null;
     }
-    
+
     boolean isTier2() {
         return this.admin2Code != null & this.admin3Code == null;
     }
-    
+
     boolean isTier3() {
         return this.admin3Code != null & this.admin4Code == null;
     }
-    
+
     boolean isTier4() {
         return this.admin4Code != null;
     }
-    
+
     boolean isAdm1() {
         return this.featureCode.startsWith("ADM1");
     }
-    
+
     boolean isAdm2() {
         return this.featureCode.startsWith("ADM2");
     }
-    
+
     boolean isAdm3() {
         return this.featureCode.startsWith("ADM3");
     }
-    
+
     boolean isAdm4() {
         return this.featureCode.startsWith("ADM4");
     }
-    
+
     boolean isAdm5() {
         return this.featureCode.startsWith("ADM5");
     }
-    
+
     public String getHierarchy() {
         return this.hierarchy;
     }
@@ -158,9 +161,14 @@ public class GeoName {
         if (isNotBlank(this.alternateNames)) {
             result.append(beginDecorator)
                     .append(getStringFromBundle("geoname.altnames"))
-                    .append(endDecorator).append(": ")
-                    .append(this.alternateNames)
-                    .append(separator);
+                    .append(endDecorator).append(": ");
+            if (this.alternateNames.length() > MAX_ALT_NAMES_LENGTH) {
+                result.append(this.alternateNames, 0, MAX_ALT_NAMES_LENGTH)
+                        .append(" ...");
+            } else {
+                result.append(this.alternateNames);
+            }
+            result.append(separator);
         }
         result.append(beginDecorator)
                 .append(getStringFromBundle("geonames.featurecode"))
@@ -172,14 +180,13 @@ public class GeoName {
     public String getDetails() {
         return getDetails(EMPTY, EMPTY, " ");
     }
-    
+
     public String getDetailsHTML() {
         return getDetails("<b>", "</b>", " ");
     }
-    
+
     @Override
     public String toString() {
         return Integer.toString(this.id);
     }
-    
 }

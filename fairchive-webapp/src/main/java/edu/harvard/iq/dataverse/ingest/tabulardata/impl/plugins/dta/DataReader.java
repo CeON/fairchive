@@ -293,7 +293,7 @@ public class DataReader {
         return ret;
     }
 
-    public byte[] readPrimitiveSection(String tag, int length) throws IOException {
+    private byte[] readPrimitiveSection(String tag, int length) throws IOException {
         readOpeningTag(tag);
         byte[] ret = readBytes(length);
         readClosingTag(tag);
@@ -372,7 +372,7 @@ public class DataReader {
             if (number < 0) {
                 throw new IOException("<negative number of bytes in skipDefinedSection(\"tag\")?>");
             }
-            byte[] skipped_bytes = readBytes((int) number);
+            readBytes((int) number);
             readClosingTag(tag);
             logger.fine("read closing tag </" + tag + ">;");
 

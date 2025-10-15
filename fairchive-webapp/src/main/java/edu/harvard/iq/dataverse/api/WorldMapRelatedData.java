@@ -12,7 +12,6 @@ import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.MapLayerMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -39,6 +38,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -98,7 +98,7 @@ public class WorldMapRelatedData extends AbstractApiBean {
     @EJB
     PermissionServiceBean permissionService;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @Inject
@@ -625,7 +625,7 @@ public class WorldMapRelatedData extends AbstractApiBean {
         // Redirect to geoconnect url
         String callbackUrl = systemConfig.getDataverseSiteUrl() + GET_WORLDMAP_DATAFILE_API_PATH;
         String redirectUrlStr = token.getApplication().getMapitLink() + "/" + token.getToken() + "/?cb="
-                + URLEncoder.encode(callbackUrl);
+                + encode(callbackUrl);
 
         URI redirectUri;
         try {
@@ -638,5 +638,13 @@ public class WorldMapRelatedData extends AbstractApiBean {
 
     private String getReturnToFilePageURL(String serverName, Dataset dset, DataFile dataFile, DatasetVersion datasetVersion) {
         return serverName + "/file.xhtml?fileId=" + dataFile.getId() + "&version=" + datasetVersion.getSemanticVersion();
+    }
+    
+    private static String encode(final String url) {
+        try {
+            return URLEncoder.encode(url, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

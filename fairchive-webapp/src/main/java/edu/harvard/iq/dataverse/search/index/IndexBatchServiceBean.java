@@ -1,21 +1,22 @@
 package edu.harvard.iq.dataverse.search.index;
 
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.util.SystemConfig;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 
-import java.util.List;
-import java.util.concurrent.Future;
-import java.util.logging.Logger;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @Stateless
 public class IndexBatchServiceBean {
@@ -29,14 +30,14 @@ public class IndexBatchServiceBean {
     @EJB
     DataverseDao dataverseDao;
     @EJB
-    DatasetDao datasetDao;
-    @EJB
+    DatasetService datasetService;
+    @Inject
     SystemConfig systemConfig;
 
     @Asynchronous
     public Future<JsonObjectBuilder> indexAllOrSubsetAsync(long numPartitions, long partitionId, boolean skipIndexed) {
         JsonObjectBuilder response = Json.createObjectBuilder();
-        Future<String> responseFromIndexAllOrSubset = indexAllOrSubset(numPartitions, partitionId, skipIndexed);
+        indexAllOrSubset(numPartitions, partitionId, skipIndexed);
         String status = "indexAllOrSubset has begun";
         response.add("responseFromIndexAllOrSubset", status);
         return new AsyncResult<>(response);
@@ -55,7 +56,7 @@ public class IndexBatchServiceBean {
             dataverseIdsJson.add(id);
         }
 
-        List<Long> datasetIds = datasetDao.findAllOrSubset(numPartitions, partitionId, skipIndexed);
+        List<Long> datasetIds = datasetService.findAllOrSubset(numPartitions, partitionId, skipIndexed);
 
         JsonArrayBuilder datasetIdsJson = Json.createArrayBuilder();
         for (Long id : datasetIds) {
@@ -88,7 +89,7 @@ public class IndexBatchServiceBean {
                 dataverseIndexCount++;
                 Dataverse dataverse = dataverseDao.find(id);
                 logger.info("indexing dataverse " + dataverseIndexCount + " of " + dataverseIds.size() + " (id=" + id + ", persistentId=" + dataverse.getAlias() + ")");
-                Future<String> result = indexService.indexDataverseInNewTransaction(dataverse);
+                indexService.indexDataverseInNewTransaction(dataverse);
             } catch (Exception e) {
                 //We want to keep running even after an exception so throw some more info into the log
                 dataverseFailureCount++;
@@ -98,12 +99,12 @@ public class IndexBatchServiceBean {
 
         int datasetIndexCount = 0;
         int datasetFailureCount = 0;
-        List<Long> datasetIds = datasetDao.findAllOrSubset(numPartitions, partitionId, skipIndexed);
+        List<Long> datasetIds = datasetService.findAllOrSubset(numPartitions, partitionId, skipIndexed);
         for (Long id : datasetIds) {
             try {
                 datasetIndexCount++;
                 logger.info("indexing dataset " + datasetIndexCount + " of " + datasetIds.size() + " (id=" + id + ")");
-                Future<String> result = indexService.indexDatasetInNewTransaction(id);
+                indexService.indexDatasetInNewTransaction(id);
             } catch (Exception e) {
                 //We want to keep running even after an exception so throw some more info into the log
                 datasetFailureCount++;
@@ -153,7 +154,7 @@ public class IndexBatchServiceBean {
                 dataverseIndexCount++;
                 Dataverse dv = dataverseDao.find(childId);
                 logger.info("indexing dataverse " + dataverseIndexCount + " of " + dataverseChildren.size() + " (id=" + childId + ", persistentId=" + dv.getAlias() + ")");
-                Future<String> result = indexService.indexDataverseInNewTransaction(dv);
+                indexService.indexDataverseInNewTransaction(dv);
                 dv = null;
             } catch (Exception e) {
                 //We want to keep running even after an exception so throw some more info into the log

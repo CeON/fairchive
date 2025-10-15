@@ -1,26 +1,27 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import static org.apache.commons.lang.StringUtils.isNumeric;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import static org.apache.commons.lang.StringUtils.isNumeric;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 @Stateless
 public class DvObjectDao {
 
     private DataverseDao dataverseDao;
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     @Inject
-    public DvObjectDao(DataverseDao dataverseDao, DatasetDao datasetDao) {
+    public DvObjectDao(DataverseDao dataverseDao, DatasetService datasetService) {
         this.dataverseDao = dataverseDao;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
     }
 
     public DvObjectDao() {
@@ -42,7 +43,7 @@ public class DvObjectDao {
             return this.findDvo(Long.valueOf(id));
         } else {
             Dataverse d = dataverseDao.findByAlias(id);
-            return (d != null) ? d : datasetDao.findByGlobalId(id);
+            return (d != null) ? d : datasetService.findByGlobalId(id);
         }
     }
 

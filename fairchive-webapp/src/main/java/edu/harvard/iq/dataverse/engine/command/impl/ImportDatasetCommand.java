@@ -11,10 +11,10 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.Collections.emptySet;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
@@ -26,6 +26,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class ImportDatasetCommand extends AbstractCreateDatasetCommand {
 
     private static final Logger logger = Logger.getLogger(ImportDatasetCommand.class.getName());
@@ -50,7 +51,7 @@ public class ImportDatasetCommand extends AbstractCreateDatasetCommand {
     protected void additionalParameterTests(CommandContext ctxt)  {
 
         if (!getUser().isSuperuser()) {
-            throw new PermissionException("ImportDatasetCommand can only be issued by a super-user.", this, Collections.emptySet(), getDataset());
+            throw new PermissionException("ImportDatasetCommand can only be issued by a super-user.", this, emptySet(), getDataset());
         }
 
         Dataset ds = getDataset();
@@ -59,8 +60,9 @@ public class ImportDatasetCommand extends AbstractCreateDatasetCommand {
             throw new IllegalCommandException("Imported datasets must have a persistent global identifier.", this);
         }
 
-        if (!ctxt.datasets().isIdentifierLocallyUnique(ds)) {
-            throw new IllegalCommandException("Persistent identifier " + ds.getGlobalIdString() + " already exists in this Dataverse installation.", this);
+        if (!ctxt.datasetService().isIdentifierLocallyUnique(ds)) {
+            throw new IllegalCommandException("Persistent identifier " + 
+                    ds.getGlobalId() + " already exists in this Dataverse installation.", this);
         }
 
         String pid = ds.getPersistentURL();

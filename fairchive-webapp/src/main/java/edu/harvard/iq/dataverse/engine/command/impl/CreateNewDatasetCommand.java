@@ -11,8 +11,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Template;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 
-import java.util.logging.Logger;
-
 import static edu.harvard.iq.dataverse.util.StringUtil.nonEmpty;
 
 /**
@@ -22,9 +20,9 @@ import static edu.harvard.iq.dataverse.util.StringUtil.nonEmpty;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.AddDataset)
 public class CreateNewDatasetCommand extends AbstractCreateDatasetCommand {
-    private static final Logger logger = Logger.getLogger(CreateNewDatasetCommand.class.getName());
 
     private final Template template;
 
@@ -49,8 +47,8 @@ public class CreateNewDatasetCommand extends AbstractCreateDatasetCommand {
     @Override
     protected void additionalParameterTests(CommandContext ctxt) {
         if (nonEmpty(getDataset().getIdentifier())) {
-            GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(getDataset().getProtocol(), ctxt);
-            if (ctxt.datasets().isIdentifierUnique(getDataset().getIdentifier(), getDataset(), idServiceBean)) {
+            GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve(getDataset().getProtocol());
+            if (ctxt.datasetService().isIdentifierUnique(getDataset().getIdentifier(), getDataset(), idServiceBean)) {
                 throw new IllegalCommandException(String.format("Dataset with identifier '%s', protocol '%s' and authority '%s' already exists",
                                                                 getDataset().getIdentifier(), getDataset().getProtocol(), getDataset().getAuthority()),
                                                   this);
@@ -65,7 +63,7 @@ public class CreateNewDatasetCommand extends AbstractCreateDatasetCommand {
 
     @Override
     protected void handlePid(Dataset theDataset, CommandContext ctxt) {
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve();
         if (!idServiceBean.registerWhenPublished()) {
             // pre-register a persistent id
             registerExternalIdentifier(theDataset, ctxt);

@@ -22,8 +22,7 @@ public class StorageSiteUtilTest {
         job.add(StorageSite.TRANSFER_PROTOCOLS, "rsync");
         StorageSite result = StorageSiteUtil.parse(job.build());
         result.setId(42l);
-        String output = JsonUtil.prettyPrint(result.toJsonObjectBuilder().build().toString());
-        System.out.println("output: " + output);
+        JsonUtil.prettyPrint(result.toJsonObjectBuilder().build().toString());
     }
 
     @Test

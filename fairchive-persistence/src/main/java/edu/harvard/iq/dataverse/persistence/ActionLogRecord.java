@@ -13,15 +13,17 @@ import javax.persistence.TemporalType;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
+import java.io.Serializable;
 
 /**
  * Logs a single action in the action log.
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "useridentifier"), @Index(columnList = "actiontype"), @Index(columnList = "starttime")})
-public class ActionLogRecord implements java.io.Serializable {
+public class ActionLogRecord implements Serializable {
 
     public enum Result {
         OK, BadRequest, PermissionError, InternalError

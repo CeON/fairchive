@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -14,28 +13,28 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.users.SamlSessionRegistry;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.lang.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class DataverseHeaderFragment implements Serializable {
-
-    private static final Logger logger = Logger.getLogger(DataverseHeaderFragment.class.getName());
 
     private DataverseDao dataverseDao;
     private SettingsServiceBean settingsService;
@@ -59,11 +58,16 @@ public class DataverseHeaderFragment implements Serializable {
     public DataverseHeaderFragment() { }
 
     @Inject
-    public DataverseHeaderFragment(DataverseDao dataverseDao, SettingsServiceBean settingsService,
-                                   SystemConfig systemConfig, DataFileServiceBean datafileService,
-                                   DataverseSession dataverseSession, NavigationWrapper navigationWrapper,
-                                   UserNotificationRepository userNotificationRepository, ConfirmEmailServiceBean confirmEmailService,
-                                   WidgetWrapper widgetWrapper, SamlSessionRegistry samlSessionRegistry) {
+    public DataverseHeaderFragment(DataverseDao dataverseDao, 
+                                   SettingsServiceBean settingsService,
+                                   SystemConfig systemConfig, 
+                                   DataFileServiceBean datafileService,
+                                   DataverseSession dataverseSession, 
+                                   NavigationWrapper navigationWrapper,
+                                   UserNotificationRepository userNotificationRepository, 
+                                   ConfirmEmailServiceBean confirmEmailService,
+                                   WidgetWrapper widgetWrapper, 
+                                   SamlSessionRegistry samlSessionRegistry) {
         this.dataverseDao = dataverseDao;
         this.settingsService = settingsService;
         this.systemConfig = systemConfig;
@@ -79,12 +83,12 @@ public class DataverseHeaderFragment implements Serializable {
     // -------------------- GETTERS --------------------
 
     public List<Breadcrumb> getBreadcrumbs() {
-        return breadcrumbs;
+        return this.breadcrumbs;
     }
 
     // -------------------- LOGIC --------------------
 
-    public void initBreadcrumbs(DvObject dvObject) {
+    public void initBreadcrumbs(final DvObject dvObject) {
         this.currentDvObject = dvObject;
         if (dvObject == null) {
             return;
@@ -92,8 +96,17 @@ public class DataverseHeaderFragment implements Serializable {
         if (dvObject.getId() != null) {
             initBreadcrumbs(dvObject, null);
         } else {
-            initBreadcrumbs(dvObject.getOwner(), dvObject instanceof Dataverse ? BundleUtil.getStringFromBundleWithLocale("newDataverse", dataverseSession.getLocale()) :
-                    dvObject instanceof Dataset ? BundleUtil.getStringFromBundleWithLocale("newDataset", dataverseSession.getLocale()) : null);
+            initBreadcrumbs(dvObject.getOwner(), getSubPage());
+        }
+    }
+    
+    private String getSubPage() {
+        if(this.currentDvObject instanceof Dataverse) {
+            return getStringFromBundleWithLocale("newDataverse", dataverseSession.getLocale());
+        } else if (this.currentDvObject instanceof Dataset) {
+            return getStringFromBundleWithLocale("newDataset", dataverseSession.getLocale());
+        } else {
+            return null;
         }
     }
 
@@ -110,7 +123,8 @@ public class DataverseHeaderFragment implements Serializable {
     public void initBreadcrumbsForDataFile(DataFile datafile, String subPage) {
         Dataset dataset = datafile.getOwner();
         Long getDatasetVersionID = dataset.getLatestVersion().getId();
-        FileMetadata fmd = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(getDatasetVersionID, datafile.getId());
+        FileMetadata fmd = datafileService.
+                findFileMetadataByDatasetVersionIdAndDataFileId(getDatasetVersionID, datafile.getId());
 
         initBreadcrumbsForFileMetadata(fmd, subPage);
     }
@@ -121,7 +135,8 @@ public class DataverseHeaderFragment implements Serializable {
 
     public boolean shouldShowAddDatasetButton() {
         return !systemConfig.isReadonlyMode() &&
-                (!dataverseSession.isUserLoggedIn() || !confirmEmailService.hasEffectivelyUnconfirmedMail(dataverseSession.getUser()));
+                (!dataverseSession.isUserLoggedIn() 
+                        || !confirmEmailService.hasEffectivelyUnconfirmedMail(dataverseSession.getUser()));
     }
 
     public boolean shouldShowLoginRedirect() {
@@ -135,7 +150,8 @@ public class DataverseHeaderFragment implements Serializable {
 
         breadcrumbs.clear();
 
-        String optionalUrlExtension = "&version=" + fmd.getDatasetVersion().getSemanticVersion();
+        String optionalUrlExtension = "&version=".
+                concat(fmd.getDatasetVersion().getSemanticVersion());
         //First Add regular breadcrumb for the data file
         DataFile datafile = fmd.getDataFile();
         breadcrumbs.add(0, buildBreadcrumbForDatafile(datafile, optionalUrlExtension));
@@ -167,7 +183,8 @@ public class DataverseHeaderFragment implements Serializable {
         User user = dataverseSession.getUser();
         if (user.isAuthenticated()) {
             AuthenticatedUser aUser = (AuthenticatedUser) user;
-            unreadNotificationCount = userNotificationRepository.getUnreadNotificationCountByUser(aUser.getId());
+            unreadNotificationCount = userNotificationRepository.
+                    getUnreadNotificationCountByUser(aUser.getId());
         } else {
             unreadNotificationCount = 0L;
         }
@@ -195,16 +212,14 @@ public class DataverseHeaderFragment implements Serializable {
         try {
             redirectPage = URLDecoder.decode(redirectPage, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(LoginPage.class.getName()).log(Level.SEVERE, null, ex);
             redirectPage = redirectToRoot();
         }
 
-        if (StringUtils.isEmpty(redirectPage)) {
+        if (isEmpty(redirectPage)) {
             redirectPage = redirectToRoot();
         }
 
-        logger.log(Level.INFO, "Sending user to = " + redirectPage);
-        return redirectPage + (!redirectPage.contains("?") ? "?" : "&") + "faces-redirect=true";
+        return redirectPage + (!redirectPage.contains("?") ? '?' : '&') + "faces-redirect=true";
     }
 
     public boolean isSignupAllowed() {
@@ -228,11 +243,6 @@ public class DataverseHeaderFragment implements Serializable {
         return signUpUrl + (!signUpUrl.contains("?") ? loginRedirect : loginRedirect.replace("?", "&"));
     }
 
-    public String getLoginRedirectPage() {
-        System.out.println("DEPRECATED call to getLoginRedirectPage method in DataverseHeaderfragment: " + navigationWrapper.getRedirectPage());
-        return navigationWrapper.getRedirectPage();
-    }
-
     public void addBreadcrumb(String url, String linkString) {
         breadcrumbs.add(new Breadcrumb(url, linkString));
     }
@@ -251,12 +261,16 @@ public class DataverseHeaderFragment implements Serializable {
         } else if (dvObject.isInstanceofDataFile()) {
             return buildBreadcrumbForDatafile((DataFile) dvObject, null);
         }
-        throw new IllegalArgumentException("Unknown dvObject type: " + dvObject.getClass().getName());
+        throw new IllegalArgumentException("Unknown dvObject type: " 
+                + dvObject.getClass().getName());
     }
 
     private <T extends DvObject> Breadcrumb buildBreadcrumb(T dvObject, String optionalUrlExtension,
                                                             Function<T, String> urlCreator) {
-        String url = urlCreator.apply(dvObject) + (optionalUrlExtension == null ? "" : optionalUrlExtension);
+        String url = urlCreator.apply(dvObject);
+        if(optionalUrlExtension != null) {
+            url = url.concat(optionalUrlExtension);
+        }
         if (widgetWrapper.isWidgetTarget(dvObject)) {
             url = widgetWrapper.wrapURL(url);
         }
@@ -269,7 +283,7 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     private Breadcrumb buildBreadcrumbForDataset(Dataset dataset, String optionalUrlExtension) {
-        return buildBreadcrumb(dataset, optionalUrlExtension, d -> "/dataset.xhtml?persistentId=" + d.getGlobalIdString());
+        return buildBreadcrumb(dataset, optionalUrlExtension, d -> "/dataset.xhtml?persistentId=" + d.getGlobalId());
     }
 
     private Breadcrumb buildBreadcrumbForDatafile(DataFile datafile, String optionalUrlExtension) {
@@ -277,7 +291,8 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     private String redirectToRoot() {
-        return "dataverse.xhtml?alias=" + dataverseDao.findRootDataverse().getAlias();
+        return "dataverse.xhtml?alias=".
+                concat(this.dataverseDao.findRootDataverse().getAlias());
     }
 
 
@@ -289,7 +304,8 @@ public class DataverseHeaderFragment implements Serializable {
         private final String url;
         private final boolean openUrlInNewTab;
 
-        public Breadcrumb(String url, String breadcrumbText, boolean openUrlInNewTab) {
+        public Breadcrumb(final String url, final String breadcrumbText, 
+                final boolean openUrlInNewTab) {
             this.url = url;
             this.breadcrumbText = breadcrumbText;
             this.openUrlInNewTab = openUrlInNewTab;
@@ -304,15 +320,15 @@ public class DataverseHeaderFragment implements Serializable {
         }
 
         public String getBreadcrumbText() {
-            return breadcrumbText;
+            return this.breadcrumbText;
         }
 
         public String getUrl() {
-            return url;
+            return this.url;
         }
 
         public boolean isOpenUrlInNewTab() {
-            return openUrlInNewTab;
+            return this.openUrlInNewTab;
         }
     }
 }

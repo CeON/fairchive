@@ -1,5 +1,14 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticatedUser;
+import static edu.harvard.iq.dataverse.persistence.MocksFactory.nextId;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Ingest;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DEACCESSIONED;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DRAFT;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -18,7 +26,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.google.common.collect.Lists;
 
-import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
@@ -47,7 +54,7 @@ public class DatasetTest {
     public void containsReleasedVersion__positive(List<VersionState> versionStates) {
         // given
         Dataset dataset = new Dataset();
-        dataset.setPublicationDate(Timestamp.from(Instant.now()));
+        dataset.setPublicationDate(Timestamp.from(now()));
         dataset.getVersions().clear();
         versionStates.forEach(state -> dataset.getVersions().add(buildVersionWithState(state)));
 
@@ -60,9 +67,9 @@ public class DatasetTest {
         // given
         Dataset dataset = new Dataset();
         dataset.getVersions().clear();
-        dataset.getVersions().add(buildVersionWithState(VersionState.DRAFT));
-        dataset.getVersions().add(buildVersionWithState(VersionState.DEACCESSIONED));
-        dataset.getVersions().add(buildVersionWithState(VersionState.DEACCESSIONED));
+        dataset.getVersions().add(buildVersionWithState(DRAFT));
+        dataset.getVersions().add(buildVersionWithState(DEACCESSIONED));
+        dataset.getVersions().add(buildVersionWithState(DEACCESSIONED));
 
         // when & then
         assertFalse(dataset.containsReleasedVersion());
@@ -74,7 +81,7 @@ public class DatasetTest {
         // given
         Dataset dataset = new Dataset();
         dataset.getVersions().clear();
-        dataset.getVersions().add(buildVersionWithState(VersionState.DRAFT));
+        dataset.getVersions().add(buildVersionWithState(DRAFT));
 
         // when & then
         assertFalse(dataset.containsReleasedVersion());
@@ -86,11 +93,11 @@ public class DatasetTest {
     @Test
     public void testIsLockedFor() {
         Dataset sut = new Dataset();
-        assertFalse(sut.isLockedFor(DatasetLock.Reason.Ingest));
-        DatasetLock dl = new DatasetLock(DatasetLock.Reason.Ingest, MocksFactory.makeAuthenticatedUser("jane", "doe"));
+        assertFalse(sut.isLockedFor(Ingest));
+        DatasetLock dl = new DatasetLock(Ingest, makeAuthenticatedUser("jane", "doe"));
         sut.addLock(dl);
-        assertTrue(sut.isLockedFor(DatasetLock.Reason.Ingest));
-        assertFalse(sut.isLockedFor(DatasetLock.Reason.Workflow));
+        assertTrue(sut.isLockedFor(Ingest));
+        assertFalse(sut.isLockedFor(Workflow));
     }
 
     @Test
@@ -98,26 +105,25 @@ public class DatasetTest {
         Dataset sut = new Dataset();
         assertFalse(sut.isLocked());
 
-        DatasetLock dlIngest = new DatasetLock(DatasetLock.Reason.Ingest, MocksFactory.makeAuthenticatedUser("jane", "doe"));
-        dlIngest.setId(MocksFactory.nextId());
+        DatasetLock dlIngest = new DatasetLock(Ingest, makeAuthenticatedUser("jane", "doe"));
+        dlIngest.setId(nextId());
         sut.addLock(dlIngest);
         assertTrue(sut.isLocked());
 
-        final DatasetLock dlInReview = new DatasetLock(DatasetLock.Reason.InReview, MocksFactory.makeAuthenticatedUser("jane", "doe"));
-        dlInReview.setId(MocksFactory.nextId());
+        final DatasetLock dlInReview = new DatasetLock(InReview, makeAuthenticatedUser("jane", "doe"));
+        dlInReview.setId(nextId());
         sut.addLock(dlInReview);
         assertEquals(2, sut.getLocks().size());
 
-        DatasetLock retrievedDl = sut.getLockFor(DatasetLock.Reason.Ingest);
+        DatasetLock retrievedDl = sut.getLockFor(Ingest);
         assertEquals(dlIngest, retrievedDl);
         sut.removeLock(dlIngest);
-        assertNull(sut.getLockFor(DatasetLock.Reason.Ingest));
+        assertNull(sut.getLockFor(Ingest));
 
         assertTrue(sut.isLocked());
 
         sut.removeLock(dlInReview);
         assertFalse(sut.isLocked());
-
     }
     
     @Test
@@ -149,24 +155,24 @@ public class DatasetTest {
 
     private static Stream<Arguments> isDeacessionedArguments() {
         return Stream.of(
-                Arguments.of(false, Lists.newArrayList(VersionState.DRAFT)),
-                Arguments.of(false, Lists.newArrayList(VersionState.RELEASED)),
-                Arguments.of(true, Lists.newArrayList(VersionState.DEACCESSIONED)),
-                Arguments.of(false, Lists.newArrayList(VersionState.DRAFT, VersionState.RELEASED, VersionState.RELEASED)),
-                Arguments.of(false, Lists.newArrayList(VersionState.DRAFT, VersionState.RELEASED, VersionState.DEACCESSIONED)),
-                Arguments.of(false, Lists.newArrayList(VersionState.DRAFT, VersionState.DEACCESSIONED, VersionState.RELEASED)),
-                Arguments.of(false, Lists.newArrayList(VersionState.RELEASED, VersionState.RELEASED)),
-                Arguments.of(false, Lists.newArrayList(VersionState.RELEASED, VersionState.DEACCESSIONED)),
-                Arguments.of(false, Lists.newArrayList(VersionState.DEACCESSIONED, VersionState.RELEASED)),
-                Arguments.of(true, Lists.newArrayList(VersionState.DEACCESSIONED, VersionState.DEACCESSIONED))
+                Arguments.of(false, Lists.newArrayList(DRAFT)),
+                Arguments.of(false, Lists.newArrayList(RELEASED)),
+                Arguments.of(true, Lists.newArrayList(DEACCESSIONED)),
+                Arguments.of(false, Lists.newArrayList(DRAFT, RELEASED, RELEASED)),
+                Arguments.of(false, Lists.newArrayList(DRAFT, RELEASED, DEACCESSIONED)),
+                Arguments.of(false, Lists.newArrayList(DRAFT, DEACCESSIONED, RELEASED)),
+                Arguments.of(false, Lists.newArrayList(RELEASED, RELEASED)),
+                Arguments.of(false, Lists.newArrayList(RELEASED, DEACCESSIONED)),
+                Arguments.of(false, Lists.newArrayList(DEACCESSIONED, RELEASED)),
+                Arguments.of(true, Lists.newArrayList(DEACCESSIONED, DEACCESSIONED))
         );
     }
     
     private static Stream<Arguments> containsReleasedVersionArguments__positive() {
         return Stream.of(
-                Arguments.of(Lists.newArrayList(VersionState.RELEASED)),
-                Arguments.of(Lists.newArrayList(VersionState.DRAFT, VersionState.RELEASED, VersionState.DEACCESSIONED)),
-                Arguments.of(Lists.newArrayList(VersionState.RELEASED, VersionState.RELEASED))
+                Arguments.of(Lists.newArrayList(RELEASED)),
+                Arguments.of(Lists.newArrayList(DRAFT, RELEASED, DEACCESSIONED)),
+                Arguments.of(Lists.newArrayList(RELEASED, RELEASED))
         );
     }
     

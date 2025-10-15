@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -35,7 +34,6 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,8 +42,6 @@ public class CollectionDepositManagerImpl implements CollectionDepositManager {
     private static final Logger logger = Logger.getLogger(CollectionDepositManagerImpl.class.getCanonicalName());
     @EJB
     DataverseDao dataverseDao;
-    @EJB
-    DatasetDao datasetDao;
     @EJB
     PermissionServiceBean permissionService;
     @Inject

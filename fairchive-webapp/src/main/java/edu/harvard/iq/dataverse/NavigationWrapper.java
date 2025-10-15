@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class NavigationWrapper implements Serializable {
@@ -63,7 +64,7 @@ public class NavigationWrapper implements Serializable {
                     String name = entry.getKey();
                     if (isAcceptableRedirectParam(name)) {
                         String value = entry.getValue()[0];
-                        queryString.append(queryString.length() == 0 ? "?" : "&").append(name).append("=").append(value);
+                        queryString.append(queryString.length() == 0 ? '?' : '&').append(name).append('=').append(value);
                     }
                 }
                 redirectBuilder.append(queryString);
@@ -83,7 +84,7 @@ public class NavigationWrapper implements Serializable {
 
     public String notAuthorized() {
         if (!session.isUserLoggedIn()) {
-            return "/loginpage.xhtml" + getRedirectPage();
+            return "/loginpage.xhtml".concat(getRedirectPage());
         } else {
             return sendError(HttpServletResponse.SC_FORBIDDEN);
         }

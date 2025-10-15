@@ -241,6 +241,13 @@ function initDvJS() {
           link.innerHTML = this.options.html;
           L.DomEvent.on(link, 'click', L.DomEvent.stop)
                     .on(link, 'click', function () {
+                      // If a draw is active, commit drawing
+                      // function creteShape will be invoked which allow to clear shape
+                      if (map.editTools.drawing()) {
+                        // trigger event editable:drawing:commit
+                        map.editTools.commitDrawing();
+                      }
+
                       window.LAYER = this.options.callback.call(map.editTools);
                     }, this);
 

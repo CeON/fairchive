@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.search;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import io.vavr.control.Try;
 import org.apache.solr.client.solrj.SolrClient;
@@ -25,7 +25,7 @@ public class SolrIndexCleaner {
     private DataverseDao dataverseDao;
     
     @Inject
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     @Inject
     private SolrClient solrClient;
@@ -57,7 +57,7 @@ public class SolrIndexCleaner {
     }
 
     private Stream<Future<String>> indexDatasets() {
-        return datasetDao.findAll().stream().map(dataset -> indexService.indexDataset(dataset, true));
+        return datasetService.findAll().stream().map(dataset -> indexService.indexDataset(dataset, true));
     }
 
     private Stream<Future<String>> indexDataverses() {

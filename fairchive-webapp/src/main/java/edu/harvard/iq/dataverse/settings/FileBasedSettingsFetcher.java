@@ -1,8 +1,6 @@
 package edu.harvard.iq.dataverse.settings;
 
 import edu.harvard.iq.dataverse.settings.FileSettingLocations.SettingLocation;
-import edu.harvard.iq.dataverse.settings.FileSettingLocations.SettingLocationType;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,13 +8,16 @@ import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
+
+import static java.util.Collections.unmodifiableMap;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -46,7 +47,7 @@ public class FileBasedSettingsFetcher {
     }
 
     @Inject
-    public FileBasedSettingsFetcher(FileSettingLocations fileSettingLocations) {
+    public FileBasedSettingsFetcher(final FileSettingLocations fileSettingLocations) {
         this.fileSettingLocations = fileSettingLocations;
     }
 
@@ -61,122 +62,130 @@ public class FileBasedSettingsFetcher {
      */
     @PostConstruct
     public void loadSettings() {
-        ArrayList<SettingLocation> settingLocations = new ArrayList<>(fileSettingLocations.getSettingLocations());
-        settingLocations.sort(Comparator.comparingInt(SettingLocation::getOrder));
-        Map<Integer, SettingLocation> fallbackLocations = fileSettingLocations.getFallbackLocations();
-        for (SettingLocation settingLocation : fileSettingLocations.getSettingLocations()) {
+        final Map<Integer, SettingLocation> fallbackLocations = this.fileSettingLocations
+                .getFallbackLocations();
+        for (final SettingLocation settingLocation : this.fileSettingLocations
+                .getSettingLocations()) {
             Optional<Properties> properties = loadProperties(settingLocation);
             if (!properties.isPresent()) {
-                SettingLocation fallback = fallbackLocations.get(settingLocation.getOrder());
-                logger.warn("Cannot load properties from primary location: " + settingLocation
+                final SettingLocation fallback = fallbackLocations
+                        .get(settingLocation.getOrder());
+                logger.warn("Cannot load properties from primary location: "
+                        + settingLocation
                         + ". Fallback: " + fallback);
                 properties = loadProperties(fallback);
             }
             if (!properties.isPresent() && !settingLocation.isOptional()) {
-                logger.error("Cannot load properties for location: " + settingLocation);
+                logger.error(
+                        "Cannot load properties for location: " + settingLocation);
                 throw new RuntimeException("Cannot load mandatory properties");
             }
             properties.orElseGet(Properties::new)
                     .forEach((key, value) -> this.settings.put(
-                        convertPropertiesKeyToSettingName((String) key),
-                        sanitizeSettingValue((String) value)));
+                            convertPropertiesKeyToSettingName((String) key),
+                            sanitizeSettingValue((String) value)));
         }
     }
 
     /**
      * Returns setting value with the given key
      */
-    public String getSetting(String key) {
-        String setting = settings.get(key);
-        return setting == null ? StringUtils.EMPTY : setting;
+    public String getSetting(final String key) {
+        final String setting = this.settings.get(key);
+        return setting == null ? EMPTY : setting;
     }
 
     /**
      * Returns all defined settings
      */
     public Map<String, String> getAllSettings() {
-        return Collections.unmodifiableMap(settings);
+        return unmodifiableMap(this.settings);
     }
 
 
     // -------------------- PRIVATE --------------------
 
-    private Optional<Properties> loadProperties(SettingLocation settingLocation) {
-        if (settingLocation == null) {
+    private Optional<Properties> loadProperties(final SettingLocation location) {
+        if (location == null) {
             logger.warn("Null location received. Returning empty result.");
             return Optional.empty();
         }
-        switch (settingLocation.getLocationType()) {
+        switch (location.getLocationType()) {
             case FILESYSTEM:
-                return loadPropertiesFromFile(settingLocation);
+                return loadPropertiesFromFile(location);
             case CLASSPATH:
-                return loadPropertiesFromClasspath(settingLocation);
+                return loadPropertiesFromClasspath(location);
             default:
-                throw new RuntimeException("Not supported setting location type: " + settingLocation.getLocationType());
+                throw new RuntimeException("Not supported setting location type: " 
+                        + location.getLocationType());
         }
     }
 
-    private Optional<Properties> loadPropertiesFromClasspath(SettingLocation settingLocation) {
-        Properties properties = new Properties();
-        String classpath = readPath(settingLocation);
-        if (StringUtils.isBlank(classpath)) {
-            logger.warn("Blank classpath for property file location of " + settingLocation);
+    private Optional<Properties> loadPropertiesFromClasspath(
+            final SettingLocation location) {
+        final Properties properties = new Properties();
+        final String classpath = readPath(location);
+        if (isBlank(classpath)) {
+            logger.warn("Blank classpath for property file location of " + location);
             return Optional.empty();
         }
-        try (InputStream propertiesInputStream = this.getClass().getResourceAsStream(classpath)) {
-            if (propertiesInputStream == null) {
-                logger.error("Empty stream while trying to read properties from " + classpath);
+        try (final InputStream in = getClass().getResourceAsStream(classpath)) {
+            if (in == null) {
+                logger.error("Empty stream while trying to read properties from "
+                        + classpath);
                 return Optional.empty();
             }
-            properties.load(propertiesInputStream);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to read properties from classpath: " + classpath, e);
+            properties.load(in);
+        } catch (final IOException e) {
+            throw new RuntimeException(
+                    "Unable to read properties from classpath: " + classpath, e);
         }
         return Optional.of(properties);
     }
 
-    private Optional<Properties> loadPropertiesFromFile(SettingLocation settingLocation) {
-        Properties properties = new Properties();
-        String path = readPath(settingLocation);
-        if (StringUtils.isBlank(path)) {
-            logger.warn("Blank path for property file location of " + settingLocation);
+    private Optional<Properties> loadPropertiesFromFile(
+            final SettingLocation location) {
+        final Properties properties = new Properties();
+        final String path = readPath(location);
+        if (isBlank(path)) {
+            logger.warn("Blank path for property file location of " + location);
             return Optional.empty();
         }
-        File propertiesFile = new File(path);
+        final File propertiesFile = new File(path);
         if (!(propertiesFile.exists() && propertiesFile.isFile())) {
-            logger.error("Empty or nonexisting file encountered while trying to read properties from " + path);
+            logger.error(
+                    "Empty or nonexisting file encountered while trying to read properties from "
+                            + path);
             return Optional.empty();
         }
-        try (InputStream customPropInputStream = new FileInputStream(propertiesFile)) {
-            properties.load(customPropInputStream);
-        } catch (IOException e) {
+        try (final InputStream in = new FileInputStream(propertiesFile)) {
+            properties.load(in);
+        } catch (final IOException e) {
             throw new RuntimeException("Unable to read properties from: " + path, e);
         }
         return Optional.of(properties);
     }
 
-    private String readPath(SettingLocation settingLocation) {
-        switch (settingLocation.getPathType()) {
-            case DIRECT:
-                return settingLocation.getPath();
-            case PROPERTY:
-                return settings.get(settingLocation.getPath());
-            default:
-                throw new RuntimeException("Not supported setting path type: " + settingLocation.getPathType());
+    private String readPath(final SettingLocation location) {
+        switch (location.getPathType()) {
+        case DIRECT:
+            return location.getPath();
+        case PROPERTY:
+            return this.settings.get(location.getPath());
+        default:
+            throw new RuntimeException(
+                    "Not supported setting path type: " + location.getPathType());
         }
     }
 
-    private String convertPropertiesKeyToSettingName(String key) {
+    private static String convertPropertiesKeyToSettingName(final String key) {
         if (key.equals(BUILTIN_USERS_KEY_SETTING)) { // For some reason this setting doesn't have ':' prefix
             return BUILTIN_USERS_KEY_SETTING;
         }
         return ":" + key;
     }
 
-    private String sanitizeSettingValue(String value) {
-        if (StringUtils.isEmpty(value)) {
-            return null;
-        }
-        return value;
+    private static String sanitizeSettingValue(final String value) {
+        return isEmpty(value) ? null :  value;
     }
 }

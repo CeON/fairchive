@@ -55,7 +55,6 @@ public class FeaturedDataverseServiceBeanIT extends WebappArquillianDeployment {
     @Test
     public void sortFeaturedDataverses() {
         // given
-        Dataverse root = dataverseRepository.getById(1L);
         List<Dataverse> featuredDataverses = service.findByDataverseId(1L);
         assertThat(featuredDataverses.stream().map(Dataverse::getId)).containsExactly(19L, 23L, 20L, 21L);
         List<Dataverse> manualOrder = Lists.newArrayList(

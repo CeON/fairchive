@@ -1,9 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
@@ -11,6 +9,11 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 
 /**
@@ -23,6 +26,7 @@ import java.io.Serializable;
  * @author pdurbin
  * @author michael
  */
+@SuppressWarnings("serial")
 @Table(
         uniqueConstraints =
         @UniqueConstraint(columnNames = {"persistentuserid", "authenticationproviderid"})
@@ -42,13 +46,13 @@ public class AuthenticatedUserLookup implements Serializable {
     public static final String ORCID_PROVIDER_ID_SANDBOX = "orcid-sandbox";
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private long id;
 
     private String authenticationProviderId;
     private String persistentUserId;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToOne(cascade = {PERSIST, MERGE})
     @JoinColumn(unique = true, nullable = false)
     private AuthenticatedUser authenticatedUser;
 

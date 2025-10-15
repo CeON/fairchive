@@ -78,6 +78,17 @@ public class GeoNamesIT extends WebappArquillianDeployment {
         assertThat(this.finder.find("", 50)).isEmpty();
         assertThat(this.finder.find("  ", 50)).isEmpty();
     }
+    
+    @Test
+    void searchingForSingleLetters_returnsEmptyAnswers() throws Exception {
+        try (final InputStream in = openTextFile()) {
+            this.indexer.importNames(in);
+        }
+
+        assertThat(this.finder.find("p", 50)).isEmpty();
+        assertThat(this.finder.find("p  p", 50)).isEmpty();
+        assertThat(this.finder.find("p  #p", 50)).isEmpty();
+    }
 
     @Test
     void importingDataIntoCore_allowsSearching() throws Exception {
@@ -91,6 +102,7 @@ public class GeoNamesIT extends WebappArquillianDeployment {
         Optional<GeoName> geoName = this.finder.findById("752942");
         assertThat(geoName).isNotEmpty();
         assertThat(geoName.get().getName()).isEqualTo("Poraj");
+        assertThat(geoName.get().getAlternateNames()).isEqualTo("Kolonia Poraj, Poraj");
         assertThat(geoName.get().getHierarchy())
                 .isEqualTo("PL - Lublin Voivodeship - Powiat hrubieszowski - Poraj");
         // search by name
@@ -106,15 +118,31 @@ public class GeoNamesIT extends WebappArquillianDeployment {
         // search by alternative name
         assertThat(this.finder.find("Predocin", 50))
                 .anyMatch(gn -> gn.getName().equals("Prędocin"));
+        // search by name prefix
+        assertThat(this.finder.find("Predoc", 50))
+            .anyMatch(gn -> gn.getName().equals("Prędocin"));
         // search by alternative name - case insensitive
         assertThat(this.finder.find("pRedocin", 50))
                 .anyMatch(gn -> gn.getName().equals("Prędocin"));
+        // search by alternate name prefix
+        assertThat(this.finder.find("Prendo", 50))
+            .anyMatch(gn -> gn.getName().equals("Prędocin"));
         //search multiple words
         assertThat(this.finder.find("Jezioro Zygmunta Augusta", 50))
                 .anyMatch(gn -> gn.getName().equals("Jezioro Zygmunta Augusta"));
         //search multiple words - case insensitive
         assertThat(this.finder.find("jezioro zygmunta augusta", 50))
                 .anyMatch(gn -> gn.getName().equals("Jezioro Zygmunta Augusta"));
+        //search by name and proper featureCode
+        assertThat(this.finder.find("Predocin #PPL", 50))
+                .anyMatch(gn -> gn.getName().equals("Prędocin"));
+        assertThat(this.finder.find("Predocin #ppl", 50))
+            .anyMatch(gn -> gn.getName().equals("Prędocin"));
+        // search by name and deatureCode prefix
+        assertThat(this.finder.find("Predocin #pp", 50))
+            .anyMatch(gn -> gn.getName().equals("Prędocin"));
+        //search by name and inexistent featureCode
+        assertThat(this.finder.find("Predocin #ADM3", 50)).isEmpty();
     }
 
     @Test

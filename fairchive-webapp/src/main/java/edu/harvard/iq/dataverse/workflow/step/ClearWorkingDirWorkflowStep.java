@@ -4,8 +4,6 @@ import edu.harvard.iq.dataverse.workflow.execution.WorkflowExecutionStepContext;
 import edu.harvard.iq.dataverse.workflow.step.WorkflowStepResult.Source;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.file.PathUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,7 +12,6 @@ import java.util.Map;
 public class ClearWorkingDirWorkflowStep extends FilesystemAccessingWorkflowStep {
 
     public static final String STEP_ID = "clear-working-directory";
-    private static final Logger logger = LoggerFactory.getLogger(ClearWorkingDirWorkflowStep.class);
 
     // -------------------- CONSTRUCTORS --------------------
 

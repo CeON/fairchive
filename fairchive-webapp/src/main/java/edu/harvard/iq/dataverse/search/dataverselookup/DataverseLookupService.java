@@ -17,6 +17,16 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+
+import static java.lang.Long.parseLong;
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,15 +65,18 @@ public class DataverseLookupService {
 
     // -------------------- LOGIC --------------------
 
-    public List<LookupData> fetchLookupDataByNameAndExtraDescription(String query, String permissionFilterQuery) {
-        return fetchLookupDataWithProcessedQuery(processQueryByNameAndExtraDescription(query), permissionFilterQuery);
+    public List<LookupData> fetchLookupDataByNameAndExtraDescription(String query, 
+            String permissionFilterQuery) {
+        return fetchLookupDataWithProcessedQuery(processQueryByNameAndExtraDescription(query), 
+                permissionFilterQuery);
     }
 
     public List<LookupData> fetchLookupData(String query, String permissionFilterQuery) {
         return fetchLookupDataWithProcessedQuery(processQuery(query), permissionFilterQuery);
     }
 
-    private List<LookupData> fetchLookupDataWithProcessedQuery(String processedQuery, String permissionFilterQuery) {
+    private List<LookupData> fetchLookupDataWithProcessedQuery(String processedQuery, 
+            String permissionFilterQuery) {
         SolrQuery solrQuery = createSolrQuery(processedQuery, permissionFilterQuery);
         QueryResponse response = querySolr(solrQuery);
         if (response == null) {
@@ -81,7 +94,7 @@ public class DataverseLookupService {
                     .setStart(currentlyFound);
             response = querySolr(solrQuery);
             if (response == null) {
-                return Collections.emptyList();
+                return emptyList();
             }
             rawResults.addAll(response.getResults());
             highlighting.putAll(processHighlighting(response));
@@ -101,7 +114,7 @@ public class DataverseLookupService {
         if (!dataForParentsToFetch.isEmpty()) {
             QueryResponse dataForParentsResponse = querySolr(createSolrQueryForParents(processedQuery, dataForParentsToFetch));
             if (dataForParentsResponse == null) {
-                return Collections.emptyList();
+                return emptyList();
             }
             highlighting.putAll(processHighlighting(dataForParentsResponse));
             additionalDataForParents.addAll(processRawDataForParents(dataForParentsResponse.getResults(), highlighting));
@@ -118,7 +131,7 @@ public class DataverseLookupService {
     }
 
     public LookupData findDataverseById(Long id) {
-        String query = String.format("%s:\"%s\" AND %s:%s", SearchFields.ENTITY_ID, id,
+        String query = format("%s:\"%s\" AND %s:%s", SearchFields.ENTITY_ID, id,
                 SearchFields.TYPE, SearchObjectType.DATAVERSES.getSolrValue());
         SolrQuery solrQuery = new SolrQuery(query)
                 .setRows(1)
@@ -134,14 +147,14 @@ public class DataverseLookupService {
         String parentName = (String) result.getFieldValue(SearchFields.PARENT_NAME);
         return new LookupData(
                 id, identifier, name,
-                StringUtils.isNotBlank(parentId) ? Long.parseLong(parentId) : null,
-                parentName, StringUtils.EMPTY);
+                isNotBlank(parentId) ? parseLong(parentId) : null,
+                parentName, EMPTY);
     }
 
     // -------------------- PRIVATE --------------------
 
     private String processQuery(String query) {
-        if (StringUtils.isBlank(query)) {
+        if (isBlank(query)) {
             return "*";
         }
         String[] toProcess = querySanitizer.removeSolrSpecialChars(query)
@@ -149,8 +162,8 @@ public class DataverseLookupService {
         String processed = Arrays.stream(toProcess)
                 .filter(StringUtils::isNotBlank)
                 .map(s -> s + "*")
-                .collect(Collectors.joining(" OR "));
-        return toProcess.length > 1 ? String.format("(%s)", processed) : processed;
+                .collect(joining(" OR "));
+        return toProcess.length > 1 ? format("(%s)", processed) : processed;
     }
 
     private String processQueryByNameAndExtraDescription(String query) {
@@ -186,7 +199,7 @@ public class DataverseLookupService {
         String typeQuery = String.format(" AND %s:%s", SearchFields.TYPE, SearchObjectType.DATAVERSES.getSolrValue());
         String ids = parentIds.stream()
                 .map(Object::toString)
-                .collect(Collectors.joining(" OR "));
+                .collect(joining(" OR "));
         return new SolrQuery(String.format("%s:(%s)", SearchFields.ENTITY_ID, ids) + typeQuery)
                 .setFields(SearchFields.ID, SearchFields.ENTITY_ID, SearchFields.PARENT_NAME)
                 .setParam(HighlightParams.Q, queryToSolr)
@@ -194,19 +207,22 @@ public class DataverseLookupService {
                 .setHighlightSimplePre(HIGHLIGHT_PRE).setHighlightSimplePost(HIGHLIGHT_POST);
     }
 
-    private List<LookupData> createResults(List<EntryData> entries, Map<Long, EntryData> indexForParents) {
+    private List<LookupData> createResults(List<EntryData> entries,
+            Map<Long, EntryData> indexForParents) {
         List<LookupData> lookupData = new ArrayList<>(entries.size());
         for (EntryData entryData : entries) {
             EntryData upperParent = indexForParents.get(entryData.parentId);
-            lookupData.add(new LookupData(entryData.id, entryData.identifier, entryData.name, entryData.parentId
-                    , entryData.parentName, upperParent != null ? upperParent.parentName : StringUtils.EMPTY));
+            lookupData.add(new LookupData(entryData.id, entryData.identifier, 
+                    entryData.name, entryData.parentId, entryData.parentName,  
+                    upperParent != null ? upperParent.parentName : EMPTY));
         }
         return lookupData;
     }
 
-    private List<EntryData> processRawData(List<SolrDocument> rawData, Map<String, HighlightedData> highlightedDataMap) {
+    private List<EntryData> processRawData(List<SolrDocument> rawData, 
+            Map<String, HighlightedData> highlightedDataMap) {
         List<EntryData> processedData = new ArrayList<>();
-        HighlightedData emptyHighlighting = new HighlightedData(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY);
+        HighlightedData emptyHighlighting = new HighlightedData(EMPTY, EMPTY, EMPTY);
         for (SolrDocument document : rawData) {
             Long id = (Long) document.getFieldValue(SearchFields.ENTITY_ID);
             String solrId = (String) document.getFieldValue(SearchFields.ID);
@@ -216,27 +232,28 @@ public class DataverseLookupService {
             String parentName = (String) document.getFieldValue(SearchFields.PARENT_NAME);
             HighlightedData highlightedData = highlightedDataMap.get(solrId);
             highlightedData = highlightedData == null ? emptyHighlighting : highlightedData;
-            EntryData entryData = new EntryData(id, solrId,
-                    StringUtils.isNotBlank(highlightedData.identifier) ? highlightedData.identifier : identifier,
-                    StringUtils.isNotBlank(highlightedData.name) ? highlightedData.name : name,
-                    StringUtils.isNotBlank(parentIdString) ? Long.parseLong(parentIdString) : -1L,
-                    StringUtils.isNotBlank(highlightedData.parentName) ? highlightedData.parentName : parentName);
+            EntryData entryData = new EntryData(id, 
+                    isNotBlank(highlightedData.identifier) ? highlightedData.identifier : identifier,
+                    isNotBlank(highlightedData.name) ? highlightedData.name : name,
+                    isNotBlank(parentIdString) ? parseLong(parentIdString) : -1L,
+                    isNotBlank(highlightedData.parentName) ? highlightedData.parentName : parentName);
             processedData.add(entryData);
         }
         return processedData;
     }
 
-    private List<EntryData> processRawDataForParents(List<SolrDocument> rawData, Map<String, HighlightedData> highlightedDataMap) {
+    private List<EntryData> processRawDataForParents(List<SolrDocument> rawData, 
+            Map<String, HighlightedData> highlightedDataMap) {
         List<EntryData> processedData = new ArrayList<>();
-        HighlightedData emptyHighlighting = new HighlightedData(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY);
+        HighlightedData emptyHighlighting = new HighlightedData(EMPTY, EMPTY, EMPTY);
         for (SolrDocument document : rawData) {
             Long id = (Long) document.getFieldValue(SearchFields.ENTITY_ID);
             String solrId = (String) document.getFieldValue(SearchFields.ID);
             String parentName = (String) document.getFieldValue(SearchFields.PARENT_NAME);
             HighlightedData highlightedData = highlightedDataMap.get(solrId);
             highlightedData = highlightedData == null ? emptyHighlighting : highlightedData;
-            EntryData entryData = new EntryData(id, solrId, StringUtils.EMPTY, StringUtils.EMPTY, -1L,
-                    StringUtils.isNotBlank(highlightedData.parentName) ? highlightedData.parentName : parentName);
+            EntryData entryData = new EntryData(id, EMPTY, EMPTY, -1L,
+                    isNotBlank(highlightedData.parentName) ? highlightedData.parentName : parentName);
             processedData.add(entryData);
         }
         return processedData;
@@ -245,7 +262,7 @@ public class DataverseLookupService {
     private Map<String, HighlightedData> processHighlighting(QueryResponse response) {
         Map<String, Map<String, List<String>>> highlighting = response.getHighlighting();
         if (highlighting == null || highlighting.isEmpty()) {
-            return Collections.emptyMap();
+            return emptyMap();
         }
         Map<String, HighlightedData> processedHighlighting = new HashMap<>();
         for (Map.Entry<String, Map<String, List<String>>> entry : highlighting.entrySet()) {
@@ -260,7 +277,7 @@ public class DataverseLookupService {
 
     private String getValue(String fieldName, Map<String, List<String>> data) {
         List<String> values = data.get(fieldName);
-        return values == null || values.isEmpty() ? StringUtils.EMPTY : values.get(0);
+        return values == null || values.isEmpty() ? EMPTY : values.get(0);
     }
 
     // -------------------- INNER CLASSES --------------------
@@ -279,15 +296,13 @@ public class DataverseLookupService {
 
     private static class EntryData {
         public final Long id;
-        public final String solrId;
         public final String identifier;
         public final String name;
         public final Long parentId;
         public final String parentName;
 
-        public EntryData(Long id, String solrId, String identifier, String name, Long parentId, String parentName) {
+        public EntryData(Long id, String identifier, String name, Long parentId, String parentName) {
             this.id = id;
-            this.solrId = solrId;
             this.identifier = identifier;
             this.name = name;
             this.parentId = parentId;

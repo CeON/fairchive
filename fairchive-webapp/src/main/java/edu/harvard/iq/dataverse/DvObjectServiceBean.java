@@ -72,7 +72,9 @@ public class DvObjectServiceBean implements java.io.Serializable {
 
 
     public List<DvObject> findByOwnerId(Long ownerId) {
-        return em.createNamedQuery("DvObject.findByOwnerId").setParameter("ownerId", ownerId).getResultList();
+        return em.createNamedQuery("DvObject.findByOwnerId", DvObject.class)
+                .setParameter("ownerId", ownerId)
+                .getResultList();
     }
 
     // FIXME This type-by-string has to go, in favor of passing a class parameter.
@@ -118,10 +120,11 @@ public class DvObjectServiceBean implements java.io.Serializable {
     }
 
     public List<DvObject> findByAuthenticatedUserId(AuthenticatedUser user) {
-        Query query = em.createNamedQuery("DvObject.findByAuthenticatedUserId");
-        query.setParameter("ownerId", user.getId());
-        query.setParameter("releaseUserId", user.getId());
-        return query.getResultList();
+        return em.createNamedQuery("DvObject.findByAuthenticatedUserId",
+                DvObject.class)
+                .setParameter("ownerId", user.getId())
+                .setParameter("releaseUserId", user.getId())
+                .getResultList();
     }
 
     public DvObject updateContentIndexTime(DvObject dvObject) {
@@ -198,6 +201,7 @@ public class DvObjectServiceBean implements java.io.Serializable {
         return " (" + join(outputList, ",") + ")";
     }
 
+    @SuppressWarnings("unchecked")
     public List<Object[]> getDvObjectInfoForMyData(List<Long> dvObjectIdList) {
 
         String dvObjectClause = getDvObjectIdListClause(dvObjectIdList);
@@ -223,6 +227,7 @@ public class DvObjectServiceBean implements java.io.Serializable {
      * @param dvObjectParentIdList
      * @return
      */
+    @SuppressWarnings("unchecked")
     public List<Object[]> getDvObjectInfoByParentIdForMyData(List<Long> dvObjectParentIdList) {
 
         String dvObjectClause = getDvObjectIdListClause(dvObjectParentIdList);
@@ -244,12 +249,10 @@ public class DvObjectServiceBean implements java.io.Serializable {
      *
      * @return
      */
+    @SuppressWarnings("unchecked")
     public List<Long> getAllHarvestedDataverseIds() {
-
-        String qstr = "SELECT h.dataverse_id FROM harvestingclient h;";
-
-        return em.createNativeQuery(qstr).getResultList();
-
+        return em.createNativeQuery("SELECT h.dataverse_id FROM harvestingclient h;")
+                .getResultList();
     }
 
     /**
@@ -260,6 +263,7 @@ public class DvObjectServiceBean implements java.io.Serializable {
      * @param objectIds
      * @return
      */
+    @SuppressWarnings("unchecked")
     public Map<Long, String> getObjectPathsByIds(Set<Long> objectIds) {
         if (objectIds == null || objectIds.size() < 1) {
             return null;
@@ -330,7 +334,7 @@ public class DvObjectServiceBean implements java.io.Serializable {
             path.append(getDataverseHierarchyFor(dvObject.getOwner()));
         }
         if (dvObject instanceof Dataverse) {
-            path.append("/").append(((Dataverse) dvObject).getAlias());
+            path.append('/').append(((Dataverse) dvObject).getAlias());
         }
         return path.toString();
     }

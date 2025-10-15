@@ -4,23 +4,21 @@ import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataverse)
 public class CreateHarvestingClientCommand extends AbstractCommand<HarvestingClient> {
 
-    private final Dataverse dv;
     private final HarvestingClient harvestingClient;
 
     public CreateHarvestingClientCommand(DataverseRequest aRequest, HarvestingClient harvestingClient) {
         super(aRequest, harvestingClient.getDataverse());
         this.harvestingClient = harvestingClient;
-        dv = harvestingClient.getDataverse();
     }
 
     @Override

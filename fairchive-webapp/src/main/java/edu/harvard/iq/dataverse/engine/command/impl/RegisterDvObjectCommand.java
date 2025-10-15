@@ -10,7 +10,9 @@ import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Authority;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -18,6 +20,7 @@ import java.util.Date;
 /**
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @RequiredPermissions({})
 public class RegisterDvObjectCommand extends AbstractVoidCommand {
 
@@ -45,16 +48,16 @@ public class RegisterDvObjectCommand extends AbstractVoidCommand {
                 return;
             }
         }
-        String protocol = ctxt.settings().getValueForKey(SettingsServiceBean.Key.Protocol);
-        String authority = ctxt.settings().getValueForKey(SettingsServiceBean.Key.Authority);
+        String protocol = ctxt.settings().getValueForKey(Protocol);
+        String authority = ctxt.settings().getValueForKey(Authority);
         // Get the idServiceBean that is configured to mint new IDs
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(protocol, ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve(protocol);
         try {
             //Test to see if identifier already present
             //if so, leave.
             if (target.getIdentifier() == null || target.getIdentifier().isEmpty()) {
                 if (target.isInstanceofDataset()) {
-                    target.setIdentifier(ctxt.datasets().generateDatasetIdentifier((Dataset) target));
+                    target.setIdentifier(ctxt.datasetService().generateDatasetIdentifier((Dataset) target));
 
                 } else {
                     target.setIdentifier(ctxt.files().generateDataFileIdentifier((DataFile) target, idServiceBean));

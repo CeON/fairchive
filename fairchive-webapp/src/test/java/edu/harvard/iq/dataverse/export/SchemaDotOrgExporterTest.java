@@ -19,7 +19,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
 import org.assertj.core.util.Lists;
-import org.junit.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
@@ -82,7 +81,7 @@ public class SchemaDotOrgExporterTest {
 
         datasetFieldTypeSvc = new MockDatasetFieldSvc();
 
-        DatasetFieldType titleType = datasetFieldTypeSvc.add(new DatasetFieldType("title", FieldType.TEXTBOX, false));
+        datasetFieldTypeSvc.add(new DatasetFieldType("title", FieldType.TEXTBOX, false));
         DatasetFieldType authorType = datasetFieldTypeSvc.add(new DatasetFieldType("author", FieldType.TEXT, true));
         Set<DatasetFieldType> authorChildTypes = new HashSet<>();
         authorChildTypes.add(datasetFieldTypeSvc.add(new DatasetFieldType("authorName", FieldType.TEXT, false)));
@@ -134,7 +133,7 @@ public class SchemaDotOrgExporterTest {
         topicClassificationTypes.add(datasetFieldTypeSvc.add(new DatasetFieldType("topicClassVocabURI", FieldType.TEXT, false)));
         topicClassificationType.setChildDatasetFieldTypes(topicClassificationTypes);
 
-        DatasetFieldType descriptionType = datasetFieldTypeSvc.add(new DatasetFieldType("description", FieldType.TEXTBOX, false));
+        datasetFieldTypeSvc.add(new DatasetFieldType("description", FieldType.TEXTBOX, false));
 
         DatasetFieldType subjectType = datasetFieldTypeSvc.add(new DatasetFieldType("subject", FieldType.TEXT, true));
         subjectType.setAllowControlledVocabulary(true);
@@ -679,7 +678,6 @@ public class SchemaDotOrgExporterTest {
      */
     @Test
     public void testGetDisplayName() {
-        System.out.println("getDisplayName");
         // We capitalize "Schema.org" because it looks better in the dropdown list and it's what DataCite does in their UI.
         assertEquals("Schema.org JSON-LD", schemaDotOrgExporter.getDisplayName());
     }
@@ -689,7 +687,6 @@ public class SchemaDotOrgExporterTest {
      */
     @Test
     public void testIsXMLFormat() {
-        System.out.println("isXMLFormat");
         assertEquals(false, schemaDotOrgExporter.isXMLFormat());
     }
 
@@ -698,7 +695,6 @@ public class SchemaDotOrgExporterTest {
      */
     @Test
     public void testIsHarvestable() {
-        System.out.println("isHarvestable");
         assertEquals(false, schemaDotOrgExporter.isHarvestable());
     }
 
@@ -707,7 +703,6 @@ public class SchemaDotOrgExporterTest {
      */
     @Test
     public void testIsAvailableToUsers() {
-        System.out.println("isAvailableToUsers");
         assertEquals(true, schemaDotOrgExporter.isAvailableToUsers());
     }
 
@@ -745,6 +740,7 @@ public class SchemaDotOrgExporterTest {
     }
 
 
+    @SuppressWarnings("serial")
     @TestBean
     static class MockDatasetFieldSvc extends DatasetFieldServiceBean {
 

@@ -21,6 +21,7 @@ import java.util.logging.Logger;
  * <p>
  * Dedicated service for managing Harvesting Client Configurations
  */
+@SuppressWarnings("serial")
 @Stateless
 public class HarvestingClientDao implements java.io.Serializable {
 

@@ -1,0 +1,33 @@
+<ui:composition
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:c="http://java.sun.com/jsp/jstl/core"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:jsf="http://xmlns.jcp.org/jsf"
+    xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+
+
+    <!-- input text start -->
+    <span id="pre-input-#{datasetField.datasetFieldType.name}" class="pre-input-tag"/>
+
+    <p:selectBooleanCheckbox id="inputCheckbox"
+                             value="#{datasetField.value}"
+                             pt:data-field-type="#{datasetField.datasetFieldType.name}">
+    </p:selectBooleanCheckbox>
+
+    <ui:include src="/WEB-INF/templates/dataset/inputRenderer/fieldLabel.xhtml">
+        <ui:param name="for" value="inputCheckbox" />
+        <ui:param name="datasetFieldType" value="#{datasetField.datasetFieldType}" />
+        <ui:param name="hiddenLabel" value="#{false}" />
+        <ui:param name="labelFieldNumber" value="#{labelFieldNumber}" />
+        <ui:param name="labelClass" value="checkbox-label" />
+    </ui:include>
+
+    <div class="ui-message ui-message-error ui-widget ui-corner-all" aria-live="polite" jsf:rendered="#{!empty datasetField.validationMessage}">
+        <span class="ui-message-error-detail">
+            <h:outputText value="#{datasetField.validationMessage}" escape="false"/>
+        </span>
+    </div>
+
+</ui:composition>

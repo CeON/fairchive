@@ -18,6 +18,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.UUID;
 
+@SuppressWarnings("serial")
 @Table(indexes = {@Index(columnList = "token")
         , @Index(columnList = "builtinuser_id")})
 @NamedQueries({

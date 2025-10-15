@@ -19,18 +19,18 @@
 */
 package edu.harvard.iq.dataverse.ingest.tabulardata.impl.plugins.por;
 
-import edu.harvard.iq.dataverse.ingest.tabulardata.spi.TabularDataFileReaderSpi;
-import org.apache.commons.codec.binary.Hex;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Locale;
 import java.util.logging.Logger;
+
+import org.apache.commons.codec.binary.Hex;
+
+import edu.harvard.iq.dataverse.ingest.tabulardata.spi.TabularDataFileReaderSpi;
 
 
 /**
@@ -72,9 +72,6 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
         if (!(source instanceof BufferedInputStream)) {
             return false;
         }
-        if (source == null) {
-            throw new IllegalArgumentException("source == null!");
-        }
         BufferedInputStream stream = (BufferedInputStream) source;
         dbgLog.fine("applying the por test\n");
 
@@ -85,8 +82,6 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
         }
 
         int nbytes = stream.read(b, 0, POR_HEADER_SIZE);
-
-        //printHexDump(b, "hex dump of the byte-array");
 
         if (nbytes == 0) {
             throw new IOException();
@@ -99,8 +94,6 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
         if (stream.markSupported()) {
             stream.reset();
         }
-
-        boolean DEBUG = false;
 
         //windows [0D0A]=>   [1310] = [CR/LF]
         //unix    [0A]  =>   [10]
@@ -237,8 +230,6 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
             stream.reset();
         }
 
-        boolean DEBUG = false;
-
         //windows [0D0A]=>   [1310] = [CR/LF]
         //unix    [0A]  =>   [10]
         //mac     [0D]  =>   [13]
@@ -347,134 +338,120 @@ public class PORFileReaderSpi extends TabularDataFileReaderSpi {
 
     @Override
     public boolean canDecodeInput(File file) throws IOException {
-        if (file == null) {
-            throw new IllegalArgumentException("file == null!");
-        }
         if (!file.canRead()) {
             throw new IOException("cannot read the input file");
         }
-
-        // set-up a FileChannel instance for a given file object
-        FileChannel srcChannel = new FileInputStream(file).getChannel();
-
-        // create a read-only MappedByteBuffer
-        MappedByteBuffer buff = srcChannel.map(FileChannel.MapMode.READ_ONLY, 0, POR_HEADER_SIZE);
-
-        //printHexDump(buff, "hex dump of the byte-buffer");
-
-        buff.rewind();
-
-        boolean DEBUG = false;
-
-
-        dbgLog.fine("applying the spss-por test\n");
-
-        // size test
-        if (buff.capacity() < 491) {
-            dbgLog.fine("this file is NOT spss-por type");
+        try(final InputStream in = new FileInputStream(file)) {
+            final byte[] bytes = new byte[POR_HEADER_SIZE];
+            if(in.read(bytes) < 491) {
+                dbgLog.fine("this file is NOT spss-por type");
+                return false;
+            }
+            final ByteBuffer buff = ByteBuffer.wrap(bytes);
+    
+            dbgLog.fine("applying the spss-por test\n");
+    
+            //windows [0D0A]=>   [1310] = [CR/LF]
+            //unix    [0A]  =>   [10]
+            //mac     [0D]  =>   [13]
+            // 3char  [0D0D0A]=> [131310] spss for windows rel 15
+            // expected results
+            // unix    case: [0A]   : [80], [161], [242], [323], [404], [485]
+            // windows case: [0D0A] : [81], [163], [245], [327], [409], [491]
+            //  : [0D0D0A] : [82], [165], [248], [331], [414], [495]
+    
+            buff.rewind();
+            byte[] nlch = new byte[36];
+            int pos1;
+            int pos2;
+            int pos3;
+            int ucase = 0;
+            int wcase = 0;
+            int mcase = 0;
+            int three = 0;
+            int nolines = 6;
+            int nocols = 80;
+            for (int i = 0; i < nolines; ++i) {
+                int baseBias = nocols * (i + 1);
+                // 1-char case
+                pos1 = baseBias + i;
+                buff.position(pos1);
+                dbgLog.finer("\tposition(1)=" + buff.position());
+                int j = 6 * i;
+                nlch[j] = buff.get();
+    
+                if (nlch[j] == 10) {
+                    ucase++;
+                } else if (nlch[j] == 13) {
+                    mcase++;
+                }
+    
+                // 2-char case
+                pos2 = baseBias + 2 * i;
+                buff.position(pos2);
+                dbgLog.finer("\tposition(2)=" + buff.position());
+    
+                nlch[j + 1] = buff.get();
+                nlch[j + 2] = buff.get();
+    
+                // 3-char case
+                pos3 = baseBias + 3 * i;
+                buff.position(pos3);
+                dbgLog.finer("\tposition(3)=" + buff.position());
+    
+                nlch[j + 3] = buff.get();
+                nlch[j + 4] = buff.get();
+                nlch[j + 5] = buff.get();
+    
+                dbgLog.finer(i + "-th iteration position =" + nlch[j] + "\t" + nlch[j + 1] + "\t" + nlch[j + 2]);
+                dbgLog.finer(i + "-th iteration position =" + nlch[j + 3] + "\t" + nlch[j + 4] + "\t" + nlch[j + 5]);
+    
+                if ((nlch[j + 3] == 13) && (nlch[j + 4] == 13) && (nlch[j + 5] == 10)) {
+                    three++;
+                } else if ((nlch[j + 1] == 13) && (nlch[j + 2] == 10)) {
+                    wcase++;
+                }
+    
+                buff.rewind();
+            }
+            if (three == nolines) {
+                dbgLog.fine("0D0D0A case");
+                windowsNewLine = false;
+            } else if ((ucase == nolines) && (wcase < nolines)) {
+                dbgLog.fine("0A case");
+                windowsNewLine = false;
+            } else if ((ucase < nolines) && (wcase == nolines)) {
+                dbgLog.fine("0D0A case");
+            } else if ((mcase == nolines) && (wcase < nolines)) {
+                dbgLog.fine("0D case");
+                windowsNewLine = false;
+            }
+    
+    
+            buff.rewind();
+            int PORmarkPosition = POR_MARK_POSITION_DEFAULT;
+            if (windowsNewLine) {
+                PORmarkPosition = PORmarkPosition + 5;
+            } else if (three == nolines) {
+                PORmarkPosition = PORmarkPosition + 10;
+            }
+    
+            byte[] pormark = new byte[8];
+            buff.position(PORmarkPosition);
+            buff.get(pormark, 0, 8);
+            String pormarks = new String(pormark);
+    
+            dbgLog.fine("pormark =>" + pormarks + "<-");
+    
+    
+            if (pormarks.equals(POR_MARK)) {
+                dbgLog.fine("this file is spss-por type");
+                return true;
+            } else {
+                dbgLog.fine("this file is NOT spss-por type");
+            }
             return false;
         }
-
-        //windows [0D0A]=>   [1310] = [CR/LF]
-        //unix    [0A]  =>   [10]
-        //mac     [0D]  =>   [13]
-        // 3char  [0D0D0A]=> [131310] spss for windows rel 15
-        // expected results
-        // unix    case: [0A]   : [80], [161], [242], [323], [404], [485]
-        // windows case: [0D0A] : [81], [163], [245], [327], [409], [491]
-        //  : [0D0D0A] : [82], [165], [248], [331], [414], [495]
-
-        buff.rewind();
-        byte[] nlch = new byte[36];
-        int pos1;
-        int pos2;
-        int pos3;
-        int ucase = 0;
-        int wcase = 0;
-        int mcase = 0;
-        int three = 0;
-        int nolines = 6;
-        int nocols = 80;
-        for (int i = 0; i < nolines; ++i) {
-            int baseBias = nocols * (i + 1);
-            // 1-char case
-            pos1 = baseBias + i;
-            buff.position(pos1);
-            dbgLog.finer("\tposition(1)=" + buff.position());
-            int j = 6 * i;
-            nlch[j] = buff.get();
-
-            if (nlch[j] == 10) {
-                ucase++;
-            } else if (nlch[j] == 13) {
-                mcase++;
-            }
-
-            // 2-char case
-            pos2 = baseBias + 2 * i;
-            buff.position(pos2);
-            dbgLog.finer("\tposition(2)=" + buff.position());
-
-            nlch[j + 1] = buff.get();
-            nlch[j + 2] = buff.get();
-
-            // 3-char case
-            pos3 = baseBias + 3 * i;
-            buff.position(pos3);
-            dbgLog.finer("\tposition(3)=" + buff.position());
-
-            nlch[j + 3] = buff.get();
-            nlch[j + 4] = buff.get();
-            nlch[j + 5] = buff.get();
-
-            dbgLog.finer(i + "-th iteration position =" + nlch[j] + "\t" + nlch[j + 1] + "\t" + nlch[j + 2]);
-            dbgLog.finer(i + "-th iteration position =" + nlch[j + 3] + "\t" + nlch[j + 4] + "\t" + nlch[j + 5]);
-
-            if ((nlch[j + 3] == 13) && (nlch[j + 4] == 13) && (nlch[j + 5] == 10)) {
-                three++;
-            } else if ((nlch[j + 1] == 13) && (nlch[j + 2] == 10)) {
-                wcase++;
-            }
-
-            buff.rewind();
-        }
-        if (three == nolines) {
-            dbgLog.fine("0D0D0A case");
-            windowsNewLine = false;
-        } else if ((ucase == nolines) && (wcase < nolines)) {
-            dbgLog.fine("0A case");
-            windowsNewLine = false;
-        } else if ((ucase < nolines) && (wcase == nolines)) {
-            dbgLog.fine("0D0A case");
-        } else if ((mcase == nolines) && (wcase < nolines)) {
-            dbgLog.fine("0D case");
-            windowsNewLine = false;
-        }
-
-
-        buff.rewind();
-        int PORmarkPosition = POR_MARK_POSITION_DEFAULT;
-        if (windowsNewLine) {
-            PORmarkPosition = PORmarkPosition + 5;
-        } else if (three == nolines) {
-            PORmarkPosition = PORmarkPosition + 10;
-        }
-
-        byte[] pormark = new byte[8];
-        buff.position(PORmarkPosition);
-        buff.get(pormark, 0, 8);
-        String pormarks = new String(pormark);
-
-        dbgLog.fine("pormark =>" + pormarks + "<-");
-
-
-        if (pormarks.equals(POR_MARK)) {
-            dbgLog.fine("this file is spss-por type");
-            return true;
-        } else {
-            dbgLog.fine("this file is NOT spss-por type");
-        }
-        return false;
     }
 
     public String getDescription(Locale locale) {

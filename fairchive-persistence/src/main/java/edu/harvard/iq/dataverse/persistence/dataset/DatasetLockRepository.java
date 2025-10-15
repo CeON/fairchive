@@ -1,9 +1,11 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import java.util.List;
 
 import javax.ejb.Singleton;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 @Singleton
 public class DatasetLockRepository extends JpaRepository<Long, DatasetLock> {
@@ -16,13 +18,17 @@ public class DatasetLockRepository extends JpaRepository<Long, DatasetLock> {
 
     // -------------------- LOGIC --------------------
 
-    public List<DatasetLock> findByDatasetId(long datasetId) {
-        return em.createQuery(
-                        "select l " +
-                                "from DatasetLock l " +
-                                "where l.dataset.id = :datasetId",
-                        DatasetLock.class)
-                .setParameter("datasetId", datasetId)
+    public List<DatasetLock> findByDatasetId(final long datasetId) {
+        return find("select l from DatasetLock l where l.dataset.id = :id", datasetId);
+    }
+
+    public List<DatasetLock> findByUser(final AuthenticatedUser user) {      
+        return find("SELECT lock FROM DatasetLock lock WHERE lock.user.id=:id", user.getId());
+    }
+    
+    private List<DatasetLock> find(final String query, final Long id) {
+        return this.em.createQuery(query, DatasetLock.class)
+                .setParameter("id", id)
                 .getResultList();
     }
 }

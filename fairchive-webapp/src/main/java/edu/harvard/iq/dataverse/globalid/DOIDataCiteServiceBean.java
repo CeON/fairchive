@@ -84,7 +84,7 @@ public class DOIDataCiteServiceBean extends AbstractGlobalIdServiceBean {
     }
 
     @Override
-    public Map getIdentifierMetadata(DvObject dvObject) {
+    public Map<String, String> getIdentifierMetadata(DvObject dvObject) {
         logger.log(Level.FINE, "getIdentifierMetadata");
         String identifier = getIdentifier(dvObject);
         Map<String, String> metadata = new HashMap<>();

@@ -20,13 +20,9 @@
 
 package edu.harvard.iq.dataverse.ingest;
 
-import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
-import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
@@ -37,9 +33,14 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import edu.harvard.iq.dataverse.DataFileServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
+import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 
 /**
  * This is an experimental, JMS-based implementation of asynchronous
@@ -49,13 +50,14 @@ import java.util.logging.Logger;
  */
 @MessageDriven(name = "IngestMessageBean", mappedName = "jms/DataverseIngest", activationConfig = {
         @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue")
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "1")
 })
 public class IngestMessageBean implements MessageListener {
     private static final Logger logger = Logger.getLogger(IngestMessageBean.class.getCanonicalName());
 
     @EJB
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
     private DataFileServiceBean datafileService;
     @EJB
@@ -86,18 +88,23 @@ public class IngestMessageBean implements MessageListener {
                 logger.fine("Start ingest job;");
                 try {
                     DataFile dataFile = this.datafileService.find(datafile_id);
-                   if(dataFile.isImage()) {
-                        if (ingestService.performOCR(datafile_id)) {
-                            logger.fine("Finished ingest job;");
-                        } else {
-                            logger.warning("Error occurred during OCR job for file id " + datafile_id + "!");
-                        }
+                    boolean success;
+                    switch (dataFile.getIngestType()) {
+                        case OCR:
+                            success = ingestService.performOCR(datafile_id);
+                            break;
+                        case HTR:
+                            success = ingestService.performHTR(datafile_id);
+                            break;
+                        default:
+                            success = ingestService.ingestAsTabular(datafile_id);
+                            break;
+                    }
+
+                    if (success) {
+                        logger.fine("Finished " + dataFile.getIngestType() + " job;");
                     } else {
-                        if (ingestService.ingestAsTabular(datafile_id)) {
-                            logger.fine("Finished ingest job;");
-                        } else {
-                            logger.warning("Error occurred during ingest job for file id " + datafile_id + "!");
-                        }
+                        logger.warning("Error occurred during " + dataFile.getIngestType() + " job for file id " + datafile_id + "!");
                     }
                 } catch (Exception ex) {
                     // TODO:
@@ -133,7 +140,7 @@ public class IngestMessageBean implements MessageListener {
                 if (datafile != null) {
                     Dataset dataset = datafile.getOwner();
                     if (dataset != null && dataset.getId() != null) {
-                        datasetDao.removeDatasetLocks(dataset, DatasetLock.Reason.Ingest);
+                        datasetService.removeDatasetLocks(dataset, DatasetLock.Reason.Ingest);
                     }
                 }
             }

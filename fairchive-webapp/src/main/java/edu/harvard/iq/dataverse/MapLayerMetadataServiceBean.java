@@ -1,5 +1,23 @@
 package edu.harvard.iq.dataverse;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
 import edu.harvard.iq.dataverse.api.WorldMapRelatedData;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
@@ -12,22 +30,6 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.persistence.worldmap.WorldMapToken;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.worldmapauth.WorldMapTokenServiceBean;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author raprasad
@@ -45,7 +47,7 @@ public class MapLayerMetadataServiceBean {
     @EJB
     PermissionServiceBean permissionService;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @EJB
@@ -87,11 +89,9 @@ public class MapLayerMetadataServiceBean {
         }
 
         try {
-            //           String sqlStatement =
             Query query = em.createQuery("select m from MapLayerMetadata m WHERE m.dataFile=:datafile", MapLayerMetadata.class);
             query.setParameter("datafile", datafile);
             query.setMaxResults(1);
-            //entityManager.createQuery(SQL_QUERY).setParameter(arg0,arg1).setMaxResults(10).getResultList();
             return (MapLayerMetadata) query.getSingleResult();
         } catch (NoResultException nre) {
             return null;
@@ -115,7 +115,7 @@ public class MapLayerMetadataServiceBean {
             // Remove thumbnails associated with the map metadata
             // (this also sets theto set the "preview image" flag to false)
             //
-            boolean success = this.deleteOlderMapThumbnails(mapLayerMetadata.getDataFile());
+            this.deleteOlderMapThumbnails(mapLayerMetadata.getDataFile());
 
             // Remove the actual map metadata
             //
@@ -127,12 +127,10 @@ public class MapLayerMetadataServiceBean {
     }
 
 
-    public MapLayerMetadata findMetadataByLayerNameAndDatafile(String layer_name) {//, DataFile datafile) {
-        if ((layer_name == null)) {//||(datafile==null)){
+    public MapLayerMetadata findMetadataByLayerNameAndDatafile(String layer_name) {
+        if ((layer_name == null)) {
             return null;
         }
-        //Query query = em.createQuery("select o.id from MapLayerMetadta as o where o.layer_name =:layerName and o.datafile_id =:datafileID;");
-        //Query query = em.createQuery("select m from MapLayerMetadata m where m.layer_name =:layerName ;");
         try {
             return em.createQuery("select m from MapLayerMetadata m WHERE m.layerName=:layerName", MapLayerMetadata.class)
                     .setParameter("layerName", layer_name)
@@ -147,7 +145,7 @@ public class MapLayerMetadataServiceBean {
         if (dataset == null) {
             return null;
         }
-        TypedQuery<MapLayerMetadata> query = em.createQuery("select object(o) from MapLayerMetadata as o where o.dataset=:dataset", MapLayerMetadata.class);// order by o.name");
+        TypedQuery<MapLayerMetadata> query = em.createQuery("select object(o) from MapLayerMetadata as o where o.dataset=:dataset", MapLayerMetadata.class);
         query.setParameter("dataset", dataset);
         return query.getResultList();
     }
@@ -289,7 +287,8 @@ public class MapLayerMetadataServiceBean {
 
         logger.info("-- new token id: " + token.getId());
         // Callback url for geoConnect:
-        String callback_url = URLEncoder.encode(systemConfig.getDataverseSiteUrl() + WorldMapRelatedData.GET_WORLDMAP_DATAFILE_API_PATH);
+        String callback_url = URLEncoder.encode(systemConfig.getDataverseSiteUrl() 
+                + WorldMapRelatedData.GET_WORLDMAP_DATAFILE_API_PATH, "UTF-8");
 
         String geoConnectAddress = token.getApplication().getMapitLink();
         /*
@@ -300,7 +299,6 @@ public class MapLayerMetadataServiceBean {
 
         logger.log(Level.INFO, "callback_url: {0}", callback_url);
 
-        //String geoConnectCommand = geoConnectAddress + GEOCONNECT_MAP_DELETE_API + token.getApplication().getMapitLink() + "/" + token.getToken() + "/?cb=" +  callback_url;
         String geoConnectCommand = geoConnectAddress + GEOCONNECT_MAP_DELETE_API + token.getToken() + "/?cb=" + callback_url;
         logger.info("-- new token id 2: " + token.getId());
 

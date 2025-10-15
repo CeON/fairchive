@@ -286,7 +286,7 @@ public class SavedSearchServiceBean {
         while (dataverseWeMayLinkTo != null) {
             String alias = dataverseWeMayLinkTo.getAlias();
             logger.fine("definitionPoint " + definitionPoint.getAlias() + " may link to " + alias);
-            sb.append(alias + " ");
+            sb.append(alias).append(' ');
             if (dataverseWeMayLinkTo.equals(definitionPoint)) {
                 return true;
             }

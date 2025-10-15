@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.search.index;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -41,8 +40,6 @@ public class PermissionsSolrDocFactoryTest {
     private SolrPermissionsFinder searchPermissionsService;
     @Mock
     private DvObjectServiceBean dvObjectService;
-    @Mock
-    private DatasetDao datasetDao;
 
     private static SolrPermission EMPTY_PERMISSION = new SolrPermission(Permission.AddDataset, Collections.emptyList());
     private static String[] PERMS_DOC_ASSERTIONS = new String[] { "dvObjectId", "solrId", "datasetVersionId",

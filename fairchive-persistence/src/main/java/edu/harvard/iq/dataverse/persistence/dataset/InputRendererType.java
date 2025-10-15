@@ -52,5 +52,6 @@ public enum InputRendererType {
      */
     HIDDEN_VOCABULARY,
     PERIODO,
-    GEONAME;
+    GEONAME,
+    CHECKBOX;
 }

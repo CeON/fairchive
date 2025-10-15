@@ -521,9 +521,6 @@ public class JsonParser {
                 throw new JsonParseException("Invalid values submitted for " + compoundType.getName() + ". It should be an array of values.");
             }
 
-            JsonArray value = json.getJsonArray("value");
-            System.out.println(value);
-
             for (JsonObject obj : json.getJsonArray("value").getValuesAs(JsonObject.class)) {
                 DatasetField parentField = new DatasetField();
                 parentField.setDatasetFieldType(compoundType);
@@ -666,9 +663,6 @@ public class JsonParser {
                         throw new ControlledVocabularyException("Value '" + strValue + "' does not exist in type '" + cvvType.getName() + "'", cvvType, strValue);
                     }
                     // Only add value to the list if it is not a duplicate
-                    if (strValue.equals("Other")) {
-                        System.out.println("vals = " + vals + ", contains: " + vals.contains(cvv));
-                    }
                     if (!vals.contains(cvv)) {
                         vals.add(cvv);
                     }

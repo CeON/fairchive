@@ -4,7 +4,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -12,12 +11,19 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.util.Collection;
 
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "datasetfield_id"),
         @Index(columnList = "defaultvalueset_id"),
@@ -26,7 +32,7 @@ import java.util.Collection;
 public class DatasetFieldDefaultValue implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     public Long getId() {
@@ -71,7 +77,7 @@ public class DatasetFieldDefaultValue implements Serializable {
         this.defaultValueSet = defaultValueSet;
     }
 
-    @OneToMany(mappedBy = "parentDatasetFieldDefaultValue", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "parentDatasetFieldDefaultValue", cascade = {REMOVE, MERGE, PERSIST})
     @OrderBy("displayOrder ASC")
     private Collection<DatasetFieldDefaultValue> childDatasetFieldDefaultValues;
 

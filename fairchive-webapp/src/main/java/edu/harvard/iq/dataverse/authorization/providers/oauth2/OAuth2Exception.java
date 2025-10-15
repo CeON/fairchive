@@ -5,6 +5,7 @@ package edu.harvard.iq.dataverse.authorization.providers.oauth2;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class OAuth2Exception extends Exception {
 
     private final int httpReturnCode;

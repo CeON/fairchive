@@ -2,6 +2,9 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 
 import org.apache.commons.lang3.StringUtils;
 
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +23,7 @@ public class FieldValueDivider {
 
     // -------------------- LOGIC --------------------
 
+    @SuppressWarnings("unchecked")
     public static FieldValueDivider create(DatasetFieldType fieldType) {
         boolean hasDivider = fieldType.hasMetadata("divider");
         if (!hasDivider) {
@@ -71,7 +75,7 @@ public class FieldValueDivider {
     private Map<String, String> prepareValuesToCopy(DatasetField sourceCompound) {
         return sourceCompound.getDatasetFieldsChildren().stream()
                 .filter(f -> fieldsToCopyNames.contains(f.getTypeName())
-                        && StringUtils.isNotBlank(f.getFieldValue().getOrElse(StringUtils.EMPTY)))
-                .collect(Collectors.toMap(DatasetField::getTypeName, f -> f.getFieldValue().get(), (prev, next) -> next));
+                        && isNotBlank(f.getFieldValue().getOrElse(StringUtils.EMPTY)))
+                .collect(toMap(DatasetField::getTypeName, f -> f.getFieldValue().get(), (prev, next) -> next));
     }
 }

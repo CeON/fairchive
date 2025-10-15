@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
 import com.google.gson.Gson;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestType;
@@ -34,8 +33,6 @@ public class HarvesterServiceBean {
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
 
-    @EJB
-    DatasetDao datasetDao;
     @EJB
     HarvestingClientDao harvestingClientService;
     @EJB
@@ -166,6 +163,7 @@ public class HarvesterServiceBean {
         logger.severe(fullMessage);
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends HarvesterParams> Harvester<T> resolveHarvester(HarvestingClient client) {
         Harvester<?> harvester = harvesterMap.get(client.getHarvestType());
         if (harvester == null) {

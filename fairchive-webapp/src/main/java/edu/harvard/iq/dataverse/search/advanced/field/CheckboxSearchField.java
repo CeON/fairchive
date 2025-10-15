@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** Class that holds fields for checkbox display and values that were checked. */
+@SuppressWarnings("serial")
 public class CheckboxSearchField extends SearchField {
 
     private List<String> checkedFieldValues = new ArrayList<>();

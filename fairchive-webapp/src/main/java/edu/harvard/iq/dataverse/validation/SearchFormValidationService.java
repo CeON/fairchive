@@ -15,17 +15,14 @@ import java.util.Map;
 public class SearchFormValidationService {
 
     private SearchFormValidationDispatcherFactory dispatcherFactory;
-    private ValidationMessageResolver validationMessageResolver;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public SearchFormValidationService() { }
 
     @Inject
-    public SearchFormValidationService(SearchFormValidationDispatcherFactory dispatcherFactory,
-            ValidationMessageResolver validationMessageResolver) {
+    public SearchFormValidationService(SearchFormValidationDispatcherFactory dispatcherFactory) {
         this.dispatcherFactory = dispatcherFactory;
-        this.validationMessageResolver = validationMessageResolver;
     }
 
     // -------------------- LOGIC --------------------
@@ -37,7 +34,7 @@ public class SearchFormValidationService {
                 .executeValidations();
         fieldValidationResults.forEach(r -> {
             ValidatableField field = r.getField();
-            field.setValidationMessage(validationMessageResolver.resolveValidationMessage(r));
+            field.setValidationMessage(r.getMessage());
         });
         return fieldValidationResults;
     }

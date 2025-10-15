@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Iterator;
 
 /**
  * This is based on Akio Sone's implementation from DVN v2-3:
@@ -39,6 +38,7 @@ import java.util.Iterator;
  * Updated and integrated into 4.0 by
  * @author landreev
  */
+@SuppressWarnings("serial")
 public class JhoveFileType implements java.io.Serializable {
     private static final Logger logger = LoggerFactory.getLogger(JhoveFileType.class);
 
@@ -87,9 +87,7 @@ public class JhoveFileType implements java.io.Serializable {
              * module doesn't know how to validate, we don't want to
              * throw arbitrary files at it, so we'll skip it.
              */
-            Iterator<Module> iter = jb.getModuleList().iterator();
-            while (iter.hasNext()) {
-                Module mod = iter.next();
+            for(final Module mod : jb.getModuleList()) {
                 RepInfo infc = (RepInfo) info.clone();
 
                 if (mod.hasFeature("edu.harvard.hul.ois.jhove.canValidate")) {

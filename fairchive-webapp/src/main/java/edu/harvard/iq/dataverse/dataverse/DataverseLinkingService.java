@@ -27,6 +27,7 @@ import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 /**
  * @author skraffmiller
  */
+@SuppressWarnings("serial")
 @Stateless
 public class DataverseLinkingService implements java.io.Serializable {
 

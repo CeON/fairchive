@@ -190,7 +190,7 @@ final class GeoNamesImporter {
                     final GeoName result = new GeoName();
                     result.setId(cells[0].trim());
                     result.setName(cells[1].trim());
-                    result.setAlternateNames(cells[3].trim());
+                    result.setAlternateNames(cells[3].trim().replaceAll(",", ", "));
                     result.setFeatureCode(cache.deduplicate(cells[7].trim()));
                     result.setCountryCode(cache.deduplicate(cells[8].trim()));
                     result.setAdmin1Code(cache.deduplicateOrNull(cells[10]));

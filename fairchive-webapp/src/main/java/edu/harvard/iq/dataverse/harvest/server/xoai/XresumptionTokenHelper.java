@@ -4,7 +4,6 @@ package edu.harvard.iq.dataverse.harvest.server.xoai;
 import org.dspace.xoai.model.oaipmh.ResumptionToken;
 
 import static com.google.common.base.Predicates.isNull;
-import static java.lang.Math.round;
 
 /**
  * @author Leonid Andreev
@@ -13,23 +12,18 @@ import static java.lang.Math.round;
  * insists that it starts with 0, while the XOAI implementation uses 1
  * as the initial offset.
  */
-public class XresumptionTokenHelper {
+final class XresumptionTokenHelper {
 
     private ResumptionToken.Value current;
     private long maxPerPage;
     private Long totalResults;
 
-    public XresumptionTokenHelper(ResumptionToken.Value current, long maxPerPage) {
+    XresumptionTokenHelper(ResumptionToken.Value current, long maxPerPage) {
         this.current = current;
         this.maxPerPage = maxPerPage;
     }
 
-    public XresumptionTokenHelper withTotalResults(long totalResults) {
-        this.totalResults = totalResults;
-        return this;
-    }
-
-    public ResumptionToken resolve(boolean hasMoreResults) {
+    ResumptionToken resolve(boolean hasMoreResults) {
         if (isInitialOffset() && !hasMoreResults) {
             return null;
         } else {
@@ -38,7 +32,7 @@ public class XresumptionTokenHelper {
                 return populate(new ResumptionToken(next));
             } else {
                 ResumptionToken resumptionToken = new ResumptionToken();
-                resumptionToken.withCursor(round((current.getOffset()) / maxPerPage));
+                resumptionToken.withCursor(current.getOffset());
                 if (totalResults != null) {
                     resumptionToken.withCompleteListSize(totalResults);
                 }
@@ -55,7 +49,7 @@ public class XresumptionTokenHelper {
         if (totalResults != null) {
             resumptionToken.withCompleteListSize(totalResults);
         }
-        resumptionToken.withCursor(round((resumptionToken.getValue().getOffset() - maxPerPage) / maxPerPage));
+        resumptionToken.withCursor(resumptionToken.getValue().getOffset() - maxPerPage);
         return resumptionToken;
     }
 

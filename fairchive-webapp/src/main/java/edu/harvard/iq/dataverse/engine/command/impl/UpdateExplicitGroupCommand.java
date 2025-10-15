@@ -10,12 +10,14 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 /**
  * @author michael
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ManageDataversePermissions)
 public class UpdateExplicitGroupCommand extends AbstractCommand<ExplicitGroup> {
 
     private final ExplicitGroup explicitGroup;
 
-    public UpdateExplicitGroupCommand(DataverseRequest aRequest, ExplicitGroup anExplicitGroup) {
+    public UpdateExplicitGroupCommand(DataverseRequest aRequest, 
+            ExplicitGroup anExplicitGroup) {
         super(aRequest, anExplicitGroup.getOwner());
         explicitGroup = anExplicitGroup;
     }

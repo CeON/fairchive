@@ -5,6 +5,7 @@ import edu.harvard.iq.dataverse.authorization.common.ExternalIdpUserRecord;
 import edu.harvard.iq.dataverse.authorization.exceptions.AuthorizationSetupException;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public interface OAuth2AuthenticationProvider extends AuthenticationProvider {
 
@@ -33,8 +34,11 @@ public interface OAuth2AuthenticationProvider extends AuthenticationProvider {
      */
     ExternalIdpUserRecord getUserRecord(String code, String state, String redirectUrl) throws IOException, OAuth2Exception;
 
+    String createState(Optional<String> redirectPage);
+    
     /**
      * Additional initialization of provider that should be executed before use.
      */
     default void initialize() throws AuthorizationSetupException { }
+    
 }

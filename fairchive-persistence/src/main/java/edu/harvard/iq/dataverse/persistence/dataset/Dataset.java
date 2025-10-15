@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
@@ -33,6 +34,9 @@ import javax.persistence.StoredProcedureParameter;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import static java.util.Arrays.stream;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -53,9 +57,7 @@ import java.util.stream.Stream;
  */
 @NamedQueries({
         @NamedQuery(name = "Dataset.findByIdentifier",
-                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier"),
-        @NamedQuery(name = "Dataset.findByIdentifierAuthorityProtocol",
-                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier AND d.protocol=:protocol AND d.authority=:authority"),
+                query = "SELECT d FROM Dataset d WHERE d.identifier=:identifier")
 })
 
 /*
@@ -187,43 +189,42 @@ public class Dataset extends DvObjectContainer {
         versions.add(datasetVersion);
     }
 
+    public boolean isInReview() {
+        return isLockedFor(Reason.InReview);
+    }
+    
+    
+    public boolean canBeDeleted() {
+        return !isReleased() && getLatestVersion().isDraft();
+    }
+    
     /**
      * Checks whether {@code this} dataset is locked for a given reason.
      *
      * @param reason the reason we test for.
      * @return {@code true} if the data set is locked for {@code reason}.
      */
-    public boolean isLockedFor(DatasetLock.Reason reason) {
-        for (DatasetLock lock : getLocks()) {
-            if (lock.getReason() == reason) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isLockedFor(final DatasetLock.Reason reason) {
+        return getLockFor(reason) != null;
     }
-
-    /**
-     * Checks whether {@code this} dataset is locked for a given reason (given as String value).
-     *
-     * @param reason the reason we test for.
-     * @return {@code true} if the data set is locked for {@code reason}.
-     */
-    public boolean isLockedFor(String reason) {
-        for (DatasetLock lock : getLocks()) {
-            if (lock.getReason().name().equals(reason)) {
-                return true;
-            }
-        }
-        return false;
+    
+    public boolean isLockedForAny(final DatasetLock.Reason... reasons) {
+        return stream(reasons).anyMatch(this::isLockedFor);
     }
+    
+    public boolean isLockedForOtherThan(final DatasetLock.Reason reason) {
+        return isLocked() &&
+                getLocks().stream().anyMatch(l -> l.getReason() != reason);
+    }
+    
 
     /**
      * Retrieves the dataset lock for the passed reason.
      *
      * @return the dataset lock, or {@code null}.
      */
-    public DatasetLock getLockFor(DatasetLock.Reason reason) {
-        for (DatasetLock lock : getLocks()) {
+    public DatasetLock getLockFor(final DatasetLock.Reason reason) {
+        for (final DatasetLock lock : getLocks()) {
             if (lock.getReason() == reason) {
                 return lock;
             }
@@ -232,25 +233,24 @@ public class Dataset extends DvObjectContainer {
     }
 
     public Set<DatasetLock> getLocks() {
-        // lazy set creation
-        if (datasetLocks == null) {
-            datasetLocks = new HashSet<>();
+        if (this.datasetLocks == null) {
+            this.datasetLocks = new HashSet<>();
         }
-        return datasetLocks;
+        return this.datasetLocks;
     }
 
     /**
      * JPA use only!
      */
-    void setLocks(Set<DatasetLock> datasetLocks) {
+    void setLocks(final Set<DatasetLock> datasetLocks) {
         this.datasetLocks = datasetLocks;
     }
 
-    public void addLock(DatasetLock datasetLock) {
+    public void addLock(final DatasetLock datasetLock) {
         getLocks().add(datasetLock);
     }
 
-    public void removeLock(DatasetLock aDatasetLock) {
+    public void removeLock(final DatasetLock aDatasetLock) {
         getLocks().remove(aDatasetLock);
     }
 
@@ -642,12 +642,12 @@ public class Dataset extends DvObjectContainer {
             return null;
         }
         if (HarvestStyle.DATAVERSE.equals(getHarvestedFrom().getHarvestStyle())) {
-            return getHarvestedFrom().getArchiveUrl() + "/dataset.xhtml?persistentId=" + getGlobalIdString();
+            return getHarvestedFrom().getArchiveUrl() + "/dataset.xhtml?persistentId=" + getGlobalId();
         } else if (HarvestStyle.VDC.equals(getHarvestedFrom().getHarvestStyle())) {
             String rootArchiveUrl = getHarvestedFrom().getHarvestingUrl();
             int c = rootArchiveUrl.indexOf("/OAIHandler");
             return c > 0
-                    ? rootArchiveUrl.substring(0, c) + "/faces/study/StudyPage.xhtml?globalId=" + getGlobalIdString()
+                    ? rootArchiveUrl.substring(0, c) + "/faces/study/StudyPage.xhtml?globalId=" + getGlobalId()
                     : null;
         } else if (HarvestStyle.ICPSR.equals(getHarvestedFrom().getHarvestStyle())) {
             // For the ICPSR, it turns out that the best thing to do is to

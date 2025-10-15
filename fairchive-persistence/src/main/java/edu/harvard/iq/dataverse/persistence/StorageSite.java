@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import java.io.Serializable;
 import java.util.Objects;
 
+@SuppressWarnings("serial")
 @Entity
 public class StorageSite implements Serializable {
 
@@ -65,16 +66,6 @@ public class StorageSite implements Serializable {
     @Column(name = "transferProtocols", columnDefinition = "TEXT", nullable = false)
     private String transferProtocols;
 
-    //    @OneToMany(mappedBy = "storageSite", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
-//    private List<DvObjectStorageLocation> dvObjectStorageLocations;
-//    public List<DvObjectStorageLocation> getDvObjectStorageLocations() {
-//        return dvObjectStorageLocations;
-//    }
-//
-//    public void setDvObjectStorageLocations(List<DvObjectStorageLocation> dvObjectStorageLocations) {
-//        this.dvObjectStorageLocations = dvObjectStorageLocations;
-//    }
-//    
     public Long getId() {
         return id;
     }

@@ -512,10 +512,10 @@ public class Admin extends AbstractApiBean {
             return ok(output);
         } catch (Throwable ex) {
             StringBuilder sb = new StringBuilder();
-            sb.append(ex + " ");
+            sb.append(ex).append(' ');
             while (ex.getCause() != null) {
                 ex = ex.getCause();
-                sb.append(ex + " ");
+                sb.append(ex).append(' ');
             }
             String msg = "User id " + id
                     + " could not be converted from Shibboleth to BuiltIn. Details from Exception: " + sb;
@@ -538,7 +538,6 @@ public class Admin extends AbstractApiBean {
         }
         try {
             BuiltinUser builtinUser = authSvc.convertRemoteToBuiltIn(id, newEmailAddress);
-            //AuthenticatedUser authUser = authService.getAuthenticatedUser(aUser.getUserName());
             if (builtinUser == null) {
                 return error(Response.Status.BAD_REQUEST, "User id " + id
                         + " could not be converted from remote to BuiltIn. An Exception was not thrown.");
@@ -550,10 +549,10 @@ public class Admin extends AbstractApiBean {
             return ok(output);
         } catch (Throwable ex) {
             StringBuilder sb = new StringBuilder();
-            sb.append(ex + " ");
+            sb.append(ex).append(' ');
             while (ex.getCause() != null) {
                 ex = ex.getCause();
-                sb.append(ex + " ");
+                sb.append(ex).append(' ');
             }
             String msg = "User id " + id + " could not be converted from remote to BuiltIn. Details from Exception: "
                     + sb;
@@ -594,7 +593,6 @@ public class Admin extends AbstractApiBean {
             emailToFind = args[0];
             password = args[1];
             newEmailAddressToUse = args[2];
-            // authuserId = args[666];
         } catch (ArrayIndexOutOfBoundsException ex) {
             return error(Response.Status.BAD_REQUEST, "Problem with content <<<" + content + ">>>: " + ex.toString());
         }
@@ -616,10 +614,8 @@ public class Admin extends AbstractApiBean {
         }
         String shibProviderId = ShibAuthenticationProvider.PROVIDER_ID;
         Map<String, String> randomUser = authTestDataService.getRandomUser();
-        // String eppn = UUID.randomUUID().toString().substring(0, 8);
         String eppn = randomUser.get("eppn");
         String idPEntityId = randomUser.get("idp");
-        String notUsed = null;
         String separator = "|";
         String newUserIdentifierInLookupTable = idPEntityId + separator + eppn;
         String overwriteFirstName = randomUser.get("firstName");
@@ -766,15 +762,7 @@ public class Admin extends AbstractApiBean {
                                      + " and no user was found using specified id " + longToLookup);
             }
         }
-        // String shibProviderId = ShibAuthenticationProvider.PROVIDER_ID;
         Map<String, String> randomUser = authTestDataService.getRandomUser();
-        // String eppn = UUID.randomUUID().toString().substring(0, 8);
-        String eppn = randomUser.get("eppn");
-        String idPEntityId = randomUser.get("idp");
-        String notUsed = null;
-        String separator = "|";
-        // UserIdentifier newUserIdentifierInLookupTable = new
-        // UserIdentifier(idPEntityId + separator + eppn, notUsed);
         String newUserIdentifierInLookupTable = newPersistentUserIdInLookupTable;
         String overwriteFirstName = randomUser.get("firstName");
         String overwriteLastName = randomUser.get("lastName");
@@ -786,26 +774,9 @@ public class Admin extends AbstractApiBean {
             // See https://github.com/IQSS/dataverse/issues/2998
             return error(Response.Status.BAD_REQUEST, "invalid email: " + overwriteEmail);
         }
-        /**
-         * @todo If affiliation is not null, put it in RoleAssigneeDisplayInfo
-         *       constructor.
-         */
-        /**
-         * Here we are exercising (via an API test) shibService.getAffiliation with the
-         * TestShib IdP and a non-production DevShibAccountType.
-         */
-        // idPEntityId = ShibUtil.testShibIdpEntityId;
-        // String overwriteAffiliation = shibService.getAffiliation(idPEntityId,
-        // ShibServiceBean.DevShibAccountType.RANDOM);
-        String overwriteAffiliation = null;
-        logger.info("overwriteAffiliation: " + overwriteAffiliation);
-        /**
-         * @todo Find a place to put "position" in the authenticateduser table:
-         *       https://github.com/IQSS/dataverse/issues/1444#issuecomment-74134694
-         */
         String overwritePosition = "staff;student";
         AuthenticatedUserDisplayInfo displayInfo = new AuthenticatedUserDisplayInfo(overwriteFirstName,
-                                                                                    overwriteLastName, overwriteEmail, overwriteAffiliation, overwritePosition);
+                                                                                    overwriteLastName, overwriteEmail, null, overwritePosition);
         JsonObjectBuilder response = Json.createObjectBuilder();
         JsonArrayBuilder problems = Json.createArrayBuilder();
         if (password != null) {
@@ -840,15 +811,13 @@ public class Admin extends AbstractApiBean {
                 problems.add("couldn't find old username");
             }
             if (!knowsExistingPassword) {
-                String message = "User doesn't know password.";
-                problems.add(message);
+                problems.add("User doesn't know password.");
                 /**
                  * @todo Someday we should make a errorResponse method that takes JSON arrays
                  *       and objects.
                  */
                 return error(Status.BAD_REQUEST, problems.build().toString());
             }
-            // response.add("knows existing password", knowsExistingPassword);
         }
 
         response.add("user to convert", builtInUserToConvert.getIdentifier());
@@ -857,9 +826,6 @@ public class Admin extends AbstractApiBean {
         response.add("value to overwrite old first name", overwriteFirstName);
         response.add("value to overwrite old last name", overwriteLastName);
         response.add("value to overwrite old email address", overwriteEmail);
-        if (overwriteAffiliation != null) {
-            response.add("affiliation", overwriteAffiliation);
-        }
         response.add("problems", problems);
         return ok(response);
     }

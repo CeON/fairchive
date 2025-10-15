@@ -1,12 +1,34 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.abdera.parser.ParseException;
+import org.swordapp.server.AuthCredentials;
+import org.swordapp.server.ContainerManager;
+import org.swordapp.server.Deposit;
+import org.swordapp.server.DepositReceipt;
+import org.swordapp.server.SwordAuthException;
+import org.swordapp.server.SwordConfiguration;
+import org.swordapp.server.SwordEntry;
+import org.swordapp.server.SwordError;
+import org.swordapp.server.SwordServerException;
+import org.swordapp.server.UriRegistry;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.api.imports.ImportGenericServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandExecutionException;
@@ -23,54 +45,33 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.abdera.parser.ParseException;
-import org.swordapp.server.AuthCredentials;
-import org.swordapp.server.ContainerManager;
-import org.swordapp.server.Deposit;
-import org.swordapp.server.DepositReceipt;
-import org.swordapp.server.SwordAuthException;
-import org.swordapp.server.SwordConfiguration;
-import org.swordapp.server.SwordEntry;
-import org.swordapp.server.SwordError;
-import org.swordapp.server.SwordServerException;
-import org.swordapp.server.UriRegistry;
 
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Logger;
-
-public class ContainerManagerImpl implements ContainerManager {
+final class ContainerManagerImpl implements ContainerManager {
 
     private static final Logger logger = Logger.getLogger(ContainerManagerImpl.class.getCanonicalName());
 
     @EJB
-    protected EjbDataverseEngine engineSvc;
+    private EjbDataverseEngine engineSvc;
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
-    DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
-    IndexServiceBean indexService;
+    private IndexServiceBean indexService;
     @EJB
-    ImportGenericServiceBean importGenericService;
+    private ImportGenericServiceBean importGenericService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @EJB
-    DataFileServiceBean datafileService;
+    private DataFileServiceBean datafileService;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
     @Inject
     private SystemConfig systemConfig;
     @EJB
-    SwordServiceBean swordService;
+    private  SwordServiceBean swordService;
     @Inject
     private CitationFactory citationFactory;
 
@@ -90,13 +91,12 @@ public class ContainerManagerImpl implements ContainerManager {
             logger.fine("operating on target type: " + urlManager.getTargetType());
             if ("study".equals(targetType)) {
                 String globalId = urlManager.getTargetIdentifier();
-                Dataset dataset = datasetDao.findByGlobalId(globalId);
+                Dataset dataset = datasetService.findByGlobalId(globalId);
                 if (dataset != null) {
                     if (!permissionService.isUserAllowedOn(user, new GetDraftDatasetVersionCommand(dvReq, dataset), dataset)) {
                         throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "User " + user.getDisplayInfo().getTitle() +
-                                " is not authorized to retrieve entry for " + dataset.getGlobalIdString());
+                                " is not authorized to retrieve entry for " + dataset.getGlobalId());
                     }
-                    Dataverse dvThatOwnsDataset = dataset.getOwner();
                     ReceiptGenerator receiptGenerator = new ReceiptGenerator(citationFactory);
                     String baseUrl = urlManagerServiceBean.getHostnamePlusBaseUrlPath();
                     DepositReceipt depositReceipt = receiptGenerator.createDatasetReceipt(baseUrl, dataset);
@@ -142,7 +142,7 @@ public class ContainerManagerImpl implements ContainerManager {
                 }
 
                 String globalId = urlManager.getTargetIdentifier();
-                Dataset dataset = datasetDao.findByGlobalId(globalId);
+                Dataset dataset = datasetService.findByGlobalId(globalId);
                 if (dataset != null) {
                     Dataverse dvThatOwnsDataset = dataset.getOwner();
                     UpdateDatasetVersionCommand updateDatasetCommand = new UpdateDatasetVersionCommand(dataset, dvReq);
@@ -229,7 +229,7 @@ public class ContainerManagerImpl implements ContainerManager {
                 String globalId = urlManager.getTargetIdentifier();
                 logger.fine("globalId: " + globalId);
                 if (globalId != null) {
-                    Dataset dataset = dataset = datasetDao.findByGlobalId(globalId);
+                    Dataset dataset = datasetService.findByGlobalId(globalId);
                     if (dataset != null) {
                         Dataverse dvThatOwnsDataset = dataset.getOwner();
                         /**
@@ -247,12 +247,12 @@ public class ContainerManagerImpl implements ContainerManager {
                         DatasetVersion.VersionState datasetVersionState = dataset.getLatestVersion().getVersionState();
                         if (dataset.isReleased()) {
                             if (datasetVersionState.equals(DatasetVersion.VersionState.DRAFT)) {
-                                logger.info("destroying working copy version of dataset " + dataset.getGlobalIdString());
+                                logger.info("destroying working copy version of dataset " + dataset.getGlobalId());
                                 try {
                                     engineSvc.submit(deleteDatasetVersionCommand);
                                 } catch (CommandException ex) {
                                     throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "Can't delete dataset version for " +
-                                            dataset.getGlobalIdString() + ": " + ex);
+                                            dataset.getGlobalId() + ": " + ex);
                                 }
                                 logger.info("dataset version deleted for dataset id " + dataset.getId());
                             } else if (datasetVersionState.equals(DatasetVersion.VersionState.RELEASED)) {
@@ -261,15 +261,15 @@ public class ContainerManagerImpl implements ContainerManager {
                                                 SwordConfigurationConstants.BASE_URL_PATH_V1 + ") Equivalent functionality is being developed at https://github.com/IQSS/dataverse/issues/778");
                             } else if (datasetVersionState.equals(DatasetVersion.VersionState.DEACCESSIONED)) {
                                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST,
-                                        "Lastest version of dataset " + dataset.getGlobalIdString() +
+                                        "Lastest version of dataset " + dataset.getGlobalId() +
                                                 " has already been deaccessioned.");
                             } else if (datasetVersionState.equals(DatasetVersion.VersionState.ARCHIVED)) {
                                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST,
-                                        "Lastest version of dataset " + dataset.getGlobalIdString() +
+                                        "Lastest version of dataset " + dataset.getGlobalId() +
                                                 " has been archived and can not be deleted or deaccessioned.");
                             } else {
                                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST,
-                                        "Operation not valid for dataset " + dataset.getGlobalIdString() +
+                                        "Operation not valid for dataset " + dataset.getGlobalId() +
                                                 " in state " + datasetVersionState);
                             }
                             /**
@@ -341,7 +341,7 @@ public class ContainerManagerImpl implements ContainerManager {
                 if (globalId != null) {
                     Dataset dataset = null;
                     try {
-                        dataset = datasetDao.findByGlobalId(globalId);
+                        dataset = datasetService.findByGlobalId(globalId);
                     } catch (EJBException ex) {
                         throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "Could not find dataset based on global id (" + globalId + ") in URL: " + uri);
                     }

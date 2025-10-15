@@ -27,6 +27,7 @@ import java.sql.Timestamp;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @NamedQueries({
         @NamedQuery(name = "OAuth2TokenData.findByUserIdAndProviderId",
                 query = "SELECT d FROM OAuth2TokenData d WHERE d.user.id=:userId AND d.oauthProviderId=:providerId"),
@@ -58,7 +59,7 @@ public class OAuth2TokenData implements Serializable {
     @Column(length = 64)
     private String refreshToken;
 
-    @Column(length = 64)
+    @Column(columnDefinition = "TEXT")
     private String scope;
 
     @Column(length = 32)

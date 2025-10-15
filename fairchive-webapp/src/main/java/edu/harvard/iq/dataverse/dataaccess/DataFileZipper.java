@@ -98,14 +98,14 @@ public class DataFileZipper {
 
         long byteSize = 0;
 
-        String fileName = accessObject.getFileName();
+        String fileName = getFileNameFrom(accessObject, dataFile, getOriginal);
         String mimeType = accessObject.getMimeType();
         if (mimeType == null || mimeType.equals("")) {
             mimeType = "application/octet-stream";
         }
 
 
-        try (InputStream instream = accessObject.getInputStream()) { 
+        try (InputStream instream = getInputStreamFrom(accessObject, dataFile, getOriginal)) { 
             if (instream == null) {
                 addToManifest(fileName
                                   + " (" + mimeType
@@ -172,6 +172,24 @@ public class DataFileZipper {
             }
         }
         return byteSize;
+    }
+    
+    private InputStream getInputStreamFrom(StorageIO<DataFile> accessObject, DataFile file, boolean getOriginal) 
+            throws IOException{    
+        if(file.isImage() && !getOriginal && accessObject.isAuxObjectCached("ocr")) {
+            return accessObject.getAuxFileAsInputStream("ocr");
+        } else {
+            return accessObject.getInputStream();
+        }
+    }
+    
+    private String getFileNameFrom(StorageIO<DataFile> accessObject, DataFile file, boolean getOriginal) 
+            throws IOException{    
+        if(file.isImage() && !getOriginal && accessObject.isAuxObjectCached("ocr")) {
+            return accessObject.getFileName().concat(".txt");
+        } else {
+            return accessObject.getFileName();
+        }
     }
 
     public void finalizeZipStream() throws IOException {

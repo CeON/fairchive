@@ -33,6 +33,11 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
+import static java.lang.Long.parseLong;
+import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang.StringUtils.join;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,7 +48,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -54,7 +58,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -82,8 +85,6 @@ import java.util.regex.Pattern;
 public class SAVFileReader extends TabularDataFileReader {
 
     // static fields ---------------------------------------------------------//
-    private static String[] FORMAT_NAMES = {"sav", "SAV"};
-    private static String[] EXTENSIONS = {"sav"};
     private static String[] MIME_TYPE = {"application/x-spss-sav"};
 
     private static final int LENGTH_SAV_INT_BLOCK = 4;
@@ -99,8 +100,6 @@ public class SAVFileReader extends TabularDataFileReader {
     private static final int LENGTH_RECORDTYPE1 = 172;
 
     private static final int LENGTH_SPSS_PRODUCT_INFO = 60;
-
-    private static final int FILE_LAYOUT_CONSTANT = 2;
 
     private static final int LENGTH_FILE_LAYOUT_CODE = LENGTH_SAV_INT_BLOCK;
 
@@ -119,24 +118,16 @@ public class SAVFileReader extends TabularDataFileReader {
     private static final int length_file_creation_date = 9;
     private static final int length_file_creation_time = 8;
     private static final int length_file_creation_label = 64;
-    private static final int length_file_creation_padding = 3;
 
     // Recorde Type 2
 
     private static final int LENGTH_RECORDTYPE2_FIXED = 32;
-    private static final int LENGTH_RECORD_TYPE2_CODE = 4;
-    private static final int LENGTH_TYPE_CODE = 4;
-    private static final int LENGTH_LABEL_FOLLOWS = 4;
-    private static final int LENGTH_MISS_VALUE_FORMAT_CODE = 4;
     private static final int LENGTH_PRINT_FORMAT_CODE = 4;
     private static final int LENGTH_WRITE_FORMAT_CODE = 4;
     private static final int LENGTH_VARIABLE_NAME = 8;
     private static final int LENGTH_VARIABLE_LABEL = 4;
 
-    private static final int LENGTH_MISS_VAL_OBS_CODE = LENGTH_SAV_OBS_BLOCK;
-
     // Record Type 3/4
-    private static final int LENGTH_RECORDTYPE3_HEADER_CODE = 4;
     private static final int LENGTH_RECORD_TYPE3_CODE = 4;
     private static final int LENGTH_RT3_HOW_MANY_LABELS = 4;
     private static final int LENGTH_RT3_VALUE = LENGTH_SAV_OBS_BLOCK;
@@ -163,9 +154,6 @@ public class SAVFileReader extends TabularDataFileReader {
     private static final List<String> RecordType7SubType4Fields = new ArrayList<String>();
     private static final Set<Integer> validMissingValueCodeSet = new HashSet<Integer>();
     private static final Map<Integer, Integer> missingValueCodeUnits = new HashMap<Integer, Integer>();
-
-    private static double SYSMIS_LITTLE = 0xFFFFFFFFFFFFEFFFL;
-    private static double SYSMIS_BIG = 0xFFEFFFFFFFFFFFFFL;
 
     private static Calendar GCO = new GregorianCalendar();
 
@@ -210,20 +198,16 @@ public class SAVFileReader extends TabularDataFileReader {
 
     private static final long SPSS_DATE_OFFSET = SPSS_DATE_BIAS + Math.abs(GCO.getTimeInMillis());
 
-
-    // instance fields -------------------------------------------------------//
-    private static String unfVersionNumber = "6";
-
     // instance fields -------------------------------------------------------//
 
     private static Logger dbgLog = Logger.getLogger(SAVFileReader.class.getPackage().getName());
 
 
-    TabularDataIngest ingesteddata = new TabularDataIngest();
+    private TabularDataIngest ingesteddata = new TabularDataIngest();
     private DataTable dataTable = new DataTable();
 
-    Map<String, String> shortToLongVariableNameTable = new LinkedHashMap<String, String>();
-    Map<String, String> formatCategoryTable = new LinkedHashMap<String, String>();
+    private Map<String, String> shortToLongVariableNameTable = new LinkedHashMap<String, String>();
+    private Map<String, String> formatCategoryTable = new LinkedHashMap<String, String>();
 
 
     private boolean isLittleEndian = false;
@@ -237,32 +221,32 @@ public class SAVFileReader extends TabularDataFileReader {
     private List<Integer> variableTypelList = new ArrayList<Integer>();
     private List<Integer> OBSwiseTypelList = new ArrayList<Integer>();
 
-    Map<String, String> printFormatTable = new LinkedHashMap<String, String>();
+    private Map<String, String> printFormatTable = new LinkedHashMap<String, String>();
 
 
-    Set<Integer> obsNonVariableBlockSet = new LinkedHashSet<Integer>();
+    private Set<Integer> obsNonVariableBlockSet = new LinkedHashSet<Integer>();
 
 
-    Map<String, String> valueVariableMappingTable = new LinkedHashMap<String, String>();
+    private Map<String, String> valueVariableMappingTable = new LinkedHashMap<String, String>();
 
-    Map<String, Integer> extendedVariablesSizeTable = new LinkedHashMap<String, Integer>();
-
-
-    List<String> variableNameList = new ArrayList<String>();
+    private Map<String, Integer> extendedVariablesSizeTable = new LinkedHashMap<String, Integer>();
 
 
-    Map<String, InvalidData> invalidDataTable = new LinkedHashMap<String, InvalidData>(); // this variable used in 2 methods; only one uses it to set the smd value -- ??
-
-    NumberFormat doubleNumberFormatter = new DecimalFormat();
-
-    Set<Integer> decimalVariableSet = new HashSet<Integer>();
-
-    String[] variableFormatTypeList = null;
-
-    List<Integer> formatDecimalPointPositionList = new ArrayList<Integer>();
+    private List<String> variableNameList = new ArrayList<String>();
 
 
-    int caseWeightVariableOBSIndex = 0;
+    private Map<String, InvalidData> invalidDataTable = new LinkedHashMap<String, InvalidData>(); // this variable used in 2 methods; only one uses it to set the smd value -- ??
+
+    private NumberFormat doubleNumberFormatter = new DecimalFormat();
+
+    private Set<Integer> decimalVariableSet = new HashSet<Integer>();
+
+    private String[] variableFormatTypeList = null;
+
+    private List<Integer> formatDecimalPointPositionList = new ArrayList<Integer>();
+
+
+    private int caseWeightVariableOBSIndex = 0;
 
 
     // date/time data formats
@@ -273,14 +257,13 @@ public class SAVFileReader extends TabularDataFileReader {
     private SimpleDateFormat sdf_hms = new SimpleDateFormat("HH:mm:ss");
 
 
-    Map<String, String> OBSTypeHexValue = new LinkedHashMap<String, String>();
+    private Map<String, String> OBSTypeHexValue = new LinkedHashMap<String, String>();
 
     /*
      * TODO: add a comment explaining the whole thing about this default
      * character set. -- L.A. 4.0 beta
      */
     private String defaultCharSet = "ISO-8859-1";
-    //private String defaultCharSet = "US-ASCII"; // -- temporary! -- 4.0 beta 6
     private int spssVersionNumber = 0;
 
 
@@ -301,7 +284,7 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    String MissingValueForTextDataFileString = "";
+    private String MissingValueForTextDataFileString = "";
 
 
     public String getMissingValueForTextDataFileString() {
@@ -336,7 +319,8 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
     @Override
-    public TabularDataIngest read(Tuple2<BufferedInputStream, File> streamAndFile, File dataFile) throws IOException {
+    public TabularDataIngest read(Tuple2<BufferedInputStream, File> streamAndFile, 
+            File dataFile) throws IOException {
         dbgLog.info("SAVFileReader: read() start");
 
         if (dataFile != null) {
@@ -425,11 +409,12 @@ public class SAVFileReader extends TabularDataFileReader {
 
 
             } catch (IllegalArgumentException e) {
-                //Throwable cause = e.getCause();
-                dbgLog.log(Level.FINE, "***** SAVFileReader: ATTENTION: IllegalArgumentException thrown while executing " + methodCurrentlyExecuted, e);
+                dbgLog.log(Level.FINE, "***** SAVFileReader: ATTENTION: IllegalArgumentException thrown while executing " 
+                        + methodCurrentlyExecuted, e);
                 throw new IngestException(IngestError.UNKNOWN_ERROR, e);
             } catch (IOException e) {
-                dbgLog.log(Level.FINE, "***** SAVFileReader: ATTENTION: IOException thrown while executing " + methodCurrentlyExecuted, e);
+                dbgLog.log(Level.FINE, "***** SAVFileReader: ATTENTION: IOException thrown while executing " 
+                            + methodCurrentlyExecuted, e);
                 throw new IngestException(IngestError.UNKNOWN_ERROR, e);
             }
 
@@ -539,7 +524,7 @@ public class SAVFileReader extends TabularDataFileReader {
         return ingesteddata;
     }
 
-    void decodeHeader(BufferedInputStream stream) throws IOException {
+    private void decodeHeader(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeHeader(): start");
 
         if (stream == null) {
@@ -561,11 +546,8 @@ public class SAVFileReader extends TabularDataFileReader {
             }
 
         } catch (IOException ex) {
-            //ex.printStackTrace();
             throw ex;
         }
-
-        //printHexDump(b, "hex dump of the byte-array");
 
         String hdr4sav = new String(b);
         dbgLog.fine("from string=" + hdr4sav);
@@ -605,14 +587,9 @@ public class SAVFileReader extends TabularDataFileReader {
         // this field consists of 6 distinct blocks
 
         byte[] recordType1 = new byte[LENGTH_RECORDTYPE1];
-        // int caseWeightVariableOBSIndex = 0;
 
         try {
             int nbytes = stream.read(recordType1, 0, LENGTH_RECORDTYPE1);
-
-
-            //printHexDump(recordType1, "recordType1");
-
             if (nbytes == 0) {
                 throw new IOException("reading recordType1: no byte was read");
             }
@@ -624,7 +601,7 @@ public class SAVFileReader extends TabularDataFileReader {
             int offset_end = LENGTH_SPSS_PRODUCT_INFO; // 60 bytes
 
             String productInfo = new String(Arrays.copyOfRange(recordType1, offset_start,
-                                                               offset_end), StandardCharsets.US_ASCII);
+                                                               offset_end), US_ASCII);
 
             dbgLog.fine("productInfo:\n" + productInfo + "\n");
             dataTable.setOriginalFormatVersion(productInfo);
@@ -690,7 +667,6 @@ public class SAVFileReader extends TabularDataFileReader {
                  */
                 if (spssVersionNumber > 15) {
                     if (getDataLanguageEncoding() == null) {
-                        //defaultCharSet = "windows-1252"; // temporary! -- L.A. "UTF-8";
                         defaultCharSet = "UTF-8";
                     }
                 }
@@ -736,7 +712,8 @@ public class SAVFileReader extends TabularDataFileReader {
                     isLittleEndian = true;
 
                 } else {
-                    throw new IOException("reading recordType1:unknown file layout code=" + int2test);
+                    throw new IOException("reading recordType1:unknown file layout code=" 
+                                + int2test);
                 }
             }
 
@@ -766,7 +743,8 @@ public class SAVFileReader extends TabularDataFileReader {
             offset_end += LENGTH_COMPRESSION_SWITCH; // 4 byte
 
             ByteBuffer bb_compression_switch = ByteBuffer.wrap(recordType1,
-                                                               offset_start, LENGTH_COMPRESSION_SWITCH);
+                                                               offset_start, 
+                                                               LENGTH_COMPRESSION_SWITCH);
 
             if (isLittleEndian) {
                 bb_compression_switch.order(ByteOrder.LITTLE_ENDIAN);
@@ -788,7 +766,8 @@ public class SAVFileReader extends TabularDataFileReader {
             offset_end += LENGTH_CASE_WEIGHT_VARIABLE_INDEX; // 4 byte
 
             ByteBuffer bb_Case_Weight_Variable_Index = ByteBuffer.wrap(recordType1,
-                                                                       offset_start, LENGTH_CASE_WEIGHT_VARIABLE_INDEX);
+                                                                       offset_start, 
+                                                                       LENGTH_CASE_WEIGHT_VARIABLE_INDEX);
 
             if (isLittleEndian) {
                 bb_Case_Weight_Variable_Index.order(ByteOrder.LITTLE_ENDIAN);
@@ -809,7 +788,8 @@ public class SAVFileReader extends TabularDataFileReader {
             offset_end += LENGTH_NUMBER_OF_CASES; // 4 byte
 
             ByteBuffer bb_Number_Of_Cases = ByteBuffer.wrap(recordType1,
-                                                            offset_start, LENGTH_NUMBER_OF_CASES);
+                                                            offset_start, 
+                                                            LENGTH_NUMBER_OF_CASES);
 
             if (isLittleEndian) {
                 bb_Number_Of_Cases.order(ByteOrder.LITTLE_ENDIAN);
@@ -863,7 +843,7 @@ public class SAVFileReader extends TabularDataFileReader {
             offset_end += LENGTH_FILE_CREATION_INFO; // 84 bytes
 
             String fileCreationInfo = getNullStrippedString(new String(Arrays.copyOfRange(recordType1, offset_start,
-                                                                                          offset_end), StandardCharsets.US_ASCII));
+                                                                                          offset_end), US_ASCII));
 
             dbgLog.fine("fileCreationInfo:\n" + fileCreationInfo + "\n");
 
@@ -887,7 +867,7 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    void decodeRecordType2(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType2(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordType2(): start");
         if (stream == null) {
             throw new IllegalArgumentException("stream == null!");
@@ -897,9 +877,6 @@ public class SAVFileReader extends TabularDataFileReader {
         Map<String, String> variableLabelMap = new LinkedHashMap<String, String>();
         Map<String, List<String>> missingValueTable = new LinkedHashMap<String, List<String>>();
         List<Integer> printFormatList = new ArrayList<Integer>();
-
-        String caseWeightVariableName = null;
-        int caseWeightVariableIndex = 0;
 
 
         boolean lastVariableIsExtendable = false;
@@ -926,6 +903,7 @@ public class SAVFileReader extends TabularDataFileReader {
         // Then if there are optional missing value units (4th INT4 set to 1)
         // there will be 3 more OBS units attached = 24 extra bytes.
 
+        
         int variableCounter = 0;
         int obsSeqNumber = 0;
 
@@ -941,10 +919,6 @@ public class SAVFileReader extends TabularDataFileReader {
 
             try {
                 int nbytes = stream.read(recordType2Fixed, 0, LENGTH_RECORDTYPE2_FIXED);
-
-
-                //printHexDump(recordType2Fixed, "recordType2 part 1");
-
                 if (nbytes == 0) {
                     throw new IOException("reading recordType2: no bytes read!");
                 }
@@ -967,11 +941,6 @@ public class SAVFileReader extends TabularDataFileReader {
                     recordType2FixedPart1[i] = bb_record_type2_fixed_part1[i].getInt();
                 }
 
-
-                ///dbgLog.fine("recordType2FixedPart="+
-                ///        ReflectionToStringBuilder.toString(recordType2FixedPart1, ToStringStyle.MULTI_LINE_STYLE));
-
-
                 // 1st ([0]) element must be 2 otherwise no longer Record Type 2
                 if (recordType2FixedPart1[0] != 2) {
                     dbgLog.warning(j + "-th RT header value is no longet RT2! " + recordType2FixedPart1[0]);
@@ -987,8 +956,9 @@ public class SAVFileReader extends TabularDataFileReader {
                 // we can make the decision on whether this variable is part
                 // of a compound variable:
 
-                String RawVariableName = getNullStrippedString(new String(Arrays.copyOfRange(recordType2Fixed, 24, (24 + LENGTH_VARIABLE_NAME)), defaultCharSet));
-                //offset +=LENGTH_VARIABLE_NAME;
+                String RawVariableName = getNullStrippedString(new String(
+                        Arrays.copyOfRange(recordType2Fixed, 24, (24 + LENGTH_VARIABLE_NAME)), 
+                        defaultCharSet));
                 String variableName = null;
                 if (RawVariableName.indexOf(' ') >= 0) {
                     variableName = RawVariableName.substring(0, RawVariableName.indexOf(' '));
@@ -1004,9 +974,8 @@ public class SAVFileReader extends TabularDataFileReader {
 
                 boolean isNumericVariable = false;
 
-                dbgLog.fine("variable type(0: numeric; > 0: String;-1 continue )=" + recordType2FixedPart1[1]);
-
-                //OBSwiseTypelList.add(recordType2FixedPart1[1]);
+                dbgLog.fine("variable type(0: numeric; > 0: String;-1 continue )=" 
+                        + recordType2FixedPart1[1]);
 
                 int HowManyRt2Units = 1;
 
@@ -1120,19 +1089,9 @@ public class SAVFileReader extends TabularDataFileReader {
 
                     lastVariableName = variableName;
 
-                    // caseWeightVariableOBSIndex starts from 1: 0 is used for does-not-exist cases
-                    if (j == (caseWeightVariableOBSIndex - 1)) {
-                        caseWeightVariableName = variableName;
-                        // TODO: do we need this "index"? -- 4.0 alpha
-                        caseWeightVariableIndex = variableCounter;
-
-                        ///smd.setCaseWeightVariableName(caseWeightVariableName);
-                        ///smd.getFileInformation().put("caseWeightVariableIndex", caseWeightVariableIndex);
-                    }
-
                     OBSIndexToVariableName.put(j, variableName);
 
-                    //dbgLog.fine("\nvariable name="+variableName+"<-");
+
                     dbgLog.fine("RT2: " + j + "-th variable name=" + variableName + "<-");
                     dbgLog.fine("RT2: raw variable: " + RawVariableName);
 
@@ -1183,12 +1142,14 @@ public class SAVFileReader extends TabularDataFileReader {
                         int nbytes_2_5 = stream.read(variable_label);
                         if (nbytes_2_5 == 0) {
                             throw new IOException("RT 2: error reading recordType2.5: "
-                                                          + variableLabelLength + " bytes requested, no bytes read!");
+                                                          + variableLabelLength 
+                                                          + " bytes requested, no bytes read!");
                         } else {
                             dbgLog.fine("nbytes_2_5=" + nbytes_2_5);
                         }
-                        variableLabel = getNullStrippedString(new String(Arrays.copyOfRange(variable_label,
-                                                                                            0, rawVariableLabelLength), defaultCharSet));
+                        variableLabel = getNullStrippedString(new String(
+                                Arrays.copyOfRange(variable_label, 0, rawVariableLabelLength), 
+                                    defaultCharSet));
                         dbgLog.fine("RT2: variableLabel=" + variableLabel + "<-");
 
                         dbgLog.fine(variableName + " => " + variableLabel);
@@ -1278,7 +1239,7 @@ public class SAVFileReader extends TabularDataFileReader {
                             SPSSConstants.FORMAT_CODE_TABLE_SAV.get(formatCode) +
                                     formatWidth);
                     if (formatDecimalPointPosition > 0) {
-                        sb.append("." + formatDecimalPointPosition);
+                        sb.append(".").append(formatDecimalPointPosition);
                     }
                     dbgLog.fine("formattable[i] = " + variableName + " -> " + sb.toString());
                     printFormatNameTable.put(variableName, sb.toString());
@@ -1297,7 +1258,6 @@ public class SAVFileReader extends TabularDataFileReader {
                 if (hasMissingValues) {
                     dbgLog.fine("RT2: decoding missing value: type=" + recordType2FixedPart1[3]);
                     int howManyMissingValueUnits = missingValueCodeUnits.get(recordType2FixedPart1[3]);
-                    //int howManyMissingValueUnits = recordType2FixedPart1[3] > 0 ? recordType2FixedPart1[3] :  0;
 
                     dbgLog.fine("RT2: howManyMissingValueUnits=" + howManyMissingValueUnits);
 
@@ -1310,12 +1270,9 @@ public class SAVFileReader extends TabularDataFileReader {
                         dbgLog.fine("nbytes_2_6=" + nbytes_2_6);
                     }
 
-                    //printHexDump(missing_value_code_units, "missing value");
-
                     if (isNumericVariable) {
 
                         double[] missingValues = new double[howManyMissingValueUnits];
-                        //List<String> mvp = new ArrayList<String>();
                         List<String> mv = new ArrayList<String>();
 
                         ByteBuffer[] bb_missig_value_code =
@@ -1334,7 +1291,7 @@ public class SAVFileReader extends TabularDataFileReader {
                                 bb_missig_value_code[i].order(ByteOrder.LITTLE_ENDIAN);
                             }
 
-                            ByteBuffer temp = bb_missig_value_code[i].duplicate();
+                            bb_missig_value_code[i].duplicate();
 
 
                             missingValues[i] = bb_missig_value_code[i].getDouble();
@@ -1381,8 +1338,9 @@ public class SAVFileReader extends TabularDataFileReader {
                         for (int i = 0; i < howManyMissingValueUnits; i++) {
 
                             missingValues[i] =
-                                    StringUtils.stripEnd(new
-                                                                 String(Arrays.copyOfRange(missing_value_code_units, offset_start, offset_end), defaultCharSet), " ");
+                                    StringUtils.stripEnd(new String(
+                                            Arrays.copyOfRange(missing_value_code_units, offset_start, offset_end), 
+                                                defaultCharSet), " ");
                             dbgLog.fine("missing value=" + missingValues[i] + "<-");
 
                             offset_start = offset_end;
@@ -1394,7 +1352,7 @@ public class SAVFileReader extends TabularDataFileReader {
                         missingValueTable.put(variableName, mv);
                         invalidDataTable.put(variableName, invalidDataInfo);
                         dbgLog.fine("missing value(str)=" +
-                                            StringUtils.join(missingValueTable.get(variableName), "|"));
+                                            join(missingValueTable.get(variableName), "|"));
                         dbgLog.fine("invalidDataInfo(String):\n" + invalidDataInfo);
 
                     } // string case
@@ -1402,7 +1360,6 @@ public class SAVFileReader extends TabularDataFileReader {
                 } // if msv
 
             } catch (IOException ex) {
-                //ex.printStackTrace();
                 throw ex;
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -1416,7 +1373,6 @@ public class SAVFileReader extends TabularDataFileReader {
         }
 
         dbgLog.fine("RT2 metadata-related exit-chores");
-        ///smd.getFileInformation().put("varQnty", variableCounter);
         dataTable.setVarQuantity(new Long(variableCounter));
         dbgLog.fine("RT2: varQnty=" + variableCounter);
 
@@ -1445,8 +1401,6 @@ public class SAVFileReader extends TabularDataFileReader {
 
         dataTable.setDataVariables(variableList);
 
-        ///smd.setVariableName(variableNameList.toArray(new String[variableNameList.size()]));
-        ///smd.setVariableLabel(variableLabelMap);
         // TODO:
         // figure out what to do with the missing value table!
         // -- 4.0 alpha
@@ -1454,8 +1408,6 @@ public class SAVFileReader extends TabularDataFileReader {
         // the variable. So need to verify what the DDI import was doing
         // with them and replicate the same in 4.0.
         // (add appropriate value labels?)
-        ///TODO: 4.0 smd.setMissingValueTable(missingValueTable);
-        ///smd.getFileInformation().put("caseWeightVariableName", caseWeightVariableName);
 
         dbgLog.fine("sumstat:long case=" + Arrays.deepToString(variableTypelList.toArray()));
 
@@ -1464,7 +1416,7 @@ public class SAVFileReader extends TabularDataFileReader {
         dbgLog.fine("decodeRecordType2(): end");
     }
 
-    void decodeRecordType3and4(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType3and4(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordType3and4(): start");
         Map<String, Map<String, String>> valueLabelTable
                 = new LinkedHashMap<String, Map<String, String>>();
@@ -1476,15 +1428,12 @@ public class SAVFileReader extends TabularDataFileReader {
                     throw new IllegalArgumentException("stream == null!");
                 }
                 // this secton may not exit so first check the 4-byte header value
-                //if (stream.markSupported()){
                 stream.mark(1000);
-                //}
                 // 3.0 check the first 4 bytes
                 byte[] headerCode = new byte[LENGTH_RECORD_TYPE3_CODE];
 
-                int nbytes_rt3 = stream.read(headerCode, 0, LENGTH_RECORD_TYPE3_CODE);
+                stream.read(headerCode, 0, LENGTH_RECORD_TYPE3_CODE);
                 // to-do check against nbytes
-                //printHexDump(headerCode, "RT3 header test");
                 ByteBuffer bb_header_code = ByteBuffer.wrap(headerCode,
                                                             0, LENGTH_RECORD_TYPE3_CODE);
                 if (isLittleEndian) {
@@ -1494,7 +1443,6 @@ public class SAVFileReader extends TabularDataFileReader {
                 int intRT3test = bb_header_code.getInt();
                 dbgLog.fine("header test value: RT3=" + intRT3test);
                 if (intRT3test != 3) {
-                    //if (stream.markSupported()){
                     dbgLog.fine("iteration=" + safteyCounter);
 
                     // We have encountered a record that's not type 3. This means we've
@@ -1547,20 +1495,16 @@ public class SAVFileReader extends TabularDataFileReader {
                         bb_value.order(ByteOrder.LITTLE_ENDIAN);
                     }
                     tempBB[i] = bb_value;
-                    dbgLog.fine("bb_value=" + Hex.encodeHex(bb_value.array()));
-                    /*
-                     double valueD = bb_value.getDouble();
-                     dbgLog.fine("value="+valueD);
-                     */
+                    dbgLog.fine("bb_value=" + new String(Hex.encodeHex(bb_value.array())));
                     // read 1st byte as unsigned integer = label_length
 
                     // read label_length byte as label
                     byte[] labelLengthByte = new byte[LENGTH_RT3_LABEL_LENGTH];
 
-                    int nbytes_3_label_length = stream.read(labelLengthByte);
+                    stream.read(labelLengthByte);
 
                     // add check-routine here
-                    dbgLog.fine("labelLengthByte" + Hex.encodeHex(labelLengthByte));
+                    dbgLog.fine("labelLengthByte" + new String(Hex.encodeHex(labelLengthByte)));
                     dbgLog.fine("label length = " + labelLengthByte[0]);
                     // the net-length of a value label is saved as
                     // unsigned byte; however, the length is less than 127
@@ -1570,10 +1514,11 @@ public class SAVFileReader extends TabularDataFileReader {
                     // -1 =>1-byte already read
                     int labelLength = getSAVobsAdjustedBlockLength(rawLabelLength + 1) - 1;
                     byte[] valueLabelBytes = new byte[labelLength];
-                    int nbytes_3_value_label = stream.read(valueLabelBytes);
+                    stream.read(valueLabelBytes);
 
-                    // ByteBuffer bb_label = ByteBuffer.wrap(valueLabel,0,labelLength);
-                    valueLabel[i] = StringUtils.stripEnd(new String(Arrays.copyOfRange(valueLabelBytes, 0, rawLabelLength), defaultCharSet), " ");
+                    valueLabel[i] = StringUtils.stripEnd(new String(
+                            Arrays.copyOfRange(valueLabelBytes, 0, rawLabelLength), 
+                                defaultCharSet), " ");
                     dbgLog.fine(i + "-th valueLabel=" + valueLabel[i] + "<-");
 
                 } // iter rt3
@@ -1607,7 +1552,7 @@ public class SAVFileReader extends TabularDataFileReader {
                 // 4.1 read the how-many-variables bytes
                 byte[] howManyVariablesfollow = new byte[LENGTH_RT4_HOW_MANY_VARIABLES];
 
-                int nbytes_rt4_1 = stream.read(howManyVariablesfollow, 0, LENGTH_RT4_HOW_MANY_VARIABLES);
+                stream.read(howManyVariablesfollow, 0, LENGTH_RT4_HOW_MANY_VARIABLES);
 
                 ByteBuffer bb_howManyVariablesfollow = ByteBuffer.wrap(howManyVariablesfollow,
                                                                        0, LENGTH_RT4_HOW_MANY_VARIABLES);
@@ -1621,7 +1566,7 @@ public class SAVFileReader extends TabularDataFileReader {
                 int length_indicies = LENGTH_RT4_VARIABLE_INDEX * howManyVariablesRT4;
                 byte[] variableIdicesBytes = new byte[length_indicies];
 
-                int nbytes_rt4_2 = stream.read(variableIdicesBytes, 0, length_indicies);
+                stream.read(variableIdicesBytes, 0, length_indicies);
 
                 // !!!!! Caution: variableIndex in RT4 starts from 1 NOT ** 0 **
                 int[] variableIndex = new int[howManyVariablesRT4];
@@ -1676,7 +1621,6 @@ public class SAVFileReader extends TabularDataFileReader {
 
                 dbgLog.fine("valueVariableMappingTable:\n" + valueVariableMappingTable);
             } catch (IOException ex) {
-                //ex.printStackTrace();
                 throw ex;
             }
 
@@ -1686,13 +1630,12 @@ public class SAVFileReader extends TabularDataFileReader {
             }
         } //while
 
-        ///smd.setValueLabelTable(valueLabelTable);
         assignValueLabels(valueLabelTable);
 
         dbgLog.fine("***** decodeRecordType3and4(): end *****");
     }
 
-    void assignValueLabels(Map<String, Map<String, String>> valueLabelTable) {
+    private void assignValueLabels(Map<String, Map<String, String>> valueLabelTable) {
         // Let's go through all the categorical value label mappings and
         // assign them to the correct variables:
 
@@ -1716,7 +1659,7 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    void decodeRecordType6(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType6(BufferedInputStream stream) throws IOException {
         dbgLog.fine("***** decodeRecordType6(): start *****");
         try {
             if (stream == null) {
@@ -1724,15 +1667,12 @@ public class SAVFileReader extends TabularDataFileReader {
             }
             // this section is optional; so let's first check the 4-byte header
             // value and see what type it is.
-            //if (stream.markSupported()){ // -- ? L.A. 4.0 alpha
             stream.mark(1000);
-            //}
             // 6.0 check the first 4 bytes
             byte[] headerCodeRt6 = new byte[LENGTH_RECORD_TYPE6_CODE];
 
-            int nbytes_rt6 = stream.read(headerCodeRt6, 0, LENGTH_RECORD_TYPE6_CODE);
+            stream.read(headerCodeRt6, 0, LENGTH_RECORD_TYPE6_CODE);
             // to-do check against nbytes
-            //printHexDump(headerCodeRt6, "RT6 header test");
             ByteBuffer bb_header_code_rt6 = ByteBuffer.wrap(headerCodeRt6,
                                                             0, LENGTH_RECORD_TYPE6_CODE);
             if (isLittleEndian) {
@@ -1742,24 +1682,19 @@ public class SAVFileReader extends TabularDataFileReader {
             int intRT6test = bb_header_code_rt6.getInt();
             dbgLog.fine("RT6: header test value=" + intRT6test);
             if (intRT6test != 6) {
-                //if (stream.markSupported()){
-                //out.print("iteration="+safteyCounter);
-                //dbgLog.fine("iteration="+safteyCounter);
                 dbgLog.fine("intRT6test failed=" + intRT6test);
 
                 stream.reset();
                 return;
-                //}
             }
             // 6.1 check 4-byte integer that tells how many lines follow
 
             byte[] length_how_many_line_bytes = new byte[LENGTH_RT6_HOW_MANY_LINES];
 
-            int nbytes_rt6_1 = stream.read(length_how_many_line_bytes, 0,
+            stream.read(length_how_many_line_bytes, 0,
                                            LENGTH_RT6_HOW_MANY_LINES);
             // to-do check against nbytes
 
-            //printHexDump(length_how_many_line_bytes, "RT6 how_many_line_bytes");
             ByteBuffer bb_how_many_lines = ByteBuffer.wrap(length_how_many_line_bytes,
                                                            0, LENGTH_RT6_HOW_MANY_LINES);
             if (isLittleEndian) {
@@ -1775,19 +1710,18 @@ public class SAVFileReader extends TabularDataFileReader {
             for (int i = 0; i < howManyLinesRt6; i++) {
 
                 byte[] line = new byte[80];
-                int nbytes_rt6_line = stream.read(line);
+                 stream.read(line);
 
-                documentRecord[i] = StringUtils.stripEnd(new
-                                                                 String(Arrays.copyOfRange(line,
-                                                                                           0, LENGTH_RT6_DOCUMENT_LINE), defaultCharSet), " ");
+                documentRecord[i] = StringUtils.stripEnd(new String(
+                        Arrays.copyOfRange(line,0, LENGTH_RT6_DOCUMENT_LINE), 
+                            defaultCharSet), " ");
 
                 dbgLog.fine(i + "-th line =" + documentRecord[i] + "<-");
             }
-            dbgLog.fine("documentRecord:\n" + StringUtils.join(documentRecord, "\n"));
+            dbgLog.fine("documentRecord:\n" + join(documentRecord, "\n"));
 
 
         } catch (IOException ex) {
-            //ex.printStackTrace();
             throw ex;
         }
 
@@ -1801,27 +1735,10 @@ public class SAVFileReader extends TabularDataFileReader {
      * and what information it stores. This is not obvious from the code
      * below. -- L.A. 4.0 alpha
      */
-    void decodeRecordType7(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType7(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordType7(): start");
         int counter = 0;
         int[] headerSection = new int[2];
-
-        // the variables below may no longer needed;
-        // but they may be useful for debugging/logging purposes.
-
-        /// // RecordType 7
-        /// // Subtype 3
-        /// List<Integer> releaseMachineSpecificInfo = new ArrayList<Integer>();
-        /// List<String> releaseMachineSpecificInfoHex = new ArrayList<String>();
-
-        /// // Subytpe 4
-        /// Map<String, Double> OBSTypeValue = new LinkedHashMap<String, Double>();
-        /// Map<String, String> OBSTypeHexValue = new LinkedHashMap<String, String>();
-        //Subtype 11
-        /// List<Integer> measurementLevel = new ArrayList<Integer>();
-        /// List<Integer> columnWidth = new ArrayList<Integer>();
-        /// List<Integer> alignment = new ArrayList<Integer>();
-
 
         while (true) {
             try {
@@ -1829,16 +1746,13 @@ public class SAVFileReader extends TabularDataFileReader {
                     throw new IllegalArgumentException("RT7: stream == null!");
                 }
                 // first check the 4-byte header value
-                //if (stream.markSupported()){
                 stream.mark(1000);
-                //}
                 // 7.0 check the first 4 bytes
                 byte[] headerCodeRt7 = new byte[LENGTH_RECORD_TYPE7_CODE];
 
-                int nbytes_rt7 = stream.read(headerCodeRt7, 0,
+                stream.read(headerCodeRt7, 0,
                                              LENGTH_RECORD_TYPE7_CODE);
                 // to-do check against nbytes
-                //printHexDump(headerCodeRt7, "RT7 header test");
                 ByteBuffer bb_header_code_rt7 = ByteBuffer.wrap(headerCodeRt7,
                                                                 0, LENGTH_RECORD_TYPE7_CODE);
                 if (isLittleEndian) {
@@ -1848,25 +1762,20 @@ public class SAVFileReader extends TabularDataFileReader {
                 int intRT7test = bb_header_code_rt7.getInt();
                 dbgLog.fine("RT7: header test value=" + intRT7test);
                 if (intRT7test != 7) {
-                    //if (stream.markSupported()){
-                    //out.print("iteration="+safteyCounter);
-                    //dbgLog.fine("iteration="+safteyCounter);
                     dbgLog.fine("intRT7test failed=" + intRT7test);
                     dbgLog.fine("counter=" + counter);
                     stream.reset();
                     return;
-                    //}
                 }
 
                 // 7.1 check 4-byte integer Sub-Type Code
 
                 byte[] length_sub_type_code = new byte[LENGTH_RT7_SUB_TYPE_CODE];
 
-                int nbytes_rt7_1 = stream.read(length_sub_type_code, 0,
+                stream.read(length_sub_type_code, 0,
                                                LENGTH_RT7_SUB_TYPE_CODE);
                 // to-do check against nbytes
 
-                //printHexDump(length_how_many_line_bytes, "RT7 how_many_line_bytes");
                 ByteBuffer bb_sub_type_code = ByteBuffer.wrap(length_sub_type_code,
                                                               0, LENGTH_RT7_SUB_TYPE_CODE);
                 if (isLittleEndian) {
@@ -1880,10 +1789,6 @@ public class SAVFileReader extends TabularDataFileReader {
                 switch (subTypeCode) {
                     case 3:
                         // 3: Release andMachine-Specific Integer Information
-
-                        //parseRT7SubTypefield(stream);
-
-
                         headerSection = parseRT7SubTypefieldHeader(stream);
                         if (headerSection != null) {
                             int unitLength = headerSection[0];
@@ -1894,7 +1799,7 @@ public class SAVFileReader extends TabularDataFileReader {
                                 dbgLog.finer(i + "-th fieldData");
                                 byte[] work = new byte[unitLength];
 
-                                int nb = stream.read(work);
+                                stream.read(work);
                                 dbgLog.finer("raw bytes in Hex:" + new String(Hex.encodeHex(work)));
                                 ByteBuffer bb_field = ByteBuffer.wrap(work);
                                 if (isLittleEndian) {
@@ -1908,17 +1813,10 @@ public class SAVFileReader extends TabularDataFileReader {
                                     int fieldData = bb_field.getInt();
                                     dbgLog.finer("fieldData(int)=" + fieldData);
                                     dbgLog.finer("fieldData in Hex=0x" + Integer.toHexString(fieldData));
-                                    /// releaseMachineSpecificInfo.add(fieldData);
                                 }
 
                             }
-
-                            /// dbgLog.fine("releaseMachineSpecificInfo="+releaseMachineSpecificInfo);
-                            /// dbgLog.fine("releaseMachineSpecificInfoHex="+releaseMachineSpecificInfoHex);
-
-                        } else {
-                            // throw new IOException
-                        }
+                        } 
 
 
                         dbgLog.fine("***** end of subType 3 ***** \n");
@@ -1936,7 +1834,7 @@ public class SAVFileReader extends TabularDataFileReader {
                                 dbgLog.finer(i + "-th fieldData:" + RecordType7SubType4Fields.get(i));
                                 byte[] work = new byte[unitLength];
 
-                                int nb = stream.read(work);
+                                stream.read(work);
 
                                 dbgLog.finer("raw bytes in Hex:" + new String(Hex.encodeHex(work)));
                                 ByteBuffer bb_field = ByteBuffer.wrap(work);
@@ -1944,27 +1842,18 @@ public class SAVFileReader extends TabularDataFileReader {
                                 if (isLittleEndian) {
                                     bb_field.order(ByteOrder.LITTLE_ENDIAN);
                                 }
-                                ByteBuffer bb_field_dup = bb_field.duplicate();
+                                bb_field.duplicate();
                                 OBSTypeHexValue.put(RecordType7SubType4Fields.get(i),
                                                     new String(Hex.encodeHex(bb_field.array())));
-//                            dbgLog.finer("raw bytes in Hex:"+
-//                                OBSTypeHexValue.get(RecordType7SubType4Fields.get(i)));
                                 if (unitLength == 8) {
                                     double fieldData = bb_field.getDouble();
-                                    /// OBSTypeValue.put(RecordType7SubType4Fields.get(i), fieldData);
                                     dbgLog.finer("fieldData(double)=" + fieldData);
                                     OBSTypeHexValue.put(RecordType7SubType4Fields.get(i),
                                                         Double.toHexString(fieldData));
                                     dbgLog.fine("fieldData in Hex=" + Double.toHexString(fieldData));
                                 }
                             }
-                            /// dbgLog.fine("OBSTypeValue="+OBSTypeValue);
-                            /// dbgLog.fine("OBSTypeHexValue="+OBSTypeHexValue);
-
-                        } else {
-                            // throw new IOException
-                        }
-
+                        } 
 
                         dbgLog.fine("***** end of subType 4 ***** \n");
                         break;
@@ -1994,8 +1883,6 @@ public class SAVFileReader extends TabularDataFileReader {
                         break;
                     case 11:
                         // Msmt level, col width, & alignment
-                        //parseRT7SubTypefield(stream);
-
                         headerSection = parseRT7SubTypefieldHeader(stream);
                         if (headerSection != null) {
                             int unitLength = headerSection[0];
@@ -2005,7 +1892,7 @@ public class SAVFileReader extends TabularDataFileReader {
                                 dbgLog.finer(i + "-th fieldData");
                                 byte[] work = new byte[unitLength];
 
-                                int nb = stream.read(work);
+                                stream.read(work);
                                 dbgLog.finer("raw bytes in Hex:" + new String(Hex.encodeHex(work)));
                                 ByteBuffer bb_field = ByteBuffer.wrap(work);
                                 if (isLittleEndian) {
@@ -2017,28 +1904,12 @@ public class SAVFileReader extends TabularDataFileReader {
                                     int fieldData = bb_field.getInt();
                                     dbgLog.finer("fieldData(int)=" + fieldData);
                                     dbgLog.finer("fieldData in Hex=0x" + Integer.toHexString(fieldData));
-
-                                    int remainder = i % 3;
-                                    dbgLog.finer("remainder=" + remainder);
-                                    if (remainder == 0) {
-                                        /// measurementLevel.add(fieldData);
-                                    } else if (remainder == 1) {
-                                        /// columnWidth.add(fieldData);
-                                    } else if (remainder == 2) {
-                                        /// alignment.add(fieldData);
-                                    }
                                 }
 
                             }
 
-                        } else {
-                            // throw new IOException
                         }
-                        /// dbgLog.fine("measurementLevel="+measurementLevel);
-                        /// dbgLog.fine("columnWidth="+columnWidth);
-                        /// dbgLog.fine("alignment="+alignment);
                         dbgLog.fine("end of subType 11\n");
-
                         break;
                     case 12:
                         // Windows Data Entry GUID
@@ -2046,7 +1917,6 @@ public class SAVFileReader extends TabularDataFileReader {
                         break;
                     case 13:
                         // Extended variable names
-                        // parseRT7SubTypefield(stream);
                         headerSection = parseRT7SubTypefieldHeader(stream);
 
                         if (headerSection != null) {
@@ -2055,9 +1925,9 @@ public class SAVFileReader extends TabularDataFileReader {
                             int numberOfUnits = headerSection[1];
                             dbgLog.fine("RT7: numberOfUnits=" + numberOfUnits);
                             byte[] work = new byte[unitLength * numberOfUnits];
-                            int nbtyes13 = stream.read(work);
+                            stream.read(work);
 
-                            String[] variableShortLongNamePairs = new String(work, StandardCharsets.US_ASCII).split("\t");
+                            String[] variableShortLongNamePairs = new String(work, US_ASCII).split("\t");
 
                             for (int i = 0; i < variableShortLongNamePairs.length; i++) {
                                 dbgLog.fine("RT7: " + i + "-th pair" + variableShortLongNamePairs[i]);
@@ -2067,19 +1937,10 @@ public class SAVFileReader extends TabularDataFileReader {
 
                             dbgLog.fine("RT7: shortToLongVarialbeNameTable" +
                                                 shortToLongVariableNameTable);
-                            // We are saving the short-to-long name map; at the
-                            // end of ingest, we'll go through the data variables and
-                            // change the names accordingly.
-
-                            // smd.setShortToLongVarialbeNameTable(shortToLongVarialbeNameTable);
-                        } else {
-                            // throw new IOException
-                        }
-
+                        } 
                         break;
                     case 14:
                         // Extended strings
-                        //parseRT7SubTypefield(stream);
                         headerSection = parseRT7SubTypefieldHeader(stream);
 
                         if (headerSection != null) {
@@ -2088,7 +1949,7 @@ public class SAVFileReader extends TabularDataFileReader {
                             int numberOfUnits = headerSection[1];
                             dbgLog.fine("RT7.14: numberOfUnits=" + numberOfUnits);
                             byte[] work = new byte[unitLength * numberOfUnits];
-                            int nbtyes13 = stream.read(work);
+                            stream.read(work);
 
                             String[] extendedVariablesSizePairs = new String(work, defaultCharSet).split("\000\t");
 
@@ -2102,10 +1963,7 @@ public class SAVFileReader extends TabularDataFileReader {
 
                             dbgLog.fine("RT7.14: extendedVariablesSizeTable" +
                                                 extendedVariablesSizeTable);
-                        } else {
-                            // throw new IOException
-                        }
-
+                        } 
                         break;
                     case 15:
                         // Clementine Metadata
@@ -2146,22 +2004,15 @@ public class SAVFileReader extends TabularDataFileReader {
                             int numberOfUnits = headerSection[1];
                             dbgLog.fine("RT7-20: numberOfUnits=" + numberOfUnits);
                             byte[] rt7st20bytes = new byte[unitLength * numberOfUnits];
-                            int nbytes20 = stream.read(rt7st20bytes);
+                            stream.read(rt7st20bytes);
 
-                            String dataCharSet = new String(rt7st20bytes, StandardCharsets.US_ASCII);
+                            String dataCharSet = new String(rt7st20bytes, US_ASCII);
 
                             if (dataCharSet != null && !(dataCharSet.equals(""))) {
                                 dbgLog.fine("RT7-20: data charset: " + dataCharSet);
                                 defaultCharSet = dataCharSet;
                             }
-                        } /*else {
-                        // TODO:
-                        // decide if the exception should actually be thrown here!
-                        // -- L.A. 4.0 beta
-                        // throw new IOException
-                    }*/
-
-
+                        }
                         break;
                     case 21:
                         // Value labels for long strings
@@ -2176,7 +2027,6 @@ public class SAVFileReader extends TabularDataFileReader {
                 }
 
             } catch (IOException ex) {
-                //ex.printStackTrace();
                 throw ex;
             }
 
@@ -2192,25 +2042,20 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    void decodeRecordType999(BufferedInputStream stream) throws IOException {
+    private void decodeRecordType999(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordType999(): start");
         try {
             if (stream == null) {
                 throw new IllegalArgumentException("RT999: stream == null!");
             }
             // first check the 4-byte header value
-            //if (stream.markSupported()){
             stream.mark(1000);
-            //}
             // 999.0 check the first 4 bytes
             byte[] headerCodeRt999 = new byte[LENGTH_RECORD_TYPE999_CODE];
 
-            //dbgLog.fine("RT999: stream position="+stream.pos);
 
-            int nbytes_rt999 = stream.read(headerCodeRt999, 0,
-                                           LENGTH_RECORD_TYPE999_CODE);
+            stream.read(headerCodeRt999, 0, LENGTH_RECORD_TYPE999_CODE);
             // to-do check against nbytes
-            //printHexDump(headerCodeRt999, "RT999 header test");
             ByteBuffer bb_header_code_rt999 = ByteBuffer.wrap(headerCodeRt999,
                                                               0, LENGTH_RECORD_TYPE999_CODE);
             if (isLittleEndian) {
@@ -2220,11 +2065,10 @@ public class SAVFileReader extends TabularDataFileReader {
             int intRT999test = bb_header_code_rt999.getInt();
             dbgLog.fine("header test value: RT999=" + intRT999test);
             if (intRT999test != 999) {
-                //if (stream.markSupported()){
                 dbgLog.fine("intRT999test failed=" + intRT999test);
                 stream.reset();
-                throw new IOException("RT999:Header value(999) was not correctly detected:" + intRT999test);
-                //}
+                throw new IOException("RT999:Header value(999) was not correctly detected:" 
+                        + intRT999test);
             }
 
 
@@ -2232,11 +2076,9 @@ public class SAVFileReader extends TabularDataFileReader {
 
             byte[] length_filler = new byte[LENGTH_RT999_FILLER];
 
-            int nbytes_rt999_1 = stream.read(length_filler, 0,
-                                             LENGTH_RT999_FILLER);
+            stream.read(length_filler, 0, LENGTH_RT999_FILLER);
             // to-do check against nbytes
 
-            //printHexDump(length_how_many_line_bytes, "RT999 how_many_line_bytes");
             ByteBuffer bb_filler = ByteBuffer.wrap(length_filler,
                                                    0, LENGTH_RT999_FILLER);
             if (isLittleEndian) {
@@ -2249,14 +2091,13 @@ public class SAVFileReader extends TabularDataFileReader {
             if (rt999filler == 0) {
                 dbgLog.fine("the end of the dictionary section");
             } else {
-                throw new IOException("RT999: failed to detect the end mark(0): value=" + rt999filler);
+                throw new IOException("RT999: failed to detect the end mark(0): value=" 
+                        + rt999filler);
             }
 
             // missing value processing concerning HIGHEST/LOWEST values
 
-            Set<Map.Entry<String, InvalidData>> msvlc = invalidDataTable.entrySet();
-            for (Iterator<Map.Entry<String, InvalidData>> itc = msvlc.iterator(); itc.hasNext(); ) {
-                Map.Entry<String, InvalidData> et = itc.next();
+            for (Map.Entry<String, InvalidData> et : invalidDataTable.entrySet()) {
                 String variable = et.getKey();
                 dbgLog.fine("variable=" + variable);
                 InvalidData invalidDataInfo = et.getValue();
@@ -2277,10 +2118,7 @@ public class SAVFileReader extends TabularDataFileReader {
             // value labels (?)
             // should it be done here, or at the end of ingest?
             // -- L.A. 4.0 alpha
-            ///smd.setInvalidDataTable(invalidDataTable);
         } catch (IOException ex) {
-            //ex.printStackTrace();
-            //exit(1);
             throw ex;
         }
 
@@ -2288,12 +2126,8 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    void decodeRecordTypeData(BufferedInputStream stream) throws IOException {
+    private void decodeRecordTypeData(BufferedInputStream stream) throws IOException {
         dbgLog.fine("decodeRecordTypeData(): start");
-
-        ///String fileUnfValue = null;
-        ///String[] unfValues = null;
-
 
         if (stream == null) {
             throw new IllegalArgumentException("stream == null!");
@@ -2309,39 +2143,20 @@ public class SAVFileReader extends TabularDataFileReader {
         dbgLog.fine("***** decodeRecordTypeData(): end *****");
     }
 
-    PrintWriter createOutputWriter(BufferedInputStream stream) throws IOException {
-        PrintWriter pwout = null;
-        FileOutputStream fileOutTab = null;
-
+    private PrintWriter createOutputWriter(BufferedInputStream stream) throws IOException {
         try {
-
             // create a File object to save the tab-delimited data file
             File tabDelimitedDataFile = File.createTempFile("tempTabfile.", ".tab");
-
-            String tabDelimitedDataFileName = tabDelimitedDataFile.getAbsolutePath();
-
             // save the temp file name in the metadata object
-            ///smd.getFileInformation().put("tabDelimitedDataFileLocation", tabDelimitedDataFileName);
             ingesteddata.setTabDelimitedFile(tabDelimitedDataFile);
-
-            fileOutTab = new FileOutputStream(tabDelimitedDataFile);
-
-            pwout = new PrintWriter(new OutputStreamWriter(fileOutTab, StandardCharsets.UTF_8), true);
-
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        } catch (UnsupportedEncodingException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            //ex.printStackTrace();
-            throw ex;
-        }
-
-        return pwout;
-
+            return new PrintWriter(new OutputStreamWriter(
+                    new FileOutputStream(tabDelimitedDataFile), UTF_8), true);
+        } catch (FileNotFoundException | UnsupportedEncodingException ex) {
+            return null;
+        } 
     }
 
-    void decodeRecordTypeDataCompressed(BufferedInputStream stream) throws IOException {
+    private void decodeRecordTypeDataCompressed(BufferedInputStream stream) throws IOException {
 
         dbgLog.fine("***** decodeRecordTypeDataCompressed(): start *****");
 
@@ -2403,24 +2218,18 @@ public class SAVFileReader extends TabularDataFileReader {
 
                 byte[] octate = new byte[LENGTH_SAV_OBS_BLOCK];
 
-                int nbytes = stream.read(octate);
-
-                // processCompressedOBSblock ()
+                stream.read(octate);
 
                 // (this means process a block of 8 compressed OBS
                 // values -- should result in 64 bytes of data total)
 
                 for (int i = 0; i < LENGTH_SAV_OBS_BLOCK; i++) {
-
-
                     dbgLog.finer("i=" + i + "-th iteration");
                     int octate_i = octate[i];
-                    //dbgLog.fine("octate="+octate_i);
                     if (octate_i < 0) {
                         octate_i += 256;
                     }
-                    int byteCode = octate_i;//octate_i & 0xF;
-                    //out.println("byeCode="+byteCode);
+                    int byteCode = octate_i;
 
                     // processCompressedOBS
 
@@ -2435,7 +2244,7 @@ public class SAVFileReader extends TabularDataFileReader {
                             // long string datum or float datum
                             // read the following octate
                             byte[] uncompressedByte = new byte[LENGTH_SAV_OBS_BLOCK];
-                            int ucbytes = stream.read(uncompressedByte);
+                            stream.read(uncompressedByte);
                             int typeIndex = (ii * OBS + i) % nOBS;
 
                             if ((OBSwiseTypelList.get(typeIndex) > 0) ||
@@ -2445,16 +2254,13 @@ public class SAVFileReader extends TabularDataFileReader {
                                 String strdatum = new String(
                                         Arrays.copyOfRange(uncompressedByte,
                                                            0, LENGTH_SAV_OBS_BLOCK), defaultCharSet);
-                                //out.println("str_datum="+strdatum+"<-");
                                 // add this non-missing-value string datum
                                 casewiseRecordForTabFile.add(strdatum);
-                                //out.println("casewiseRecordForTabFile(String)="+casewiseRecordForTabFile);
                             } else if (OBSwiseTypelList.get(typeIndex) == -2) {
                                 String strdatum = new String(
                                         Arrays.copyOfRange(uncompressedByte,
                                                            0, LENGTH_SAV_OBS_BLOCK - 1), defaultCharSet);
                                 casewiseRecordForTabFile.add(strdatum);
-                                //out.println("casewiseRecordForTabFile(String)="+casewiseRecordForTabFile);
                             } else if (OBSwiseTypelList.get(typeIndex) == 0) {
                                 // code= 0: numeric
 
@@ -2465,7 +2271,6 @@ public class SAVFileReader extends TabularDataFileReader {
                                 }
 
                                 Double ddatum = bb_double.getDouble();
-                                // out.println("ddatum="+ddatum);
                                 // add this non-missing-value numeric datum
                                 casewiseRecordForTabFile.add(doubleNumberFormatter.format(ddatum));
                                 dbgLog.fine("SAV Reader: compressed: added value to dataLine: " + ddatum);
@@ -2474,19 +2279,6 @@ public class SAVFileReader extends TabularDataFileReader {
                                 dbgLog.fine("SAV Reader: out-of-range exception");
                                 throw new IOException("out-of-range value was found");
                             }
-
-                            /*
-                            // EOF-check after reading this octate
-                            if (stream.available() == 0){
-                            hasReachedEOF = true;
-                            dbgLog.fine(
-                            "SAV Reader: *** After reading an uncompressed octate," +
-                            " reached the end of the file at "+ii
-                            +"th iteration and i="+i+"th octate position [0-start] *****");
-                            }
-                             */
-
-
                             break;
                         case 254:
                             // FE: used as the missing value for string variables
@@ -2535,21 +2327,15 @@ public class SAVFileReader extends TabularDataFileReader {
 
                             break;
                         default:
-                            //out.println("byte code(default)="+ byteCode);
                             if ((byteCode > 0) && (byteCode < 252)) {
                                 // datum is compressed
-                                //Integer unCompressed = Integer.valueOf(byteCode -100);
                                 // add this uncompressed numeric datum
                                 Double unCompressed = Double.valueOf(byteCode - 100);
                                 dbgLog.fine("SAV Reader: compressed: default case: " + unCompressed);
 
                                 casewiseRecordForTabFile.add(doubleNumberFormatter.format(unCompressed));
-                                // out.println("uncompressed="+unCompressed);
-                                // out.println("dataline="+casewiseRecordForTabFile);
                             }
                     }// end of switch
-
-                    // out.println("end of switch");
 
 
                     // The-end-of-a-case(row)-processing
@@ -2572,28 +2358,15 @@ public class SAVFileReader extends TabularDataFileReader {
                     // Also, the "varCounter" variable name is entirely
                     // misleading -- it counts not variables, but OBS blocks.
 
-                    dbgLog.fine("SAV Reader: compressed: OBS counter=" + varCounter + "(ii=" + ii + ")");
+                    dbgLog.fine("SAV Reader: compressed: OBS counter=" + 
+                            varCounter + "(ii=" + ii + ")");
 
                     if ((ii * OBS + i + 1) % nOBS == 0) {
-
-                        //out.println("casewiseRecordForTabFile(before)="+casewiseRecordForTabFile);
-
-                        // out.println("all variables in a case are parsed == nOBS");
-                        // out.println("hasStringVarContinuousBlock="+hasStringVarContinuousBlock);
-
                         // check whether a string-variable's continuous block exits
                         // if so, they must be joined
 
                         if (hasStringVarContinuousBlock) {
-
-                            // string-variable's continuous-block-concatenating-processing
-
-                            //out.println("concatenating process starts");
-                            //out.println("casewiseRecordForTabFile(before)="+casewiseRecordForTabFile);
-                            //out.println("casewiseRecordForTabFile(before:size)="+casewiseRecordForTabFile.size());
-
                             StringBuilder sb = new StringBuilder();
-                            int firstPosition = 0;
 
                             Set<Integer> removeJset = new HashSet<Integer>();
                             for (int j = 0; j < nOBS; j++) {
@@ -2602,7 +2375,6 @@ public class SAVFileReader extends TabularDataFileReader {
                                         (OBSwiseTypelList.get(j) == -2)) {
                                     // Continued String variable found at j-th
                                     // position. look back the j-1
-                                    firstPosition = j - 1;
                                     int lastJ = j;
                                     String concatenated = null;
 
@@ -2627,45 +2399,20 @@ public class SAVFileReader extends TabularDataFileReader {
                                     }
                                     casewiseRecordForTabFile.set(j - 1, concatenated);
 
-                                    //out.println(j-1+"th concatenated="+concatenated);
                                     j = lastJ - 1;
 
                                 } // end-of-if: continuous-OBS only
 
                             } // end of loop-j
 
-                            //out.println("removeJset="+removeJset);
-
                             // a new list that stores a new case with concatanated string data
                             List<String> newDataLine = new ArrayList<String>();
 
                             for (int jl = 0; jl < casewiseRecordForTabFile.size(); jl++) {
-                                //out.println("jl="+jl+"-th datum =["+casewiseRecordForTabFile.get(jl)+"]");
-
                                 if (!removeJset.contains(jl)) {
-
-//                                if (casewiseRecordForTabFile.get(jl).equals(MissingValueForTextDataFileString)){
-//                                    out.println("NA-S jl= "+jl+"=["+casewiseRecordForTabFile.get(jl)+"]");
-//                                } else if (casewiseRecordForTabFile.get(jl).equals(MissingValueForTextDataFileNumeric)){
-//                                    out.println("NA-N jl= "+jl+"=["+casewiseRecordForTabFile.get(jl)+"]");
-//                                } else if (casewiseRecordForTabFile.get(jl)==null){
-//                                    out.println("null case jl="+jl+"=["+casewiseRecordForTabFile.get(jl)+"]");
-//                                } else if (casewiseRecordForTabFile.get(jl).equals("NaN")){
-//                                    out.println("NaN jl= "+jl+"=["+casewiseRecordForTabFile.get(jl)+"]");
-//                                } else if (casewiseRecordForTabFile.get(jl).equals("")){
-//                                    out.println("blank jl= "+jl+"=["+casewiseRecordForTabFile.get(jl)+"]");
-//                                } else if (casewiseRecordForTabFile.get(jl).equals(" ")){
-//                                    out.println("space jl= "+jl+"=["+casewiseRecordForTabFile.get(jl)+"]");
-//                                }
-
                                     newDataLine.add(casewiseRecordForTabFile.get(jl));
-                                } else {
-//                                out.println("Excluded: jl="+jl+"-th datum=["+casewiseRecordForTabFile.get(jl)+"]");
                                 }
                             }  // end of loop-jl
-
-                            //out.println("new casewiseRecordForTabFile="+newDataLine);
-                            //out.println("new casewiseRecordForTabFile(size)="+newDataLine.size());
 
                             casewiseRecordForTabFile = newDataLine;
 
@@ -2703,17 +2450,18 @@ public class SAVFileReader extends TabularDataFileReader {
                                 if (paddRemoved.equals("")) {
                                     paddRemoved = " ";
                                 }
-                                //casewiseRecordForTabFile.set(k, "\"" + paddRemoved.replaceAll("\"", Matcher.quoteReplacement("\\\"")) + "\"");
                                 casewiseRecordForTabFile.set(k, escapeCharacterString(paddRemoved));
 
                                 // end of String var case
 
                             } // end of variable-type check
 
-                            if (casewiseRecordForTabFile.get(k) != null && !casewiseRecordForTabFile.get(k).equals(MissingValueForTextDataFileNumeric)) {
+                            if (casewiseRecordForTabFile.get(k) != null 
+                                    && !casewiseRecordForTabFile.get(k).equals(MissingValueForTextDataFileNumeric)) {
 
                                 String variableFormatType = variableFormatTypeList[k];
-                                dbgLog.finer("k=" + k + "th printFormatTable format=" + printFormatTable.get(variableNameList.get(k)));
+                                dbgLog.finer("k=" + k + "th printFormatTable format=" 
+                                        + printFormatTable.get(variableNameList.get(k)));
 
                                 int formatDecimalPointPosition = formatDecimalPointPositionList.get(k);
 
@@ -2721,18 +2469,17 @@ public class SAVFileReader extends TabularDataFileReader {
                                 if (variableFormatType.equals("date")) {
                                     dbgLog.finer("date case");
 
-                                    long dateDatum = Long.parseLong(casewiseRecordForTabFile.get(k)) * 1000L - SPSS_DATE_OFFSET;
+                                    long dateDatum = parseLong(casewiseRecordForTabFile.get(k)) 
+                                            * 1000L - SPSS_DATE_OFFSET;
 
                                     String newDatum = sdf_ymd.format(new Date(dateDatum));
                                     dbgLog.finer("k=" + k + ":" + newDatum);
                                     /* saving date format */
                                     dbgLog.finer("saving dateFormat[k] = " + sdf_ymd.toPattern());
                                     casewiseRecordForTabFile.set(k, newDatum);
-                                    dateFormatList[k] = sdf_ymd.toPattern();
-                                    //formatCategoryTable.put(variableNameList.get(k), "date");
+                                    dateFormatList[k] = sdf_ymd.toPattern();;
                                 } else if (variableFormatType.equals("time")) {
                                     dbgLog.finer("time case:DTIME or DATETIME or TIME");
-                                    //formatCategoryTable.put(variableNameList.get(k), "time");
 
                                     if (printFormatTable.get(variableNameList.get(k)).equals("DTIME")) {
                                         // We're not even going to try to handle "DTIME"
@@ -2742,7 +2489,8 @@ public class SAVFileReader extends TabularDataFileReader {
                                         // as character strings, not numerics!)
 
                                         if (casewiseRecordForTabFile.get(k).indexOf(".") < 0) {
-                                            long dateDatum = Long.parseLong(casewiseRecordForTabFile.get(k)) * 1000L - SPSS_DATE_BIAS;
+                                            long dateDatum = parseLong(casewiseRecordForTabFile.get(k)) 
+                                                    * 1000L - SPSS_DATE_BIAS;
                                             String newDatum = sdf_dhms.format(new Date(dateDatum));
                                             dbgLog.finer("k=" + k + ":" + newDatum);
                                             casewiseRecordForTabFile.set(k, newDatum);
@@ -2750,14 +2498,16 @@ public class SAVFileReader extends TabularDataFileReader {
                                             // decimal point included
                                             String[] timeData = casewiseRecordForTabFile.get(k).split("\\.");
 
-                                            dbgLog.finer(StringUtils.join(timeData, "|"));
-                                            long dateDatum = Long.parseLong(timeData[0]) * 1000L - SPSS_DATE_BIAS;
+                                            dbgLog.finer(join(timeData, "|"));
+                                            long dateDatum = parseLong(timeData[0]) 
+                                                    * 1000L - SPSS_DATE_BIAS;
                                             StringBuilder sb_time = new StringBuilder(
                                                     sdf_dhms.format(new Date(dateDatum)));
                                             dbgLog.finer(sb_time.toString());
 
                                             if (formatDecimalPointPosition > 0) {
-                                                sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                                sb_time.append(".").append(timeData[1], 
+                                                        0, formatDecimalPointPosition);
                                             }
 
                                             dbgLog.finer("k=" + k + ":" + sb_time.toString());
@@ -2771,7 +2521,8 @@ public class SAVFileReader extends TabularDataFileReader {
                                         // part of the saved format!
                                         //  -- L.A. Aug. 12 2014
                                         if (casewiseRecordForTabFile.get(k).indexOf(".") < 0) {
-                                            long dateDatum = Long.parseLong(casewiseRecordForTabFile.get(k)) * 1000L - SPSS_DATE_OFFSET;
+                                            long dateDatum = parseLong(casewiseRecordForTabFile.get(k)) 
+                                                    * 1000L - SPSS_DATE_OFFSET;
                                             String newDatum = sdf_ymdhms.format(new Date(dateDatum));
                                             dbgLog.finer("k=" + k + ":" + newDatum);
                                             casewiseRecordForTabFile.set(k, newDatum);
@@ -2780,24 +2531,25 @@ public class SAVFileReader extends TabularDataFileReader {
                                             // decimal point included
                                             String[] timeData = casewiseRecordForTabFile.get(k).split("\\.");
 
-                                            //dbgLog.finer(StringUtils.join(timeData, "|"));
-                                            long dateDatum = Long.parseLong(timeData[0]) * 1000L - SPSS_DATE_OFFSET;
+                                            long dateDatum = parseLong(timeData[0]) 
+                                                    * 1000L - SPSS_DATE_OFFSET;
                                             StringBuilder sb_time = new StringBuilder(
                                                     sdf_ymdhms.format(new Date(dateDatum)));
-                                            //dbgLog.finer(sb_time.toString());
 
                                             if (formatDecimalPointPosition > 0) {
-                                                sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                                sb_time.append(".").append(timeData[1], 
+                                                        0, formatDecimalPointPosition);
                                             }
                                             dbgLog.finer("k=" + k + ":" + sb_time.toString());
                                             casewiseRecordForTabFile.set(k, sb_time.toString());
-                                            dateFormatList[k] = sdf_ymdhms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                            dateFormatList[k] = sdf_ymdhms.toPattern() 
+                                                    .concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                         }
                                     } else if (printFormatTable.get(variableNameList.get(k)).equals("TIME")) {
                                         // TODO:
                                         // double-check that we are handling "dateless" time correctly... -- L.A. Aug. 2014
                                         if (casewiseRecordForTabFile.get(k).indexOf(".") < 0) {
-                                            long dateDatum = Long.parseLong(casewiseRecordForTabFile.get(k)) * 1000L;
+                                            long dateDatum = parseLong(casewiseRecordForTabFile.get(k)) * 1000L;
                                             String newDatum = sdf_hms.format(new Date(dateDatum));
                                             dbgLog.finer("k=" + k + ":" + newDatum);
                                             casewiseRecordForTabFile.set(k, newDatum);
@@ -2808,19 +2560,19 @@ public class SAVFileReader extends TabularDataFileReader {
                                             // decimal point included
                                             String[] timeData = casewiseRecordForTabFile.get(k).split("\\.");
 
-                                            //dbgLog.finer(StringUtils.join(timeData, "|"));
-                                            long dateDatum = Long.parseLong(timeData[0]) * 1000L;
+                                            long dateDatum = parseLong(timeData[0]) * 1000L;
                                             StringBuilder sb_time = new StringBuilder(
                                                     sdf_hms.format(new Date(dateDatum)));
-                                            //dbgLog.finer(sb_time.toString());
 
                                             if (formatDecimalPointPosition > 0) {
-                                                sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                                sb_time.append(".").append(timeData[1], 
+                                                        0, formatDecimalPointPosition);
                                             }
                                             dbgLog.finer("k=" + k + ":" + sb_time.toString());
                                             casewiseRecordForTabFile.set(k, sb_time.toString());
 
-                                            String format_hmsS = sdf_hms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                            String format_hmsS = sdf_hms.toPattern()
+                                                    .concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                             if (dateFormatList[k] == null || (format_hmsS.length() > dateFormatList[k].length())) {
                                                 dateFormatList[k] = format_hmsS;
                                             }
@@ -2987,20 +2739,10 @@ public class SAVFileReader extends TabularDataFileReader {
         // file are written, missing values in a row are changed to
         // UNF/summary-statistics-OK ones.
 
-        // data-storage object for sumStat
-        ///dataTable2 = new Object[varQnty][caseQnty];
-        // storage of date formats to pass to UNF
-        ///dateFormats = new String[varQnty][caseQnty];
-
         try {
-            for (int i = 0; ; i++) {  // case-wise loop
-
+            for (;;) {  // case-wise loop
                 byte[] buffer = new byte[OBS * nOBS];
-
-                int nbytesuc = stream.read(buffer);
-
-                StringBuilder sb_stringStorage = new StringBuilder();
-
+                stream.read(buffer);
                 for (int k = 0; k < nOBS; k++) {
                     int offset = OBS * k;
 
@@ -3024,7 +2766,6 @@ public class SAVFileReader extends TabularDataFileReader {
                         if (isLittleEndian) {
                             bb_double.order(ByteOrder.LITTLE_ENDIAN);
                         }
-                        //char[] hexpattern =
                         String dphex = new String(Hex.encodeHex(
                                 Arrays.copyOfRange(bb_double.array(),
                                                    offset, offset + LENGTH_SAV_OBS_BLOCK)));
@@ -3032,14 +2773,12 @@ public class SAVFileReader extends TabularDataFileReader {
 
                         if ((dphex.equals("ffffffffffffefff")) ||
                                 (dphex.equals("ffefffffffffffff"))) {
-                            //casewiseRecordForTabFile.add(systemMissingValue);
                             // add the numeric missing value
                             dbgLog.fine("SAV Reader: adding: Missing Value (numeric)");
                             casewiseRecordForTabFile.add(MissingValueForTextDataFileNumeric);
                         } else {
                             Double ddatum = bb_double.getDouble();
                             dbgLog.fine("SAV Reader: adding: ddatum=" + ddatum);
-
                             // add this non-missing-value numeric datum
                             casewiseRecordForTabFile.add(doubleNumberFormatter.format(ddatum));
                         }
@@ -3055,7 +2794,8 @@ public class SAVFileReader extends TabularDataFileReader {
 
                         String strdatum = new String(
                                 Arrays.copyOfRange(buffer,
-                                                   offset, (offset + LENGTH_SAV_OBS_BLOCK)), defaultCharSet);
+                                                   offset, (offset + LENGTH_SAV_OBS_BLOCK)),
+                                                    defaultCharSet);
                         dbgLog.finer("str_datum=" + strdatum);
                         // add this non-missing-value string datum
                         casewiseRecordForTabFile.add(strdatum);
@@ -3068,13 +2808,8 @@ public class SAVFileReader extends TabularDataFileReader {
                 if (hasStringVarContinuousBlock) {
                     // continuous blocks: string case
                     // concatenating process
-                    //dbgLog.fine("concatenating process starts");
 
-                    //dbgLog.fine("casewiseRecordForTabFile(before)="+casewiseRecordForTabFile);
-                    //dbgLog.fine("casewiseRecordForTabFile(before:size)="+casewiseRecordForTabFile.size());
-
-                    StringBuilder sb = new StringBuilder();
-                    int firstPosition = 0;
+                    final StringBuilder sb = new StringBuilder();
 
                     Set<Integer> removeJset = new HashSet<Integer>();
                     for (int j = 0; j < nOBS; j++) {
@@ -3082,7 +2817,6 @@ public class SAVFileReader extends TabularDataFileReader {
                         if (OBSwiseTypelList.get(j) == -1) {
                             // String continued fount at j-th
                             // look back the j-1
-                            firstPosition = j - 1;
                             int lastJ = j;
                             String concatanated = null;
 
@@ -3102,8 +2836,6 @@ public class SAVFileReader extends TabularDataFileReader {
                                 }
                             }
                             casewiseRecordForTabFile.set(j - 1, concatanated);
-
-                            //out.println(j-1+"th concatanated="+concatanated);
                             j = lastJ - 1;
 
                         } // end-of-if: continuous-OBS only
@@ -3112,8 +2844,6 @@ public class SAVFileReader extends TabularDataFileReader {
                     List<String> newDataLine = new ArrayList<String>();
 
                     for (int jl = 0; jl < casewiseRecordForTabFile.size(); jl++) {
-                        //out.println("jl="+jl+"-th datum =["+casewiseRecordForTabFile.get(jl)+"]");
-
                         if (!removeJset.contains(jl)) {
                             newDataLine.add(casewiseRecordForTabFile.get(jl));
                         }
@@ -3140,15 +2870,14 @@ public class SAVFileReader extends TabularDataFileReader {
                         if (paddRemoved.equals("")) {
                             paddRemoved = " ";
                         }
-
-                        //casewiseRecordForTabFile.set(k, "\"" + paddRemoved.replaceAll("\"", Matcher.quoteReplacement("\\\"")) + "\"");
                         casewiseRecordForTabFile.set(k, escapeCharacterString(paddRemoved));
 
                         // end of String var case
 
                     } // end of variable-type check
 
-                    if (casewiseRecordForTabFile.get(k) != null && !casewiseRecordForTabFile.get(k).equals(MissingValueForTextDataFileNumeric)) {
+                    if (casewiseRecordForTabFile.get(k) != null 
+                            && !casewiseRecordForTabFile.get(k).equals(MissingValueForTextDataFileNumeric)) {
 
                         // to do date conversion
                         String variableFormatType = variableFormatTypeList[k];
@@ -3159,7 +2888,8 @@ public class SAVFileReader extends TabularDataFileReader {
                         if (variableFormatType.equals("date")) {
                             dbgLog.finer("date case");
 
-                            long dateDatum = Long.parseLong(casewiseRecordForTabFile.get(k)) * 1000L - SPSS_DATE_OFFSET;
+                            long dateDatum = parseLong(casewiseRecordForTabFile.get(k)) 
+                                    * 1000L - SPSS_DATE_OFFSET;
 
                             String newDatum = sdf_ymd.format(new Date(dateDatum));
                             dbgLog.finer("k=" + k + ":" + newDatum);
@@ -3168,7 +2898,6 @@ public class SAVFileReader extends TabularDataFileReader {
                             dateFormatList[k] = sdf_ymd.toPattern();
                         } else if (variableFormatType.equals("time")) {
                             dbgLog.finer("time case:DTIME or DATETIME or TIME");
-                            //formatCategoryTable.put(variableNameList.get(k), "time");
                             // not treating DTIME as date/time; see comment elsewhere in
                             // the code;
                             // (but we do need to remember to treat the resulting values
@@ -3177,7 +2906,8 @@ public class SAVFileReader extends TabularDataFileReader {
                             if (printFormatTable.get(variableNameList.get(k)).equals("DTIME")) {
 
                                 if (casewiseRecordForTabFile.get(k).indexOf(".") < 0) {
-                                    long dateDatum = Long.parseLong(casewiseRecordForTabFile.get(k)) * 1000L - SPSS_DATE_BIAS;
+                                    long dateDatum = parseLong(casewiseRecordForTabFile.get(k)) 
+                                            * 1000L - SPSS_DATE_BIAS;
                                     String newDatum = sdf_dhms.format(new Date(dateDatum));
                                     // Note: DTIME is not a complete date, so we don't save a date format with it
                                     dbgLog.finer("k=" + k + ":" + newDatum);
@@ -3186,13 +2916,15 @@ public class SAVFileReader extends TabularDataFileReader {
                                     // decimal point included
                                     String[] timeData = casewiseRecordForTabFile.get(k).split("\\.");
 
-                                    dbgLog.finer(StringUtils.join(timeData, "|"));
-                                    long dateDatum = Long.parseLong(timeData[0]) * 1000L - SPSS_DATE_BIAS;
+                                    dbgLog.finer(join(timeData, "|"));
+                                    long dateDatum = parseLong(timeData[0]) 
+                                            * 1000L - SPSS_DATE_BIAS;
                                     StringBuilder sb_time = new StringBuilder(
                                             sdf_dhms.format(new Date(dateDatum)));
 
                                     if (formatDecimalPointPosition > 0) {
-                                        sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                        sb_time.append(".").append(timeData[1],
+                                                0, formatDecimalPointPosition);
                                     }
 
 
@@ -3208,7 +2940,8 @@ public class SAVFileReader extends TabularDataFileReader {
                                 //  -- L.A. Aug. 12 2014
 
                                 if (casewiseRecordForTabFile.get(k).indexOf(".") < 0) {
-                                    long dateDatum = Long.parseLong(casewiseRecordForTabFile.get(k)) * 1000L - SPSS_DATE_OFFSET;
+                                    long dateDatum = parseLong(casewiseRecordForTabFile.get(k)) 
+                                            * 1000L - SPSS_DATE_OFFSET;
                                     String newDatum = sdf_ymdhms.format(new Date(dateDatum));
                                     dbgLog.finer("k=" + k + ":" + newDatum);
                                     casewiseRecordForTabFile.set(k, newDatum);
@@ -3217,23 +2950,24 @@ public class SAVFileReader extends TabularDataFileReader {
                                     // decimal point included
                                     String[] timeData = casewiseRecordForTabFile.get(k).split("\\.");
 
-                                    //dbgLog.finer(StringUtils.join(timeData, "|"));
-                                    long dateDatum = Long.parseLong(timeData[0]) * 1000L - SPSS_DATE_OFFSET;
+                                    long dateDatum = parseLong(timeData[0]) 
+                                            * 1000L - SPSS_DATE_OFFSET;
                                     StringBuilder sb_time = new StringBuilder(
                                             sdf_ymdhms.format(new Date(dateDatum)));
-                                    //dbgLog.finer(sb_time.toString());
 
                                     if (formatDecimalPointPosition > 0) {
-                                        sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                        sb_time.append(".").append(timeData[1], 
+                                                0, formatDecimalPointPosition);
                                     }
                                     dbgLog.finer("k=" + k + ":" + sb_time.toString());
                                     casewiseRecordForTabFile.set(k, sb_time.toString());
                                     // datetime with milliseconds:
-                                    dateFormatList[k] = sdf_ymdhms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                    dateFormatList[k] = sdf_ymdhms.toPattern()
+                                            .concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                 }
                             } else if (printFormatTable.get(variableNameList.get(k)).equals("TIME")) {
                                 if (casewiseRecordForTabFile.get(k).indexOf(".") < 0) {
-                                    long dateDatum = Long.parseLong(casewiseRecordForTabFile.get(k)) * 1000L;
+                                    long dateDatum = parseLong(casewiseRecordForTabFile.get(k)) * 1000L;
                                     String newDatum = sdf_hms.format(new Date(dateDatum));
                                     dbgLog.finer("k=" + k + ":" + newDatum);
                                     casewiseRecordForTabFile.set(k, newDatum);
@@ -3244,20 +2978,21 @@ public class SAVFileReader extends TabularDataFileReader {
                                     // decimal point included
                                     String[] timeData = casewiseRecordForTabFile.get(k).split("\\.");
 
-                                    //dbgLog.finer(StringUtils.join(timeData, "|"));
-                                    long dateDatum = Long.parseLong(timeData[0]) * 1000L;
+                                    long dateDatum = parseLong(timeData[0]) * 1000L;
                                     StringBuilder sb_time = new StringBuilder(
                                             sdf_hms.format(new Date(dateDatum)));
-                                    //dbgLog.finer(sb_time.toString());
 
                                     if (formatDecimalPointPosition > 0) {
-                                        sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                        sb_time.append(".").append(timeData[1], 
+                                                0, formatDecimalPointPosition);
                                     }
                                     dbgLog.finer("k=" + k + ":" + sb_time.toString());
                                     casewiseRecordForTabFile.set(k, sb_time.toString());
                                     // time, possibly with milliseconds:
-                                    String format_hmsS = sdf_hms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
-                                    if (dateFormatList[k] == null || (format_hmsS.length() > dateFormatList[k].length())) {
+                                    String format_hmsS = sdf_hms.toPattern()
+                                            .concat(formatDecimalPointPosition > 0 ? ".S" : "");
+                                    if (dateFormatList[k] == null 
+                                            || (format_hmsS.length() > dateFormatList[k].length())) {
                                         dateFormatList[k] = format_hmsS;
                                     }
                                 }
@@ -3348,7 +3083,8 @@ public class SAVFileReader extends TabularDataFileReader {
 
     }
 
-    private boolean variableNameIsAnIncrement(String varNameBase, String lastExtendedVariable, String currentVariable) {
+    private boolean variableNameIsAnIncrement(String varNameBase,
+            String lastExtendedVariable, String currentVariable) {
 
         if (varNameBase == null ||
                 lastExtendedVariable == null ||
@@ -3374,10 +3110,6 @@ public class SAVFileReader extends TabularDataFileReader {
         if (currentSuffix.length() > 2) {
             return false;
         }
-
-        //if ( !currentSuffix.matches("^[0-9A-Z]*$") ) {
-        //    return false;
-        //}
 
         return suffixIsAnIncrement(lastSuffix, currentSuffix);
     }
@@ -3441,7 +3173,8 @@ public class SAVFileReader extends TabularDataFileReader {
     }
 
 
-    private int[] parseRT7SubTypefieldHeader(BufferedInputStream stream) throws IOException {
+    private int[] parseRT7SubTypefieldHeader(BufferedInputStream stream) 
+            throws IOException {
         int length_unit_length = 4;
         int length_number_of_units = 4;
         int storage_size = length_unit_length + length_number_of_units;
@@ -3451,10 +3184,8 @@ public class SAVFileReader extends TabularDataFileReader {
         byte[] byteStorage = new byte[storage_size];
 
         try {
-            int nbytes = stream.read(byteStorage);
+            stream.read(byteStorage);
             // to-do check against nbytes
-
-            //printHexDump(byteStorage, "RT7:storage");
 
             ByteBuffer bb_data_type = ByteBuffer.wrap(byteStorage,
                                                       0, length_unit_length);
@@ -3466,7 +3197,8 @@ public class SAVFileReader extends TabularDataFileReader {
             dbgLog.fine("parseRT7 SubTypefield: unitLength=" + unitLength);
 
             ByteBuffer bb_number_of_units = ByteBuffer.wrap(byteStorage,
-                                                            length_unit_length, length_number_of_units);
+                                                            length_unit_length, 
+                                                            length_number_of_units);
             if (isLittleEndian) {
                 bb_number_of_units.order(ByteOrder.LITTLE_ENDIAN);
             }
@@ -3496,11 +3228,8 @@ public class SAVFileReader extends TabularDataFileReader {
 
         byte[] byteStorage = new byte[storage_size];
 
-        try {
-            int nbytes = stream.read(byteStorage);
+            stream.read(byteStorage);
             // to-do check against nbytes
-
-            //printHexDump(byteStorage, "RT7:storage");
 
             ByteBuffer bb_data_type = ByteBuffer.wrap(byteStorage,
                                                       0, length_unit_length);
@@ -3512,7 +3241,8 @@ public class SAVFileReader extends TabularDataFileReader {
             dbgLog.fine("parseRT7 SubTypefield: unitLength=" + unitLength);
 
             ByteBuffer bb_number_of_units = ByteBuffer.wrap(byteStorage,
-                                                            length_unit_length, length_number_of_units);
+                                                            length_unit_length, 
+                                                            length_number_of_units);
             if (isLittleEndian) {
                 bb_number_of_units.order(ByteOrder.LITTLE_ENDIAN);
             }
@@ -3526,7 +3256,7 @@ public class SAVFileReader extends TabularDataFileReader {
             for (int i = 0; i < numberOfUnits; i++) {
                 byte[] work = new byte[unitLength];
 
-                int nb = stream.read(work);
+                stream.read(work);
                 dbgLog.finer("raw bytes in Hex:" + new String(Hex.encodeHex(work)));
                 ByteBuffer bb_field = ByteBuffer.wrap(work);
                 if (isLittleEndian) {
@@ -3545,73 +3275,7 @@ public class SAVFileReader extends TabularDataFileReader {
                 }
                 dbgLog.finer("");
             }
-
-        } catch (IOException ex) {
-            //ex.printStackTrace();
-            throw ex;
-        }
-
     }
-
-    private List<byte[]> getRT7SubTypefieldData(BufferedInputStream stream) throws IOException {
-        int length_unit_length = 4;
-        int length_number_of_units = 4;
-        int storage_size = length_unit_length + length_number_of_units;
-        List<byte[]> dataList = new ArrayList<byte[]>();
-        int[] headerSection = new int[2];
-
-        byte[] byteStorage = new byte[storage_size];
-
-        try {
-            int nbytes = stream.read(byteStorage);
-            // to-do check against nbytes
-
-            //printHexDump(byteStorage, "RT7:storage");
-
-            ByteBuffer bb_data_type = ByteBuffer.wrap(byteStorage,
-                                                      0, length_unit_length);
-            if (isLittleEndian) {
-                bb_data_type.order(ByteOrder.LITTLE_ENDIAN);
-            }
-
-            int unitLength = bb_data_type.getInt();
-            dbgLog.fine("parseRT7SubTypefield: unitLength=" + unitLength);
-
-            ByteBuffer bb_number_of_units = ByteBuffer.wrap(byteStorage,
-                                                            length_unit_length, length_number_of_units);
-            if (isLittleEndian) {
-                bb_number_of_units.order(ByteOrder.LITTLE_ENDIAN);
-            }
-
-            int numberOfUnits = bb_number_of_units.getInt();
-            dbgLog.fine("parseRT7SubTypefield: numberOfUnits=" + numberOfUnits);
-
-            headerSection[0] = unitLength;
-            headerSection[1] = numberOfUnits;
-
-            for (int i = 0; i < numberOfUnits; i++) {
-
-                byte[] work = new byte[unitLength];
-                int nb = stream.read(work);
-                dbgLog.finer(new String(Hex.encodeHex(work)));
-                dataList.add(work);
-            }
-
-
-        } catch (IOException ex) {
-            //ex.printStackTrace();
-            throw ex;
-        }
-        return dataList;
-    }
-
-    void print2Darray(Object[][] datatable, String title) {
-        dbgLog.fine(title);
-        for (int i = 0; i < datatable.length; i++) {
-            dbgLog.fine(StringUtils.join(datatable[i], "|"));
-        }
-    }
-
 
 }
 

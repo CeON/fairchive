@@ -266,7 +266,7 @@ public class PrivateUrlUtilTest {
     public void testGetPrivateUrlRedirectDataConstructor() throws Exception {
         Exception exception1 = null;
         try {
-            PrivateUrlRedirectData privateUrlRedirectData = new PrivateUrlRedirectData(null, null);
+            new PrivateUrlRedirectData(null, null);
         } catch (Exception ex) {
             exception1 = ex;
         }
@@ -274,7 +274,7 @@ public class PrivateUrlUtilTest {
         Exception exception2 = null;
         try {
             PrivateUrlUser privateUrlUser = new PrivateUrlUser(42);
-            PrivateUrlRedirectData privateUrlRedirectData = new PrivateUrlRedirectData(privateUrlUser, null);
+            new PrivateUrlRedirectData(privateUrlUser, null);
         } catch (Exception ex) {
             exception2 = ex;
         }

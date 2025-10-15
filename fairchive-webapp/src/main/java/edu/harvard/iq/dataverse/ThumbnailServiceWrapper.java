@@ -30,14 +30,13 @@ import java.util.Optional;
 /**
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 @ViewScoped
 public class ThumbnailServiceWrapper implements java.io.Serializable {
     @Inject
     PermissionsWrapper permissionsWrapper;
     @EJB
     DataverseDao dataverseDao;
-    @EJB
-    DatasetDao datasetDao;
     @EJB
     DatasetVersionServiceBean datasetVersionService;
     @EJB

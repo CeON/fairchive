@@ -1,10 +1,8 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.ManyToOne;
@@ -13,6 +11,12 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.util.Collection;
 
@@ -31,7 +35,7 @@ import java.util.Collection;
 public class ForeignMetadataFieldMapping implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     public Long getId() {
@@ -42,7 +46,7 @@ public class ForeignMetadataFieldMapping implements Serializable {
         this.id = id;
     }
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne(cascade = MERGE)
     private ForeignMetadataFormatMapping foreignMetadataFormatMapping;
 
     @Column(name = "foreignFieldXPath", columnDefinition = "TEXT")
@@ -51,15 +55,13 @@ public class ForeignMetadataFieldMapping implements Serializable {
     @Column(name = "datasetfieldName", columnDefinition = "TEXT")
     private String datasetfieldName;
 
-    @OneToMany(mappedBy = "parentFieldMapping", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "parentFieldMapping", cascade = {REMOVE, MERGE, PERSIST})
     private Collection<ForeignMetadataFieldMapping> childFieldMappings;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne(cascade = MERGE)
     private ForeignMetadataFieldMapping parentFieldMapping;
 
     private boolean isAttribute;
-
-    /* getters/setters: */
 
     public ForeignMetadataFormatMapping getForeignMetadataFormatMapping() {
         return foreignMetadataFormatMapping;
@@ -85,7 +87,6 @@ public class ForeignMetadataFieldMapping implements Serializable {
         this.datasetfieldName = datasetfieldName;
     }
 
-
     public Collection<ForeignMetadataFieldMapping> getChildFieldMappings() {
         return this.childFieldMappings;
     }
@@ -93,17 +94,6 @@ public class ForeignMetadataFieldMapping implements Serializable {
     public void setChildFieldMappings(Collection<ForeignMetadataFieldMapping> childFieldMappings) {
         this.childFieldMappings = childFieldMappings;
     }
-    
-    /*
-    public Collection<ForeignMetadataFieldMapping> getAttributeMappings() {
-        return this.attributeMappings;
-    }
-
-    public void setAttributeMappings(Collection<ForeignMetadataFieldMapping> attributeMappings) {
-        this.attributeMappings = attributeMappings;
-    }
-    */
-
 
     public ForeignMetadataFieldMapping getParentFieldMapping() {
         return parentFieldMapping;
@@ -121,8 +111,6 @@ public class ForeignMetadataFieldMapping implements Serializable {
         this.isAttribute = isAttribute;
     }
 
-    /* logical: */
-
     public boolean isChild() {
         return this.parentFieldMapping != null;
     }
@@ -130,17 +118,10 @@ public class ForeignMetadataFieldMapping implements Serializable {
     public boolean HasChildren() {
         return !this.childFieldMappings.isEmpty();
     }
-    
-    /*
-    public boolean HasAttributes() {
-        return !this.attributeMappings.isEmpty();
-    }
-    */
 
     public boolean HasParent() {
         return this.parentFieldMapping != null;
     }
-    /* overrides: */
 
     @Override
     public int hashCode() {

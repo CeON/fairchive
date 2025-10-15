@@ -3,8 +3,10 @@ package edu.harvard.iq.dataverse.search.advanced;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import edu.harvard.iq.dataverse.search.advanced.field.CheckboxSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.GeoboxCoordSearchField;
+import edu.harvard.iq.dataverse.search.advanced.field.LazySelectSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.NumberSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SelectOneSearchField;
@@ -37,7 +39,9 @@ class SearchFieldFactoryTest {
                 Arguments.of(createType(FieldType.INT), NumberSearchField.class),
                 Arguments.of(createType(FieldType.FLOAT), NumberSearchField.class),
                 Arguments.of(createVocabularyType(true), CheckboxSearchField.class),
-                Arguments.of(createVocabularyType(false), SelectOneSearchField.class));
+                Arguments.of(createVocabularyType(false), SelectOneSearchField.class),
+                Arguments.of(createEnhancedSelectVocabularyType(false), LazySelectSearchField.class),
+                Arguments.of(createEnhancedSelectVocabularyType(true), LazySelectSearchField.class));
     }
 
     @ParameterizedTest
@@ -67,6 +71,7 @@ class SearchFieldFactoryTest {
     }
 
     private static DatasetFieldType createType(FieldType type) {
+        @SuppressWarnings("serial")
         DatasetFieldType datasetFieldType = new DatasetFieldType() {
             @Override
             public String getDisplayName() { return ""; }
@@ -78,6 +83,18 @@ class SearchFieldFactoryTest {
 
     private static DatasetFieldType createVocabularyType(boolean allowMultiples) {
         DatasetFieldType fieldType = createType(FieldType.NONE);
+        Random random = new Random();
+        List<ControlledVocabularyValue> values = Arrays.asList("a", "b", "c").stream()
+                .map(v -> new ControlledVocabularyValue(random.nextLong(), v, fieldType))
+                .collect(Collectors.toList());
+        fieldType.setControlledVocabularyValues(values);
+        fieldType.setAllowMultiples(allowMultiples);
+        return fieldType;
+    }
+
+    private static DatasetFieldType createEnhancedSelectVocabularyType(boolean allowMultiples) {
+        DatasetFieldType fieldType = createType(FieldType.NONE);
+        fieldType.setInputRendererType(InputRendererType.VOCABULARY_ENHANCED_SELECT);
         Random random = new Random();
         List<ControlledVocabularyValue> values = Arrays.asList("a", "b", "c").stream()
                 .map(v -> new ControlledVocabularyValue(random.nextLong(), v, fieldType))

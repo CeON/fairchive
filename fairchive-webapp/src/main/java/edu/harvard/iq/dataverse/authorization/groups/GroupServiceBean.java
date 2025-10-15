@@ -57,7 +57,6 @@ public class GroupServiceBean {
     private IpGroupProvider ipGroupProvider;
     private SamlGroupProvider samlGroupProvider;
     private ExplicitGroupProvider explicitGroupProvider;
-    private MailDomainGroupProvider mailDomainGroupProvider;
 
     @EJB
     RoleAssigneeServiceBean roleAssigneeSvc;
@@ -84,7 +83,7 @@ public class GroupServiceBean {
         addGroupProvider(AuthenticatedUsersProvider.get());
         addGroupProvider(ipGroupProvider = new IpGroupProvider(ipGroupsService));
         addGroupProvider(samlGroupProvider = new SamlGroupProvider(samlGroupService));
-        addGroupProvider(mailDomainGroupProvider = new MailDomainGroupProvider(mailDomainGroupService));
+        addGroupProvider(new MailDomainGroupProvider(mailDomainGroupService));
 
         List<GroupProvider<?>> providers = new ArrayList<>(groupProviders.values());
         addGroupProvider(explicitGroupProvider = new ExplicitGroupProvider(explicitGroupService, roleAssigneeService, providers));

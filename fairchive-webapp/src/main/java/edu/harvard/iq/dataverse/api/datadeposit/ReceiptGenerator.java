@@ -8,7 +8,7 @@ import org.swordapp.server.DepositReceipt;
 
 import java.util.logging.Logger;
 
-public class ReceiptGenerator {
+final class ReceiptGenerator {
 
     private static final Logger logger = Logger.getLogger(ReceiptGenerator.class.getCanonicalName());
 
@@ -16,7 +16,7 @@ public class ReceiptGenerator {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public ReceiptGenerator(CitationFactory citationFactory) {
+    ReceiptGenerator(CitationFactory citationFactory) {
         this.citationFactory = citationFactory;
     }
 
@@ -25,7 +25,7 @@ public class ReceiptGenerator {
     DepositReceipt createDatasetReceipt(String baseUrl, Dataset dataset) {
         logger.fine("baseUrl was: " + baseUrl);
         DepositReceipt depositReceipt = new DepositReceipt();
-        String globalId = dataset.getGlobalIdString();
+        String globalId = dataset.getGlobalId().toString();
         String editIri = baseUrl + "/edit/study/" + globalId;
         depositReceipt.setEditIRI(new IRI(editIri));
         /**

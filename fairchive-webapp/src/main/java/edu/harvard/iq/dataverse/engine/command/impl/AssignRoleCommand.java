@@ -27,6 +27,7 @@ import java.util.Set;
  * @author michael
  */
 // no annotations here, since permissions are dynamically decided
+@SuppressWarnings("serial")
 public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implements Serializable {
 
     private final DataverseRole role;

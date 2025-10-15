@@ -23,6 +23,7 @@ import java.util.List;
  * This comparator was originally created by Ellen Kraffmiller for the DVN v2.
  * Incorporated into DVN 4.0 by Leonid Andreev in Dec. 2013.
  */
+@SuppressWarnings("serial")
 public class AlphaNumericComparator implements Comparator<String>, Serializable {
     public AlphaNumericComparator() {
     }
@@ -38,6 +39,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
 
             if (token1 instanceof BigDecimal) {
                 if (token2 instanceof BigDecimal) {
+                    @SuppressWarnings("unchecked")
                     int compareVal = ((Comparable<BigDecimal>) token1).compareTo((BigDecimal) token2);
                     if (compareVal != 0) {
                         return compareVal;
@@ -51,6 +53,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
                 return 1; // token2 is a number, token1 is  not
 
             } else {
+                @SuppressWarnings("unchecked")
                 int compareVal = ((Comparable<String>) token1).compareTo((String) token2);
                 if (compareVal != 0) {
                     return compareVal;
@@ -77,7 +80,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
         List<Object> tokenizedList = new ArrayList<>();
         char[] charArray = value.trim().toCharArray();
 
-        StringBuffer currentToken = new StringBuffer();
+        StringBuilder currentToken = new StringBuilder();
         boolean isCurrentTokenNumeric = false;
 
         for (int i = 0; i < charArray.length; i++) {
@@ -92,7 +95,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
 
                 if (!isCurrentTokenNumeric) { // reset
                     tokenizedList.add(currentToken.toString());
-                    currentToken = new StringBuffer();
+                    currentToken = new StringBuilder();
                 }
 
                 if (c != ',') { // if comma, don't append as it's just a visual separator
@@ -108,7 +111,7 @@ public class AlphaNumericComparator implements Comparator<String>, Serializable 
                     } catch (NumberFormatException nfe) {
                         tokenizedList.add(currentToken.toString()); // something went wrong, but go ahead and add a a String
                     }
-                    currentToken = new StringBuffer();
+                    currentToken = new StringBuilder();
                 }
 
                 currentToken.append(c);

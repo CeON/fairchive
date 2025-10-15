@@ -67,6 +67,7 @@ import static org.apache.commons.io.IOUtils.toByteArray;
  *
  * @author Leonid Andreev
  */
+@SuppressWarnings("serial")
 public class FileUtil implements java.io.Serializable {
     private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
@@ -189,17 +190,8 @@ public class FileUtil implements java.io.Serializable {
     }
 
     public static boolean canIngestAsTabular(String mimeType) {
-        if (mimeType == null) {
-            return false;
-        }
-
-        boolean isMimeAmongIngestableAppTypes = ApplicationMimeType.retrieveIngestableMimes().stream()
-                .anyMatch(appMime -> appMime.getMimeValue().equals(mimeType));
-
-        boolean isMimeAmongIngestableTextTypes = TextMimeType.retrieveIngestableMimes().stream()
-                .anyMatch(appMime -> appMime.getMimeValue().equals(mimeType));
-
-        return isMimeAmongIngestableAppTypes || isMimeAmongIngestableTextTypes;
+            return ApplicationMimeType.isIngestable(mimeType)
+                    || TextMimeType.isIngestable(mimeType);
     }
 
     public static String getFilesTempDirectory() {
@@ -424,6 +416,9 @@ public class FileUtil implements java.io.Serializable {
         if (downloadType == ApiDownloadType.OCR) {
             fileDownloadUrl = "/api/access/datafile/" + fileId + "?format=ocr";
         }
+        if (downloadType == ApiDownloadType.HTR) {
+            fileDownloadUrl = "/api/access/datafile/" + fileId + "?format=htr";
+        }
         if (gbRecordsWritten) {
             if (fileDownloadUrl.contains("?")) {
                 fileDownloadUrl += "&gbrecs=true";
@@ -564,6 +559,7 @@ public class FileUtil implements java.io.Serializable {
         RDATA,
         VAR,
         TAB,
-        OCR
+        OCR,
+        HTR
     }
 }

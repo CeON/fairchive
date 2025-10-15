@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Creates and manages explicit groups. Also provides services they might need.
@@ -23,8 +22,6 @@ import java.util.logging.Logger;
  * @author michael
  */
 public class ExplicitGroupProvider implements GroupProvider<ExplicitGroup> {
-
-    private static final Logger logger = Logger.getLogger(ExplicitGroupProvider.class.getName());
 
     private final ExplicitGroupServiceBean explicitGroupSvc;
     private final RoleAssigneeServiceBean roleAssigneeSvc;

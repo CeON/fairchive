@@ -1,12 +1,14 @@
 package edu.harvard.iq.dataverse.persistence.consent;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,16 +20,16 @@ import java.util.List;
 public class Consent {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(unique = true, updatable = false)
     private String name;
 
-    @OneToMany(mappedBy = "consent", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "consent", cascade = ALL)
     private List<ConsentDetails> consentDetails = new ArrayList<>();
 
-    @OneToMany(mappedBy = "consent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "consent", cascade = ALL, orphanRemoval = true)
     private List<ConsentAction> consentActions = new ArrayList<>();
 
     @Column(nullable = false)

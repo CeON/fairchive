@@ -18,7 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -32,7 +31,6 @@ import static java.util.stream.Collectors.joining;
 @Stateless
 public class ExplicitGroupServiceBean {
 
-    private static final Logger logger = Logger.getLogger(ExplicitGroupServiceBean.class.getName());
     @EJB
     protected RoleAssigneeServiceBean roleAssigneeSvc;
 
@@ -247,6 +245,7 @@ public class ExplicitGroupServiceBean {
      * @param seed the initial set of groups.
      * @return Transitive closure (based on group  containment) of the groups in {@code seed}.
      */
+    @SuppressWarnings("unchecked")
     protected Set<ExplicitGroup> findClosure(Set<ExplicitGroup> seed) {
 
         if (seed.isEmpty()) {

@@ -17,12 +17,16 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType.NON;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -138,6 +142,20 @@ public class UningestService {
         // Remove ingest reports and set status
         Optional.ofNullable(file.getIngestReports()).ifPresent(List::clear);
         file.setIngestStatus(DataFile.INGEST_STATUS_NONE);
+        if (file.isImage()) {
+            file.setIngestType(NON);
+            try {
+                final StorageIO<DataFile> storage = this.dataAccess.getStorageIO(file);
+                if (storage != null) {
+                    storage.deleteAuxObject("ocr");
+                    storage.deleteAuxObject("htr");
+                    storage.closeQuietly();
+                }
+            } catch (final IOException e) {
+                logger.warn("Opening starage for " + file.getDisplayName() + " failed.",
+                        e);
+            }
+        }
 
         // Merge entity
         file = dataFileRepository.save(file);

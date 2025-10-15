@@ -1,0 +1,75 @@
+<ui:composition
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:jsf="http://xmlns.jcp.org/jsf">
+
+    <div class="form-group">
+        <label class="col-sm-4 control-label">
+            <h:outputText value="#{item.displayName}" escape="false"/>
+            <span data-toggle="tooltip" data-placement="top"
+                  jsf:rendered="#{not empty item.description}"
+                  class="glyphicon glyphicon-question-sign text-primary"
+                  tabindex="0" role="button"
+                  data-original-title="#{item.description}">
+            </span>
+        </label>
+
+        <div class="col-sm-6">
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.TEXT}">
+                <ui:include src="/WEB-INF/templates/advanced/text.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                </ui:include>
+            </div>
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.GEOBOX_COORD}">
+                <ui:include src="/WEB-INF/templates/advanced/geoboxCoord.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                    <ui:param name="mdb" value="#{mdb}" />
+                </ui:include>
+            </div>
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">
+                <ui:include src="/WEB-INF/templates/advanced/date.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                </ui:include>
+            </div>
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}}">
+                <ui:include src="/WEB-INF/templates/advanced/number.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                </ui:include>
+            </div>
+
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.CHECKBOX}">
+                <ui:include src="/WEB-INF/templates/advanced/checkbox.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                </ui:include>
+            </div>
+
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.SELECT_ONE_VALUE}">
+                <ui:include src="/WEB-INF/templates/advanced/selectOneValue.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                </ui:include>
+            </div>
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.PERIODO}">
+                <ui:include src="/WEB-INF/templates/advanced/periodo.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                </ui:include>
+            </div>
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.GEONAME}">
+                <ui:include src="/WEB-INF/templates/advanced/geoname.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                </ui:include>
+            </div>
+            <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.LAZY_SELECT_VALUE}">
+                <ui:include src="/WEB-INF/templates/advanced/lazySelectValue.xhtml">
+                    <ui:param name="item" value="#{item}" />
+                </ui:include>
+            </div>
+            <div class="ui-message ui-message-error ui-widget ui-corner-all" aria-live="polite"
+                 jsf:rendered="#{not empty item.getValidationMessage()}">
+                <span class="ui-message-error-detail">
+                    <h:outputText value="#{item.getValidationMessage()}" escape="false"/>
+                </span>
+            </div>
+        </div>
+    </div>
+
+</ui:composition>

@@ -67,19 +67,12 @@ public class DatasetRelMaterial {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        //hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+        return 0;
     }
 
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof DatasetRelMaterial)) {
-            return false;
-        }
-        DatasetRelMaterial other = (DatasetRelMaterial) object;
-        //if (this.id != other.id && (this.id == null || !this.id.equals(other.id))) return false;
-        return true;
+        return object instanceof DatasetRelMaterial;
     }
 
 }

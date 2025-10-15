@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -63,7 +62,6 @@ public class DataseThumbnailServiceTest {
 
     @Test
     public void testGetThumbnailRestricted() {
-        System.out.println("testGetThumbnailRestricted");
         Dataset dataset = new Dataset();
         DataFile thumbnailFile = new DataFile();
         thumbnailFile.setId(42l);

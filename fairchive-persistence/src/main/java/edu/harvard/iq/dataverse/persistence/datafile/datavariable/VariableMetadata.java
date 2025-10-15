@@ -2,11 +2,9 @@ package edu.harvard.iq.dataverse.persistence.datafile.datavariable;
 
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -14,10 +12,17 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "datavariable_id"), @Index(columnList = "filemetadata_id"),
         @Index(columnList = "datavariable_id,filemetadata_id")},
@@ -25,7 +30,7 @@ import java.util.Collection;
 public class VariableMetadata implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     /**
@@ -84,7 +89,7 @@ public class VariableMetadata implements Serializable {
     /**
      * categoriesMetadata: variable metadata for categories that includes weighted frequencies
      */
-    @OneToMany(mappedBy = "variableMetadata", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "variableMetadata", cascade = {REMOVE, MERGE, PERSIST})
     private Collection<CategoryMetadata> categoriesMetadata;
 
     /**

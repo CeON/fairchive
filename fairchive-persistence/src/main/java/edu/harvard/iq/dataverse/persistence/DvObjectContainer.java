@@ -9,6 +9,7 @@ import javax.persistence.MappedSuperclass;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @MappedSuperclass
 public abstract class DvObjectContainer extends DvObject {
 

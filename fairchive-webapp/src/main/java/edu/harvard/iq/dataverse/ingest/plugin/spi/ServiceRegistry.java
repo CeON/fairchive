@@ -59,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.ServiceLoader;
-import java.util.Set;
 
 /**
  * A registry for service provider instances.
@@ -231,8 +230,7 @@ public class ServiceRegistry {
      * <code>Class</code>objects.
      */
     public Iterator<Class<?>> getCategories() {
-        Set<Class<?>> keySet = categoryMap.keySet();
-        return keySet.iterator();
+        return categoryMap.keySet().iterator();
     }
 
     /**
@@ -241,9 +239,7 @@ public class ServiceRegistry {
      */
     private Iterator<SubRegistry> getSubRegistries(Object provider) {
         List<SubRegistry> l = new ArrayList<>();
-        Iterator<Class<?>> iter = categoryMap.keySet().iterator();
-        while (iter.hasNext()) {
-            Class<?> c = iter.next();
+        for(final Class<?> c : categoryMap.keySet()) {
             if (c.isAssignableFrom(provider.getClass())) {
                 l.add(categoryMap.get(c));
             }
@@ -311,11 +307,8 @@ public class ServiceRegistry {
         if (provider == null) {
             throw new IllegalArgumentException("provider == null!");
         }
-        Iterator<SubRegistry> regs = getSubRegistries(provider);
-        while (regs.hasNext()) {
-            SubRegistry reg = regs.next();
-            reg.registerServiceProvider(provider);
-        }
+        getSubRegistries(provider)
+                .forEachRemaining(reg -> reg.registerServiceProvider(provider));
     }
 
     /**
@@ -399,11 +392,8 @@ public class ServiceRegistry {
         if (provider == null) {
             throw new IllegalArgumentException("provider == null!");
         }
-        Iterator<SubRegistry> regs = getSubRegistries(provider);
-        while (regs.hasNext()) {
-            SubRegistry reg = regs.next();
-            reg.deregisterServiceProvider(provider);
-        }
+        getSubRegistries(provider)
+                .forEachRemaining(reg -> reg.deregisterServiceProvider(provider));
     }
 
     /**
@@ -420,14 +410,12 @@ public class ServiceRegistry {
         if (provider == null) {
             throw new IllegalArgumentException("provider == null!");
         }
-        Iterator<SubRegistry> regs = getSubRegistries(provider);
+        final Iterator<SubRegistry> regs = getSubRegistries(provider);
         while (regs.hasNext()) {
-            SubRegistry reg = regs.next();
-            if (reg.contains(provider)) {
+            if (regs.next().contains(provider)) {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -449,6 +437,7 @@ public class ServiceRegistry {
      * @throws IllegalArgumentException if there is no category
      *                                  corresponding to <code>category</code>.
      */
+    @SuppressWarnings("unchecked")
     public <T> Iterator<T> getServiceProviders(Class<T> category,
                                                boolean useOrdering) {
         SubRegistry reg = categoryMap.get(category);
@@ -745,6 +734,7 @@ class SubRegistry {
         return poset.unsetOrdering(firstProvider, secondProvider);
     }
 
+    @SuppressWarnings("rawtypes")
     public Iterator getServiceProviders(boolean useOrdering) {
         if (useOrdering) {
             return poset.iterator();
@@ -753,6 +743,7 @@ class SubRegistry {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getServiceProviderByClass(Class<T> providerClass) {
         return (T) map.get(providerClass);
     }

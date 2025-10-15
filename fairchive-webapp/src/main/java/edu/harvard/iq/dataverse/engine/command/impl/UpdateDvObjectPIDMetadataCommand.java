@@ -1,26 +1,29 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.AbstractVoidCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataFilePIDFormat;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.FilePIDsEnabled;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
+import static java.util.Collections.singleton;
 
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.Date;
 
 /**
  * @author skraffmi
  * No required permissions because we are enforcing super user status in the execute
  */
+@SuppressWarnings("serial")
 @RequiredPermissions({})
 public class UpdateDvObjectPIDMetadataCommand extends AbstractVoidCommand {
 
@@ -36,8 +39,8 @@ public class UpdateDvObjectPIDMetadataCommand extends AbstractVoidCommand {
 
 
         if (!getUser().isSuperuser()) {
-            throw new PermissionException(BundleUtil.getStringFromBundle("datasets.api.updatePIDMetadata.auth.mustBeSuperUser"),
-                                          this, Collections.singleton(Permission.EditDataset), target);
+            throw new PermissionException(getStringFromBundle("datasets.api.updatePIDMetadata.auth.mustBeSuperUser"),
+                                          this, singleton(Permission.EditDataset), target);
         }
         if (!this.target.isReleased()) {
             //This is for the bulk update version of the api.
@@ -45,7 +48,7 @@ public class UpdateDvObjectPIDMetadataCommand extends AbstractVoidCommand {
             //the single dataset update api checks for drafts before calling the command
             return;
         }
-        GlobalIdServiceBean idServiceBean = GlobalIdServiceBean.getBean(target.getProtocol(), ctxt);
+        GlobalIdServiceBean idServiceBean = ctxt.globalIdServiceBeanResolver().resolve(target.getProtocol());
         try {
             Boolean doiRetString = idServiceBean.publicizeIdentifier(target);
             if (doiRetString) {
@@ -54,9 +57,9 @@ public class UpdateDvObjectPIDMetadataCommand extends AbstractVoidCommand {
                 ctxt.em().flush();
                 // When updating, we want to traverse through files even if the dataset itself
                 // didn't need updating.
-                String currentGlobalIdProtocol = ctxt.settings().getValueForKey(SettingsServiceBean.Key.Protocol);
-                String dataFilePIDFormat = ctxt.settings().getValueForKey(SettingsServiceBean.Key.DataFilePIDFormat);
-                boolean isFilePIDsEnabled = ctxt.settings().isTrueForKey(SettingsServiceBean.Key.FilePIDsEnabled);
+                String currentGlobalIdProtocol = ctxt.settings().getValueForKey(Protocol);
+                String dataFilePIDFormat = ctxt.settings().getValueForKey(DataFilePIDFormat);
+                boolean isFilePIDsEnabled = ctxt.settings().isTrueForKey(FilePIDsEnabled);
                 // We will skip trying to update the global identifiers for datafiles if they
                 // aren't being used.
                 // If they are, we need to assure that there's an existing PID or, as when

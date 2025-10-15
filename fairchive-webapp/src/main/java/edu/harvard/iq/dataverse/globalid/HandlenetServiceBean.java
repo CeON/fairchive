@@ -20,6 +20,23 @@
 
 package edu.harvard.iq.dataverse.globalid;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
+import org.apache.commons.lang.NotImplementedException;
+
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -38,25 +55,6 @@ import net.handle.hdllib.ModifyValueRequest;
 import net.handle.hdllib.PublicKeyAuthenticationInfo;
 import net.handle.hdllib.ResolutionRequest;
 import net.handle.hdllib.Util;
-import org.apache.commons.lang.NotImplementedException;
-
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Leonid Andreev
@@ -259,11 +257,12 @@ public class HandlenetServiceBean extends AbstractGlobalIdServiceBean {
         byte[] key = null;
         try {
             File f = new File(file);
-            FileInputStream fs = new FileInputStream(f);
-            key = new byte[(int) f.length()];
-            int n = 0;
-            while (n < key.length) {
-                key[n++] = (byte) fs.read();
+            try (FileInputStream fs = new FileInputStream(f)) {
+                key = new byte[(int) f.length()];
+                int n = 0;
+                while (n < key.length) {
+                    key[n++] = (byte) fs.read();
+                }
             }
         } catch (Throwable t) {
             logger.log(Level.SEVERE, "Cannot read private key {0}: {1}", new Object[]{file, t});
@@ -329,7 +328,7 @@ public class HandlenetServiceBean extends AbstractGlobalIdServiceBean {
     }
 
     @Override
-    public HashMap lookupMetadataFromIdentifier(String protocol, String authority, String identifier) {
+    public HashMap<String, String> lookupMetadataFromIdentifier(String protocol, String authority, String identifier) {
         throw new NotImplementedException();
     }
 

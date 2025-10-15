@@ -136,7 +136,11 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
                     return;
                 } else if (dataFile.isImage()
                         && "ocr".equals(di.getConversionParamValue())) {
-                    writeOCRedFile(httpHeaders, outstream, storageIO);
+                    writeRecognizedTextToFile(httpHeaders, outstream, storageIO, "ocr");
+                    return;
+                } else if (dataFile.isImage()
+                        && "htr".equals(di.getConversionParamValue())) {
+                    writeRecognizedTextToFile(httpHeaders, outstream, storageIO, "htr");
                     return;
                 }
             }
@@ -326,11 +330,13 @@ public class DownloadInstanceWriter implements MessageBodyWriter<DownloadInstanc
         }
     }
     
-    private void writeOCRedFile(final MultivaluedMap<String, Object> httpHeaders,
-            final OutputStream outstream, final StorageIO<DataFile> storageIO) {
+    private void writeRecognizedTextToFile(final MultivaluedMap<String, Object> httpHeaders,
+                                           final OutputStream outstream,
+                                           final StorageIO<DataFile> storageIO,
+                                           final String recognitionType) {
         try {
-            final InputStream in = storageIO.getAuxFileAsInputStream("ocr");
-            final int fileSize = (int) storageIO.getAuxObjectSize("ocr");
+            final InputStream in = storageIO.getAuxFileAsInputStream(recognitionType);
+            final int fileSize = (int) storageIO.getAuxObjectSize(recognitionType);
 
             String fileName = storageIO.getFileName();
             if (fileName != null) {

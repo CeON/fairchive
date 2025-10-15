@@ -20,19 +20,17 @@ import org.swordapp.server.UriRegistry;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import java.util.List;
-import java.util.logging.Logger;
 
-public class ServiceDocumentManagerImpl implements ServiceDocumentManager {
+final class ServiceDocumentManagerImpl implements ServiceDocumentManager {
 
-    private static final Logger logger = Logger.getLogger(ServiceDocumentManagerImpl.class.getCanonicalName());
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
-    PermissionServiceBean permissionService;
-    @EJB
-    SystemConfig systemConfig;
+    private PermissionServiceBean permissionService;
     @Inject
-    SwordAuth swordAuth;
+    private SystemConfig systemConfig;
+    @Inject
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
 

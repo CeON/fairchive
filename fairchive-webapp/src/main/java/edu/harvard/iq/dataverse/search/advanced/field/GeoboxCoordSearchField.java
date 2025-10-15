@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("serial")
 public class GeoboxCoordSearchField extends SearchField {
 
     private String fieldValue;

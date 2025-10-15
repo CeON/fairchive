@@ -5,7 +5,6 @@ import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
-import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
 import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
@@ -34,7 +33,6 @@ import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -53,7 +51,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.worldmapauth.WorldMapTokenServiceBean;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.apache.commons.lang.StringUtils;
 
@@ -86,7 +83,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -257,6 +253,8 @@ public class Access extends AbstractApiBean {
         if (df.isImage()) {
             dInfo.addServiceAvailable(new OptionalAccessService("ocr", "text/plain",
                     "format=ocr", "Recognized text"));
+            dInfo.addServiceAvailable(new OptionalAccessService("htr", "text/plain",
+                    "format=htr", "Recognized text"));
         }
         DownloadInstance downloadInstance = new DownloadInstance(dInfo);
 
@@ -299,10 +297,6 @@ public class Access extends AbstractApiBean {
                                         }
                                         logger.fine("putting variable id " + variable.getId() + " on the parameters list of the download instance.");
                                         downloadInstance.getExtraArguments().add(variable);
-
-                                        //if (!variable.getDataTable().getDataFile().getId().equals(sf.getId())) {
-                                        //variableList.add(variable);
-                                        //}
                                     }
                                 } else {
                                     logger.fine("variable service is null.");
@@ -678,7 +672,7 @@ public class Access extends AbstractApiBean {
         }
 
         //String imageThumbFileName = null;
-        StorageIO thumbnailDataAccess = null;
+        StorageIO<?> thumbnailDataAccess = null;
 
         // First, check if this dataset has a designated thumbnail image:
 
@@ -696,17 +690,6 @@ public class Access extends AbstractApiBean {
                     thumbnailDataAccess = null;
                 }
             }
-
-
-            // If not, we'll try to use one of the files in this dataset version:
-            /*
-            if (thumbnailDataAccess == null) {
-
-                if (!datasetVersion.getDataset().isHarvested()) {
-                    thumbnailDataAccess = getThumbnailForDatasetVersion(datasetVersion);
-                }
-            }*/
-
         }
 
         return null;
@@ -868,7 +851,6 @@ public class Access extends AbstractApiBean {
         List<AuthenticatedUser> requesters = dataFile.getFileAccessRequesters();
 
         if (requesters == null || requesters.isEmpty()) {
-            List<String> args = Arrays.asList(dataFile.getDisplayName());
             return error(BAD_REQUEST, BundleUtil.getStringFromBundle("access.api.requestList.noRequestsFound"));
         }
 

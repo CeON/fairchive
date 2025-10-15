@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class UpdateDatasetGuestbookCommand extends AbstractDatasetCommand<Dataset> {
 
@@ -17,6 +18,6 @@ public class UpdateDatasetGuestbookCommand extends AbstractDatasetCommand<Datase
     public Dataset execute(CommandContext ctxt) {
         ctxt.permissions().checkEditDatasetLock(getDataset(), getRequest(), this);
 
-        return ctxt.datasets().merge(getDataset());
+        return ctxt.datasetService().save(getDataset());
     }
 }

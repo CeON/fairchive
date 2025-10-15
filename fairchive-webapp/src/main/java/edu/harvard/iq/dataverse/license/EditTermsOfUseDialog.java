@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.util.List;
 
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("editTermsOfUseDialog")
 public class EditTermsOfUseDialog implements Serializable {

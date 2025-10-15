@@ -1,8 +1,6 @@
 package edu.harvard.iq.dataverse.common.files.mime;
 
-import com.google.common.collect.Lists;
-
-import java.util.List;
+import static java.util.Arrays.stream;
 
 public enum TextMimeType implements MimeType {
 
@@ -17,21 +15,20 @@ public enum TextMimeType implements MimeType {
     SPSS_CCARD("text/x-spss-syntax"),
     SAS_SYNTAX("text/x-sas-syntax");
 
-    private String mimeValue;
+    private final static TextMimeType[] ingestable = {CSV, CSV_ALT, TSV, TSV_ALT};
+    
+    private final String mimeValue;
 
-    TextMimeType(String mimeType) {
+    TextMimeType(final String mimeType) {
         this.mimeValue = mimeType;
     }
 
     @Override
     public String getMimeValue() {
-        return mimeValue;
+        return this.mimeValue;
     }
-
-    public static List<TextMimeType> retrieveIngestableMimes() {
-        return Lists.newArrayList(TextMimeType.CSV,
-                                  TextMimeType.CSV_ALT,
-                                  TextMimeType.TSV,
-                                  TextMimeType.TSV_ALT);
+    
+    public static boolean isIngestable(final String mimeType) {
+        return stream(ingestable).anyMatch(type -> type.mimeValue.equals(mimeType));
     }
 }

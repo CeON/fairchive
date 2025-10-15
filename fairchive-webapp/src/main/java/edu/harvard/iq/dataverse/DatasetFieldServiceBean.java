@@ -18,6 +18,7 @@ import java.util.List;
 /**
  * @author xyang
  */
+@SuppressWarnings("serial")
 @Stateless
 public class DatasetFieldServiceBean implements java.io.Serializable {
 
@@ -154,8 +155,8 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
         } catch (NoResultException e) {
             return null;
         } catch (NonUniqueResultException ex) {
-            List results = typedQuery.getResultList();
-            return (ControlledVocabAlternate) results.get(0);
+            List<ControlledVocabAlternate> results = typedQuery.getResultList();
+            return results.get(0);
         }
     }
 

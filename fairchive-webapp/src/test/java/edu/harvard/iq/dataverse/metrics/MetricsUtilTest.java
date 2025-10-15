@@ -1,15 +1,12 @@
 package edu.harvard.iq.dataverse.metrics;
 
 import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
-import edu.harvard.iq.dataverse.util.json.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,14 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class MetricsUtilTest {
 
     private static final long COUNT = 42l;
-    private List<ChartMetrics> chartMetrics;
 
     @Test
     public void testCountToJson() {
-        // This constructor is just here for code coverage. :)
-        MetricsUtil metricsUtil = new MetricsUtil();
         JsonObject jsonObject = MetricsUtil.countToJson(COUNT).build();
-        System.out.println(JsonUtil.prettyPrint(jsonObject));
         assertEquals(COUNT, jsonObject.getJsonNumber("count").longValue());
     }
 
@@ -53,7 +46,6 @@ public class MetricsUtilTest {
         list.add(obj08);
         JsonArrayBuilder jab = MetricsUtil.dataversesByCategoryToJson(list);
         JsonArray jsonArray = jab.build();
-        System.out.println(JsonUtil.prettyPrint(jsonArray));
         JsonObject jsonObject = jsonArray.getJsonObject(8);
         assertEquals("Department", jsonObject.getString("category"));
         assertEquals(7, jsonObject.getInt("count"));
@@ -92,7 +84,6 @@ public class MetricsUtilTest {
         list.add(obj13);
         JsonArrayBuilder jab = MetricsUtil.datasetsBySubjectToJson(list);
         JsonArray jsonArray = jab.build();
-        System.out.println(JsonUtil.prettyPrint(jsonArray));
         JsonObject jsonObject = jsonArray.getJsonObject(13);
         assertEquals("Physics", jsonObject.getString("subject"));
         assertEquals(98, jsonObject.getInt("count"));
@@ -131,7 +122,6 @@ public class MetricsUtilTest {
         list.add(obj13);
         JsonArrayBuilder jab = MetricsUtil.dataversesBySubjectToJson(list);
         JsonArray jsonArray = jab.build();
-        System.out.println(JsonUtil.prettyPrint(jsonArray));
         JsonObject jsonObject = jsonArray.getJsonObject(13);
         assertEquals("Physics", jsonObject.getString("subject"));
         assertEquals(98, jsonObject.getInt("count"));
@@ -155,16 +145,13 @@ public class MetricsUtilTest {
     //Create JsonArray, turn into string and back into array to confirm data integrity
     @Test
     public void testStringToJsonArrayBuilder() {
-        System.out.println("testStringToJsonArrayBuilder");
         List<Object[]> list = new ArrayList<>();
         Object[] obj00 = {"Social Sciences", 24955l};
         list.add(obj00);
 
         JsonArray jsonArrayBefore = MetricsUtil.datasetsBySubjectToJson(list).build();
-        System.out.println(JsonUtil.prettyPrint(jsonArrayBefore));
 
         JsonArray jsonArrayAfter = MetricsUtil.stringToJsonArrayBuilder(jsonArrayBefore.toString()).build();
-        System.out.println(JsonUtil.prettyPrint(jsonArrayAfter));
 
         assertEquals(
                 jsonArrayBefore.getJsonObject(0).getString("subject"),
@@ -175,13 +162,10 @@ public class MetricsUtilTest {
     //Create JsonObject, turn into string and back into array to confirm data integrity
     @Test
     public void testStringToJsonObjectBuilder() {
-        System.out.println("testStringToJsonObjectBuilder");
 
         JsonObject jsonObjBefore = Json.createObjectBuilder().add("Test", "result").build();
-        System.out.println(JsonUtil.prettyPrint(jsonObjBefore));
 
         JsonObject jsonObjAfter = MetricsUtil.stringToJsonObjectBuilder(jsonObjBefore.toString()).build();
-        System.out.println(JsonUtil.prettyPrint(jsonObjAfter));
 
         assertEquals(
                 jsonObjBefore.getString("Test"),

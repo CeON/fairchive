@@ -15,7 +15,7 @@ public class AuthorAffiliationLinkDecorator implements DatasetFieldFormattedValu
     @Override
     public Option<String> decorate(DatasetField field, String formattedValue) {
 
-        return Option.of(formattedValue.replace("target=\"_blank\"", "title=\""
+        return Option.of(formattedValue.replace("target=\"_blank\"", "target=\"_blank\" title=\""
                 + getStringFromBundle("opensInNewTab")
                 + "\""));
     }

@@ -27,6 +27,7 @@ public class CommandHelper {
      * @return Set of permissions, or {@code null} if the command's class was
      * not annotated.
      */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public Map<String, Set<Permission>> permissionsRequired(Class<? extends Command> cmdClass) {
         RequiredPermissions requiredPerms = cmdClass.getAnnotation(RequiredPermissions.class);
         if (requiredPerms == null) {
@@ -59,6 +60,7 @@ public class CommandHelper {
      * Checks if all permissions are required.
      * {@link RequiredPermissionsMap} is not supported, defaults to true.
      */
+    @SuppressWarnings("rawtypes")
     boolean isAllPermissionsRequired(Class<? extends Command> cmdClass) {
         RequiredPermissions requiredPerms = cmdClass.getAnnotation(RequiredPermissions.class);
 

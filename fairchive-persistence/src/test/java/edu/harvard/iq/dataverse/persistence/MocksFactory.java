@@ -83,7 +83,7 @@ public class MocksFactory {
         if (df.getFileMetadatas() != null) {
             df.getFileMetadatas().add(fmd);
         } else {
-            df.setFileMetadatas(new LinkedList(Arrays.asList(fmd)));
+            df.setFileMetadatas(new LinkedList<FileMetadata>(Arrays.asList(fmd)));
         }
 
         return fmd;

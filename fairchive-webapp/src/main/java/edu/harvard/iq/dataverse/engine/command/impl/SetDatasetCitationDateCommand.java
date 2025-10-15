@@ -13,6 +13,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataset)
 public class SetDatasetCitationDateCommand extends AbstractCommand<Dataset> {
 
@@ -20,7 +21,8 @@ public class SetDatasetCitationDateCommand extends AbstractCommand<Dataset> {
     private final DatasetFieldType dsfType;
     private final Dataset dataset;
 
-    public SetDatasetCitationDateCommand(DataverseRequest aRequest, Dataset dataset, DatasetFieldType dsfType) {
+    public SetDatasetCitationDateCommand(DataverseRequest aRequest, Dataset dataset, 
+            DatasetFieldType dsfType) {
         super(aRequest, dataset);
         this.dataset = dataset;
         this.dsfType = dsfType;
@@ -34,7 +36,7 @@ public class SetDatasetCitationDateCommand extends AbstractCommand<Dataset> {
             throw new IllegalCommandException("Provided DatasetFieldtype is not a Date", this);
         }
 
-        Dataset savedDataset = ctxt.datasets().merge(dataset);
+        Dataset savedDataset = ctxt.datasetService().save(dataset);
         ctxt.index().indexDataset(savedDataset, false);
         return savedDataset;
     }

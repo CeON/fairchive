@@ -1,8 +1,9 @@
 package edu.harvard.iq.dataverse.authorization;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 
 import java.util.Set;
 
@@ -140,14 +141,14 @@ public interface AuthenticationProvider {
      */
     default String getFriendlyName() {
         // call static method
-        return BundleUtil.getStringFromBundle("authentication.human_readable." + this.getId());
+        return getStringFromBundle("authentication.human_readable.".concat(this.getId()));
     }
 
     /**
      * Returns the set of fields that user can edit after account creation is done.
      */
     default Set<EditableAccountField> getEditableFields() {
-        return isUserInfoUpdateAllowed() ? EditableAccountFieldSets.allFields() : EditableAccountFieldSets.noFields();
+        return isUserInfoUpdateAllowed() ? EditableAccountField.all() : EditableAccountField.none();
     }
 }
 

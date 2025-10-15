@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -21,8 +20,6 @@ import org.swordapp.server.SwordConfiguration;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.SwordServerException;
 
-import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,8 +33,6 @@ public class CollectionDepositManagerImplTest {
 
     @Mock
     private DataverseDao dataverseDao;
-    @Mock
-    private DatasetDao datasetDao;
     @Mock
     private PermissionServiceBean permissionService;
     @Mock

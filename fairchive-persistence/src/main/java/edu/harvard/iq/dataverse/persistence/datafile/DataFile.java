@@ -33,7 +33,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.Pattern;
 
 import org.eclipse.persistence.annotations.BatchFetch;
@@ -170,13 +169,10 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     @Column
     private Long uncompressedSize = 0L;
-
-    /**
-     * This flag has only meaning for ingestable files and when unset prevents
-     * the file from being ingested.
-     */
-    @Transient
-    private Boolean includedInIngest = TRUE;
+    
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private IngestType ingestType = IngestType.NON;
 
     private char ingestStatus = INGEST_STATUS_NONE;
 
@@ -234,12 +230,37 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         return this.checksumValue;
     }
 
+    public IngestType getIngestType() {
+        return this.ingestType;
+    }
+
+    public void setIngestType(final IngestType type) {
+        this.ingestType = type;
+    }
+    
+    
+    public String getIngestTypeStr() {
+        return this.ingestType.toString();
+    }
+    
+    public void setIngestTypeStr(final String type) {
+        this.ingestType = IngestType.valueOf(type);
+    }
+
     public int getIngestStatus() {
         return ingestStatus;
     }
+    
+    public boolean hasBeenIngested() {
+        if(isImage()) {
+            return this.ingestType != IngestType.NON;
+        } else {
+            return getIngestStatus() != INGEST_STATUS_NONE || isTabularData();
+        }
+    }
 
     public Boolean getIncludedInIngest() {
-        return includedInIngest;
+        return this.ingestType != IngestType.NON;
     }
 
     public Dataset getThumbnailForDataset() {
@@ -438,7 +459,11 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         // a pdf file is an "image" for practical purposes (we will attempt to
         // generate thumbnails and previews for them)
         return contentType != null
-                && (contentType.startsWith("image/") || "application/pdf".equalsIgnoreCase(contentType));
+                && (contentType.startsWith("image/") || isPdf());
+    }
+    
+    public boolean isPdf() {
+        return "application/pdf".equalsIgnoreCase(this.contentType);
     }
 
     public boolean isFilePackage() {
@@ -615,7 +640,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     public void setIncludedInIngest(Boolean includedInIngest) {
-        this.includedInIngest = includedInIngest;
+        this.ingestType = includedInIngest == TRUE ? IngestType.TAB : IngestType.NON;
     }
 
     public void setFileAccessRequesters(List<AuthenticatedUser> fileAccessRequesters) {
@@ -686,5 +711,13 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         public String toString() {
             return this.text;
         }
+    }
+    
+    public enum IngestType {
+        // names need to have 3 characters to fit database column
+        OCR,
+        HTR,
+        TAB,
+        NON;
     }
 }

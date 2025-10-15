@@ -1,28 +1,8 @@
 package edu.harvard.iq.dataverse.ingest;
 
-import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.UnitTestUtils;
-import edu.harvard.iq.dataverse.datafile.FileTypeDetector;
-import edu.harvard.iq.dataverse.datafile.OcrService;
-import edu.harvard.iq.dataverse.ingest.tabulardata.TabularDataFileReader;
-import edu.harvard.iq.dataverse.ingest.tabulardata.TabularDataIngest;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
-import edu.harvard.iq.dataverse.persistence.datafile.datavariable.VariableCategory;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import javax.enterprise.event.Event;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -34,13 +14,36 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import javax.enterprise.event.Event;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import edu.harvard.iq.dataverse.DataFileServiceBean;
+import edu.harvard.iq.dataverse.UnitTestUtils;
+import edu.harvard.iq.dataverse.datafile.FileTypeDetector;
+import edu.harvard.iq.dataverse.datafile.HtrService;
+import edu.harvard.iq.dataverse.datafile.OcrService;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.ingest.tabulardata.TabularDataFileReader;
+import edu.harvard.iq.dataverse.ingest.tabulardata.TabularDataIngest;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
+import edu.harvard.iq.dataverse.persistence.datafile.datavariable.VariableCategory;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.SystemConfig;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 
 @ExtendWith(MockitoExtension.class)
 public class IngestFrequencyTest {
 
-    @Mock private DatasetDao datasetDao;
+    @Mock private DatasetService datasetService;
     @Mock private DataFileServiceBean fileService;
     @Mock private SystemConfig systemConfig;
     @Mock private SettingsServiceBean settingsService;
@@ -48,18 +51,20 @@ public class IngestFrequencyTest {
     @Mock private Event<IngestMessageSendEvent> ingestMessageSendEventEvent;
     @Mock private FinalizeIngestService finalizeIngestService;
     @Mock private OcrService ocrService;
+    @Mock private HtrService htrService;
 
     private IngestServiceBean ingestService;
 
     @BeforeEach
     void setUp() {
-        ingestService = new IngestServiceBean(datasetDao, fileService, 
+        ingestService = new IngestServiceBean(datasetService, fileService, 
                 systemConfig, settingsService, fileTypeDetector, 
                 ingestMessageSendEventEvent, finalizeIngestService,
-                ocrService);
+                ocrService, htrService);
         Mockito.when(settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.IngestMethodChangeThreshold)).thenReturn(1000000L);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testFrequency() throws IOException {
         DataFile dataFile = readFileCalcFreq("sav/frequency-test.sav" , "application/x-spss-sav");
@@ -127,8 +132,9 @@ public class IngestFrequencyTest {
         }
     }
 
-    private void testVariable(Collection<VariableCategory> categories, Function<VariableCategory, String> extractor,
-                              Tuple2<String, Integer>... values) {
+    private static void testVariable(Collection<VariableCategory> categories, 
+            Function<VariableCategory, String> extractor,
+            @SuppressWarnings("unchecked") final Tuple2<String, Integer>... values) {
         Map<String, Integer> testValues = Arrays.stream(values)
                 .collect(Collectors.toMap(Tuple2::_1, Tuple2::_2));
         for (VariableCategory category : categories) {

@@ -23,10 +23,6 @@ public class XgetRecord extends GetRecord {
     private static final String RECORD_FIELD = "record";
     private static final String RECORD_START_ELEMENT = "<" + RECORD_FIELD + ">";
     private static final String RECORD_CLOSE_ELEMENT = "</" + RECORD_FIELD + ">";
-    private static final String RESUMPTION_TOKEN_FIELD = "resumptionToken";
-    private static final String EXPIRATION_DATE_ATTRIBUTE = "expirationDate";
-    private static final String COMPLETE_LIST_SIZE_ATTRIBUTE = "completeListSize";
-    private static final String CURSOR_ATTRIBUTE = "cursor";
 
     private Record recordCopy;
 

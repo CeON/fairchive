@@ -5,7 +5,7 @@
     <uniqueKey>id</uniqueKey>
     <field name="name" type="cace_insensitive_text" required="true"/>
     <field name="alternateNames" type="cace_insensitive_text"/>
-    <field name="featureCode" type="string" indexed="false"/>
+    <field name="featureCode" type="string" indexed="true"/>
     <field name="hierarchy" type="string" indexed="false" required="true"/>
     <!-- fields required by Solr -->
     <field name="_version_" type="plong" indexed="false" stored="false"/>

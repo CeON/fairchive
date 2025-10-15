@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.validation.field;
 
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.*;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
@@ -14,25 +15,38 @@ import edu.harvard.iq.dataverse.validation.field.validators.StandardIntegerValid
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class DatasetFieldValidationDispatcherTest {
 
+    @Spy
     private FieldValidatorRegistry registry = new FieldValidatorRegistry();
+    @Mock
+    private InputFieldRendererManager inputFieldRendererManager;
 
     private DatasetField datasetField;
     private DatasetFieldType datasetFieldType;
 
-    private DatasetFieldValidationDispatcher dispatcher = new DatasetFieldValidationDispatcher(registry);
+    @InjectMocks
+    private DatasetFieldValidationDispatcher dispatcher;
 
     private static final FieldValidator FAILING_VALIDATOR = new FieldValidatorBase() {
         @Override
@@ -48,6 +62,7 @@ class DatasetFieldValidationDispatcherTest {
     };
 
 
+    @SuppressWarnings("serial")
     @BeforeEach
     void setUp() {
         registry.register(new StandardIntegerValidator());
@@ -136,6 +151,7 @@ class DatasetFieldValidationDispatcherTest {
     void executeValidations__emptyRequiredField() {
         // given
         datasetFieldType.setRequired(true);
+        when(inputFieldRendererManager.obtainRenderer(any())).thenReturn(new CheckboxInputFieldRenderer());
 
         // when
         List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
@@ -158,6 +174,78 @@ class DatasetFieldValidationDispatcherTest {
 
         // then
         assertThat(results).isEmpty();
+    }
+
+    @Test
+    void executeValidations__emptyRequiredWithNotMatchingConditionalRendering() {
+        // given
+        DatasetField fieldsContainer = new DatasetField();
+        String selectFieldName = "select";
+
+        DatasetField select = new DatasetField();
+        select.setValue("match");
+        select.setDatasetFieldType(new DatasetFieldType(selectFieldName, FieldType.TEXT, false));
+        select.setDatasetFieldParent(fieldsContainer);
+
+        DatasetField requiredField = new DatasetField();
+        requiredField.setDatasetFieldType(new DatasetFieldType("test", FieldType.TEXT, false));
+        requiredField.getDatasetFieldType().setRequired(true);
+        requiredField.setDatasetFieldParent(fieldsContainer);
+        requiredField.getDatasetFieldType().setValidation("[]");
+
+        InputFieldRenderer renderer = new TextInputFieldRenderer(
+                false,
+                new ConditionalRendering(selectFieldName, "not_match")
+        );
+
+        List<DatasetField> subfields = new ArrayList<>();
+        subfields.add(select);
+        subfields.add(requiredField);
+        fieldsContainer.setDatasetFieldsChildren(subfields);
+        when(inputFieldRendererManager.obtainRenderer(any())).thenReturn(renderer);
+
+        // when
+        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(requiredField)).executeValidations();
+
+        // then
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void executeValidations__emptyRequiredWithMatchingConditionalRendering() {
+        // given
+        DatasetField fieldsContainer = new DatasetField();
+        String selectFieldName = "select";
+
+        DatasetField select = new DatasetField();
+        select.setValue("match");
+        select.setDatasetFieldType(new DatasetFieldType(selectFieldName, FieldType.TEXT, false));
+        select.setDatasetFieldParent(fieldsContainer);
+
+        DatasetField requiredField = new DatasetField();
+        requiredField.setDatasetFieldType(new DatasetFieldType("test", FieldType.TEXT, false));
+        requiredField.getDatasetFieldType().setRequired(true);
+        requiredField.setDatasetFieldParent(fieldsContainer);
+        requiredField.getDatasetFieldType().setValidation("[]");
+
+        InputFieldRenderer renderer = new TextInputFieldRenderer(
+                false,
+                new ConditionalRendering(selectFieldName, "match")
+        );
+
+        List<DatasetField> subfields = new ArrayList<>();
+        subfields.add(select);
+        subfields.add(requiredField);
+        fieldsContainer.setDatasetFieldsChildren(subfields);
+        when(inputFieldRendererManager.obtainRenderer(any())).thenReturn(renderer);
+
+        // when
+        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(requiredField)).executeValidations();
+
+        // then
+        assertThat(results)
+                .extracting(FieldValidationResult::getErrorCode, FieldValidationResult::isOk)
+                .containsExactly(tuple("isrequired", false));
     }
 
     @ParameterizedTest

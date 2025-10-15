@@ -31,7 +31,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
 import edu.harvard.iq.dataverse.rserve.RRequest;
 import edu.harvard.iq.dataverse.rserve.RRequestBuilder;
 import io.vavr.Tuple2;
-import org.apache.commons.lang.RandomStringUtils;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.RList;
@@ -40,17 +39,16 @@ import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
@@ -102,14 +100,12 @@ public class RDATAFileReader extends TabularDataFileReader {
     private TabularDataIngest ingesteddata = new TabularDataIngest();
     private DataTable dataTable = new DataTable();
 
-    // Process ID, used partially in the generation of temporary directories
-    private String mPID;
-
     // Object containing all the informatin for an R-workspace (including
     // temporary directories on and off server)
     private RWorkspace mRWorkspace;
 
-    public RDATAFileReader(TabularDataFileReaderSpi originatingProvider, String rserveHost, String rserveUser, String rservePassword, int rservePort) {
+    public RDATAFileReader(TabularDataFileReaderSpi originatingProvider, 
+            String rserveHost, String rserveUser, String rservePassword, int rservePort) {
         super(originatingProvider);
         this.rserveHost = rserveHost;
         this.rserveUser = rserveUser;
@@ -123,7 +119,6 @@ public class RDATAFileReader extends TabularDataFileReader {
                 .password(rservePassword);
 
         mRWorkspace = new RWorkspace();
-        mPID = RandomStringUtils.randomNumeric(6);
 
     }
 
@@ -178,7 +173,7 @@ public class RDATAFileReader extends TabularDataFileReader {
      * -- L.A. 4.0 alpha 1
      */
     private class RWorkspace {
-        public String mParent, mWeb, mDvn, mDsb;
+        public String mParent;
         public File mDataFile, mCsvDataFile;
         public RRequest mRRequest;
         public BufferedInputStream mInStream;
@@ -187,7 +182,7 @@ public class RDATAFileReader extends TabularDataFileReader {
          *
          */
         public RWorkspace() {
-            mParent = mWeb = mDvn = mDsb = "";
+            mParent = "";
             mDataFile = null;
             mCsvDataFile = null;
             mInStream = null;
@@ -205,12 +200,6 @@ public class RDATAFileReader extends TabularDataFileReader {
                 RRequest scriptRequest = scriptBuilder.build();
                 LOG.fine("script request built.");
 
-        /*
-        REXP result = mRequestBuilder
-                .script(RSCRIPT_CREATE_WORKSPACE)
-                .build()
-                .eval();
-        */
                 REXP result = scriptRequest.eval();
 
                 LOG.fine("evaluated the script");
@@ -227,12 +216,12 @@ public class RDATAFileReader extends TabularDataFileReader {
                         if (directoryNames.isEmpty()) {
                             LOG.fine("WARNING: directoryNames is empty!");
                         } else {
-                            Set<String> dirKeySet = directoryNames.keySet();
-                            Iterator iter = dirKeySet.iterator();
+                            Set<?> dirKeySet = directoryNames.keySet();
+                            Iterator<?> iter = dirKeySet.iterator();
                             String key;
 
                             while (iter.hasNext()) {
-                                key = (String) iter.next();
+                                key = iter.next().toString();
                                 LOG.fine("directoryNames list key: " + key);
                             }
                         }
@@ -249,7 +238,7 @@ public class RDATAFileReader extends TabularDataFileReader {
                 mDataFile = new File(mParent, "data.Rdata");
             } catch (Exception E) {
                 LOG.warning("RDATAFileReader: Could not create R workspace");
-                mParent = mWeb = mDvn = mDsb = "";
+                mParent = "";
             }
         }
 
@@ -278,62 +267,6 @@ public class RDATAFileReader extends TabularDataFileReader {
         }
 
         /**
-         * Create the Data File to Use for Analysis, etc.
-         */
-        public File dataFile(String target, String prefix, int size) {
-
-            String fileName = String.format("DVN.dataframe.%s.Rdata", mPID);
-
-            mDataFile = new File(mParent, fileName);
-
-            RFileInputStream RInStream = null;
-            OutputStream outStream = null;
-
-            RRequest req = mRequestBuilder.build();
-
-            try {
-                outStream = new BufferedOutputStream(new FileOutputStream(mDataFile));
-                RInStream = req.getRConnection().openFile(target);
-
-                if (size < 1024 * 1024 * 500) {
-                    int bufferSize = size;
-                    byte[] outputBuffer = new byte[bufferSize];
-                    RInStream.read(outputBuffer);
-                    outStream.write(outputBuffer, 0, size);
-                }
-
-                RInStream.close();
-                outStream.close();
-                return mDataFile;
-            } catch (FileNotFoundException exc) {
-                exc.printStackTrace();
-                LOG.warning("RDATAFileReader: FileNotFound exception occurred");
-                return mDataFile;
-            } catch (IOException exc) {
-                exc.printStackTrace();
-                LOG.warning("RDATAFileReader: IO exception occurred");
-            }
-
-            // Close R input data stream
-            if (RInStream != null) {
-                try {
-                    RInStream.close();
-                } catch (IOException exc) {
-                }
-            }
-
-            // Close output data stream
-            if (outStream != null) {
-                try {
-                    outStream.close();
-                } catch (IOException ex) {
-                }
-            }
-
-            return mDataFile;
-        }
-
-        /**
          * Set the stream
          */
         public void stream(BufferedInputStream inStream) {
@@ -352,7 +285,6 @@ public class RDATAFileReader extends TabularDataFileReader {
             }
 
             byte[] buffer = new byte[1024];
-            int bytesRead = 0;
             RFileOutputStream outStream = null;
             RConnection rServerConnection = null;
 
@@ -380,7 +312,6 @@ public class RDATAFileReader extends TabularDataFileReader {
                 // Read from local file and write to rserver 1kb at a time
                 while (mInStream.read(buffer) != -1) {
                     outStream.write(buffer);
-                    bytesRead++;
                 }
             } catch (IOException ex) {
                 LOG.warning("RDATAFileReader: Could not write to file");
@@ -405,13 +336,13 @@ public class RDATAFileReader extends TabularDataFileReader {
             //
             String csvScript = new StringBuilder()
                     .append("options(digits.secs=3)")
-                    .append("\n")
+                    .append('\n')
                     .append(RSCRIPT_WRITE_DVN_TABLE)
-                    .append("\n")
+                    .append('\n')
                     .append(String.format("load(\"%s\")", mRWorkspace.getRdataAbsolutePath()))
-                    .append("\n")
+                    .append('\n')
                     .append(RSCRIPT_GET_DATASET)
-                    .append("\n")
+                    .append('\n')
                     .append(String.format("write.dvn.table(data.set, file=\"%s\")", mCsvDataFile.getAbsolutePath()))
                     .toString();
 
@@ -451,7 +382,8 @@ public class RDATAFileReader extends TabularDataFileReader {
 
     /** Read the Given RData File */
     @Override
-    public TabularDataIngest read(Tuple2<BufferedInputStream, File> streamAndFile, File dataFile) throws IOException {
+    public TabularDataIngest read(Tuple2<BufferedInputStream, File> streamAndFile, 
+            File dataFile) throws IOException {
 
         init();
 
@@ -483,22 +415,24 @@ public class RDATAFileReader extends TabularDataFileReader {
             // created!
             // - L.A.
             RTabFileParser csvFileReader = new RTabFileParser('\t');
-            BufferedReader localBufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(localCsvFile), StandardCharsets.UTF_8));
+            try(BufferedReader localBufferedReader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(localCsvFile), UTF_8))) {
 
-            File tabFileDestination = File.createTempFile("data-", ".tab");
-            PrintWriter tabFileWriter = new PrintWriter(tabFileDestination.getAbsolutePath(), "UTF-8");
-
-            int lineCount = csvFileReader.read(localBufferedReader, dataTable, tabFileWriter);
-
-            LOG.fine("RDATAFileReader: successfully read " + lineCount + " lines of tab-delimited data.");
-
-            dataTable.setUnf("UNF:pending");
-
-            ingesteddata.setTabDelimitedFile(tabFileDestination);
-            ingesteddata.setDataTable(dataTable);
-
-            // Destroy R workspace
-            mRWorkspace.destroy();
+                File tabFileDestination = File.createTempFile("data-", ".tab");
+                PrintWriter tabFileWriter = new PrintWriter(tabFileDestination.getAbsolutePath(), "UTF-8");
+        
+                int lineCount = csvFileReader.read(localBufferedReader, dataTable, tabFileWriter);
+        
+                LOG.fine("RDATAFileReader: successfully read " + lineCount + " lines of tab-delimited data.");
+        
+                dataTable.setUnf("UNF:pending");
+        
+                ingesteddata.setTabDelimitedFile(tabFileDestination);
+                ingesteddata.setDataTable(dataTable);
+        
+                // Destroy R workspace
+                mRWorkspace.destroy();
+            }
         } catch (Exception ex) {
             throw new IngestException(IngestError.UNKNOWN_ERROR, ex);
         }
@@ -514,51 +448,41 @@ public class RDATAFileReader extends TabularDataFileReader {
      * @param target a target on the remote r-server
      */
     private File transferCsvFile(File target) {
-        File destination;
-        FileOutputStream csvDestinationStream;
-
         try {
-            destination = File.createTempFile("data", ".csv");
+            File destination = File.createTempFile("data", ".csv");
             LOG.fine(String.format("RDATAFileReader: Writing local CSV File to `%s`", destination.getAbsolutePath()));
-            csvDestinationStream = new FileOutputStream(destination);
-        } catch (IOException ex) {
+            try(FileOutputStream csvDestinationStream = new FileOutputStream(destination)) {
+
+                // Open connection to R-serve
+                RConnection rServeConnection = new RConnection(rserveHost, rservePort);
+                rServeConnection.login(rserveUser, rservePassword);
+    
+                // Open file for reading from R-serve
+                RFileInputStream rServeInputStream = rServeConnection.openFile(target.getAbsolutePath());
+    
+                int b;
+    
+                LOG.fine("RDATAFileReader: Beginning to write to local destination file");
+    
+                // Read from stream one character at a time
+                while ((b = rServeInputStream.read()) != -1) {
+                    // Write to the *local* destination file
+                    csvDestinationStream.write(b);
+                }
+    
+                LOG.fine(String.format("RDATAFileReader: Finished writing from destination `%s`", target.getAbsolutePath()));
+                LOG.fine(String.format("RDATAFileReader: Finished copying to source `%s`", destination.getAbsolutePath()));
+    
+    
+                LOG.fine("RDATAFileReader: Closing CSVFileReader R Connection");
+                rServeConnection.close();
+                return destination;
+            }
+        } catch (Exception ex) {
             LOG.warning("RDATAFileReader: Could not create temporary file!");
             return null;
         }
-
-        try {
-            // Open connection to R-serve
-            RConnection rServeConnection = new RConnection(rserveHost, rservePort);
-            rServeConnection.login(rserveUser, rservePassword);
-
-            // Open file for reading from R-serve
-            RFileInputStream rServeInputStream = rServeConnection.openFile(target.getAbsolutePath());
-
-            int b;
-
-            LOG.fine("RDATAFileReader: Beginning to write to local destination file");
-
-            // Read from stream one character at a time
-            while ((b = rServeInputStream.read()) != -1) {
-                // Write to the *local* destination file
-                csvDestinationStream.write(b);
-            }
-
-            LOG.fine(String.format("RDATAFileReader: Finished writing from destination `%s`", target.getAbsolutePath()));
-            LOG.fine(String.format("RDATAFileReader: Finished copying to source `%s`", destination.getAbsolutePath()));
-
-
-            LOG.fine("RDATAFileReader: Closing CSVFileReader R Connection");
-            rServeConnection.close();
-        }
-        /*
-         * TO DO: Make this error catching more intelligent
-         */ catch (Exception ex) {
-        }
-
-        return destination;
     }
-
 
     /**
      * Runs an R-script that extracts meta-data from the *original* Rdata
@@ -578,7 +502,7 @@ public class RDATAFileReader extends TabularDataFileReader {
                 .append(String.format("load(\"%s\")\n", mRWorkspace.getRdataAbsolutePath()))
                 .append(String.format("setwd(\"%s\")\n", parentDirectory))
                 .append(RSCRIPT_GET_DATASET)
-                .append("\n")
+                .append('\n')
                 .append(RSCRIPT_DATASET_INFO_SCRIPT)
                 .toString();
 

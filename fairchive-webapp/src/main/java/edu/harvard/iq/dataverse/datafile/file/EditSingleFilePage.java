@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.datafile.file;
 
 import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadHelper;
@@ -29,13 +28,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("EditSingleFilePage")
 public class EditSingleFilePage implements java.io.Serializable {
 
     private static final Logger logger = Logger.getLogger(EditSingleFilePage.class.getCanonicalName());
 
-    private DatasetDao datasetDao;
     private DatasetService datasetService;
     private DataFileServiceBean datafileService;
     private SettingsServiceBean settingsService;
@@ -62,14 +61,13 @@ public class EditSingleFilePage implements java.io.Serializable {
     }
 
     @Inject
-    public EditSingleFilePage(DatasetDao datasetDao, DatasetService datasetService,
+    public EditSingleFilePage(DatasetService datasetService,
                               DataFileServiceBean datafileService,
                               SettingsServiceBean settingsService,
                               PermissionsWrapper permissionsWrapper,
                               FileDownloadHelper fileDownloadHelper, ProvPopupFragmentBean provPopupFragmentBean,
                               SingleFileFacade singleFileFacade, DatasetThumbnailService datasetThumbnailService) {
         this.datasetService = datasetService;
-        this.datasetDao = datasetDao;
         this.datafileService = datafileService;
         this.settingsService = settingsService;
         this.permissionsWrapper = permissionsWrapper;
@@ -149,7 +147,7 @@ public class EditSingleFilePage implements java.io.Serializable {
 
         if (dataset.getId() != null) {
             // Set Working Version and Dataset by Dataset Id and Version
-            dataset = datasetDao.find(dataset.getId());
+            dataset = datasetService.find(dataset.getId());
             // Is the Dataset harvested? (because we don't allow editing of harvested
             // files!)
             if (dataset == null || dataset.isHarvested()) {
@@ -167,7 +165,7 @@ public class EditSingleFilePage implements java.io.Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (dataset.isInReview() && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 
@@ -256,7 +254,7 @@ public class EditSingleFilePage implements java.io.Serializable {
                 " blowing away the logo and using this FileMetadata id instead: {1}", new Object[]{dataset.getId(), fileMetadata});
 
         Try.of(() -> datasetService.changeDatasetThumbnail(dataset, fileMetadata.getDataFile()))
-                .onSuccess(datasetThumbnail -> dataset = datasetDao.find(dataset.getId()))
+                .onSuccess(datasetThumbnail -> dataset = datasetService.find(dataset.getId()))
                 .onFailure(ex -> logger.log(Level.WARNING, "Problem setting thumbnail for dataset id: " + dataset.getId(), ex));
     }
 

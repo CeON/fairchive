@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

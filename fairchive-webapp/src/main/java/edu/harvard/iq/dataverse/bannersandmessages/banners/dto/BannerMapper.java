@@ -12,13 +12,10 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Stateless
 public class BannerMapper {
-
-    private static final Logger logger = Logger.getLogger(BannerMapper.class.getCanonicalName());
 
     private SettingsWrapper settingsWrapper;
 

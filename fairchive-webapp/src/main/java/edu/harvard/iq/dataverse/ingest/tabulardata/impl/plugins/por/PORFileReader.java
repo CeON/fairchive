@@ -34,6 +34,9 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
+import static java.lang.Long.parseLong;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -51,7 +54,6 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -184,11 +186,11 @@ public class PORFileReader extends TabularDataFileReader {
     }
 
     @Override
-    public TabularDataIngest read(Tuple2<BufferedInputStream, File> streamAndFile, File additionalData) throws IOException {
+    public TabularDataIngest read(Tuple2<BufferedInputStream, File> streamAndFile, 
+            File additionalData) throws IOException {
         logger.fine("PORFileReader: read() start");
         Charset charset = selectCharset();
         if (additionalData != null) {
-            //throw new IOException ("this plugin does not support external raw data files");
             logger.fine("Using extended variable labels from file " + additionalData.getName());
 
             extendedLabels = createLabelMap(additionalData, charset);
@@ -197,7 +199,9 @@ public class PORFileReader extends TabularDataFileReader {
         BufferedInputStream stream = streamAndFile._1();
         File tempPORfile = decodeHeader(stream, charset);
 
-        try (BufferedReader bfReader = new BufferedReader(new InputStreamReader(new FileInputStream(tempPORfile.getAbsolutePath()), charset))) {
+        try (BufferedReader bfReader = new BufferedReader(
+                new InputStreamReader(
+                        new FileInputStream(tempPORfile.getAbsolutePath()), charset))) {
 
             decodeSec2(bfReader);
 
@@ -345,18 +349,6 @@ public class PORFileReader extends TabularDataFileReader {
 
         logger.fine("done configuring variables;");
 
-        /*
-         * From the original (3.6) code:
-            //smd.setVariableTypeMinimal(ArrayUtils.toPrimitive(variableTypelList.toArray(new Integer[variableTypelList.size()])));
-            smd.setVariableFormat(printFormatList);
-            smd.setVariableFormatName(printFormatNameTable);
-            smd.setVariableFormatCategory(formatCategoryTable);
-            smd.setValueLabelMappingTable(valueVariableMappingTable);
-         * TODO:
-         * double-check that it's all being taken care of by the new plugin!
-         * (for variable format and formatName, consult the SAV plugin)
-         */
-
         dataTable.setDataVariables(variableList);
 
         // Assign value labels:
@@ -417,8 +409,6 @@ public class PORFileReader extends TabularDataFileReader {
             stream.mark(1000);
         }
         int nbytes = stream.read(headerByes, 0, POR_HEADER_SIZE);
-
-        //printHexDump(headerByes, "hex dump of the byte-array");
 
         if (nbytes == 0) {
             throw new IOException("decodeHeader: reading failure");
@@ -666,9 +656,6 @@ public class PORFileReader extends TabularDataFileReader {
         }
         logger.fine("fileCreationDate=" + fileCreationDate);
         logger.fine("fileCreationTime=" + fileCreationTime);
-        ///smd.getFileInformation().put("fileCreationDate", fileCreationDate);
-        ///smd.getFileInformation().put("fileCreationTime", fileCreationTime);
-        ///smd.getFileInformation().put("varFormat_schema", "SPSS");
     }
 
     private void decodeProductName(BufferedReader reader) throws IOException {
@@ -676,8 +663,7 @@ public class PORFileReader extends TabularDataFileReader {
             throw new IllegalArgumentException("decodeProductName: reader == null!");
         }
 
-        String productName = parseStringField(reader);
-        ///smd.getFileInformation().put("productName", productName);
+        parseStringField(reader);
     }
 
     private void decodeLicensee(BufferedReader reader) throws IOException {
@@ -685,8 +671,7 @@ public class PORFileReader extends TabularDataFileReader {
             throw new IllegalArgumentException("decodeLicensee: reader == null!");
         }
 
-        String licenseeName = parseStringField(reader);
-        ///smd.getFileInformation().put("licenseeName", licenseeName);
+        parseStringField(reader);
     }
 
     private void decodeFileLabel(BufferedReader reader) throws IOException {
@@ -694,9 +679,7 @@ public class PORFileReader extends TabularDataFileReader {
             throw new IllegalArgumentException("decodeFileLabel: reader == null!");
         }
 
-        String fileLabel = parseStringField(reader);
-        // TODO: is this "file label" potentially useful? -- L.A. 4.0 beta
-        ///smd.getFileInformation().put("fileLabel", fileLabel);
+        parseStringField(reader);
     }
 
     private void decodeNumberOfVariables(BufferedReader reader) throws IOException {
@@ -735,7 +718,7 @@ public class PORFileReader extends TabularDataFileReader {
             throw new IllegalArgumentException("decodeFieldNo5: reader == null!");
         }
 
-        int field5 = parseNumericField(reader);
+        parseNumericField(reader);
     }
 
     private void decodeWeightVariable(BufferedReader reader) throws IOException {
@@ -743,11 +726,7 @@ public class PORFileReader extends TabularDataFileReader {
             throw new IllegalArgumentException("decodeWeightVariable: reader == null!");
         }
 
-        String weightVariableName = parseStringField(reader);
-        // TODO: make sure case weight variables are properly handled!
-        // -- L.A. 4.0 beta
-        ///smd.getFileInformation().put("caseWeightVariableName", weightVariableName);
-        ///smd.setCaseWeightVariableName(weightVariableName);
+        parseStringField(reader);
     }
 
     private void decodeVariableInformation(BufferedReader reader) throws IOException {
@@ -1024,11 +1003,6 @@ public class PORFileReader extends TabularDataFileReader {
         for (int i = 0; i < noOfdocumentLines; i++) {
             document[i] = parseStringField(reader);
         }
-
-        // TODO:
-        // verify if this "document" is any useful potentially.
-        // -- L.A. 4.0 beta
-        ///smd.getFileInformation().put("document", StringUtils.join(document," " ));
     }
 
     private void decodeData(BufferedReader reader) throws IOException {
@@ -1041,7 +1015,8 @@ public class PORFileReader extends TabularDataFileReader {
         ingesteddata.setTabDelimitedFile(tabDelimitedDataFile);
 
         try (PrintWriter pwout
-                     = new PrintWriter(new OutputStreamWriter(new FileOutputStream(tabDelimitedDataFile), StandardCharsets.UTF_8), true)) {
+                     = new PrintWriter(new OutputStreamWriter(
+                             new FileOutputStream(tabDelimitedDataFile), UTF_8), true)) {
 
             variableFormatTypeList = new String[varQnty];
             for (int i = 0; i < varQnty; i++) {
@@ -1102,7 +1077,8 @@ public class PORFileReader extends TabularDataFileReader {
                             break FBLOCK;
                         }
 
-                        logger.finer(j + "-th case " + i + "=th var:datum length=" + sb_StringLengthBase30.toString());
+                        logger.finer(j + "-th case " + i + "=th var:datum length=" 
+                                + sb_StringLengthBase30.toString());
 
                         // this length value should be a positive integer
                         Matcher mtr = pattern4positiveInteger.matcher(sb_StringLengthBase30.toString());
@@ -1118,7 +1094,8 @@ public class PORFileReader extends TabularDataFileReader {
                         reader.read(char_datumString);
 
                         String datum = new String(char_datumString);
-                        casewiseRecordForTabFile[i] = "\"" + datum.replaceAll("\"", Matcher.quoteReplacement("\\\"")) + "\"";
+                        casewiseRecordForTabFile[i] = "\"" + datum.replaceAll("\"",
+                                Matcher.quoteReplacement("\\\"")) + "\"";
                         // end of string case
                     } else {
 
@@ -1201,7 +1178,7 @@ public class PORFileReader extends TabularDataFileReader {
                                         StringBuilder sb_time = new StringBuilder(sdf_dhms.format(new Date(dateDatum)));
 
                                         if (formatDecimalPointPosition > 0) {
-                                            sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                            sb_time.append('.').append(timeData[1], 0, formatDecimalPointPosition);
                                         }
 
                                         datum = sb_time.toString();
@@ -1229,11 +1206,11 @@ public class PORFileReader extends TabularDataFileReader {
                                         StringBuilder sb_time = new StringBuilder(sdf_ymdhms.format(new Date(dateDatum)));
 
                                         if (formatDecimalPointPosition > 0) {
-                                            sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                            sb_time.append('.').append(timeData[1], 0, formatDecimalPointPosition);
                                         }
 
                                         datum = sb_time.toString();
-                                        datumDateFormat = sdf_ymdhms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                        datumDateFormat = sdf_ymdhms.toPattern().concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                     }
 
                                 } else if (printFormatTable.get(variableNameList.get(i)).equals("TIME")) {
@@ -1249,11 +1226,11 @@ public class PORFileReader extends TabularDataFileReader {
                                         StringBuilder sb_time = new StringBuilder(sdf_hms.format(new Date(dateDatum)));
 
                                         if (formatDecimalPointPosition > 0) {
-                                            sb_time.append("." + timeData[1].substring(0, formatDecimalPointPosition));
+                                            sb_time.append('.').append(timeData[1], 0, formatDecimalPointPosition);
                                         }
 
                                         datum = sb_time.toString();
-                                        datumDateFormat = sdf_hms.toPattern() + (formatDecimalPointPosition > 0 ? ".S" : "");
+                                        datumDateFormat = sdf_hms.toPattern().concat(formatDecimalPointPosition > 0 ? ".S" : "");
                                     }
                                 }
 
@@ -1422,13 +1399,12 @@ public class PORFileReader extends TabularDataFileReader {
         char[] tmp = new char[1];
         StringBuilder sb = new StringBuilder();
         while (reader.read(tmp) > 0) {
-            temp = Character.toString(tmp[0]);//new String(tmp);
+            temp = Character.toString(tmp[0]);
             if (temp.equals("/")) {
                 break;
             } else {
                 sb.append(temp);
             }
-            //temp = sb.toString();//new String(tmp);
         }
         String base30numberString = sb.toString();
         int base10equivalent = Integer.valueOf(base30numberString, 30);
@@ -1440,36 +1416,33 @@ public class PORFileReader extends TabularDataFileReader {
         char[] tmp = new char[1];
         StringBuilder sb = new StringBuilder();
         while (reader.read(tmp) > 0) {
-            temp = Character.toString(tmp[0]);//new String(tmp);
+            temp = Character.toString(tmp[0]);
             if (temp.equals("/")) {
                 break;
             } else {
                 sb.append(temp);
             }
-            //temp = sb.toString();//new String(tmp);
         }
         String base30numberString = sb.toString();
-        //dbgLog.fine("base30numberString="+base30numberString);
         int base10equivalent = Integer.valueOf(base30numberString, 30);
-        //dbgLog.fine("base10equivalent="+base10equivalent);
         char[] stringBody = new char[base10equivalent];
         reader.read(stringBody);
         String stringData = new String(stringBody);
         return stringData;
     }
 
-    private String getNumericFieldAsRawString(BufferedReader reader) throws IOException {
+    private String getNumericFieldAsRawString(BufferedReader reader) 
+            throws IOException {
         String temp;
         char[] tmp = new char[1];
         StringBuilder sb = new StringBuilder();
         while (reader.read(tmp) > 0) {
-            temp = Character.toString(tmp[0]);//new String(tmp);
+            temp = Character.toString(tmp[0]);
             if (temp.equals("/")) {
                 break;
             } else {
                 sb.append(temp);
             }
-            //temp = sb.toString();//new String(tmp);
         }
         String base30numberString = sb.toString();
         return base30numberString;
@@ -1479,11 +1452,9 @@ public class PORFileReader extends TabularDataFileReader {
 
         // new base(radix) number
         int oldBase = 30;
-        //dbgLog.fine("base30String="+base30String);
 
         // trim white-spaces from the both ends
         String base30StringClean = StringUtils.trim(base30String);
-        //dbgLog.fine("base30StringClean="+base30StringClean);
 
         // check the negative/positive sign
         boolean isNegativeNumber = false;
@@ -1506,8 +1477,8 @@ public class PORFileReader extends TabularDataFileReader {
         String significand = null;
         long exponent = 0;
 
-        int plusIndex = base30StringNoSign.indexOf("+");
-        int minusIndex = base30StringNoSign.indexOf("-");
+        int plusIndex = base30StringNoSign.indexOf('+');
+        int minusIndex = base30StringNoSign.indexOf('-');
 
         if (plusIndex > 0) {
             significand = base30StringNoSign.substring(0, plusIndex);
@@ -1525,13 +1496,14 @@ public class PORFileReader extends TabularDataFileReader {
         int decimalIndex = significand.indexOf(".");
         if (decimalIndex != -1) {
             exponent -= (significand.length() - (decimalIndex + 1));
-            significand = significand.substring(0, decimalIndex) + significand.substring(decimalIndex + 1);
+            significand = significand.substring(0, decimalIndex) 
+                    + significand.substring(decimalIndex + 1);
         }
 
         // TODO: Verify that the MathContext/Rounding methods are OK:
         // -- L.A. 4.0 beta
         MathContext mc = new MathContext(15, RoundingMode.HALF_UP);
-        long base10Significand = Long.parseLong(significand, oldBase);
+        long base10Significand = parseLong(significand, oldBase);
         BigDecimal base10value = new BigDecimal(String.valueOf(base10Significand), mc);
         BigDecimal exponentialComponent = new BigDecimal("1", mc);
 
@@ -1581,7 +1553,8 @@ public class PORFileReader extends TabularDataFileReader {
         // pairs supplied:
 
         try (BufferedReader labelsFileReader
-                     = new BufferedReader(new InputStreamReader(new FileInputStream(extendedLabelsFile), charset))) {
+                     = new BufferedReader(new InputStreamReader(
+                             new FileInputStream(extendedLabelsFile), charset))) {
 
             String inLine;
             while ((inLine = labelsFileReader.readLine()) != null) {

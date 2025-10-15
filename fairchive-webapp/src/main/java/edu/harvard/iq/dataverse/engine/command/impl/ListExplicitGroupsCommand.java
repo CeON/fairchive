@@ -10,6 +10,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 import java.util.List;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.ManageDataversePermissions)
 public class ListExplicitGroupsCommand extends AbstractCommand<List<ExplicitGroup>> {
 

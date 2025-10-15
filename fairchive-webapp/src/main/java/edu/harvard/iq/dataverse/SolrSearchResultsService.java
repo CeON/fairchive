@@ -1,20 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
-import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
-import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
-import org.apache.commons.collections4.ListUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +12,23 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.collections4.ListUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
+import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 
 @Stateless
 public class SolrSearchResultsService {
@@ -226,7 +228,7 @@ public class SolrSearchResultsService {
                 ? Size.MAX
                 : size > Size.MIN.value()
                     ? Size.MID : Size.MIN;
-        Query query = em.createNamedQuery(queryBaseName + selectedSize.querySuffix());
+        TypedQuery<Object[]> query = em.createNamedQuery(queryBaseName + selectedSize.querySuffix(), Object[].class);
         int count = 1;
         Number currentId = 0; // ids cannot be empty (as long as it's called from callNamedNativeQueryWithIds),
                               // so the value will be overwritten
@@ -238,7 +240,7 @@ public class SolrSearchResultsService {
         for (; count <= selectedSize.value(); count++) {
             query.setParameter(count, currentId);
         }
-        return (Collection<Object[]>) query.getResultList();
+        return query.getResultList();
     }
 
     private <T> void setIfNotNull(T value, Consumer<T> setter) {

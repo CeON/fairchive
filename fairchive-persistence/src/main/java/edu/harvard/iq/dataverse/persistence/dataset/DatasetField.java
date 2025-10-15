@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.common.MarkupChecker;
 import io.vavr.control.Option;
@@ -308,6 +310,25 @@ public class DatasetField implements Serializable, ValidatableField {
         return returnList;
     }
 
+    /**
+     * Returns field value (not formatted)
+     * or controlled vocab value list (not formatted)
+     */
+    public List<String> getValuesWithoutFormatting() {
+        if (!getFieldValue().isEmpty()) {
+            return Collections.singletonList(fieldValue);
+        } else {
+            List<String> returnList = new ArrayList<>();
+            for (ControlledVocabularyValue cvv : controlledVocabularyValues) {
+                if (cvv != null && cvv.getLocaleStrValue() != null) {
+                    returnList.add(cvv.getLocaleStrValue());
+                }
+            }
+            return returnList;
+        }
+    }
+
+
     private List<String> getRawValues() {
         List<String> returnList = new ArrayList<>();
         if (getFieldValue().isDefined()) {
@@ -460,7 +481,7 @@ public class DatasetField implements Serializable, ValidatableField {
         if (datasetFieldType.isPrimitive()) { // primitive
             List<String> values = forDisplay ? getValues() : getValues_nondisplay();
             for (String value : values) {
-                if (!StringUtils.isBlank(value) && !(forDisplay && DatasetField.NA_VALUE.equals(value))) {
+                if (!isBlank(value) && !(forDisplay && DatasetField.NA_VALUE.equals(value))) {
                     return false;
                 }
             }
@@ -476,15 +497,15 @@ public class DatasetField implements Serializable, ValidatableField {
 
     private String getUnsanitizedDisplayValue() {
         String retVal = "";
-        if (!StringUtils.isBlank(getValue()) && !DatasetField.NA_VALUE.equals(getValue())) {
+        if (!isBlank(getValue()) && !DatasetField.NA_VALUE.equals(getValue())) {
             String format = getDatasetFieldType().getDisplayFormat();
-            if (StringUtils.isBlank(format)) {
+            if (isBlank(format)) {
                 format = "#VALUE";
             }
             String value = getValue();
             String formattedVal = format
                     .replace("#NAME", getDatasetFieldType().getTitle() == null ? "" : getDatasetFieldType().getTitle())
-                    .replace("#EMAIL", BundleUtil.getStringFromBundle("dataset.email.hiddenMessage"))
+                    .replace("#EMAIL", getStringFromBundle("dataset.email.hiddenMessage"))
                     .replace("#VALUE", value);
 
             retVal = resolveFormattedValueDecorator()
@@ -502,9 +523,9 @@ public class DatasetField implements Serializable, ValidatableField {
                             .getDetails("<b>", "</b>", "<br>");
         }
         String retVal = "";
-        if (!StringUtils.isBlank(value) && !DatasetField.NA_VALUE.equals(value)) {
+        if (!isBlank(value) && !DatasetField.NA_VALUE.equals(value)) {
             String format = fieldType.getDisplayFormat();
-            if (StringUtils.isBlank(format)) {
+            if (isBlank(format)) {
                 format = "#VALUE";
             }
             if (FieldType.TEXTBOX.equals(fieldType.getFieldType())) {
@@ -520,7 +541,7 @@ public class DatasetField implements Serializable, ValidatableField {
             // want any issues if the value itself has #NAME in it)
             String formattedVal = format
                     .replace("#NAME", fieldType.getLocaleTitle() == null ? "" : fieldType.getLocaleTitle())
-                    .replace("#EMAIL", BundleUtil.getStringFromBundle("dataset.email.hiddenMessage"))
+                    .replace("#EMAIL", getStringFromBundle("dataset.email.hiddenMessage"))
                     .replace("#VALUE", sanitizedValue);
 
             retVal = resolveFormattedValueDecorator()

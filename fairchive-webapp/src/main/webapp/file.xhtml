@@ -157,9 +157,7 @@
                                         </p:commandLink>
                                     </div>
                                     <div class="btn-group" 
-                                         jsf:rendered="#{FilePage.canUpdateDataset()
-                                                             and !FilePage.lockedFromEdits
-                                                             and !(dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile))}"
+                                         jsf:rendered="#{FilePage.displayEditMenu()}"
                                           >
                                         <button type="button" 
                                                 id="editFile"
@@ -199,7 +197,7 @@
                                                                   value="#{bundle['file.dataFilesTab.metadata.header']}"/>
                                                 </h:outputLink>
                                             </li>
-                                            <ui:fragment rendered="#{FilePage.fileMetadata.dataFile.released and FilePage.draftReplacementFile == false and !FilePage.fileMetadata.dataFile.filePackage}">
+                                            <ui:fragment rendered="#{FilePage.displayReplaceMenuItem()}">
                                             <li role="none"><!-- start: replace file link -->
                                                 <h:outputLink value="/replaceDatasetfiles.xhtml" 
                                                               role="menuitem">
@@ -211,7 +209,7 @@
                                                 </h:outputLink>
                                             <!-- end replace file link --></li>
                                             </ui:fragment>
-                                            <ui:fragment rendered="#{ !FilePage.fileMetadata.dataFile.filePackage and ((FilePage.fileMetadata.dataFile.released and FilePage.draftReplacementFile == true) or (!FilePage.fileMetadata.dataFile.released and FilePage.fileMetadata.datasetVersion.dataset.released)) }">
+                                            <ui:fragment rendered="#{FilePage.displayAlreadyReplacedMenuItem()}">
                                             <li role="none"><!-- start: already replaced replace file link -->
                                                 <p:commandLink pt:role="menuitem"
                                                                onclick="primeFacesShowModal('fileAlreadyReplacedDraft', this);">
@@ -219,7 +217,7 @@
                                                 </p:commandLink>
                                             <!-- end replace file link --></li>
                                             </ui:fragment>
-                                            <ui:fragment rendered="#{!FilePage.fileMetadata.dataFile.released or !FilePage.fileMetadata.dataFile.filePackage}">
+                                            <ui:fragment rendered="#{FilePage.displayDeleteMenuItem()}">
                                                 <li role="none">
                                                     <p:commandLink
                                                                pt:role="menuitem"
@@ -235,10 +233,8 @@
 
 
                                 <!-- Explore/Download/Request Button Block -->
-                                <div class="button-container btn-group" jsf:rendered="#{(!FilePage.datasetDeaccesioned or
-                                                                                            (FilePage.datasetDeaccesioned and FilePage.canUpdateDataset()))
-                                                                                             and (!FilePage.fileMetadata.dataFile.filePackage or
-                                                                                                   FilePage.fileMetadata.dataFile.filePackage and systemConfig.HTTPDownload)}">
+                                <div class="button-container btn-group" 
+                                     jsf:rendered="#{FilePage.displayDownloadButtons()}">
                                     <iqbs:fileDownloadButtons
                                         fileMetadata="#{FilePage.fileMetadata}"
                                         lockedFromDownload="#{FilePage.isLockedFromDownload()}"
@@ -246,6 +242,8 @@
                                         downloadRequestFunction="#{fileDownloadHelper.requestDownload}"
                                         updateOnDownloadRequest="@widgetVar(downloadPackagePopup)"
                                         updateOnRequestAccess="@widgetVar(requestAccessPopup)"
+                                        OCRedFilePresent="#{FilePage.isOCRedFilePresent()}"
+                                        HTRedFilePresent="#{FilePage.isHTRedFilePresent()}"
                                     />
                                 </div>
                                 <!-- END: Explore/Download/Request Button Block -->

@@ -5,7 +5,6 @@ import edu.harvard.iq.dataverse.persistence.group.IpAddress;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -169,7 +168,7 @@ public class ApiBlockingFilter implements javax.servlet.Filter {
             HttpServletResponse resp = (HttpServletResponse) sr1;
             resp.setStatus(500);
             resp.setHeader("PROCUDER", "ApiBlockingFilter");
-            resp.getWriter().append("Error: " + se.getMessage());
+            resp.getWriter().append("Error: ").append(se.getMessage());
         }
     }
 

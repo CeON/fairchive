@@ -39,16 +39,21 @@ public class GeoNameDataFinder {
         this.sanitizer = sanitizer;
     }
 
-    public List<GeoName> find(final String phraze, final int maxResultsCount) {
+    public List<GeoName> find(final String phrase, final int maxResultsCount) {
         try {
-            if (isNotBlank(phraze)) {
-                final StringBuilder builder = buildQueryString(phraze);
+            if (isNotBlank(phrase)) {
+                final StringBuilder builder = buildQueryString(phrase);
                 final SolrQuery query = new SolrQuery(builder.toString())
                         .setRows(maxResultsCount);
                 final List<GeoName> result = this.solr.query(query)
                         .getBeans(GeoName.class);
                 if (result.isEmpty()) {
-                    findById(phraze.trim()).ifPresent(result::add);
+                    try {
+                        // It may fail if there is more than one word in the phrase.
+                        findById(phrase.trim()).ifPresent(result::add);
+                    } catch (final Exception e) {
+                        return emptyList(); // It's ok to return nothing in this case.
+                    }
                 }
                 return result;
             } else {
@@ -64,14 +69,28 @@ public class GeoNameDataFinder {
         final StringBuilder builder = new StringBuilder();
         for (final String word : split(
                 this.sanitizer.removeSolrSpecialChars(phraze))) {
-            if (builder.length() > 0) {
-                builder.append(" AND ");
+            if (word.length() > 1) {
+                if (builder.length() > 0) {
+                    builder.append(" AND ");
+                }
+                if (isFeatureCode(word)) {
+                    final String code = word.substring(1).trim();
+                    if (code.length() > 1) {
+                        builder.append("featureCode:").append(code.toUpperCase())
+                                .append('*');
+                    }
+                } else {
+                    builder.append("(name:").append(word)
+                            .append("* OR alternateNames:*").append(word).append("*)");
+                }
             }
-            builder.append("(name:").append(word)
-                    .append(" OR alternateNames:").append(word).append(")");
         }
 
         return builder;
+    }
+    
+    private boolean isFeatureCode(final String word) {
+        return word.charAt(0) == '#';
     }
 
     public Optional<GeoName> findById(final String id) {

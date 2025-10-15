@@ -10,6 +10,7 @@ import javax.ejb.ApplicationException;
 /**
  * @author rmp553
  */
+@SuppressWarnings("serial")
 @ApplicationException(rollback = true)
 public class FileExceedsMaxSizeException extends RuntimeException {
 

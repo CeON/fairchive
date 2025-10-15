@@ -8,24 +8,12 @@
     <!--@elvariable id="datasetField" type="edu.harvard.iq.dataverse.persistence.dataset.DatasetField"-->
     <!--@elvariable id="inputRenderer" type="edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.SuggestionInputFieldRenderer"-->
 
-    <div class="control-label-with-tooltip">
-        <p:outputLabel styleClass="control-label #{hiddenLabel ? 'sr-only' : ''}"
-                       for="periodo"
-                       escape="false"
-                       value="#{datasetField.datasetFieldType.localeTitle}">
-            <h:outputText rendered="#{not (labelFieldNumber eq 0)}" 
-                          value=" #{labelFieldNumber}"/>
-            <h:outputText rendered="#{datasetField.datasetFieldType.requiredInDataverse}"
-                          styleClass="glyphicon glyphicon-asterisk text-danger" 
-                          value=""/>
-        </p:outputLabel>
-        <span class="glyphicon glyphicon-question-sign tooltip-icon"
-              jsf:rendered="#{(not empty datasetField.datasetFieldType.localeDescription) and !hiddenLabel}"
-              tabindex="0" role="button"
-              aria-label="#{bundle['common.forms.field.tooltip.ariaLabel']} #{datasetField.datasetFieldType.localeTitle}"
-              data-toggle="tooltip" data-placement="auto right"
-              data-original-title="#{datasetField.datasetFieldType.localeDescription}"></span>
-    </div>
+    <ui:include src="/WEB-INF/templates/dataset/inputRenderer/fieldLabel.xhtml">
+        <ui:param name="for" value="periodo" />
+        <ui:param name="datasetFieldType" value="#{datasetField.datasetFieldType}" />
+        <ui:param name="hiddenLabel" value="#{hiddenLabel}" />
+        <ui:param name="labelFieldNumber" value="#{labelFieldNumber}" />
+    </ui:include>
 
     <p:autoComplete
             id="periodo"
@@ -41,7 +29,8 @@
             itemValue="#{suggestion.value}"
             autoSelection="false"
             autoHighlight="false"
-            maxResults="50"
+            maxResults="7"
+            moreText="#{bundle['periodo.moreText']}"
             queryDelay="700">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  

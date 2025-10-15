@@ -22,6 +22,7 @@ import java.util.Date;
 /**
  * @author madunlap
  */
+@SuppressWarnings("serial")
 @Entity
 @Table(indexes = {
         @Index(columnList = "id")

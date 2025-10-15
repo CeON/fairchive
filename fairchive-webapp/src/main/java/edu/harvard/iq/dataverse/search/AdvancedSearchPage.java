@@ -37,6 +37,7 @@ import java.util.stream.IntStream;
  * Page class responsible for showing search fields for Metadata blocks, files/dataverses blocks
  * and redirecting to search results.
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("AdvancedSearchPage")
 public class AdvancedSearchPage implements Serializable {

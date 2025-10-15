@@ -42,6 +42,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 
 import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport.createIngestFailureReport;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaxFileUploadSizeInBytes;
 import static edu.harvard.iq.dataverse.util.FileUtil.calculateChecksum;
 import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
 import static edu.harvard.iq.dataverse.util.FileUtil.getFilesTempDirectory;
@@ -83,10 +84,11 @@ public class DataFileCreator {
         this.termsOfUseFormMapper = termsOfUseFormMapper;
     }
 
-    public List<DataFile> createDataFiles(InputStream inputStream, String fileName, String suppliedContentType) throws IOException {
+    public List<DataFile> createDataFiles(InputStream inputStream, String fileName, 
+            String suppliedContentType) throws IOException {
         Path tempFile = null;
         try {
-            Long fileSizeLimit = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MaxFileUploadSizeInBytes);
+            Long fileSizeLimit = settingsService.getValueForKeyAsLong(MaxFileUploadSizeInBytes);
             // save the file, in the temporary location for now:
             tempFile = FileUtil.limitedInputStreamToTempFile(inputStream, fileSizeLimit);
             return createDataFiles(tempFile, fileName, suppliedContentType, fileSizeLimit);
@@ -96,10 +98,34 @@ public class DataFileCreator {
             }
         }
     }
+    
+    public List<DataFile> createDataFiles(InputStream inputStream, String fileName, 
+            String suppliedContentType, boolean ignoreSizeLimit) throws IOException {
+        if(ignoreSizeLimit) {
+            return createUnlimitedDataFiles(inputStream, fileName, suppliedContentType);
+        } else {
+            return createDataFiles(inputStream, fileName, suppliedContentType);
+        }
+    }
+    
+    private List<DataFile> createUnlimitedDataFiles(InputStream inputStream, 
+            String fileName, String suppliedContentType) throws IOException {
+        Path tempFile = null;
+        try {
+            // save the file, in the temporary location for now:
+            tempFile = FileUtil.limitedInputStreamToTempFile(inputStream, Long.MAX_VALUE);
+            return createDataFiles(tempFile, fileName, suppliedContentType, Long.MAX_VALUE);
+        } finally {
+            if (tempFile != null) {
+                Files.deleteIfExists(tempFile);
+            }
+        }
+    }
 
     // -------------------- PRIVATE --------------------
 
-    private List<DataFile> createDataFiles(Path tempFile, String fileName, String suppliedContentType, Long fileSizeLimit) throws IOException {
+    private List<DataFile> createDataFiles(Path tempFile, String fileName, 
+            String suppliedContentType, Long fileSizeLimit) throws IOException {
 
         logger.info("mime type supplied: " + suppliedContentType);
 

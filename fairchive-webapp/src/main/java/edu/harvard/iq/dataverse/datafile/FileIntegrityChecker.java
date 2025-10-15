@@ -194,12 +194,13 @@ public class FileIntegrityChecker {
                                         .append(integrityFail.getIntegrityFailFile().getLatestFileMetadata().getLabel())
                                         .append(" (")
                                         .append(integrityFail.getCheckResult())
-                                        .append(")")
+                                        .append(')')
                                         .append(", file link: ")
                                         .append(getFailedFileUrl(integrityFail))
                                         .append(NEW_LINE));
 
-        String messageSubject = BrandingUtil.getInstallationBrandName(dataverseDao.findRootDataverse().getName()) + " files integrity check report";
+        String messageSubject = BrandingUtil.getInstallationBrandName(dataverseDao.findRootDataverse().getName()).
+                concat(" files integrity check report");
 
         return new EmailContent(messageSubject, messageBodyBuilder.toString(), "");
     }

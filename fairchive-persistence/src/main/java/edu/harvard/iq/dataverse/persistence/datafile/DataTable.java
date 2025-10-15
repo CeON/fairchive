@@ -3,11 +3,9 @@ package edu.harvard.iq.dataverse.persistence.datafile;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -15,6 +13,12 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +42,7 @@ public class DataTable implements JpaEntity<Long>, Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     /**
@@ -77,7 +81,7 @@ public class DataTable implements JpaEntity<Long>, Serializable {
     /*
      * DataVariables in this DataTable:
      */
-    @OneToMany(mappedBy = "dataTable", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataTable", cascade = {REMOVE, MERGE, PERSIST})
     @OrderBy("fileOrder")
     private List<DataVariable> dataVariables;
 

@@ -1,12 +1,10 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
@@ -15,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.EditDataset)
 public class DeleteProvJsonCommand extends AbstractCommand<DataFile> {
 

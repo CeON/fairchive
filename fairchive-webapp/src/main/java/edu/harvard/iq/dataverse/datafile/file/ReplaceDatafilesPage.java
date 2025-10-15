@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.datafile.file;
 
 import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
@@ -10,6 +9,7 @@ import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
 import edu.harvard.iq.dataverse.datafile.file.exception.FileReplaceException;
 import edu.harvard.iq.dataverse.datafile.file.exception.FileReplaceException.Reason;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("ReplaceDatafilesPage")
 public class ReplaceDatafilesPage implements Serializable {
@@ -55,7 +56,7 @@ public class ReplaceDatafilesPage implements Serializable {
 
     private PermissionsWrapper permissionsWrapper;
     private PermissionServiceBean permissionService;
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private DataFileServiceBean datafileService;
     private DataverseRequestServiceBean dvRequestService;
     private SettingsServiceBean settingsService;
@@ -79,13 +80,17 @@ public class ReplaceDatafilesPage implements Serializable {
     }
 
     @Inject
-    public ReplaceDatafilesPage(ReplaceFileHandler replaceFileHandler, PermissionsWrapper permissionsWrapper, PermissionServiceBean permissionService,
-                                DatasetDao datasetDao, DataFileServiceBean datafileService, DataverseRequestServiceBean dvRequestService,
+    public ReplaceDatafilesPage(ReplaceFileHandler replaceFileHandler, 
+                                PermissionsWrapper permissionsWrapper, 
+                                PermissionServiceBean permissionService,
+                                DatasetService datasetService, 
+                                DataFileServiceBean datafileService, 
+                                DataverseRequestServiceBean dvRequestService,
                                 SettingsServiceBean settingsService) {
         this.replaceFileHandler = replaceFileHandler;
         this.permissionsWrapper = permissionsWrapper;
         this.permissionService = permissionService;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.datafileService = datafileService;
         this.dvRequestService = dvRequestService;
         this.settingsService = settingsService;
@@ -131,7 +136,7 @@ public class ReplaceDatafilesPage implements Serializable {
     // -------------------- LOGIC --------------------
 
     public String init() {
-        dataset = datasetDao.find(datasetId);
+        dataset = datasetService.find(datasetId);
         fileToBeReplaced = datafileService.find(fileId);
 
         String permissionError = checkPermissions(dataset, fileToBeReplaced);

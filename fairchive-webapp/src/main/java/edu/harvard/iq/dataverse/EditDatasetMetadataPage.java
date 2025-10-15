@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse;
 
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRenderer;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRendererManager;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("editDatasetMetadataPage")
 public class EditDatasetMetadataPage implements Serializable {
@@ -48,7 +50,7 @@ public class EditDatasetMetadataPage implements Serializable {
     private ImporterRegistry importerRegistry;
 
     @EJB
-    private DatasetDao datasetDao;
+    DatasetService datasetService;
     @EJB
     private DatasetVersionServiceBean datasetVersionService;
     @EJB
@@ -118,9 +120,9 @@ public class EditDatasetMetadataPage implements Serializable {
     public String init() {
 
         if (persistentId != null) {
-            dataset = datasetDao.findByGlobalId(persistentId);
+            dataset = datasetService.findByGlobalId(persistentId);
         } else if (datasetId != null) {
-            dataset = datasetDao.find(datasetId);
+            dataset = datasetService.find(datasetId);
         }
 
         if (dataset == null) {
@@ -132,7 +134,7 @@ public class EditDatasetMetadataPage implements Serializable {
         if (!permissionsWrapper.canCurrentUserUpdateDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
-        if (datasetDao.isInReview(dataset) && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
+        if (dataset.isInReview() && !permissionsWrapper.canUpdateAndPublishDataset(dataset)) {
             return permissionsWrapper.notAuthorized();
         }
 
@@ -174,12 +176,12 @@ public class EditDatasetMetadataPage implements Serializable {
     // -------------------- PRIVATE --------------------
 
     private String returnToLatestVersion() {
-        dataset = datasetDao.find(dataset.getId());
+        dataset = datasetService.find(dataset.getId());
         workingVersion = dataset.getLatestVersion();
         if (workingVersion.isDeaccessioned() && dataset.getReleasedVersion() != null) {
             workingVersion = dataset.getReleasedVersion();
         }
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalIdString() + 
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId() + 
                 "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
     }
 

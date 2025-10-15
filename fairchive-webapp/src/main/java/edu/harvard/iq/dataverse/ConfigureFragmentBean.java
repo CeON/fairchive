@@ -14,7 +14,6 @@ import org.omnifaces.cdi.ViewScoped;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.logging.Logger;
 
 /**
  * This bean is mainly for keeping track of which file the user selected to run external tools on.
@@ -23,11 +22,10 @@ import java.util.logging.Logger;
  * @author madunlap
  */
 
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class ConfigureFragmentBean implements java.io.Serializable {
-
-    private static final Logger logger = Logger.getLogger(ConfigureFragmentBean.class.getName());
 
     private ExternalTool tool = null;
     private Long fileId = null;

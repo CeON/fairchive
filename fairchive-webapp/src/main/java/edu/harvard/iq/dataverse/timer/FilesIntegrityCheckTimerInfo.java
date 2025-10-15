@@ -7,6 +7,7 @@ import java.io.Serializable;
  * It is used only to distinguish it between timers of
  * other type.
  */
+@SuppressWarnings("serial")
 public class FilesIntegrityCheckTimerInfo implements Serializable {
 
 }

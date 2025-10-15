@@ -53,21 +53,25 @@ public class MockResponse extends Response {
         return entity;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T readEntity(Class<T> entityType) {
         return (T) entity;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T readEntity(GenericType<T> entityType) {
         return (T) entity;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T readEntity(Class<T> entityType, Annotation[] annotations) {
         return (T) entity;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T readEntity(GenericType<T> entityType, Annotation[] annotations) {
         return (T) entity;

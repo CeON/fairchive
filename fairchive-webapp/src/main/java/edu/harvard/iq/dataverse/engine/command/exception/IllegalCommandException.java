@@ -8,9 +8,10 @@ import edu.harvard.iq.dataverse.engine.command.Command;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 public class IllegalCommandException extends CommandException {
 
-    public IllegalCommandException(String message, Command aCommand) {
+    public IllegalCommandException(String message, Command<?> aCommand) {
         super(message, aCommand);
     }
 

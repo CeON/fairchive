@@ -1,7 +1,8 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.Comparator;
 import java.util.regex.Pattern;
@@ -25,7 +26,8 @@ public class DatasetAuthor {
      */
     final public static String REGEX_GND = "^1[01]?\\d{7}[0-9X]|[47]\\d{6}-\\d|[1-9]\\d{0,7}-[0-9X]|3\\d{7}[0-9X]$";
 
-    public static Comparator<DatasetAuthor> displayOrderComparator = Comparator.comparingInt(DatasetAuthor::getDisplayOrder);
+    public static Comparator<DatasetAuthor> displayOrderComparator = 
+            Comparator.comparingInt(DatasetAuthor::getDisplayOrder);
 
 
     private DatasetVersion datasetVersion;
@@ -81,7 +83,8 @@ public class DatasetAuthor {
     // -------------------- LOGIC --------------------
 
     public String getIdType() {
-        if ((this.idType == null || this.idType.isEmpty()) && (this.idValue != null && !this.idValue.isEmpty())) {
+        if ((this.idType == null || this.idType.isEmpty()) 
+                && (this.idValue != null && !this.idValue.isEmpty())) {
             return ("ORCID");
         } else {
             return idType;
@@ -89,8 +92,8 @@ public class DatasetAuthor {
     }
 
     public boolean isEmpty() {
-        return ((affiliation == null || StringUtils.isBlank(affiliation.getValue()))
-                && (name == null || StringUtils.isBlank(name.getValue()))
+        return ((affiliation == null || isBlank(affiliation.getValue()))
+                && (name == null || isBlank(name.getValue()))
         );
     }
 

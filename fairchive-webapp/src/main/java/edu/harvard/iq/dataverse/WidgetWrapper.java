@@ -12,6 +12,7 @@ import javax.inject.Named;
 /**
  * @author gdurand
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class WidgetWrapper implements java.io.Serializable {
@@ -55,7 +56,7 @@ public class WidgetWrapper implements java.io.Serializable {
                         case "dataverse":
                             break; // keep looping
                         case "dataset":
-                            if (dvo.getGlobalIdString().equals(widgetHome)) {
+                            if (dvo.getGlobalId().toString().equals(widgetHome)) {
                                 return true;
                             }
                             break;

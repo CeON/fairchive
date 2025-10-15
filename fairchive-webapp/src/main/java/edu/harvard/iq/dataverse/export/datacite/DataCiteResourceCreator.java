@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4;
+import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
 
 public class DataCiteResourceCreator {
 
@@ -206,7 +206,7 @@ public class DataCiteResourceCreator {
                 .collect(Collectors.toList());
     }
 
-    public List<Contributor> extractDatasetProducersAsContributors(Dataset dataset) {
+    private List<Contributor> extractDatasetProducersAsContributors(Dataset dataset) {
         return dataset.getLatestVersion().extractFieldWithSubfields(DatasetFieldConstant.producer,
                 Arrays.asList(DatasetFieldConstant.producerName, DatasetFieldConstant.producerAffiliation))
                 .stream()

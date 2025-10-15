@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 /**
  * @author skraffmi
  */
+@SuppressWarnings("serial")
 @ViewScoped
 @Named("guestbookResponsesPage")
 public class GuestbookResponsesPage implements java.io.Serializable {
@@ -38,7 +39,7 @@ public class GuestbookResponsesPage implements java.io.Serializable {
     @EJB
     DataverseDao dvService;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @Inject

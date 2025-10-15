@@ -1,43 +1,13 @@
 package edu.harvard.iq.dataverse.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.onelogin.saml2.Auth;
-import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
-import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
-import edu.harvard.iq.dataverse.DatasetLinkingServiceBean;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.EjbDataverseEngine;
-import edu.harvard.iq.dataverse.UserServiceBean;
-import edu.harvard.iq.dataverse.api.dto.ApiErrorResponseDTO;
-import edu.harvard.iq.dataverse.api.dto.ApiResponseDTO;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.common.Util;
-import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
-import edu.harvard.iq.dataverse.engine.command.Command;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
-import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
-import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.link.DataverseLinkingDataverse;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.GuestUser;
-import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
-import edu.harvard.iq.dataverse.persistence.user.User;
-import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import edu.harvard.iq.dataverse.util.json.JsonParser;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
-import org.apache.commons.lang.SerializationException;
+import static org.apache.commons.lang.StringUtils.isNumeric;
+
+import java.io.StringReader;
+import java.net.URI;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ejb.EJB;
 import javax.inject.Inject;
@@ -55,14 +25,51 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.StringReader;
-import java.net.URI;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import static org.apache.commons.lang.StringUtils.isNumeric;
+import org.apache.commons.lang.SerializationException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import edu.harvard.iq.dataverse.DataFileServiceBean;
+import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
+import edu.harvard.iq.dataverse.DatasetLinkingServiceBean;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.EjbDataverseEngine;
+import edu.harvard.iq.dataverse.UserServiceBean;
+import edu.harvard.iq.dataverse.api.dto.ApiErrorResponseDTO;
+import edu.harvard.iq.dataverse.api.dto.ApiResponseDTO;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.common.Util;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
+import edu.harvard.iq.dataverse.engine.command.Command;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
+import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
+import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
+import edu.harvard.iq.dataverse.engine.command.impl.GetDraftVersionIfExists;
+import edu.harvard.iq.dataverse.engine.command.impl.GetLatestAccessibleDatasetVersionCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.GetLatestPublishedDatasetVersionCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.GetSpecificPublishedDatasetVersionCommand;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.link.DataverseLinkingDataverse;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.GuestUser;
+import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
+import edu.harvard.iq.dataverse.persistence.user.User;
+import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.SystemConfig;
+import edu.harvard.iq.dataverse.util.json.JsonParser;
+import io.vavr.control.Option;
+import io.vavr.control.Try;
 
 /**
  * Base class for API beans
@@ -75,7 +82,7 @@ public abstract class AbstractApiBean {
     protected EjbDataverseEngine engineSvc;
 
     @EJB
-    protected DatasetDao datasetSvc;
+    protected DatasetService datasetSvc;
 
     @EJB
     protected DataFileServiceBean fileService;
@@ -101,7 +108,7 @@ public abstract class AbstractApiBean {
     @EJB
     protected PrivateUrlServiceBean privateUrlSvc;
 
-    @EJB
+    @Inject
     protected SystemConfig systemConfig;
 
     @EJB
@@ -129,6 +136,7 @@ public abstract class AbstractApiBean {
     /**
      * Utility class to convey a proper error response using Java's exceptions.
      */
+    @SuppressWarnings("serial")
     public static class WrappedResponse extends Exception {
         private final Response response;
 
@@ -169,7 +177,7 @@ public abstract class AbstractApiBean {
          *
          * @return the content of a message field, or {@code null}.
          */
-        String getWrappedMessageWhenJson() {
+        private String getWrappedMessageWhenJson() {
             if (response.getMediaType().equals(MediaType.APPLICATION_JSON_TYPE)) {
                 Object entity = response.getEntity();
                 if (entity == null) {
@@ -385,6 +393,38 @@ public abstract class AbstractApiBean {
                 throw new WrappedResponse(
                         badRequest(BundleUtil.getStringFromBundle("find.dataset.error.dataset.not.found.bad.id", id)));
             }
+        }
+    }
+
+    protected DatasetVersion getDatasetVersionOrDie(final DataverseRequest req, String versionNumber, final Dataset ds) throws WrappedResponse {
+        DatasetVersion dsv = execCommand(chooseCommandForVersionFinding(versionNumber, ds, req));
+        if (dsv == null || dsv.getId() == null) {
+            throw new WrappedResponse(notFound(String.format("Dataset version %s of dataset %d not found", versionNumber, ds.getId())));
+        }
+        return dsv;
+    }
+
+    private Command<DatasetVersion> chooseCommandForVersionFinding(String versionId, Dataset ds, DataverseRequest req)
+            throws WrappedResponse {
+        switch (versionId) {
+            case ":latest":
+                return new GetLatestAccessibleDatasetVersionCommand(req, ds);
+            case ":draft":
+                return new GetDraftVersionIfExists(req, ds);
+            case ":latest-published":
+                return new GetLatestPublishedDatasetVersionCommand(req, ds);
+            default:
+                try {
+                    String[] versions = versionId.split("\\.");
+                    if (versions.length == 1) {
+                        return new GetSpecificPublishedDatasetVersionCommand(req, ds, Long.parseLong(versions[0]), 0L);
+                    } else if (versions.length == 2) {
+                        return new GetSpecificPublishedDatasetVersionCommand(req, ds, Long.parseLong(versions[0]), Long.parseLong(versions[1]));
+                    }
+                    throw new WrappedResponse(error(Response.Status.BAD_REQUEST, "Illegal version identifier '" + versionId + "'"));
+                } catch (NumberFormatException nfe) {
+                    throw new WrappedResponse(error(Response.Status.BAD_REQUEST, "Illegal version identifier '" + versionId + "'"));
+                }
         }
     }
 

@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataset)
 public class ReturnDatasetToAuthorCommand extends AbstractDatasetCommand<Dataset> {
 
@@ -42,7 +43,8 @@ public class ReturnDatasetToAuthorCommand extends AbstractDatasetCommand<Dataset
         dataset.setModificationTime(getTimestamp());
 
         String comment = notificationParams.get(NotificationParameter.MESSAGE.key());
-        WorkflowComment workflowComment = new WorkflowComment(dataset.getEditVersion(), WorkflowComment.Type.RETURN_TO_AUTHOR, comment, (AuthenticatedUser) this.getUser());
+        WorkflowComment workflowComment = new WorkflowComment(dataset.getEditVersion(), 
+                WorkflowComment.Type.RETURN_TO_AUTHOR, comment, (AuthenticatedUser) this.getUser());
         ctxt.datasets().addWorkflowComment(workflowComment);
 
         updateDatasetUser(ctxt);

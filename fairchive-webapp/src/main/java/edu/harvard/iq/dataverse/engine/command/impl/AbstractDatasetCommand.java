@@ -40,6 +40,7 @@ import static java.util.stream.Collectors.joining;
  * @param <T> The type of the command's result. Normally {@link Dataset}.
  * @author michael
  */
+@SuppressWarnings("serial")
 public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
 
     private static final Logger logger = Logger.getLogger(AbstractDatasetCommand.class.getName());
@@ -166,7 +167,7 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
      */
     protected void registerExternalIdentifier(Dataset theDataset, CommandContext ctxt) {
         if (!theDataset.isIdentifierRegistered()) {
-            GlobalIdServiceBean globalIdServiceBean = GlobalIdServiceBean.getBean(theDataset.getProtocol(), ctxt);
+            GlobalIdServiceBean globalIdServiceBean = ctxt.globalIdServiceBeanResolver().resolve(theDataset.getProtocol());
             if (globalIdServiceBean != null) {
                 if (globalIdServiceBean instanceof FakePidProviderServiceBean) {
                     try {
@@ -183,7 +184,7 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
                         int attempts = 0;
 
                         while (globalIdServiceBean.alreadyExists(theDataset) && attempts < FOOLPROOF_RETRIAL_ATTEMPTS_LIMIT) {
-                            theDataset.setIdentifier(ctxt.datasets().generateDatasetIdentifier(theDataset));
+                            theDataset.setIdentifier(ctxt.datasetService().generateDatasetIdentifier(theDataset));
                             logger.log(Level.INFO, "Attempting to register external identifier for dataset {0} (trying: {1}).",
                                        new Object[]{theDataset.getId(), theDataset.getIdentifier()});
                             attempts++;

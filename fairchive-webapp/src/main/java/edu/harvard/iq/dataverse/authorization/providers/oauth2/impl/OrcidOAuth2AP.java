@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -76,47 +77,55 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
     }
 
     @Override
-    public BaseApi getApiInstance() {
+    public BaseApi<OAuth20Service> getApiInstance() {
         return OrcidApi.instance(!baseUserEndpoint.contains("sandbox"));
     }
 
     @Override
-    public ExternalIdpUserRecord getUserRecord(String code, String state, String redirectUrl) throws IOException, OAuth2Exception {
-        OAuth20Service service = getService(state, redirectUrl);
-        OAuth2AccessToken accessToken = service.getAccessToken(code);
+    public ExternalIdpUserRecord getUserRecord(final String code, final String state,
+            final String redirectUrl) 
+                    throws IOException, OAuth2Exception {
+        try {
+            final OAuth20Service service = getService(state, redirectUrl);
+            final OAuth2AccessToken accessToken = service.getAccessToken(code);
 
-        if (!accessToken.getScope().contains(scope)) {
-            // We did not get the permissions on the scope we need. Abort and inform the user.
-            throw new OAuth2Exception(200, BundleUtil.getStringFromBundle("auth.providers.orcid.insufficientScope"), "");
-        }
+            if (!accessToken.getScope().contains(scope)) {
+                // We did not get the permissions on the scope we need. Abort and
+                // inform the user.
+                throw new OAuth2Exception(200, BundleUtil.getStringFromBundle(
+                        "auth.providers.orcid.insufficientScope"), "");
+            }
 
-        String orcidNumber = extractOrcidNumber(accessToken.getRawResponse());
+            final String orcidNumber = extractOrcidNumber(accessToken.getRawResponse());
+            final String userEndpoint = getUserEndpoint(accessToken);
+            final OAuthRequest request = new OAuthRequest(Verb.GET, userEndpoint);
+            service.signRequest(accessToken, request);
+            request.setCharset("UTF-8");
 
-        final String userEndpoint = getUserEndpoint(accessToken);
+            final Response response = service.execute(request);
+            final int responseCode = response.getCode();
+            final String body = response.getBody();
+            logger.log(Level.FINE, "In getUserRecord. Body: {0}", body);
 
-        final OAuthRequest request = new OAuthRequest(Verb.GET, userEndpoint, service);
-        request.addHeader("Authorization", "Bearer " + accessToken.getAccessToken());
-        request.setCharset("UTF-8");
+            if (responseCode == 200) {
+                final ParsedUserResponse parsed = parseUserResponse(body);
+                AuthenticatedUserDisplayInfo orgData = getOrganizationalData(
+                        userEndpoint, accessToken.getAccessToken(), service);
+                parsed.displayInfo.setAffiliation(orgData.getAffiliation());
+                parsed.displayInfo.setPosition(orgData.getPosition());
+                parsed.displayInfo.setOrcid(orcidNumber);
 
-        final Response response = request.send();
-        int responseCode = response.getCode();
-        final String body = response.getBody();
-        logger.log(Level.FINE, "In getUserRecord. Body: {0}", body);
-
-        if (responseCode == 200) {
-            final ParsedUserResponse parsed = parseUserResponse(body);
-            AuthenticatedUserDisplayInfo orgData = getOrganizationalData(userEndpoint, accessToken.getAccessToken(), service);
-            parsed.displayInfo.setAffiliation(orgData.getAffiliation());
-            parsed.displayInfo.setPosition(orgData.getPosition());
-            parsed.displayInfo.setOrcid(orcidNumber);
-
-            return new ExternalIdpUserRecord(getId(), orcidNumber,
-                                        parsed.username,
-                                        OAuth2TokenData.from(accessToken),
-                                        parsed.displayInfo,
-                                        parsed.emails);
-        } else {
-            throw new OAuth2Exception(responseCode, body, "Error getting the user info record.");
+                return new ExternalIdpUserRecord(getId(), orcidNumber,
+                        parsed.username,
+                        OAuth2TokenData.from(accessToken),
+                        parsed.displayInfo,
+                        parsed.emails);
+            } else {
+                throw new OAuth2Exception(responseCode, body,
+                        "Error getting the user info record.");
+            }
+        } catch (final ExecutionException | InterruptedException e) {
+            throw new IOException(e);
         }
     }
 
@@ -284,23 +293,32 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
         }
     }
 
-    protected AuthenticatedUserDisplayInfo getOrganizationalData(String userEndpoint, String accessToken, OAuth20Service service) throws IOException {
-        final OAuthRequest request = new OAuthRequest(Verb.GET, userEndpoint.replace("/person", "/employments"), service);
-        request.addHeader("Authorization", "Bearer " + accessToken);
-        request.setCharset("UTF-8");
+    protected AuthenticatedUserDisplayInfo getOrganizationalData(
+            final String userEndpoint,
+            final String accessToken, final OAuth20Service service)
+            throws IOException {
+        try {
+            final OAuthRequest request = new OAuthRequest(Verb.GET,
+                    userEndpoint.replace("/person", "/employments"));
+            service.signRequest(accessToken, request);
+            request.setCharset("UTF-8");
 
-        final Response response = request.send();
-        int responseCode = response.getCode();
-        final String responseBody = response.getBody();
+            final Response response = service.execute(request);
+            int responseCode = response.getCode();
+            final String responseBody = response.getBody();
 
-        if (responseCode != 200) {
-            // This is bad, but not bad enough to stop a signup/in process.
-            logger.log(Level.WARNING, "Cannot get affiliation data from ORCiD. Response code: {0} body:\n{1}\n/body",
-                       new Object[]{responseCode, responseBody});
-            return null;
+            if (responseCode != 200) {
+                // This is bad, but not bad enough to stop a signup/in process.
+                logger.log(Level.WARNING,
+                        "Cannot get affiliation data from ORCiD. Response code: {0} body:\n{1}\n/body",
+                        new Object[] { responseCode, responseBody });
+                return null;
 
-        } else {
-            return parseActivitiesResponse(responseBody);
+            } else {
+                return parseActivitiesResponse(responseBody);
+            }
+        } catch (final ExecutionException | InterruptedException e) {
+            throw new IOException(e);
         }
     }
 

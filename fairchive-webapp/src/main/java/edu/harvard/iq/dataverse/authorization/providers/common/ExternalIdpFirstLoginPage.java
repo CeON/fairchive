@@ -62,6 +62,7 @@ import java.util.stream.Collectors;
  *
  * @author michael
  */
+@SuppressWarnings("serial")
 @Named("ExternalIdpFirstLoginPage")
 @SessionScoped
 public class ExternalIdpFirstLoginPage extends BaseUserPage {
@@ -77,7 +78,7 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
     @EJB
     UserNotificationService userNotificationService;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @EJB

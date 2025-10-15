@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.api.batchjob;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
 import edu.harvard.iq.dataverse.batch.jobs.importer.ImportMode;
@@ -18,20 +17,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.logging.Logger;
 
 @Stateless
 @Path("batch/jobs")
 @Produces(MediaType.APPLICATION_JSON)
 public class FileRecordJobResource extends AbstractApiBean {
 
-    private static final Logger logger = Logger.getLogger(FileRecordJobResource.class.getName());
-
     @EJB
     PermissionServiceBean permissionServiceBean;
-
-    @EJB
-    DatasetDao datasetDao;
 
     @POST
     @Path("import/datasets/files/{identifier}")

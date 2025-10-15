@@ -8,8 +8,8 @@ package edu.harvard.iq.dataverse.api;
 
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.EmbargoAccessService;
 import edu.harvard.iq.dataverse.datavariable.VariableServiceBean;
 import edu.harvard.iq.dataverse.export.DDIExportServiceBean;
@@ -32,15 +32,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import java.io.ByteArrayOutputStream;
 import java.util.Optional;
-import java.util.logging.Logger;
-
-/*
-    Custom API exceptions [NOT YET IMPLEMENTED]
-import edu.harvard.iq.dataverse.api.exceptions.NotFoundException;
-import edu.harvard.iq.dataverse.api.exceptions.ServiceUnavailableException;
-import edu.harvard.iq.dataverse.api.exceptions.PermissionDeniedException;
-import edu.harvard.iq.dataverse.api.exceptions.AuthorizationRequiredException;
-*/
 
 /**
  * PLEASE NOTE that the "/api/meta" endpoints are deprecated! All code should
@@ -58,7 +49,6 @@ import edu.harvard.iq.dataverse.api.exceptions.AuthorizationRequiredException;
 @Deprecated
 @Path("meta")
 public class Meta {
-    private static final Logger logger = Logger.getLogger(Meta.class.getCanonicalName());
 
     @EJB
     SearchServiceBean searchService;
@@ -79,7 +69,7 @@ public class Meta {
     private EmbargoAccessService embargoAccessService;
 
     @EJB
-    DatasetDao datasetDao;
+    DatasetService datasetService;
 
 
     @Deprecated
@@ -125,8 +115,6 @@ public class Meta {
 
         DataFile dataFile = null;
 
-        //httpHeaders.add("Content-disposition", "attachment; filename=\"dataverse_files.zip\"");
-        //httpHeaders.add("Content-Type", "application/zip; name=\"dataverse_files.zip\"");
         response.setHeader("Content-disposition", "attachment; filename=\"dataverse_files.zip\"");
 
         dataFile = datafileService.find(fileId);
@@ -172,7 +160,7 @@ public class Meta {
     @Produces({"application/xml"})
     public String dataset(@PathParam("datasetId") Long datasetId, @QueryParam("exclude") String exclude, @QueryParam("include") String include, @Context HttpHeaders header, @Context HttpServletResponse response) throws NotFoundException /*, ServiceUnavailableException, PermissionDeniedException, AuthorizationRequiredException*/ {
 
-        Dataset dataset = datasetDao.find(datasetId);
+        Dataset dataset = datasetService.find(datasetId);
         if (dataset == null) {
             throw new NotFoundException();
         }

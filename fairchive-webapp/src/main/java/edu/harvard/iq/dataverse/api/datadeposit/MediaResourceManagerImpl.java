@@ -2,12 +2,12 @@ package edu.harvard.iq.dataverse.api.datadeposit;
 
 import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -20,7 +20,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -49,27 +48,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-public class MediaResourceManagerImpl implements MediaResourceManager {
+final class MediaResourceManagerImpl implements MediaResourceManager {
 
     private static final Logger logger = Logger.getLogger(MediaResourceManagerImpl.class.getCanonicalName());
     @EJB
-    EjbDataverseEngine commandEngine;
+    private EjbDataverseEngine commandEngine;
     @EJB
-    DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
-    DataFileServiceBean dataFileService;
+    private DataFileServiceBean dataFileService;
     @Inject
     private DataFileCreator dataFileCreator;
     @EJB
-    IngestServiceBean ingestService;
+    private IngestServiceBean ingestService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
-    SettingsServiceBean settingsSvc;
-    @EJB
-    SystemConfig systemConfig;
+    private SystemConfig systemConfig;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
     @Inject
@@ -83,12 +80,11 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
     public MediaResource getMediaResourceRepresentation(String uri, Map<String, String> map, AuthCredentials authCredentials, SwordConfiguration swordConfiguration) throws SwordError, SwordServerException, SwordAuthException {
 
         AuthenticatedUser user = swordAuth.auth(authCredentials);
-        DataverseRequest dvReq = new DataverseRequest(user, httpRequest);
         UrlManager urlManager = urlManagerServiceBean.getUrlManager(uri);
         String globalId = urlManager.getTargetIdentifier();
         if (urlManager.getTargetType().equals("study") && globalId != null) {
             logger.fine("looking up dataset with globalId " + globalId);
-            Dataset dataset = datasetDao.findByGlobalId(globalId);
+            Dataset dataset = datasetService.findByGlobalId(globalId);
             if (dataset != null) {
                 /**
                  * @todo: support downloading of files (SWORD 2.0 Profile 6.4. -
@@ -100,7 +96,6 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
                  */
                 boolean getMediaResourceRepresentationSupported = false;
                 if (getMediaResourceRepresentationSupported) {
-                    Dataverse dvThatOwnsDataset = dataset.getOwner();
                     /**
                      * @todo Add Dataverse 4 style permission check here. Is
                      * there a Command we use for downloading files as zip?
@@ -118,7 +113,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
                         MediaResource mediaResource = new MediaResource(fixmeInputStream, contentType, packaging, isPackaged);
                         return mediaResource;
                     } else {
-                        throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "user " + user.getDisplayInfo().getTitle() + " is not authorized to get a media resource representation of the dataset with global ID " + dataset.getGlobalIdString());
+                        throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "user " + user.getDisplayInfo().getTitle() + " is not authorized to get a media resource representation of the dataset with global ID " + dataset.getGlobalId());
                     }
                 } else {
                     throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "Downloading files via the SWORD-based Dataverse Data Deposit API is not (yet) supported: https://github.com/IQSS/dataverse/issues/183");
@@ -248,13 +243,13 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
         String globalId = urlManager.getTargetIdentifier();
         if (urlManager.getTargetType().equals("study") && globalId != null) {
             logger.fine("looking up dataset with globalId " + globalId);
-            Dataset dataset = datasetDao.findByGlobalId(globalId);
+            Dataset dataset = datasetService.findByGlobalId(globalId);
             if (dataset == null) {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "Could not find dataset with global ID of " + globalId);
             }
             UpdateDatasetVersionCommand updateDatasetCommand = new UpdateDatasetVersionCommand(dataset, dvReq);
             if (!permissionService.isUserAllowedOn(user, updateDatasetCommand, dataset)) {
-                throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "user " + user.getDisplayInfo().getTitle() + " is not authorized to modify dataset with global ID " + dataset.getGlobalIdString());
+                throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "user " + user.getDisplayInfo().getTitle() + " is not authorized to modify dataset with global ID " + dataset.getGlobalId());
             }
 
             //---------------------------------------
@@ -359,7 +354,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
                 sb.append(ex.getLocalizedMessage());
                 while (cause.getCause() != null) {
                     cause = cause.getCause();
-                    sb.append(cause + " ");
+                    sb.append(cause).append(' ');
                     if (cause instanceof ConstraintViolationException) {
                         ConstraintViolationException constraintViolationException = (ConstraintViolationException) cause;
                         for (ConstraintViolation<?> violation : constraintViolationException.getConstraintViolations()) {

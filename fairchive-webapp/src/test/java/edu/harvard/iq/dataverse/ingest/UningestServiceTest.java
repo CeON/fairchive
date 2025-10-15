@@ -1,5 +1,31 @@
 package edu.harvard.iq.dataverse.ingest;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_NONE;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType.NON;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType.OCR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.quality.Strictness.LENIENT;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+
 import edu.harvard.iq.dataverse.MapLayerMetadataServiceBean;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
@@ -14,28 +40,9 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.io.IOException;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = LENIENT)
 class UningestServiceTest {
 
     @Mock private StorageIO<DataFile> storage;
@@ -52,9 +59,10 @@ class UningestServiceTest {
     private AuthenticatedUser user = MocksFactory.makeAuthenticatedUser("User", "Qwerty");
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         service.setDataAccess(dataAccess);
-        lenient().when(dataFileRepository.save(any(DataFile.class))).thenAnswer(i -> i.getArgument(0));
+        when(dataFileRepository.save(any(DataFile.class))).thenAnswer(i -> i.getArgument(0));
+        when(dataAccess.getStorageIO(any(DataFile.class))).thenReturn(storage);
     }
 
     // -------------------- TESTS --------------------
@@ -99,6 +107,33 @@ class UningestServiceTest {
         verify(dataFileRepository, atLeastOnce()).save(file);
         verify(mapLayerMetadataService).findMetadataByDatafile(file);
         verify(storage, never()).deleteAllAuxObjects();
+        DatasetVersion version = file.getFileMetadata().getDatasetVersion();
+        verify(datasetVersionRepository).save(version);
+        verify(datasetVersionService).fixMissingUnf(eq(version.getId().toString()), eq(true));
+    }
+    
+    @Test
+    void uningest__image() throws IOException {
+        // given
+        DataFile file = prepareDataFile();
+        file.setDataTable(null);
+        file.setContentType("image/png");
+        file.setIngestType(OCR);
+
+        // when
+        service.uningest(file, user);
+
+        // then
+        verify(dataAccess, times(1)).getStorageIO(file);
+        verify(storage, never()).revertBackupAsAux(anyString());
+        verify(dataTableRepository, never()).deleteById(11L);
+        assertThat(file.getIngestStatus()).isEqualTo(INGEST_STATUS_NONE);
+        assertThat(file.getIngestType()).isEqualTo(NON);
+        verify(dataFileRepository, atLeastOnce()).save(file);
+        verify(mapLayerMetadataService).findMetadataByDatafile(file);
+        verify(storage, never()).deleteAllAuxObjects();
+        verify(storage, times(1)).deleteAuxObject(eq("ocr"));
+        verify(storage, times(1)).deleteAuxObject(eq("htr"));
         DatasetVersion version = file.getFileMetadata().getDatasetVersion();
         verify(datasetVersionRepository).save(version);
         verify(datasetVersionService).fixMissingUnf(eq(version.getId().toString()), eq(true));

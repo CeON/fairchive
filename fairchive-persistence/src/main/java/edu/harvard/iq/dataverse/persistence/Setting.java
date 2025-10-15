@@ -3,8 +3,6 @@ package edu.harvard.iq.dataverse.persistence;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -13,12 +11,7 @@ import java.util.Objects;
  *
  * @author michael
  */
-@NamedQueries({
-        @NamedQuery(name = "Setting.deleteByName",
-                query = "DELETE FROM Setting s WHERE s.name=:name"),
-        @NamedQuery(name = "Setting.findAll",
-                query = "SELECT s FROM Setting s")
-})
+@SuppressWarnings("serial")
 @Entity
 public class Setting implements Serializable {
 
@@ -33,7 +26,7 @@ public class Setting implements Serializable {
     public Setting() {
     }
 
-    public Setting(String name, String content) {
+    public Setting(final String name, final String content) {
         this.name = name;
         this.content = content;
     }
@@ -41,20 +34,20 @@ public class Setting implements Serializable {
     // -------------------- GETTERS --------------------
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public String getContent() {
-        return content;
+        return this.content;
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
-    public void setContent(String content) {
+    public void setContent(final String content) {
         this.content = content;
     }
 
@@ -62,13 +55,11 @@ public class Setting implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 73 * hash + Objects.hashCode(this.name);
-        return hash;
+        return this.name.hashCode();
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

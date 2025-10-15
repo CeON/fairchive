@@ -43,12 +43,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
@@ -61,7 +58,7 @@ public class Files extends AbstractApiBean {
     EjbDataverseEngine commandEngine;
     @Inject
     private DataFileCreator dataFileCreator;
-    @EJB
+    @Inject
     SystemConfig systemConfig;
     @Inject
     private OptionalFileParams optionalFileParams;

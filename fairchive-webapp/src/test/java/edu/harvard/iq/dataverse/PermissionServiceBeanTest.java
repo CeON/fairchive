@@ -1,12 +1,37 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Ingest;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Set;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.group.Group;
 import edu.harvard.iq.dataverse.persistence.group.IpAddress;
@@ -17,27 +42,6 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -147,7 +151,7 @@ public class PermissionServiceBeanTest {
 
         // then
         assertFalse(hasPermission);
-        verifyZeroInteractions(roleService);
+        verifyNoInteractions(roleService);
     }
 
     @Test
@@ -161,7 +165,7 @@ public class PermissionServiceBeanTest {
 
         // then
         assertFalse(hasPermission);
-        verifyZeroInteractions(groupService, roleService);
+        verifyNoInteractions(groupService, roleService);
     }
 
     @Test
@@ -287,6 +291,28 @@ public class PermissionServiceBeanTest {
         //then
         assertFalse(isUserAllowedToEditDataverse);
     }
+    
+    @Test
+    public void checkEditDatasetLockNonThrowing() {
+        
+        Dataset set = new Dataset();
+        DatasetLock lock = new DatasetLock(Ingest, new AuthenticatedUser());
+        DataverseRequest request = new DataverseRequest(new AuthenticatedUser(), (IpAddress)null);
+        
+        assertThat(this.permissionServiceBean.checkEditDatasetLockNonThrowing(set, null)).isFalse();
+        
+        set.addLock(lock);
+        
+        assertThat(this.permissionServiceBean.checkEditDatasetLockNonThrowing(set, null)).isTrue();
+        
+        lock.setReason(Workflow);
+        
+        assertThat(this.permissionServiceBean.checkEditDatasetLockNonThrowing(set, null)).isTrue();
+        
+        lock.setReason(InReview);
+        
+        assertThat(this.permissionServiceBean.checkEditDatasetLockNonThrowing(set, request)).isTrue();
+    }
 
     // -------------------- PRIVATE --------------------
 
@@ -298,16 +324,5 @@ public class PermissionServiceBeanTest {
         roleAssignment.setRole(role);
 
         return roleAssignment;
-    }
-
-    private List<RoleAssignment> assignRoleForUserInDataverse(User user, String roleAlias) {
-        RoleAssignment roleAssignment = new RoleAssignment();
-
-        DataverseRole adminRole = new DataverseRole();
-        adminRole.setAlias(roleAlias);
-
-        roleAssignment.setRole(adminRole);
-        roleAssignment.setAssigneeIdentifier(user.getIdentifier());
-        return Collections.singletonList(roleAssignment);
     }
 }

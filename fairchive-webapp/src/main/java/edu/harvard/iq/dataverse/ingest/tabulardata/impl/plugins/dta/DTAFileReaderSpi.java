@@ -29,8 +29,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -87,9 +87,6 @@ public class DTAFileReaderSpi extends TabularDataFileReaderSpi {
     public boolean canDecodeInput(Object source) throws IOException {
         if (!(source instanceof BufferedInputStream)) {
             return false;
-        }
-        if (source == null) {
-            throw new IllegalArgumentException("stream == null!");
         }
         BufferedInputStream stream = (BufferedInputStream) source;
         dbgLog.fine("applying the dta test\n");
@@ -180,46 +177,42 @@ public class DTAFileReaderSpi extends TabularDataFileReaderSpi {
 
     @Override
     public boolean canDecodeInput(File file) throws IOException {
-        if (file == null) {
-            throw new IllegalArgumentException("file == null!");
-        }
         if (!file.canRead()) {
             throw new IIOException("cannot read the input file");
         }
-
-        // set-up a FileChannel instance for a given file object
-        FileChannel srcChannel = new FileInputStream(file).getChannel();
-
-        // create a read-only MappedByteBuffer
-        MappedByteBuffer buff = srcChannel.map(FileChannel.MapMode.READ_ONLY, 0, DTA_HEADER_SIZE);
-
-        //printHexDump(buff, "hex dump of the byte-buffer");
-
-        buff.rewind();
-
-        dbgLog.fine("applying the dta test\n");
-
-        byte[] hdr4 = new byte[4];
-        buff.get(hdr4, 0, 4);
-
-        dbgLog.fine("hex dump: 1st 4bytes =>" +
-                            new String(Hex.encodeHex(hdr4)) + "<-");
-
-        if (hdr4[2] != 1) {
-            dbgLog.fine("3rd byte is not 1: given file is not stata-dta type");
-            return false;
-        } else if ((hdr4[1] != 1) && (hdr4[1] != 2)) {
-            dbgLog.fine("2nd byte is neither 0 nor 1: this file is not stata-dta type");
-            return false;
-        } else if (!stataReleaseNumber.containsKey(hdr4[0])) {
-            dbgLog.fine("1st byte (" + hdr4[0] +
-                                ") is not within the ingestable range [rel. 3-10]: this file is NOT stata-dta type");
-            return false;
-        } else {
-            dbgLog.fine("this file is stata-dta type: " +
-                                stataReleaseNumber.get(hdr4[0]) +
-                                "(No in HEX=" + hdr4[0] + ")");
-            return true;
+        try(final InputStream in = new FileInputStream(file)) {
+            final byte[] bytes = new byte[DTA_HEADER_SIZE];
+            if(in.read(bytes) < DTA_HEADER_SIZE) {
+                dbgLog.fine("this file is NOT DTA type");
+                return false;
+            }
+            final ByteBuffer buff = ByteBuffer.wrap(bytes);
+            buff.rewind();
+    
+            dbgLog.fine("applying the dta test\n");
+    
+            byte[] hdr4 = new byte[4];
+            buff.get(hdr4, 0, 4);
+    
+            dbgLog.fine("hex dump: 1st 4bytes =>" +
+                                new String(Hex.encodeHex(hdr4)) + "<-");
+    
+            if (hdr4[2] != 1) {
+                dbgLog.fine("3rd byte is not 1: given file is not stata-dta type");
+                return false;
+            } else if ((hdr4[1] != 1) && (hdr4[1] != 2)) {
+                dbgLog.fine("2nd byte is neither 0 nor 1: this file is not stata-dta type");
+                return false;
+            } else if (!stataReleaseNumber.containsKey(hdr4[0])) {
+                dbgLog.fine("1st byte (" + hdr4[0] +
+                                    ") is not within the ingestable range [rel. 3-10]: this file is NOT stata-dta type");
+                return false;
+            } else {
+                dbgLog.fine("this file is stata-dta type: " +
+                                    stataReleaseNumber.get(hdr4[0]) +
+                                    "(No in HEX=" + hdr4[0] + ")");
+                return true;
+            }
         }
     }
 }

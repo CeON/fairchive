@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
  */
 public class StringUtil {
 
-    private static final Logger logger = Logger.getLogger(StringUtil.class.getCanonicalName());
     public static final Set<String> TRUE_VALUES = Collections.unmodifiableSet(new TreeSet<>(Arrays.asList("1", "yes", "true", "allow")));
 
     public static final boolean nonEmpty(String str) {

@@ -1,15 +1,6 @@
 package edu.harvard.iq.dataverse.annotations.processors.permissions;
 
 
-import edu.harvard.iq.dataverse.annotations.PermissionNeeded;
-import edu.harvard.iq.dataverse.annotations.processors.permissions.extractors.DvObjectExtractor;
-import edu.harvard.iq.dataverse.annotations.processors.permissions.extractors.CastingExtractor;
-import edu.harvard.iq.dataverse.interceptors.Restricted;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.user.Permission;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -23,6 +14,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import edu.harvard.iq.dataverse.annotations.PermissionNeeded;
+import edu.harvard.iq.dataverse.annotations.processors.permissions.extractors.DvObjectExtractor;
+import edu.harvard.iq.dataverse.interceptors.Restricted;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.user.Permission;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 
 
 public class PermissionDataProcessor {
@@ -113,11 +112,11 @@ public class PermissionDataProcessor {
         }
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("unchecked")
     private Stream<Object> flattenIfContainer(Object object) {
         Class<?> cls = object.getClass();
         return Collection.class.isAssignableFrom(cls)
-                ? ((Collection) object).stream()
+                ? ((Collection<Object>) object).stream()
                 : cls.isArray()
                     ? Arrays.stream((Object[]) object)
                     : Stream.of(object);

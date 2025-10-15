@@ -668,20 +668,20 @@ input:disabled {
 
 .ui-selectonemenu {
 	border: 1px solid #e8e8e8;
-	min-height: calc(1.667em + 10px);
+	min-height: calc(1.16em + 15.44px);
 	min-width: auto !important;
 
 	.ui-selectonemenu-label {
 		margin-right: 1.533em;
-		padding-left: 1em;
-		padding-bottom: 0.333em;
+		padding: 5px 4px 0 1em;
 		background: #fff;
 		box-shadow: none;
 	}
-
 	.ui-selectonemenu-trigger.ui-state-default {
-		width: calc(1.5em + 11px);
-		height: calc(1.5em + 11px);
+		display: flex;
+		align-items: center;
+		min-height: calc(1.16em + 15.44px);
+		min-width: calc(1.16em + 15.44px);
 		top: -1px;
 		right: -1px;
 		border: 1px solid $gray-border-color;
@@ -692,10 +692,14 @@ input:disabled {
 			background: $gray-border-color;
 		}
 
+		.ui-icon {
+			position: static;
+		}
+
 		span.ui-icon.ui-icon-triangle-1-s {
-			width: calc(1.5em + 11px);
-			height: 1.067em;
-			margin-top: calc(0.4em + 2px);
+			width: auto;
+  			height: calc(1.37em - 4.77px);
+			margin: 0;
 			background: none;
 			text-align: center;
 
@@ -1751,6 +1755,10 @@ div[id$="versionsTable"] {
 	}
 }
 
+#datasetForm\:tabView\:versionsTab .ui-commandlink {
+  text-decoration: underline;
+}
+
 tr.ui-state-highlight a:not(.btn), .ui-widget-content tr.ui-state-highlight a:not(.btn) {
 	@include link-color;
 }
@@ -2173,7 +2181,7 @@ $navbar-height: 102px;
 			> form.navbar-highlighted-link a {
 				margin-top: 3px;
 				padding: 7px 20px;
-				background: #2ba7df;
+				background: $icon-color;
 				color: #fff;
 			}
 		}
@@ -2426,6 +2434,14 @@ body:not(.high-contrast-yellow-on-black) .superior-logo.contrast {
 				background: #e8e8e8;
 			}
 	}
+
+	/* Fix misaligned main menu in top navbar */
+
+    .navbar-default #topNavBar.collapse.navbar-collapse {
+        display: flex !important;
+        flex-direction: column;
+        align-items: flex-end;
+    }
 }
 
 /* Accessibility controls */
@@ -3619,6 +3635,14 @@ div.filesTable {
 	}
 }
 
+.control-label-with-tooltip.checkbox-label {
+    display: inline;
+
+    label {
+        font-weight: 500;
+    }
+}
+
 .datasetfield-value.datasetfield-separable + .datasetfield-value.datasetfield-separable {
 	border-top: 1px solid $gray-border-color;
 	padding-top: 8px;
@@ -3712,6 +3736,13 @@ div.filesTable {
 	-webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
 	-o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 	transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+
+div[id^="datasetForm"] {
+    .autocomplete-form-control.ui-autocomplete input.ui-autocomplete-input {
+        font-size: 1em;
+        padding: 0.9em 0.8em;
+    }
 }
 
 .ui-dialog.ui-widget.ui-widget-content {
@@ -4125,6 +4156,15 @@ body.font-size-percent-150 {
 
 		&:focus {
 			outline-width: 1.333px !important;
+		}
+	}
+
+	.ui-selectonemenu {
+		min-height: 1.91111111111em;
+		
+		.ui-selectonemenu-trigger.ui-state-default {
+			min-height: 1.91111111111em;
+			min-width: 1.91111111111em;
 		}
 	}
 }
