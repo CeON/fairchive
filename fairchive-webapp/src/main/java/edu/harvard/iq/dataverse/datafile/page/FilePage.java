@@ -384,6 +384,11 @@ public class FilePage implements java.io.Serializable {
                         || this.datafileService
                                 .hasBeenDeleted(this.fileMetadata.getDataFile()));
     }
+    
+    public boolean displayMetrics() {
+        return !(this.fileMetadata.getDataFile().isFilePackage() ||
+                isDatasetDeaccesioned());
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(

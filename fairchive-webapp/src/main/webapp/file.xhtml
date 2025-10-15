@@ -22,6 +22,8 @@
                       value="#{FilePage.file.owner.owner}"/>
             <ui:param name="showMessagePanel" 
                       value="#{true}"/>
+            <ui:param name="isStandaloneView" 
+                      value="#{widgetWrapper.standaloneView}"/>     
             <ui:define name="body">
                 <f:metadata>
                     <o:importConstants type="edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType" 
@@ -50,7 +52,7 @@
                         <div id="actionButtonBlock" class="col-xs-12">
                             <!-- Metrics -->
                             <div id="metrics-block" class="col-sm-4" 
-                                 jsf:rendered="#{!(widgetWrapper.widgetView or FilePage.fileMetadata.dataFile.filePackage or FilePage.datasetDeaccesioned)}">
+                                 jsf:rendered="#{isStandaloneView and FilePage.displayMetrics()}">
                                 <div id="metrics-label" class="col-xs-4 small text-center">
                                     <span class="glyphicon glyphicon-stats"/> #{bundle['metrics.title']}
                                 </div>
@@ -68,7 +70,7 @@
                                 <div class="btn-group" 
                                      id="datasetButtonBar" 
                                      role="group" 
-                                     jsf:rendered="#{!widgetWrapper.widgetView}">
+                                     jsf:rendered="#{isStandaloneView}">
                                     <p:commandLink class="text-button btn-contact bootstrap-button-tooltip"
                                                    title="#{bundle['dataset.email.datasetContactBtn']}"
                                                    update=":contactDialog" 
@@ -109,7 +111,7 @@
                                 <!-- END: Email/Share Button Group -->
 
                                 <div class="button-container btn-group" 
-                                     jsf:rendered="#{!widgetWrapper.widgetView}">
+                                     jsf:rendered="#{isStandaloneView}">
 
                                     <ui:fragment rendered="#{FilePage.displayIngestProblem()}">
                                         <!-- Ingest Problem - this is the infamous "red triangle" error. As of 4.2, we only want to show it to the owner of the dataset: -->
@@ -613,12 +615,12 @@
                                 <div class="button-block tab-header margin-bottom text-right">
                                     <h:outputLink styleClass="btn btn-default btn-access #{(FilePage.lockedFromEdits) ? 'disabled' : ''}"
                                                   value="/editSingleFile.xhtml?selectedFileIds=#{FilePage.fileMetadata.dataFile.id}&#38;datasetId=#{FilePage.fileMetadata.datasetVersion.dataset.id}&#38;version=#{FilePage.version}"
-                                                  rendered="#{!widgetWrapper.widgetView and FilePage.displayAddEditMetadataButton()}"
+                                                  rendered="#{isStandaloneView and FilePage.displayAddEditMetadataButton()}"
                                                   disabled="#{FilePage.lockedFromEdits}">
                                         <span class="glyphicon glyphicon-pencil" 
                                               aria-hidden="true"/> #{bundle['file.dataFilesTab.metadata.addBtn']}
                                     </h:outputLink>
-                                    <div class="btn-group" jsf:rendered="#{!widgetWrapper.widgetView and (dataverseSession.user.authenticated
+                                    <div class="btn-group" jsf:rendered="#{isStandaloneView and (dataverseSession.user.authenticated
                                                          and permissionsWrapper.canIssueUpdateDatasetCommand(FilePage.fileMetadata.datasetVersion.dataset)
                                                          and (dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile)))}">
                                         <p:commandLink styleClass="btn btn-default btn-access" 
@@ -854,7 +856,7 @@
                                             escape="false">
                                 <f:param value="#{navigationWrapper.redirectPage}"/>
                                 <f:param value="#{dataverseHeaderFragment.getSignupUrl(navigationWrapper.redirectPage)}"/>
-                                <f:param value="#{widgetWrapper.widgetView ? '_blank' : '_self'}"/>
+                                <f:param value="#{isStandaloneView ? '_self' : '_blank'}"/>
                             </h:outputFormat>
                         </p>
                         <div class="button-block">

@@ -45,6 +45,10 @@ public class WidgetWrapper implements Serializable {
     public boolean isWidgetView() {
         return initWidget();
     }
+    
+    public boolean isStandaloneView() {
+        return ! isWidgetView();
+    }
 
     public boolean isWidgetTarget(DvObject dvo) {
         if (isWidgetView()) {
