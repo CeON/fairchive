@@ -22,6 +22,8 @@
                       value="#{FilePage.file.owner.owner}"/>
             <ui:param name="showMessagePanel" 
                       value="#{true}"/>
+            <ui:param name="isStandaloneView" 
+                      value="#{widgetWrapper.standaloneView}"/>     
             <ui:define name="body">
                 <f:metadata>
                     <o:importConstants type="edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType" 
@@ -50,7 +52,7 @@
                         <div id="actionButtonBlock" class="col-xs-12">
                             <!-- Metrics -->
                             <div id="metrics-block" class="col-sm-4" 
-                                 jsf:rendered="#{!(widgetWrapper.widgetView or FilePage.fileMetadata.dataFile.filePackage or FilePage.datasetDeaccesioned)}">
+                                 jsf:rendered="#{isStandaloneView and FilePage.displayMetrics()}">
                                 <div id="metrics-label" class="col-xs-4 small text-center">
                                     <span class="glyphicon glyphicon-stats"/> #{bundle['metrics.title']}
                                 </div>
@@ -68,7 +70,7 @@
                                 <div class="btn-group" 
                                      id="datasetButtonBar" 
                                      role="group" 
-                                     jsf:rendered="#{!widgetWrapper.widgetView}">
+                                     jsf:rendered="#{isStandaloneView}">
                                     <p:commandLink class="text-button btn-contact bootstrap-button-tooltip"
                                                    title="#{bundle['dataset.email.datasetContactBtn']}"
                                                    update=":contactDialog" 
@@ -93,7 +95,7 @@
                                     <p class="help-block">#{bundle['dataset.share.datasetShare.tip']}</p>
 
                                         <div id="sharrre-widget"
-                                                data-url="#{systemConfig.dataverseSiteUrl}/dataset.xhtml?persistentId=#{FilePage.fileMetadata.datasetVersion.dataset.globalIdString}"
+                                                data-url="#{FilePage.getShareUrl()}"
                                                 data-text="#{bundle['dataset.share.datasetShare.shareText']}"
                                                 data-language="#{dataverseSession.localeCode}" />
 
@@ -109,9 +111,9 @@
                                 <!-- END: Email/Share Button Group -->
 
                                 <div class="button-container btn-group" 
-                                     jsf:rendered="#{!widgetWrapper.widgetView}">
+                                     jsf:rendered="#{isStandaloneView}">
 
-                                    <ui:fragment rendered="#{FilePage.file.ingestProblem and FilePage.canUpdateDataset()}">
+                                    <ui:fragment rendered="#{FilePage.displayIngestProblem()}">
                                         <!-- Ingest Problem - this is the infamous "red triangle" error. As of 4.2, we only want to show it to the owner of the dataset: -->
                                         <span class="ingest-warning" 
                                               data-toggle="popover" 
@@ -272,7 +274,7 @@
                                     <span class="glyphicon glyphicon-lock text-danger" 
                                           jsf:rendered="#{FilePage.displayRestrictedIcon()}" />
                                     <span class="icon-unlock text-success" 
-                                          jsf:rendered="#{FilePage.fileMetadata.termsOfUse.termsOfUseType eq termsOfUseTypeEnum.RESTRICTED  and fileDownloadHelper.canUserDownloadFile(FilePage.fileMetadata) }" />
+                                          jsf:rendered="#{FilePage.displayUnlockIcon()}" />
 
                                     <!-- Title/Label -->
                                     <h2 class="header-inline file-title-label">#{FilePage.fileMetadata.label}</h2>
@@ -328,7 +330,7 @@
                                                 <span class="glyphicon glyphicon-question-sign text-primary" 
                                                       tabindex="0" 
                                                       role="button" 
-                                                      jsf:rendered="#{FilePage.fileMetadata.datasetVersion.dataset.released and FilePage.fileMetadata.datasetVersion.draft}"
+                                                      jsf:rendered="#{FilePage.displayDraftIcon()}"
                                                       data-toggle="tooltip" 
                                                       data-placement="top" 
                                                       data-original-title="#{bundle['dataset.cite.title.draft']}"/>
@@ -349,7 +351,7 @@
                                                             aria-haspopup="true" 
                                                             aria-controls="downloadDatasetCitationMenu" 
                                                             aria-expanded="false">
-                                                        <span class="glyphicon glyphicon-list"/> #{bundle['dataset.cite.downloadBtn']} <span class="caret"></span>
+                                                        <span class="glyphicon glyphicon-list"/> #{bundle['dataset.cite.downloadBtn']} <span class="caret"/>
                                                     </button>
                                                     <ul id="downloadDatasetCitationMenu" 
                                                         class="dropdown-menu pull-right text-left" 
@@ -357,20 +359,20 @@
                                                         aria-labelledby="downloadDatasetCitation">
                                                         <li role="none">
                                                             <a jsf:id="endNoteLink" 
-                                                               jsf:action="#{fileDownloadService.downloadDatasetCitationXML(FilePage.fileMetadata.datasetVersion)}"
+                                                               jsf:action="#{FilePage.downloadDatasetCitationXML()}"
                                                                role="menuitem" >
                                                                 #{bundle['dataset.cite.downloadBtn.xml']}
                                                             </a>
                                                         </li>
                                                         <li role="none">
-                                                            <a jsf:id="risLink" jsf:actionListener="#{fileDownloadService.downloadDatasetCitationRIS(FilePage.fileMetadata.datasetVersion)}"
+                                                            <a jsf:id="risLink" jsf:actionListener="#{FilePage.downloadDatasetCitationRIS()}"
                                                                     role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.ris']}
                                                             </a>
                                                         </li>
                                                         <li role="none">
                                                             <a jsf:id="bibLink" 
-                                                               jsf:actionListener="#{fileDownloadService.downloadDatasetCitationBibtex(FilePage.fileMetadata.datasetVersion)}" target="_blank"
+                                                               jsf:actionListener="#{FilePage.downloadDatasetCitationBibtex()}" target="_blank"
                                                                role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.bib']}
                                                             </a>
@@ -410,7 +412,7 @@
                                                       data-original-title="#{bundle['dataset.cite.title.released']}"/>
                                                 <span class="glyphicon glyphicon-question-sign text-primary" 
                                                       tabindex="0" role="button" 
-                                                      jsf:rendered="#{FilePage.fileMetadata.datasetVersion.dataset.released and FilePage.fileMetadata.datasetVersion.draft}"
+                                                      jsf:rendered="#{FilePage.displayDraftIcon()}"
                                                       data-toggle="tooltip" 
                                                       data-placement="top" 
                                                       data-original-title="#{bundle['dataset.cite.title.draft']}"/>
@@ -425,7 +427,7 @@
                                                             aria-haspopup="true" 
                                                             aria-controls="downloadFileCitationMenu" 
                                                             aria-expanded="false">
-                                                        <span class="glyphicon glyphicon-list"/> #{bundle['file.cite.file.downloadBtn']} <span class="caret"></span>
+                                                        <span class="glyphicon glyphicon-list"/> #{bundle['file.cite.file.downloadBtn']} <span class="caret"/>
                                                     </button>
                                                     <ul id="downloadFileCitationMenu" 
                                                         class="dropdown-menu pull-right text-left"
@@ -433,21 +435,21 @@
                                                         aria-labelledby="downloadFileCitation">
                                                         <li role="none">
                                                             <a jsf:id="endNoteLink-2" 
-                                                               jsf:action="#{fileDownloadService.downloadCitationXML(FilePage.fileMetadata, null, FilePage.fileMetadata.dataFile.isIdentifierRegistered())}"
+                                                               jsf:action="#{FilePage.downloadCitationRIS()}"
                                                                role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.xml']}
                                                             </a>
                                                         </li>
                                                         <li role="none">
                                                             <a jsf:id="risLink-2" 
-                                                               jsf:actionListener="#{fileDownloadService.downloadCitationRIS(FilePage.fileMetadata, null, FilePage.fileMetadata.dataFile.isIdentifierRegistered())}"
+                                                               jsf:actionListener="#{FilePage.downloadCitationRIS()}"
                                                                role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.ris']}
                                                             </a>
                                                         </li>
                                                         <li role="none">
                                                             <a jsf:id="bibLink-2" 
-                                                               jsf:actionListener="#{fileDownloadService.downloadCitationBibtex(FilePage.fileMetadata, null, FilePage.fileMetadata.dataFile.isIdentifierRegistered())}" target="_blank"
+                                                               jsf:actionListener="#{FilePage.downloadCitationBibtex()}" target="_blank"
                                                                role="menuitem">
                                                                 #{bundle['dataset.cite.downloadBtn.bib']}
                                                             </a>
@@ -598,8 +600,7 @@
                             <p:tab id="accessTab" 
                                    class="padding-none" 
                                    title="#{bundle['file.dataFilesTab.dataAccess']}"
-                                   rendered="#{settingsWrapper.rsyncDownload and FilePage.fileMetadata.dataFile.filePackage and systemConfig.rsyncDownload
-                                        and !FilePage.fileMetadata.getDataFile().getOwner().getStorageIdentifier().startsWith('s3://') }">
+                                   rendered="#{FilePage.displayAccessTab()}">
                                 <ui:include src="file-data-access-fragment.xhtml">
                                     <ui:param name="datasetVersion" 
                                               value="#{FilePage.fileMetadata.datasetVersion}"/>
@@ -614,14 +615,12 @@
                                 <div class="button-block tab-header margin-bottom text-right">
                                     <h:outputLink styleClass="btn btn-default btn-access #{(FilePage.lockedFromEdits) ? 'disabled' : ''}"
                                                   value="/editSingleFile.xhtml?selectedFileIds=#{FilePage.fileMetadata.dataFile.id}&#38;datasetId=#{FilePage.fileMetadata.datasetVersion.dataset.id}&#38;version=#{FilePage.version}"
-                                                  rendered="#{!widgetWrapper.widgetView and (dataverseSession.user.authenticated
-                                                     and permissionsWrapper.canIssueUpdateDatasetCommand(FilePage.fileMetadata.datasetVersion.dataset)
-                                                     and !(dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile)))}"
+                                                  rendered="#{isStandaloneView and FilePage.displayAddEditMetadataButton()}"
                                                   disabled="#{FilePage.lockedFromEdits}">
                                         <span class="glyphicon glyphicon-pencil" 
                                               aria-hidden="true"/> #{bundle['file.dataFilesTab.metadata.addBtn']}
                                     </h:outputLink>
-                                    <div class="btn-group" jsf:rendered="#{!widgetWrapper.widgetView and (dataverseSession.user.authenticated
+                                    <div class="btn-group" jsf:rendered="#{isStandaloneView and (dataverseSession.user.authenticated
                                                          and permissionsWrapper.canIssueUpdateDatasetCommand(FilePage.fileMetadata.datasetVersion.dataset)
                                                          and (dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile)))}">
                                         <p:commandLink styleClass="btn btn-default btn-access" 
@@ -654,13 +653,14 @@
                                             </div>
                                             <!--Only show Public download url if identifier is available -->
                                             <div class="form-group" 
-                                                 jsf:rendered="#{FilePage.publiclyDownloadable and !FilePage.fileMetadata.dataFile.filePackage}">
+                                                 jsf:rendered="#{FilePage.displayPublicDownloadUrl()}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.downloadUrl.label']}
                                                 </div>
                                                 <div class="col-sm-9">
                                                     <p class="help-block">
-                                                        <h:outputFormat value="#{bundle['file.metadataTab.fileMetadata.downloadUrl.info']}" escape="false">
+                                                        <h:outputFormat value="#{bundle['file.metadataTab.fileMetadata.downloadUrl.info']}" 
+                                                                        escape="false">
                                                             <f:param value="#{settingsWrapper.guidesBaseUrl}"/>
                                                             <f:param value="#{settingsWrapper.guidesVersion}"/>
                                                         </h:outputFormat>
@@ -668,7 +668,8 @@
                                                     <code><h:outputText value="#{FilePage.publicDownloadUrl}"/></code>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.unf)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.unf)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.unf.label']}
                                                 </div>
@@ -676,7 +677,8 @@
                                                     <h:outputText value="#{FilePage.file.unf}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.checksumValue)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.checksumValue)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{FilePage.file.tabularData ? FilePage.file.originalChecksumType : FilePage.file.checksumType}
                                                 </div>
@@ -684,7 +686,8 @@
                                                     <h:outputText value="#{FilePage.file.checksumValue}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{FilePage.file.released}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{FilePage.file.released}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.publicationDate.label']}
                                                 </div>
@@ -692,7 +695,8 @@
                                                     <h:outputText value="#{FilePage.file.publicationDateFormattedYYYYMMDD}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.friendlySize)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.friendlySize)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.size.label']}
                                                 </div>
@@ -700,7 +704,8 @@
                                                     <h:outputText value="#{FilePage.file.friendlySize}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.friendlyType)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.friendlyType)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.type.label']}
                                                 </div>
@@ -708,7 +713,8 @@
                                                     <h:outputText value="#{FilePage.file.friendlyType}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.dataTable.varQuantity)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.dataTable.varQuantity)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metaData.dataFile.dataTab.variables']}
                                                 </div>
@@ -716,7 +722,8 @@
                                                     <h:outputText value="#{FilePage.file.dataTable.varQuantity}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.file.dataTable.caseQuantity)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.file.dataTable.caseQuantity)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metaData.dataFile.dataTab.observations']}
                                                 </div>
@@ -724,7 +731,8 @@
                                                     <h:outputText value="#{FilePage.file.dataTable.caseQuantity}"/>
                                                 </div>
                                             </div>
-                                            <div class="form-group" jsf:rendered="#{!(empty FilePage.fileMetadata.description)}">
+                                            <div class="form-group" 
+                                                 jsf:rendered="#{!(empty FilePage.fileMetadata.description)}">
                                                 <div class="col-sm-3 section-title">
                                                    #{bundle['file.metadataTab.fileMetadata.description.label']}
                                                 </div>
@@ -746,7 +754,7 @@
                             </p:tab>
                             <p:tab id="versionsTab" 
                                    title="#{bundle['file.dataFilesTab.versions']}">
-                                <ui:include src="file-versions.xhtml"></ui:include>
+                                <ui:include src="file-versions.xhtml"/>
                             </p:tab>
                         </p:tabView>
                     </div>
@@ -848,7 +856,7 @@
                                             escape="false">
                                 <f:param value="#{navigationWrapper.redirectPage}"/>
                                 <f:param value="#{dataverseHeaderFragment.getSignupUrl(navigationWrapper.redirectPage)}"/>
-                                <f:param value="#{widgetWrapper.widgetView ? '_blank' : '_self'}"/>
+                                <f:param value="#{isStandaloneView ? '_self' : '_blank'}"/>
                             </h:outputFormat>
                         </p>
                         <div class="button-block">
