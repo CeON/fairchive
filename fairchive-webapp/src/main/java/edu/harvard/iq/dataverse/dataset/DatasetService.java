@@ -20,12 +20,10 @@ import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.annotations.PermissionNeeded;
-import edu.harvard.iq.dataverse.api.AbstractApiBean;
 import edu.harvard.iq.dataverse.engine.command.exception.NotAuthenticatedException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateNewDatasetCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetGuestbookCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetThumbnailCommand;
-import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.interceptors.LoggedCall;
 import edu.harvard.iq.dataverse.interceptors.Restricted;
@@ -105,43 +103,11 @@ public class DatasetService {
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public AddFilesResult addFilesToDataset(long datasetId, List<DataFile> newFiles) {
-
-        Dataset dataset = datasetDao.find(datasetId);
-        AuthenticatedUser user = retrieveAuthenticatedUser();
-
-        if (settingsService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled)) {
-            provPopupFragmentBean.saveStageProvFreeformToLatestVersion();
-        }
+    public AddFilesResult addFilesToDataset(Dataset dataset, List<DataFile> newFiles) {
 
         List<DataFile> savedFiles = ingestService.saveAndAddFilesToDataset(dataset.getEditVersion(), newFiles);
 
-        int notSavedFilesCount = newFiles.size() - savedFiles.size();
-
-        if (savedFiles.size() == 0) {
-            return new AddFilesResult(dataset, notSavedFilesCount, false);
-        }
-
-        dataset = commandEngine.submit(new UpdateDatasetVersionCommand(dataset, dvRequestService.getDataverseRequest()));
-
-
-        // Call Ingest Service one more time, to
-        // queue the data ingest jobs for asynchronous execution:
-        ingestService.startIngestJobsForDataset(dataset, user);
-
-        //After dataset saved, then persist prov json data
-        boolean hasProvenanceErrors = false;
-
-        if (settingsService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled)) {
-            try {
-                provPopupFragmentBean.saveStagedProvJson(false, dataset.getLatestVersion().getFileMetadatas());
-            } catch (AbstractApiBean.WrappedResponse ex) {
-                logger.log(Level.SEVERE, null, ex);
-                hasProvenanceErrors = true;
-            }
-        }
-
-        return new AddFilesResult(dataset, notSavedFilesCount, hasProvenanceErrors);
+        return new AddFilesResult(dataset, savedFiles.size(), newFiles.size());
     }
 
     /**
