@@ -6,16 +6,16 @@ public class AddFilesResult {
 
     private Dataset dataset;
     
-    private int notSavedFilesCount;
-    
-    private boolean hasProvenanceErrors;
+    private int savedFilesCount;
 
+    private int filesCount;
+    
     // -------------------- CONSTRUCTORS --------------------
     
-    public AddFilesResult(Dataset dataset, int notSavedFilesCount, boolean hasProvenanceErrors) {
+    public AddFilesResult(Dataset dataset, int savedFilesCount, int filesCount) {
         this.dataset = dataset;
-        this.notSavedFilesCount = notSavedFilesCount;
-        this.hasProvenanceErrors = hasProvenanceErrors;
+        this.filesCount = filesCount;
+        this.savedFilesCount = savedFilesCount;
     }
 
     // -------------------- GETTERS --------------------
@@ -24,15 +24,12 @@ public class AddFilesResult {
         return dataset;
     }
 
-    public int getNotSavedFilesCount() {
-        return notSavedFilesCount;
+    public int getSavedFilesCount() {
+        return savedFilesCount;
     }
 
-    /**
-     * Returns true if there was an error while saving provenance json files
-     * associated with some of the added data files in dataset
-     */
-    public boolean isHasProvenanceErrors() {
-        return hasProvenanceErrors;
+    public int getFilesCount() {
+        return filesCount;
     }
+
 }
