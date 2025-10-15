@@ -429,17 +429,17 @@ public class FilePage implements java.io.Serializable {
         }
     }
     
-    public void donwloadCitationXML() {
+    public void downloadCitationXML() {
         this.fileDownloadService.downloadCitationXML(this.fileMetadata, null,
                 this.fileMetadata.getDataFile().isIdentifierRegistered());
     }
     
-    public void donwloadCitationRIS() {
+    public void downloadCitationRIS() {
         this.fileDownloadService.downloadCitationRIS(this.fileMetadata, null,
                 this.fileMetadata.getDataFile().isIdentifierRegistered());
     }
     
-    public void donwloadCitationBibtex() {
+    public void downloadCitationBibtex() {
         this.fileDownloadService.downloadCitationBibtex(this.fileMetadata, null,
                 this.fileMetadata.getDataFile().isIdentifierRegistered());
     }
