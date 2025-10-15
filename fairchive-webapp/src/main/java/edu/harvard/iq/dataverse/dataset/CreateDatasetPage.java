@@ -42,6 +42,9 @@ import javax.faces.event.AjaxBehaviorEvent;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.ConstraintViolation;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -196,7 +199,7 @@ public class CreateDatasetPage implements Serializable {
 
     public void checkSaveStatus() {
         if (performSave.isRunning()) {
-            JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.save.inprogress"));
+            JsfHelper.addFlashWarningMessage(getStringFromBundle("dataset.save.inprogress"));
         } else {
             // refreshing the form, allowing it to be un-blocked
             PrimeFaces.current().ajax().update("datasetForm");
@@ -217,8 +220,8 @@ public class CreateDatasetPage implements Serializable {
         List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(workingVersion);
         Set<ConstraintViolation<FileMetadata>> constraintViolations = workingVersion.validateFileMetadata();
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.validationError"),
-                    BundleUtil.getStringFromBundle("dataset.message.validationErrorDetails"));
+            JsfHelper.addErrorMessage(getStringFromBundle("dataset.message.validationError"),
+                    getStringFromBundle("dataset.message.validationErrorDetails"));
             return StringUtils.EMPTY;
         }
 
@@ -226,11 +229,11 @@ public class CreateDatasetPage implements Serializable {
 
         Try<Dataset> createDatasetOperation = Try.of(() -> datasetService.createDataset(dataset, selectedTemplate))
                 .onFailure(NotAuthenticatedException.class,
-                    ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.create.authenticatedUsersOnly"), ex))
+                    ex -> handleErrorMessage(getStringFromBundle("dataset.create.authenticatedUsersOnly"), ex))
                 .onFailure(EJBException.class,
-                    ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createFailure"), ex))
+                    ex -> handleErrorMessage(getStringFromBundle("dataset.message.createFailure"), ex))
                 .onFailure(CommandException.class,
-                    ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createFailure"), ex));
+                    ex -> handleErrorMessage(getStringFromBundle("dataset.message.createFailure"), ex));
 
         if (createDatasetOperation.isFailure()) {
             return StringUtils.EMPTY;
@@ -238,7 +241,7 @@ public class CreateDatasetPage implements Serializable {
 
 
         Try.of(() -> datasetService.addFilesToDataset(dataset.getId(), newFiles))
-            .onFailure(ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"), ex))
+            .onFailure(ex -> handleErrorMessage(getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"), ex))
             .onSuccess(addFilesResult -> handleSuccessOrPartialSuccessMessages(newFiles.size(), addFilesResult))
             .onSuccess(addFilesResult -> dataset = addFilesResult.getDataset());
 
@@ -296,17 +299,17 @@ public class CreateDatasetPage implements Serializable {
         int savedFilesCount = filesToSaveCount - addFilesResult.getNotSavedFilesCount();
 
         if (filesToSaveCount == savedFilesCount) {
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.createSuccess"));
+            JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.createSuccess"));
         } else if (savedFilesCount == 0) {
-            JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"));
+            JsfHelper.addFlashWarningMessage(getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"));
         } else {
-            String partialSuccessMessage = BundleUtil.getStringFromBundle("dataset.message.createSuccess.partialSuccessSavingFiles",
+            String partialSuccessMessage = getStringFromBundle("dataset.message.createSuccess.partialSuccessSavingFiles",
                     savedFilesCount, filesToSaveCount);
             JsfHelper.addFlashWarningMessage(partialSuccessMessage);
         }
 
         if (addFilesResult.isHasProvenanceErrors()) {
-            JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("file.metadataTab.provenance.error"));
+            JsfHelper.addFlashErrorMessage(getStringFromBundle("file.metadataTab.provenance.error"));
         }
     }
 
@@ -316,8 +319,8 @@ public class CreateDatasetPage implements Serializable {
     }
 
     private String returnToDraftVersion() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId() 
-            + "&version=DRAFT" + "&faces-redirect=true";
+        return "/dataset.xhtml?faces-redirect=true&version=DRAFT&persistentId=" 
+                + dataset.getGlobalId();
     }
 
     // -------------------- SETTERS --------------------
