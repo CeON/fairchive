@@ -39,6 +39,7 @@ import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
+import edu.harvard.iq.dataverse.datafile.FileDownloadServiceBean;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean.RetrieveDatasetVersionResponse;
@@ -91,6 +92,7 @@ public class FilePage implements java.io.Serializable {
     private DataverseSession session;
     private ExternalToolHandler externalToolHandler;
     private UIMessages ui;
+    private FileDownloadServiceBean fileDownloadService;
 
     private FileMetadata fileMetadata;
     private Long fileId;
@@ -120,7 +122,8 @@ public class FilePage implements java.io.Serializable {
                     PermissionsWrapper permissionsWrapper, FileDownloadHelper fileDownloadHelper,
                     ExportService exportService, FileService fileService,
                     GuestbookResponseDialog guestbookResponseDialog, CitationFactory citationFactory,
-                    DataverseSession session, ExternalToolHandler externalToolHandler, UIMessages ui) {
+                    DataverseSession session, ExternalToolHandler externalToolHandler, UIMessages ui,
+                    FileDownloadServiceBean fileDownloadService) {
         this.datafileService = datafileService;
         this.datasetVersionService = datasetVersionService;
         this.permissionService = permissionService;
@@ -136,6 +139,7 @@ public class FilePage implements java.io.Serializable {
         this.session = session;
         this.externalToolHandler = externalToolHandler;
         this.ui = ui;
+        this.fileDownloadService = fileDownloadService;
     }
 
     // -------------------- GETTERS --------------------
@@ -344,6 +348,47 @@ public class FilePage implements java.io.Serializable {
                         this.file.isFilePackage()
                                 && this.systemConfig.isHTTPDownload());
     }
+    
+    public boolean displayAccessTab() {
+        return this.systemConfig.isRsyncDownload() 
+                && this.fileMetadata.getDataFile().isFilePackage() 
+                && !this.fileMetadata.getDataFile().getOwner().
+                    getStorageIdentifier().startsWith("s3://");
+    }
+    
+    public boolean displayDraftIcon() {
+        return this.fileMetadata.getDatasetVersion().getDataset().isReleased() 
+                && this.fileMetadata.getDatasetVersion().isDraft();
+    }
+    
+    public boolean displayUnlockIcon() {
+        return this.fileMetadata.getTermsOfUse().getTermsOfUseType() == RESTRICTED 
+                && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata);
+    }
+    
+    public boolean displayPublicDownloadUrl() {
+        return isPubliclyDownloadable()
+                && !this.fileMetadata.getDataFile().isFilePackage();
+    }
+    
+    public boolean displayIngestProblem() {
+        return this.file.isIngestProblem() && canUpdateDataset();
+    }
+    
+    public boolean displayAddEditMetadataButton() throws Exception {
+        return this.session.isUserLoggedIn()
+                && this.permissionsWrapper.canIssueUpdateDatasetCommand(
+                        this.fileMetadata.getDatasetVersion().getDataset())
+                && !(this.datafileService
+                        .hasReplacement(this.fileMetadata.getDataFile())
+                        || this.datafileService
+                                .hasBeenDeleted(this.fileMetadata.getDataFile()));
+    }
+    
+    public boolean displayMetrics() {
+        return !(this.fileMetadata.getDataFile().isFilePackage() ||
+                isDatasetDeaccesioned());
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
@@ -382,6 +427,36 @@ public class FilePage implements java.io.Serializable {
             logger.warning("Problem with checking ocr file on file page" + e.toString());
             return false;
         }
+    }
+    
+    public void downloadCitationXML() {
+        this.fileDownloadService.downloadCitationXML(this.fileMetadata, null,
+                this.fileMetadata.getDataFile().isIdentifierRegistered());
+    }
+    
+    public void downloadCitationRIS() {
+        this.fileDownloadService.downloadCitationRIS(this.fileMetadata, null,
+                this.fileMetadata.getDataFile().isIdentifierRegistered());
+    }
+    
+    public void downloadCitationBibtex() {
+        this.fileDownloadService.downloadCitationBibtex(this.fileMetadata, null,
+                this.fileMetadata.getDataFile().isIdentifierRegistered());
+    }
+    
+    public void downloadDatasetCitationXML() {
+        this.fileDownloadService
+                .downloadDatasetCitationXML(this.fileMetadata.getDatasetVersion());
+    }
+
+    public void downloadDatasetCitationRIS() {
+        this.fileDownloadService
+                .downloadDatasetCitationRIS(this.fileMetadata.getDatasetVersion());
+    }
+
+    public void downloadDatasetCitationBibtex() {
+        this.fileDownloadService
+                .downloadDatasetCitationBibtex(this.fileMetadata.getDatasetVersion());
     }
 
     public List<String[]> getExporters() {
@@ -601,6 +676,12 @@ public class FilePage implements java.io.Serializable {
         fileDownloadHelper.writeGuestbookResponseForPreview(guestbookResponse, fileMetadata, previewTools.get(0));
         guestbookResponseProvided = true;
     }
+    
+    public String getShareUrl() {
+        return this.systemConfig.getDataverseSiteUrl() + 
+                "/dataset.xhtml?persistentId=" +
+                this.fileMetadata.getDatasetVersion().getDataset().getGlobalId();
+    }
 
     // -------------------- PRIVATE --------------------
 
@@ -726,12 +807,12 @@ public class FilePage implements java.io.Serializable {
     }
 
     private String returnToDatasetOnly(Dataset draftDataset) {
-        return "/dataset.xhtml?persistentId=" + draftDataset.getGlobalId() 
-               + "&version=DRAFT&faces-redirect=true";
+        return "/dataset.xhtml?version=DRAFT&faces-redirect=true&persistentId=" 
+                + draftDataset.getGlobalId();
     }
 
     private String returnToDraftVersion() {
-        return "/file.xhtml?fileId=" + fileId + "&version=DRAFT&faces-redirect=true";
+        return "/file.xhtml?version=DRAFT&faces-redirect=true&fileId=" + fileId;
     }
 
     private List<DataFile> allRelatedFiles() {

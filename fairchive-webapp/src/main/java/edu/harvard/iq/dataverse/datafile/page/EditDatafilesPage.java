@@ -28,12 +28,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -58,11 +61,11 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
+import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
@@ -73,10 +76,10 @@ import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.datafile.pojo.RsyncInfo;
+import edu.harvard.iq.dataverse.dataset.AsyncExecutionService;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnail;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
-import edu.harvard.iq.dataverse.dataset.AsyncExecutionService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
@@ -100,71 +103,12 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.provenance.ProvPopupFragmentBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.event.FileUploadEvent;
-import org.primefaces.model.file.UploadedFile;
-
-import javax.annotation.PreDestroy;
-import javax.ejb.EJBException;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
-import static java.util.Arrays.stream;
-import static java.util.logging.Level.FINE;
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Level.WARNING;
-import static java.util.logging.Logger.getLogger;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.io.IOUtils.copy;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.apache.commons.lang3.StringUtils.split;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 
 /**
@@ -185,6 +129,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         EDIT, UPLOAD, CREATE
     }
 
+    private DatasetDao datasetDao;
     private DataFileServiceBean datafileDao;
     private DataFileCreator dataFileCreator;
     private PermissionServiceBean permissionService;
@@ -196,6 +141,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private PermissionsWrapper permissionsWrapper;
     private FileDownloadHelper fileDownloadHelper;
     private ProvPopupFragmentBean provPopupFragmentBean;
+    private SettingsWrapper settingsWrapper;
     private DatasetVersionServiceBean datasetVersionService;
     private TermsOfUseFormMapper termsOfUseFormMapper;
     private TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory;
@@ -264,6 +210,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private boolean hasDuplicates;
     private List<DuplicatesService.DuplicateGroup> duplicatesList = new ArrayList<>();
     private List<FileMetadata> filesTableBackup = new ArrayList<>();
+    private TextRecognitionDialog textRecognitionDialog = new TextRecognitionDialog();
     private AsyncExecutionService asyncExecutionService;
     private SaveAndAddFilesProcess saveAndAddFilesProcess;
 
@@ -272,7 +219,8 @@ public class EditDatafilesPage implements java.io.Serializable {
     public EditDatafilesPage() { }
 
     @Inject
-    public EditDatafilesPage(final DataFileServiceBean datafileDao,
+    public EditDatafilesPage(final DatasetDao datasetDao, 
+                             final DataFileServiceBean datafileDao,
                              final DataFileCreator dataFileCreator, 
                              final PermissionServiceBean permissionService,
                              final IngestServiceBean ingestService, 
@@ -283,6 +231,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final PermissionsWrapper permissionsWrapper,
                              final FileDownloadHelper fileDownloadHelper, 
                              final ProvPopupFragmentBean provPopupFragmentBean,
+                             final SettingsWrapper settingsWrapper, 
                              final DatasetVersionServiceBean datasetVersionService,
                              final TermsOfUseFormMapper termsOfUseFormMapper, 
                              final TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory,
@@ -304,6 +253,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.permissionsWrapper = permissionsWrapper;
         this.fileDownloadHelper = fileDownloadHelper;
         this.provPopupFragmentBean = provPopupFragmentBean;
+        this.settingsWrapper = settingsWrapper;
         this.datasetVersionService = datasetVersionService;
         this.termsOfUseFormMapper = termsOfUseFormMapper;
         this.termsOfUseSelectItemsFactory = termsOfUseSelectItemsFactory;
@@ -514,7 +464,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         if (this.dataset.getId() != null) {
             // Set Working Version and Dataset by Dataset Id
-            this.dataset = this.datasetService.find(this.dataset.getId());
+            this.dataset = this.datasetDao.find(this.dataset.getId());
             // Is the Dataset harvested? (we don't allow editing of harvested files)
             if (this.dataset == null || this.dataset.isHarvested()) {
                 return this.permissionsWrapper.notFound();
@@ -555,7 +505,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         this.saveEnabled = true;
         if (this.mode == FileEditMode.UPLOAD && this.workingVersion.getFileMetadatas().isEmpty() 
-                && this.systemConfig.isRsyncUpload()) {
+                && this.settingsWrapper.isRsyncUpload()) {
             setUpRsync();
         }
         return null;
@@ -785,7 +735,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     public String returnToDatasetOnly() {
-        this.dataset = this.datasetService.find(dataset.getId());
+        this.dataset = this.datasetDao.find(dataset.getId());
         return "/dataset.xhtml?persistentId=" + this.dataset.getGlobalId().asString() 
                 + "&faces-redirect=true";
     }
@@ -1668,7 +1618,12 @@ public class EditDatafilesPage implements java.io.Serializable {
     public void setIngestEncoding(final String encoding) {
         this.ingestLanguageEncoding = encoding;
     }
+    
+    public TextRecognitionDialog getTextRecognitionDialog() {
+        return this.textRecognitionDialog;
+    }
 
+    //--------------------------------------------------------------------------
     public static class SaveAndAddFilesProcess {
         private final int oldFilesNumber;
         private final int newFilesNumber;
@@ -1722,4 +1677,23 @@ public class EditDatafilesPage implements java.io.Serializable {
             return expectedFilesTotal;
         }
     }
+    
+    public class TextRecognitionDialog {
+        
+        private String action = NON.toString();
+        
+        public String getAction() {
+            return this.action;
+        }
+        
+        public void setAction(final String action) {
+            this.action = action;
+        }
+        
+        public void updateSelectedFiles() {
+            updateIngestTypeForSelectedImages(
+                    DataFile.IngestType.valueOf(this.action));
+        }
+    }
+
 }

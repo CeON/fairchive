@@ -6,6 +6,8 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import org.omnifaces.cdi.ViewScoped;
 
+import java.io.Serializable;
+
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
 
@@ -15,10 +17,10 @@ import javax.inject.Named;
 @SuppressWarnings("serial")
 @ViewScoped
 @Named
-public class WidgetWrapper implements java.io.Serializable {
+public class WidgetWrapper implements Serializable {
 
-    private final static String WIDGET_PARAMETER = "widget";
-    private final static char WIDGET_SEPARATOR = '@';
+    private final static String WIDGET = "widget";
+    private final static char SEPARATOR = '@';
 
     private Boolean widgetView;
     private String widgetHome;
@@ -26,21 +28,26 @@ public class WidgetWrapper implements java.io.Serializable {
 
     private boolean initWidget() {
         // first check for widgetScope; if not found use alias (if null then this is not a dataverse widget)
-        if (widgetView == null) {
-            String widgetParam = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get(WIDGET_PARAMETER);
+        if (this.widgetView == null) {
+            String widgetParam = FacesContext.getCurrentInstance().
+                    getExternalContext().getRequestParameterMap().get(WIDGET);
             // you are in widget view ONLY if this param is supplied AND you have the separator 
-            widgetView = widgetParam != null && widgetParam.indexOf(WIDGET_SEPARATOR) != -1;
+            this.widgetView = widgetParam != null && widgetParam.indexOf(SEPARATOR) != -1;
 
-            if (widgetView) {
-                widgetScope = widgetParam.substring(0, widgetParam.indexOf(WIDGET_SEPARATOR));
-                widgetHome = widgetParam.substring(widgetParam.indexOf(WIDGET_SEPARATOR) + 1);
+            if (this.widgetView) {
+                this.widgetScope = widgetParam.substring(0, widgetParam.indexOf(SEPARATOR));
+                this.widgetHome = widgetParam.substring(widgetParam.indexOf(SEPARATOR) + 1);
             }
         }
-        return widgetView;
+        return this.widgetView;
     }
 
     public boolean isWidgetView() {
         return initWidget();
+    }
+    
+    public boolean isStandaloneView() {
+        return ! isWidgetView();
     }
 
     public boolean isWidgetTarget(DvObject dvo) {
@@ -48,15 +55,15 @@ public class WidgetWrapper implements java.io.Serializable {
 
             while (dvo != null) {
                 if (dvo instanceof DataFile) {
-                    if ("datafile".equals(widgetScope)) {
+                    if ("datafile".equals(this.widgetScope)) {
                         //todo: add logic for when we add file widgets
                     }
                 } else if (dvo instanceof Dataset) {
-                    switch (widgetScope) {
+                    switch (this.widgetScope) {
                         case "dataverse":
                             break; // keep looping
                         case "dataset":
-                            if (dvo.getGlobalId().toString().equals(widgetHome)) {
+                            if (dvo.getGlobalId().toString().equals(this.widgetHome)) {
                                 return true;
                             }
                             break;
@@ -65,7 +72,7 @@ public class WidgetWrapper implements java.io.Serializable {
                     }
                 } else if (dvo instanceof Dataverse) {
                     if ("dataverse".equals(widgetScope)) {
-                        if (((Dataverse) dvo).getAlias().equals(widgetHome)) {
+                        if (((Dataverse) dvo).getAlias().equals(this.widgetHome)) {
                             return true;
                         }
                     } else {
@@ -80,12 +87,17 @@ public class WidgetWrapper implements java.io.Serializable {
         return false;
     }
 
-    public String wrapURL(String URL) {
-        return URL + (isWidgetView() ? getParamSeparator(URL) + WIDGET_PARAMETER + "=" + widgetScope + WIDGET_SEPARATOR + widgetHome : "");
+    public String wrapURL(final String url) {
+        if (isWidgetView()) {
+            return url + getParamSeparator(url) + WIDGET +
+                    '=' + this.widgetScope + SEPARATOR + this.widgetHome;
+        } else {
+            return url;
+        }
     }
 
-    private String getParamSeparator(String URL) {
-        return (URL.contains("?") ? "&" : "?");
+    private static char getParamSeparator(final String url) {
+        return url.indexOf('?') > -1 ? '&' : '?';
     }
 
 }
