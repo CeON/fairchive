@@ -65,7 +65,6 @@ import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
@@ -129,7 +128,6 @@ public class EditDatafilesPage implements java.io.Serializable {
         EDIT, UPLOAD, CREATE
     }
 
-    private DatasetDao datasetDao;
     private DataFileServiceBean datafileDao;
     private DataFileCreator dataFileCreator;
     private PermissionServiceBean permissionService;
@@ -219,8 +217,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     public EditDatafilesPage() { }
 
     @Inject
-    public EditDatafilesPage(final DatasetDao datasetDao, 
-                             final DataFileServiceBean datafileDao,
+    public EditDatafilesPage(final DataFileServiceBean datafileDao,
                              final DataFileCreator dataFileCreator, 
                              final PermissionServiceBean permissionService,
                              final IngestServiceBean ingestService, 
@@ -241,7 +238,6 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final ImageThumbConverter imageThumbConverter,
                              final DuplicatesService duplicatesService,
                              final AsyncExecutionService asyncExecutionService) {
-        this.datasetDao = datasetDao;
         this.datafileDao = datafileDao;
         this.dataFileCreator = dataFileCreator;
         this.permissionService = permissionService;
@@ -464,7 +460,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         if (this.dataset.getId() != null) {
             // Set Working Version and Dataset by Dataset Id
-            this.dataset = this.datasetDao.find(this.dataset.getId());
+            this.dataset = this.datasetService.find(this.dataset.getId());
             // Is the Dataset harvested? (we don't allow editing of harvested files)
             if (this.dataset == null || this.dataset.isHarvested()) {
                 return this.permissionsWrapper.notFound();
@@ -735,7 +731,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     public String returnToDatasetOnly() {
-        this.dataset = this.datasetDao.find(dataset.getId());
+        this.dataset = this.datasetService.find(dataset.getId());
         return "/dataset.xhtml?persistentId=" + this.dataset.getGlobalId().asString() 
                 + "&faces-redirect=true";
     }
