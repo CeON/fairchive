@@ -374,6 +374,16 @@ public class FilePage implements java.io.Serializable {
     public boolean displayIngestProblem() {
         return this.file.isIngestProblem() && canUpdateDataset();
     }
+    
+    public boolean displayAddEditMetadataButton() throws Exception {
+        return this.session.isUserLoggedIn()
+                && this.permissionsWrapper.canIssueUpdateDatasetCommand(
+                        this.fileMetadata.getDatasetVersion().getDataset())
+                && !(this.datafileService
+                        .hasReplacement(this.fileMetadata.getDataFile())
+                        || this.datafileService
+                                .hasBeenDeleted(this.fileMetadata.getDataFile()));
+    }
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
@@ -661,6 +671,12 @@ public class FilePage implements java.io.Serializable {
         fileDownloadHelper.writeGuestbookResponseForPreview(guestbookResponse, fileMetadata, previewTools.get(0));
         guestbookResponseProvided = true;
     }
+    
+    public String getShareUrl() {
+        return this.systemConfig.getDataverseSiteUrl() + 
+                "/dataset.xhtml?persistentId=" +
+                this.fileMetadata.getDatasetVersion().getDataset().getGlobalId();
+    }
 
     // -------------------- PRIVATE --------------------
 
@@ -786,12 +802,12 @@ public class FilePage implements java.io.Serializable {
     }
 
     private String returnToDatasetOnly(Dataset draftDataset) {
-        return "/dataset.xhtml?persistentId=" + draftDataset.getGlobalId() 
-               + "&version=DRAFT&faces-redirect=true";
+        return "/dataset.xhtml?version=DRAFT&faces-redirect=true&persistentId=" 
+                + draftDataset.getGlobalId();
     }
 
     private String returnToDraftVersion() {
-        return "/file.xhtml?fileId=" + fileId + "&version=DRAFT&faces-redirect=true";
+        return "/file.xhtml?version=DRAFT&faces-redirect=true&fileId=" + fileId;
     }
 
     private List<DataFile> allRelatedFiles() {

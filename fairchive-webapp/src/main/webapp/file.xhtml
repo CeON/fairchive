@@ -93,7 +93,7 @@
                                     <p class="help-block">#{bundle['dataset.share.datasetShare.tip']}</p>
 
                                         <div id="sharrre-widget"
-                                                data-url="#{systemConfig.dataverseSiteUrl}/dataset.xhtml?persistentId=#{FilePage.fileMetadata.datasetVersion.dataset.globalIdString}"
+                                                data-url="#{FilePage.getShareUrl()}"
                                                 data-text="#{bundle['dataset.share.datasetShare.shareText']}"
                                                 data-language="#{dataverseSession.localeCode}" />
 
@@ -613,9 +613,7 @@
                                 <div class="button-block tab-header margin-bottom text-right">
                                     <h:outputLink styleClass="btn btn-default btn-access #{(FilePage.lockedFromEdits) ? 'disabled' : ''}"
                                                   value="/editSingleFile.xhtml?selectedFileIds=#{FilePage.fileMetadata.dataFile.id}&#38;datasetId=#{FilePage.fileMetadata.datasetVersion.dataset.id}&#38;version=#{FilePage.version}"
-                                                  rendered="#{!widgetWrapper.widgetView and (dataverseSession.user.authenticated
-                                                     and permissionsWrapper.canIssueUpdateDatasetCommand(FilePage.fileMetadata.datasetVersion.dataset)
-                                                     and !(dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile)))}"
+                                                  rendered="#{!widgetWrapper.widgetView and FilePage.displayAddEditMetadataButton()}"
                                                   disabled="#{FilePage.lockedFromEdits}">
                                         <span class="glyphicon glyphicon-pencil" 
                                               aria-hidden="true"/> #{bundle['file.dataFilesTab.metadata.addBtn']}
