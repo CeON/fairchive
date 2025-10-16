@@ -14,7 +14,9 @@ import static javax.persistence.GenerationType.IDENTITY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.Serializable;
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -43,6 +45,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.JsonObject;
@@ -409,6 +412,8 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
                 itemsWithoutGroup.add(new SelectItem(value, value.getLocaleStrValue()));
             }
         }
+        Collator collator = Collator.getInstance(BundleUtil.getCurrentLocale());
+        collator.setStrength(Collator.PRIMARY);
 
         for (String groupName : groupsMap.keySet()) {
             String groupLabel = getStringFromNonDefaultBundle("controlledvocabulary." 
@@ -419,18 +424,28 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
             List<SelectItem> selectItems = groupsMap.get(groupName);
 
             if (withLocaleSorting) {
-                selectItems.sort((i1, i2) -> i1.getLabel().compareToIgnoreCase(i2.getLabel()));
+                sortSelectItemsWitCurrentLocale(selectItems);
             }
 
             selectItemGroup.setSelectItems(groupsMap.get(groupName).toArray(new SelectItem[0]));
             groupedList.add(selectItemGroup);
         }
         if (withLocaleSorting) {
-            itemsWithoutGroup.sort((i1, i2) -> i1.getLabel().compareToIgnoreCase(i2.getLabel()));
+            sortSelectItemsWitCurrentLocale(itemsWithoutGroup);
         }
         groupedList.addAll(itemsWithoutGroup);
 
         return groupedList;
+    }
+
+    private void sortSelectItemsWitCurrentLocale(List<SelectItem> items) {
+        Collator collator = Collator.getInstance(BundleUtil.getCurrentLocale());
+        collator.setStrength(Collator.PRIMARY);
+
+        items.sort(Comparator.comparing(
+                SelectItem::getLabel,
+                collator
+        ));
     }
 
     public ControlledVocabularyValue getControlledVocabularyValue(String strValue) {
