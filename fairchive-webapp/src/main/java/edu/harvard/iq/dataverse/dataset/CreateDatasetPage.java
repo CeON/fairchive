@@ -4,7 +4,6 @@ import edu.harvard.iq.dataverse.DatasetPage;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRenderer;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRendererManager;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
