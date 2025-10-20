@@ -229,6 +229,10 @@ public class CreateDatasetPage implements Serializable {
                 !saveDatasetProcess.getAddingFiles().isDone();
     }
 
+    public boolean getIsSaveStarted() {
+        return (saveDatasetProcess != null && !saveDatasetProcess.hasPreconditionErrors());
+    }
+
     public void save() {
         saveDatasetProcess = new SaveDatasetProcess();
 
