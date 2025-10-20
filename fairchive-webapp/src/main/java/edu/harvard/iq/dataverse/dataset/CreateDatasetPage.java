@@ -7,8 +7,6 @@ import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.api.AbstractApiBean;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRenderer;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRendererManager;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -48,6 +46,9 @@ import javax.faces.event.AjaxBehaviorEvent;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.ConstraintViolation;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -251,11 +252,11 @@ public class CreateDatasetPage implements Serializable {
 
         Try<Dataset> createDatasetOperation = Try.of(() -> datasetService.createDataset(dataset, selectedTemplate))
                 .onFailure(NotAuthenticatedException.class,
-                        ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.create.authenticatedUsersOnly"), ex))
+                    ex -> handleErrorMessage(getStringFromBundle("dataset.create.authenticatedUsersOnly"), ex))
                 .onFailure(EJBException.class,
-                        ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createFailure"), ex))
+                    ex -> handleErrorMessage(getStringFromBundle("dataset.message.createFailure"), ex))
                 .onFailure(CommandException.class,
-                        ex -> handleErrorMessage(BundleUtil.getStringFromBundle("dataset.message.createFailure"), ex));
+                    ex -> handleErrorMessage(getStringFromBundle("dataset.message.createFailure"), ex));
 
         if (createDatasetOperation.isFailure()) {
             saveDatasetProcess.setPreconditionErrors(true);
@@ -386,8 +387,8 @@ public class CreateDatasetPage implements Serializable {
     }
 
     private String returnToDraftVersion() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId() 
-            + "&version=DRAFT" + "&faces-redirect=true";
+        return "/dataset.xhtml?faces-redirect=true&version=DRAFT&persistentId=" 
+                + dataset.getGlobalId();
     }
 
     // -------------------- SETTERS --------------------
