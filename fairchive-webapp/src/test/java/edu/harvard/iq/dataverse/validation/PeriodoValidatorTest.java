@@ -29,5 +29,9 @@ public class PeriodoValidatorTest {
                 .isNotEqualTo(ok());
         assertThat(this.validator.validate("http://n2t.net/ark:/99152/p09hq4ng7h$"))
                 .isNotEqualTo(ok());
+        
+        assertThat(this.validator.validate("http://n2t.net/ark:/99152/p0f65r2v400").getErrorCode())
+            .isEqualTo("periodo.invalidId");
     }
+    
 }
