@@ -419,7 +419,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
         for (String groupName : groupsMap.keySet()) {
             String groupLabel = getStringFromNonDefaultBundle("controlledvocabulary." 
-                    + getName() + "." + groupName,
+                    + getName() + '.' + groupName,
                     getMetadataBlock().getName());
 
             SelectItemGroup selectItemGroup = new SelectItemGroup(groupLabel);
