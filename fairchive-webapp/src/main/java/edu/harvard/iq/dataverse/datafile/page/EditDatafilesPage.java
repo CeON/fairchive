@@ -1,5 +1,58 @@
 package edu.harvard.iq.dataverse.datafile.page;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.SEVERE;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import javax.annotation.PreDestroy;
+import javax.ejb.EJBException;
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.faces.model.SelectItem;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.file.UploadedFile;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
@@ -13,10 +66,10 @@ import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.datafile.pojo.RsyncInfo;
+import edu.harvard.iq.dataverse.dataset.AsyncExecutionService;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnail;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
-import edu.harvard.iq.dataverse.dataset.OneAtATimeExecutionGuard;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
@@ -34,6 +87,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.TermsOfUseForm;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.provenance.ProvPopupFragmentBean;
@@ -45,67 +99,8 @@ import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.PrimeFaces;
-import org.primefaces.event.FileUploadEvent;
-import org.primefaces.model.file.UploadedFile;
-
-import javax.annotation.PreDestroy;
-import javax.ejb.EJBException;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
-import static java.util.Arrays.stream;
-import static java.util.logging.Level.FINE;
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Level.WARNING;
-import static java.util.logging.Logger.getLogger;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.io.IOUtils.copy;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.apache.commons.lang3.StringUtils.split;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 
 /**
@@ -205,25 +200,35 @@ public class EditDatafilesPage implements java.io.Serializable {
     private boolean hasDuplicates;
     private List<DuplicatesService.DuplicateGroup> duplicatesList = new ArrayList<>();
     private List<FileMetadata> filesTableBackup = new ArrayList<>();
-    private final OneAtATimeExecutionGuard<String> performSave = new OneAtATimeExecutionGuard<>(this::performSave);
+    private AsyncExecutionService asyncExecutionService;
+    private SaveAndAddFilesProcess saveAndAddFilesProcess;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public EditDatafilesPage() { }
 
     @Inject
-    public EditDatafilesPage(DatasetDao datasetDao, DataFileServiceBean datafileDao,
-                             DataFileCreator dataFileCreator, PermissionServiceBean permissionService,
-                             IngestServiceBean ingestService, DataverseSession session,
-                             SettingsServiceBean settingsService, SystemConfig systemConfig,
-                             DataverseRequestServiceBean dvRequestService, PermissionsWrapper permissionsWrapper,
-                             FileDownloadHelper fileDownloadHelper, ProvPopupFragmentBean provPopupFragmentBean,
-                             SettingsWrapper settingsWrapper, DatasetVersionServiceBean datasetVersionService,
-                             TermsOfUseFormMapper termsOfUseFormMapper, TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory,
-                             DatasetService datasetService, FileService fileService,
-                             DatasetThumbnailService datasetThumbnailService, ImageThumbConverter imageThumbConverter,
-                             DuplicatesService duplicatesService) {
-        this.datasetDao = datasetDao;
+    public EditDatafilesPage(final DataFileServiceBean datafileDao,
+                             final DataFileCreator dataFileCreator, 
+                             final PermissionServiceBean permissionService,
+                             final IngestServiceBean ingestService, 
+                             final DataverseSession session,
+                             final SettingsServiceBean settingsService, 
+                             final SystemConfig systemConfig,
+                             final DataverseRequestServiceBean dvRequestService, 
+                             final PermissionsWrapper permissionsWrapper,
+                             final FileDownloadHelper fileDownloadHelper, 
+                             final ProvPopupFragmentBean provPopupFragmentBean,
+                             final SettingsWrapper settingsWrapper,
+                             final DatasetVersionServiceBean datasetVersionService,
+                             final TermsOfUseFormMapper termsOfUseFormMapper, 
+                             final TermsOfUseSelectItemsFactory termsOfUseSelectItemsFactory,
+                             final DatasetService datasetService, 
+                             final FileService fileService,
+                             final DatasetThumbnailService datasetThumbnailService, 
+                             final ImageThumbConverter imageThumbConverter,
+                             final DuplicatesService duplicatesService,
+                             final AsyncExecutionService asyncExecutionService) {
         this.datafileDao = datafileDao;
         this.dataFileCreator = dataFileCreator;
         this.permissionService = permissionService;
@@ -244,6 +249,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.datasetThumbnailService = datasetThumbnailService;
         this.imageThumbConverter = imageThumbConverter;
         this.duplicatesService = duplicatesService;
+        this.asyncExecutionService = asyncExecutionService;
     }
 
     // -------------------- GETTERS --------------------
@@ -561,52 +567,47 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     public void checkSaveStatus() {
-        if (performSave.isRunning()) {
+        if (getIsSaveRunning()) {
             JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.save.inprogress"));
-        } else {
-            // refreshing the form, allowing it to be un-blocked
-            PrimeFaces.current().ajax().update("datasetForm");
         }
     }
 
     public boolean getIsSaveRunning() {
-        return performSave.isRunning();
+        return saveAndAddFilesProcess != null && saveAndAddFilesProcess.isAddingFiles();
     }
 
-    public String save() {
-        return performSave.execute().getOrElse(StringUtils.EMPTY);
-    }
-
-    private String performSave() {
+    public void save() {
         // Once all the filemetadatas pass the validation, we'll only allow the user to try to save once – this it to
         // prevent them from creating multiple DRAFT versions, if the page gets stuck in that state where it
         // successfully creates a new version, but can't complete the remaining tasks. -- L.A. 4.2
 
-        if (!saveEnabled) {
-            return StringUtils.EMPTY;
+        if (!this.saveEnabled) {
+            return;
         }
 
-        int oldFilesNumber = workingVersion.getFileMetadatas().size();
-        int newFilesNumber = newFiles.size();
-        int expectedFilesTotal = oldFilesNumber + newFilesNumber;
+        saveAndAddFilesProcess = new SaveAndAddFilesProcess(this.workingVersion.getFileMetadatas().size(), this.newFiles.size());
 
-        if (newFilesNumber > 0) {
+        if (saveAndAddFilesProcess.getNewFilesNumber() > 0) {
             // SEK 10/15/2018 only apply the following tests if dataset has already been saved.
             if (dataset.getId() != null) {
                 Dataset lockTest = datasetDao.find(dataset.getId());
                 // SEK 09/19/18 Get Dataset again to test for lock just in case the user downloads the rsync script via
                 // the api while the edit files page is open and has already loaded a file in http upload for Dual Mode
-                if (dataset.isLockedFor(DatasetLock.Reason.DcmUpload) || lockTest.isLockedFor(DatasetLock.Reason.DcmUpload)) {
-                    logger.log(Level.INFO, "Couldn''t save dataset: {0}", "DCM script has been downloaded for " +
+                if (this.dataset.isLockedFor(Reason.DcmUpload)
+                        || lockTest.isLockedFor(Reason.DcmUpload)) {
+                    logger.log(INFO, "Couldn''t save dataset: {0}", "DCM script has been downloaded for " +
                             "this dataset. Additional files are not permitted.");
+                    saveAndAddFilesProcess.setPreconditionErrors(true);
                     populateDatasetUpdateFailureMessage();
-                    return null;
+                    return;
                 }
                 for (DatasetVersion version : lockTest.getVersions()) {
                     if (version.isHasPackageFile()) {
-                        logger.log(Level.INFO, ResourceBundle.getBundle("Bundle").getString("file.api.alreadyHasPackageFile"));
+                        logger.log(INFO, ResourceBundle.getBundle("Bundle")
+                                .getString("file.api.alreadyHasPackageFile"));
+                        saveAndAddFilesProcess.setPreconditionErrors(true);
                         populateDatasetUpdateFailureMessage();
-                        return null;
+                        return;
                     }
                 }
             }
@@ -618,13 +619,22 @@ public class EditDatafilesPage implements java.io.Serializable {
             }
 
             // Try to save the NEW files permanently:
-            List<DataFile> filesAdded = ingestService.saveAndAddFilesToDataset(workingVersion, newFiles);
+            saveAndAddFilesProcess.setAddingFiles(asyncExecutionService.executeAsync(() ->
+                    ingestService.saveAndAddFilesToDataset(workingVersion, newFiles)));
+        }
+    }
 
-            // reset the working list of fileMetadatas, as to only include the ones
-            // that have been added to the version successfully:
-            fileMetadatas.clear();
-            for (DataFile addedFile : filesAdded) {
-                fileMetadatas.add(addedFile.getFileMetadata());
+    public String finalizeSave() {
+        if (saveAndAddFilesProcess == null || saveAndAddFilesProcess.hasPreconditionErrors()) {
+            return null;
+        }
+
+        // reset the working list of fileMetadatas, as to only include the ones
+        // that have been added to the version successfully:
+        if (saveAndAddFilesProcess.getNewFilesNumber() > 0) {
+            this.fileMetadatas.clear();
+            for (final DataFile addedFile : saveAndAddFilesProcess.getFilesAdded()) {
+                this.fileMetadatas.add(addedFile.getFileMetadata());
             }
         }
 
@@ -654,7 +664,8 @@ public class EditDatafilesPage implements java.io.Serializable {
         Try<Dataset> updateDatasetOperation = Try.of(() -> datasetVersionService.updateDatasetVersion(workingVersion, filesToBeDeleted, true))
                 .onSuccess(updatedDataset -> dataset = updatedDataset)
                 .onFailure(ex -> {
-                    logger.log(Level.SEVERE, "Couldn't update dataset with id: " + workingVersion.getDataset().getId(), ex);
+                    logger.log(SEVERE, "Couldn't update dataset with id: " +
+                            this.workingVersion.getDataset().getId(), ex);
                     populateDatasetUpdateFailureMessage();
                 });
 
@@ -679,14 +690,15 @@ public class EditDatafilesPage implements java.io.Serializable {
         workingVersion = dataset.getEditVersion();
         logger.fine("working version id: " + workingVersion.getId());
 
-        int filesTotal = workingVersion.getFileMetadatas().size();
-        if (newFilesNumber == 0 || filesTotal == expectedFilesTotal) {
+        final int filesTotal = this.workingVersion.getFileMetadatas().size();
+        if (saveAndAddFilesProcess.getNewFilesNumber() == 0 || filesTotal == saveAndAddFilesProcess.getExpectedFilesTotal()) {
             JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.filesSuccess"));
-        } else if (filesTotal == oldFilesNumber) {
+        } else if (filesTotal == saveAndAddFilesProcess.getOldFilesNumber()) {
             JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.message.addFiles.Failure"));
         } else {
             JsfHelper.addFlashWarningMessage(getStringFromBundle(
-                    "dataset.message.addFiles.partialSuccess", filesTotal - oldFilesNumber, newFilesNumber));
+                    "dataset.message.addFiles.partialSuccess",
+                    filesTotal - saveAndAddFilesProcess.getOldFilesNumber(), saveAndAddFilesProcess.getNewFilesNumber()));
         }
 
         // Call Ingest Service one more time to queue the data ingest jobs for asynchronous execution:
@@ -1539,7 +1551,63 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.ingestLanguageEncoding = ingestLanguageEncoding;
     }
 
-    public void setIngestEncoding(String ingestEncoding) {
-        this.ingestLanguageEncoding = ingestEncoding;
+    public void setIngestEncoding(final String encoding) {
+        this.ingestLanguageEncoding = encoding;
     }
+
+    //--------------------------------------------------------------------------
+    public static class SaveAndAddFilesProcess {
+        private final int oldFilesNumber;
+        private final int newFilesNumber;
+        private final int expectedFilesTotal;
+        private boolean preconditionErrors = false;
+        private CompletableFuture<List<DataFile>> addingFiles;
+
+        public SaveAndAddFilesProcess(int oldFilesNumber, int newFilesNumber) {
+            this.oldFilesNumber = oldFilesNumber;
+            this.newFilesNumber = newFilesNumber;
+            this.expectedFilesTotal = oldFilesNumber + newFilesNumber;
+        }
+
+        public void setPreconditionErrors(boolean preconditionErrors) {
+            this.preconditionErrors = preconditionErrors;
+        }
+
+        boolean hasPreconditionErrors() {
+            return preconditionErrors;
+        }
+
+        public void setAddingFiles(CompletableFuture<List<DataFile>> filesAdded) {
+            this.addingFiles = filesAdded;
+        }
+
+        public List<DataFile> getFilesAdded() {
+            if (addingFiles == null) {
+                return Collections.emptyList();
+            }
+
+            try {
+                return addingFiles.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public boolean isAddingFiles() {
+            return addingFiles != null && !addingFiles.isDone();
+        }
+
+        public int getOldFilesNumber() {
+            return oldFilesNumber;
+        }
+
+        public int getNewFilesNumber() {
+            return newFilesNumber;
+        }
+
+        public int getExpectedFilesTotal() {
+            return expectedFilesTotal;
+        }
+    }
+
 }
