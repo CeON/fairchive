@@ -60,11 +60,29 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
     public static final String PROVIDER_ID_PRODUCTION = AuthenticatedUserLookup.ORCID_PROVIDER_ID_PRODUCTION;
     public static final String PROVIDER_ID_SANDBOX = AuthenticatedUserLookup.ORCID_PROVIDER_ID_SANDBOX;
 
+    /**
+     * 
+     * @param clientId - obtained from ORCID site
+     * @param clientSecret - obtained from ORCID site
+     * @param userEndpoint - Endpoint from witch Orcid AP should obtain
+     *   information about the user. Use:
+     *   <ul>
+     *   <li>https://pub.sandbox.orcid.org/v2.1/{ORCID}/person -
+     *       when using sandbox env and public API
+     *   <li>https://pub.orcid.org/v2.1/{ORCID}/person -
+     *       when using production env and public API
+     *   <li>https://api.sandbox.orcid.org/v2.1/{ORCID}/person -
+     *       when using sandbox env and members API
+     *   <li>https://api.orcid.org/v2.1/{ORCID}/person -
+     *       when using production env and members API
+     *   </ul>
+     * 
+     */
     public OrcidOAuth2AP(String clientId, String clientSecret, String userEndpoint) {
-        scope = "/read-limited";
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.baseUserEndpoint = userEndpoint;
+        this.scope = isUsingPublicAPI() ? "/authenticate" : "/read-limited";
     }
 
     @Override
@@ -78,7 +96,7 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
 
     @Override
     public BaseApi<OAuth20Service> getApiInstance() {
-        return OrcidApi.instance(!baseUserEndpoint.contains("sandbox"));
+        return OrcidApi.instance(!isUsingSandboxEnv());
     }
 
     @Override
@@ -351,5 +369,23 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
         }
 
         return null;
+    }
+
+    /**
+     * Returns true if user endpoint points to the sandbox ORCID environment.
+     * Sandbox environment should only be for testing purposes.
+     */
+    private boolean isUsingSandboxEnv() {
+        return baseUserEndpoint.contains("sandbox");
+    }
+    /**
+     * Returns true if user endpoint points to the public ORCID API.
+     * Public API allows to obtain only information from the ORCID profile
+     * that is publicly available.
+     * Other option is to use member API. Member API allows to obtain
+     * informations about the ORCID profile that are not publicly visible.
+     */
+    private boolean isUsingPublicAPI() {
+        return baseUserEndpoint.startsWith("https://pub");
     }
 }
