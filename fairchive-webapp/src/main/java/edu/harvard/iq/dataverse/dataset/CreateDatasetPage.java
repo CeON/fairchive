@@ -1,17 +1,46 @@
 package edu.harvard.iq.dataverse.dataset;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJBException;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.validation.ConstraintViolation;
+
+import org.apache.commons.lang3.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+
+import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetPage;
 import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.api.AbstractApiBean;
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRenderer;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRendererManager;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.NotAuthenticatedException;
+import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.importer.metadata.ImporterRegistry;
 import edu.harvard.iq.dataverse.importer.metadata.MetadataImporter;
 import edu.harvard.iq.dataverse.importers.ui.ImporterForm;
 import edu.harvard.iq.dataverse.importers.ui.ImportersForView;
+import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.license.TermsOfUseFormMapper;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -27,32 +56,12 @@ import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.provenance.ProvPopupFragmentBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.PrimeFaces;
-
-import javax.ejb.EJBException;
-import javax.faces.event.AjaxBehaviorEvent;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.validation.ConstraintViolation;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @SuppressWarnings("serial")
 @ViewScoped
@@ -89,8 +98,15 @@ public class CreateDatasetPage implements Serializable {
     private ImportersForView importers;
     private MetadataImporter selectedImporter;
     private ImporterForm importerForm;
-    private final OneAtATimeExecutionGuard<String> performSave = new OneAtATimeExecutionGuard<>(this::performSave);
-
+    private AsyncExecutionService asyncExecutionService;
+    private SaveDatasetProcess saveDatasetProcess;
+    
+    private DatasetDao datasetDao;
+    private ProvPopupFragmentBean provPopupFragmentBean;
+    private IngestServiceBean ingestService;
+    private EjbDataverseEngine commandEngine;
+    private DataverseRequestServiceBean dvRequestService;
+    
     // -------------------- CONSTRUCTORS --------------------
 
     public CreateDatasetPage() { }
@@ -101,7 +117,10 @@ public class CreateDatasetPage implements Serializable {
                              DatasetFieldsInitializer datasetFieldsInitializer, DataverseSession session,
                              TermsOfUseFormMapper termsOfUseFormMapper, UserDataFieldFiller userDataFieldFiller,
                              DatasetService datasetService, InputFieldRendererManager inputFieldRendererManager,
-                             DatasetFieldValidationService fieldValidationService) {
+                             DatasetFieldValidationService fieldValidationService, AsyncExecutionService asyncExecutionService,
+                             DatasetDao datasetDao, ProvPopupFragmentBean provPopupFragmentBean,
+                             IngestServiceBean ingestService, EjbDataverseEngine commandEngine,
+                             DataverseRequestServiceBean dvRequestService) {
         this.importerRegistry = importerRegistry;
         this.dataverseDao = dataverseDao;
         this.permissionsWrapper = permissionsWrapper;
@@ -113,6 +132,12 @@ public class CreateDatasetPage implements Serializable {
         this.datasetService = datasetService;
         this.inputFieldRendererManager = inputFieldRendererManager;
         this.fieldValidationService = fieldValidationService;
+        this.asyncExecutionService = asyncExecutionService;
+        this.datasetDao = datasetDao;
+        this.provPopupFragmentBean = provPopupFragmentBean;
+        this.ingestService = ingestService;
+        this.commandEngine = commandEngine;
+        this.dvRequestService = dvRequestService;
     }
 
     // -------------------- GETTERS --------------------
@@ -197,31 +222,33 @@ public class CreateDatasetPage implements Serializable {
     }
 
     public void checkSaveStatus() {
-        if (performSave.isRunning()) {
-            JsfHelper.addFlashWarningMessage(getStringFromBundle("dataset.save.inprogress"));
-        } else {
-            // refreshing the form, allowing it to be un-blocked
-            PrimeFaces.current().ajax().update("datasetForm");
+        if (getIsSaveRunning()) {
+            JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.save.inprogress"));
         }
     }
 
     public boolean getIsSaveRunning() {
-        return performSave.isRunning();
+        return saveDatasetProcess != null &&
+                saveDatasetProcess.getAddingFiles() != null &&
+                !saveDatasetProcess.getAddingFiles().isDone();
     }
 
-    public String save() {
-        return performSave.execute().getOrElse(StringUtils.EMPTY);
+    public boolean getIsSaveStarted() {
+        return (saveDatasetProcess != null && !saveDatasetProcess.hasPreconditionErrors());
     }
 
-    private String performSave() {
+    public void save() {
+        saveDatasetProcess = new SaveDatasetProcess();
+
         workingVersion.setDatasetFields(DatasetFieldUtil.flattenDatasetFieldsFromBlocks(metadataBlocksForEdit));
 
         List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(workingVersion);
         Set<ConstraintViolation<FileMetadata>> constraintViolations = workingVersion.validateFileMetadata();
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
             JsfHelper.addErrorMessage(getStringFromBundle("dataset.message.validationError"),
-                    getStringFromBundle("dataset.message.validationErrorDetails"));
-            return StringUtils.EMPTY;
+            		getStringFromBundle("dataset.message.validationErrorDetails"));
+            saveDatasetProcess.setPreconditionErrors(true);
+            return;
         }
 
         mapTermsOfUseInFiles(newFiles);
@@ -235,13 +262,46 @@ public class CreateDatasetPage implements Serializable {
                     ex -> handleErrorMessage(getStringFromBundle("dataset.message.createFailure"), ex));
 
         if (createDatasetOperation.isFailure()) {
-            return StringUtils.EMPTY;
+            saveDatasetProcess.setPreconditionErrors(true);
+            return;
         }
 
+        if (settingsService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled)) {
+            provPopupFragmentBean.saveStageProvFreeformToLatestVersion();
+        }
 
-        Try.of(() -> datasetService.addFilesToDataset(dataset.getId(), newFiles))
+        saveDatasetProcess.setAddingFiles(asyncExecutionService.executeAsync(() -> datasetService.addFilesToDataset(dataset, newFiles)));
+
+    }
+
+    public String finalizeSave() {
+        if (saveDatasetProcess == null || saveDatasetProcess.hasPreconditionErrors()) {
+            return null;
+        }
+
+        AuthenticatedUser user = retrieveAuthenticatedUser();
+        // Call Ingest Service one more time, to
+        // queue the data ingest jobs for asynchronous execution:
+        ingestService.startIngestJobsForDataset(dataset, user);
+
+        //After dataset saved, then persist prov json data
+        boolean hasProvenanceErrors = false;
+
+        if (settingsService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled)) {
+            try {
+                provPopupFragmentBean.saveStagedProvJson(false, dataset.getLatestVersion().getFileMetadatas());
+            } catch (AbstractApiBean.WrappedResponse ex) {
+                logger.log(Level.SEVERE, null, ex);
+                hasProvenanceErrors = true;
+            }
+        }
+        
+        final boolean showProvenanceErrors = hasProvenanceErrors;
+        
+        Try.of(() -> saveDatasetProcess.getAddingFiles().get())
             .onFailure(ex -> handleErrorMessage(getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"), ex))
-            .onSuccess(addFilesResult -> handleSuccessOrPartialSuccessMessages(newFiles.size(), addFilesResult))
+            .onSuccess(addFilesResult -> updateVersion(addFilesResult))
+            .onSuccess(addFilesResult -> handleSuccessOrPartialSuccessMessages(newFiles.size(), addFilesResult, showProvenanceErrors))
             .onSuccess(addFilesResult -> dataset = addFilesResult.getDataset());
 
         return returnToDraftVersion();
@@ -257,6 +317,19 @@ public class CreateDatasetPage implements Serializable {
 
     // -------------------- PRIVATE --------------------
 
+    private void updateVersion(AddFilesResult addFilesResult) {
+    	if (addFilesResult.getSavedFilesCount() > 0) {
+    		dataset = commandEngine.submit(new UpdateDatasetVersionCommand(dataset, dvRequestService.getDataverseRequest()));
+    	}
+    }
+    
+    private AuthenticatedUser retrieveAuthenticatedUser() {
+        if (!session.isUserLoggedIn()) {
+            throw new NotAuthenticatedException();
+        }
+        return (AuthenticatedUser) session.getUser();
+    }
+    
     private List<Template> fetchApplicableTemplates(Dataverse dataverse) {
         List<Template> templates = new ArrayList<>(dataverse.getTemplates());
         if (!dataverse.isTemplateRoot()) {
@@ -294,20 +367,19 @@ public class CreateDatasetPage implements Serializable {
         }
     }
 
-    private void handleSuccessOrPartialSuccessMessages(int filesToSaveCount, AddFilesResult addFilesResult) {
-        int savedFilesCount = filesToSaveCount - addFilesResult.getNotSavedFilesCount();
+    private void handleSuccessOrPartialSuccessMessages(int filesToSaveCount, AddFilesResult addFilesResult, boolean hasProvenanceErrors) {
 
-        if (filesToSaveCount == savedFilesCount) {
+        if (filesToSaveCount == addFilesResult.getSavedFilesCount()) {
             JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.createSuccess"));
-        } else if (savedFilesCount == 0) {
+        } else if (addFilesResult.getSavedFilesCount() == 0) {
             JsfHelper.addFlashWarningMessage(getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"));
         } else {
             String partialSuccessMessage = getStringFromBundle("dataset.message.createSuccess.partialSuccessSavingFiles",
-                    savedFilesCount, filesToSaveCount);
+            		addFilesResult.getSavedFilesCount(), filesToSaveCount);
             JsfHelper.addFlashWarningMessage(partialSuccessMessage);
         }
 
-        if (addFilesResult.isHasProvenanceErrors()) {
+        if (hasProvenanceErrors) {
             JsfHelper.addFlashErrorMessage(getStringFromBundle("file.metadataTab.provenance.error"));
         }
     }
@@ -334,5 +406,26 @@ public class CreateDatasetPage implements Serializable {
 
     public void setSelectedImporter(MetadataImporter selectedImporter) {
         this.selectedImporter = selectedImporter;
+    }
+
+    public static class SaveDatasetProcess {
+        private boolean preconditionErrors = false;
+        private CompletableFuture<AddFilesResult> addingFiles;
+
+        public boolean hasPreconditionErrors() {
+            return preconditionErrors;
+        }
+
+        public void setPreconditionErrors(boolean preconditionErrors) {
+            this.preconditionErrors = preconditionErrors;
+        }
+
+        public void setAddingFiles(CompletableFuture<AddFilesResult> addingFiles) {
+            this.addingFiles = addingFiles;
+        }
+
+        public CompletableFuture<AddFilesResult> getAddingFiles() {
+            return addingFiles;
+        }
     }
 }
