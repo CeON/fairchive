@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -41,7 +42,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
             if (isNotBlank(value)) {
                 partElements.add(new Token(escapeHtml ? StringEscapeUtils.escapeHtml4(value) : value, Token.Type.DATA));
             } else {
-                partElements.add(new Token(StringUtils.EMPTY, Token.Type.DATA));
+                partElements.add(new Token(EMPTY, Token.Type.DATA));
             }
             return this;
         }
@@ -53,7 +54,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
 
         public CitationBuilder urlValue(String text, String url) {
             if (isBlank(text)) {
-                partElements.add(new Token(StringUtils.EMPTY, Token.Type.DATA));
+                partElements.add(new Token(EMPTY, Token.Type.DATA));
             } else {
                 String value = escapeHtml && url != null
                         ? "<a href=\"" + url + "\" target=\"_blank\">" + StringEscapeUtils.escapeHtml4(text) + "</a>"
@@ -68,7 +69,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
         }
 
         public CitationBuilder endPartEmpty() {
-            return endPart(StringUtils.EMPTY);
+            return endPart(EMPTY);
         }
 
         public CitationBuilder endPart(String delimiter) {
@@ -78,7 +79,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
                     .allMatch(StringUtils::isNotBlank)) {
                 citation.append(partElements.stream()
                         .map(t -> t.value)
-                        .collect(Collectors.joining()))
+                        .collect(joining()))
                         .append(delimiter);
             }
             partElements.clear();
@@ -122,7 +123,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
             sb.append(label)
                     .append(" = ")
                     .append(valueMapper.apply(value))
-                    .append("\r\n");
+                    .append('\r').append('\n');
             return this;
         }
 
@@ -158,17 +159,15 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
         // -------------------- LOGIC --------------------
 
         public RISCitationBuilder line(String value) {
-            if(StringUtils.isNotBlank(value)) {
-                sb.append(value)
-                        .append("\r\n");
+            if(isNotBlank(value)) {
+                sb.append(value).append('\r').append('\n');
             }
             return this;
         }
 
         public RISCitationBuilder line(String label, String value) {
-            if(StringUtils.isNotBlank(value) || label.equals("ER")) {
-                sb.append(label)
-                        .append("  - ");
+            if(isNotBlank(value) || label.equals("ER")) {
+                sb.append(label).append("  - ");
                 return line(value);
             }
             return this;
@@ -212,7 +211,7 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
         }
 
         public EndNoteCitationBuilder addTagWithValue(String tag, String value) throws XMLStreamException {
-            if (StringUtils.isNotBlank(value)) {
+            if (isNotBlank(value)) {
                 writer.writeStartElement(tag);
                 writer.writeCharacters(value);
                 writer.writeEndElement();

@@ -69,8 +69,6 @@ public class VariableNameCheckerForR {
         }
     }
 
-    //private static String[] unsafeChar = {"#","$","@","_","?"};
-    //private static String[] safeChar = {"hex23","hex24","hex40","hex5F","hex3F"};
     private static String[] unsafeChar = {"#", "$", "@", "?"};
     private static String[] safeChar = {"hex23", "hex24", "hex40", "hex3F"};
 

@@ -2,6 +2,9 @@ package edu.harvard.iq.dataverse.persistence.user;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+
 import java.util.Objects;
 
 /**
@@ -23,7 +26,7 @@ public class AuthenticatedUserDisplayInfo extends RoleAssigneeDisplayInfo {
      */
     public AuthenticatedUserDisplayInfo(String firstName, String lastName, String emailAddress,
                                         String affiliation, String position) {
-        super(firstName + " " + lastName, emailAddress, affiliation, null);
+        super(firstName + SPACE + lastName, emailAddress, affiliation, null);
         this.firstName = firstName;
         this.lastName = lastName;
         this.position = position;
@@ -31,7 +34,7 @@ public class AuthenticatedUserDisplayInfo extends RoleAssigneeDisplayInfo {
 
     public AuthenticatedUserDisplayInfo(String firstName, String lastName, String emailAddress, String orcid,
                                         String affiliation, String affiliationROR, String position) {
-        super(firstName + " " + lastName, emailAddress, affiliation, affiliationROR);
+        super(firstName + SPACE + lastName, emailAddress, affiliation, affiliationROR);
         this.firstName = firstName;
         this.lastName = lastName;
         this.position = position;
@@ -39,11 +42,11 @@ public class AuthenticatedUserDisplayInfo extends RoleAssigneeDisplayInfo {
     }
 
     public AuthenticatedUserDisplayInfo() {
-        super("", "", "", "");
-        firstName = "";
-        lastName = "";
-        position = "";
-        orcid = "";
+        super(EMPTY, EMPTY, EMPTY, EMPTY);
+        firstName = EMPTY;
+        lastName = EMPTY;
+        position = EMPTY;
+        orcid = EMPTY;
     }
 
 

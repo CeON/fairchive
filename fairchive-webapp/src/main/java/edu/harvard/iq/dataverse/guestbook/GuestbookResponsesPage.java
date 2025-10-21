@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+
 import org.omnifaces.cdi.ViewScoped;
 
 import javax.ejb.EJB;
@@ -18,6 +19,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -59,7 +64,7 @@ public class GuestbookResponsesPage implements java.io.Serializable {
 
     private long displayLimit;
 
-    private String redirectString = "";
+    private String redirectString = EMPTY;
 
     public String getRedirectString() {
         return redirectString;
@@ -101,8 +106,8 @@ public class GuestbookResponsesPage implements java.io.Serializable {
 
 
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO,
-                                                                            BundleUtil.getStringFromBundle("dataset.guestbooksResponses.tip.title"),
-                                                                            BundleUtil.getStringFromBundle("dataset.guestbooksResponses.tip.downloadascsv")));
+                                                                            getStringFromBundle("dataset.guestbooksResponses.tip.title"),
+                                                                            getStringFromBundle("dataset.guestbooksResponses.tip.downloadascsv")));
 
         return null;
     }
@@ -111,7 +116,8 @@ public class GuestbookResponsesPage implements java.io.Serializable {
         // The fix below replaces any spaces in the name of the dataverse with underscores;
         // without it, the filename was chopped off (by the browser??), and the user
         // was getting the file name "Foo", instead of "Foo and Bar in Social Sciences.csv". -- L.A.
-        return dataverse.getName().replace(' ', '_') + "_" + guestbook.getId() + "_GuestbookReponses.csv";
+        return dataverse.getName().replace(' ', '_') + '_' + guestbook.getId() + 
+                "_GuestbookReponses.csv";
     }
 
     public void streamResponsesByDataverseAndGuestbook() {

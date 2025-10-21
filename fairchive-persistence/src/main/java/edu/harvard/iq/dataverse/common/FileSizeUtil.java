@@ -24,7 +24,7 @@ public class FileSizeUtil {
         final String B = getStringFromBundle("file.addreplace.error.byte_abrev");
 
         if (v < 1024) {
-            return v + " " + B;
+            return v + ' ' + B;
         } else {
             final String formatStr = "%." + figs + "f %s" + B;
             // 63 - because long has 63 binary digits

@@ -14,6 +14,7 @@ import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashSuccessMessage;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
@@ -158,7 +159,7 @@ public class DatasetFilesTab implements Serializable {
     /**
      * The contents of the script.
      */
-    private String rsyncScript = "";
+    private String rsyncScript = EMPTY;
 
     private String rsyncScriptFilename;
 
@@ -258,7 +259,7 @@ public class DatasetFilesTab implements Serializable {
                 if (scriptRequestResponse.getScript() != null && !scriptRequestResponse.getScript().isEmpty()) {
                     rsyncScript = scriptRequestResponse.getScript();
                     rsyncScriptFilename = "upload-" + workingVersion.getDataset().getIdentifier() + ".bash";
-                    rsyncScriptFilename = rsyncScriptFilename.replace("/", "_");
+                    rsyncScriptFilename = rsyncScriptFilename.replace('/', '_');
                 }
             } catch (RuntimeException ex) {
                 logger.warning("Problem getting rsync script: " + ex.getLocalizedMessage());
@@ -410,12 +411,12 @@ public class DatasetFilesTab implements Serializable {
         }
 
         if (!FileUtil.isThumbnailSupported(fileMetadata.getDataFile())) {
-            datafileThumbnailsMap.put(dataFileId, "");
+            datafileThumbnailsMap.put(dataFileId, EMPTY);
             return false;
         }
 
         if (!this.fileDownloadHelper.canUserDownloadFile(fileMetadata)) {
-            datafileThumbnailsMap.put(dataFileId, "");
+            datafileThumbnailsMap.put(dataFileId, EMPTY);
             return false;
         }
 
@@ -427,7 +428,7 @@ public class DatasetFilesTab implements Serializable {
             return true;
         }
 
-        datafileThumbnailsMap.put(dataFileId, "");
+        datafileThumbnailsMap.put(dataFileId, EMPTY);
         return false;
     }
 
@@ -515,7 +516,7 @@ public class DatasetFilesTab implements Serializable {
 
         if (countSelectedFiles() == 0) {
             PrimefacesUtil.showDialog(SELECT_FILES_FOR_REQUEST_ACCESS_DIALOG);
-            return "";
+            return EMPTY;
         }
 
         boolean anyFileAccessPopupRequired = false;
@@ -532,12 +533,12 @@ public class DatasetFilesTab implements Serializable {
 
         if (anyFileAccessPopupRequired) {
             PrimefacesUtil.showDialog(REQUEST_ACCESS_DIALOG);
-            return "";
+            return EMPTY;
         }
 
         //No popup required
         fileDownloadRequestHelper.requestAccessIndirect();
-        return "";
+        return EMPTY;
     }
 
     public void validateFilesForDownload(boolean downloadOriginal) {
@@ -613,7 +614,7 @@ public class DatasetFilesTab implements Serializable {
         // filemetadata edit button on the page.
         // -- L.A. 4.2.1
         return selectedFileIds.isEmpty() 
-            ? "" 
+            ? EMPTY
             : "/editdatafiles.xhtml?faces-redirect=true&selectedFileIds="
                     + joinDataFileIdsFromFileMetadata() + "&datasetId="
                     + dataset.getId();
@@ -823,12 +824,12 @@ public class DatasetFilesTab implements Serializable {
 
         List<Long> searchResultsIdList = datafileService
                 .findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(workingVersion.getId(), searchTerm,
-                        new FileSortFieldAndOrder("", asc))
+                        new FileSortFieldAndOrder(EMPTY, asc))
                 .stream()
                 .map(Integer::longValue)
                 .collect(toList());
 
-        if (searchTerm != null && !searchTerm.equals("")) {
+        if (searchTerm != null && !searchTerm.isEmpty()) {
             List<FileMetadata> accessibleFileMetadataSorted = fileMetadataService.findSearchedAccessibleFileMetadataSorted(
                     workingVersion.getId(), filePaginatorPage, rowsPerPage, searchTerm);
             return Tuple.of(accessibleFileMetadataSorted, searchResultsIdList);
@@ -937,7 +938,7 @@ public class DatasetFilesTab implements Serializable {
         List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(updatedVersion);
         Set<ConstraintViolation<FileMetadata>> constraintViolations = updatedVersion.validateFileMetadata();
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
-            addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.validationError"), "");
+            addErrorMessage(BundleUtil.getStringFromBundle("dataset.message.validationError"), EMPTY);
             return "";
         }
 

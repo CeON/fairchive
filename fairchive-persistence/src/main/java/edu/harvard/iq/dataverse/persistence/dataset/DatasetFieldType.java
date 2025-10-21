@@ -11,6 +11,8 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.Serializable;
@@ -520,7 +522,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
             return Optional.ofNullable(getLocaleTitleWithParent())
                     .filter(title -> !title.isEmpty())
                     .orElse(parentDatasetFieldType.getLocaleTitle()
-                            + " " + getLocaleTitle());
+                            + SPACE.concat(getLocaleTitle()));
         } else {
             return getLocaleTitle();
         }
@@ -554,7 +556,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     }
 
     public String getLocaleVocab(String value) {
-        String key = "controlledvocabulary." + getName() + "." + value;
+        String key = "controlledvocabulary." + getName() + '.' + value;
 
         if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
             return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
@@ -597,7 +599,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         if (getMetadataBlock() != null) {
             return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     private boolean isParentAllowsMutlipleValues() {
@@ -749,6 +751,6 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     @Override
     public String toString() {
-        return "[DatasetFieldType name:" + getName() + " id:" + getId() + "]";
+        return "[DatasetFieldType name:" + getName() + " id:" + getId() + ']';
     }
 }
