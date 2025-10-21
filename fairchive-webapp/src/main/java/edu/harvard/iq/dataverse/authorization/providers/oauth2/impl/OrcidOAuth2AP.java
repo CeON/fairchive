@@ -373,7 +373,7 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
 
     /**
      * Returns true if user endpoint points to the sandbox ORCID environment.
-     * Sandbox environment should only be for testing purposes.
+     * Sandbox environment should only be used for testing purposes.
      */
     private boolean isUsingSandboxEnv() {
         return baseUserEndpoint.contains("sandbox");
