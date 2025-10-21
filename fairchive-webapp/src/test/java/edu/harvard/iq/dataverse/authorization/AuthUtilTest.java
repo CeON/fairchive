@@ -30,7 +30,7 @@ public class AuthUtilTest {
         manyNonLocal.add(new ShibAuthenticationProvider());
         manyNonLocal.add(new GitHubOAuth2AP(null, null));
         manyNonLocal.add(new GoogleOAuth2AP(null, null));
-        manyNonLocal.add(new OrcidOAuth2AP(null, null, null));
+        manyNonLocal.add(new OrcidOAuth2AP(null, null, "https://api.orcid.org/v2.1/{ORCID}/person"));
         assertEquals(true, AuthUtil.isNonLocalLoginEnabled(manyNonLocal));
 
         Collection<AuthenticationProvider> onlyBuiltin = new HashSet<>();
