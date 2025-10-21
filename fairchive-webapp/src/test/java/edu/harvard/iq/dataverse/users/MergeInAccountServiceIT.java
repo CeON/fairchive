@@ -1,9 +1,31 @@
 package edu.harvard.iq.dataverse.users;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
+import org.jboss.arquillian.transaction.api.annotation.Transactional;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.AcceptedConsentDao;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
@@ -18,6 +40,7 @@ import edu.harvard.iq.dataverse.authorization.groups.impl.explicit.ExplicitGroup
 import edu.harvard.iq.dataverse.authorization.providers.builtin.BuiltinUserServiceBean;
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.OAuth2TokenDataServiceBean;
 import edu.harvard.iq.dataverse.datafile.FileAccessRequestDao;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
@@ -42,26 +65,6 @@ import edu.harvard.iq.dataverse.persistence.user.UserNotification;
 import edu.harvard.iq.dataverse.persistence.user.UserNotificationRepository;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 import edu.harvard.iq.dataverse.search.savedsearch.SavedSearchServiceBean;
-import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
-import org.jboss.arquillian.transaction.api.annotation.Transactional;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Transactional(TransactionMode.ROLLBACK)
 public class MergeInAccountServiceIT extends WebappArquillianDeployment {
@@ -70,7 +73,7 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
     @Inject private DataverseSession dataverseSession;
     @EJB private AuthenticationServiceBean authenticationService;
     @EJB private RoleAssigneeServiceBean roleAssigneeService;
-    @EJB private DatasetDao datasetDao;
+    @EJB private DatasetService datasetService;
     @EJB private DvObjectServiceBean dvObjectService;
     @EJB private GuestbookResponseServiceBean guestbookResponseService;
     @EJB private UserNotificationRepository userNotificationRepository;
@@ -142,8 +145,8 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
         assertThat(userNotificationRepository.findByUser(consumed.getId())).hasSize(0);
         assertThat(guestbookResponseService.findByAuthenticatedUserId(consumed)).hasSize(0);
         assertThat(dvObjectService.findByAuthenticatedUserId(consumed)).hasSize(0);
-        assertThat(datasetDao.getDatasetLocksByUser(consumed)).hasSize(0);
-        assertThat(datasetDao.getDatasetVersionUsersByAuthenticatedUser(consumed)).hasSize(0);
+        assertThat(datasetService.getDatasetLocksByUser(consumed)).hasSize(0);
+        assertThat(datasetService.getDatasetVersionUsersByAuthenticatedUser(consumed)).hasSize(0);
         assertThat(roleAssigneeService.getAssignmentsFor(consumed.getIdentifier())).hasSize(0);
 
         // BASE
@@ -166,8 +169,8 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
         assertThat(userNotificationRepository.findByUser(base.getId())).hasSize(1);
         assertThat(guestbookResponseService.findByAuthenticatedUserId(base)).hasSize(1);
         assertThat(dvObjectService.findByAuthenticatedUserId(base)).hasSize(1);
-        assertThat(datasetDao.getDatasetLocksByUser(base)).hasSize(1);
-        assertThat(datasetDao.getDatasetVersionUsersByAuthenticatedUser(base)).hasSize(1);
+        assertThat(datasetService.getDatasetLocksByUser(base)).hasSize(1);
+        assertThat(datasetService.getDatasetVersionUsersByAuthenticatedUser(base)).hasSize(1);
         assertThat(roleAssigneeService.getAssignmentsFor(base.getIdentifier())).hasSize(1);
     }
 
@@ -196,7 +199,7 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
         dataFile.setFileAccessRequesters(Lists.newArrayList(authenticatedUser));
         dataFile.setCreateDate(new Timestamp(new Date().getTime()));
         dataFile.setModificationTime(new Timestamp(new Date().getTime()));
-        dataFile.setOwner(datasetDao.find(66L));
+        dataFile.setOwner(datasetService.find(66L));
         dataFileService.save(dataFile);
 
         WorkflowComment workflowComment =
@@ -232,7 +235,7 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
         entityManager.merge(dvObject);
 
         DatasetLock datasetLock = new DatasetLock(DatasetLock.Reason.InReview, authenticatedUser);
-        datasetLock.setDataset(datasetDao.find(66L));
+        datasetLock.setDataset(datasetService.find(66L));
         entityManager.persist(datasetLock);
 
         DatasetVersionUser datasetVersionUser = entityManager.find(DatasetVersionUser.class, 41L);

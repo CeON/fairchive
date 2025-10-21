@@ -37,25 +37,25 @@ public class PasswordValidator {
                                                    int minLength,
                                                    int maxLength) {
         // [a-z] is why one letter is required
-        StringBuilder patternBuilder = new StringBuilder("((?=.*[a-z])");
+        final StringBuilder builder = new StringBuilder("((?=.*[a-z])");
 
         /**
          * @todo should probably allow additional special characters
          */
         if (forceSpecialChar) {
-            patternBuilder.append("(?=.*[@#$%])");
+            builder.append("(?=.*[@#$%])");
         }
 
         if (forceCapitalLetter) {
-            patternBuilder.append("(?=.*[A-Z])");
+            builder.append("(?=.*[A-Z])");
         }
 
         if (forceNumber) {
-            patternBuilder.append("(?=.*\\d)");
+            builder.append("(?=.*\\d)");
         }
 
-        patternBuilder.append(".{" + minLength + "," + maxLength + "})");
-        pattern = patternBuilder.toString();
+        builder.append(".{").append(minLength).append(',').append(maxLength).append("})");
+        pattern = builder.toString();
 
         return INSTANCE;
     }

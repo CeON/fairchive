@@ -27,24 +27,6 @@ public class TemplateDao {
         return em.merge(template);
     }
 
-    public void persist(Template template) {
-        em.persist(template);
-    }
-
-    public void flush() {
-        em.flush();
-    }
-
-    public void remove(Template template) {
-        em.remove(template);
-    }
-
-    public Template findByDeafultTemplateOwnerId(Long ownerId) {
-        TypedQuery<Template> query = em.createQuery("select object(o.defaultTemplate) from Dataverse as o where o.owner.id =:ownerId order by o.name", Template.class);
-        query.setParameter("ownerId", ownerId);
-        return query.getSingleResult();
-    }
-
     public List<Dataverse> findDataversesByDefaultTemplateId(Long defaultTemplateId) {
         TypedQuery<Dataverse> query = em.createQuery("select object(o) from Dataverse as o where o.defaultTemplate.id =:defaultTemplateId order by o.name", Dataverse.class);
         query.setParameter("defaultTemplateId", defaultTemplateId);

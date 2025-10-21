@@ -519,8 +519,8 @@ public class DatasetField implements Serializable, ValidatableField {
         
         if (fieldType.isPeriodo()) {
             return  "<a href=\"" + this.fieldValue + "\" target=\"_blank\">" + this.fieldValue +
-                    "</a><br>" + PeriodoDictionary.getByUrl(this.fieldValue).get()
-                            .getDetails("<b>", "</b>", "<br>");
+                    "</a><br>" + PeriodoDictionary.getByUrl(this.fieldValue).
+                    map(p -> p.getDetails("<b>", "</b>", "<br>")).orElse("");
         }
         String retVal = "";
         if (!isBlank(value) && !DatasetField.NA_VALUE.equals(value)) {

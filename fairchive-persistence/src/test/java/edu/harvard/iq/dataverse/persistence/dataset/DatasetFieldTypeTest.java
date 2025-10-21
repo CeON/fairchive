@@ -1,10 +1,20 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.MockedStatic;
 
+import javax.faces.model.SelectItem;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mockStatic;
 
 
 /**
@@ -148,6 +158,45 @@ public class DatasetFieldTypeTest {
         
         assertThat(fieldType.getChildDatasetFieldTypes().size()).isEqualTo(2);
         assertThat(fieldType.isHasRequiredChildren()).isTrue();
+    }
+
+    @Test
+    public void test_getControlledVocabSelectItems__polishLetters() {
+        try (MockedStatic<BundleUtil> bundleUtilMock = mockStatic(BundleUtil.class)) {
+            bundleUtilMock.when(BundleUtil::getCurrentLocale).thenReturn(new Locale("pl", "PL"));
+
+            DatasetFieldType fieldType = new DatasetFieldType("type1", FieldType.TEXT, false);
+            fieldType.setControlledVocabularyValues(asList(
+                    new ControlledVocabularyValue(3L, "zamek", fieldType),
+                    new ControlledVocabularyValue(1L, "test", fieldType),
+                    new ControlledVocabularyValue(2L, "łuk", fieldType),
+                    new ControlledVocabularyValue(4L, "ćma", fieldType),
+                    new ControlledVocabularyValue(4L, "balia", fieldType)
+            ));
+
+            Collection<SelectItem> items = fieldType.getControlledVocabSelectItems(true);
+
+            List<String> labels = items.stream().map(SelectItem::getLabel).collect(Collectors.toList());
+
+            assertThat(labels).containsExactly("balia", "ćma", "łuk", "test", "zamek");
+        }
+    }
+
+    @Test
+    public void test_getControlledVocabSelectItems__englishLetters() {
+        DatasetFieldType fieldType = new DatasetFieldType("type1", FieldType.TEXT, false);
+        fieldType.setControlledVocabularyValues(asList(
+                new ControlledVocabularyValue(3L, "one", fieldType),
+                new ControlledVocabularyValue(1L, "zone", fieldType),
+                new ControlledVocabularyValue(2L, "two", fieldType),
+                new ControlledVocabularyValue(4L, "three", fieldType)
+        ));
+
+        Collection<SelectItem> items = fieldType.getControlledVocabSelectItems(true);
+
+        List<String> labels = items.stream().map(SelectItem::getLabel).collect(Collectors.toList());
+
+        assertThat(labels).containsExactly("one", "three", "two", "zone");
     }
     
 }

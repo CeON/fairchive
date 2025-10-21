@@ -2,12 +2,12 @@ package edu.harvard.iq.dataverse.api.datadeposit;
 
 import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -20,7 +20,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -49,27 +48,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-public class MediaResourceManagerImpl implements MediaResourceManager {
+final class MediaResourceManagerImpl implements MediaResourceManager {
 
     private static final Logger logger = Logger.getLogger(MediaResourceManagerImpl.class.getCanonicalName());
     @EJB
-    EjbDataverseEngine commandEngine;
+    private EjbDataverseEngine commandEngine;
     @EJB
-    DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
-    DataFileServiceBean dataFileService;
+    private DataFileServiceBean dataFileService;
     @Inject
     private DataFileCreator dataFileCreator;
     @EJB
-    IngestServiceBean ingestService;
+    private IngestServiceBean ingestService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
-    SettingsServiceBean settingsSvc;
-    @EJB
-    SystemConfig systemConfig;
+    private SystemConfig systemConfig;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
     @Inject
@@ -87,7 +84,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
         String globalId = urlManager.getTargetIdentifier();
         if (urlManager.getTargetType().equals("study") && globalId != null) {
             logger.fine("looking up dataset with globalId " + globalId);
-            Dataset dataset = datasetDao.findByGlobalId(globalId);
+            Dataset dataset = datasetService.findByGlobalId(globalId);
             if (dataset != null) {
                 /**
                  * @todo: support downloading of files (SWORD 2.0 Profile 6.4. -
@@ -246,7 +243,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
         String globalId = urlManager.getTargetIdentifier();
         if (urlManager.getTargetType().equals("study") && globalId != null) {
             logger.fine("looking up dataset with globalId " + globalId);
-            Dataset dataset = datasetDao.findByGlobalId(globalId);
+            Dataset dataset = datasetService.findByGlobalId(globalId);
             if (dataset == null) {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "Could not find dataset with global ID of " + globalId);
             }
@@ -357,7 +354,7 @@ public class MediaResourceManagerImpl implements MediaResourceManager {
                 sb.append(ex.getLocalizedMessage());
                 while (cause.getCause() != null) {
                     cause = cause.getCause();
-                    sb.append(cause + " ");
+                    sb.append(cause).append(' ');
                     if (cause instanceof ConstraintViolationException) {
                         ConstraintViolationException constraintViolationException = (ConstraintViolationException) cause;
                         for (ConstraintViolation<?> violation : constraintViolationException.getConstraintViolations()) {

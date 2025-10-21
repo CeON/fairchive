@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.GetDraftDatasetVersionCommand;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -35,16 +35,16 @@ import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.joining;
 
-public class StatementManagerImpl implements StatementManager {
+final class StatementManagerImpl implements StatementManager {
 
     private static final Logger logger = Logger.getLogger(StatementManagerImpl.class.getCanonicalName());
 
     @EJB
-    DatasetDao datasetDao;
+    private DatasetService datasetService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
-    SwordAuth swordAuth;
+    private SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
 
@@ -60,7 +60,7 @@ public class StatementManagerImpl implements StatementManager {
         if (urlManager.getTargetType().equals("study") && globalId != null) {
 
             logger.fine("request for sword statement by user " + user.getDisplayInfo().getTitle());
-            Dataset dataset = datasetDao.findByGlobalId(globalId);
+            Dataset dataset = datasetService.findByGlobalId(globalId);
             if (dataset == null) {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "couldn't find dataset with global ID of " + globalId);
             }
@@ -128,18 +128,6 @@ public class StatementManagerImpl implements StatementManager {
                     finalFileFormat = contentType;
                 }
                 resourcePart.setMediaType(finalFileFormat);
-                /**
-                 * @todo: Why are properties set on a ResourcePart not exposed
-                 * when you GET a Statement? Asked about this at
-                 * http://www.mail-archive.com/sword-app-tech@lists.sourceforge.net/msg00394.html
-                 */
-//                    Map<String, String> properties = new HashMap<String, String>();
-//                    properties.put("filename", studyFile.getFileName());
-//                    properties.put("category", studyFile.getLatestCategory());
-//                    properties.put("originalFileType", studyFile.getOriginalFileType());
-//                    properties.put("id", studyFile.getId().toString());
-//                    properties.put("UNF", studyFile.getUnf());
-//                    resourcePart.setProperties(properties);
                 statement.addResource(resourcePart);
                 /**
                  * @todo it's been noted at

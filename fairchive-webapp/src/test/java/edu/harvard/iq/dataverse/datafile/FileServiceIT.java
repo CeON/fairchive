@@ -1,9 +1,9 @@
 package edu.harvard.iq.dataverse.datafile;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -54,7 +54,7 @@ public class FileServiceIT extends WebappArquillianDeployment {
     private AuthenticationServiceBean authenticationServiceBean;
 
     @EJB
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
 
     @Inject
     private DataverseSession dataverseSession;
@@ -69,7 +69,7 @@ public class FileServiceIT extends WebappArquillianDeployment {
     @Test
     public void deleteFile_forDraftDataset() {
         // given
-        Dataset dataset = datasetDao.find(DRAFT_DATASET_WITH_FILES_ID);
+        Dataset dataset = datasetService.find(DRAFT_DATASET_WITH_FILES_ID);
         Tuple2<VersionState, Long> versionDataBefore = getLatestVersionData(dataset);
 
 
@@ -99,7 +99,7 @@ public class FileServiceIT extends WebappArquillianDeployment {
     public void deleteFile_forReleasedDataset() {
         // given
         publishDataset(DRAFT_DATASET_WITH_FILES_ID);
-        Dataset dataset = datasetDao.find(DRAFT_DATASET_WITH_FILES_ID);
+        Dataset dataset = datasetService.find(DRAFT_DATASET_WITH_FILES_ID);
 
         Tuple2<VersionState, Long> versionDataBefore = getLatestVersionData(dataset);
 
@@ -132,7 +132,7 @@ public class FileServiceIT extends WebappArquillianDeployment {
     public void deleteFiles_forReleasedDataset() {
         // given
         publishDataset(DRAFT_DATASET_WITH_FILES_ID);
-        Dataset dataset = datasetDao.find(DRAFT_DATASET_WITH_FILES_ID);
+        Dataset dataset = datasetService.find(DRAFT_DATASET_WITH_FILES_ID);
 
         Tuple2<VersionState, Long> versionDataBefore = getLatestVersionData(dataset);
 
@@ -165,7 +165,7 @@ public class FileServiceIT extends WebappArquillianDeployment {
     @Test
     public void deleteFiles_forDraft() {
         // given
-        Dataset dataset = datasetDao.find(DRAFT_DATASET_WITH_FILES_ID);
+        Dataset dataset = datasetService.find(DRAFT_DATASET_WITH_FILES_ID);
 
         Tuple2<VersionState, Long> versionDataBefore = getLatestVersionData(dataset);
 
@@ -231,7 +231,7 @@ public class FileServiceIT extends WebappArquillianDeployment {
     }
 
     private void publishDataset(Long datasetId) {
-        DatasetIntegrationTestsHelper.publishDataset(datasetDao.find(datasetId), authenticationServiceBean.getAdminUser());
+        DatasetIntegrationTestsHelper.publishDataset(datasetService.find(datasetId), authenticationServiceBean.getAdminUser());
     }
 
     private List<FileMetadata> extractFileListMetadata(Dataset dataset) {

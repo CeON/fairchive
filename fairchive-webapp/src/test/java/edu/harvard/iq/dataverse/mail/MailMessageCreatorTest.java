@@ -131,6 +131,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForCreateDataverse() {
         // given
         EmailNotificationDto testEmailNotificationDto = createDataverseEmailNotificationDto();
@@ -146,6 +147,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForCreateDataverse_WithDifferentLocale() {
         // given
         AuthenticatedUser userFromDifferentCountry = new AuthenticatedUser();
@@ -166,6 +168,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForCreateDataverse_WrongArgument() {
         // given
         EmailNotificationDto testEmailNotificationDto = createIncorrectNotificationDto();
@@ -181,6 +184,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForAssignRoleInDataverse() {
         // given
         EmailNotificationDto testEmailNotificationDto = createAssignRoleEmailInDataverseNotificationDto();
@@ -198,6 +202,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForAssignRoleInDataset() {
         // given
         EmailNotificationDto testEmailNotificationDto = createAssignRoleEmailInDatasetNotificationDto();
@@ -215,6 +220,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForDatasetVersion_ReturnToAuthor() {
         // given
         EmailNotificationDto notificationDto = createReturnToAuthorNotificationDto();
@@ -230,6 +236,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForDatasetVersion_SubmitForReviewWithMessage() {
         // given
         AuthenticatedUser requestor = MocksFactory.makeAuthenticatedUser("Notifcation", "Requester");
@@ -246,6 +253,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForDataset_GrantFileAccessInfo() {
         // given
         EmailNotificationDto notificationDto = createGrantFileAccessInfoNotificationDto();
@@ -260,6 +268,7 @@ public class MailMessageCreatorTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getMessageAndSubject_ForDataset_RejectFileAccessInfo() {
         // given
         EmailNotificationDto notificationDto = createRejectFileAccessInfoNotificationDto();

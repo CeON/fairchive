@@ -78,7 +78,7 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
     @EJB
     UserNotificationService userNotificationService;
 
-    @EJB
+    @Inject
     SystemConfig systemConfig;
 
     @EJB

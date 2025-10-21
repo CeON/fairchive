@@ -1,13 +1,15 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
+import static edu.harvard.iq.dataverse.validation.field.FieldValidationResult.invalid;
+import static java.lang.Long.parseLong;
+import static org.apache.commons.lang.StringUtils.isBlank;
+
 import java.time.Clock;
 import java.time.Year;
 import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
-
-import org.apache.commons.lang.StringUtils;
 import org.omnifaces.cdi.Eager;
 
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
@@ -38,9 +40,9 @@ import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 @ApplicationScoped
 public class RangeValidator extends FieldValidatorBase {
 
-    public static final String MIN_PARAM = "min";
-    public static final String MAX_PARAM = "max";
-    public static final String NOW_YEAR_MACRO = "#NOW_YEAR";
+    static final String MIN_PARAM = "min";
+    static final String MAX_PARAM = "max";
+    private static final String NOW_YEAR_MACRO = "#NOW_YEAR";
 
     @Override
     public String getName() {
@@ -48,16 +50,17 @@ public class RangeValidator extends FieldValidatorBase {
     }
 
     @Override
-    public FieldValidationResult validate(ValidatableField field, Map<String, Object> params,
-                                          Map<String, ? extends List<? extends ValidatableField>> fieldIndex) {
+    public FieldValidationResult validate(final ValidatableField field, 
+            final Map<String, Object> params,
+            final Map<String, ? extends List<? extends ValidatableField>> fieldIndex) {
 
         String value = field.getSingleValue();
-        long valueLong = Long.parseLong(value);
+        long valueLong = parseLong(value);
 
         String minParam = (String) params.get(MIN_PARAM);
         String maxParam = (String) params.get(MAX_PARAM);
 
-        if (StringUtils.isBlank(minParam) && StringUtils.isBlank(maxParam)) {
+        if (isBlank(minParam) && isBlank(maxParam)) {
             return FieldValidationResult.ok();
         }
 
@@ -74,24 +77,26 @@ public class RangeValidator extends FieldValidatorBase {
         return FieldValidationResult.ok();
     }
 
-    private long parseValue(String value) {
-        String macroResolvedValue = value.replace(NOW_YEAR_MACRO, Year.now(Clock.systemUTC()).toString());
-        return Long.parseLong(macroResolvedValue);
+    private long parseValue(final String value) {
+        return parseLong(value.replace(NOW_YEAR_MACRO, 
+                Year.now(Clock.systemUTC()).toString()));
     }
 
-    private FieldValidationResult buildValidationResult(ValidatableField field, Long min, Long max) {
+    private FieldValidationResult buildValidationResult(final ValidatableField field, 
+            final Long min, final Long max) {
         if (min == null && max == null) {
             throw new IllegalArgumentException("Both min and max cannot be null");
         }
 
-        String displayName = field.getDatasetFieldType().getDisplayName();
+        final String displayName = field.getDatasetFieldType().getDisplayName();
         if (min == null) {
-            return FieldValidationResult.invalid(field, "isGreaterThanValue", displayName, max.toString());
+            return invalid(field, "isGreaterThanValue", displayName, max.toString());
         }
         if (max == null) {
-            return FieldValidationResult.invalid(field, "isLessThanValue", displayName, min.toString());
+            return invalid(field, "isLessThanValue", displayName, min.toString());
         }
 
-        return FieldValidationResult.invalid(field, "isNotBetweenValues", displayName, min.toString(), max.toString());
+        return invalid(field, "isNotBetweenValues", displayName, min.toString(), 
+                max.toString());
     }
 }

@@ -1,11 +1,7 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -28,9 +24,6 @@ import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.FinalizeDatasetPublicationCommand;
-import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLockRepository;
@@ -38,7 +31,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
@@ -83,45 +75,6 @@ public class DatasetDao implements java.io.Serializable {
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;
 
-    public Dataset find(Object pk) {
-        return em.find(Dataset.class, pk);
-    }
-
-    public List<Dataset> findByOwnerId(Long ownerId) {
-        return datasetRepository.findByOwnerId(ownerId);
-    }
-
-    public List<Dataset> findAll() {
-        return this.datasetRepository.findAllOrderedById();
-    }
-    
-    public List<Dataset> findStaleOrMissingDatasets() {
-        return findAll().stream().filter(DvObject::isStale).collect(toList());
-    }
-
-    public List<Dataset> findNotIndexedAfterEmbargo() {
-        return this.datasetRepository.findNotIndexedAfterEmbargo();
-    }
-
-    public List<Long> findAllLocalDatasetIds() {
-        return this.datasetRepository.findAllLocalDatasetIds();
-    }
-
-    /**
-     * For docs, see the equivalent method on the DataverseServiceBean.
-     *
-     * @param numPartitions
-     * @param partitionId
-     * @param skipIndexed
-     * @return a list of datasets
-     * @see DataverseDao#findAllOrSubset(long, long, boolean)
-     */
-    public List<Long> findAllOrSubset(final long numPartitions, 
-            final long partitionId, final boolean skipIndexed) { 
-        return skipIndexed 
-                ? this.datasetRepository.findAllOrSubsetSkippingIndexed(numPartitions, partitionId)
-                : this.datasetRepository.findAllOrSubset(numPartitions, partitionId);
-    }
 
     /**
      * Merges the passed dataset to the persistence context.
@@ -129,62 +82,11 @@ public class DatasetDao implements java.io.Serializable {
      * @param ds the dataset whose new state we want to persist.
      * @return The managed entity representing {@code ds}.
      */
-    public Dataset merge(Dataset ds) {
+    private Dataset merge(Dataset ds) {
         return this.datasetRepository.save(ds);
         
     }
 
-    public Dataset mergeAndFlush(Dataset ds) {
-        return this.datasetRepository.saveAndFlush(ds);
-    }
-
-    public Dataset findByGlobalId(final String globalId) {
-        Dataset retVal = (Dataset) dvObjectService.findByGlobalId(globalId, "Dataset");
-        if (retVal != null) {
-            return retVal;
-        } else {
-            //try to find with alternative PID
-            return (Dataset) dvObjectService.findByGlobalId(globalId, "Dataset", true);
-        }
-    }
-
-    public String generateDatasetIdentifier(final Dataset dataset) {
-        final String shoulder = this.settings.getValueForKey(Shoulder);  
-        for(;;) {
-            final String id = shoulder.concat(randomAlphanumeric(6).toUpperCase());
-            if(this.datasetRepository.isIdentifierLocallyUnique(id, dataset)) {
-                return id;
-            }
-        }
-    }
-
-    /**
-     * Check that a identifier entered by the user is unique (not currently used
-     * for any other study in this Dataverse Network) also check for duplicate
-     * in EZID if needed
-     *
-     * @param userIdentifier
-     * @param dataset
-     * @param persistentIdSvc
-     * @return {@code true} if the identifier is unique, {@code false} otherwise.
-     */
-    public boolean isIdentifierUnique(String userIdentifier, Dataset dataset, GlobalIdServiceBean persistentIdSvc) {
-        if (!this.datasetRepository.isIdentifierLocallyUnique(userIdentifier, dataset)) {
-            return false; // duplication found in local database
-        }
-
-        // not in local DB, look in the persistent identifier service
-        try {
-            return !persistentIdSvc.alreadyExists(dataset);
-        } catch (Exception e) {
-            //we can live with failure - means identifier not found remotely
-            return true;
-        }
-    }
-
-    public boolean isIdentifierLocallyUnique(final Dataset dataset) {
-        return this.datasetRepository.isIdentifierLocallyUnique(dataset.getIdentifier(), dataset);
-    }
 
     public DatasetVersion storeVersion(DatasetVersion dsv) {
         em.persist(dsv);
@@ -284,38 +186,7 @@ public class DatasetDao implements java.io.Serializable {
                     });
         }
     }
-
-    public Dataset getDatasetByHarvestInfo(Dataverse dataverse, String harvestIdentifier) {
-        return this.datasetRepository.getDatasetByHarvestInfo(dataverse.getId(), 
-                harvestIdentifier);
-    }
-
-    public Dataset setNonDatasetFileAsThumbnail(Dataset dataset, InputStream inputStream) {
-        if (dataset == null) {
-            return null;
-        }
-        if (inputStream == null) {
-            return null;
-        }
-        dataset = datasetThumbnailService.persistDatasetLogoToStorageAndCreateThumbnail(dataset, inputStream);
-        dataset.setThumbnailFile(null);
-        dataset.setUseGenericThumbnail(false);
-        return merge(dataset);
-    }
-
-    public Dataset setDatasetFileAsThumbnail(Dataset dataset, DataFile datasetFileThumbnailToSwitchTo) {
-        if (dataset == null) {
-            return null;
-        }
-        if (datasetFileThumbnailToSwitchTo == null) {
-            return null;
-        }
-        datasetThumbnailService.deleteDatasetLogo(dataset);
-        dataset.setThumbnailFile(datasetFileThumbnailToSwitchTo);
-        dataset.setUseGenericThumbnail(false);
-        return merge(dataset);
-    }
-
+    
     public Dataset removeDatasetThumbnail(Dataset dataset) {
         if (dataset == null) {
             return null;
@@ -324,10 +195,6 @@ public class DatasetDao implements java.io.Serializable {
         dataset.setThumbnailFile(null);
         dataset.setUseGenericThumbnail(true);
         return merge(dataset);
-    }
-
-    public void assignDatasetThumbnailByNativeQuery(Dataset dataset, DataFile dataFile) {
-        this.datasetRepository.assignThumbnail(dataset.getId(), dataFile.getId());
     }
 
     public WorkflowComment addWorkflowComment(WorkflowComment workflowComment) {
@@ -348,12 +215,8 @@ public class DatasetDao implements java.io.Serializable {
         } catch (Exception ex) {
             logger.warn("Failed to sleep for 15 seconds.");
         }
-        Dataset theDataset = find(datasetId);
+        Dataset theDataset = this.datasetRepository.getById((datasetId));
         commandEngine.submit(new FinalizeDatasetPublicationCommand(theDataset, request, isPidPrePublished));
-    }
-
-    public void updateAllLastChangeForExporterTime() {
-        this.datasetRepository.updateAllLastChangeForExporterTime();
     }
     
 }

@@ -1,0 +1,29 @@
+<ui:composition
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+
+    <p:autoComplete
+            value="#{item.allowMultiple ? item.selected : item.oneSelected}"
+            completeMethod="#{item.complete}"
+            resultsMessage="#{item.autocompleteResultsMessage}"
+            emptyMessage="#{item.autocompleteEmptyMessage}"
+            var="itemVar" itemLabel="#{itemVar}" itemValue="#{itemVar}"
+            multiple="#{item.allowMultiple}"
+            forceSelection="true"
+            scrollHeight="350"
+            minQueryLength="3" dropdown="true"
+            unique="true"
+            placeholder="#{item.autocompletePlaceholderMessage}"
+            moreText="#{item.autocompleteLoadMoreMessage}"
+            widgetVar="#{component.clientId}_widget"
+            maxResults="#{item.numberOfResults-1}" >
+
+        <p:ajax event="moreText"
+                listener="#{item.loadMore}" 
+                onsuccess="DvJS.EnhancedSelect.EnhancedSelectView.prepare(this.source + '_widget');" /> <!-- this.source is the id of autoComplete -->
+        <p:ajax event="itemSelect" listener="#{item.onSelection}"  />
+        <p:ajax event="itemUnselect" listener="#{item.onDeselection}" />
+        #{itemVar}
+    </p:autoComplete>
+
+</ui:composition>

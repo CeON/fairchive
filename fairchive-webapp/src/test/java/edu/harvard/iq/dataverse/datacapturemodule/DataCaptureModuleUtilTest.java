@@ -25,17 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class DataCaptureModuleUtilTest {
 
     @Test
-    public void testRsyncSupportEnabled() {
-        assertEquals(false, DataCaptureModuleUtil.rsyncSupportEnabled(null));
-        assertEquals(true, DataCaptureModuleUtil.rsyncSupportEnabled("dcm/rsync+ssh"));
-        // Comma sepratated lists of upload methods are supported.
-        assertEquals(false, DataCaptureModuleUtil.rsyncSupportEnabled("native/http:dcm/rsync+ssh"));
-        assertEquals(true, DataCaptureModuleUtil.rsyncSupportEnabled("native/http,dcm/rsync+ssh"));
-        assertEquals(false, DataCaptureModuleUtil.rsyncSupportEnabled("native/http"));
-        assertEquals(false, DataCaptureModuleUtil.rsyncSupportEnabled("junk"));
-    }
-
-    @Test
     public void testGenerateJsonForUploadRequest() {
         AuthenticatedUser user = makeAuthenticatedUser("Ralph", "Rsync");
         Dataset dataset = new Dataset();

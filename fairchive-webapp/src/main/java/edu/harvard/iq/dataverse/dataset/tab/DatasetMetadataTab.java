@@ -11,10 +11,10 @@ import javax.inject.Named;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import org.omnifaces.cdi.ViewScoped;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -39,7 +39,7 @@ public class DatasetMetadataTab implements Serializable {
     private ExportService exportService;
     private SystemConfig systemConfig;
     private DatasetFieldsInitializer datasetFieldsInitializer;
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private DataverseSession session;
 
     private Dataset dataset;
@@ -61,6 +61,7 @@ public class DatasetMetadataTab implements Serializable {
                               DatasetFieldsInitializer datasetVersionUI,
                               DatasetDao datasetDao,
                               SettingsServiceBean settingService) {
+                              DatasetService datasetService) {
         this.permissionsWrapper = permissionsWrapper;
         this.session = session;
         this.exportService = exportService;
@@ -68,6 +69,7 @@ public class DatasetMetadataTab implements Serializable {
         this.datasetFieldsInitializer = datasetVersionUI;
         this.datasetDao = datasetDao;
         this.settingService = settingService;
+        this.datasetService = datasetService;
     }
 
     // -------------------- GETTERS --------------------
@@ -130,7 +132,7 @@ public class DatasetMetadataTab implements Serializable {
     }
 
     public String getAlternativePersistentIdentifier() {
-        return datasetDao.find(dataset.getId()).getAlternativePersistentIdentifier();
+        return datasetService.find(dataset.getId()).getAlternativePersistentIdentifier();
     }
 
     /**

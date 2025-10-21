@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.harvest.server;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.harvest.OAIRecordRepository;
 import edu.harvard.iq.dataverse.persistence.harvest.OAISet;
@@ -146,7 +145,7 @@ public class OAISetServiceBean implements java.io.Serializable {
             exportLogger.setUseParentHandlers(false);
             fileHandlerSuceeded = true;
         } catch (IOException | SecurityException ex) {
-            Logger.getLogger(DatasetDao.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
 
         if (fileHandlerSuceeded) {

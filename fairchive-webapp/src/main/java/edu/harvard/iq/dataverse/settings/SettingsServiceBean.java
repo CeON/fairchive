@@ -6,26 +6,28 @@ import com.google.common.cache.LoadingCache;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.Setting;
-import edu.harvard.iq.dataverse.persistence.SettingDao;
+import edu.harvard.iq.dataverse.persistence.SettingRepository;
 import edu.harvard.iq.dataverse.util.StringUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.Setting;
+import static java.lang.Long.parseLong;
+import static java.util.Arrays.asList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Service bean accessing and manipulating application settings.
@@ -36,8 +38,6 @@ import static java.util.stream.Collectors.toMap;
  */
 @ApplicationScoped
 public class SettingsServiceBean {
-
-    private static final String KEY_AND_POSTFIX_SEPARATOR = ".";
 
     /**
      * Some convenient keys for the settings. Note that the setting's
@@ -831,10 +831,10 @@ public class SettingsServiceBean {
         }
     }
 
-    private static final Logger log = LoggerFactory.getLogger(SettingsServiceBean.class);
+    private static final Logger log = getLogger(SettingsServiceBean.class);
 
     @EJB
-    private SettingDao settingDao;
+    private SettingRepository settingRepo;
 
     @EJB
     private ActionLogServiceBean actionLogSvc;
@@ -844,14 +844,14 @@ public class SettingsServiceBean {
 
     private final CacheLoader<String, String> settingCacheLoader = new CacheLoader<String, String>() {
         @Override
-        public String load(String key) {
-            Setting s = settingDao.find(key);
+        public String load(final String key) {
+            final Setting s = settingRepo.find(key);
             return (s != null) ? s.getContent() : fileBasedSettingsFetcher.getSetting(key);
         }
     };
 
     private final LoadingCache<String, String> settingCache = CacheBuilder.newBuilder()
-            .build(settingCacheLoader);
+            .build(this.settingCacheLoader);
 
     // -------------------- LOGIC --------------------
 
@@ -861,8 +861,8 @@ public class SettingsServiceBean {
      * @param name of the setting
      * @return the actual setting or empty string.
      */
-    public String get(String name) {
-        return settingCache.getUnchecked(name);
+    public String get(final String name) {
+        return this.settingCache.getUnchecked(name);
     }
 
     /**
@@ -871,7 +871,11 @@ public class SettingsServiceBean {
      * @param key Enum value of the name.
      * @return The setting, or  empty string.
      */
-    public String getValueForKey(Key key) {
+    public String getValueForKey(final Key key) {
+        return get(key.toString());
+    }
+    
+    public String getValueForKey(final Key key, final String defaultValue) {
         return get(key.toString());
     }
 
@@ -892,8 +896,8 @@ public class SettingsServiceBean {
      * @param postfix
      * @return setting value or empty string if setting not present
      */
-    public String getValueForKeyWithPostfix(Key key, String postfix) {
-        return get(key.toString() + KEY_AND_POSTFIX_SEPARATOR + postfix);
+    public String getValueForKeyWithPostfix(final Key key, final String postfix) {
+        return get(key.toString() + '.' + postfix);
     }
 
     /**
@@ -905,21 +909,16 @@ public class SettingsServiceBean {
      * @param key
      * @return
      */
-    public Long getValueForKeyAsLong(Key key) {
+    public Long getValueForKeyAsLong(final Key key) {
 
-        String val = this.getValueForKey(key);
-
-        if (StringUtils.isEmpty(val)) {
-            return null;
-        }
-
+        final String val = this.getValueForKey(key);
         try {
-            return Long.parseLong(val);
-        } catch (NumberFormatException ex) {
-            log.warn("Incorrect setting. Could not convert \"{}\" from setting {} to long.", val, key.toString());
+            return parseLong(val);
+        } catch (final NumberFormatException ex) {
+            log.warn("Incorrect setting. Could not convert \"" +
+                    val + "\" from setting " + key + " to long.");
             return null;
         }
-
     }
     
     public Long getValueForKeyAsLong(final Key key, final Long defaultValue) {
@@ -933,41 +932,37 @@ public class SettingsServiceBean {
     }
 
     public Integer getValueForKeyAsInt(Key key) {
-        Long value = getValueForKeyAsLong(key);
-        if (value == null) {
-            return null;
-        }
-        return value.intValue();
+        final Long value = getValueForKeyAsLong(key);
+        return value != null ? value.intValue() : null;
     }
 
-    public List<String> getValueForKeyAsList(Key key) {
-        return Arrays.asList(StringUtils.split(getValueForKey(key), ","));
+    public List<String> getValueForKeyAsList(final Key key) {
+        return asList(split(getValueForKey(key), ","));
     }
 
-    public List<Map<String, String>> getValueForKeyAsListOfMaps(Key key) {
-        List<Map<String, String>> list = new ArrayList<>();
+    public List<Map<String, String>> getValueForKeyAsListOfMaps(final Key key) {
+        final List<Map<String, String>> list = new ArrayList<>();
         try {
-            JSONArray entries = new JSONArray(getValueForKey(key));
-            for (Object obj : entries) {
-                JSONObject entry = (JSONObject) obj;
+            for (Object obj : new JSONArray(getValueForKey(key))) {
+                final JSONObject entry = (JSONObject) obj;
                 list.add(entry.keySet().stream()
                         .collect(toMap(identity(), entry::getString)));
             }
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             log.warn("Error parsing setting " + key + " as JSON", e);
         }
         return list;
     }
 
-    public Setting set(String name, String content) {
-        settingCache.invalidate(name);
-        Setting s = settingDao.save(new Setting(name, content));
-        actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Setting, "set")
+    public Setting set(final String name, final String content) {
+        this.settingCache.invalidate(name);
+        final Setting s = this.settingRepo.save(new Setting(name, content));
+        this.actionLogSvc.log(new ActionLogRecord(Setting, "set")
                                  .setInfo(name + ": " + content));
         return s;
     }
 
-    public Setting setValueForKey(Key key, String content) {
+    public Setting setValueForKey(final Key key, final String content) {
         return set(key.toString(), content);
     }
 
@@ -978,41 +973,39 @@ public class SettingsServiceBean {
      * @param name name of the setting.
      * @return boolean value of the setting.
      */
-    public boolean isTrue(String name) {
-        String val = get(name);
-        return StringUtil.isTrue(val);
+    public boolean isTrue(final String name) {
+        return StringUtil.isTrue(get(name));
     }
 
-    public boolean isTrueForKey(Key key) {
+    public boolean isTrueForKey(final Key key) {
         return isTrue(key.toString());
     }
 
-    public void deleteValueForKey(Key name) {
+    public void deleteValueForKey(final Key name) {
         delete(name.toString());
     }
 
-    public void delete(String name) {
-        settingCache.invalidate(name);
-        actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Setting, "delete")
-                                 .setInfo(name));
-        settingDao.delete(name);
+    public void delete(final String name) {
+        this.settingCache.invalidate(name);
+        this.actionLogSvc.log(new ActionLogRecord(Setting, "delete").setInfo(name));
+        this.settingRepo.delete(name);
     }
 
     public Map<String, String> listAll() {
-        Map<String, String> mergedSettings = new HashMap<>();
+        final Map<String, String> mergedSettings = new HashMap<>();
 
-        Map<String, String> fileSettings = fileBasedSettingsFetcher.getAllSettings();
+        final Map<String, String> fileSettings = this.fileBasedSettingsFetcher.getAllSettings();
         mergedSettings.putAll(fileSettings);
 
-        List<Setting> dbSettings = settingDao.findAll();
+        final List<Setting> dbSettings = this.settingRepo.findAll();
         dbSettings.forEach(s -> mergedSettings.put(s.getName(), s.getContent()));
 
         return mergedSettings;
     }
 
-    public Map<String, String> getFileBasedSettingsForPrefix(String prefix) {
-        Map<String, String> settings = fileBasedSettingsFetcher.getAllSettings();
-        Set<String> keys = settings.keySet();
+    public Map<String, String> getFileBasedSettingsForPrefix(final String prefix) {
+        final Map<String, String> settings = this.fileBasedSettingsFetcher.getAllSettings();
+        final Set<String> keys = settings.keySet();
         return keys.stream()
                 .filter(k -> k.startsWith(prefix))
                 .collect(HashMap::new, (m, k) -> m.put(k, settings.get(k)), Map::putAll);

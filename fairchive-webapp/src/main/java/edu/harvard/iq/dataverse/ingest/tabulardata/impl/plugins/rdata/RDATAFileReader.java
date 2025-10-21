@@ -336,13 +336,13 @@ public class RDATAFileReader extends TabularDataFileReader {
             //
             String csvScript = new StringBuilder()
                     .append("options(digits.secs=3)")
-                    .append("\n")
+                    .append('\n')
                     .append(RSCRIPT_WRITE_DVN_TABLE)
-                    .append("\n")
+                    .append('\n')
                     .append(String.format("load(\"%s\")", mRWorkspace.getRdataAbsolutePath()))
-                    .append("\n")
+                    .append('\n')
                     .append(RSCRIPT_GET_DATASET)
-                    .append("\n")
+                    .append('\n')
                     .append(String.format("write.dvn.table(data.set, file=\"%s\")", mCsvDataFile.getAbsolutePath()))
                     .toString();
 
@@ -502,7 +502,7 @@ public class RDATAFileReader extends TabularDataFileReader {
                 .append(String.format("load(\"%s\")\n", mRWorkspace.getRdataAbsolutePath()))
                 .append(String.format("setwd(\"%s\")\n", parentDirectory))
                 .append(RSCRIPT_GET_DATASET)
-                .append("\n")
+                .append('\n')
                 .append(RSCRIPT_DATASET_INFO_SCRIPT)
                 .toString();
 

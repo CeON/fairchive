@@ -1,56 +1,56 @@
 package edu.harvard.iq.dataverse.api.datadeposit;
 
-public class UrlManager {
-    String originalUrl;
-    String servlet;
-    String targetType;
-    String targetIdentifier;
-    int port;
-    String warning;
+final class UrlManager {
+    private String originalUrl;
+    private String servlet;
+    private String targetType;
+    private String targetIdentifier;
+    private int port;
+    private String warning;
 
     // -------------------- GETTERS --------------------
-    public String getOriginalUrl() {
+    String getOriginalUrl() {
         return originalUrl;
     }
 
-    public int getPort() {
+    int getPort() {
         return port;
     }
 
-    public String getServlet() {
+    String getServlet() {
         return servlet;
     }
 
-    public String getTargetIdentifier() {
+    String getTargetIdentifier() {
         return targetIdentifier;
     }
 
-    public String getTargetType() {
+    String getTargetType() {
         return targetType;
     }
 
     // -------------------- SETTERS --------------------
-    public void setPort(int port) {
+    void setPort(int port) {
         this.port = port;
     }
 
-    public void setOriginalUrl(String originalUrl) {
+    void setOriginalUrl(String originalUrl) {
         this.originalUrl = originalUrl;
     }
 
-    public void setServlet(String servlet) {
+    void setServlet(String servlet) {
         this.servlet = servlet;
     }
 
-    public void setTargetIdentifier(String targetIdentifier) {
+    void setTargetIdentifier(String targetIdentifier) {
         this.targetIdentifier = targetIdentifier;
     }
 
-    public void setTargetType(String targetType) {
+    void setTargetType(String targetType) {
         this.targetType = targetType;
     }
 
-    public String getWarning() {
+    String getWarning() {
         return warning;
     }
 

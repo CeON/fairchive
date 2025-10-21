@@ -1,0 +1,33 @@
+<ui:composition
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:c="http://java.sun.com/jsp/jstl/core"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+
+    <c:set var="mapId" value="#{item.parent.isDefined()
+        ? (mdb.blockName).concat('_').concat(item.getParent().get().getDisplayId()) : ''}"/>
+    <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
+
+    <div id="infoBox" tabindex="0">
+        <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
+    </div>
+
+    <div id="#{mapId}" class="form-col-container geo-map">
+    </div>
+
+    <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker margin-top"
+                 value="#{item.fieldValue}"
+                 onchange="
+                    this.value = this.value.replace(/,/g, '.');
+                    DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
+                    DvJS.Geo.SearchView.updateMap('#{mapId}');"
+                 rows="5"
+                 widgetVar="#{widgetVar}"
+                 pt:data-handler="#{widgetVar}"/>
+
+    <script>
+        DvJS.Geo.SearchView.prepare('#{mapId}');
+        DvJS.Geo.SearchView.putWidgetVar('#{mapId}', 'polygonGeo', '#{widgetVar}');
+    </script>
+
+</ui:composition>

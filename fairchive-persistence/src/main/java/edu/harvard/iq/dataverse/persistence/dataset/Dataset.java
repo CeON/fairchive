@@ -194,6 +194,10 @@ public class Dataset extends DvObjectContainer {
     }
     
     
+    public boolean canBeDeleted() {
+        return !isReleased() && getLatestVersion().isDraft();
+    }
+    
     /**
      * Checks whether {@code this} dataset is locked for a given reason.
      *
@@ -206,6 +210,11 @@ public class Dataset extends DvObjectContainer {
     
     public boolean isLockedForAny(final DatasetLock.Reason... reasons) {
         return stream(reasons).anyMatch(this::isLockedFor);
+    }
+    
+    public boolean isLockedForOtherThan(final DatasetLock.Reason reason) {
+        return isLocked() &&
+                getLocks().stream().anyMatch(l -> l.getReason() != reason);
     }
     
 

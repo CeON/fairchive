@@ -19,11 +19,11 @@ import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.faces.model.SelectItem;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -93,7 +93,7 @@ public class GuestbookResponseServiceBean {
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
 
-    @EJB
+    @Inject
     protected SystemConfig systemConfig;
 
     public List<GuestbookResponse> findAll() {
@@ -376,6 +376,7 @@ public class GuestbookResponseServiceBean {
         return selectCustomQuestionAnswers(dataverseId, guestbookId, true, null, null);
     }
 
+    @SuppressWarnings("unchecked")
     private Map<Integer, Object> selectCustomQuestionAnswers(Long dataverseId, Long guestbookId, boolean asString, Integer lastResponse, Integer firstResponse) {
         
         Map<Integer, Object> ret = new HashMap<>();
@@ -403,7 +404,6 @@ public class GuestbookResponseServiceBean {
         cqString += ";";
         logger.fine("custom questions query: " + cqString);
 
-        @SuppressWarnings("unchecked")
         List<Object[]> customResponses = em.createNativeQuery(cqString).getResultList();
 
         if (customResponses != null) {
@@ -427,7 +427,7 @@ public class GuestbookResponseServiceBean {
                     if (!ret.containsKey(responseId)) {
                         ret.put(responseId, new ArrayList<>());
                     }
-                    ((List) ret.get(responseId)).add(response);
+                    ((List<Object[]>) ret.get(responseId)).add(response);
                 }
 
                 count++;

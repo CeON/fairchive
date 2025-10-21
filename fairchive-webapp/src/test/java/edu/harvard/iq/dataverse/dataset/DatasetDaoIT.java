@@ -11,8 +11,6 @@ import javax.inject.Inject;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
@@ -31,7 +29,7 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
     private AuthenticationServiceBean authenticationServiceBean;
 
     @Inject
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     
     @Inject
     private SettingsServiceBean settings;
@@ -44,20 +42,20 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
     @Test
     void test_inReview() {
 
-        Dataset dataset = this.datasetDao.find(52L);
+        Dataset dataset = this.datasetService.find(52L);
 
         assertThat(dataset.isLockedFor(InReview)).isFalse();
         assertThat(dataset.isInReview()).isFalse();
         
         AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
         
-        this.datasetDao.addDatasetLock(dataset, new DatasetLock(InReview, user));
+        this.datasetService.addDatasetLock(dataset, new DatasetLock(InReview, user));
 
-        dataset = this.datasetDao.find(52L);
+        dataset = this.datasetService.find(52L);
         assertThat(dataset.isLockedFor(InReview)).isTrue();
         assertThat(dataset.isInReview()).isTrue();
         
-        List<DatasetLock> locks = this.datasetDao.getDatasetLocksByUser(user);
+        List<DatasetLock> locks = this.datasetService.getDatasetLocksByUser(user);
         
         assertThat(locks.size()).isEqualTo(1);
         assertThat(locks.get(0).getReason()).isEqualTo(InReview);
@@ -67,7 +65,7 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
     @Test
     void getDatasetVersionUsersByAuthenticatedUser() {
         AuthenticatedUser user = (AuthenticatedUser) dataverseSession.getUser();
-        List<DatasetVersionUser> versions = this.datasetDao
+        List<DatasetVersionUser> versions = this.datasetService
                 .getDatasetVersionUsersByAuthenticatedUser(user);
         
         assertThat(versions.size()).isEqualTo(2);
@@ -86,7 +84,7 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
     void generateDatasetIdentifier_throwsNPE_forNullIdentifier() {
         
         assertThrows(Exception.class, 
-                () ->  this.datasetDao.generateDatasetIdentifier(null));
+                () ->  this.datasetService.generateDatasetIdentifier(null));
     }
     
     @Test
@@ -95,14 +93,14 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         this.settings.setValueForKey(Shoulder, "");
         Dataset set = new Dataset();
         
-        String id = this.datasetDao.generateDatasetIdentifier(set);
+        String id = this.datasetService.generateDatasetIdentifier(set);
         
         assertThat(id).isNotBlank();
         assertThat(id).doesNotStartWith("ABC");
         
         this.settings.setValueForKey(Shoulder, "ABC");
         
-        id = this.datasetDao.generateDatasetIdentifier(set);
+        id = this.datasetService.generateDatasetIdentifier(set);
         
         assertThat(id).isNotBlank();
         assertThat(id).startsWith("ABC");
@@ -111,21 +109,21 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
     @Test
     void getDatasetByHarvestInfo_returnsNull_ifNothingMaches() {
         
-        Dataset dataset = this.datasetDao.find(52L);
+        Dataset dataset = this.datasetService.find(52L);
         assertThat(dataset.getHarvestIdentifier()).isNull();
         
-        Dataset result = this.datasetDao.getDatasetByHarvestInfo(dataset.getOwner(), "abc");
+        Dataset result = this.datasetService.getDatasetByHarvestInfo(dataset.getOwner(), "abc");
         assertThat(result).isNull();
     }
     
     @Test
     void getDatasetByHarvestInfo_returnsResult_ifExactlyOneMaches() {
         
-        Dataset dataset = this.datasetDao.find(52L);  
+        Dataset dataset = this.datasetService.find(52L);  
         dataset.setHarvestIdentifier("abc");
-        this.datasetDao.mergeAndFlush(dataset);
+        this.datasetService.saveAndFlush(dataset);
 
-        Dataset result = this.datasetDao.getDatasetByHarvestInfo(dataset.getOwner(), "abc");
+        Dataset result = this.datasetService.getDatasetByHarvestInfo(dataset.getOwner(), "abc");
         assertThat(result.getId()).isEqualTo(dataset.getId());
     }
 }

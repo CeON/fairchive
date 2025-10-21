@@ -13,9 +13,12 @@
 </h:head>
 <h:body>
     <ui:composition template="/dataverse_template.xhtml">
-        <ui:param name="pageTitle" value="#{bundle['dataset.pageTitle']} - #{CreateDatasetPage.dataset.owner.name}"/>
-        <ui:param name="dataverse" value="#{CreateDatasetPage.dataset.owner}"/>
-        <ui:param name="showMessagePanel" value="#{true}"/>
+        <ui:param name="pageTitle" 
+                  value="#{bundle['dataset.pageTitle']} - #{CreateDatasetPage.dataset.owner.name}"/>
+        <ui:param name="dataverse" 
+                  value="#{CreateDatasetPage.dataset.owner}"/>
+        <ui:param name="showMessagePanel" 
+                  value="#{true}"/>
         
         <ui:define name="body">
             <f:metadata>
@@ -27,89 +30,101 @@
             </f:metadata>
             <h:form id="datasetForm">
                 <!-- static Messages -->
-                <p:outputPanel>
-                    <div jsf:rendered="#{CreateDatasetPage.isInstallationPublic()}" class="alert alert-warning" role="alert" aria-atomic="true">
-                        <p class="text-block">
-                            <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.message.publicInstall.title']}</strong> –
-                            <h:outputText escape="false" value="#{bundle['dataset.message.publicInstall.details']} "/>
-                        </p>
-                    </div>
-                </p:outputPanel>
+                <div jsf:rendered="#{CreateDatasetPage.isInstallationPublic()}"
+                     class="alert alert-warning" 
+                     role="alert" 
+                     aria-atomic="true">
+                    <span class="glyphicon glyphicon-exclamation-sign"/>&#160;
+                    <strong>#{bundle['dataset.message.publicInstall.title']}</strong> –
+                    <h:outputText value="#{bundle['dataset.message.publicInstall.details']}"
+                                  escape="false"/>
+                </div>
                 <!-- END static Messages -->
 
                 <!-- Create editMode -->
                 <p:fragment id="formContent">
-                <ui:fragment>
                     <div class="form-group">
-                        <label for="select_HostDataverse" class="col-sm-2 control-label">
+                        <label for="select_HostDataverse" 
+                               class="col-sm-2 control-label">
                             #{bundle.hostDataverse}
-                            <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
-                                  data-toggle="tooltip" data-placement="auto right"
-                                  data-original-title="#{bundle['dataverse.host.title']}"></span>
+                            <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                  tabindex="0" 
+                                  role="button"
+                                  data-toggle="tooltip" 
+                                  data-placement="auto right"
+                                  data-original-title="#{bundle['dataverse.host.title']}"/>
                         </label>
                         <div class="col-sm-10">
-                            <h:outputText styleClass="highlightBold" value="#{CreateDatasetPage.dataset.owner.name}"/>
-                            <h:inputHidden value="#{CreateDatasetPage.ownerId}" id="select_HostDataverse"/>
+                            <h:outputText styleClass="highlightBold" 
+                                          value="#{CreateDatasetPage.dataset.owner.name}"/>
+                            <h:inputHidden value="#{CreateDatasetPage.ownerId}" 
+                                           id="select_HostDataverse"/>
                         </div>
                     </div>
-                    <div class="form-group" jsf:rendered="#{not empty CreateDatasetPage.dataverseTemplates}">
-                        <label for="select_DatasetTemplate" class="col-sm-2 control-label">
+                    <div class="form-group" 
+                         jsf:rendered="#{not empty CreateDatasetPage.dataverseTemplates}">
+                        <label for="select_DatasetTemplate" 
+                               class="col-sm-2 control-label">
                             #{bundle['dataset.manageTemplates.tab.action.btn.view.dialog.datasetTemplate']}
-                            <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
-                                  data-toggle="tooltip" data-placement="auto right"
-                                  data-original-title="#{bundle['dataset.manageTemplates.tab.action.btn.view.dialog.datasetTemplate.title']}"></span>
+                            <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                  tabindex="0" 
+                                  role="button"
+                                  data-toggle="tooltip" 
+                                  data-placement="auto right"
+                                  data-original-title="#{bundle['dataset.manageTemplates.tab.action.btn.view.dialog.datasetTemplate.title']}"/>
                         </label>
                         <div class="col-sm-6">
                             <p class="help-block">
                                 #{bundle['dataset.template.tip']}
                             </p>
                             <p:selectOneMenu value="#{CreateDatasetPage.selectedTemplate}"
-                                             converter="templateConverter" id="select_DatasetTemplate"
+                                             converter="templateConverter" 
+                                             id="select_DatasetTemplate"
                                              styleClass="form-control"
-                                             style="width:auto !important; max-width:100%; min-width:200px;">
+                                             style="width:auto !important; 
+                                             max-width:100%; 
+                                             min-width:200px;">
 
-                                <f:selectItem itemLabel="#{bundle['dataset.noTemplate.label']}" itemValue="#{null}"/>
+                                <f:selectItem itemLabel="#{bundle['dataset.noTemplate.label']}" 
+                                              itemValue="#{null}"/>
                                 <f:selectItems value="#{CreateDatasetPage.dataverseTemplates}"
-                                               var="template" itemLabel="#{template.name}" itemValue="#{template}"/>
+                                               var="template" 
+                                               itemLabel="#{template.name}" 
+                                               itemValue="#{template}"/>
 
-                                <p:ajax event="change" update="@form"
-                                        listener="#{CreateDatasetPage.updateSelectedTemplate}"
-                                        />
+                                <p:ajax event="change" 
+                                         update="@form"
+                                        listener="#{CreateDatasetPage.updateSelectedTemplate}"/>
                             </p:selectOneMenu>
                         </div>
                     </div>
-                </ui:fragment>
-                <ui:fragment>
-                    <ui:include src="metadata-importers-fragment.xhtml">
-                        <ui:param name="pageBean" value="#{CreateDatasetPage}"/>
-                    </ui:include>
-                </ui:fragment>
+                <ui:include src="metadata-importers-fragment.xhtml">
+                    <ui:param name="pageBean" 
+                              value="#{CreateDatasetPage}"/>
+                </ui:include>
                 <div class="form-group">
                     <div class="col-sm-12">
-                        <span class="glyphicon glyphicon-asterisk text-danger"/> <h:outputText
-                            value="#{bundle['dataset.asterisk.tip']}"/>
+                        <span class="glyphicon glyphicon-asterisk text-danger"/>
+                        <h:outputText value="#{bundle['dataset.asterisk.tip']}"/>
                     </div>
                 </div>
 
-                <ui:fragment>
-                    <ui:include src="editMetadata.xhtml">
-                        <ui:param name="showAllBlocks" value="#{false}"/>
-                        <ui:param name="showAllFields" value="#{false}"/>
-                        <ui:param name="expandAllBlocks" value="#{true}"/>
-                        <ui:param name="metadataBlocks"
-                                  value="#{CreateDatasetPage.metadataBlocksForEdit.entrySet().toArray()}"/>
-                        <ui:param name="inputRenderersByFieldType" value="#{CreateDatasetPage.inputRenderersByFieldType}" />
-                        <ui:param name="operation" value="CREATE_DATASET" />
-                    </ui:include>
-                </ui:fragment>
+                <ui:include src="editMetadata.xhtml">
+                    <ui:param name="showAllBlocks" value="#{false}"/>
+                    <ui:param name="showAllFields" value="#{false}"/>
+                    <ui:param name="expandAllBlocks" value="#{true}"/>
+                    <ui:param name="metadataBlocks"
+                              value="#{CreateDatasetPage.metadataBlocksForEdit.entrySet().toArray()}"/>
+                    <ui:param name="inputRenderersByFieldType" 
+                              value="#{CreateDatasetPage.inputRenderersByFieldType}" />
+                    <ui:param name="operation" value="CREATE_DATASET" />
+                </ui:include>
                 <!-- END Create editMode -->
 
                 <!-- View/Tabs infoMode -->
                 <!-- Tabs -->
                 <div id="contentTabs">
-
                     <ui:fragment id="uploadFilesOnCreateTab">
-
                         <ui:include src="editFilesFragment.xhtml">
                             <ui:param name="isDatasetSection" value="true"/>
                             <ui:param name="lockedFromEdits" value="false"/>
@@ -119,7 +134,6 @@
                             <ui:param name="fileUploadDisabled" value="false" />
                             <ui:param name="isUploadPermited" value="true" />
                         </ui:include>
-
                     </ui:fragment>
                 </div>
                 <!-- END View/Tabs infoMode -->
@@ -128,7 +142,8 @@
                 <div class="alert alert-info margin-top">
                     #{bundle['file.metadataTip']}
                 </div>
-                <div class="alert alert-info margin-top" jsf:rendered="${settingsWrapper.isAllowDatasetPublishWithoutFiles()}">
+                <div class="alert alert-info margin-top" 
+                     jsf:rendered="${settingsWrapper.isAllowDatasetPublishWithoutFiles()}">
                     #{bundle['file.filesNonMandatoryTip']}
                 </div>
                 </p:fragment>
@@ -144,7 +159,8 @@
                                      onsuccess="PF('datasetFormBlockUI').hide();"
                                      oncomplete="$(document).scrollTop(0);"
                                      />
-                    <p:button id="cancelCreate" value="#{bundle.cancel}"
+                    <p:button id="cancelCreate" 
+                              value="#{bundle.cancel}"
                               outcome="/dataverse.xhtml?alias=#{CreateDatasetPage.dataset.owner.alias}" />
                 </div>
                 <!-- END: Create/Save Dataset Button Panel -->

@@ -99,7 +99,7 @@ public class CitationDataExtractor {
         }
     }
 
-    public List<String> getDatasetFieldValuesByTypeName(DatasetVersion dsv, String datasetFieldTypeName) {
+    private List<String> getDatasetFieldValuesByTypeName(DatasetVersion dsv, String datasetFieldTypeName) {
         return dsv.streamDatasetFieldsByTypeName(datasetFieldTypeName)
                 .map(DatasetField::getValue)
                 .collect(Collectors.toList());

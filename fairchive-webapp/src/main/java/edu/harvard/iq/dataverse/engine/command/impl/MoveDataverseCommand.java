@@ -23,7 +23,6 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -49,7 +48,8 @@ public class MoveDataverseCommand extends AbstractVoidCommand {
     final Dataverse destination;
     final boolean force;
 
-    public MoveDataverseCommand(DataverseRequest aRequest, Dataverse moved, Dataverse destination, boolean force) {
+    public MoveDataverseCommand(DataverseRequest aRequest, Dataverse moved, 
+            Dataverse destination, boolean force) {
         super(aRequest, dv("moved", moved),
               dv("source", moved.getOwner()),
               dv("destination", destination));
@@ -62,7 +62,9 @@ public class MoveDataverseCommand extends AbstractVoidCommand {
     public void executeImpl(CommandContext ctxt)  {
         long moveDvStart = System.currentTimeMillis();
         logger.info("Starting dataverse move...");
-        boolean removeGuestbook = false, removeTemplate = false, removeFeatDv = false, removeMetadataBlock = false, removeLinkDv = false, removeLinkDs = false;
+        boolean removeGuestbook = false, removeTemplate = false, 
+                removeFeatDv = false, removeMetadataBlock = false, 
+                removeLinkDv = false, removeLinkDs = false;
 
         // first check if user is a superuser
         if ((!(getUser() instanceof AuthenticatedUser) || !getUser().isSuperuser())) {
@@ -93,7 +95,7 @@ public class MoveDataverseCommand extends AbstractVoidCommand {
         logger.info("Getting dataset children of dataverse...");
         List<Dataset> datasetChildren = new ArrayList<>();
         List<Long> datasetChildrenIds = ctxt.dataverses().findAllDataverseDatasetChildren(moved.getId());
-        datasetChildrenIds.forEach((dsId) -> datasetChildren.add(ctxt.datasets().find(dsId)));
+        datasetChildrenIds.forEach((dsId) -> datasetChildren.add(ctxt.datasetService().find(dsId)));
 
         logger.info("Getting dataverse children of dataverse...");
         List<Dataverse> dataverseChildren = new ArrayList<>();
@@ -185,14 +187,14 @@ public class MoveDataverseCommand extends AbstractVoidCommand {
             // i.e. the case where a custom metadata block is available through a parent 
             // but then the dataverse is moved outside of that parent-child structure
             if (inheritMbValue != null) {
-                List<MetadataBlock> metadataBlocksToKeep = new ArrayList<>();
-                List<MetadataBlock> movedMbs = dv.getMetadataBlocks();
-                Iterator<MetadataBlock> iter = movedMbs.iterator();
-                while (iter.hasNext()) {
-                    MetadataBlock mb = iter.next();
+                final List<MetadataBlock> metadataBlocksToKeep = new ArrayList<>();
+                
+                for(final MetadataBlock mb : dv.getMetadataBlocks()) {
                     // if the owner is null, it means that the owner is the root dataverse
                     // because technically only custom metadata blocks have owners
-                    Dataverse mbOwner = (mb.getOwner() != null) ? mb.getOwner() : ctxt.dataverses().findRootDataverse();
+                    final Dataverse mbOwner = (mb.getOwner() != null) 
+                            ? mb.getOwner() 
+                            : ctxt.dataverses().findRootDataverse();
                     if (!mbParentsToCheck.contains(mbOwner)) {
                         if (!force) {
                             removeMetadataBlock = true;
@@ -311,7 +313,7 @@ public class MoveDataverseCommand extends AbstractVoidCommand {
         //Reindex datasets linked to moved dv
         if (moved.getDatasetLinkingDataverses() != null && !moved.getDatasetLinkingDataverses().isEmpty()) {
             for (DatasetLinkingDataverse dld : moved.getDatasetLinkingDataverses()) {
-                Dataset linkedDS = ctxt.datasets().find(dld.getDataset().getId());
+                Dataset linkedDS = ctxt.datasetService().find(dld.getDataset().getId());
                 ctxt.index().indexDataset(linkedDS, true);
             }
         }

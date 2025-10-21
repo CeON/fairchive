@@ -88,6 +88,17 @@ public class RorDto {
     public List<String> getLabels() {
         return labels;
     }
+    
+    public List<String> getOtherNames() {
+        final ArrayList<String> result = new ArrayList<>(
+                this.nameAliases.size() + this.acronyms.size() + this.labels.size());
+
+        result.addAll(this.nameAliases);
+        result.addAll(this.acronyms);
+        result.addAll(this.labels);
+
+        return result;
+    }
 
     public RorDto setRorId(String rorId) {
         this.rorId = rorId;

@@ -18,6 +18,6 @@ public class UpdateDatasetGuestbookCommand extends AbstractDatasetCommand<Datase
     public Dataset execute(CommandContext ctxt) {
         ctxt.permissions().checkEditDatasetLock(getDataset(), getRequest(), this);
 
-        return ctxt.datasets().merge(getDataset());
+        return ctxt.datasetService().save(getDataset());
     }
 }

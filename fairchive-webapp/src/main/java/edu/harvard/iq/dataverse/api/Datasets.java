@@ -1,8 +1,70 @@
 package edu.harvard.iq.dataverse.api;
 
+import static java.util.stream.Collectors.toList;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.security.InvalidParameterException;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.ejb.EJBException;
+import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
 import com.amazonaws.services.pi.model.InvalidArgumentException;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -24,7 +86,6 @@ import edu.harvard.iq.dataverse.api.dto.UningestableItemDTO;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.batch.jobs.importer.ImportMode;
 import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.datacapturemodule.DataCaptureModuleUtil;
 import edu.harvard.iq.dataverse.datacapturemodule.ScriptRequestResponse;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.file.FileDownloadAPIHandler;
@@ -106,72 +167,12 @@ import edu.harvard.iq.dataverse.util.EjbUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import io.vavr.control.Try;
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
-import javax.ejb.EJBException;
-import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.security.InvalidParameterException;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Clock;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @Path("datasets")
 public class Datasets extends AbstractApiBean {
 
     private static final Logger logger = Logger.getLogger(Datasets.class.getCanonicalName());
 
-    private DatasetDao datasetDao;
     private DataverseDao dataverseDao;
     private UserNotificationService userNotificationService;
     private PermissionServiceBean permissionService;
@@ -196,13 +197,14 @@ public class Datasets extends AbstractApiBean {
     private DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter;
     private UningestInfoService uningestInfoService;
     private UningestService uningestService;
+    private SystemConfig config;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public Datasets() { }
 
     @Inject
-    public Datasets(DatasetDao datasetDao, DataverseDao dataverseDao,
+    public Datasets(DataverseDao dataverseDao,
                     UserNotificationService userNotificationService,
                     PermissionServiceBean permissionService, AuthenticationServiceBean authenticationServiceBean,
                     DataFileServiceBean fileService, IngestServiceBean ingestService,
@@ -216,8 +218,8 @@ public class Datasets extends AbstractApiBean {
                     FileLabelsService fileLabelsService,
                     DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter,
                     UningestInfoService uningestInfoService,
-                    UningestService uningestService) {
-        this.datasetDao = datasetDao;
+                    UningestService uningestService,
+                    SystemConfig config) {
         this.dataverseDao = dataverseDao;
         this.userNotificationService = userNotificationService;
         this.permissionService = permissionService;
@@ -242,6 +244,7 @@ public class Datasets extends AbstractApiBean {
         this.fileDownloadUrlCsvWriter = fileDownloadUrlCsvWriter;
         this.uningestInfoService = uningestInfoService;
         this.uningestService = uningestService;
+        this.config = config;
     }
 
     // -------------------- LOGIC --------------------
@@ -285,7 +288,7 @@ public class Datasets extends AbstractApiBean {
             return error(BAD_REQUEST, exporter + " is not a valid exporter");
         }
 
-        Dataset dataset = datasetDao.findByGlobalId(persistentId);
+        Dataset dataset = datasetSvc.findByGlobalId(persistentId);
         if (dataset == null) {
             return error(NOT_FOUND, "A dataset with the persistentId " + persistentId + " could not be found.");
         }
@@ -654,7 +657,7 @@ public class Datasets extends AbstractApiBean {
     @Path("/modifyRegistrationAll")
     public Response updateDatasetTargetURLAll() {
         return response(req -> {
-            datasetDao.findAll().forEach(ds -> {
+            datasetSvc.findAll().forEach(ds -> {
                 try {
                     execCommand(new UpdateDatasetTargetURLCommand(findDatasetOrDie(ds.getId().toString()), req));
                 } catch (WrappedResponse ex) {
@@ -691,7 +694,7 @@ public class Datasets extends AbstractApiBean {
     @Path("/modifyRegistrationPIDMetadataAll")
     public Response updateDatasetPIDMetadataAll() {
         return response(req -> {
-            datasetDao.findAll().forEach(ds -> {
+            datasetSvc.findAll().forEach(ds -> {
                 try {
                     execCommand(new UpdateDvObjectPIDMetadataCommand(findDatasetOrDie(ds.getId().toString()), req));
                 } catch (WrappedResponse ex) {
@@ -1196,10 +1199,11 @@ public class Datasets extends AbstractApiBean {
     @ApiWriteOperation
     @Path("{identifier}/dataCaptureModule/rsync")
     public Response getRsync(@PathParam("identifier") String id) {
-        //TODO - does it make sense to switch this to dataset identifier for consistency with the rest of the DCM APIs?
-        if (!DataCaptureModuleUtil.rsyncSupportEnabled(settingsSvc.getValueForKey(SettingsServiceBean.Key.UploadMethods))) {
+        if(this.config.isRsyncUpload()) {
             return error(Response.Status.METHOD_NOT_ALLOWED,
-                         SettingsServiceBean.Key.UploadMethods + " does not contain " + SystemConfig.FileUploadMethods.RSYNC + ".");
+                         SettingsServiceBean.Key.UploadMethods + 
+                         " does not contain " + 
+                         SystemConfig.RSYNC_DOWNLOAD_METHOD + '.');
         }
         Dataset dataset;
         try {
@@ -1208,7 +1212,7 @@ public class Datasets extends AbstractApiBean {
             ScriptRequestResponse scriptRequestResponse = execCommand(
                     new RequestRsyncScriptCommand(createDataverseRequest(user), dataset));
 
-            DatasetLock lock = datasetDao.addDatasetLock(
+            DatasetLock lock = datasetSvc.addDatasetLock(
                     dataset.getId(), DatasetLock.Reason.DcmUpload, user.getId(), "script downloaded");
             if (lock == null) {
                 logger.log(Level.WARNING, "Failed to lock the dataset (dataset id={0})", dataset.getId());
@@ -1297,7 +1301,7 @@ public class Datasets extends AbstractApiBean {
                         if (dcmLock == null) {
                             logger.log(Level.WARNING, "Dataset not locked for DCM upload");
                         } else {
-                            datasetDao.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
+                            datasetSvc.removeDatasetLocks(dataset, DatasetLock.Reason.DcmUpload);
                             dataset.removeLock(dcmLock);
                         }
 
@@ -1502,27 +1506,25 @@ public class Datasets extends AbstractApiBean {
 
     @GET
     @Path("{identifier}/locks")
-    public Response getLocks(@PathParam("identifier") String id, @QueryParam("type") DatasetLock.Reason lockType) {
-        Dataset dataset;
+    public Response getLocks(@PathParam("identifier") String id,
+            @QueryParam("type") DatasetLock.Reason lockType) {
         try {
-            dataset = findDatasetOrDie(id);
-            Set<DatasetLock> locks;
-            if (lockType == null) {
-                locks = dataset.getLocks();
-            } else {
-                // request for a specific type lock:
-                DatasetLock lock = dataset.getLockFor(lockType);
-                locks = new HashSet<>();
-                if (lock != null) {
-                    locks.add(lock);
-                }
-            }
-            List<DatasetLockDTO> allLocks = locks.stream()
+            return ok(getLocksFor(lockType, findDatasetOrDie(id))
                     .map(l -> new DatasetLockDTO.Converter().convert(l))
-                    .collect(Collectors.toList());
-            return ok(allLocks);
+                    .collect(toList()));
         } catch (WrappedResponse wr) {
             return wr.getResponse();
+        }
+    }
+
+    private static Stream<DatasetLock> getLocksFor(final DatasetLock.Reason lockType,
+            final Dataset dataset) {
+        if (lockType == null) {
+            return dataset.getLocks().stream();
+        } else {
+            // request for a specific type lock:
+            final DatasetLock lock = dataset.getLockFor(lockType);
+            return lock != null ? Stream.of(lock) : Stream.empty();
         }
     }
 
@@ -1852,11 +1854,11 @@ public class Datasets extends AbstractApiBean {
                     && dsf.getDatasetFieldsChildren().isEmpty() && dsf.getFieldValue().isEmpty()) {
                 error.append("Empty multiple value for field: ")
                         .append(dsf.getDatasetFieldType().getDisplayName())
-                        .append(" ");
+                        .append(' ');
             } else if (!dsf.getDatasetFieldType().isAllowMultiples() && dsf.getDatasetFieldsChildren().isEmpty()) {
                 error.append("Empty value for field: ")
                         .append(dsf.getDatasetFieldType().getDisplayName())
-                        .append(" ");
+                        .append(' ');
             }
         }
         return !error.toString().isEmpty() ? error.toString() : "";

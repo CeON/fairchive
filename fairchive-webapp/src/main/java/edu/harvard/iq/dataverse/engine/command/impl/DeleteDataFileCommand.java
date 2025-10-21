@@ -168,7 +168,7 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
         sb.append(super.describe());
         sb.append("DataFile:");
         sb.append(doomed.getId());
-        sb.append(" ");
+        sb.append(' ');
         return sb.toString();
     }
 

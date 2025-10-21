@@ -1,6 +1,23 @@
 package edu.harvard.iq.dataverse.doi;
 
-import edu.harvard.iq.dataverse.DatasetDao;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.ejb.DependsOn;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import javax.inject.Inject;
+
+import org.apache.commons.lang.math.NumberUtils;
+
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -9,21 +26,6 @@ import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import org.apache.commons.lang.math.NumberUtils;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.DependsOn;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.inject.Inject;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Class designed to reserve doi's in the background.
@@ -37,7 +39,7 @@ public class DOIBackgroundReservationService {
 
     private SettingsServiceBean settingsServiceBean;
     private DatasetRepository datasetRepository;
-    private DatasetDao datasetDao;
+    private DatasetService datasetService;
     private DOIDataCiteServiceBean doiDataCiteService;
     private IndexServiceBean indexServiceBean;
 
@@ -47,12 +49,14 @@ public class DOIBackgroundReservationService {
     }
 
     @Inject
-    public DOIBackgroundReservationService(SettingsServiceBean settingsServiceBean, DatasetRepository datasetRepository,
-                                           DatasetDao datasetDao, DOIDataCiteServiceBean doiDataCiteService,
+    public DOIBackgroundReservationService(SettingsServiceBean settingsServiceBean, 
+                                           DatasetRepository datasetRepository,
+                                           DatasetService datasetService, 
+                                           DOIDataCiteServiceBean doiDataCiteService,
                                            IndexServiceBean indexServiceBean) {
         this.settingsServiceBean = settingsServiceBean;
         this.datasetRepository = datasetRepository;
-        this.datasetDao = datasetDao;
+        this.datasetService = datasetService;
         this.doiDataCiteService = doiDataCiteService;
         this.indexServiceBean = indexServiceBean;
     }
@@ -108,7 +112,7 @@ public class DOIBackgroundReservationService {
             while (doiDataCiteService.alreadyExists(globalId) && attempts < 10) {
                 globalId = new GlobalId(nonReservedDataset.getProtocol(),
                                         nonReservedDataset.getAuthority(),
-                                        datasetDao.generateDatasetIdentifier(nonReservedDataset));
+                                        datasetService.generateDatasetIdentifier(nonReservedDataset));
                 attempts++;
             }
 

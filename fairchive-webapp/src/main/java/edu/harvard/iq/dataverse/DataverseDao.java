@@ -221,7 +221,7 @@ public class DataverseDao implements java.io.Serializable {
         List<Dataverse> dataverseList = new ArrayList<>();
         List<Dataverse> results = this.dataverseRepo.findByAliasOrName(query, query);
 
-        List<Object> alreadyLinkeddv_ids = em.createNativeQuery(
+        List<?> alreadyLinkeddv_ids = em.createNativeQuery(
                 "SELECT linkingdataverse_id   FROM datasetlinkingdataverse WHERE dataset_id = " + dataset.getId())
                 .getResultList();
         
@@ -273,6 +273,7 @@ public class DataverseDao implements java.io.Serializable {
         return datasetChildren;
     }
 
+    @SuppressWarnings("unchecked")
     public String addRoleAssignmentsToChildren(Dataverse owner, List<String> rolesToInherit,
                                                boolean inheritAllRoles) {
         /*

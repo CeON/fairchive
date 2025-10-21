@@ -2,7 +2,7 @@ package edu.harvard.iq.dataverse.validation;
 
 public class ValidationResult {
 
-    public static ValidationResult OK = new ValidationResult(true, null);
+    private final static ValidationResult OK = new ValidationResult(true, null);
 
     private final boolean ok;
 
@@ -10,7 +10,7 @@ public class ValidationResult {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    protected ValidationResult(boolean ok, String errorCode) {
+    protected ValidationResult(final boolean ok, final String errorCode) {
         this.ok = ok;
         this.errorCode = errorCode;
     }
@@ -18,7 +18,7 @@ public class ValidationResult {
     // -------------------- GETTERS --------------------
 
     public String getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 
     // -------------------- LOGIC --------------------
@@ -27,11 +27,11 @@ public class ValidationResult {
         return OK;
     }
 
-    public static ValidationResult invalid(String errorCode) {
+    public static ValidationResult invalid(final String errorCode) {
         return new ValidationResult(false, errorCode);
     }
 
     public boolean isOk() {
-        return ok;
+        return this.ok;
     }
 }

@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
+import static edu.harvard.iq.dataverse.common.BundleUtil.hasKeyInNonDefaultBundle;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.EMAIL;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.NONE;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXT;
@@ -13,7 +14,9 @@ import static javax.persistence.GenerationType.IDENTITY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.Serializable;
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -42,6 +45,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.JsonObject;
@@ -408,6 +412,8 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
                 itemsWithoutGroup.add(new SelectItem(value, value.getLocaleStrValue()));
             }
         }
+        Collator collator = Collator.getInstance(BundleUtil.getCurrentLocale());
+        collator.setStrength(Collator.PRIMARY);
 
         for (String groupName : groupsMap.keySet()) {
             String groupLabel = getStringFromNonDefaultBundle("controlledvocabulary." 
@@ -418,18 +424,28 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
             List<SelectItem> selectItems = groupsMap.get(groupName);
 
             if (withLocaleSorting) {
-                selectItems.sort((i1, i2) -> i1.getLabel().compareToIgnoreCase(i2.getLabel()));
+                sortSelectItemsWitCurrentLocale(selectItems);
             }
 
             selectItemGroup.setSelectItems(groupsMap.get(groupName).toArray(new SelectItem[0]));
             groupedList.add(selectItemGroup);
         }
         if (withLocaleSorting) {
-            itemsWithoutGroup.sort((i1, i2) -> i1.getLabel().compareToIgnoreCase(i2.getLabel()));
+            sortSelectItemsWitCurrentLocale(itemsWithoutGroup);
         }
         groupedList.addAll(itemsWithoutGroup);
 
         return groupedList;
+    }
+
+    private void sortSelectItemsWitCurrentLocale(List<SelectItem> items) {
+        Collator collator = Collator.getInstance(BundleUtil.getCurrentLocale());
+        collator.setStrength(Collator.PRIMARY);
+
+        items.sort(Comparator.comparing(
+                SelectItem::getLabel,
+                collator
+        ));
     }
 
     public ControlledVocabularyValue getControlledVocabularyValue(String strValue) {
@@ -511,44 +527,39 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     }
 
     public String getLocaleTitle() {
-        if (getMetadataBlock() == null) {
-            return title;
-        } else {
-            String key = "datasetfieldtype." + getName() + ".title";
-            String bundleName = getMetadataBlock().getName();
-            String localeTitle = getStringFromNonDefaultBundle(key, bundleName);
-            return localeTitle.isEmpty() ? title : localeTitle;
+        String key = "datasetfieldtype." + getName() + ".title";
+
+        if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return title;
     }
 
     public String getLocaleDescription() {
-        if (getMetadataBlock() == null || StringUtils.isEmpty(description)) {
-            return description;
-        } else {
-            String localeDescription = getStringFromNonDefaultBundle(
-                    "datasetfieldtype." + getName() + ".description", getMetadataBlock().getName());
-            return localeDescription.isEmpty() ? description : localeDescription;
+        String key = "datasetfieldtype." + getName() + ".description";
+
+        if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return description;
     }
 
     public String getLocaleWatermark() {
-        if (getMetadataBlock() == null) {
-            return watermark;
-        } else {
-            String localeWatermark = getStringFromNonDefaultBundle(
-                    "datasetfieldtype." + getName() + ".watermark", getMetadataBlock().getName());
-            return localeWatermark.isEmpty() ? watermark : localeWatermark;
+        String key = "datasetfieldtype." + getName() + ".watermark";
+
+        if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return watermark;
     }
 
     public String getLocaleVocab(String value) {
-        if (getMetadataBlock() == null) {
-            return value;
-        } else {
-            String localeVocab = getStringFromNonDefaultBundle(
-                    "controlledvocabulary." + getName() + "." + value, getMetadataBlock().getName());
-            return localeVocab.isEmpty() ? value : localeVocab;
+        String key = "controlledvocabulary." + getName() + "." + value;
+
+        if (getMetadataBlock() != null && hasKeyInNonDefaultBundle(key, getMetadataBlock().getName())) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return value;
     }
 
     /**
@@ -581,13 +592,12 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     // -------------------- PRIVATE --------------------
 
     private String getLocaleTitleWithParent() {
-        try {
-            String key = "datasetfieldtype." + getName() + ".withParent.title";
-            String bundleName = getMetadataBlock().getName();
-            return getStringFromNonDefaultBundle(key, bundleName);
-        } catch (NullPointerException e) {
-            return StringUtils.EMPTY;
+        String key = "datasetfieldtype." + getName() + ".withParent.title";
+
+        if (getMetadataBlock() != null) {
+            return getStringFromNonDefaultBundle(key, getMetadataBlock().getName());
         }
+        return StringUtils.EMPTY;
     }
 
     private boolean isParentAllowsMutlipleValues() {

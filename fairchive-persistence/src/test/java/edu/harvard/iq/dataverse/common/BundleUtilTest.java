@@ -3,12 +3,29 @@ package edu.harvard.iq.dataverse.common;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
+
 import java.util.Locale;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BundleUtilTest {
+
+    @Test
+    public void hasKeyInBundle() {
+        assertThat(BundleUtil.hasKeyInBundle("search")).isTrue();
+        assertThat(BundleUtil.hasKeyInBundle("login.error")).isTrue();
+        assertThat(BundleUtil.hasKeyInBundle("")).isFalse();
+        assertThat(BundleUtil.hasKeyInBundle("junkKeyWeDoNotExpectToFind")).isFalse();
+    }
+
+    @Test
+    public void hasKeyInNonDefaultBundle() {
+        assertThat(BundleUtil.hasKeyInNonDefaultBundle("role.admin.description", "BuiltInRoles")).isTrue();
+        assertThat(BundleUtil.hasKeyInNonDefaultBundle("nonExistingKey", "BuiltInRoles")).isFalse();
+        assertThat(BundleUtil.hasKeyInNonDefaultBundle("role.admin.description", "nonexistingBundle")).isFalse();
+    }
 
     @Test
     public void getStringFromBundle() {

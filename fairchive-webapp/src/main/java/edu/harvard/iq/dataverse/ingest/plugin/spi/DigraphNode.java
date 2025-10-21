@@ -77,7 +77,7 @@ class DigraphNode implements Cloneable, Serializable {
      * A <code>Set</code> of neighboring nodes pointed to by this
      * node.
      */
-    protected Set outNodes = new HashSet();
+    protected Set<DigraphNode> outNodes = new HashSet<>();
 
     /**
      * The in-degree of the node.
@@ -88,7 +88,7 @@ class DigraphNode implements Cloneable, Serializable {
      * A <code>Set</code> of neighboring nodes that point to this
      * node.
      */
-    private Set inNodes = new HashSet();
+    private Set<DigraphNode> inNodes = new HashSet<>();
 
     public DigraphNode(Object data) {
         this.data = data;
@@ -105,7 +105,7 @@ class DigraphNode implements Cloneable, Serializable {
      * Returns an <code>Iterator</code> containing the nodes pointed
      * to by this node.
      */
-    public Iterator getOutNodes() {
+    public Iterator<DigraphNode> getOutNodes() {
         return outNodes.iterator();
     }
 

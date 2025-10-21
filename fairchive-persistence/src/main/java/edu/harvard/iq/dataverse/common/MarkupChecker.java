@@ -5,7 +5,7 @@
  */
 package edu.harvard.iq.dataverse.common;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 
@@ -29,8 +29,6 @@ public class MarkupChecker {
         if (unsafe == null) {
             return null;
         }
-        // basic includes: a, b, blockquote, br, cite, code, dd, dl, dt, em, i, li, ol, p, pre, q, small, span, strike, strong, sub, sup, u, ul
-        //Whitelist wl = Whitelist.basic().addTags("img", "h1", "h2", "h3", "kbd", "hr", "s", "del");  
 
         Whitelist wl = Whitelist.basicWithImages().addTags("h1", "h2", "h3", "kbd", "hr", "s", "del", "map", "area").addAttributes("img", "usemap")
                 .addAttributes("map", "name").addAttributes("area", "shape", "coords", "href", "title", "alt")

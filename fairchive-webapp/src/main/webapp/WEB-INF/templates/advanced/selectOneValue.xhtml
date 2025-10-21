@@ -1,0 +1,21 @@
+<ui:composition
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+
+    <p:selectOneMenu value="#{item.checkedFieldValue}"
+                     styleClass="facet-category-default"
+                     layout="pageDirection"
+                     filter="true"
+                     filterMatchMode="contains">
+        <f:selectItem itemLabel="#{bundle['advanced.search.selectItem']}"
+                      noSelectionOption="true"
+                      itemValue="#{null}"
+                      itemDisabled="false"/>
+        <f:selectItems value="#{item.listLabelAndValue}"
+                       var="selectOneTuple"
+                       itemLabel="#{selectOneTuple._1()}"
+                       itemValue="#{selectOneTuple._2()}"/>
+    </p:selectOneMenu>
+
+</ui:composition>

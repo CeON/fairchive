@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
@@ -46,6 +45,8 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaxFileU
 import static edu.harvard.iq.dataverse.util.FileUtil.calculateChecksum;
 import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
 import static edu.harvard.iq.dataverse.util.FileUtil.getFilesTempDirectory;
+import static java.lang.System.currentTimeMillis;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Stateless
 @TransactionManagement(TransactionManagementType.BEAN)
@@ -245,25 +246,22 @@ public class DataFileCreator {
                 || isTrustedDetectedMimeType(recognizedType);
     }
 
-    private boolean isUndeterminedMimeType(String mimeType) {
-        return mimeType == null || mimeType.equals("")
+    private boolean isUndeterminedMimeType(final String mimeType) {
+        return isEmpty(mimeType)
                 || mimeType.equals(ApplicationMimeType.UNDETERMINED_DEFAULT.getMimeValue())
                 || mimeType.equals(ApplicationMimeType.UNDETERMINED_BINARY.getMimeValue());
     }
-    private boolean isIngestableButNotCsvOrXlsx(String mimeType) {
+    private boolean isIngestableButNotCsvOrXlsx(final String mimeType) {
         return canIngestAsTabular(mimeType)
                 && !mimeType.equals(TextMimeType.CSV.getMimeValue())
                 && !mimeType.equals(TextMimeType.CSV_ALT.getMimeValue())
                 && !mimeType.equals(ApplicationMimeType.XLSX.getMimeValue());
     }
-    private boolean isTrustedDetectedMimeType(String recognizedType) {
-        if (canIngestAsTabular(recognizedType)
-                || recognizedType.equals("application/fits-gzipped")
-                || recognizedType.equals(ShapefileHandler.SHAPEFILE_FILE_TYPE)
-                || recognizedType.equals(ApplicationMimeType.ZIP.getMimeValue())) {
-            return true;
-        }
-        return false;
+    private boolean isTrustedDetectedMimeType(final String mimeType) {
+        return canIngestAsTabular(mimeType)
+                || mimeType.equals("application/fits-gzipped")
+                || mimeType.equals(ShapefileHandler.SHAPEFILE_FILE_TYPE)
+                || mimeType.equals(ApplicationMimeType.ZIP.getMimeValue());
     }
 
     /**
@@ -336,20 +334,18 @@ public class DataFileCreator {
         return datafiles;
     }
 
-    private Tuple2<String, String> extractDirectoryAndFileName(ZipEntry zipEntry) {
-        String fileEntryName = StringUtils.defaultString(zipEntry.getName());
-        String normalizedEntryName = fileEntryName
+    private Tuple2<String, String> extractDirectoryAndFileName(final ZipEntry zipEntry) {
+        final String normalizedEntryName = zipEntry.getName()
                 .replace('\\', '/')
                 .replaceAll("[/][/]*", "/")
                 .replaceFirst("^[/]", "");
 
-        int dirAndFileNameDividerPos = StringUtils.lastIndexOf(normalizedEntryName, '/');
-        if (dirAndFileNameDividerPos != -1) {
-            return new Tuple2<>(
-                    StringUtils.substring(normalizedEntryName, 0, dirAndFileNameDividerPos),
-                    StringUtils.substring(normalizedEntryName, dirAndFileNameDividerPos + 1));
-        }
-        return new Tuple2<>(null, normalizedEntryName);
+        final int dirAndFileNameDividerPos = normalizedEntryName.lastIndexOf('/');
+        return dirAndFileNameDividerPos != -1
+            ? new Tuple2<>(
+                    normalizedEntryName.substring(0, dirAndFileNameDividerPos),
+                    normalizedEntryName.substring(dirAndFileNameDividerPos + 1))
+            : new Tuple2<>(null, normalizedEntryName);
     }
 
     /**
@@ -384,18 +380,20 @@ public class DataFileCreator {
      * individual files, etc., and once the file name and mime type have already
      * been figured out.
      */
-    private DataFile createSingleDataFile(Path filePath, String fileName, String contentType, Long uncompressedSize) throws IOException {
+    private DataFile createSingleDataFile(Path filePath, String fileName, 
+            String contentType, Long uncompressedSize) throws IOException {
 
+        final Timestamp now = new Timestamp(currentTimeMillis());
         DataFile datafile = new DataFile(contentType);
-        datafile.setCreateDate(new Timestamp(new Date().getTime()));
-        datafile.setModificationTime(new Timestamp(new Date().getTime()));
+        datafile.setCreateDate(now);
+        datafile.setModificationTime(now);
         /**
          * @todo Think more about when permissions on files are modified.
          * Obviously, here at create time files have some sort of permissions,
          * even if these permissions are *implied*, by ViewUnpublishedDataset at
          * the dataset level, for example.
          */
-        datafile.setPermissionModificationTime(new Timestamp(new Date().getTime()));
+        datafile.setPermissionModificationTime(now);
         datafile.setFilesize(filePath.toFile().length());
         datafile.setUncompressedSize(uncompressedSize);
         FileMetadata fmd = new FileMetadata();
@@ -415,7 +413,8 @@ public class DataFileCreator {
         Path destinationPath = Paths.get(getFilesTempDirectory(), datafile.getStorageIdentifier());
         Files.move(filePath, destinationPath);
 
-        DataFile.ChecksumType checksumType = DataFile.ChecksumType.fromString(settingsService.getValueForKey(SettingsServiceBean.Key.FileFixityChecksumAlgorithm));
+        DataFile.ChecksumType checksumType = DataFile.ChecksumType.
+                fromString(settingsService.getValueForKey(SettingsServiceBean.Key.FileFixityChecksumAlgorithm));
 
         datafile.setChecksumType(checksumType);
         datafile.setChecksumValue(calculateChecksum(destinationPath, checksumType));

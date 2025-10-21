@@ -29,7 +29,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.primefaces.event.SelectEvent;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -40,6 +39,7 @@ import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.datafile.file.FileMetadataService;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadHelper;
 import edu.harvard.iq.dataverse.datafile.page.FileDownloadRequestHelper;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.EmbargoAccessService;
 import edu.harvard.iq.dataverse.dataverse.DataverseService;
 import edu.harvard.iq.dataverse.engine.command.impl.PublishDatasetCommand;
@@ -60,6 +60,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 
 @ExtendWith(MockitoExtension.class)
@@ -90,6 +91,8 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
     @Inject
     SettingsServiceBean settingsService;
     @Inject
+    SystemConfig config;;
+    @Inject
     EjbDataverseEngine commandEngine;
     @Inject
     ExternalToolServiceBean externalToolService;
@@ -110,7 +113,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
     @Inject
     DatasetFieldValidationService fieldValidationService;
     @Inject
-    DatasetDao datasetDao;
+    DatasetService datasetService;
     @Inject
     DatasetVersionRepository datasetVersionRepository;
     @Inject
@@ -131,7 +134,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
     public void setUp() {
         this.dataset = this.datasetRepo.getById(52L);
         this.datasetFilesTabFacade = new DatasetFilesTabFacade(
-                datasetVersionRepository, fileDownloadHelper, datasetDao);
+                datasetVersionRepository, fileDownloadHelper, datasetService);
         this.filesTab = new DatasetFilesTabStubbed(fileDownloadHelper,
                 datafileService,
                 permissionService, permissionsWrapper,
@@ -142,7 +145,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                 fileDownloadRequestHelper, 
                 guestbookResponseDialog, imageThumbConverter,
                 fileMetadataService, datasetFilesTabFacade,
-                confirmEmailService, fieldValidationService);
+                confirmEmailService, fieldValidationService, config);
         this.filesTab.init(this.dataset.getLatestVersion());
         this.filesTab.setFileLabelSearchTerm("");
 
@@ -392,7 +395,8 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                 FileMetadataService fileMetadataService,
                 DatasetFilesTabFacade datasetFilesTabFacade,
                 ConfirmEmailServiceBean confirmEmailService,
-                DatasetFieldValidationService fieldValidationService) {
+                DatasetFieldValidationService fieldValidationService,
+                SystemConfig config) {
             super(fileDownloadHelper, datafileService, permissionService,
                     permissionsWrapper,
                     dvRequestService, session, guestbookResponseService,
@@ -402,7 +406,7 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
                     fileDownloadRequestHelper, 
                     guestbookResponseDialog,
                     imageThumbConverter, fileMetadataService, datasetFilesTabFacade,
-                    confirmEmailService, fieldValidationService);
+                    confirmEmailService, fieldValidationService, config);
         }
 
         @Override

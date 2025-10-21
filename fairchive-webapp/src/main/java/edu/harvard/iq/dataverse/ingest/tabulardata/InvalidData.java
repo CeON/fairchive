@@ -89,7 +89,7 @@ public class InvalidData {
             case 3:
                 sb.append("\t\t<invalrng>\n");
                 for (int k = 0; k < invalidValues.size(); k++) {
-                    sb.append("\t\t\t<item VALUE=\"" + invalidValues.get(k) + "\"/>\n");
+                    sb.append("\t\t\t<item VALUE=\"").append(invalidValues.get(k)).append("\"/>\n");
                 }
                 sb.append("\t\t</invalrng>\n");
                 break;
@@ -98,10 +98,10 @@ public class InvalidData {
                 sb.append("\t\t<invalrng>\n");
                 sb.append("\t\t\t<range");
                 if (!invalidRange.get(0).equals("LOWEST")) {
-                    sb.append(" min=\"" + invalidRange.get(0) + "\"");
+                    sb.append(" min=\"").append(invalidRange.get(0)).append('"');
                 }
                 if (!invalidRange.get(1).equals("HIGHEST")) {
-                    sb.append(" max=\"" + invalidRange.get(1) + "\"");
+                    sb.append(" max=\"").append(invalidRange.get(1)).append('"');
                 }
                 sb.append("/>\n");
                 sb.append("\t\t</invalrng>\n");
@@ -111,13 +111,13 @@ public class InvalidData {
                 sb.append("\t\t<invalrng>\n");
                 sb.append("\t\t\t<range");
                 if (!invalidRange.get(0).equals("LOWEST")) {
-                    sb.append(" min=\"" + invalidRange.get(0) + "\"");
+                    sb.append(" min=\"").append(invalidRange.get(0)).append('"');
                 }
                 if (!invalidRange.get(1).equals("HIGHEST")) {
-                    sb.append(" max=\"" + invalidRange.get(1) + "\"");
+                    sb.append(" max=\"").append(invalidRange.get(1)).append('"');
                 }
                 sb.append("/>\n");
-                sb.append("\t\t\t<item VALUE=\"" + invalidValues.get(0) + "\"/>\n");
+                sb.append("\t\t\t<item VALUE=\"").append(invalidValues.get(0)).append("\"/>\n");
                 sb.append("\t\t</invalrng>\n");
 
                 break;

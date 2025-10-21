@@ -57,8 +57,10 @@ public class RorData implements JpaEntity<Long>, Serializable {
 
     public RorData() { }
 
-    public RorData(String rorId, String name, String countryName, String countryCode, String website, String city,
-                   Set<String> nameAliases, Set<String> acronyms, Set<RorLabel> labels) {
+    public RorData(String rorId, String name, String countryName, 
+                   String countryCode, String website, String city,
+                   Set<String> nameAliases, Set<String> acronyms, 
+                   Set<RorLabel> labels) {
         this.rorId = rorId;
         this.name = name;
         this.countryName = countryName;
