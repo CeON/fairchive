@@ -3704,6 +3704,30 @@ div.filesTable {
 	}
 }
 
+/* Dashboard */
+
+#dashboard-block {
+	div.card-box {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+
+		> .row {
+			padding-top: 20px;
+			margin-top: 0;
+		}
+
+		> * {
+			display: flex;
+			flex-grow: 0;
+		}
+
+		.dashboard-block-description {
+			flex-grow: 1;
+		}
+	}
+}
+
 /* Modal */
 
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
