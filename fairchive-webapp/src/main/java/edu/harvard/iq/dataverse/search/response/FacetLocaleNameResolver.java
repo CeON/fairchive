@@ -73,7 +73,7 @@ public class FacetLocaleNameResolver {
     private String getDatasetFieldFacetLabelName(String facetLabelName, String formattedFacetLabelName,
                                                  DatasetFieldType matchedDatasetField) {
         if (matchedDatasetField.isControlledVocabulary()) {
-            String key = "controlledvocabulary." + matchedDatasetField.getName() + "." + formattedFacetLabelName;
+            String key = "controlledvocabulary." + matchedDatasetField.getName() + '.' + formattedFacetLabelName;
             String bundleName = matchedDatasetField.getMetadataBlock().getName().toLowerCase();
             
             String facetLabelTranslation = BundleUtil.getStringFromNonDefaultBundle(key, bundleName);
@@ -129,6 +129,6 @@ public class FacetLocaleNameResolver {
      * @return text with replaced spaces with underscores, and leading/trailing whitespaces removed, toLowerCased
      */
     private String toBundleNameFormat(String name) {
-        return StringUtils.stripAccents(name.toLowerCase().replace(" ", "_"));
+        return StringUtils.stripAccents(name.toLowerCase().replace(' ', '_'));
     }
 }

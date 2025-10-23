@@ -11,6 +11,10 @@ import javax.enterprise.inject.Alternative;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -19,7 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Based on DataCitation class created by
@@ -63,7 +66,7 @@ public class StandardCitationFormatsConverter extends AbstractCitationFormatsCon
         GlobalId pid = data.getPersistentId();
         BibTeXCitationBuilder bibtex = new BibTeXCitationBuilder()
                 .add(data.getFileTitle() != null && data.isDirect() ? "@incollection{" : "@data{")
-                .add(pid.getIdentifier() + "_" + data.getYear() + ",\r\n")
+                .add(pid.getIdentifier() + '_' + data.getYear() + ",\r\n")
                 .line("author", String.join(" and ", data.getAuthors()));
 
         if(data.getPublisher() != null) {
@@ -86,7 +89,7 @@ public class StandardCitationFormatsConverter extends AbstractCitationFormatsCon
             bibtex.line("version", data.getVersion());
         }
 
-        bibtex.line("doi", pid.getAuthority() + "/" + pid.getIdentifier())
+        bibtex.line("doi", pid.getAuthority() + '/' + pid.getIdentifier())
                 .line("url", pid.toURL().toString(), s -> bibtex.mapValue(s, "{", "}"))
                 .add("}\r\n");
         return bibtex.toString();
@@ -134,7 +137,7 @@ public class StandardCitationFormatsConverter extends AbstractCitationFormatsCon
                 ris.line("C1", data.getFileTitle());
             }
         }
-        ris.line("ER", ""); // closing element
+        ris.line("ER", EMPTY); // closing element
         return ris.toString();
     }
 
@@ -147,7 +150,7 @@ public class StandardCitationFormatsConverter extends AbstractCitationFormatsCon
             createEndNoteXML(data, xmlw);
             return buffer.toString();
         } catch (XMLStreamException | IOException e) {
-            logger.error("", e);
+            logger.error(EMPTY, e);
             throw new EJBException("Error occurred during creating endnote xml.", e);
         } finally {
             try {
@@ -215,10 +218,10 @@ public class StandardCitationFormatsConverter extends AbstractCitationFormatsCon
             .endTag() // dates
             .addTagWithValue("edition", data.getVersion())
             .addTagCollection("keywords", "keyword", data.getKeywords())
-            .addTagCollection(StringUtils.EMPTY, "custom3", data.getKindsOfData())
-            .addTagCollection(StringUtils.EMPTY, "language", data.getLanguages())
+            .addTagCollection(EMPTY, "custom3", data.getKindsOfData())
+            .addTagCollection(EMPTY, "language", data.getLanguages())
             .addTagWithValue("publisher", data.getPublisher())
-            .addTagCollection(StringUtils.EMPTY, "reviewed-item", data.getSpatialCoverages())
+            .addTagCollection(EMPTY, "reviewed-item", data.getSpatialCoverages())
             .startTag("urls")
             .startTag("related-urls")
             .addTagWithValue("url", data.getPersistentId().toURL().toString())
@@ -233,7 +236,7 @@ public class StandardCitationFormatsConverter extends AbstractCitationFormatsCon
         if (data.getPersistentId() != null) {
             GlobalId pid = data.getPersistentId();
             xml.addTagWithValue("electronic-resource-num",
-                    pid.getProtocol() + "/" + pid.getAuthority() + "/" + pid.getIdentifier());
+                    pid.getProtocol() + '/' + pid.getAuthority() + '/' + pid.getIdentifier());
         }
         xml.endTag() // record
                 .endTag() // records
@@ -244,6 +247,6 @@ public class StandardCitationFormatsConverter extends AbstractCitationFormatsCon
     private List<String> extractProducerNames(CitationData data) {
         return data.getProducers().stream()
                 .map(CitationData.Producer::getName)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 }

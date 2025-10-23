@@ -5,6 +5,7 @@ import edu.harvard.iq.dataverse.persistence.config.LocaleConverter;
 import edu.harvard.iq.dataverse.persistence.config.ValidateEmail;
 import edu.harvard.iq.dataverse.persistence.consent.AcceptedConsent;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.Column;
@@ -26,6 +27,7 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.Serializable;
@@ -268,7 +270,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     }
 
     public String getName() {
-        return firstName + " " + lastName;
+        return firstName + SPACE + lastName;
     }
 
     public String getSortByString() {
@@ -358,7 +360,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
 
     @Override
     public String toString() {
-        return "[AuthenticatedUser identifier:" + getIdentifier() + "]";
+        return "[AuthenticatedUser identifier:" + getIdentifier() + ']';
     }
 
     // -------------------- hashCode & equals --------------------

@@ -68,7 +68,7 @@ public class DataCaptureModuleUtil {
     }
 
     public static String getScriptName(DatasetVersion datasetVersion) {
-        return "upload-" + datasetVersion.getDataset().getIdentifier().replace("/", "_") + ".bash";
+        return "upload-" + datasetVersion.getDataset().getIdentifier().replace('/', '_') + ".bash";
     }
 
 }

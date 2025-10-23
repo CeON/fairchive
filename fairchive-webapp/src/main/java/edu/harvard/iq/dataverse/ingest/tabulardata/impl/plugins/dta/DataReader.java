@@ -381,7 +381,7 @@ public class DataReader {
     }
 
     public boolean checkTag(String tag) throws IOException {
-        if (tag == null || tag.equals("")) {
+        if (tag == null || tag.isEmpty()) {
             throw new IOException("opening tag must be a non-empty string.");
         }
 
@@ -396,7 +396,7 @@ public class DataReader {
     }
 
     public void readOpeningTag(String tag) throws IOException {
-        if (tag == null || tag.equals("")) {
+        if (tag == null || tag.isEmpty()) {
             throw new IOException("opening tag must be a non-empty string.");
         }
 
@@ -407,7 +407,7 @@ public class DataReader {
     }
 
     public void readClosingTag(String tag) throws IOException {
-        if (tag == null || tag.equals("")) {
+        if (tag == null || tag.isEmpty()) {
             throw new IOException("closing tag must be a non-empty string.");
         }
 

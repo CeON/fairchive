@@ -704,7 +704,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
                 }
             }
             throw new IllegalArgumentException(
-                    "ChecksumType must be one of these values: " + values() + ".");
+                    "ChecksumType must be one of these values: " + values() + '.');
         }
 
         @Override

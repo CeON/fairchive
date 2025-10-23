@@ -173,9 +173,9 @@ public class IndexServiceBean {
     }
 
     public Future<String> indexDataverse(Dataverse dataverse) {
-        logger.fine("indexDataverse called on dataverse id " + dataverse.getId() + "(" + dataverse.getAlias() + ")");
+        logger.fine("indexDataverse called on dataverse id " + dataverse.getId() + '(' + dataverse.getAlias() + ')');
         if (dataverse.getId() == null) {
-            String msg = "unable to index dataverse. id was null (alias: " + dataverse.getAlias() + ")";
+            String msg = "unable to index dataverse. id was null (alias: " + dataverse.getAlias() + ')';
             logger.info(msg);
             return new AsyncResult<>(msg);
         }
@@ -253,7 +253,9 @@ public class IndexServiceBean {
                 dvObjectService.updateContentIndexTime(dataverse);
             }
             IndexResponse indexResponse = solrIndexService.indexPermissionsForOneDvObject(dataverse);
-            String msg = "indexed dataverse " + dataverse.getId() + ":" + dataverse.getAlias() + ". Response from permission indexing: " + indexResponse.getMessage();
+            String msg = "indexed dataverse " + dataverse.getId() + ':' + 
+                    dataverse.getAlias() + ". Response from permission indexing: " + 
+                    indexResponse.getMessage();
             return new AsyncResult<>(msg);
         } catch (SolrServerException | IOException ex) {
             String status = ex.toString();
@@ -289,7 +291,7 @@ public class IndexServiceBean {
          */
         String solrIdPublished = determinePublishedDatasetSolrDocId(dataset);
         String solrIdDraftDataset = IndexableObject.IndexableTypes.DATASET.getName() + 
-                "_" + dataset.getId() + IndexableDataset.DatasetState.WORKING_COPY.getSuffix();
+                '_' + dataset.getId() + IndexableDataset.DatasetState.WORKING_COPY.getSuffix();
         String solrIdDeaccessioned = determineDeaccessionedDatasetId(dataset);
         StringBuilder debug = new StringBuilder();
         debug.append("\ndebug:\n");
@@ -844,7 +846,7 @@ public class IndexServiceBean {
                 if (dsf.getValues() != null && !dsf.getValues().isEmpty()
                         && dsf.getValues().get(0) != null && solrFieldSearchable != null) {
 
-                    logger.fine("indexing " + dsf.getTypeName() + ":" + dsf.getValues() + " into " + solrFieldSearchable + " and maybe " + solrFieldFacetable);
+                    logger.fine("indexing " + dsf.getTypeName() + ':' + dsf.getValues() + " into " + solrFieldSearchable + " and maybe " + solrFieldFacetable);
                     // if (dsfType.getSolrField().getSolrType().equals(SolrField.SolrType.INTEGER))
                     // {
                     if (SolrField.SolrType.EMAIL.equals(dsfSolrField.getSolrType())) {

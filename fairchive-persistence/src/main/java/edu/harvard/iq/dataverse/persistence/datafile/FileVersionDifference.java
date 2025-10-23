@@ -6,6 +6,8 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,14 +52,14 @@ public class FileVersionDifference {
 
         if (newFileMetadata.getDataFile() == null && originalFileMetadata != null) {
             //File Deleted
-            updateDifferenceSummary("", getStringFromBundle("file.versionDifferences.fileGroupTitle"), 0, 0, 1, 0);
+            updateDifferenceSummary(EMPTY, getStringFromBundle("file.versionDifferences.fileGroupTitle"), 0, 0, 1, 0);
             return;
         }
 
         if (this.originalFileMetadata == null && 
                 this.newFileMetadata.getDataFile() != null) {
             //File Added
-            updateDifferenceSummary("", getStringFromBundle("file.versionDifferences.fileGroupTitle"), 1, 0, 0, 0);
+            updateDifferenceSummary(EMPTY, getStringFromBundle("file.versionDifferences.fileGroupTitle"), 1, 0, 0, 0);
         }
 
         //Check to see if File replaced
@@ -65,7 +67,7 @@ public class FileVersionDifference {
                 newFileMetadata.getDataFile() != null && 
                 originalFileMetadata.getDataFile() != null && 
                 !this.originalFileMetadata.getDataFile().equals(this.newFileMetadata.getDataFile())) {
-            updateDifferenceSummary("", getStringFromBundle("file.versionDifferences.fileGroupTitle"), 0, 0, 0, 1);
+            updateDifferenceSummary(EMPTY, getStringFromBundle("file.versionDifferences.fileGroupTitle"), 0, 0, 0, 1);
         }
 
         if (originalFileMetadata != null) {
@@ -158,11 +160,11 @@ public class FileVersionDifference {
             */
             String value1 = originalFileMetadata.getCategoryNames().toString();
             String value2 = newFileMetadata.getCategoryNames().toString();
-            if (value1 == null || value1.isEmpty() || value1.equals(" ")) {
-                value1 = "";
+            if (value1 == null || value1.isEmpty() || value1.equals(SPACE)) {
+                value1 = EMPTY;
             }
-            if (value2 == null || value2.isEmpty() || value2.equals(" ")) {
-                value2 = "";
+            if (value2 == null || value2.isEmpty() || value2.equals(SPACE)) {
+                value2 = EMPTY;
             }
 
             if (!value1.equals(value2)) {
@@ -194,10 +196,10 @@ public class FileVersionDifference {
                     }
                 }
                 if (added > 0) {
-                    updateDifferenceSummary(getStringFromBundle("file.versionDifferences.fileTagsGroupTitle"), "", added, 0, 0, 0, true);
+                    updateDifferenceSummary(getStringFromBundle("file.versionDifferences.fileTagsGroupTitle"), EMPTY, added, 0, 0, 0, true);
                 }
                 if (deleted > 0) {
-                    updateDifferenceSummary(getStringFromBundle("file.versionDifferences.fileTagsGroupTitle"), "", 0, 0, deleted, 0, true);
+                    updateDifferenceSummary(getStringFromBundle("file.versionDifferences.fileTagsGroupTitle"), EMPTY, 0, 0, deleted, 0, true);
                 }
 
             }
@@ -287,7 +289,7 @@ public class FileVersionDifference {
             }
 
             for (FileDifferenceSummaryItem item : this.fileDifferenceSummaryItems) {
-                retval += " " + item.toString();
+                retval += SPACE + item.toString();
             }
 
             return retval;

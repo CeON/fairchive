@@ -1,6 +1,10 @@
 package edu.harvard.iq.dataverse.common;
 
 import javax.mail.internet.InternetAddress;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
+
 import java.util.Locale;
 
 public class BrandingUtil {
@@ -18,10 +22,10 @@ public class BrandingUtil {
             return systemAddress.getPersonal();
         }
         if (rootDataverseName != null && !rootDataverseName.isEmpty()) {
-            return rootDataverseName + " " + BundleUtil.getStringFromBundleWithLocale("contact.support", locale);
+            return rootDataverseName + ' ' + getStringFromBundleWithLocale("contact.support", locale);
         }
-        String saneDefault = BundleUtil.getStringFromBundleWithLocale("dataverse", locale);
-        return BundleUtil.getStringFromBundleWithLocale("contact.support", locale, saneDefault);
+        String saneDefault = getStringFromBundleWithLocale("dataverse", locale);
+        return getStringFromBundleWithLocale("contact.support", locale, saneDefault);
     }
 
     public static String getSupportTeamEmailAddress(InternetAddress systemAddress) {
@@ -29,6 +33,6 @@ public class BrandingUtil {
     }
 
     public static String getContactHeader() {
-        return BundleUtil.getStringFromBundle("contact.header");
+        return getStringFromBundle("contact.header");
     }
 }
