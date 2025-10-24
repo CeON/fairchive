@@ -21,6 +21,8 @@ package edu.harvard.iq.dataverse.dataaccess;
 
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 
+import static org.apache.commons.lang.StringUtils.EMPTY;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,7 +49,7 @@ public class DataFileZipper {
     private List<String> fileNameList = null; // the list of file names to check for duplicates
     private List<Long> zippedFilesList = null; // list of successfully zipped files, to update guestbooks and download counts (not yet implemented)
 
-    private String fileManifest = "";
+    private String fileManifest = EMPTY;
 
     private Set<String> zippedFolders = null;
 
@@ -100,7 +102,7 @@ public class DataFileZipper {
 
         String fileName = getFileNameFrom(accessObject, dataFile, getOriginal);
         String mimeType = accessObject.getMimeType();
-        if (mimeType == null || mimeType.equals("")) {
+        if (mimeType == null || mimeType.isEmpty()) {
             mimeType = "application/octet-stream";
         }
 
@@ -121,17 +123,17 @@ public class DataFileZipper {
                 // If any of the saved folder names start with with slashes,
                 // we want to remove them: 
                 // (i.e., ///foo/bar will become foo/bar)
-                while (folderName.startsWith("/")) {
+                while (folderName.charAt(0) == '/') {
                     folderName = folderName.substring(1);
                 }
                 if (!"".equals(folderName)) {
                     if (!zippedFolders.contains(folderName)) {
-                        ZipEntry d = new ZipEntry(folderName + "/");
+                        ZipEntry d = new ZipEntry(folderName.concat("/"));
                         zipOutputStream.putNextEntry(d);
                         zipOutputStream.closeEntry();
                         zippedFolders.add(folderName);
                     }
-                    fileName = folderName + "/" + fileName;
+                    fileName = folderName + '/' + fileName;
                 }
             }
 
@@ -221,13 +223,14 @@ public class DataFileZipper {
     private String checkZipEntryName(String originalName) {
         String name = originalName;
         int fileSuffix = 1;
-        int extensionIndex = originalName.lastIndexOf(".");
+        int extensionIndex = originalName.lastIndexOf('.');
 
         while (fileNameList.contains(name)) {
             if (extensionIndex != -1) {
-                name = originalName.substring(0, extensionIndex) + "_" + fileSuffix++ + originalName.substring(extensionIndex);
+                name = originalName.substring(0, extensionIndex) + '_' + 
+                        fileSuffix++ + originalName.substring(extensionIndex);
             } else {
-                name = originalName + "_" + fileSuffix++;
+                name = originalName + '_' + fileSuffix++;
             }
         }
         fileNameList.add(name);
