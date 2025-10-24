@@ -1,58 +1,58 @@
 package edu.harvard.iq.dataverse.search;
 
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SolrHostColonPort;
+
+import java.io.IOException;
 
 import javax.enterprise.inject.Disposes;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.util.logging.Logger;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 /**
- * CDI compliant factory of {@link SolrClient} objects. 
+ * CDI compliant factory of {@link SolrClient} objects.
  * 
  * @author madryk
  */
 public class SolrClientFactory {
-    
-    private static final Logger LOGGER = Logger.getLogger(SolrClientFactory.class.getCanonicalName());
 
     @Inject
-    private SettingsServiceBean settingsService;
-    
-    
-    // -------------------- LOGIC --------------------
-    
+    private SettingsServiceBean settings;
+
     @Produces
     public SolrClient produceSolrClient() throws IOException {
-        String urlString = "http://" + settingsService.getValueForKey(Key.SolrHostColonPort) + "/solr/collection1";
-        LOGGER.fine("Creating SolrClient at url: " + urlString);
-        
-        return new HttpSolrClient.Builder(urlString).build();
+        return build("collection1");
     }
 
     @Produces
     @RorSolrClient
     public SolrClient produceRorSolrClient() {
-        String urlString = "http://" + settingsService.getValueForKey(Key.SolrHostColonPort) + "/solr/rorSuggestions";
-        LOGGER.fine("Creating SolrClient at url: " + urlString);
-
-        return new HttpSolrClient.Builder(urlString).build();
+        return build("rorSuggestions");
     }
-    
+
     @Produces
     @GeoNameSolrClient
     public SolrClient produceGeoNameSolrClient() {
-        String urlString = "http://" + settingsService.getValueForKey(Key.SolrHostColonPort) + "/solr/geonames";
-        LOGGER.fine("Creating SolrClient at url: " + urlString);
-
-        return new HttpSolrClient.Builder(urlString).build();
+        return build("geonames");
     }
-    
+
+    @Produces
+    @PeriodoSolrClient
+    public SolrClient producePeriodoSolrClient() {
+        return build("periodo");
+    }
+
     public void disposeSolrClient(@Disposes SolrClient solrClient) throws IOException {
         solrClient.close();
+    }
+
+    private SolrClient build(final String path) {
+        final String url = "http://" + this.settings.getValueForKey(SolrHostColonPort)
+                + "/solr/" + path;
+        return new HttpSolrClient.Builder(url).build();
     }
 }
