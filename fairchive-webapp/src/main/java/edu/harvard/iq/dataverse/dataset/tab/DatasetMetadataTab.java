@@ -59,17 +59,13 @@ public class DatasetMetadataTab implements Serializable {
                               ExportService exportService,
                               SystemConfig systemConfig,
                               DatasetFieldsInitializer datasetVersionUI,
-                              DatasetDao datasetDao,
                               SettingsServiceBean settingService) {
-                              DatasetService datasetService) {
         this.permissionsWrapper = permissionsWrapper;
         this.session = session;
         this.exportService = exportService;
         this.systemConfig = systemConfig;
         this.datasetFieldsInitializer = datasetVersionUI;
-        this.datasetDao = datasetDao;
         this.settingService = settingService;
-        this.datasetService = datasetService;
     }
 
     // -------------------- GETTERS --------------------
