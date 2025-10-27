@@ -245,8 +245,7 @@ public class CreateDatasetPage implements Serializable {
         List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(workingVersion);
         Set<ConstraintViolation<FileMetadata>> constraintViolations = workingVersion.validateFileMetadata();
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
-            JsfHelper.addErrorMessage(getStringFromBundle("dataset.message.validationError"),
-            		getStringFromBundle("dataset.message.validationErrorDetails"));
+            JsfHelper.addErrorMessage("", getStringFromBundle("dataset.message.validationErrorDetails"));
             saveDatasetProcess.setPreconditionErrors(true);
             return;
         }

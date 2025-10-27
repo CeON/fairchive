@@ -190,7 +190,7 @@ public class EditDatasetMetadataPage implements Serializable {
             throwable = throwable.getCause();
         }
         if (throwable instanceof ValidationException) {
-            this.ui.addErrorMessage(getStringFromBundle("dataset.message.validationError"), "");
+            this.ui.addErrorMessage("", getStringFromBundle("dataset.message.validationErrorDetails"));
         } else if (throwable instanceof CommandException) {
             logger.log(SEVERE, "CommandException, when attempting to update the dataset: " + throwable.getMessage(), throwable);
             this.ui.addErrorMessage(getStringFromBundle("dataset.message.metadataFailure"));

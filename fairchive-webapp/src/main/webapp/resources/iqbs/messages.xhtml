@@ -4,7 +4,8 @@
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
       xmlns:o="http://omnifaces.org/ui"
-      xmlns:f="http://xmlns.jcp.org/jsf/core">
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:jsf="http://xmlns.jcp.org/jsf">
 
 <!--@elvariable id="message" type="javax.faces.application.FacesMessage"-->
 
@@ -26,7 +27,10 @@
                     <o:form useRequestURI="true">
                     <div class="alert alert-danger" role="alert" aria-atomic="true">
                         <p class="text-block">
-                            <span class="glyphicon glyphicon-warning-sign"></span>&#160;<strong>#{globalMessage.summary}</strong> –
+                            <span class="glyphicon glyphicon-warning-sign"></span>&#160;
+                            <ui:fragment rendered="#{not empty globalMessage.summary}">
+                                <strong>#{globalMessage.summary}</strong> –
+                            </ui:fragment>
                             <h:outputText value="#{globalMessage.detail}" escape="false"/>
                             <h:outputFormat value="#{bundle['error.support.message']}" escape="false">
                                 <o:param>
@@ -40,7 +44,9 @@
                 <ui:fragment rendered="#{globalMessage.severity eq FacesMessage.SEVERITY_INFO}">
                     <div class="alert alert-info" role="alert" aria-atomic="true">
                         <p class="text-block">
-                            <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{globalMessage.summary}</strong> –
+                            <ui:fragment rendered="#{not empty globalMessage.summary}">
+                                <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{globalMessage.summary}</strong> –
+                            </ui:fragment>
                             <h:outputText escape="false" value="#{globalMessage.detail} "/>
                         </p>
                     </div>
@@ -48,7 +54,10 @@
                 <ui:fragment rendered="#{globalMessage.severity eq FacesMessage.SEVERITY_WARN}">
                     <div class="alert alert-warning" role="alert" aria-atomic="true">
                         <p class="text-block">
-                            <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{globalMessage.summary}</strong> –
+                            <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;
+                            <ui:fragment rendered="#{not empty globalMessage.summary}">
+                                <strong>#{globalMessage.summary}</strong> –
+                            </ui:fragment>
                             <h:outputText escape="false" value="#{globalMessage.detail} "/>
                         </p>
                     </div>
@@ -66,7 +75,10 @@
                     rendered="#{not empty facesContext.getMessageList('successMessage')}" redisplay="false">
             <div class="alert alert-success" role="alert" aria-atomic="true">
                 <p class="text-block">
-                    <span class="glyphicon glyphicon glyphicon-ok-sign"></span>&#160;<strong>#{message.summary}</strong> –
+                    <span class="glyphicon glyphicon glyphicon-ok-sign"></span>&#160;
+                    <ui:fragment rendered="#{not empty message.summary}">
+                        <strong>#{message.summary}</strong> –
+                    </ui:fragment>
                     <h:outputText escape="false" value="#{message.detail}"/>
                 </p>
             </div>
