@@ -947,7 +947,7 @@ public class Access extends AbstractApiBean {
             return error(BAD_REQUEST, BundleUtil.getStringFromBundle("access.api.fileAccess.failure.noUser", wr.getLocalizedMessage()));
         }
 
-        if (identifier == null || identifier.equals("")) {
+        if (identifier == null || identifier.isEmpty()) {
             return error(BAD_REQUEST, BundleUtil.getStringFromBundle("access.api.requestAccess.noKey"));
         }
 

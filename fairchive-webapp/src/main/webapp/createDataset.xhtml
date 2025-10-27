@@ -153,11 +153,15 @@
                     <p:commandButton id="save"
                                      value="#{bundle['file.addBtn']}"
                                      action="#{CreateDatasetPage.save}"
-                                     update="formContent"
+                                     update="formContent, saveStarted"
                                      onstart="PF('datasetFormBlockUI').show();"
-                                     onerror="PF('saveStatusPoll').start();"
-                                     onsuccess="PF('datasetFormBlockUI').hide();"
-                                     oncomplete="$(document).scrollTop(0);"
+                                     oncomplete="if (PF('saveStarted').jq.val() === 'true') {
+                                                     PF('datasetFormBlockUI').show();
+                                                     PF('saveStatusPoll').start();
+                                                 } else {
+                                                     PF('datasetFormBlockUI').hide();
+                                                 }
+                                                 $(document).scrollTop(0);"
                                      />
                     <p:button id="cancelCreate" 
                               value="#{bundle.cancel}"
@@ -165,16 +169,33 @@
                 </div>
                 <!-- END: Create/Save Dataset Button Panel -->
 
+                <p:commandButton id="saveResultRefresh" widgetVar="saveResultRefresh"
+                                 style="display:none"
+                                 action="#{CreateDatasetPage.finalizeSave()}"
+                                 update="@form,:messagePanel"
+                                 process="@form"
+                                 oncomplete="PF('datasetFormBlockUI').hide();"
+                />
+
+                <p:inputText id="saveStarted" widgetVar="saveStarted"
+                             type="hidden"
+                             value="#{CreateDatasetPage.isSaveStarted}"
+                             readonly="true" />
+
+                <p:inputText id="saveRunning" widgetVar="saveRunning"
+                             type="hidden"
+                             value="#{CreateDatasetPage.isSaveRunning}"
+                             readonly="true" />
+
                 <p:poll interval="2"
                         listener="#{CreateDatasetPage.checkSaveStatus()}"
                         autoStart="false"
                         stop="#{!CreateDatasetPage.isSaveRunning}"
-                        update=":messagePanel"
+                        oncomplete="if (PF('saveRunning').jq.val() === 'false') { PF('saveResultRefresh').jq.click(); }"
+                        update=":messagePanel, saveRunning"
                         widgetVar="saveStatusPoll" />
 
-                <p:blockUI block="datasetForm"
-                           blocked="#{CreateDatasetPage.isSaveRunning}"
-                           widgetVar="datasetFormBlockUI"/>
+                <p:blockUI block="datasetForm" widgetVar="datasetFormBlockUI"/>
             </h:form>
 
             <script type="text/javascript">

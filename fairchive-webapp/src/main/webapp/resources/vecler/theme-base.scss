@@ -628,7 +628,16 @@ a[id$=advsearchlink] {
 	.leaflet-top, .leaflet-bottom {
 		z-index: 929;
 	}
+}
 
+/* Fix invisible map buttons in high contrast mode */
+body[class*="high-contrast"] {
+	div[id^="map_geospatial"] a,
+	div[id^="geospatial_geographicBoundingBox"] a,
+	#searchResultMap a {
+		color: #000 !important;
+		text-decoration: none !important;
+	}
 }
 
 /* Forms */
@@ -3695,6 +3704,29 @@ div.filesTable {
 	}
 }
 
+/* Dashboard */
+
+#dashboard-block {
+	div.card-box {
+		display: flex;
+		flex-direction: column;
+
+		> .row {
+			padding-top: 20px;
+			margin-top: 0;
+		}
+
+		> * {
+			display: flex;
+			flex-grow: 0;
+		}
+
+		.dashboard-block-description {
+			flex-grow: 1;
+		}
+	}
+}
+
 /* Modal */
 
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
@@ -4408,6 +4440,8 @@ body.font-size-percent-200 {
 	.highlight,
 	.ui-message-error,
 	.ui-messages-error,
+	.ui-message-info,
+	.ui-messages-info,
 	pre,
 	.ui-widget-content code {
 		background-color: $contrast-background-color;
@@ -4656,7 +4690,7 @@ body.font-size-percent-200 {
 		}
 	}
 
-	input[type="text"], input[type="password"], textarea, .ui-inputfield, .ui-widget-content .ui-inputfield, .ui-widget-header .ui-inputfield {
+	input[type="text"], input[type="password"], textarea, .ui-inputfield, .ui-widget-content .ui-inputfield, .ui-widget-header .ui-inputfield, .autocomplete-form-control.ui-autocomplete input.ui-autocomplete-input {
 		&, &.form-control {
 			border-color: $contrast-link-color;
 			background: $contrast-background-color;
@@ -4875,9 +4909,6 @@ body.font-size-percent-200 {
 
 	.ui-widget-content .ui-selectonemenu.ui-state-default {
 		background: $contrast-link-color;
-	}
-	.ui-selectonemenu .ui-selectonemenu-trigger.ui-state-default {
-		padding-bottom: 34px;
 	}
 
 	.ui-widget-content .ui-picklist .ui-state-disabled {

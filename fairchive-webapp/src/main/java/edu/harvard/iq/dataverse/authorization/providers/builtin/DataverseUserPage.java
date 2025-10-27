@@ -65,6 +65,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 @SuppressWarnings("serial")
@@ -590,8 +592,8 @@ public class DataverseUserPage extends BaseUserPage {
 
         return isUserLanguageConfigured()
                 ? displayLanguage
-                : String.format("%s %s", displayLanguage,
-                    BundleUtil.getStringFromBundle("user.notificationsLanguage.notSupported"));
+                : format("%s %s", displayLanguage,
+                    getStringFromBundle("user.notificationsLanguage.notSupported"));
     }
 
     public boolean isPasswordEditable() {
@@ -624,8 +626,8 @@ public class DataverseUserPage extends BaseUserPage {
         return additionalMessage.length() <= ADDITIONAL_MESSAGE_MAX_LENGTH
                 ? additionalMessage.endsWith(".")
                     ? additionalMessage
-                    : additionalMessage + "."
-                : BundleUtil.getStringFromBundle("notification.limitedAdditionalMessage",
+                    : additionalMessage.concat(".")
+                : getStringFromBundle("notification.limitedAdditionalMessage",
                     truncateToFullWord(additionalMessage.substring(0, ADDITIONAL_MESSAGE_MAX_LENGTH)));
     }
 

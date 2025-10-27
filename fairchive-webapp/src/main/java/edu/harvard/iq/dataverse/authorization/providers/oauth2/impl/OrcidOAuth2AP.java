@@ -14,6 +14,7 @@ import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserLookup;
 import edu.harvard.iq.dataverse.persistence.user.OAuth2TokenData;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -45,6 +46,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 /**
  * OAuth2 identity provider for ORCiD. Note that ORCiD has two systems: sandbox
@@ -60,11 +63,29 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
     public static final String PROVIDER_ID_PRODUCTION = AuthenticatedUserLookup.ORCID_PROVIDER_ID_PRODUCTION;
     public static final String PROVIDER_ID_SANDBOX = AuthenticatedUserLookup.ORCID_PROVIDER_ID_SANDBOX;
 
+    /**
+     * 
+     * @param clientId - obtained from ORCID site
+     * @param clientSecret - obtained from ORCID site
+     * @param userEndpoint - Endpoint from witch Orcid AP should obtain
+     *   information about the user. Use:
+     *   <ul>
+     *   <li>https://pub.sandbox.orcid.org/v2.1/{ORCID}/person -
+     *       when using sandbox env and public API
+     *   <li>https://pub.orcid.org/v2.1/{ORCID}/person -
+     *       when using production env and public API
+     *   <li>https://api.sandbox.orcid.org/v2.1/{ORCID}/person -
+     *       when using sandbox env and members API
+     *   <li>https://api.orcid.org/v2.1/{ORCID}/person -
+     *       when using production env and members API
+     *   </ul>
+     * 
+     */
     public OrcidOAuth2AP(String clientId, String clientSecret, String userEndpoint) {
-        scope = "/read-limited";
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.baseUserEndpoint = userEndpoint;
+        this.scope = isUsingPublicAPI() ? "/authenticate" : "/read-limited";
     }
 
     @Override
@@ -78,7 +99,7 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
 
     @Override
     public BaseApi<OAuth20Service> getApiInstance() {
-        return OrcidApi.instance(!baseUserEndpoint.contains("sandbox"));
+        return OrcidApi.instance(!isUsingSandboxEnv());
     }
 
     @Override
@@ -93,7 +114,7 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
                 // We did not get the permissions on the scope we need. Abort and
                 // inform the user.
                 throw new OAuth2Exception(200, BundleUtil.getStringFromBundle(
-                        "auth.providers.orcid.insufficientScope"), "");
+                        "auth.providers.orcid.insufficientScope"), EMPTY);
             }
 
             final String orcidNumber = extractOrcidNumber(accessToken.getRawResponse());
@@ -138,16 +159,16 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
 
             String firstName = getNodes(doc, "person:person", "person:name", "personal-details:given-names")
                     .stream().findFirst().map(Node::getTextContent)
-                    .map(String::trim).orElse("");
+                    .map(String::trim).orElse(EMPTY);
             String familyName = getNodes(doc, "person:person", "person:name", "personal-details:family-name")
                     .stream().findFirst().map(Node::getTextContent)
-                    .map(String::trim).orElse("");
+                    .map(String::trim).orElse(EMPTY);
 
             // fallback - try to use the credit-name
-            if ((firstName + familyName).equals("")) {
+            if ((firstName + familyName).isEmpty()) {
                 firstName = getNodes(doc, "person:person", "person:name", "personal-details:credit-name")
                         .stream().findFirst().map(Node::getTextContent)
-                        .map(String::trim).orElse("");
+                        .map(String::trim).orElse(EMPTY);
             }
 
             String primaryEmail = getPrimaryEmail(doc);
@@ -158,15 +179,15 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
             if (primaryEmail.length() > 0) {
                 username = primaryEmail.split("@")[0];
             } else {
-                username = firstName.split(" ")[0] + "." + familyName;
+                username = firstName.split(SPACE)[0] + '.' + familyName;
             }
-            username = username.replaceAll("[^a-zA-Z0-9.]", "");
+            username = username.replaceAll("[^a-zA-Z0-9.]", EMPTY);
 
             // returning the parsed user. The user-id-in-provider will be added by the caller, since ORCiD passes it
             // on the access token response.
             // Affilifation added after a later call.
             final ParsedUserResponse userResponse = new ParsedUserResponse(
-                    new AuthenticatedUserDisplayInfo(firstName, familyName, primaryEmail, "", ""), null, username);
+                    new AuthenticatedUserDisplayInfo(firstName, familyName, primaryEmail, EMPTY, EMPTY), null, username);
             userResponse.emails.addAll(emails);
 
             return userResponse;
@@ -212,7 +233,7 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
         // `xmlstarlet sel -t -c "/record:record/person:person/email:emails/email:email[@primary='true']/email:email"`, if you're curious
         String p = "/person/emails/email[@primary='true']/email/text()";
         NodeList emails = xpathMatches(doc, p);
-        String primaryEmail = "";
+        String primaryEmail = EMPTY;
         if (1 == emails.getLength()) {
             primaryEmail = emails.item(0).getTextContent();
         }
@@ -351,5 +372,23 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
         }
 
         return null;
+    }
+
+    /**
+     * Returns true if user endpoint points to the sandbox ORCID environment.
+     * Sandbox environment should only be used for testing purposes.
+     */
+    private boolean isUsingSandboxEnv() {
+        return baseUserEndpoint.contains("sandbox");
+    }
+    /**
+     * Returns true if user endpoint points to the public ORCID API.
+     * Public API allows to obtain only information from the ORCID profile
+     * that is publicly available.
+     * Other option is to use member API. Member API allows to obtain
+     * informations about the ORCID profile that are not publicly visible.
+     */
+    private boolean isUsingPublicAPI() {
+        return baseUserEndpoint.startsWith("https://pub");
     }
 }

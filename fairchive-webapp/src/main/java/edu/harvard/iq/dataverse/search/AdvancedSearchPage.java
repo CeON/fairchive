@@ -14,12 +14,15 @@ import edu.harvard.iq.dataverse.search.advanced.query.QueryWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.validation.SearchFormValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
-import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -99,8 +102,8 @@ public class AdvancedSearchPage implements Serializable {
         List<FieldValidationResult> fieldValidationResults
                 = validationService.validateSearchForm(searchFieldIndex, nonSearchFieldIndex);
         if (!fieldValidationResults.isEmpty()) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("advanced.search.validation"), StringUtils.EMPTY);
-            return StringUtils.EMPTY;
+            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("advanced.search.validation"), EMPTY);
+            return EMPTY;
         }
 
         List<SearchBlock> allSearchBlocks = new ArrayList<>(metadataSearchBlocks);
@@ -141,7 +144,7 @@ public class AdvancedSearchPage implements Serializable {
             if (parentField == null) {
                 parentField = new GroupingSearchField(parentKey, parentType.getDisplayName(), parentType.getDescription(),
                         null, parentType);
-                parentField.setDisplayId(parentKey + "_" + (i++));
+                parentField.setDisplayId(parentKey + '_' + (i++));
                 nonSearchFieldIndex.put(parentKey, parentField);
             }
             parentField.getChildren().add(field);
@@ -153,12 +156,12 @@ public class AdvancedSearchPage implements Serializable {
     private String buildSearchUrl(QueryWrapper queryWrapper) {
         List<String> filters = queryWrapper.getFilters();
         String filtersPart = IntStream.range(0, filters.size())
-                .mapToObj(i -> "&fq" + i + "=" + safeEncode(filters.get(i)))
+                .mapToObj(i -> "&fq" + i + '=' + safeEncode(filters.get(i)))
                 .collect(Collectors.joining());
 
         return widgetWrapper.wrapURL(String.format("/dataverse.xhtml?q=%s&alias=%s",
                 safeEncode(queryWrapper.getQuery()), dataverse.getAlias())
-                + (StringUtils.isNotBlank(filtersPart) ? filtersPart : StringUtils.EMPTY)
+                + (isNotBlank(filtersPart) ? filtersPart : EMPTY)
                 + "&faces-redirect=true");
     }
 

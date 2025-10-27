@@ -36,7 +36,7 @@ public class FieldValidationResult extends ValidationResult {
         final String fieldTypeName = this.field.getDatasetFieldType().getName();
         final String metadataBlockName = this.field.getDatasetFieldType()
                 .getMetadataBlock().getName();
-        final String key = "datasetfieldtype." + fieldTypeName + "." + getErrorCode();
+        final String key = "datasetfieldtype." + fieldTypeName + '.' + getErrorCode();
         final String result = getStringFromNonDefaultBundle(key, metadataBlockName,
                 this.errorArgs);
         return result.isEmpty()
