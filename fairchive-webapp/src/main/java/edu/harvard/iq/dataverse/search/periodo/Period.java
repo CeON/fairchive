@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.search.periodo;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.lang.Long.MAX_VALUE;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.Collection;
@@ -25,8 +26,12 @@ public class Period {
     @Field
     private String coverageName;
     @Field
-    private Collection<String> locations;
-
+    private Collection<String> locations = emptyList();
+    @Field
+    private String textEn;
+    @Field
+    private String textPl;
+    
     public Period() {
         
     }
@@ -125,6 +130,14 @@ public class Period {
         return this.locations;
     }
 
+    public String getTextEn() {
+        return this.textEn;
+    }
+
+    public String getTextPl() {
+        return this.textPl;
+    }
+
     public void setId(final String id) {
         this.id = id;
     }
@@ -152,6 +165,12 @@ public class Period {
     public void setLocations(final Collection<String> locations) {
         this.locations = locations;
     }
-    
-    
+
+    public void setTextEn(final String textEn) {
+        this.textEn = textEn;
+    }
+
+    public void setTextPl(final String textPl) {
+        this.textPl = textPl;
+    }
 }

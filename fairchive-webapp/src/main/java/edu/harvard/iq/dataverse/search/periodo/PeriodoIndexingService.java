@@ -37,8 +37,15 @@ public class PeriodoIndexingService {
     }
 
     public void importNames(final InputStream in) throws Exception {
-
-        final Iterator<Period> it = PeriodoImporter.readPeriods(in);
+        store(PeriodoImporter.readPeriods(in));
+    }
+    
+    public void importNames(final InputStream json, final InputStream tsv) 
+            throws Exception {
+        store(PeriodoImporter.readPeriods(json, tsv));
+    }
+    
+    private void store(final Iterator<Period> it) throws Exception {
         final ArrayList<Period> list = new ArrayList<>(BATCH_SIZE);
 
         log.info("Storing Perio.do.");

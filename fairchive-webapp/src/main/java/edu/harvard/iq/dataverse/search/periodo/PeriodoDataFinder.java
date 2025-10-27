@@ -77,24 +77,12 @@ public class PeriodoDataFinder {
                 if (builder.length() > 0) {
                     builder.append(" AND ");
                 }
-                if (isFeatureCode(word)) {
-                    final String code = word.substring(1).trim();
-                    if (code.length() > 1) {
-                        builder.append("featureCode:").append(code.toUpperCase())
-                                .append('*');
-                    }
-                } else {
-                    builder.append("(label:").append(word).append("*)");
-                        //    .append("* OR alternateNames:*").append(word).append("*)");
-                }
+                builder.append("(label:").append(word)
+                        .append("* OR textEn:*").append(word)
+                        .append("* OR textPl:*").append(word).append("*)");
             }
         }
-
         return builder;
-    }
-    
-    private boolean isFeatureCode(final String word) {
-        return word.charAt(0) == '#';
     }
 
     public Optional<Period> findById(final String id) {

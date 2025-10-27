@@ -8,12 +8,15 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 
@@ -29,31 +32,23 @@ final class PeriodoImporter {
     /**
      * Consumes JSON files published on https://perio.do
      */
-    public static Iterator<Period> readPeriods(final InputStream in) throws Exception {
-        return new PeriodoImporter().importNames(in).iterator();
+    public static Iterator<Period> readPeriods(final InputStream json) 
+            throws Exception {
+        return new PeriodoImporter().importNames(json).iterator();
+    }
+    
+    public static Iterator<Period> readPeriods(final InputStream json, final InputStream tsv) 
+            throws Exception {
+        return new PeriodoImporter().importNames(json, tsv).iterator();
     }
 
-    private List<Period> importNames(final InputStream in) throws Exception {
+    private List<Period> importNames(final InputStream json) throws Exception {
         try {
             log.info("Reading Perio.do json");
             final long begin = currentTimeMillis();
-            final List<Period> result = read(in);
+            final List<Period> result = readJson(json);
             final long readtime = currentTimeMillis();
             log.info("Perio.do read in {} seconds.", (readtime - begin) / 1000);
-
-//            int index = 1;
-//            for (final String countryCode : map.keySet()) {
-//                log.info("Processing geo names from {} - {}/{}.",
-//                        countryCode, index, map.size());
-//                final long processingStart = currentTimeMillis();
-//                final List<GeoName> geoNames = map.get(countryCode);
-//                process(geoNames);
-//                log.info("Processed geo names from {} in {} seconds.",
-//                        countryCode, (currentTimeMillis() - processingStart) / 1000);
-//                ++index;
-//            }
-//            log.info("Finished processing Perio.do in {} seconds.",
-//                    +(currentTimeMillis() - begin) / 1000);
             return result;
         } catch (final Exception e) {
             log.warn("Importing Perio.do failed.", e);
@@ -61,7 +56,27 @@ final class PeriodoImporter {
         }
     }
     
-    private List<Period> read(final InputStream in) throws Exception {
+    private List<Period> importNames(final InputStream json, final InputStream tsv) 
+            throws Exception {
+        try {
+            log.info("Reading Perio.do json");
+            final long begin = currentTimeMillis();
+            final List<Period> result = readJson(json);
+            final Map<String, Translations> translations = readTsv(tsv);
+            for(final Period period : result) {
+                period.setTextEn(translations.getOrDefault(period.getId(), Translations.none).en);
+                period.setTextPl(translations.getOrDefault(period.getId(), Translations.none).pl);
+            }
+            final long readtime = currentTimeMillis();
+            log.info("Perio.do read in {} seconds.", (readtime - begin) / 1000);
+            return result;
+        } catch (final Exception e) {
+            log.warn("Importing Perio.do failed.", e);
+            throw e;
+        }
+    }
+    
+    private List<Period> readJson(final InputStream in) throws Exception {
         try {
             final JSONObject json = new JSONObject(new JSONTokener(new InputStreamReader(in, UTF_8)));
             return parseAuthorities(json.getJSONObject("authorities"));
@@ -158,6 +173,36 @@ final class PeriodoImporter {
                 result.add(json.getJSONObject(i).getString("label"));
             }
             return result;
+        }
+    }
+    
+    private Map<String, Translations> readTsv(final InputStream tsv) 
+            throws Exception {
+        
+        final HashMap<String, Translations> result = new HashMap<>();
+        
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(tsv, "UTF-8"))) {    
+            String line = reader.readLine(); // skip headers row
+            while ((line = reader.readLine()) != null) {
+                final String[] values = line.split("\t");
+                final String id = values[0].startsWith(Period.base) 
+                        ? values[0].substring(Period.base.length()) 
+                        : values[0];     
+                result.put(id, new Translations(values[1], values[2]));
+            }
+        }
+        return result;
+    }
+    
+    private final static class Translations {
+        
+        final static Translations none = new Translations(null, null);
+        final String en;
+        final String pl;
+        
+        Translations(final String en, final String pl) {
+            this.en = en;
+            this.pl = pl;
         }
     }
 }

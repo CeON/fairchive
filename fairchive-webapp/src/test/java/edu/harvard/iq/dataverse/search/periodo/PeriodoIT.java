@@ -56,7 +56,7 @@ public class PeriodoIT extends WebappArquillianDeployment {
 
     @Test
     void searchingForNull_throwsreturnsEmptyAnswers() throws Exception {
-        try (final InputStream in = openTextFile()) {
+        try (final InputStream in = openJsonFile()) {
             this.indexer.importNames(in);
         }
 
@@ -66,7 +66,7 @@ public class PeriodoIT extends WebappArquillianDeployment {
 
     @Test
     void searchingForEmptyValues_returnsEmptyAnswers() throws Exception {
-        try (final InputStream in = openTextFile()) {
+        try (final InputStream in = openJsonFile()) {
             this.indexer.importNames(in);
         }
 
@@ -79,7 +79,7 @@ public class PeriodoIT extends WebappArquillianDeployment {
     
     @Test
     void searchingForSingleLetters_returnsEmptyAnswers() throws Exception {
-        try (final InputStream in = openTextFile()) {
+        try (final InputStream in = openJsonFile()) {
             this.indexer.importNames(in);
         }
 
@@ -87,12 +87,10 @@ public class PeriodoIT extends WebappArquillianDeployment {
         assertThat(this.finder.find("p  p", 50)).isEmpty();
         assertThat(this.finder.find("p  #p", 50)).isEmpty();
     }
-
  
-
     @Test
     void clearingCore_leavesEmptyCore() throws Exception {
-        try (final InputStream in = openTextFile()) {
+        try (final InputStream in = openJsonFile()) {
             this.indexer.importNames(in);
         }
 
@@ -114,7 +112,7 @@ public class PeriodoIT extends WebappArquillianDeployment {
         when(solr.addBeans(anyCollection())).thenThrow(RuntimeException.class);
         this.indexer = new PeriodoIndexingService(solr);
 
-        try (final InputStream in = openTextFile()) {
+        try (final InputStream in = openJsonFile()) {
             try {
                 this.indexer.importNames(in);
                 fail("Exception expected");
@@ -153,8 +151,25 @@ public class PeriodoIT extends WebappArquillianDeployment {
         // url with proper prefix but missing period identifier
         assertThat(this.finder.find("http://google.com/", 50)).isEmpty();
     }
+    
+    
+    @Test
+    void importingTranslations_supplementsTranlationsFields() throws Exception {
+        try (final InputStream json = openJsonFile()) {
+            try (final InputStream tsv = openTranslationsFile()) {
+                this.indexer.importNames(json, tsv);
+            }
+        }
 
-    private InputStream openTextFile() {
-        return getClass().getResourceAsStream("/json/periodo/periodo-dataset.json");
+        assertThat(this.finder.findById("p0f65r29qvb").get().getTextEn()).isNotNull();
+        assertThat(this.finder.findById("p0f65r29qvb").get().getTextPl()).isNotNull();
+    }
+
+    private InputStream openJsonFile() {
+        return getClass().getResourceAsStream("/periodo/dataset.json");
+    }
+    
+    private InputStream openTranslationsFile() {
+        return getClass().getResourceAsStream("/periodo/translations.tsv");
     }
 }
