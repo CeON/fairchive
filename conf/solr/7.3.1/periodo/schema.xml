@@ -3,14 +3,14 @@
     <!-- Periodo fields -->
     <field name="id" type="string" required="true"/>
     <uniqueKey>id</uniqueKey>
-    <field name="label" type="cace_insensitive_text" required="true"/>
+    <field name="label" type="case_insensitive_text" required="true"/>
     <field name="start" type="plong" indexed="false" required="true"/>
     <field name="stop"  type="plong" indexed="false" required="true"/>
-    <field name="authorityTitle" type="cace_insensitive_text" required="true"/>
-    <field name="coverageName"   type="cace_insensitive_text" required="true"/>
-    <field name="locations"      type="cace_insensitive_text" indexed="true" multiValued="true"/>
-    <field name="textEn"         type="cace_insensitive_text"/>
-    <field name="textPl"         type="cace_insensitive_text"/>
+    <field name="authorityTitle" type="case_insensitive_text" required="true"/>
+    <field name="coverageName"   type="case_insensitive_text" required="true"/>
+    <field name="locations"      type="case_insensitive_text" indexed="true" multiValued="true"/>
+    <field name="textEn"         type="case_insensitive_text"/>
+    <field name="textPl"         type="case_insensitive_text"/>
     <!-- fields required by Solr -->
     <field name="_version_" type="plong" indexed="false" stored="false"/>
     
@@ -18,7 +18,7 @@
     <fieldType name="string" class="solr.StrField"/>
     <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
     <!-- we want querries to be case insensitive -->
-    <fieldType name="cace_insensitive_text" class="solr.TextField" 
+    <fieldType name="case_insensitive_text" class="solr.TextField" 
                omitTermFreqAndPositions="true">
         <analyzer type="index">
             <tokenizer class="solr.StandardTokenizerFactory" />

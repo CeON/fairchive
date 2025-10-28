@@ -25,32 +25,33 @@ public class SolrClientFactory {
 
     @Produces
     public SolrClient produceSolrClient() throws IOException {
-        return build("collection1");
+        return createClient("collection1");
     }
 
     @Produces
     @RorSolrClient
     public SolrClient produceRorSolrClient() {
-        return build("rorSuggestions");
+        return createClient("rorSuggestions");
     }
 
     @Produces
     @GeoNameSolrClient
     public SolrClient produceGeoNameSolrClient() {
-        return build("geonames");
+        return createClient("geonames");
     }
 
     @Produces
     @PeriodoSolrClient
     public SolrClient producePeriodoSolrClient() {
-        return build("periodo");
+        return createClient("periodo");
     }
 
-    public void disposeSolrClient(@Disposes SolrClient solrClient) throws IOException {
+    public void disposeSolrClient(final @Disposes SolrClient solrClient) 
+            throws IOException {
         solrClient.close();
     }
 
-    private SolrClient build(final String path) {
+    private SolrClient createClient(final String path) {
         final String url = "http://" + this.settings.getValueForKey(SolrHostColonPort)
                 + "/solr/" + path;
         return new HttpSolrClient.Builder(url).build();
