@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.validation.field.validators;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -31,15 +32,14 @@ public class NotGreaterThanValidator extends DependantFieldValidator {
             Map<String, Object> params, Map<String, ? extends List<? extends ValidatableField>> fieldIndex) {
         
         String value = field.getSingleValue();
-        long valueLong = Long.parseLong(value);
+        BigDecimal currentFieldValue = new BigDecimal(value);
         
         String compareToValue = dependantField.getSingleValue();
         if (StringUtils.isBlank(compareToValue)) {
             return FieldValidationResult.ok();
         }
-        long compareToValueLong = Long.parseLong(compareToValue);
-
-        if (valueLong > compareToValueLong) {
+        BigDecimal dependantFieldValue = new BigDecimal(compareToValue);
+        if (currentFieldValue.compareTo(dependantFieldValue) > 0) {
             return FieldValidationResult.invalid(field, "isGreaterThanField",
                     field.getDatasetFieldType().getDisplayName(),
                     dependantField.getDatasetFieldType().getDisplayName());
