@@ -25,8 +25,8 @@ public class DatasetFieldsForViewTransformer {
      * Transforms dataset fields before presenting them on the UI
      * 
      * @param datasetFields - fields of a dataset or a template
-     * @param isTemplate - if true then dataset fields comes from a template
-     *   otherwise it comes from a dataset
+     * @param isTemplate - if true then dataset fields come from a template
+     *   otherwise they come from a dataset
      */
     public void transformDatasetFields(List<DatasetField> datasetFields, boolean isTemplate) {
         // Empty on purpose, method intended to be overridden in extensions

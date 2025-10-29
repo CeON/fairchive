@@ -57,8 +57,8 @@ public class DatasetFieldsInitializer {
      * </ul>
      *
      * @param datasetFields - initial dataset fields
-     * @param isTemplate - if true then dataset fields comes from a template
-     *   otherwise it comes from a dataset
+     * @param isTemplate - if true then dataset fields come from a template
+     *   otherwise they come from a dataset
      * @return dataset fields suitable for view operation
      */
     public List<DatasetField> prepareDatasetFieldsForView(List<DatasetField> datasetFields, boolean isTemplate) {
