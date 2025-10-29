@@ -221,6 +221,10 @@ public class SendFeedbackDialog implements java.io.Serializable {
     public List<UploadedFile> getAttachments() {
         return this.attachments;
     }
+    
+    public void deleteAttachment(final UploadedFile attachment) {
+        this.attachments.remove(attachment);
+    }
 
     private Stream<DataSource> getAttachmentDataSources() {
         return this.attachments.stream().map(UploadedFileDataSource::new);

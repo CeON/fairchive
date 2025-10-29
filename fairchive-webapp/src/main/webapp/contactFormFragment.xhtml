@@ -136,7 +136,17 @@
 						             id="attachmentsList"
 						             value="#{sendFeedbackDialog.attachments}"
 						             var="attachment">
-						      <h:outputText value="#{attachment.fileName}"/>
+						      <h:panelGrid columns="2" 
+						                   columnClasses="left,right" 
+						                   style="width:100%">
+							      <h:outputText value="#{attachment.fileName}"/>
+							      <p:commandButton value="X"
+							              style="float: right;"
+							              actionListener="#{sendFeedbackDialog.deleteAttachment(attachment)}"
+	                                      process="@this"
+	                                      update=":emailForm:attachmentsList">
+							      </p:commandButton>
+						      </h:panelGrid>
 						 </p:dataList>
 							
 				</div>
