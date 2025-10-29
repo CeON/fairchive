@@ -109,6 +109,19 @@ services:
       - "s3-data:/data"
     command: ["server", "/data"]
 
+  libretranslate:
+    build: "./libretranslate"
+    image: "libretranslate/libretranslate:v1.7.3"
+    container_name: "fairchive-dev-libretranslate"
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ['CMD-SHELL', './venv/bin/python scripts/healthcheck.py']
+      interval: 10s
+      timeout: 4s
+      retries: 4
+      start_period: 5s
+
 volumes:
   postgres-data:
   s3-data:

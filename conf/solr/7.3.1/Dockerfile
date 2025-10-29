@@ -24,7 +24,10 @@ RUN cp -r server/solr/configsets/_default server/solr/geonames \
     && mv schema.xml server/solr/geonames/conf/ \
     && mv solrconfig.xml server/solr/geonames/conf/ \
     && echo "Configured geonames"  
-    
+   
+RUN chmod 777 /opt/solr/server/solr/collection1 -R
+RUN chmod 777 /opt/solr/server/solr/rorSuggestions -R
+RUN chmod 777 /opt/solr/server/solr/geonames -R
 USER solr
 
 RUN ./bin/solr start \

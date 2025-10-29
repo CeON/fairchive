@@ -812,7 +812,18 @@ public class SettingsServiceBean {
          * or any other non-truthy value, the only way to add a new
          * dataset would be by using add data button from the header.
          */
-        ShowAddDatasetButtonOnDataversePage;
+        ShowAddDatasetButtonOnDataversePage,
+
+        /**
+         * If set to {@code true} (the default) or any other truthy value,
+         * the button for machine translation of dataset metadata will be rendered on dataverse page
+         */
+        ShowMachineTranslation,
+
+        /**
+         * URL of machine tranlsation service
+         */
+        MachineTranslationURL;
 
         @Override
         public String toString() {
