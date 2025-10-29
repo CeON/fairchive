@@ -148,7 +148,7 @@ public class ManageTemplatesPage implements java.io.Serializable {
     public void viewSelectedTemplate(Template selectedTemplate) {
         this.selectedTemplate = selectedTemplate;
 
-        List<DatasetField> dsfForView = datasetFieldsInitializer.prepareDatasetFieldsForView(selectedTemplate.getDatasetFields());
+        List<DatasetField> dsfForView = datasetFieldsInitializer.prepareDatasetFieldsForView(selectedTemplate.getDatasetFields(), true);
         mdbForView = DatasetFieldUtil.groupByBlockAndType(dsfForView);
     }
 
