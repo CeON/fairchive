@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author madryk
@@ -57,6 +58,9 @@ public class DatasetFieldsInitializerTest {
 
     @Mock
     private DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService;
+
+    @Mock
+    private DatasetFieldsForViewTransformer datasetFieldsForViewTransformer;
 
     // -------------------- TESTS --------------------
 
@@ -86,7 +90,7 @@ public class DatasetFieldsInitializerTest {
         List<DatasetField> datasetFields = Lists.newArrayList(titleField, depositorField, authorField, dateOfDepositField);
 
         // when
-        List<DatasetField> retDatasetFields = datasetFieldsInitializer.prepareDatasetFieldsForView(datasetFields);
+        List<DatasetField> retDatasetFields = datasetFieldsInitializer.prepareDatasetFieldsForView(datasetFields, false);
 
         // then
         assertEquals(2, retDatasetFields.size());
@@ -96,6 +100,8 @@ public class DatasetFieldsInitializerTest {
 
         assertEquals(depositorField.getDatasetFieldType(), retDatasetFields.get(1).getDatasetFieldType());
         assertEquals("John Depositor", retDatasetFields.get(1).getRawValue());
+
+        verify(datasetFieldsForViewTransformer).transformDatasetFields(retDatasetFields, false);
     }
 
     @Test

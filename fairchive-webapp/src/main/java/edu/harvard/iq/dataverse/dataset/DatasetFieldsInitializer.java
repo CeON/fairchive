@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class DatasetFieldsInitializer {
 
     private DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService;
+    private DatasetFieldsForViewTransformer datasetFieldsForViewTransformer;
     private FieldDefaultValueApplier defaultValueApplier = new FieldDefaultValueApplier();
 
 
@@ -38,8 +39,10 @@ public class DatasetFieldsInitializer {
     }
 
     @Inject
-    public DatasetFieldsInitializer(DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService) {
+    public DatasetFieldsInitializer(DataverseFieldTypeInputLevelServiceBean dataverseFieldTypeInputLevelService,
+            DatasetFieldsForViewTransformer datasetFieldsForViewTransformer) {
         this.dataverseFieldTypeInputLevelService = dataverseFieldTypeInputLevelService;
+        this.datasetFieldsForViewTransformer = datasetFieldsForViewTransformer;
     }
 
     // -------------------- LOGIC --------------------
@@ -49,14 +52,20 @@ public class DatasetFieldsInitializer {
      * for metadata view. Preparing consists of following steps:
      * <ul>
      * <li>Filter empty fields</li>
+     * <li>Transform fields using {@link DatasetFieldsForViewTransformer#transformDatasetFields(List, boolean)}</li>
      * <li>Sort fields by {@link DatasetField#getDisplayOrder()} and {@link DatasetFieldType#getDisplayOrder()}</li>
      * </ul>
      *
      * @param datasetFields - initial dataset fields
+     * @param isTemplate - if true then dataset fields come from a template
+     *   otherwise they come from a dataset
      * @return dataset fields suitable for view operation
      */
-    public List<DatasetField> prepareDatasetFieldsForView(List<DatasetField> datasetFields) {
+    public List<DatasetField> prepareDatasetFieldsForView(List<DatasetField> datasetFields, boolean isTemplate) {
         List<DatasetField> newDatasetFields = filterEmptyFields(datasetFields);
+
+        datasetFieldsForViewTransformer.transformDatasetFields(newDatasetFields, isTemplate);
+
         newDatasetFields = sortDatasetFieldsRecursively(newDatasetFields);
 
         return newDatasetFields;
