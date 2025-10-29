@@ -116,6 +116,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
         this.op2 = random.nextInt(10);
         this.feedbackTarget = object;
         this.recipientOption = defaultRecipientFor(object);
+        this.attachments.clear();
     }
 
     public String getUserEmail() {
