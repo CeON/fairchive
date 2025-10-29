@@ -98,7 +98,7 @@ public class DatasetMetadataTab implements Serializable {
         this.dataset = datasetVersion.getDataset();
         this.isDatasetLocked = isDatasetLocked;
         
-        List<DatasetField> datasetFields = datasetFieldsInitializer.prepareDatasetFieldsForView(datasetVersion.getDatasetFields());
+        List<DatasetField> datasetFields = datasetFieldsInitializer.prepareDatasetFieldsForView(datasetVersion.getDatasetFields(), false);
         this.metadataBlocks = DatasetFieldUtil.groupByBlockAndType(datasetFields);
     }
 

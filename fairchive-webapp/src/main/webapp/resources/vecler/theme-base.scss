@@ -1782,6 +1782,28 @@ tr.ui-state-highlight a:not(.btn), .ui-widget-content tr.ui-state-highlight a:no
 	}
 }
 
+.notification-table.ui-datatable {
+    thead > tr > th:first-child {
+		> .ui-chkbox {
+			position: relative;
+			bottom: 3px;
+		}
+
+		> .ui-column-title {
+        display: none;
+    }
+	}
+    
+    tbody td.ui-selection-column.notification-col-select {
+        padding: 14px 20px;
+    }
+
+	.notification-col-detail > .text-icon-inline {
+		position: relative;
+		top: 3px;
+	}
+}
+
 /* Scrollable tables */
 
 /* This selector is also present in dv_rebind_bootstrap.js */
