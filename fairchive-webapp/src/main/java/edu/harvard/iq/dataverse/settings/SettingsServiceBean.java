@@ -823,7 +823,13 @@ public class SettingsServiceBean {
         /**
          * URL of machine tranlsation service
          */
-        MachineTranslationURL;
+        MachineTranslationURL,
+
+        /**
+         * Url to chatbot used for searching datasets
+         * By default is set to ''
+         */
+        ChatbotUrl;
 
         @Override
         public String toString() {

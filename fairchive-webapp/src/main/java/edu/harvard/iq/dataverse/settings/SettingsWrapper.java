@@ -14,6 +14,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
  * @author gdurand
@@ -58,6 +59,10 @@ public class SettingsWrapper implements java.io.Serializable {
         return settingService.isTrueForKey(SettingsServiceBean.Key.ShowSearchResultOnMap);
     }
 
+    public boolean hasChatbotUrl() {
+        return isNotBlank(getChatbotUrl());
+    }
+
     public boolean isRsyncUpload() {
         return systemConfig.isRsyncUpload();
     }
@@ -100,6 +105,10 @@ public class SettingsWrapper implements java.io.Serializable {
 
     public String getDataCiteCitationsPageUrl() {
         return settingService.getValueForKey(SettingsServiceBean.Key.DoiDataCiteCitationsPageUrl);
+    }
+
+    public String getChatbotUrl() {
+        return settingService.getValueForKey(Key.ChatbotUrl);
     }
 
     public Boolean isAllowDatasetPublishWithoutFiles() {
