@@ -2,15 +2,16 @@
 
 To allow detecting from handwriting image text you need to install following libraries:
 * TrOcr library base on transformer which can translate line of image with handwriting text to text
-* WordDetectorNN - neural network whci hallow to detect words in image, theris bounding boxes
+* WordDetectorNN - neural network which hallow to detect words in image, theris bounding boxes
 
 All dependencies are in shell script `install.htr.sh` which are needed by TrOcr and WordDetectorNN
 
 ### Configuration
-* place `trocr-line.py` on server where glassfish is running in `/opt` directory
-* set path to htr script in database `settings` table key `:HTRCommand` value: `python /opt/trocr-line.py`
+* place `trocr-line.py` on server where glassfish is running in `/opt/glassfish` directory
+* copy WordDetectorNN(`https://github.com/rscipien/WordDetectorNN/raw/refs/heads/master/model/weights`) model weights to `/opt/glassfish`
+* set path to htr script in database `settings` table key `:HTRCommand` value: `python /opt/glassfish/trocr-line.py --weights /opt/glassfish/weights`
 * install all dependencies from `install.htr.sh`
-* you can test if script is working running `cat some-image.jpg | python trocr-line.py`
+* you can test if script is working running `cat some-image.jpg | python trocr-line.py --weights /opt/glassfish/weights`
 
 ### Script structure trocr-line.py
 
