@@ -21,12 +21,12 @@
                    href="#panelCollapse#{block.index}" 
                    class="collapseSrc panel-heading text-info" 
                    tabindex="0"
-                   aria-expanded="#{block.first}">
-                    <h3>#{metadataBlockVal.key.localeDisplayName} &#160;<span class="collapseSrc glyphicon #{block.first?'glyphicon-chevron-up':'glyphicon-chevron-down'}" aria-hidden="true"/></h3>
+                   aria-expanded="true">
+                    <h3>#{metadataBlockVal.key.localeDisplayName} &#160;<span class="collapseSrc glyphicon glyphicon-chevron-up" aria-hidden="true"/></h3>
                 </a>
-                <div id="panelCollapse#{block.index}" class="collapse #{block.first?'in':''}">
+                <div id="panelCollapse#{block.index}" class="collapse in">
                     <div class="panel-body metadata-panel-body">
-                        <ui:fragment rendered="#{block.first}">
+                        <ui:fragment rendered="true">
                             <div jsf:rendered="#{!empty globalId}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">
