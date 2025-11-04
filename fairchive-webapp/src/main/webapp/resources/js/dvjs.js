@@ -222,6 +222,8 @@ function initDvJS() {
       if (data.drawTools.allowRectangle) {
         createNewRectangleControl(map, data.polygonLayer);
       }
+
+      createTrashBinControl(map, data.polygonLayer);
     }
 
     function createBaseEditControls() {
@@ -230,6 +232,7 @@ function initDvJS() {
           position: 'topleft',
           callback: null,
           kind: '',
+          title: '',
           html: ''
          },
         onAdd: function (map) {
@@ -237,7 +240,7 @@ function initDvJS() {
           link = L.DomUtil.create('a', '', container);
 
           link.href = '#';
-          link.title = 'Create a new ' + this.options.kind;
+          link.title = this.options.title ? this.options.title : 'Create a new ' + this.options.kind;
           link.innerHTML = this.options.html;
           L.DomEvent.on(link, 'click', L.DomEvent.stop)
                     .on(link, 'click', function () {
@@ -311,6 +314,27 @@ function initDvJS() {
 
       map.addControl(new L.NewRectangleControl());
     }
+
+    function createTrashBinControl(map, polygonLayer) {
+      L.TrashBinControl = L.EditControl.extend({
+        options: {
+          position: 'topleft',
+          callback: function () {
+            polygonLayer.clearLayers();
+          },
+          title: 'Clear map',
+          html: '<svg width="45" height="45" viewBox="0 0 100 100" style="margin-left:1px">' +
+                 '<rect x="18" y="20" width="28" height="30" rx="3" ry="3" />' +
+                 '<line x1="26" y1="20" x2="26" y2="15" />' +
+                 '<line x1="38" y1="20" x2="38" y2="15" />' +
+                 '<line x1="20" y1="15" x2="44" y2="15" />' +
+                 '<rect x="22" y="10" width="20" height="5" rx="1" ry="1" />' +
+                '</svg>'
+         }
+       });
+
+       map.addControl(new L.TrashBinControl());
+     }
 
     function createdShape(e, data) {
         let layer = e.layer;
