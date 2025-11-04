@@ -1,9 +1,10 @@
 package edu.harvard.iq.dataverse.common;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.faces.context.FacesContext;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -57,7 +58,7 @@ public class BundleUtil {
     public static String getStringFromBundleWithLocale(String key, Locale locale, Object... arguments) {
         return getStringFromPropertyFile(key, DEFAULT_BUNDLE_FILE, locale)
                 .map(m -> MessageFormat.format(m, arguments))
-                .orElse(StringUtils.EMPTY);
+                .orElse(EMPTY);
     }
 
     public static boolean hasKeyInNonDefaultBundle(String key, String bundleName) {
@@ -71,13 +72,13 @@ public class BundleUtil {
     public static String getStringFromNonDefaultBundleWithLocale(String key, String bundleName, Locale locale, Object... arguments) {
         return getStringFromPropertyFile(key, bundleName, locale)
                 .map(m -> MessageFormat.format(m, arguments))
-                .orElse(StringUtils.EMPTY);
+                .orElse(EMPTY);
     }
 
     public static String getStringFromClasspathBundle(String key, String bundleName, Object... arguments) {
         return getStringFromPropertyFile(key, bundleName, getCurrentLocale())
                 .map(m -> MessageFormat.format(m, arguments))
-                .orElse(StringUtils.EMPTY);
+                .orElse(EMPTY);
     }
 
     public static Locale getCurrentLocale() {
@@ -99,7 +100,7 @@ public class BundleUtil {
         if (shouldCheckForExternalBundle(bundleName) && hasKeyInExternalBundle(bundleKey, bundleName, locale)) {
             return true;
         }
-        ResourceBundle resourceBundle = getCachedBundle(bundleName + "_" + EXTENSION_SUFFIX, locale);
+        ResourceBundle resourceBundle = getCachedBundle(bundleName + '_' + EXTENSION_SUFFIX, locale);
         if (!EMPTY_BUNDLE.equals(resourceBundle) && resourceBundle.containsKey(bundleKey)) {
             return true;
         }
@@ -125,7 +126,8 @@ public class BundleUtil {
             }
         }
 
-        resolvedValue = getStringFromInternalBundle(bundleKey, bundleName + "_" + EXTENSION_SUFFIX, locale);
+        resolvedValue = getStringFromInternalBundle(bundleKey, bundleName + '_' + 
+                EXTENSION_SUFFIX, locale);
         if (resolvedValue.isPresent()) {
             return resolvedValue;
         }
@@ -137,7 +139,7 @@ public class BundleUtil {
 
         Optional<String> displayNameFromExtensionBundle = getStringFromInternalBundle(bundleKey, bundleName, EXTENSION_SUFFIX, locale);
         return displayNameFromExtensionBundle.isPresent() ?
-                    displayNameFromExtensionBundle : getStringFromInternalBundle(bundleKey, bundleName, "", locale);
+                    displayNameFromExtensionBundle : getStringFromInternalBundle(bundleKey, bundleName, EMPTY, locale);
     }
 
     private static Optional<String> getStringFromInternalBundle(String bundleKey, String bundleName, String extension, Locale locale) {
@@ -155,7 +157,7 @@ public class BundleUtil {
     }
 
     private static ResourceBundle getCachedBundle(String bundleName, Locale locale) {
-        String cacheKey = bundleName + "_" + locale.getLanguage();
+        String cacheKey = bundleName + '_' + locale.getLanguage();
         ResourceBundle resourceBundle = bundleCache.get(cacheKey);
         if (resourceBundle == null) {
             try {

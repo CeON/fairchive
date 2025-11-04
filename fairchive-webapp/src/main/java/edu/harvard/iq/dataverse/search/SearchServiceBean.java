@@ -337,7 +337,7 @@ public class SearchServiceBean {
                         facetCategoryNameResolver.getLocaleFacetLabelName(facetFieldCount.getName(), facetField.getName()),
                         facetFieldCount.getCount());
                 // quote field facets
-                facetLabel.setFilterQuery(facetField.getName() + ":\"" + facetFieldCount.getName() + "\"");
+                facetLabel.setFilterQuery(facetField.getName() + ":\"" + facetFieldCount.getName() + '"');
                 facetLabelList.add(facetLabel);
             }
 
@@ -520,7 +520,7 @@ public class SearchServiceBean {
                 solrSearchResult.setTitle("");
             }
             @SuppressWarnings({ "unchecked", "rawtypes" })
-            List<String> authors = (List) solrDocument.getFieldValues("dsf_txt_" + DatasetFieldConstant.authorName);
+            List<String> authors = (List) solrDocument.getFieldValues("dsf_txt_".concat(DatasetFieldConstant.authorName));
             if (authors != null) {
                 solrSearchResult.setDatasetAuthors(authors);
             }
@@ -573,7 +573,7 @@ public class SearchServiceBean {
                 solrSearchResult.setTabularDataTags(tabularDataTags);
             }
             String filePID = (String) solrDocument.getFieldValue(SearchFields.FILE_PERSISTENT_ID);
-            if (null != filePID && !"".equals(filePID)) {
+            if (null != filePID && !filePID.isEmpty()) {
                 solrSearchResult.setFilePersistentId(filePID);
             }
 
@@ -663,7 +663,7 @@ public class SearchServiceBean {
         }
 
         for (String dynamicFieldPrefix : dynamicDatasetFieldsPrefixes) {
-            solrQuery.addHighlightField(dynamicFieldPrefix + "*");
+            solrQuery.addHighlightField(dynamicFieldPrefix.concat("*"));
         }
 
         return solrQuery;
@@ -707,11 +707,11 @@ public class SearchServiceBean {
                 .map(SearchObjectType::getSolrValue)
                 .collect(joining(" OR "));
 
-        query.addFilterQuery(SearchFields.TYPE + ":(" + filterValue + ")");
+        query.addFilterQuery(SearchFields.TYPE + ":(" + filterValue + ')');
     }
 
     private static String getLocalizedValueWithFallback(SolrDocument document, String fieldName) {
-        String suffix = "_" + BundleUtil.getCurrentLocale().getLanguage();
+        String suffix = "_".concat(BundleUtil.getCurrentLocale().getLanguage());
         return (String) (document.containsKey(fieldName + suffix)
                 ? document.getFieldValue(fieldName + suffix)
                 : document.getFieldValue(fieldName + "_en"));

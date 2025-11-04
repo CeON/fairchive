@@ -277,7 +277,7 @@ public class Admin extends AbstractApiBean {
         AuthenticationProviderRow row = em.find(AuthenticationProviderRow.class, id);
         return row != null
                 ? ok(new AuthenticationProviderRowDTO.Converter().convert(row))
-                : error(Status.NOT_FOUND, "Can't find authetication provider with id '" + id + "'");
+                : error(Status.NOT_FOUND, "Can't find authetication provider with id '" + id + '\'');
     }
 
     @POST
@@ -300,7 +300,7 @@ public class Admin extends AbstractApiBean {
 
         AuthenticationProviderRow row = em.find(AuthenticationProviderRow.class, id);
         if (row == null) {
-            return notFound("Can't find authentication provider with id '" + id + "'");
+            return notFound("Can't find authentication provider with id '" + id + '\'');
         }
 
         row.setEnabled(enable);
@@ -1110,7 +1110,7 @@ public class Admin extends AbstractApiBean {
     public Response getDatasetThumbnailMetadata(@PathParam("id") Long idSupplied) {
         Dataset dataset = datasetSvc.find(idSupplied);
         if (dataset == null) {
-            return error(Response.Status.NOT_FOUND, "Could not find dataset based on id supplied: " + idSupplied + ".");
+            return error(Response.Status.NOT_FOUND, "Could not find dataset based on id supplied: " + idSupplied + '.');
         }
         JsonObjectBuilder data = Json.createObjectBuilder();
         DatasetThumbnail datasetThumbnail = datasetThumbnailService.getThumbnail(dataset);

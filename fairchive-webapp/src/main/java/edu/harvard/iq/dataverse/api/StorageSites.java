@@ -16,6 +16,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+
 import java.util.List;
 
 @Path("admin/storageSites")
@@ -34,7 +38,7 @@ public class StorageSites extends AbstractApiBean {
             });
             return ok(sites);
         } else {
-            return error(Response.Status.NOT_FOUND, "No storage sites were found.");
+            return error(NOT_FOUND, "No storage sites were found.");
         }
     }
 
@@ -43,7 +47,7 @@ public class StorageSites extends AbstractApiBean {
     public Response get(@PathParam("id") long id) {
         StorageSite storageSite = storageSiteSvc.find(id);
         if (storageSite == null) {
-            return error(Response.Status.NOT_FOUND, "Could not find a storage site based on id " + id + ".");
+            return error(NOT_FOUND, "Could not find a storage site based on id " + id + '.');
         }
         return ok(storageSite.toJsonObjectBuilder());
     }
@@ -55,19 +59,19 @@ public class StorageSites extends AbstractApiBean {
         try {
             toPersist = StorageSiteUtil.parse(jsonObject);
         } catch (Exception ex) {
-            return error(Response.Status.BAD_REQUEST, "JSON could not be parsed: " + ex.getLocalizedMessage());
+            return error(BAD_REQUEST, "JSON could not be parsed: " + ex.getLocalizedMessage());
         }
         List<StorageSite> exitingSites = storageSiteSvc.findAll();
         try {
             StorageSiteUtil.ensureOnlyOnePrimary(toPersist, exitingSites);
         } catch (Exception ex) {
-            return error(Response.Status.BAD_REQUEST, ex.getLocalizedMessage());
+            return error(BAD_REQUEST, ex.getLocalizedMessage());
         }
         StorageSite saved = storageSiteSvc.add(toPersist);
         if (saved != null) {
             return ok(saved.toJsonObjectBuilder());
         } else {
-            return error(Response.Status.BAD_REQUEST, "Storage site could not be added.");
+            return error(BAD_REQUEST, "Storage site could not be added.");
         }
     }
 
@@ -77,7 +81,7 @@ public class StorageSites extends AbstractApiBean {
     public Response setPrimary(@PathParam("id") long id, String input) {
         StorageSite toModify = storageSiteSvc.find(id);
         if (toModify == null) {
-            return error(Response.Status.NOT_FOUND, "Could not find a storage site based on id " + id + ".");
+            return error(NOT_FOUND, "Could not find a storage site based on id " + id + '.');
         }
         // "junk" gets parsed into "false".
         toModify.setPrimaryStorage(Boolean.valueOf(input));
@@ -85,7 +89,7 @@ public class StorageSites extends AbstractApiBean {
         try {
             StorageSiteUtil.ensureOnlyOnePrimary(toModify, exitingSites);
         } catch (Exception ex) {
-            return error(Response.Status.BAD_REQUEST, ex.getLocalizedMessage());
+            return error(BAD_REQUEST, ex.getLocalizedMessage());
         }
         StorageSite updated = storageSiteSvc.save(toModify);
         return ok(updated.toJsonObjectBuilder());
@@ -99,7 +103,7 @@ public class StorageSites extends AbstractApiBean {
         if (deleted) {
             return ok("Storage site id  " + id + " has been deleted.");
         } else {
-            return error(Response.Status.NOT_FOUND, "Could not find a storage site based on id " + id + ".");
+            return error(NOT_FOUND, "Could not find a storage site based on id " + id + '.');
         }
     }
 

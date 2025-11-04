@@ -1131,7 +1131,7 @@ public class Datasets extends AbstractApiBean {
             }
             return ok(data);
         } catch (WrappedResponse ex) {
-            return error(Response.Status.NOT_FOUND, "Could not find dataset based on id supplied: " + idSupplied + ".");
+            return error(Response.Status.NOT_FOUND, "Could not find dataset based on id supplied: " + idSupplied + '.');
         }
     }
 
@@ -1217,7 +1217,7 @@ public class Datasets extends AbstractApiBean {
             if (lock == null) {
                 logger.log(Level.WARNING, "Failed to lock the dataset (dataset id={0})", dataset.getId());
                 return error(Response.Status.FORBIDDEN,
-                             "Failed to lock the dataset (dataset id=" + dataset.getId() + ")");
+                             "Failed to lock the dataset (dataset id=" + dataset.getId() + ')');
             }
             return ok(scriptRequestResponse.getScript(), MediaType.valueOf(MediaType.TEXT_PLAIN));
         } catch (WrappedResponse wr) {

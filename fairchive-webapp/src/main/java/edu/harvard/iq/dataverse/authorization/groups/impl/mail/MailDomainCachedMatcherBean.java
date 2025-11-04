@@ -6,13 +6,17 @@ import edu.harvard.iq.dataverse.persistence.group.MailDomainItem;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
+
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Singleton
 public class MailDomainCachedMatcherBean {
@@ -26,33 +30,33 @@ public class MailDomainCachedMatcherBean {
     // -------------------- LOGIC --------------------
 
     @Lock
-    public Set<MailDomainGroup> matchGroupsForDomain(String domain) {
-        Set<String> allDomainSubstrings = createAllDomainSubstrings(domain);
+    public Set<MailDomainGroup> matchGroupsForDomain(final String domain) {
+        final Set<String> allDomainSubstrings = createAllDomainSubstrings(domain);
 
         // First look for allowed groups
-        Set<MailDomainGroup> allowedGroups = allDomainSubstrings.stream()
-                .map(s -> matchIndex.getOrDefault(s, Collections.emptySet()))
+        final Set<MailDomainGroup> allowedGroups = allDomainSubstrings.stream()
+                .map(s -> this.matchIndex.getOrDefault(s, emptySet()))
                 .flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
         // Then check if we should exclude user from one of found groups
-        Set<MailDomainGroup> toDisallow = allowedGroups.stream()
+        final Set<MailDomainGroup> toDisallow = allowedGroups.stream()
                 .flatMap(MailDomainGroup::getExclusionsStream)
                 .filter(i -> allDomainSubstrings.contains(i.getDomain()))
                 .map(MailDomainItem::getOwner)
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
         allowedGroups.removeAll(toDisallow);
         return allowedGroups;
     }
 
     @Lock(LockType.WRITE)
-    public void rebuildIndex(Collection<MailDomainGroup> groups) {
-        matchIndex = groups.stream()
+    public void rebuildIndex(final Collection<MailDomainGroup> groups) {
+        this.matchIndex = groups.stream()
                 .flatMap(MailDomainGroup::getInclusionsStream)
-                .collect(Collectors.groupingBy(
+                .collect(groupingBy(
                         MailDomainItem::getDomain,
-                        Collectors.mapping(MailDomainItem::getOwner, Collectors.toSet())));
+                        mapping(MailDomainItem::getOwner, toSet())));
     }
 
     // -------------------- PRIVATE --------------------
@@ -63,12 +67,12 @@ public class MailDomainCachedMatcherBean {
      * <br>
      * E.g. for icm.uw.edu.pl produces [icm.uw.edu.pl, .uw.edu.pl, .edu.pl, .pl]
      */
-    private Set<String> createAllDomainSubstrings(String domain) {
-        Set<String> domainSubstrings = new HashSet<>();
+    private Set<String> createAllDomainSubstrings(final String domain) {
+        final Set<String> domainSubstrings = new HashSet<>();
         domainSubstrings.add(domain);
-        for (int i = domain.indexOf(".");
+        for (int i = domain.indexOf('.');
              i >= 0 && i < domain.length();
-             i = domain.indexOf(".", i + 1)) {
+             i = domain.indexOf('.', i + 1)) {
             domainSubstrings.add(domain.substring(i));
         }
         return domainSubstrings;

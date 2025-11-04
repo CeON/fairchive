@@ -88,7 +88,7 @@ public class HarvesterServiceBean {
 
         String logTimestamp = logFormatter.format(new Date());
         Logger hdLogger = Logger.getLogger("edu.harvard.iq.dataverse.harvest.client.HarvesterServiceBean." + harvestingDataverse.getAlias() + logTimestamp);
-        String logFileName = "../logs" + File.separator + "harvest_" + client.getName() + "_" + logTimestamp + ".log";
+        String logFileName = "../logs" + File.separator + "harvest_" + client.getName() + '_' + logTimestamp + ".log";
         FileHandler fileHandler = new FileHandler(logFileName);
         hdLogger.setUseParentHandlers(false);
         hdLogger.addHandler(fileHandler);
@@ -113,7 +113,10 @@ public class HarvesterServiceBean {
                 hdLogger.log(Level.INFO, "Datasets created/updated: " + result.getNumHarvested() + ", datasets deleted: " + result.getNumDeleted() + ", datasets failed: " + result.getNumFailed());
             }
         } catch (Throwable e) {
-            String message = "Exception processing harvest, server= " + client.getHarvestingUrl() + ",format=" + client.getMetadataPrefix() + " " + e.getClass().getName() + " " + e.getMessage();
+            String message = "Exception processing harvest, server= " + 
+                    client.getHarvestingUrl() + ",format=" + 
+                    client.getMetadataPrefix() + ' ' + e.getClass().getName() + 
+                    ' ' + e.getMessage();
             hdLogger.log(Level.SEVERE, message);
             logException(e, hdLogger);
             hdLogger.log(Level.INFO, "HARVEST NOT COMPLETED DUE TO UNEXPECTED ERROR.");
@@ -148,14 +151,15 @@ public class HarvesterServiceBean {
         boolean cause = false;
         String fullMessage = "";
         do {
-            String message = e.getClass().getName() + " " + e.getMessage();
+            String message = e.getClass().getName() + ' ' + e.getMessage();
             if (cause) {
-                message = "\nCaused By Exception.................... " + e.getClass().getName() + " " + e.getMessage();
+                message = "\nCaused By Exception.................... " + 
+                        e.getClass().getName() + ' ' + e.getMessage();
             }
             StackTraceElement[] ste = e.getStackTrace();
             message += "\nStackTrace: \n";
             for (int m = 0; m < ste.length; m++) {
-                message += ste[m].toString() + "\n";
+                message += ste[m].toString() + '\n';
             }
             fullMessage += message;
             cause = true;

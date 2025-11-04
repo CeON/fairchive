@@ -74,7 +74,7 @@ public class HarvestingServer extends AbstractApiBean {
             set = oaiSetService.findBySpec(spec);
         } catch (Exception ex) {
             logger.warning("Exception caught looking up OAI set " + spec + ": " + ex.getMessage());
-            return error(Response.Status.BAD_REQUEST, "Internal error: failed to look up OAI set " + spec + ".");
+            return error(Response.Status.BAD_REQUEST, "Internal error: failed to look up OAI set " + spec + '.');
         }
 
         if (set == null) {
@@ -86,7 +86,7 @@ public class HarvestingServer extends AbstractApiBean {
         } catch (Exception ex) {
             logger.warning("Unknown exception caught while trying to format OAI set " + spec + " as json: " + ex.getMessage());
             return error(Response.Status.BAD_REQUEST,
-                         "Internal error: failed to produce output for OAI set " + spec + ".");
+                         "Internal error: failed to produce output for OAI set " + spec + '.');
         }
     }
 
@@ -163,7 +163,7 @@ public class HarvestingServer extends AbstractApiBean {
             set = oaiSetService.findBySpec(spec);
         } catch (Exception ex) {
             logger.warning("Exception caught looking up OAI set " + spec + ": " + ex.getMessage());
-            return error(Response.Status.BAD_REQUEST, "Internal error: failed to look up OAI set " + spec + ".");
+            return error(Response.Status.BAD_REQUEST, "Internal error: failed to look up OAI set " + spec + '.');
         }
 
         if (set == null) {

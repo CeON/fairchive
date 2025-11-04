@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.authorization.providers.saml;
 import edu.harvard.iq.dataverse.authorization.SamlLoginIssue;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
+
 import org.omnifaces.cdi.ViewScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.servlet.http.HttpSession;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.io.Serializable;
 
 @SuppressWarnings("serial")
@@ -42,10 +46,11 @@ public class SamlFailedLoginPage implements Serializable {
             logger.warn("Cannot find session or original login issue. Using AUTHENTICATION_ERROR.");
             samlLoginIssue = new SamlLoginIssue(SamlLoginIssue.Type.AUTHENTICATION_ERROR);
         }
-        String errorMessage = BundleUtil.getStringFromBundle("failed.login.cause." + samlLoginIssue.type.toString().toLowerCase().replace("_", "."));
-        JsfHelper.addErrorMessage(errorMessage, "");
+        String errorMessage = BundleUtil.getStringFromBundle("failed.login.cause." 
+                + samlLoginIssue.type.toString().toLowerCase().replace('_', '.'));
+        JsfHelper.addErrorMessage(errorMessage, EMPTY);
         for (String message : samlLoginIssue.messages) {
-            JsfHelper.addWarningMessage(message, "");
+            JsfHelper.addWarningMessage(message, EMPTY);
         }
     }
 }

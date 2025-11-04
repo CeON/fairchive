@@ -41,6 +41,15 @@ import org.omnifaces.cdi.ViewScoped;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -367,7 +376,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
 
         return newTypesSelected.getTypes().stream()
                 .map(SearchObjectType::getSolrValue)
-                .collect(Collectors.joining(":"));
+                .collect(joining(":"));
     }
 
     public boolean isTabular(DataFile datafile) {
@@ -393,7 +402,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
                 }
                 ret.append(" - ");
             }
-            if (unf != null && !unf.equals("")) {
+            if (unf != null && !unf.isEmpty()) {
                 ret.append("UNF: ").append(unf);
             }
         }
@@ -401,18 +410,18 @@ public class MyDataSearchFragment implements java.io.Serializable {
     }
 
     public String dataFileSizeDisplay(DataFile datafile) {
-        return datafile == null ? "" : datafile.getFriendlySize();
+        return datafile == null ? EMPTY : datafile.getFriendlySize();
     }
 
     public String dataFileChecksumDisplay(DataFile datafile) {
         if (datafile == null) {
-            return StringUtils.EMPTY;
+            return EMPTY;
         }
 
-        if (StringUtils.isNotEmpty(datafile.getChecksumValue()) && datafile.getChecksumType() != null) {
-            return String.format(" %s: %s ", datafile.getChecksumType(), datafile.getChecksumValue());
+        if (isNotEmpty(datafile.getChecksumValue()) && datafile.getChecksumType() != null) {
+            return format(" %s: %s ", datafile.getChecksumType(), datafile.getChecksumValue());
         }
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     public void setDisplayCardValues() {
@@ -429,14 +438,16 @@ public class MyDataSearchFragment implements java.io.Serializable {
     }
 
     public String searchRedirect(String dataverseRedirectPage) {
-        dataverseRedirectPage = StringUtils.isBlank(dataverseRedirectPage) ? "/dataverseuser.xhtml?selectTab=dataRelatedToMe" : dataverseRedirectPage;
+        dataverseRedirectPage = isBlank(dataverseRedirectPage) 
+                ? "/dataverseuser.xhtml?selectTab=dataRelatedToMe" 
+                : dataverseRedirectPage;
 
-        String qParam = "";
+        String qParam = EMPTY;
         if (query != null) {
-            qParam = "&q=" + query;
+            qParam = "&q=".concat(query);
         }
         if (searchUserId != null) {
-            qParam += "&uId=" + searchUserId;
+            qParam += "&uId=".concat(searchUserId);
         }
 
         return widgetWrapper.wrapURL(dataverseRedirectPage + "?faces-redirect=true" + qParam);
@@ -450,7 +461,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
     public String retrieveMyData() {
         if (session.isUserLoggedIn()) {
             authUser = (AuthenticatedUser) session.getUser();
-            if (StringUtils.isEmpty(searchUserId)) {
+            if (isEmpty(searchUserId)) {
                 searchUserId = getAuthUserIdentifier();
             }
             // If person is a superuser, see if a userIdentifier has been specified
@@ -463,7 +474,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
                 if (searchUser != null) {
                     authUser = searchUser;
                 } else {
-                    return "No user found for: \"" + searchUserId + "\"";
+                    return "No user found for: \"" + searchUserId + '"';
                 }
             }
         } else {
@@ -472,32 +483,32 @@ public class MyDataSearchFragment implements java.io.Serializable {
         }
 
         // wildcard/browse (*) unless user supplies a query
-        mode = StringUtils.isEmpty(query)
+        mode = isEmpty(query)
                 ? browseModeString : searchModeString;
 
         String searchTerm;
         if (mode.equals(browseModeString)) {
             searchTerm = "*";
 
-            if (StringUtils.isEmpty(selectedTypesString)) {
+            if (isEmpty(selectedTypesString)) {
                 selectedTypesString = "dataverses:datasets";
             }
         } else {
             searchTerm = query;
 
-            if (StringUtils.isEmpty(selectedTypesString)) {
+            if (isEmpty(selectedTypesString)) {
                 selectedTypesString = "dataverses:datasets:files";
             }
         }
 
         publicationStatusFilters = new ArrayList<>();
-        for (String fq : Arrays.asList(fq0, fq1, fq2, fq3, fq4, fq5, fq6, fq7, fq8, fq9)) {
+        for (String fq : asList(fq0, fq1, fq2, fq3, fq4, fq5, fq6, fq7, fq8, fq9)) {
             if (MyDataFilterParams.allPublishedStates.contains(fq)) {
                 publicationStatusFilters.add(fq);
             }
         }
         roleFilters = new ArrayList<>();
-        for (String rf : Arrays.asList(rf0, rf1, rf2, rf3, rf4, rf5)) {
+        for (String rf : asList(rf0, rf1, rf2, rf3, rf4, rf5)) {
             if (rf != null) {
                 roleFilters.add(rf);
             }
@@ -512,7 +523,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
 
         List<String> pub_states = new ArrayList<>();
         for (String filter : publicationStatusFilters) {
-            pub_states.add(filter.replace("\"",""));
+            pub_states.add(filter.replace("\"", EMPTY));
         }
         if (pub_states.isEmpty()) {
             pub_states = MyDataFilterParams.defaultPublishedStates;
@@ -527,14 +538,14 @@ public class MyDataSearchFragment implements java.io.Serializable {
         selectedTypes = SearchForTypes.byTypes(
                 Arrays.stream(selectedTypesString.split(":"))
                     .map(SearchObjectType::fromSolrValue)
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
 
         List<Long> roleIdsForFilters = roleFilters.isEmpty()
                 ? rolePermissionHelper.getRoleIdList() : rolePermissionHelper.findRolesIdsByNames(roleFilters);
         MyDataFilterParams filterParams = new MyDataFilterParams(requestWithSearchedUser, toMyDataFinderFormat(selectedTypes),
                 pub_states, roleIdsForFilters, searchTerm);
         if (filterParams.hasError()) {
-            return filterParams.getErrorMessage() + filterParams.getErrorMessage();
+            return filterParams.getErrorMessage().concat(filterParams.getErrorMessage());
         }
 
         // ---------------------------------
@@ -543,7 +554,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
         MyDataFinder myDataFinder = new MyDataFinder(rolePermissionHelper, roleAssigneeService, dvObjectServiceBean);
         myDataFinder.runFindDataSteps(filterParams);
         if (myDataFinder.hasError()) {
-            return myDataFinder.getErrorMessage() + myDataFinder.getErrorMessage();
+            return myDataFinder.getErrorMessage().concat(myDataFinder.getErrorMessage());
         }
         List<String> filterQueries = myDataFinder.getSolrFilterQueries();
         if (filterQueries == null) {
@@ -670,7 +681,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
 
             for (String publicationStatusFilter: publicationStatusFilters) {
                 String key = format(FacetLocaleNameResolver.FACETBUNDLE_MASK_VALUE, "publicationStatus");
-                String value = format(FacetLocaleNameResolver.FACETBUNDLE_MASK_GROUP_AND_VALUE, "publicationStatus", publicationStatusFilter.toLowerCase().replace(" ", "_"));
+                String value = format(FacetLocaleNameResolver.FACETBUNDLE_MASK_GROUP_AND_VALUE, "publicationStatus", publicationStatusFilter.toLowerCase().replace(' ', '_'));
 
                 selectedFilterQueries.add(
                         new FilterQuery(publicationStatusFilter,
@@ -713,7 +724,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
         if (userIdentifier == null) {
             return null;
         }
-        return userIdentifier.startsWith("@")
+        return userIdentifier.charAt(0) == '@'
                 ? userIdentifier.length() == 1
                 ? null
                 : userIdentifier.substring(1)

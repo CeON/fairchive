@@ -11,6 +11,10 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+
 import java.io.StringReader;
 import java.util.UUID;
 
@@ -40,11 +44,11 @@ public class GoogleOAuth2AP extends AbstractOAuth2AuthenticationProvider {
             JsonObject response = jrdr.readObject();
 
             AuthenticatedUserDisplayInfo displayInfo = new AuthenticatedUserDisplayInfo(
-                    response.getString("given_name", ""),
-                    response.getString("family_name", ""),
-                    response.getString("email", ""),
-                    "",
-                    ""
+                    response.getString("given_name", EMPTY),
+                    response.getString("family_name", EMPTY),
+                    response.getString("email", EMPTY),
+                    EMPTY,
+                    EMPTY
             );
             String persistentUserId = response.getString("id");
             String username = response.getString("email");
@@ -52,13 +56,13 @@ public class GoogleOAuth2AP extends AbstractOAuth2AuthenticationProvider {
                 username = username.split("@")[0].trim();
             } else {
                 // compose a username from given and family names
-                username = response.getString("given_name", "") + "."
-                        + response.getString("family_name", "");
+                username = response.getString("given_name", EMPTY) + '.'
+                        + response.getString("family_name", EMPTY);
                 username = username.trim();
                 if (username.isEmpty()) {
                     username = UUID.randomUUID().toString();
                 } else {
-                    username = username.replaceAll(" ", "-");
+                    username = username.replaceAll(SPACE, "-");
                 }
             }
             return new ParsedUserResponse(displayInfo, persistentUserId, username);

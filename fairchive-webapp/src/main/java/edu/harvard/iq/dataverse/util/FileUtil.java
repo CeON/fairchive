@@ -82,10 +82,10 @@ public class FileUtil implements java.io.Serializable {
     // -------------------- LOGIC --------------------
 
     public static String replaceExtension(String originalName, String newExtension) {
-        int extensionIndex = originalName.lastIndexOf(".");
+        int extensionIndex = originalName.lastIndexOf('.');
         return extensionIndex != -1
-                ? originalName.substring(0, extensionIndex) + "." + newExtension
-                : originalName + "." + newExtension;
+                ? originalName.substring(0, extensionIndex) + '.' + newExtension
+                : originalName + '.' + newExtension;
     }
 
     public static String getFacetFileTypeForIndex(DataFile dataFile, Locale locale) {
@@ -272,7 +272,7 @@ public class FileUtil implements java.io.Serializable {
 
         logger.trace("(not UUID) timestamp in hex: {}", hexTimestamp);
 
-        String storageIdentifier = hexTimestamp + "-" + hexRandom;
+        String storageIdentifier = hexTimestamp + '-' + hexRandom;
 
         logger.debug("Storage identifier (timestamp/UUID hybrid): {}", storageIdentifier);
         return storageIdentifier;

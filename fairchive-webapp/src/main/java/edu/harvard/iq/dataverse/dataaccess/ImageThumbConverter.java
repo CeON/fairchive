@@ -489,7 +489,7 @@ public class ImageThumbConverter {
         }
 
         // default location:
-        if (imageMagickExec == null || imageMagickExec.equals("")) {
+        if (imageMagickExec == null || imageMagickExec.isEmpty()) {
             imageMagickExec = "/usr/bin/convert";
         }
 
@@ -580,7 +580,7 @@ public class ImageThumbConverter {
         }
 
         // default/standard location:
-        if (imageMagickExec == null || imageMagickExec.equals("")) {
+        if (imageMagickExec == null || imageMagickExec.isEmpty()) {
             imageMagickExec = "/usr/bin/convert";
         }
 

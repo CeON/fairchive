@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toMap;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
 import static javax.persistence.TemporalType.TIMESTAMP;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -41,7 +42,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.ManyToOne;
@@ -112,7 +112,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     public static final int VERSION_NOTE_MAX_LENGTH = 1000;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     private String UNF;
@@ -487,10 +487,10 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
             } else {
                 List<DataFile> current = fileMetadatas.stream()
                         .map(FileMetadata::getDataFile)
-                        .collect(Collectors.toList());
+                        .collect(toList());
                 List<DataFile> previous = dataset.getReleasedVersion().getFileMetadatas().stream()
                         .map(FileMetadata::getDataFile)
-                        .collect(Collectors.toList());
+                        .collect(toList());
                 previous.removeAll(current);
                 return previous.isEmpty();
             }
@@ -895,6 +895,6 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
 
     @Override
     public String toString() {
-        return "[DatasetVersion id:" + id + "]";
+        return "[DatasetVersion id:" + id + ']';
     }
 }

@@ -23,9 +23,12 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import org.apache.commons.lang.StringUtils;
 import org.dataverse.unf.UNFUtil;
 import org.dataverse.unf.UnfException;
+
+import static java.math.BigInteger.ONE;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 import java.io.File;
 import java.io.IOException;
@@ -105,7 +108,7 @@ public class IngestUtil {
 
     // unique path name: directoryLabel + file separator + fileLabel
     public static String makePathName(String directoryName, String fileName) {
-        return StringUtils.isNotBlank(directoryName)
+        return isNotBlank(directoryName)
                 ? directoryName + File.separator + fileName
                 : fileName;
     }
@@ -121,7 +124,7 @@ public class IngestUtil {
         String baseName;
         String extension = null;
 
-        int extensionIndex = fileName.lastIndexOf(".");
+        int extensionIndex = fileName.lastIndexOf('.');
         if (extensionIndex != -1) {
             extension = fileName.substring(extensionIndex + 1);
             baseName = fileName.substring(0, extensionIndex);
@@ -130,18 +133,18 @@ public class IngestUtil {
         }
 
         if (baseName.matches(".*_[0-9][0-9]*$")) {
-            int dashIndex = baseName.lastIndexOf("_");
+            int dashIndex = baseName.lastIndexOf('_');
             String numSuffix = baseName.substring(dashIndex + 1);
             String basePrefix = baseName.substring(0, dashIndex);
-            BigInteger numSuffixValue = (new BigInteger(numSuffix)).add(BigInteger.ONE);
-            baseName = basePrefix + "_" + numSuffixValue;
+            BigInteger numSuffixValue = (new BigInteger(numSuffix)).add(ONE);
+            baseName = basePrefix + '_' + numSuffixValue;
         } else {
-            baseName = baseName + "_1";
+            baseName = baseName.concat("_1");
         }
 
         newName = baseName;
         return extension != null
-                ? newName + "." + extension
+                ? newName + '.' + extension
                 : newName;
     }
 
@@ -175,7 +178,7 @@ public class IngestUtil {
             if (metadata.getDataFile().isTabularData()) {
                 String originalMimeType = metadata.getDataFile().getDataTable().getOriginalFileFormat();
                 String originalPath = existingPath.replaceAll(".tab$",
-                        originalMimeType != null ? FileUtil.generateOriginalExtension(originalMimeType) : "");
+                        originalMimeType != null ? FileUtil.generateOriginalExtension(originalMimeType) : EMPTY);
                 pathNamesExisting.add(originalPath);
             }
         }

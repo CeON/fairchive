@@ -126,12 +126,12 @@ public class ControlledVocabularyValue implements Serializable {
     }
 
     public String getLocaleStrValue(Locale locale) {
-        String key = strValue.toLowerCase().replace(" ", "_");
+        String key = strValue.toLowerCase().replace(' ', '_');
         key = StringUtils.stripAccents(key);
         String value;
         try {
             value = getStringFromNonDefaultBundleWithLocale(
-                    "controlledvocabulary." + this.datasetFieldType.getName() + "." + key,
+                    "controlledvocabulary." + this.datasetFieldType.getName() + '.' + key,
                     getDatasetFieldType().getMetadataBlock().getName(), locale);
         } catch (NullPointerException npe) {
             value = EMPTY;

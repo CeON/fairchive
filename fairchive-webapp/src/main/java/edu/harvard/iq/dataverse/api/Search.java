@@ -189,7 +189,7 @@ public class Search extends AbstractApiBean {
         } else if (numResultsPerPage < 0) {
             throw new IllegalArgumentException(numResultsPerPage + " results per page requested but can not be less than zero.");
         } else if (numResultsPerPage > maxLimit) {
-            throw new IllegalArgumentException(numResultsPerPage + " results per page requested but max limit is " + maxLimit + ".");
+            throw new IllegalArgumentException(numResultsPerPage + " results per page requested but max limit is " + maxLimit + '.');
         } else {
             return numResultsPerPage;
         }

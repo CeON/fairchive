@@ -3,13 +3,15 @@ package edu.harvard.iq.dataverse;
 import edu.harvard.iq.dataverse.customization.CustomizationConstants;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import org.apache.commons.lang.StringUtils;
 
 import javax.inject.Inject;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.apache.commons.lang.StringUtils.EMPTY;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -133,7 +135,7 @@ public class CustomizationFilesServlet extends HttpServlet {
     }
 
     private String getFilePath(Key key) {
-        return key != null ? settingsService.getValueForKey(key) : StringUtils.EMPTY;
+        return key != null ? settingsService.getValueForKey(key) : EMPTY;
     }
 
     private Optional<Path> createLocalizedPathToFile(String basePath) {
@@ -144,7 +146,7 @@ public class CustomizationFilesServlet extends HttpServlet {
 
     private String interpolateLocaleCodeIntoPathToFile(String basePath, String localeCode) {
         int extensionDotIndex = basePath.lastIndexOf(".");
-        String localeInfix = EN_LOCALE_CODE.equals(localeCode) ? StringUtils.EMPTY : "_" + localeCode;
+        String localeInfix = EN_LOCALE_CODE.equals(localeCode) ? EMPTY : "_" + localeCode;
         return basePath.substring(0, extensionDotIndex) + localeInfix + basePath.substring(extensionDotIndex);
     }
 

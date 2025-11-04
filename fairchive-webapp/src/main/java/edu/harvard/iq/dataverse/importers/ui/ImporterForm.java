@@ -22,8 +22,6 @@ import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.primefaces.component.fileupload.FileUpload;
 import org.primefaces.event.CloseEvent;
 import org.primefaces.event.FileUploadEvent;
@@ -35,12 +33,18 @@ import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +55,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class ImporterForm {
     private static final Logger logger = LoggerFactory.getLogger(ImporterForm.class);
@@ -107,8 +110,8 @@ public class ImporterForm {
     }
 
     public String getInvalidSizeMessage() {
-        return BundleUtil.getStringFromBundle(UPLOAD_EXCEEDS_MAX_SIZE,
-                FileUtils.byteCountToDisplaySize(getMaxUploadedFileSize()));
+        return getStringFromBundle(UPLOAD_EXCEEDS_MAX_SIZE,
+                byteCountToDisplaySize(getMaxUploadedFileSize()));
     }
 
     // -------------------- LOGIC --------------------
@@ -138,12 +141,12 @@ public class ImporterForm {
                 .map(FileUploadEvent::getFile)
                 .orElseThrow(() -> new IllegalStateException("Null event or file"));
         Path tempPath = prepareTempPath(file);
-        Files.copy(file.getInputStream(), tempPath, StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(file.getInputStream(), tempPath, REPLACE_EXISTING);
         component.setValue(tempPath.toFile());
         FacesContext.getCurrentInstance().addMessage(component.getClientId(),
                 new FacesMessage(FacesMessage.SEVERITY_INFO,
-                    BundleUtil.getStringFromBundle(UPLOAD_SUCCESSFUL, file.getFileName()),
-                StringUtils.EMPTY));
+                    getStringFromBundle(UPLOAD_SUCCESSFUL, file.getFileName()),
+                EMPTY));
     }
 
     public void nextStep() {
@@ -160,7 +163,7 @@ public class ImporterForm {
         } catch (RuntimeException re) {
             logger.warn("Exception during importer invocation", re);
             JsfHelper.addErrorMessage(
-                    BundleUtil.getStringFromBundle(METADATA_IMPORT_RESULT_ERROR), "");
+                    getStringFromBundle(METADATA_IMPORT_RESULT_ERROR), "");
         }
     }
 
@@ -232,7 +235,7 @@ public class ImporterForm {
         Map<ImporterFieldKey, String> validated = importer.validate(toImporterInput(input.itemsForImporterValidation));
         Set<ValidationResult> validationResults = input.emptyItems.stream()
                 .map(i -> new ValidationResult(i.getViewId(), fetchEmptyInputMessage(i)))
-                .collect(Collectors.toSet());
+                .collect(toSet());
         return validated.entrySet().stream()
                 .map(e -> new ValidationResult(keyToItem.get(e.getKey()).getViewId(), bundleWrapper.getString(e.getValue())))
                 .collect(() -> validationResults, Set::add, Set::addAll);
@@ -241,10 +244,10 @@ public class ImporterForm {
     private ValidationInput prepareItemsForValidation() {
         Set<FormItem> itemsForValidation = items.stream()
                 .filter(FormItem::isRelevantForProcessing)
-                .collect(Collectors.toSet());
+                .collect(toSet());
         Set<FormItem> notFilled = itemsForValidation.stream()
                 .filter(i -> i.getRequired() && i.getValue() == null)
-                .collect(Collectors.toSet());
+                .collect(toSet());
         itemsForValidation.removeAll(notFilled);
         return new ValidationInput(itemsForValidation, notFilled);
     }
@@ -270,7 +273,7 @@ public class ImporterForm {
                 ((UIInput) component).setValid(false);
             }
             fctx.addMessage(component.getClientId(),
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, StringUtils.EMPTY, result.message));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, EMPTY, result.message));
         }
     }
 

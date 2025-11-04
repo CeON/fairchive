@@ -14,6 +14,8 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 public class NotGreaterThanValidatorTest {
 
@@ -24,15 +26,19 @@ public class NotGreaterThanValidatorTest {
         validator = new NotGreaterThanValidator();
     }
 
-    @Test
-    public void validate__field_is_less_than_dependant_field() {
+    @ParameterizedTest
+    @CsvSource({
+        "1999, 2000",
+        "2000.01, 2000.02",
+    })
+    public void validate__field_is_less_than_dependant_field(String fieldValue, String dependantValue) {
         // given
         Map<String, Object> params = new HashMap<>();
         params.put(DependantFieldValidator.DEPENDANT_FIELD_PARAM, "to");
         params.put(DependantFieldValidator.DEPENDANT_FIELD_IS_SIBLING, false);
         
-        DatasetField field = buildSimpleField("from", "1999");
-        DatasetField dependantField = buildSimpleField("to", "2000");
+        DatasetField field = buildSimpleField("from", fieldValue);
+        DatasetField dependantField = buildSimpleField("to", dependantValue);
 
         Map<String, List<? extends ValidatableField>> fieldIndex = new HashMap<>();
         fieldIndex.put("from", Collections.singletonList(field));
@@ -45,15 +51,19 @@ public class NotGreaterThanValidatorTest {
         assertThat(result.isOk()).isTrue();
     }
 
-    @Test
-    public void validate__field_is_equal_to_dependant_field() {
+    @ParameterizedTest
+    @CsvSource({
+        "1999, 1999",
+        "2000.01, 2000.01",
+    })
+    public void validate__field_is_equal_to_dependant_field(String fieldValue, String dependantValue) {
         // given
         Map<String, Object> params = new HashMap<>();
         params.put(DependantFieldValidator.DEPENDANT_FIELD_PARAM, "to");
         params.put(DependantFieldValidator.DEPENDANT_FIELD_IS_SIBLING, false);
         
-        DatasetField field = buildSimpleField("from", "1999");
-        DatasetField dependantField = buildSimpleField("to", "1999");
+        DatasetField field = buildSimpleField("from", fieldValue);
+        DatasetField dependantField = buildSimpleField("to", dependantValue);
 
         Map<String, List<? extends ValidatableField>> fieldIndex = new HashMap<>();
         fieldIndex.put("from", Collections.singletonList(field));
@@ -106,15 +116,19 @@ public class NotGreaterThanValidatorTest {
         assertThat(result.isOk()).isTrue();
     }
 
-    @Test
-    public void validate__field_is_greater_than_dependant_field() {
+    @ParameterizedTest
+    @CsvSource({
+        "2000, 1999",
+        "2000.02, 2000.01",
+    })
+    public void validate__field_is_greater_than_dependant_field(String fieldValue, String dependantValue) {
         // given
         Map<String, Object> params = new HashMap<>();
         params.put(DependantFieldValidator.DEPENDANT_FIELD_PARAM, "to");
         params.put(DependantFieldValidator.DEPENDANT_FIELD_IS_SIBLING, false);
         
-        DatasetField field = buildSimpleField("from", "2000");
-        DatasetField dependantField = buildSimpleField("to", "1999");
+        DatasetField field = buildSimpleField("from", fieldValue);
+        DatasetField dependantField = buildSimpleField("to", dependantValue);
 
         Map<String, List<? extends ValidatableField>> fieldIndex = new HashMap<>();
         fieldIndex.put("from", Collections.singletonList(field));

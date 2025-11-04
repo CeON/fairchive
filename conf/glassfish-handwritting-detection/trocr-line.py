@@ -1,3 +1,4 @@
+import argparse
 import sys, io
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from PIL import Image
@@ -54,12 +55,12 @@ def deskew_text_line(img):
     return rotated, angle
 
 
-def segment_lines(img_bgr):
+def segment_lines(img_bgr, weights_path):
     """
     Returns a list of line boxes (xmin, xmax, ymin, ymax) top-to-bottom.
     """
     net = WordDetectorNet()
-    net.load_state_dict(torch.load('weights', map_location=DEVICE))
+    net.load_state_dict(torch.load(weights_path, map_location=DEVICE))
     net.eval()
     net.to(DEVICE)
 
@@ -131,6 +132,9 @@ def debug_save_boxed_on_org_image(img, boxes):
   cv2.imwrite(filename, img_with_boxes)
 
 def main():
+    parser = argparse.ArgumentParser(description="Detect handwritten text from image")
+    parser.add_argument('--weights', type=str, default="weights", help='Path to model weights for WordDetectorNet')
+    args = parser.parse_args()
     # 1) Read image bytes from stdin
     data = sys.stdin.buffer.read()
     if not data:
@@ -145,7 +149,7 @@ def main():
     img = rotated
 
     # 3) Segment lines
-    line_box = segment_lines(img)
+    line_box = segment_lines(img, args.weights)
 
     # 4) Prepare per-line crops (as PIL RGB)
     line_images = []

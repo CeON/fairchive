@@ -8,6 +8,10 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -15,7 +19,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,14 +33,14 @@ import java.util.regex.Pattern;
  */
 public class StringUtil {
 
-    public static final Set<String> TRUE_VALUES = Collections.unmodifiableSet(new TreeSet<>(Arrays.asList("1", "yes", "true", "allow")));
+    public static final Set<String> TRUE_VALUES = unmodifiableSet(new TreeSet<>(asList("1", "yes", "true", "allow")));
 
     public static final boolean nonEmpty(String str) {
         return !isEmpty(str);
     }
 
     public static final boolean isEmpty(String str) {
-        return str == null || str.trim().equals("");
+        return str == null || str.trim().isEmpty();
     }
 
     public static String nullToEmpty(String inString) {

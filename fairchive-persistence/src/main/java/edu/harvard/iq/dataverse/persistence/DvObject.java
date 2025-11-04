@@ -28,6 +28,8 @@ import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.GenerationType.IDENTITY;
 import static javax.persistence.InheritanceType.JOINED;
 import static javax.persistence.TemporalType.TIMESTAMP;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -105,17 +107,17 @@ public abstract class DvObject extends DataverseEntity implements Serializable, 
 
         @Override
         public String visit(Dataverse dv) {
-            return "[" + dv.getId() + " " + dv.getName() + "]";
+            return "[" + dv.getId() + SPACE + dv.getName() + ']';
         }
 
         @Override
         public String visit(Dataset ds) {
-            return "[" + ds.getId() + (ds.getLatestVersion() != null ? " " + ds.getLatestVersion().getParsedTitle() : "") + "]";
+            return "[" + ds.getId() + (ds.getLatestVersion() != null ? SPACE + ds.getLatestVersion().getParsedTitle() : EMPTY) + ']';
         }
 
         @Override
         public String visit(DataFile df) {
-            return "[" + df.getId() + (df.getFileMetadata() != null ? " " + df.getFileMetadata().getLabel() : "") + "]";
+            return "[" + df.getId() + (df.getFileMetadata() != null ? SPACE + df.getFileMetadata().getLabel() : EMPTY) + ']';
         }
     };
 
