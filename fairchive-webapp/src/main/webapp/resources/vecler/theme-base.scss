@@ -4060,6 +4060,12 @@ input[type=password].form-control {
 #navbarsearch.form-control {
 	font-size: 1em;
 }
+.input-group {
+	input[type=text].form-control,
+	input[type=password].form-control {
+		padding: calc(0.9em + 2px) 0.8em;
+	}
+}
 
 #sharrre-block {
 	a {
