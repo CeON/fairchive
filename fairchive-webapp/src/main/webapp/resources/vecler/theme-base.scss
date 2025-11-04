@@ -166,6 +166,11 @@ button.ui-button:not(.ui-button-icon-only) .ui-icon.glyphicon {
 	font-size: 0.933em;
 }
 
+/* Prevent double popover "flashing" on mouse enter */
+[data-toggle="popover"] > img {
+	pointer-events: none;
+}
+
 /* "Skip to content" label */
 .sr-only.impaired-navigation:focus {
 	position: fixed;
