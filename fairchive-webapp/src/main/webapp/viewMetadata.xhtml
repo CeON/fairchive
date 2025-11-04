@@ -24,7 +24,7 @@
                    aria-expanded="#{block.first}">
                     <h3>#{metadataBlockVal.key.localeDisplayName} &#160;<span class="collapseSrc glyphicon #{block.first?'glyphicon-chevron-up':'glyphicon-chevron-down'}" aria-hidden="true"/></h3>
                 </a>
-                <div id="panelCollapse#{block.index}" class="collapse #{block.first?'in':''}">
+                <div id="panelCollapse#{block.index}" class="collapse in">
                     <div class="panel-body metadata-panel-body">
                         <ui:fragment rendered="#{block.first}">
                             <div jsf:rendered="#{!empty globalId}"
