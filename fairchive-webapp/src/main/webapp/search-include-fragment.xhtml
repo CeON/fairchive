@@ -22,7 +22,7 @@
     <div class="row panelSearchForm" jsf:rendered="#{!SearchIncludeFragment.solrIsDown}">
         <div class="#{widgetWrapper.widgetView ? 'col-sm-12' : 'col-sm-8'}">
             <h:form>
-                <div>
+                <div class="top-search-form">
                     <h:inputHidden value="#{SearchIncludeFragment.dataverseAlias}" />
 
                     <h:outputLabel styleClass="sr-only" value="#{bundle['dataverse.search.label']}" for="searchBasic" />
@@ -38,12 +38,14 @@
                         <f:param name="dataverseIdentifier" value="#{SearchIncludeFragment.dataverse.alias}"/>
                         <h:outputText value="#{bundle['dataverse.search.advancedSearch']}"/>
                     </h:outputLink>
-                    <h:outputLink id="searchChatbot"
-                                  target="_blank"
-                                  value="#{settingsWrapper.getChatbotUrl()}"
-                                  rendered="#{settingsWrapper.hasChatbotUrl()}">
-                        <h:outputText value="Search with Chatbot"/>
-                    </h:outputLink>
+                    <ui:repeat value="#{settingsWrapper.getConfigureSearchBarUrls().entrySet().toArray()}"
+                               var="url">
+                        <h:outputLink value="#{url.key}"
+                                      target="_blank"
+                                      title="#{bundle['opensInNewTab']}">
+                            <h:outputText value="#{url.value}"/>
+                        </h:outputLink>
+                    </ui:repeat>
                 </div>
             </h:form>
         </div>

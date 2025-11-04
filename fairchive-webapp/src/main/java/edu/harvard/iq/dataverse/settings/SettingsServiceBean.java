@@ -826,10 +826,12 @@ public class SettingsServiceBean {
         MachineTranslationURL,
 
         /**
-         * Url to chatbot used for searching datasets
+         * Url to links that will be on search bar
          * By default is set to ''
+         * eq [{"url":"https://example.com/", "title.pl":"Przyklad", "title.en":"Example"},
+         *      {"url":"https://test.pl/", "title.pl":"test", "title.en":"test"}]
          */
-        ChatbotUrl;
+        SearchBarUrls;
 
         @Override
         public String toString() {
