@@ -22,8 +22,16 @@ public class PeriodoFieldValidator extends MultiValueValidatorBase {
 
     private final static String prefix = "http://n2t.net/ark:/99152/p";
     
-    @Inject
+
     private PeriodoDataFinder periods;
+    
+    public PeriodoFieldValidator() {
+    }
+
+    @Inject
+    public PeriodoFieldValidator(final PeriodoDataFinder periods) {
+        this.periods = periods;
+    }
 
     @Override
     public String getName() {

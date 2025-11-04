@@ -36,7 +36,12 @@ final class PeriodoImporter {
             throws Exception {
         return new PeriodoImporter().importNames(json).iterator();
     }
-    
+    /**
+     * @param json file downloaded grom https://perio.do
+     * @param tsv a file in TSV formr in form of 
+     *          - header row
+     *          - {period url}\t{english text}\t{polish text}.... (rest of columns ignored)
+     */
     public static Iterator<Period> readPeriods(final InputStream json, final InputStream tsv) 
             throws Exception {
         return new PeriodoImporter().importNames(json, tsv).iterator();

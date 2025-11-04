@@ -45,6 +45,11 @@ public class PeriodoIndexingService {
         store(PeriodoImporter.readPeriods(json, tsv));
     }
     
+    public void clear() throws Exception {
+        this.solr.deleteByQuery("*:*");
+        this.solr.commit();
+    }
+    
     private void store(final Iterator<Period> it) throws Exception {
         final ArrayList<Period> list = new ArrayList<>(BATCH_SIZE);
 
@@ -55,16 +60,11 @@ public class PeriodoIndexingService {
         while (fetch(it, list)) {
             this.solr.addBeans(list);
             this.solr.commit();
-            count += BATCH_SIZE;
+            count += list.size();
             log.info("Stored " + count);
         }
         log.info("Perio.do stored in Solr in {}  seconds.",
                 (currentTimeMillis() - begin) / 1000);
-    }
-
-    public void clear() throws Exception {
-        this.solr.deleteByQuery("*:*");
-        this.solr.commit();
     }
 
     private static boolean fetch(final Iterator<Period> iterator, final List<Period> list) {
