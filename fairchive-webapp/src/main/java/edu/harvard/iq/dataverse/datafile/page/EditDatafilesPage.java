@@ -208,7 +208,8 @@ public class EditDatafilesPage implements java.io.Serializable {
     public EditDatafilesPage() { }
 
     @Inject
-    public EditDatafilesPage(final DataFileServiceBean datafileDao,
+    public EditDatafilesPage(final DatasetDao datasetDao,
+                             final DataFileServiceBean datafileDao,
                              final DataFileCreator dataFileCreator, 
                              final PermissionServiceBean permissionService,
                              final IngestServiceBean ingestService, 
@@ -229,6 +230,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final ImageThumbConverter imageThumbConverter,
                              final DuplicatesService duplicatesService,
                              final AsyncExecutionService asyncExecutionService) {
+        this.datasetDao = datasetDao;
         this.datafileDao = datafileDao;
         this.dataFileCreator = dataFileCreator;
         this.permissionService = permissionService;
