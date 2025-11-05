@@ -823,7 +823,15 @@ public class SettingsServiceBean {
         /**
          * URL of machine tranlsation service
          */
-        MachineTranslationURL;
+        MachineTranslationURL,
+
+        /**
+         * Url to links that will be on search bar
+         * By default is set to ''
+         * eq [{"url":"https://example.com/", "title.pl":"Przyklad", "title.en":"Example"},
+         *      {"url":"https://test.pl/", "title.pl":"test", "title.en":"test"}]
+         */
+        SearchBarUrls;
 
         @Override
         public String toString() {
