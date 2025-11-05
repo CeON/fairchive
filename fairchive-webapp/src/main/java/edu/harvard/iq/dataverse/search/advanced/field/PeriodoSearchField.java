@@ -15,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary;
 import edu.harvard.iq.dataverse.search.advanced.SearchFieldType;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
 
@@ -192,10 +191,6 @@ public class PeriodoSearchField extends SearchField {
 
     public void setLocations(final List<String> locations) {
         this.locations = locations;
-    }
-    
-    public List<String> getAllLocations() {
-        return PeriodoDictionary.locations();
     }
 
     public String getStartEarliest() {

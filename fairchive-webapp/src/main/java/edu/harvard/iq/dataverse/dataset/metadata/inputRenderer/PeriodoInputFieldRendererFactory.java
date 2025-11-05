@@ -3,17 +3,30 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 import static edu.harvard.iq.dataverse.persistence.dataset.InputRendererType.PERIODO;
 
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
+import edu.harvard.iq.dataverse.search.periodo.PeriodoDataFinder;
 import io.vavr.control.Try;
 
 @Stateless
 public class PeriodoInputFieldRendererFactory implements InputFieldRendererFactory<PeriodoRenderer>{
 
+    private PeriodoDataFinder periods;
+    
+    public PeriodoInputFieldRendererFactory() {
+        
+    }
+    
+    @Inject
+    public PeriodoInputFieldRendererFactory(final PeriodoDataFinder periods) {
+        this.periods = periods;
+    }
+    
     @Override
     public InputRendererType isFactoryForType() {
         return PERIODO;
@@ -26,7 +39,7 @@ public class PeriodoInputFieldRendererFactory implements InputFieldRendererFacto
                 .getOrElseThrow((e) -> new InputRendererInvalidConfigException("Invalid syntax of input renderer options " + jsonOptions + ")", e));
 
 
-        return new PeriodoRenderer(rendererOptions.getConditionalRendering());
+        return new PeriodoRenderer(this.periods, rendererOptions.getConditionalRendering());
     }
 
     // -------------------- INNER CLASSES --------------------
@@ -40,12 +53,12 @@ public class PeriodoInputFieldRendererFactory implements InputFieldRendererFacto
         // -------------------- GETTERS --------------------
 
         public ConditionalRendering getConditionalRendering() {
-            return conditionalRendering;
+            return this.conditionalRendering;
         }
 
         // -------------------- SETTERS --------------------
 
-        public void setConditionalRendering(ConditionalRendering conditionalRendering) {
+        public void setConditionalRendering(final ConditionalRendering conditionalRendering) {
             this.conditionalRendering = conditionalRendering;
         }
     }
