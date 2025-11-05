@@ -911,7 +911,9 @@ function bindPopovers() {
         })
         .on("mouseout", event => {
             setTimeout(() => {
-                if (!$("[data-toggle='popover']:hover").length && !$(".popover-content:hover").length) $(event.currentTarget).popover("hide");
+                if (!$(event.currentTarget).is(':hover') && !$(".popover-content:hover").length) {
+                    $(event.currentTarget).popover("hide");
+                }
             }, 50);
         })
         .on("focus", event => {
