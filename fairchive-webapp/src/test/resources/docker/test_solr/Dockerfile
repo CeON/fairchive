@@ -34,4 +34,4 @@ EXPOSE 8983
 USER $SOLR_USER
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD precreate-core collection1 /opt/solr/server/solr/configsets/dataverse_config; precreate-core rorSuggestions /opt/solr/server/solr/configsets/ror_config; precreate-core geonames /opt/solr/server/solr/configsets/geonames_config; precreate-core periodo /opt/solr/server/solr/configsets/periodore_config;solr start -f
+CMD precreate-core collection1 /opt/solr/server/solr/configsets/dataverse_config; precreate-core rorSuggestions /opt/solr/server/solr/configsets/ror_config; precreate-core geonames /opt/solr/server/solr/configsets/geonames_config; precreate-core periodo /opt/solr/server/solr/configsets/periodo_config;solr start -f

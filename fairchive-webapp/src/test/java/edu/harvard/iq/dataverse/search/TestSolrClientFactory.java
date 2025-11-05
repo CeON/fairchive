@@ -1,14 +1,15 @@
 package edu.harvard.iq.dataverse.search;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.enterprise.inject.Disposes;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.Specializes;
-import java.io.IOException;
-import java.util.logging.Logger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 
 /**
  * CDI compliant factory of {@link SolrClient} objects
@@ -29,10 +30,12 @@ public class TestSolrClientFactory extends SolrClientFactory {
     private static final String DOCUMENT_INDEX_ENDPOINT = "/solr/collection1";
     private static final String ROR_INDEX_ENDPOINT = "/solr/rorSuggestions";
     private static final String GEONAMES_INDEX_ENDPOINT = "/solr/geonames";
+    private static final String PERIODO_INDEX_ENDPOINT = "/solr/periodo";
 
     private final String solrClientUrl;
     private final String rorSolrClientUrl;
     private final String geoNamesSolrClientUrl;
+    private final String periodoSolrClientUrl;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -40,6 +43,7 @@ public class TestSolrClientFactory extends SolrClientFactory {
         solrClientUrl = resolveSolrURL() + DOCUMENT_INDEX_ENDPOINT;
         rorSolrClientUrl = resolveSolrURL() + ROR_INDEX_ENDPOINT;
         geoNamesSolrClientUrl = resolveSolrURL() + GEONAMES_INDEX_ENDPOINT;
+        periodoSolrClientUrl = resolveSolrURL() + PERIODO_INDEX_ENDPOINT;
     }
 
     // -------------------- LOGIC --------------------
@@ -66,6 +70,14 @@ public class TestSolrClientFactory extends SolrClientFactory {
         LOGGER.fine("Creating test SolrClient at url: " + geoNamesSolrClientUrl);
         return new HttpSolrClient.Builder(geoNamesSolrClientUrl).build();
     }
+    
+    @Produces
+    @Specializes
+    @PeriodoSolrClient
+    public SolrClient producePeriodoSolrClient() {
+        LOGGER.fine("Creating test SolrClient at url: " + periodoSolrClientUrl);
+        return new HttpSolrClient.Builder(periodoSolrClientUrl).build();
+    }
 
 
     public void disposeSolrClient(@Disposes SolrClient solrClient) throws IOException {
@@ -75,7 +87,7 @@ public class TestSolrClientFactory extends SolrClientFactory {
     // -------------------- PRIVATE --------------------
 
     private static String resolveSolrURL() {
-        return "http://" + getPropertyOrDefault("test.solr.host", DEFAULT_SOLR_TEST_HOST) + ":" +
+        return "http://" + getPropertyOrDefault("test.solr.host", DEFAULT_SOLR_TEST_HOST) + ':' +
                 getPropertyOrDefault("test.solr.port", DEFAULT_SOLR_TEST_PORT);
     }
 
