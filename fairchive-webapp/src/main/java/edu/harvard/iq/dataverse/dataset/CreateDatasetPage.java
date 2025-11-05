@@ -22,7 +22,6 @@ import javax.validation.ConstraintViolation;
 import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
-import edu.harvard.iq.dataverse.DatasetDao;
 import edu.harvard.iq.dataverse.DatasetPage;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
@@ -101,7 +100,6 @@ public class CreateDatasetPage implements Serializable {
     private AsyncExecutionService asyncExecutionService;
     private SaveDatasetProcess saveDatasetProcess;
     
-    private DatasetDao datasetDao;
     private ProvPopupFragmentBean provPopupFragmentBean;
     private IngestServiceBean ingestService;
     private EjbDataverseEngine commandEngine;
@@ -118,7 +116,7 @@ public class CreateDatasetPage implements Serializable {
                              TermsOfUseFormMapper termsOfUseFormMapper, UserDataFieldFiller userDataFieldFiller,
                              DatasetService datasetService, InputFieldRendererManager inputFieldRendererManager,
                              DatasetFieldValidationService fieldValidationService, AsyncExecutionService asyncExecutionService,
-                             DatasetDao datasetDao, ProvPopupFragmentBean provPopupFragmentBean,
+                             ProvPopupFragmentBean provPopupFragmentBean,
                              IngestServiceBean ingestService, EjbDataverseEngine commandEngine,
                              DataverseRequestServiceBean dvRequestService) {
         this.importerRegistry = importerRegistry;
@@ -133,7 +131,6 @@ public class CreateDatasetPage implements Serializable {
         this.inputFieldRendererManager = inputFieldRendererManager;
         this.fieldValidationService = fieldValidationService;
         this.asyncExecutionService = asyncExecutionService;
-        this.datasetDao = datasetDao;
         this.provPopupFragmentBean = provPopupFragmentBean;
         this.ingestService = ingestService;
         this.commandEngine = commandEngine;

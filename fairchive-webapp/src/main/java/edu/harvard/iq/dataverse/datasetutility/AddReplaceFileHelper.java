@@ -17,6 +17,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import org.apache.commons.io.IOUtils;
@@ -29,6 +30,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -285,6 +289,15 @@ public class AddReplaceFileHelper {
                                                     optionalFileParams);
 
         if (!phase1Success) {
+            try {
+                for (DataFile dataFile:initialFileList) {
+                     Path tempLocationPath = Paths.get(FileUtil.getFilesTempDirectory(),
+                        dataFile.getStorageIdentifier());
+                     Files.delete(tempLocationPath);
+                }
+            } catch (IOException ex) {
+                logger.fine(ex.toString());
+            }
             return false;
         }
 
