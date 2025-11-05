@@ -34,10 +34,7 @@
          style="display: flex">
     <p:outputLabel for="periodLocation"
                    value="#{bundle['periodo.location']}"
-                   style="white-space: pre; margin-right: 4px"/>
- <!--    <p:inputText id="periodLocation" 
-                 style="flex: 1;"
-                 value="#{item.locations}"/> -->           
+                   style="white-space: pre; margin-right: 4px"/>       
     <p:selectCheckboxMenu 
                   id="periodLocation"
                   value="#{item.locations}"
@@ -48,7 +45,7 @@
                   updateLabel="true"
                   filter="true" 
                   filterMatchMode="contains">
-        <f:selectItems value="#{item.allLocations}"
+        <f:selectItems value="#{AdvancedSearchPage.periodLocations}"
                     var="l"
                    itemLabel="#{l}"
                    itemValue="#{l}"/>

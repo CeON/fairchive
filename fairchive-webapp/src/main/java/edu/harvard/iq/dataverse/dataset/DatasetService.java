@@ -26,12 +26,10 @@ import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.annotations.PermissionNeeded;
-import edu.harvard.iq.dataverse.api.AbstractApiBean;
 import edu.harvard.iq.dataverse.engine.command.exception.NotAuthenticatedException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateNewDatasetCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetGuestbookCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetThumbnailCommand;
-import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.interceptors.LoggedCall;
@@ -50,7 +48,6 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-import edu.harvard.iq.dataverse.provenance.ProvPopupFragmentBean;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.search.index.SolrIndexServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
@@ -69,7 +66,6 @@ public class DatasetService {
     private DataverseRequestServiceBean dvRequestService;
     private IngestServiceBean ingestService;
     private SettingsServiceBean settingsService;
-    private ProvPopupFragmentBean provPopupFragmentBean;
     private SolrIndexServiceBean solrIndexService;
     private IndexServiceBean indexService;
     private DatasetDao datasetDao;
@@ -79,8 +75,8 @@ public class DatasetService {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    @Deprecated
     public DatasetService() {
+        
     }
 
     @Inject
@@ -91,7 +87,6 @@ public class DatasetService {
             final DataverseRequestServiceBean dvRequestService,
             final IngestServiceBean ingestService, 
             final SettingsServiceBean settingsService,
-            final ProvPopupFragmentBean provPopupFragmentBean, 
             final PermissionServiceBean permissionService,
             final SolrIndexServiceBean solrIndexService, 
             final IndexServiceBean indexService,
@@ -105,7 +100,6 @@ public class DatasetService {
         this.dvRequestService = dvRequestService;
         this.ingestService = ingestService;
         this.settingsService = settingsService;
-        this.provPopupFragmentBean = provPopupFragmentBean;
         this.solrIndexService = solrIndexService;
         this.indexService = indexService;      
         this.datasetDao = datasetDao;

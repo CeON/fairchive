@@ -9,17 +9,20 @@ import javax.faces.context.FacesContext;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
-import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary;
-import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary.Period;
+import edu.harvard.iq.dataverse.search.periodo.Period;
+import edu.harvard.iq.dataverse.search.periodo.PeriodoDataFinder;
 import io.vavr.control.Option;
 
 public class PeriodoRenderer implements InputFieldRenderer {
 
     private final ConditionalRendering conditionalRendering;
+    private final PeriodoDataFinder periods;
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public PeriodoRenderer(ConditionalRendering conditionalRendering) {
+    public PeriodoRenderer(final PeriodoDataFinder periods, 
+            final ConditionalRendering conditionalRendering) {
+        this.periods = periods;
         this.conditionalRendering = conditionalRendering;
     }
 
@@ -56,10 +59,10 @@ public class PeriodoRenderer implements InputFieldRenderer {
         final String query = SuggestionAutocompleteHelper.processSuggestionQuery("periodo")
                 .orElseThrow(() -> new IllegalStateException("Autocomplete query was not found."));
         
-        return PeriodoDictionary.find(query);
+        return this.periods.find(query, 50);
     }
     public String getDetailsOf(final DatasetField field) {
-        return PeriodoDictionary.getByUrl(field.getFieldValue().getOrElse(EMPTY))
+        return this.periods.getByUrl(field.getFieldValue().getOrElse(EMPTY))
                 .map(gn -> gn.getDetails("<b>", "</b>", "<br/>"))
                 .orElse(EMPTY);
     }
