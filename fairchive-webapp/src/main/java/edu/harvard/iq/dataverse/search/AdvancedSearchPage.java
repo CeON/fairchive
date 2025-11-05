@@ -11,6 +11,7 @@ import edu.harvard.iq.dataverse.search.advanced.SearchBlock;
 import edu.harvard.iq.dataverse.search.advanced.field.GroupingSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryWrapper;
+import edu.harvard.iq.dataverse.search.periodo.PeriodoDataFinder;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.validation.SearchFormValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -52,6 +53,7 @@ public class AdvancedSearchPage implements Serializable {
     private QueryWrapperCreator queryWrapperCreator;
     private SearchFormValidationService validationService;
     private AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder;
+    private PeriodoDataFinder periods;
 
     private Dataverse dataverse;
     private String dataverseIdentifier;
@@ -71,12 +73,14 @@ public class AdvancedSearchPage implements Serializable {
     public AdvancedSearchPage(DataverseDao dataverseDao,
                               WidgetWrapper widgetWrapper, QueryWrapperCreator queryWrapperCreator,
                               SearchFormValidationService validationService,
-                              AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder) {
+                              AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder,
+                              PeriodoDataFinder periods) {
         this.dataverseDao = dataverseDao;
         this.widgetWrapper = widgetWrapper;
         this.queryWrapperCreator = queryWrapperCreator;
         this.validationService = validationService;
         this.advancedSearchBlocksBuilder = advancedSearchBlocksBuilder;
+        this.periods = periods;
     }
 
     // -------------------- LOGIC --------------------
@@ -95,6 +99,10 @@ public class AdvancedSearchPage implements Serializable {
         metadataSearchBlocks = advancedSearchBlocksBuilder.createDatasetMetadataBlocks(dataverse);
         searchFieldIndex = buildSearchFieldIndex(metadataSearchBlocks);
         nonSearchFieldIndex = createParentFieldsForSearchFields(searchFieldIndex);
+    }
+    
+    public List<String> getPeriodLocations() throws Exception {
+        return this.periods.getAllLocations();
     }
 
     /** Composes query and redirects to the page with results. */

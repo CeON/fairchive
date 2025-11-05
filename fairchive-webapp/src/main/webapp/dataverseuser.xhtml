@@ -619,9 +619,18 @@
                                 </h:outputFormat>
                             </p>
                             <div id="apiToken" class="highlight hidden">
-                                 <pre>
+                                 <pre style="display: inline-block;">
                                     <code class="language-html" data-lang="html">${ApiTokenPage.apiToken}</code>
                                  </pre>
+                                 <span class="btn" 
+                                      style="margin-top:-10px;"
+                                      aria-label="#{bundle['apitoken.copy']}"
+                                      tabindex="0"
+                                      onclick="navigator.clipboard.writeText('#{ApiTokenPage.apiToken}');"
+                                      onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{ApiTokenPage.apiToken}');">
+                                    <span class="glyphicon glyphicon-copy"/>
+                                    #{bundle['apitoken.copy']} 
+                                </span>
                             </div>
                             <!--Script removes "hidden" class from div containing API token to stop javascript browser exploits-->
                             <script>

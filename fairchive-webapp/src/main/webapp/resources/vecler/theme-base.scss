@@ -166,6 +166,11 @@ button.ui-button:not(.ui-button-icon-only) .ui-icon.glyphicon {
 	font-size: 0.933em;
 }
 
+/* Prevent double popover "flashing" on mouse enter */
+[data-toggle="popover"] > img {
+	pointer-events: none;
+}
+
 /* "Skip to content" label */
 .sr-only.impaired-navigation:focus {
 	position: fixed;
@@ -2939,6 +2944,48 @@ div.panelSearchForm input.search-input {
 	}
 }
 
+div.panelSearchForm {
+  form {
+    display: flex;
+    gap: 12px;
+  }
+
+  .top-search-form {
+    align-content: center;
+  }
+
+  .top-search-form-extra-buttons {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 5px;
+    line-height: normal;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media screen and (max-width: $screen-md-max) {
+  div.panelSearchForm {
+    form {
+      flex-direction: column;
+    }
+
+    .top-search-form-extra-buttons {
+      align-self: flex-start;
+    }
+  }
+}
+
+.font-size-percent-200, .font-size-percent-150 {
+  div.panelSearchForm form {
+    flex-direction: column;
+  }
+
+  div.panelSearchForm .top-search-form-extra-buttons {
+    align-self: flex-start;
+  }
+}
+
 .pagination > .disabled {
 	> a, > span {
 		&, *:focus, &:hover {
@@ -4059,6 +4106,12 @@ input[type=password].form-control {
 }
 #navbarsearch.form-control {
 	font-size: 1em;
+}
+.input-group {
+	input[type=text].form-control,
+	input[type=password].form-control {
+		padding: calc(0.9em + 2px) 0.8em;
+	}
 }
 
 #sharrre-block {
