@@ -79,7 +79,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.PeriodoDictionary;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
@@ -88,6 +87,7 @@ import edu.harvard.iq.dataverse.search.SearchFields;
 import edu.harvard.iq.dataverse.search.SolrField;
 import edu.harvard.iq.dataverse.search.geonames.GeoNameDataFinder;
 import edu.harvard.iq.dataverse.search.index.geobox.GeoboxIndexUtil;
+import edu.harvard.iq.dataverse.search.periodo.PeriodoDataFinder;
 import edu.harvard.iq.dataverse.search.query.SearchObjectType;
 import edu.harvard.iq.dataverse.search.query.SearchPublicationStatus;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
@@ -124,6 +124,7 @@ public class IndexServiceBean {
     private DataAccess dataAccess = DataAccess.dataAccess();
     private GeoboxIndexUtil geoboxIndexUtil = new GeoboxIndexUtil();
     private GeoNameDataFinder geonames;
+    private PeriodoDataFinder periods;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -140,7 +141,8 @@ public class IndexServiceBean {
                             SettingsServiceBean settingsService,
                             SolrClient solrServer, 
                             CitationFactory citationFactory, 
-                            GeoNameDataFinder geonames) {
+                            GeoNameDataFinder geonames,
+                            PeriodoDataFinder periods) {
         this.dvObjectService = dvObjectService;
         this.dataverseDao = dataverseDao;
         this.datasetService = datasetService;
@@ -152,6 +154,7 @@ public class IndexServiceBean {
         this.solrServer = solrServer;
         this.citationFactory = citationFactory;
         this.geonames = geonames;
+        this.periods = periods;
     }
 
     // -------------------- LOGIC --------------------
@@ -924,7 +927,7 @@ public class IndexServiceBean {
                         } else if (FieldType.PERIODO.equals(dsfType.getFieldType())) {
                             final String url = dsf.getValue();
                             solrInputDocument.addField(PERIODO_ID, url);
-                            PeriodoDictionary.getByUrl(url).ifPresent(period -> {
+                            this.periods.getByUrl(url).ifPresent(period -> {
                                 solrInputDocument.addField(PERIODO_LABEL, period.getLabel());
                                 solrInputDocument.addField(PERIODO_START, period.getStart());
                                 solrInputDocument.addField(PERIODO_STOP, period.getStop());

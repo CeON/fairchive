@@ -22,19 +22,31 @@
     <div class="row panelSearchForm" jsf:rendered="#{!SearchIncludeFragment.solrIsDown}">
         <div class="#{widgetWrapper.widgetView ? 'col-sm-12' : 'col-sm-8'}">
             <h:form>
-                <h:inputHidden value="#{SearchIncludeFragment.dataverseAlias}" />
+                <div class="top-search-form">
+                    <h:inputHidden value="#{SearchIncludeFragment.dataverseAlias}" />
 
-                <h:outputLabel styleClass="sr-only" value="#{bundle['dataverse.search.label']}" for="searchBasic" />
-                <p:inputText id="searchBasic" styleClass="search-input" size="40" value="#{SearchIncludeFragment.query}" onkeypress="if (event.keyCode == 13) { submitsearch(); return false; }"/>
-                <p:watermark for="searchBasic" value="#{bundle['dataverse.search.input.watermark']}"/>
-                <p:commandLink id="searchbutton" styleClass="btn btn-default btn-access" action="#{SearchIncludeFragment.searchRedirect()}">
-                    <span class="glyphicon glyphicon-search"/> #{bundle['dataverse.search.btn.find']}
-                </p:commandLink>
-                <p:remoteCommand name="submitsearch" action="#{SearchIncludeFragment.searchRedirect()}"/>
-                <h:outputLink id="advsearchlink" value="#{widgetWrapper.wrapURL('/search/advanced.xhtml')}">
-                    <f:param name="dataverseIdentifier" value="#{SearchIncludeFragment.dataverse.alias}"/>
-                    <h:outputText value="#{bundle['dataverse.search.advancedSearch']}"/>
-                </h:outputLink>
+                    <h:outputLabel styleClass="sr-only" value="#{bundle['dataverse.search.label']}" for="searchBasic" />
+                    <p:inputText id="searchBasic" styleClass="search-input" size="40" value="#{SearchIncludeFragment.query}" onkeypress="if (event.keyCode == 13) { submitsearch(); return false; }"/>
+                    <p:watermark for="searchBasic" value="#{bundle['dataverse.search.input.watermark']}"/>
+                    <p:commandLink id="searchbutton" styleClass="btn btn-default btn-access" action="#{SearchIncludeFragment.searchRedirect()}">
+                        <span class="glyphicon glyphicon-search"/> #{bundle['dataverse.search.btn.find']}
+                    </p:commandLink>
+                    <p:remoteCommand name="submitsearch" action="#{SearchIncludeFragment.searchRedirect()}"/>
+                </div>
+                <div class="top-search-form-extra-buttons">
+                    <h:outputLink id="advsearchlink" value="#{widgetWrapper.wrapURL('/search/advanced.xhtml')}">
+                        <f:param name="dataverseIdentifier" value="#{SearchIncludeFragment.dataverse.alias}"/>
+                        <h:outputText value="#{bundle['dataverse.search.advancedSearch']}"/>
+                    </h:outputLink>
+                    <ui:repeat value="#{settingsWrapper.getConfigureSearchBarUrls().entrySet().toArray()}"
+                               var="url">
+                        <h:outputLink value="#{url.key}"
+                                      target="_blank"
+                                      title="#{bundle['opensInNewTab']}">
+                            <h:outputText value="#{url.value}"/>
+                        </h:outputLink>
+                    </ui:repeat>
+                </div>
             </h:form>
         </div>
         <div class="col-sm-4 text-right col-manage-action" jsf:rendered="#{!widgetWrapper.widgetView}">
