@@ -403,15 +403,24 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
         Map<String, List<SelectItem>> groupsMap = new LinkedHashMap<>();
         List<SelectItem> itemsWithoutGroup = new ArrayList<>();
+        List<SelectItem> itemsWithNegativeDisplayOrder = new ArrayList<>(); //items with negative display order should be at the top regardless of locale sorting
 
         for (ControlledVocabularyValue value : controlledVocabularyValues) {
             if (StringUtils.isNotEmpty(value.getDisplayGroup())) {
                 if (!groupsMap.containsKey(value.getDisplayGroup())) {
                     groupsMap.put(value.getDisplayGroup(), new ArrayList<>());
                 }
-                groupsMap.get(value.getDisplayGroup()).add(new SelectItem(value, value.getLocaleStrValue()));
+                if (value.getDisplayOrder() < 0) {
+                    itemsWithNegativeDisplayOrder.add(new SelectItem(value, value.getLocaleStrValue()));
+                } else {
+                    groupsMap.get(value.getDisplayGroup()).add(new SelectItem(value, value.getLocaleStrValue()));
+                }
             } else {
-                itemsWithoutGroup.add(new SelectItem(value, value.getLocaleStrValue()));
+                if (value.getDisplayOrder() < 0) {
+                    itemsWithNegativeDisplayOrder.add(new SelectItem(value, value.getLocaleStrValue()));
+                } else {
+                    itemsWithoutGroup.add(new SelectItem(value, value.getLocaleStrValue()));
+                }
             }
         }
         Collator collator = Collator.getInstance(BundleUtil.getCurrentLocale());
@@ -436,6 +445,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
             sortSelectItemsWitCurrentLocale(itemsWithoutGroup);
         }
         groupedList.addAll(itemsWithoutGroup);
+        groupedList.addAll(0, itemsWithNegativeDisplayOrder);
 
         return groupedList;
     }
