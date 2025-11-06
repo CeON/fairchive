@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.authorization.AuthenticationProvider;
 import edu.harvard.iq.dataverse.authorization.AuthenticationRequest;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.authorization.CredentialsAuthenticationProvider;
+import edu.harvard.iq.dataverse.authorization.EditableAccountField;
 import edu.harvard.iq.dataverse.authorization.common.ExternalIdpUserRecord;
 import edu.harvard.iq.dataverse.authorization.exceptions.AuthenticationFailedException;
 import edu.harvard.iq.dataverse.authorization.providers.builtin.BuiltinAuthenticationProvider;
@@ -129,6 +130,8 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
 
     private boolean isSamlUser;
 
+    private boolean disableOrcidEdit = false;
+
     // -------------------- GETTERS --------------------
 
     public AuthenticationProvider getAuthProvider() {
@@ -165,6 +168,10 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
 
     public Boolean getDisableSamlFilledFields() {
         return disableSamlFilledFields;
+    }
+
+    public boolean isDisableOrcidEdit() {
+        return disableOrcidEdit;
     }
 
     // -------------------- LOGIC --------------------
@@ -228,6 +235,9 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
         authProvider = authenticationSvc.getAuthenticationProvider(newUser.getServiceId());
         installationName = installationConfigService.getNameOfInstallation();
         consents = consentService.prepareConsentsForView(session.getLocale());
+
+        disableOrcidEdit = !authProvider.getEditableFields().contains(EditableAccountField.ORCID)
+                && StringUtils.isNotBlank(newUser.getDisplayInfo().getOrcid());
 
         return StringUtils.EMPTY;
     }
