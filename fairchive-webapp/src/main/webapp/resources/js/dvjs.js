@@ -214,16 +214,16 @@ function initDvJS() {
 
     function activateDrawingTools(map, data) {
       if (data.drawTools.allowMarker) {
-        createNewMarkerControl(map, data.polygonLayer);
+        createNewMarkerControl(map, data);
       }
       if (data.drawTools.allowPolygon) {
-        createNewPolygonControl(map, data.polygonLayer);
+        createNewPolygonControl(map, data);
       }
       if (data.drawTools.allowRectangle) {
-        createNewRectangleControl(map, data.polygonLayer);
+        createNewRectangleControl(map, data);
       }
 
-      createTrashBinControl(map, data.polygonLayer);
+      createTrashBinControl(map, data);
     }
 
     function createBaseEditControls() {
@@ -259,12 +259,12 @@ function initDvJS() {
       });
     }
 
-    function createNewMarkerControl(map, polygonLayer) {
+    function createNewMarkerControl(map, data) {
       L.NewMarkerControl = L.EditControl.extend({
         options: {
           position: 'topleft',
           callback: function () {
-            polygonLayer.clearLayers();
+            clearMap(data);
             map.editTools.startMarker();
           },
           kind: 'marker',
@@ -278,14 +278,13 @@ function initDvJS() {
       map.addControl(new L.NewMarkerControl());
     }
 
-    function createNewPolygonControl(map, polygonLayer) {
+    function createNewPolygonControl(map, data) {
       L.NewPolygonControl = L.EditControl.extend({
         options: {
           position: 'topleft',
           callback: function () {
-            polygonLayer.clearLayers();
+            clearMap(data);
             var polygon = map.editTools.startPolygon();
-
           },
           kind: 'polygon',
           html: '<svg width="20" height="20" viewBox="0 0 100 100" style="margin-top:5px">' +
@@ -297,12 +296,12 @@ function initDvJS() {
       map.addControl(new L.NewPolygonControl());
     }
 
-    function createNewRectangleControl(map, polygonLayer) {
+    function createNewRectangleControl(map, data) {
       L.NewRectangleControl = L.EditControl.extend({
         options: {
           position: 'topleft',
           callback: function () {
-            polygonLayer.clearLayers();
+            clearMap(data);
             map.editTools.startRectangle();
           },
           kind: 'rectangle',
@@ -315,12 +314,12 @@ function initDvJS() {
       map.addControl(new L.NewRectangleControl());
     }
 
-    function createTrashBinControl(map, polygonLayer) {
+    function createTrashBinControl(map, data) {
       L.TrashBinControl = L.EditControl.extend({
         options: {
           position: 'topleft',
           callback: function () {
-            polygonLayer.clearLayers();
+            clearMap(data);
           },
           title: 'Clear map',
           html: '<svg width="45" height="45" viewBox="0 0 100 100" style="margin-left:1px">' +
@@ -364,6 +363,11 @@ function initDvJS() {
         result = geometry.join(" ");
       }
       PF(widgetVars['polygonGeo']).jq.val(result);
+    }
+
+    function clearMap(data) {
+      data.polygonLayer.clearLayers();
+      PF(data.widgetVars['polygonGeo']).jq.val("");
     }
 
     function normalizeToRectangle(coordinates) {
