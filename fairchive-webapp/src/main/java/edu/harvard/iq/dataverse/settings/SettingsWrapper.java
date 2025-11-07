@@ -14,6 +14,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 /**
  * @author gdurand
@@ -33,6 +34,7 @@ public class SettingsWrapper implements java.io.Serializable {
     SystemConfig systemConfig;
 
     private final LazyLoaded<Map<String, String>> configuredLocales = new LazyLoaded<>(this::languagesLoader);
+    private final LazyLoaded<Map<String, String>> configureSearchBarUrls = new LazyLoaded<>(() -> urlsLoader(Key.SearchBarUrls));
     private final LazyLoaded<Map<String, String>> configuredAboutUrls = new LazyLoaded<>(() -> urlsLoader(SettingsServiceBean.Key.NavbarAboutUrl));
     private final LazyLoaded<Map<String, String>> configuredFooterUrls = new LazyLoaded<>(() -> urlsLoader(SettingsServiceBean.Key.FooterAdditionalUrl));
 
@@ -130,6 +132,10 @@ public class SettingsWrapper implements java.io.Serializable {
 
     public String getConfiguredLocaleName(String localeCode) {
         return configuredLocales.get().get(localeCode);
+    }
+
+    public Map<String, String> getConfigureSearchBarUrls() {
+        return configureSearchBarUrls.get();
     }
 
     public Map<String, String> getConfiguredAboutUrls() {
