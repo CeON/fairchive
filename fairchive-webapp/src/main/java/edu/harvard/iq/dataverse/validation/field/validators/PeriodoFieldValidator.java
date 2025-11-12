@@ -48,7 +48,7 @@ public class PeriodoFieldValidator extends MultiValueValidatorBase {
                 && periodoUrl.substring(prefix.length()).matches("[a-z0-9]{10}")) {
                return  this.periods.getByUrl(periodoUrl).isPresent()
                        ? ok()
-                       : invalid(field, "periodo.invalidId");
+                       : invalid(field, "periodo.invalid.id");
         } else {
                 return invalid(field, "periodo.invalid.format");
         }
