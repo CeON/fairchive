@@ -76,6 +76,10 @@ public class BagGenerator {
 
     private static final Logger logger = Logger.getLogger(BagGenerator.class.getCanonicalName());
 
+    private static final String BAGIT_SOURCE_ORGANIZATION = "Fairchive Installation (<Site Url>)";
+    private static final String BAGIT_SOURCE_ORGANIZATION_ADDRESS = "<Full address>";
+    private static final String BAGIT_SOURCE_ORGANIZATION_EMAIL = "<Email address>";
+
     private ParallelScatterZipCreator scatterZipCreator = null;
     private ScatterZipOutputStream dirs = null;
 
@@ -777,17 +781,17 @@ public class BagGenerator {
             logger.warning("No contact info available for BagIt Info file");
         }
 
-        info.append("Source-Organization: ").append(ResourceBundle.getBundle("Bundle").getString("bagit.sourceOrganization"));
+        info.append("Source-Organization: ").append(BAGIT_SOURCE_ORGANIZATION);
         // ToDo - make configurable
         info.append(CRLF);
 
         info.append("Organization-Address: ").append(WordUtils.wrap(
-                ResourceBundle.getBundle("Bundle").getString("bagit.sourceOrganizationAddress"), 78, CRLF + " ", true));
+                BAGIT_SOURCE_ORGANIZATION_ADDRESS, 78, CRLF + " ", true));
         info.append(CRLF);
 
         // Not a BagIt standard name
         info.append(
-                "Organization-Email: ").append(ResourceBundle.getBundle("Bundle").getString("bagit.sourceOrganizationEmail"));
+                "Organization-Email: ").append(BAGIT_SOURCE_ORGANIZATION_EMAIL);
         info.append(CRLF);
 
         info.append("External-Description: ");
