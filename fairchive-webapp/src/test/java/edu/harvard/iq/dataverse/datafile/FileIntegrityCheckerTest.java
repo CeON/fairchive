@@ -208,7 +208,7 @@ public class FileIntegrityCheckerTest {
     }
 
     @Test
-    public void checkFilesIntegrity__with_storage_aux_md5() throws IOException {
+    public void checkFilesIntegrity__with_no_storage_aux_md5() throws IOException {
         // given
         DataFile datafile1 = makeTabularDataFile(102L, null, null);
 
