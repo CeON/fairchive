@@ -91,9 +91,9 @@ public class AddReplaceFileHelper {
 
     private static final Logger logger = Logger.getLogger(AddReplaceFileHelper.class.getCanonicalName());
 
-    public static String FILE_ADD_OPERATION = "FILE_ADD_OPERATION";
-    public static String FILE_REPLACE_OPERATION = "FILE_REPLACE_OPERATION";
-    public static String FILE_REPLACE_FORCE_OPERATION = "FILE_REPLACE_FORCE_OPERATION";
+    private static String FILE_ADD_OPERATION = "FILE_ADD_OPERATION";
+    private static String FILE_REPLACE_OPERATION = "FILE_REPLACE_OPERATION";
+    private static String FILE_REPLACE_FORCE_OPERATION = "FILE_REPLACE_FORCE_OPERATION";
 
 
     private String currentOperation;

@@ -110,29 +110,29 @@ public class Access extends AbstractApiBean {
     private static final Logger logger = Logger.getLogger(Access.class.getCanonicalName());
 
     @EJB
-    DataFileServiceBean dataFileService;
+    private DataFileServiceBean dataFileService;
     @EJB
-    DatasetVersionServiceBean versionService;
+    private DatasetVersionServiceBean versionService;
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
-    VariableServiceBean variableService;
+    private VariableServiceBean variableService;
     @Inject
-    SettingsServiceBean settingsService;
+    private SettingsServiceBean settingsService;
     @EJB
-    DDIExportServiceBean ddiExportService;
+    private DDIExportServiceBean ddiExportService;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @EJB
-    WorldMapTokenServiceBean worldMapTokenServiceBean;
+    private WorldMapTokenServiceBean worldMapTokenServiceBean;
     @Inject
-    DataverseRequestServiceBean dvRequestService;
+    private DataverseRequestServiceBean dvRequestService;
     @EJB
-    GuestbookResponseServiceBean guestbookResponseService;
+    private GuestbookResponseServiceBean guestbookResponseService;
     @EJB
-    DataverseRoleServiceBean roleService;
+    private DataverseRoleServiceBean roleService;
     @EJB
-    UserNotificationService userNotificationService;
+    private UserNotificationService userNotificationService;
     @EJB
     private FilePermissionsService filePermissionsService;
     @Inject
@@ -178,11 +178,9 @@ public class Access extends AbstractApiBean {
         downloadInstance.setFileCitationRIS(citationFactory.create(fileMetadata).toRISString());
         downloadInstance.setFileCitationBibtex(citationFactory.create(fileMetadata).toBibtexString());
 
-        ByteArrayOutputStream outStream = null;
-        outStream = new ByteArrayOutputStream();
-        Long dfId = datafile.getId();
+        final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         try {
-            ddiExportService.exportDataFile(dfId, outStream, null, null);
+            ddiExportService.exportDataFile(datafile.getId(), outStream, null, null);
             downloadInstance.setFileDDIXML(outStream.toString());
         } catch (Exception ex) {
             // if we can't generate the DDI, it's ok, we'll just generate the bundle without it.
@@ -198,16 +196,12 @@ public class Access extends AbstractApiBean {
     //the access methods return files instead of responses so we convert to a WebApplicationException
 
     private DataFile findDataFileOrDieWrapper(String fileId) {
-
-        DataFile df = null;
-
         try {
-            df = findDataFileOrDie(fileId);
+            return findDataFileOrDie(fileId);
         } catch (WrappedResponse ex) {
-            logger.warning("Access: datafile service could not locate a DataFile object for id " + fileId + "!");
+            logger.warning("Access: datafile service could not locate a DataFile object for id " + fileId + '!');
             throw new NotFoundException();
         }
-        return df;
     }
 
 
@@ -352,9 +346,7 @@ public class Access extends AbstractApiBean {
     public String tabularDatafileMetadataDDI(@PathParam("fileId") String fileId, @QueryParam("exclude") String exclude, @QueryParam("include") String include, @Context HttpServletResponse response) throws NotFoundException, ServiceUnavailableException {
         String retValue = "";
 
-        DataFile dataFile;
-
-        dataFile = findDataFileOrDieWrapper(fileId);
+        final DataFile dataFile = findDataFileOrDieWrapper(fileId);
 
         if (!dataFile.isTabularData()) {
             throw new BadRequestException("tabular data required");
@@ -402,32 +394,24 @@ public class Access extends AbstractApiBean {
     @GET
     @Produces({"application/xml"})
     public String dataVariableMetadataDDI(@PathParam("varId") Long varId, @QueryParam("exclude") String exclude, @QueryParam("include") String include, @Context HttpServletResponse response) {
-        String retValue = "";
-
+        
         getDatasetFromDataVariable(varId)
                 .filter(dt -> embargoAccessService.isRestrictedByEmbargo(dt))
                 .ifPresent(dt -> { throw new ForbiddenException(); });
-
-        ByteArrayOutputStream outStream = null;
         try {
-            outStream = new ByteArrayOutputStream();
-
+            final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
             ddiExportService.exportDataVariable(
                     varId,
                     outStream,
                     exclude,
                     include);
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            return outStream.toString();
         } catch (Exception e) {
             // For whatever reason we've failed to generate a partial
             // metadata record requested. We simply return an empty string.
-            return retValue;
+            return "";
         }
-
-        retValue = outStream.toString();
-
-        response.setHeader("Access-Control-Allow-Origin", "*");
-
-        return retValue;
     }
 
     /*
@@ -662,8 +646,6 @@ public class Access extends AbstractApiBean {
     @GET
     @Produces({"image/png"})
     public InputStream dsCardImage(@PathParam("versionId") Long versionId) {
-
-
         DatasetVersion datasetVersion = versionService.getById(versionId);
 
         if (datasetVersion == null) {
@@ -671,16 +653,13 @@ public class Access extends AbstractApiBean {
             return null;
         }
 
-        //String imageThumbFileName = null;
-        StorageIO<?> thumbnailDataAccess = null;
-
         // First, check if this dataset has a designated thumbnail image:
 
         if (datasetVersion.getDataset() != null) {
 
             DataFile logoDataFile = datasetVersion.getDataset().getThumbnailFile();
             if (logoDataFile != null) {
-
+            StorageIO<?> thumbnailDataAccess = null;
                 try {
                     thumbnailDataAccess = imageThumbConverter.getImageThumbnailAsInputStream(logoDataFile, 48);
                     if (thumbnailDataAccess != null && thumbnailDataAccess.getInputStream() != null) {
@@ -714,21 +693,16 @@ public class Access extends AbstractApiBean {
             File dataverseLogoFile = getLogo(dataverse);
             if (dataverseLogoFile != null) {
                 logger.fine("dvCardImage: logo file found");
-                InputStream in = null;
 
                 try {
                     if (dataverseLogoFile.exists()) {
                         String logoThumbNailPath = dataverseDao.getDataverseLogoThumbnailFilePath(dataverse.getId());
                         if (logoThumbNailPath != null) {
-                            in = new FileInputStream(logoThumbNailPath);
+                            return new FileInputStream(logoThumbNailPath);
                         }
                     }
                 } catch (Exception ex) {
-                    in = null;
-                }
-                if (in != null) {
-                    logger.fine("dvCardImage: successfully obtained thumbnail for dataverse logo.");
-                    return in;
+                    return null;
                 }
             }
         }
