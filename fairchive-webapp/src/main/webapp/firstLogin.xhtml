@@ -100,7 +100,7 @@
                                     <p:message for="selectedEmailMoreThanOneToPickFrom" display="text"/>
                                 </div>
                             </div>
-                            <div class="form-group" jsf:rendered="#{ExternalIdpFirstLoginPage.disableOrcidEdit}">
+                            <div class="form-group" jsf:rendered="#{ExternalIdpFirstLoginPage.orcidEditDisabled}">
                                 <label for="orcid" class="col-sm-3 control-label">
                                     #{bundle['user.orcid']}
                                     <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"
@@ -115,7 +115,7 @@
                                     </p>
                                 </div>
                             </div>
-                            <div class="form-group" jsf:rendered="#{not ExternalIdpFirstLoginPage.disableOrcidEdit}">
+                            <div class="form-group" jsf:rendered="#{not ExternalIdpFirstLoginPage.orcidEditDisabled}">
                                 <label for="orcid" class="col-sm-3 control-label">
                                     #{bundle['user.orcid']}
                                     <span class="glyphicon glyphicon-question-sign tooltip-icon" tabindex="0" role="button"

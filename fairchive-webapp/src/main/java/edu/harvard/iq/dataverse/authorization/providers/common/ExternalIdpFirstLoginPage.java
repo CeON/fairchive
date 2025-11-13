@@ -130,7 +130,7 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
 
     private boolean isSamlUser;
 
-    private boolean disableOrcidEdit = false;
+    private boolean orcidEditDisabled = false;
 
     // -------------------- GETTERS --------------------
 
@@ -170,8 +170,8 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
         return disableSamlFilledFields;
     }
 
-    public boolean isDisableOrcidEdit() {
-        return disableOrcidEdit;
+    public boolean isOrcidEditDisabled() {
+        return orcidEditDisabled;
     }
 
     // -------------------- LOGIC --------------------
@@ -236,7 +236,7 @@ public class ExternalIdpFirstLoginPage extends BaseUserPage {
         installationName = installationConfigService.getNameOfInstallation();
         consents = consentService.prepareConsentsForView(session.getLocale());
 
-        disableOrcidEdit = !authProvider.getEditableFields().contains(EditableAccountField.ORCID)
+        orcidEditDisabled = !authProvider.getEditableFields().contains(EditableAccountField.ORCID)
                 && StringUtils.isNotBlank(newUser.getDisplayInfo().getOrcid());
 
         return StringUtils.EMPTY;
