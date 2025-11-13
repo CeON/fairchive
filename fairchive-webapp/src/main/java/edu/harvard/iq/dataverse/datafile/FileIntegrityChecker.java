@@ -119,7 +119,10 @@ public class FileIntegrityChecker {
 
             boolean withMd5Compare = storageIO.isMD5CheckSupported() && dataFile.getChecksumType() == ChecksumType.MD5;
 
-            if (withMd5Compare && !haveSameMd5(dataFile, storageIO)) {
+            String storageChecksum = dataFile.isTabularData()
+                    ? storageIO.getAuxObjectMD5(StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION)
+                    : storageIO.getMD5();
+            if (withMd5Compare && StringUtils.isNotEmpty(storageChecksum) && !haveSameMd5(dataFile, storageChecksum)) {
                 return FileIntegrityCheckResult.DIFFERENT_CHECKSUM;
             }
 
@@ -146,12 +149,8 @@ public class FileIntegrityChecker {
         return databaseFilesize == storageFilesize;
     }
 
-    private boolean haveSameMd5(DataFile dataFile, StorageIO<DataFile> storageIO) throws IOException {
+    private boolean haveSameMd5(DataFile dataFile, String storageChecksum) throws IOException {
         String databaseChecksum = dataFile.getChecksumValue();
-        String storageChecksum = dataFile.isTabularData()
-                ? storageIO.getAuxObjectMD5(StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION)
-                : storageIO.getMD5();
-
         return StringUtils.equals(databaseChecksum, storageChecksum);
     }
 
