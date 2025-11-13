@@ -1491,6 +1491,10 @@ $button-padding: 6px 12px 5.1px;
 	button, a {
 		padding: $button-padding;
 		color: $link-color;
+
+		&.btn-primary {
+			color: #fff;
+		}
 	}
 }
 
@@ -2919,9 +2923,15 @@ html, body {
 	width: calc(100% + 10px);
 	margin-left: 10px;
 }
-#actionButtonBlock .glyphicon {
-	margin-right: 5px;
-	color: $icon-color;
+#actionButtonBlock {
+	.glyphicon {
+		margin-right: 5px;
+		color: $icon-color;
+	}
+
+	.btn-primary .glyphicon {
+		color: #fff;
+	}
 }
 
 .row.panelSearchForm {
@@ -3849,8 +3859,9 @@ div[id^="datasetForm"] {
 .ui-dialog.ui-widget.ui-widget-content {
 	min-height: 200px;
 	min-width: 320px;
-	max-width: 100vw;
-	max-height: 100vh;
+	max-width: calc(100vw - 2rem);
+	max-height: calc(100vh - 2rem);
+	margin: 1rem;
 	border: none;
 	border-radius: $border-radius;
 	box-shadow: 0 5px 10px rgba(0,0,0,0.2);
@@ -4045,6 +4056,14 @@ div[id^="datasetForm"] {
 	}
 }
 
+@media screen and (max-width: $screen-xs-max) {
+	.ui-dialog.ui-widget.ui-widget-content {
+		max-width: 100vw;
+		max-height: 100vh;
+		margin: 0;
+	}
+}
+
 /* Fixed grid modals mobile view */
 @media screen and (max-width: $screen-xs-max) {
 	@include modal-grid-mobile;
@@ -4141,6 +4160,10 @@ input[type=password].form-control {
 
 #rolesPermissionsForm\:userGroupDialog[style*="width: auto"] {
 	width: 100% !important;
+}
+
+#datasetForm\:tabView\:translateDialog.ui-dialog.ui-widget.ui-widget-content {
+	padding-bottom: 1rem;
 }
 
 .restricted-terms-of-use {
