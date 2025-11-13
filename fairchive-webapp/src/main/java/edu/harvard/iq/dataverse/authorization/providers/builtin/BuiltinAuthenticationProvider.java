@@ -161,9 +161,4 @@ public class BuiltinAuthenticationProvider implements CredentialsAuthenticationP
         return false;
     }
 
-    @Override
-    public boolean isDisplayIdentifier() {
-        return false;
-    }
-
 }

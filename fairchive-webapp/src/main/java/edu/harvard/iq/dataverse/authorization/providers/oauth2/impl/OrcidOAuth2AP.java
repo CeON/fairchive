@@ -7,6 +7,7 @@ import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth20Service;
 import edu.harvard.iq.dataverse.authorization.AuthenticationProviderDisplayInfo;
+import edu.harvard.iq.dataverse.authorization.EditableAccountField;
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.AbstractOAuth2AuthenticationProvider;
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.OAuth2Exception;
 import edu.harvard.iq.dataverse.authorization.common.ExternalIdpUserRecord;
@@ -36,8 +37,10 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,9 +48,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static edu.harvard.iq.dataverse.authorization.EditableAccountField.*;
 
 /**
  * OAuth2 identity provider for ORCiD. Note that ORCiD has two systems: sandbox
@@ -59,6 +64,9 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
 
     final static Logger logger = Logger.getLogger(OrcidOAuth2AP.class.getName());
+
+    private static final Set<EditableAccountField> ORCID_EDITABLE_FIELDS = unmodifiableSet(
+            EnumSet.of(AFFILIATION, POSITION, NOTIFICATIONS_LANG, AFFILIATION_ROR));
 
     public static final String PROVIDER_ID_PRODUCTION = AuthenticatedUserLookup.ORCID_PROVIDER_ID_PRODUCTION;
     public static final String PROVIDER_ID_SANDBOX = AuthenticatedUserLookup.ORCID_PROVIDER_ID_SANDBOX;
@@ -100,6 +108,11 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
     @Override
     public BaseApi<OAuth20Service> getApiInstance() {
         return OrcidApi.instance(!isUsingSandboxEnv());
+    }
+
+    @Override
+    public Set<EditableAccountField> getEditableFields() {
+        return ORCID_EDITABLE_FIELDS;
     }
 
     @Override
@@ -278,31 +291,6 @@ public class OrcidOAuth2AP extends AbstractOAuth2AuthenticationProvider {
             return new AuthenticationProviderDisplayInfo(getId(), BundleUtil.getStringFromBundle("auth.providers.title.orcid"), "ORCID user repository");
         }
         return new AuthenticationProviderDisplayInfo(getId(), "ORCID Sandbox", "ORCID dev sandbox ");
-    }
-
-    @Override
-    public boolean isDisplayIdentifier() {
-        return true;
-    }
-
-    @Override
-    public String getPersistentIdName() {
-        return BundleUtil.getStringFromBundle("auth.providers.persistentUserIdName.orcid");
-    }
-
-    @Override
-    public String getPersistentIdDescription() {
-        return BundleUtil.getStringFromBundle("auth.providers.persistentUserIdTooltip.orcid");
-    }
-
-    @Override
-    public String getPersistentIdUrlPrefix() {
-        return "https://orcid.org/";
-    }
-
-    @Override
-    public String getLogo() {
-        return "/resources/images/orcid_16x16.png";
     }
 
     protected String extractOrcidNumber(String rawResponse) throws OAuth2Exception {

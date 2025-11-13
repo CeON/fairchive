@@ -69,9 +69,4 @@ public class GoogleOAuth2AP extends AbstractOAuth2AuthenticationProvider {
         }
     }
 
-    @Override
-    public boolean isDisplayIdentifier() {
-        return false;
-    }
-
 }
