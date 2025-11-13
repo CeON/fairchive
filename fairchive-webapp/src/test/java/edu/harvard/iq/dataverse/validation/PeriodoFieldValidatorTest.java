@@ -54,7 +54,7 @@ public class PeriodoFieldValidatorTest {
                 .isNotEqualTo(ok());
 
         assertThat(validate("http://n2t.net/ark:/99152/p0f65r2v400").getErrorCode())
-                .isEqualTo("periodo.invalidId");
+                .isEqualTo("periodo.invalid.id");
     }
 
     private FieldValidationResult validate(final String periodoUrl) {

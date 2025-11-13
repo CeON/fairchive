@@ -113,11 +113,6 @@ public class PBIOauth2AP extends AbstractOAuth2AuthenticationProvider {
     }
 
     @Override
-    public boolean isDisplayIdentifier() {
-        return false;
-    }
-
-    @Override
     protected ParsedUserResponse parseUserResponse(String responseBody) {
         throw new RuntimeException("Not implemented.");
     }
