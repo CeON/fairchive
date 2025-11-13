@@ -670,7 +670,8 @@
                                     </li>
                                     <li>
                                         <p:commandLink id="advancedIngestOptionsButton"
-                                                       rendered="#{(empty fileMetadata.dataFile.id) and EditDatafilesPage.supportsAdvancedIngestOptions(fileMetadata.dataFile)}"
+                                                       rendered="#{(empty fileMetadata.dataFile.id) and EditDatafilesPage.supportsAdvancedIngestOptions(fileMetadata.dataFile)
+                                                                   and not EditDatafilesPage.exceedsIngestSizeLimit(fileMetadata.dataFile)}"
                                                        actionListener="#{EditDatafilesPage.setFileMetadataSelectedForIngestOptionsPopup(fileMetadata)}"
                                                        update=":datasetForm:fileAdvancedOptions"
                                                        oncomplete="primeFacesShowModal('fileAdvancedOptions', this)">
