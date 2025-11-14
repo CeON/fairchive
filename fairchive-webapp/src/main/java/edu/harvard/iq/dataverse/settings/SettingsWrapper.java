@@ -1,8 +1,8 @@
 package edu.harvard.iq.dataverse.settings;
 
 import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+
 import org.omnifaces.cdi.ViewScoped;
 
 import javax.faces.context.FacesContext;
@@ -13,8 +13,23 @@ import java.util.Map;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowDatasetPublishWithoutFiles;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DoiDataCiteCitationsPageUrl;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DoiProvider;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DropboxKey;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.FooterAdditionalUrl;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Languages;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MetricsUrl;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.NavbarAboutUrl;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ProvCollectionEnabled;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.PublicInstall;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SearchBarUrls;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShibPassiveLoginEnabled;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowAddDatasetButtonOnDataversePage;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowSearchResultOnMap;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
  * @author gdurand
@@ -34,30 +49,30 @@ public class SettingsWrapper implements java.io.Serializable {
     SystemConfig systemConfig;
 
     private final LazyLoaded<Map<String, String>> configuredLocales = new LazyLoaded<>(this::languagesLoader);
-    private final LazyLoaded<Map<String, String>> configureSearchBarUrls = new LazyLoaded<>(() -> urlsLoader(Key.SearchBarUrls));
-    private final LazyLoaded<Map<String, String>> configuredAboutUrls = new LazyLoaded<>(() -> urlsLoader(SettingsServiceBean.Key.NavbarAboutUrl));
-    private final LazyLoaded<Map<String, String>> configuredFooterUrls = new LazyLoaded<>(() -> urlsLoader(SettingsServiceBean.Key.FooterAdditionalUrl));
+    private final LazyLoaded<Map<String, String>> configureSearchBarUrls = new LazyLoaded<>(() -> urlsLoader(SearchBarUrls));
+    private final LazyLoaded<Map<String, String>> configuredAboutUrls = new LazyLoaded<>(() -> urlsLoader(NavbarAboutUrl));
+    private final LazyLoaded<Map<String, String>> configuredFooterUrls = new LazyLoaded<>(() -> urlsLoader(FooterAdditionalUrl));
 
     // -------------------- GETTERS --------------------
 
     public boolean isPublicInstall() {
-        return settingService.isTrueForKey(SettingsServiceBean.Key.PublicInstall);
+        return settingService.isTrueForKey(PublicInstall);
     }
 
     public String getMetricsUrl() {
-        return settingService.getValueForKey(SettingsServiceBean.Key.MetricsUrl);
+        return settingService.getValueForKey(MetricsUrl);
     }
 
     public boolean isShibPassiveLoginEnabled() {
-        return settingService.isTrueForKey(SettingsServiceBean.Key.ShibPassiveLoginEnabled);
+        return settingService.isTrueForKey(ShibPassiveLoginEnabled);
     }
 
     public boolean isProvCollectionEnabled() {
-        return settingService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled);
+        return settingService.isTrueForKey(ProvCollectionEnabled);
     }
 
     public boolean isSearchResultOnMap() {
-        return settingService.isTrueForKey(SettingsServiceBean.Key.ShowSearchResultOnMap);
+        return settingService.isTrueForKey(ShowSearchResultOnMap);
     }
 
     public boolean isRsyncUpload() {
@@ -89,23 +104,23 @@ public class SettingsWrapper implements java.io.Serializable {
     }
 
     public Boolean isShowAddDatasetButtonOnDataversePage() {
-        return settingService.isTrueForKey(Key.ShowAddDatasetButtonOnDataversePage);
+        return settingService.isTrueForKey(ShowAddDatasetButtonOnDataversePage);
     }
 
     public String getDropBoxKey() {
-        String configuredDropBoxKey = getSettingValue(SettingsServiceBean.Key.DropboxKey.toString());
+        String configuredDropBoxKey = getSettingValue(DropboxKey.toString());
         if (configuredDropBoxKey != null) {
             return configuredDropBoxKey;
         }
-        return "";
+        return EMPTY;
     }
 
     public String getDataCiteCitationsPageUrl() {
-        return settingService.getValueForKey(SettingsServiceBean.Key.DoiDataCiteCitationsPageUrl);
+        return settingService.getValueForKey(DoiDataCiteCitationsPageUrl);
     }
 
     public Boolean isAllowDatasetPublishWithoutFiles() {
-        return settingService.isTrueForKey(Key.AllowDatasetPublishWithoutFiles);
+        return settingService.isTrueForKey(AllowDatasetPublishWithoutFiles);
     }
 
     // -------------------- LOGIC --------------------
@@ -147,14 +162,14 @@ public class SettingsWrapper implements java.io.Serializable {
     }
 
     public boolean isDataCiteInstallation() {
-        String protocol = getEnumSettingValue(SettingsServiceBean.Key.DoiProvider);
+        String protocol = getEnumSettingValue(DoiProvider);
         return "DataCite".equals(protocol);
     }
 
     // -------------------- PRIVATE --------------------
 
     private Map<String, String> languagesLoader() {
-        return settingService.getValueForKeyAsListOfMaps(SettingsServiceBean.Key.Languages).stream()
+        return settingService.getValueForKeyAsListOfMaps(Languages).stream()
                 .collect(toMap(getKey("locale"), getKey("title"), throwingMerger(), LinkedHashMap::new));
     }
 
@@ -169,7 +184,7 @@ public class SettingsWrapper implements java.io.Serializable {
     }
 
     private static Function<Map<String, String>, String> getKeyWithLang(String key, String lang) {
-        String langKey = key + "." + lang;
+        String langKey = key + '.' + lang;
         return map -> {
             if (map.containsKey(langKey)) {
                 return map.get(langKey);
@@ -180,6 +195,6 @@ public class SettingsWrapper implements java.io.Serializable {
     }
 
     private static BinaryOperator<String> throwingMerger() {
-        return (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); };
+        return (u,v) -> { throw new IllegalStateException(format("Duplicate key %s", u)); };
     }
 }
