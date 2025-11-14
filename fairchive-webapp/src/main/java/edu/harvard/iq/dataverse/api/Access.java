@@ -199,7 +199,7 @@ public class Access extends AbstractApiBean {
         try {
             return findDataFileOrDie(fileId);
         } catch (WrappedResponse ex) {
-            logger.warning("Access: datafile service could not locate a DataFile object for id " + fileId + '!');
+            logger.warning("Access: datafile service could not locate a DataFile object for id " + fileId);
             throw new NotFoundException();
         }
     }
@@ -300,7 +300,7 @@ public class Access extends AbstractApiBean {
                     }
                 }
 
-                logger.fine("downloadInstance: " + downloadInstance.getConversionParam() + "," + downloadInstance.getConversionParamValue());
+                logger.fine("downloadInstance: " + downloadInstance.getConversionParam() + ',' + downloadInstance.getConversionParamValue());
 
                 break;
             } else {
@@ -649,7 +649,7 @@ public class Access extends AbstractApiBean {
         DatasetVersion datasetVersion = versionService.getById(versionId);
 
         if (datasetVersion == null) {
-            logger.warning("Preview: Version service could not locate a DatasetVersion object for id " + versionId + "!");
+            logger.warning("Preview: Version service could not locate a DatasetVersion object for id " + versionId);
             return null;
         }
 
@@ -683,7 +683,7 @@ public class Access extends AbstractApiBean {
         Dataverse dataverse = dataverseDao.find(dataverseId);
 
         if (dataverse == null) {
-            logger.warning("Preview: Version service could not locate a DatasetVersion object for id " + dataverseId + "!");
+            logger.warning("Preview: Version service could not locate a DatasetVersion object for id " + dataverseId);
             return null;
         }
 
