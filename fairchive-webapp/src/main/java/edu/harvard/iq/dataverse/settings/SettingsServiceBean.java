@@ -24,6 +24,7 @@ import java.util.Set;
 import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.Setting;
 import static java.lang.Long.parseLong;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.split;
@@ -949,17 +950,23 @@ public class SettingsServiceBean {
     }
 
     public List<Map<String, String>> getValueForKeyAsListOfMaps(final Key key) {
-        final List<Map<String, String>> list = new ArrayList<>();
-        try {
-            for (Object obj : new JSONArray(getValueForKey(key))) {
-                final JSONObject entry = (JSONObject) obj;
-                list.add(entry.keySet().stream()
-                        .collect(toMap(identity(), entry::getString)));
+        final String json = getValueForKey(key);
+        if (json.isEmpty()) {
+            return emptyList();
+        } else {
+            try {
+                final List<Map<String, String>> list = new ArrayList<>();
+                for (Object obj : new JSONArray(json)) {
+                    final JSONObject entry = (JSONObject) obj;
+                    list.add(entry.keySet().stream()
+                            .collect(toMap(identity(), entry::getString)));
+                }
+                return list;
+            } catch (final JSONException e) {
+                log.warn("Error parsing setting " + key + " as JSON", e);
+                return emptyList();
             }
-        } catch (final JSONException e) {
-            log.warn("Error parsing setting " + key + " as JSON", e);
         }
-        return list;
     }
 
     public Setting set(final String name, final String content) {
