@@ -72,7 +72,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 
-public class BagGenerator {
+public final class BagGenerator {
 
     private static final Logger logger = Logger.getLogger(BagGenerator.class.getCanonicalName());
 
@@ -89,7 +89,7 @@ public class BagGenerator {
     private RequestConfig config = RequestConfig.custom().setConnectTimeout(timeout * 1000)
             .setConnectionRequestTimeout(timeout * 1000).setSocketTimeout(timeout * 1000).build();
     private static HttpClientContext localContext = HttpClientContext.create();
-    protected CloseableHttpClient client;
+    private CloseableHttpClient client;
     private PoolingHttpClientConnectionManager cm = null;
 
     private ChecksumType hashtype = null;
@@ -102,20 +102,20 @@ public class BagGenerator {
 
     private String bagID = null;
     private String bagPath = "/tmp";
-    String bagName = null;
+    private String bagName = null;
 
     private String apiKey = null;
 
-    private javax.json.JsonObject oremapObject;
+    private final javax.json.JsonObject oremapObject;
     private JsonObject aggregation;
 
-    private String dataciteXml;
+    private final String dataciteXml;
 
     private boolean usetemp = false;
 
     private int numConnections = 8;
 
-    private OREMap oremap;
+    private final OREMap oremap;
 
     static PrintWriter pw = null;
 
