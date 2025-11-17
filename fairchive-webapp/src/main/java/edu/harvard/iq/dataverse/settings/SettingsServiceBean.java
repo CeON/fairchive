@@ -832,7 +832,15 @@ public class SettingsServiceBean {
          * eq [{"url":"https://example.com/", "title.pl":"Przyklad", "title.en":"Example"},
          *      {"url":"https://test.pl/", "title.pl":"test", "title.en":"test"}]
          */
-        SearchBarUrls;
+        SearchBarUrls,
+
+        /**
+         * If set to {@code true}, all dataset metadata blocks on the Advanced
+         * Search page will be expanded, whereas the default behavior expands
+         * only the collection block, the file block, and the first dataset
+         * metadata block.
+         */
+        ExpandAllAdvancedSearchBlocks;
 
         @Override
         public String toString() {
