@@ -17,6 +17,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowDat
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DoiDataCiteCitationsPageUrl;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DoiProvider;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DropboxKey;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExpandAllAdvancedSearchBlocks;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.FooterAdditionalUrl;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Languages;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MetricsUrl;
@@ -121,6 +122,10 @@ public class SettingsWrapper implements java.io.Serializable {
 
     public Boolean isAllowDatasetPublishWithoutFiles() {
         return settingService.isTrueForKey(AllowDatasetPublishWithoutFiles);
+    }
+
+    public boolean isExpandAllAdvancedSearchBlocksEnabled() {
+        return settingService.isTrueForKey(ExpandAllAdvancedSearchBlocks);
     }
 
     // -------------------- LOGIC --------------------
