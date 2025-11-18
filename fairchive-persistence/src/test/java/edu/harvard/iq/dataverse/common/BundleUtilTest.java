@@ -52,7 +52,7 @@ public class BundleUtilTest {
         assertAll(
             () -> assertEquals("You have successfully created your collection! To learn more about what you can do with your collection, "+
                             "check out the <a href=\"http://guides.dataverse.org/en/4.0/user/dataverse-management.html\" title=\"Collection Management - " +
-                            "Dataverse User Guide\" target=\"_blank\">User Guide</a>.",
+                            "Fairchive User Guide\" target=\"_blank\">User Guide</a>.",
                     BundleUtil.getStringFromBundle("dataverse.create.success", "http://guides.dataverse.org/en", "4.0")),
             () -> assertEquals("Your new collection named "
                                  + "dvName (view at dvUrl ) "
@@ -72,25 +72,25 @@ public class BundleUtilTest {
             () -> assertEquals("There are no collections, datasets, or files that match your search. "
                                  + "Please try a new search by using other or broader terms. You can also check out "
                                  + "the <a href=\"http://guides.dataverse.org/en/4.2/user/find-use-data.html\" title=\"Finding &amp; Using "
-                                 + "Data - Dataverse User Guide\" target=\"_blank\">search guide</a> for tips.",
+                                 + "Data - Fairchive User Guide\" target=\"_blank\">search guide</a> for tips.",
                          BundleUtil.getStringFromBundle("dataverse.results.empty.zero",
                             "http://guides.dataverse.org/en", "4.2")),
             () -> assertEquals("There are no search results based on how you have narrowed your search. You can check out "
                                  + "the <a href=\"http://guides.dataverse.org/en/4.2/user/find-use-data.html\" title=\"Finding &amp; Using "
-                                 + "Data - Dataverse User Guide\" target=\"_blank\">search guide</a> for tips.",
+                                 + "Data - Fairchive User Guide\" target=\"_blank\">search guide</a> for tips.",
                          BundleUtil.getStringFromBundle("dataverse.results.empty.hidden",
                             "http://guides.dataverse.org/en", "4.2")),
             () -> assertEquals("The saved search has been successfully linked to "
                                  + "<a href=\"/dataverse/dvAlias\" title=\"DV Name\">DV Name</a>.",
                          BundleUtil.getStringFromBundle("dataverse.saved.search.success",
                                  "<a href=\"/dataverse/dvAlias\" title=\"DV Name\">DV Name</a>")),
-            () -> assertEquals("Your institutional log in for TestShib Test IdP matches an email address already being used for a Dataverse "
-                                 + "account. By entering your current Dataverse password below, your existing Dataverse account can be "
+            () -> assertEquals("Your institutional log in for TestShib Test IdP matches an email address already used by one of the repository "
+                                 + "accounts. By entering your current repository password below, your existing repository account can be "
                                  + "converted to use your institutional log in. After converting, you will only need to use your institutional log in.",
                          BundleUtil.getStringFromBundle("shib.welcomeExistingUserMessage",
                                  "TestShib Test IdP")),
-            () -> assertEquals("Your institutional log in for your institution matches an email address already being used for a Dataverse "
-                                 + "account. By entering your current Dataverse password below, your existing Dataverse account can be "
+            () -> assertEquals("Your institutional log in for your institution matches an email address already used by one of the repository "
+                                 + "accounts. By entering your current repository password below, your existing repository account can be "
                                  + "converted to use your institutional log in. After converting, you will only need to use your institutional log in.",
                          BundleUtil.getStringFromBundle("shib.welcomeExistingUserMessage",
                                  BundleUtil.getStringFromBundle("shib.welcomeExistingUserMessageDefaultInstitution")))
