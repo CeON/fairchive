@@ -140,6 +140,11 @@ function initDvJS() {
     }
 
     function initializeMapInView(key, data) {
+      const el = document.getElementById(key);
+      const mapVisible = el && el.offsetParent !== null;
+      if (!mapVisible) {
+        return;
+      }
       data.leafMap = L.map(key, INIT_MAP_OPTS);
       let map = data.leafMap;
       map.invalidateSize();
