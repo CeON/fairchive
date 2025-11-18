@@ -91,9 +91,9 @@ public class AddReplaceFileHelper {
 
     private static final Logger logger = Logger.getLogger(AddReplaceFileHelper.class.getCanonicalName());
 
-    public static String FILE_ADD_OPERATION = "FILE_ADD_OPERATION";
-    public static String FILE_REPLACE_OPERATION = "FILE_REPLACE_OPERATION";
-    public static String FILE_REPLACE_FORCE_OPERATION = "FILE_REPLACE_FORCE_OPERATION";
+    private static String FILE_ADD_OPERATION = "FILE_ADD_OPERATION";
+    private static String FILE_REPLACE_OPERATION = "FILE_REPLACE_OPERATION";
+    private static String FILE_REPLACE_FORCE_OPERATION = "FILE_REPLACE_FORCE_OPERATION";
 
 
     private String currentOperation;
@@ -101,17 +101,17 @@ public class AddReplaceFileHelper {
     // -----------------------------------
     // All the needed EJBs, passed to the constructor
     // -----------------------------------
-    private IngestServiceBean ingestService;
-    private DataFileServiceBean fileService;
-    private DataFileCreator dataFileCreator;
-    private PermissionServiceBean permissionService;
-    private EjbDataverseEngine commandEngine;
+    private final IngestServiceBean ingestService;
+    private final DataFileServiceBean fileService;
+    private final DataFileCreator dataFileCreator;
+    private final PermissionServiceBean permissionService;
+    private final EjbDataverseEngine commandEngine;
 
     // -----------------------------------
     // Instance variables directly added
     // -----------------------------------
     private Dataset dataset;                    // constructor (for add, not replace)
-    private DataverseRequest dvRequest;         // constructor
+    private final DataverseRequest dvRequest;         // constructor
     private InputStream newFileInputStream;     // step 20
     private String newFileName;                 // step 20
     private String newFileContentType;          // step 20
@@ -124,7 +124,7 @@ public class AddReplaceFileHelper {
     // -----------------------------------
     private DatasetVersion workingVersion;
     private DatasetVersion clone;
-    List<DataFile> initialFileList;
+    private List<DataFile> initialFileList;
     List<DataFile> finalFileList;
 
     // -----------------------------------
@@ -148,13 +148,13 @@ public class AddReplaceFileHelper {
      * MAIN CONSTRUCTOR -- minimal requirements
      *
      */
-    public AddReplaceFileHelper(DataverseRequest dvRequest,
-                                IngestServiceBean ingestService,
-                                DataFileServiceBean fileService,
-                                DataFileCreator dataFileCreator,
-                                PermissionServiceBean permissionService,
-                                EjbDataverseEngine commandEngine,
-                                OptionalFileParams optionalFileParams) {
+    public AddReplaceFileHelper(final DataverseRequest dvRequest,
+                                final IngestServiceBean ingestService,
+                                final DataFileServiceBean fileService,
+                                final DataFileCreator dataFileCreator,
+                                final PermissionServiceBean permissionService,
+                                final EjbDataverseEngine commandEngine,
+                                final OptionalFileParams optionalFileParams) {
 
         // ---------------------------------
         // make sure DataverseRequest isn't null and has a user

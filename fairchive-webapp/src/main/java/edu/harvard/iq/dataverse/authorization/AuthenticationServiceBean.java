@@ -87,25 +87,25 @@ public class AuthenticationServiceBean {
     final Map<String, AuthenticationProviderFactory> providerFactories = new HashMap<>();
 
     @EJB
-    BuiltinUserServiceBean builtinUserServiceBean;
+    private BuiltinUserServiceBean builtinUserServiceBean;
 
     @EJB
-    protected ActionLogServiceBean actionLogSvc;
+    private ActionLogServiceBean actionLogSvc;
 
     @EJB
-    UserNotificationRepository userNotificationRepository;
+    private UserNotificationRepository userNotificationRepository;
 
     @EJB
-    ConfirmEmailServiceBean confirmEmailService;
+    private ConfirmEmailServiceBean confirmEmailService;
 
     @EJB
-    PasswordResetServiceBean passwordResetServiceBean;
+    private PasswordResetServiceBean passwordResetServiceBean;
 
     @EJB
-    UserServiceBean userService;
+    private UserServiceBean userService;
 
     @EJB
-    PasswordValidatorServiceBean passwordValidatorService;
+    private PasswordValidatorServiceBean passwordValidatorService;
 
     @Inject
     private SystemConfig systemConfig;
@@ -116,13 +116,13 @@ public class AuthenticationServiceBean {
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
 
-    protected final Clock clock;
+    private final Clock clock;
 
     public AuthenticationServiceBean() {
         this(Clock.systemUTC());
     }
 
-    public AuthenticationServiceBean(Clock clock) {
+    public AuthenticationServiceBean(final Clock clock) {
         this.clock = clock;
     }
 

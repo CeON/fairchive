@@ -45,12 +45,6 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 
     /* Must be present as EL has problems with default implementations */
     @Override
-    public boolean isDisplayIdentifier() {
-        return false;
-    }
-
-    /* Must be present as EL has problems with default implementations */
-    @Override
     public boolean isOAuthProvider() {
         return false;
     }

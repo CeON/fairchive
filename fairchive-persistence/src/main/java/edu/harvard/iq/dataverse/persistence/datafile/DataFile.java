@@ -244,7 +244,9 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
     public void setIngestTypeStr(final String type) {
-        this.ingestType = IngestType.valueOf(type);
+        this.ingestType = type != null 
+                ? IngestType.valueOf(type)
+                : IngestType.NON;
     }
 
     public int getIngestStatus() {
