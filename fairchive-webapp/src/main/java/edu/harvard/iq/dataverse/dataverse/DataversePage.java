@@ -1,27 +1,30 @@
 package edu.harvard.iq.dataverse.dataverse;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
-import edu.harvard.iq.dataverse.PermissionServiceBean;
-import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import edu.harvard.iq.dataverse.util.JsfRedirectHelper;
-import io.vavr.control.Try;
-import org.apache.commons.lang.StringUtils;
-import org.omnifaces.cdi.Param;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.omnifaces.cdi.Param;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
+import edu.harvard.iq.dataverse.util.JsfHelper;
+import edu.harvard.iq.dataverse.util.JsfRedirectHelper;
+import edu.harvard.iq.dataverse.util.SystemConfig;
+import io.vavr.control.Try;
 
 
 /**
@@ -51,6 +54,8 @@ public class DataversePage {
     private LinkToDataverseDialog linkToDataverseDialog;
     @Inject
     private FeaturedDataversesDialog featuredDataversesDialog;
+    @Inject 
+    private SystemConfig sysConfig;
 
     @Inject @Param(name = "alias")
     private String dataverseAlias;
@@ -83,6 +88,29 @@ public class DataversePage {
     public List<Dataverse> getCarouselFeaturedDataverses() {
         return carouselFeaturedDataverses;
     }
+    
+    public boolean displayMetrics() {
+    	return this.dataverse.isRoot() && !this.sysConfig.isRsyncOnly();
+    }
+    
+	public boolean displayEditPublishButtons() {
+		return this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)
+				|| this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse);
+	}
+	
+	public boolean displayPublishButton() {
+		return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse);
+	}
+	
+	public boolean displayEditButton() {
+		return this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse);
+	}
+	
+	public boolean displayDeleteMenuItem() {
+		return isEmptyDataverse() 
+				&& this.dataverse.getOwner() != null
+				&& permissionsWrapper.canIssueDeleteDataverseCommand(this.dataverse);
+	}
 
     // -------------------- LOGIC --------------------
     @PostConstruct

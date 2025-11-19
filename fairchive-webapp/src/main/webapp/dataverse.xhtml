@@ -33,15 +33,19 @@
             <h:form id="dataverseForm">
                 <!-- View Mode / Description Panel -->
                 <ui:fragment>
-                    <div id="actionButtonBlock" class="button-block clearfix"
-                         jsf:rendered="#{!widgetWrapper.widgetView}">
+                    <div id="actionButtonBlock" 
+                         class="button-block clearfix"
+                         jsf:rendered="#{widgetWrapper.standaloneView}">
                         <!--  Metrics for Root Dataverse -->
-                        <div id="metrics-block" class="col-sm-4"
-                                jsf:rendered="#{DataversePage.dataverse.isRoot() and !settingsWrapper.rsyncOnly}">
-                            <div id="metrics-label" class="col-xs-4 small text-center">
-                                <h:outputLink value="#{settingsWrapper.metricsUrl}" target="_blank"
-                                                title="#{bundle['metrics.title.tip']}"
-                                                rendered="#{not empty settingsWrapper.metricsUrl}">
+                        <div id="metrics-block" 
+                             class="col-sm-4"
+                             jsf:rendered="#{DataversePage.displayMetrics()}">
+                            <div id="metrics-label" 
+                                 class="col-xs-4 small text-center">
+                                <h:outputLink value="#{settingsWrapper.metricsUrl}" 
+                                              target="_blank"
+                                              title="#{bundle['metrics.title.tip']}"
+                                              rendered="#{not empty settingsWrapper.metricsUrl}">
                                     <span class="glyphicon glyphicon-stats"/> #{bundle['metrics.title']}
                                 </h:outputLink>
                                 <ui:fragment rendered="#{empty settingsWrapper.metricsUrl}">
@@ -50,7 +54,8 @@
                                     </p:commandLink>
                                 </ui:fragment>
                             </div>
-                            <div id="metrics-content" class="col-xs-8 small text-center">
+                            <div id="metrics-content" 
+                                 class="col-xs-8 small text-center">
                                 <h:outputFormat styleClass="metric metrics-downloads"
                                                 value="{0} #{bundle['metrics.downloads']}">
                                     <f:param
@@ -65,19 +70,25 @@
                             <div class="btn-group" role="group">
                                 <p:commandLink styleClass="text-button btn-contact bootstrap-button-tooltip"
                                                title="#{bundle['dataverse.contact']}"
-                                               update=":contactDialog" oncomplete="primeFacesShowModal('contactForm', this)"
+                                               update=":contactDialog" 
+                                               oncomplete="primeFacesShowModal('contactForm', this)"
                                                actionListener="#{sendFeedbackDialog.reset(DataversePage.dataverse)}">
-                                    <f:param name="DO_VALIDATION" value="false"/>
-                                    <span class="glyphicon glyphicon-envelope" aria-hidden="true"/> #{bundle['contact.contact']}
+                                    <f:param name="DO_VALIDATION" 
+                                             value="false"/>
+                                    <span class="glyphicon glyphicon-envelope" 
+                                          aria-hidden="true"/> #{bundle['contact.contact']}
                                 </p:commandLink>
                                 <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"
                                                title="#{bundle['dataverse.share.dataverseShare']}"
                                                oncomplete="primeFacesShowModal('shareDialog', this);sharrre();">
-                                    <span class="glyphicon glyphicon-share" aria-hidden="true"/> #{bundle['share']}
+                                    <span class="glyphicon glyphicon-share" 
+                                          aria-hidden="true"/> #{bundle['share']}
                                 </p:commandLink>
                             </div>
-                            <p:dialog id="shareDialog" header="#{bundle['dataverse.share.dataverseShare']}"
-                                      widgetVar="shareDialog" modal="true">
+                            <p:dialog id="shareDialog" 
+                                      header="#{bundle['dataverse.share.dataverseShare']}"
+                                      widgetVar="shareDialog" 
+                                      modal="true">
                                 <p class="help-block">#{bundle['dataverse.share.dataverseShare.tip']}</p>
     
                                 <div id="sharrre-widget"
@@ -86,7 +97,10 @@
                                      data-language="#{dataverseSession.localeCode}" />
     
                                 <div class="button-block">
-                                    <button type="button" onclick="PF('shareDialog').hide()" class="btn btn-default" value="#{bundle.close}">
+                                    <button type="button" 
+                                            onclick="PF('shareDialog').hide()" 
+                                            class="btn btn-default" 
+                                            value="#{bundle.close}">
                                         #{bundle.close}
                                     </button>
                                 </div>
@@ -94,12 +108,13 @@
                             <!-- END: Email/Link/Share Button Group -->
 
                         <!-- Edit/Publish Button Group -->
-                        <div class="btn-group" jsf:rendered="#{permissionsWrapper.canIssueUpdateDataverseCommand(DataversePage.dataverse)
-                             or permissionsWrapper.canIssuePublishDataverseCommand(DataversePage.dataverse)}">
+                        <div class="btn-group" 
+                             jsf:rendered="#{DataversePage.displayEditPublishButtons()}">
                             <!-- Publish Button -->
                             <ui:fragment
-                                    rendered="#{permissionsWrapper.canIssuePublishDataverseCommand(DataversePage.dataverse)}">
-                                <button type="button" class="btn btn-default btn-access"
+                                    rendered="#{DataversePage.displayPublishButton()}">
+                                <button type="button" 
+                                        class="btn btn-default btn-access"
                                         onclick="primeFacesShowModal('confirmation', this)"
                                         jsf:rendered="#{!DataversePage.dataverse.released and (empty DataversePage.dataverse.owner or DataversePage.dataverse.owner.released)}">
                                     <span class="glyphicon glyphicon-globe"/> #{bundle['dataverse.publish.btn']}
@@ -112,16 +127,23 @@
                             </ui:fragment>
                             <!-- END: Publish Button -->
                             <div class="btn-group"
-                                    jsf:rendered="#{LinkToDataverseDialog.canLinkDataverse or LinkToDataverseDialog.canLinkSavedSearch}">
-                                <button id="linkToDataverse" type="button" class="btn btn-default btn-access dropdown-toggle"
+                                 jsf:rendered="#{LinkToDataverseDialog.canLinkDataverse or LinkToDataverseDialog.canLinkSavedSearch}">
+                                <button id="linkToDataverse" 
+                                        type="button" 
+                                        class="btn btn-default btn-access dropdown-toggle"
                                         data-toggle="dropdown"
-                                        aria-haspopup="true" aria-controls="linkToDataverseMenu" aria-expanded="false">
+                                        aria-haspopup="true" 
+                                        aria-controls="linkToDataverseMenu" 
+                                        aria-expanded="false">
                                     <span class="glyphicon glyphicon-link"/> #{bundle['link']} <span
                                         class="caret"></span>
                                 </button>
-                                <ul id="linkToDataverseMenu" class="dropdown-menu pull-right text-left"
-                                        role="menu" aria-labelledby="linkToDataverse">
-                                    <li class="#{LinkToDataverseDialog.canLinkDataverse ? '' : 'disabled'}" role="none">
+                                <ul id="linkToDataverseMenu" 
+                                    class="dropdown-menu pull-right text-left"
+                                    role="menu" 
+                                    aria-labelledby="linkToDataverse">
+                                    <li class="#{LinkToDataverseDialog.canLinkDataverse ? '' : 'disabled'}" 
+                                        role="none">
                                         <p:commandLink action="#{LinkToDataverseDialog.setupDialogForDataverseLinking()}"
                                                         oncomplete="primeFacesShowModal('linkDataverseForm', this)"
                                                         update=":linkDataverseForm"
@@ -131,7 +153,8 @@
                                             #{bundle['dataverse.link']}
                                         </p:commandLink>
                                     </li>
-                                    <li class="#{LinkToDataverseDialog.canLinkSavedSearch ? '' : 'disabled'}" role="none">
+                                    <li class="#{LinkToDataverseDialog.canLinkSavedSearch ? '' : 'disabled'}" 
+                                        role="none">
                                         <p:commandLink action="#{LinkToDataverseDialog.setupDialogForSavedSearchLinking()}"
                                                         oncomplete="primeFacesShowModal('linkDataverseForm', this)"
                                                         update=":linkDataverseForm"
@@ -145,15 +168,22 @@
                             </div>
                             <!-- Edit Button -->
                             <div class="btn-group"
-                                    jsf:rendered="#{permissionsWrapper.canIssueUpdateDataverseCommand(DataversePage.dataverse)}">
-                                <button id="editDataverse" type="button" class="btn btn-default btn-access dropdown-toggle"
+                                    jsf:rendered="#{DataversePage.displayEditButton()}">
+                                <button id="editDataverse" 
+                                        type="button" 
+                                        class="btn btn-default btn-access dropdown-toggle"
                                         data-toggle="dropdown"
-                                        aria-haspopup="true" aria-controls="editDataverseMenu" aria-expanded="false">
-                                    <span class="glyphicon glyphicon-pencil" aria-hidden="true"/> #{bundle['dataverse.edit']} <span
-                                        class="caret"></span>
+                                        aria-haspopup="true" 
+                                        aria-controls="editDataverseMenu" 
+                                        aria-expanded="false">
+                                    <span class="glyphicon glyphicon-pencil" 
+                                          aria-hidden="true"/> #{bundle['dataverse.edit']} 
+                                    <span class="caret"/>
                                 </button>
-                                <ul id="editDataverseMenu" class="dropdown-menu pull-right text-left"
-                                        role="menu" aria-labelledby="editDataverse">
+                                <ul id="editDataverseMenu" 
+                                    class="dropdown-menu pull-right text-left"
+                                    role="menu" 
+                                    aria-labelledby="editDataverse">
                                     <li role="presentation">
                                         <div id="dataverse-info-dropdown">
                                             <div class="dataverse-info-logo-icon">
@@ -169,36 +199,49 @@
                                             </div>
                                         </div>
                                     </li>
-                                    <li class="divider" role="presentation"></li>
+                                    <li class="divider" 
+                                        role="presentation"></li>
                                     <li role="none">
-                                        <h:link id="editInfo" outcome="createEditDataverse" pt:role="menuitem">
-                                            <f:param name="dataverseId" value="#{DataversePage.dataverse.id}"/>
+                                        <h:link id="editInfo" 
+                                                outcome="createEditDataverse" 
+                                                pt:role="menuitem">
+                                            <f:param name="dataverseId" 
+                                                     value="#{DataversePage.dataverse.id}"/>
                                             <h:outputText value="#{bundle['dataverse.option.generalInfo']}"/>
                                         </h:link>
                                     </li>
                                     <li role="none">
-                                        <h:link outcome="ThemeAndWidgets" id="themeWidgetsOpts" pt:role="menuitem">
-                                            <f:param name="id" value="#{DataversePage.dataverse.id}"/>
+                                        <h:link outcome="ThemeAndWidgets" 
+                                               id="themeWidgetsOpts" 
+                                               pt:role="menuitem">
+                                            <f:param name="id" 
+                                                     value="#{DataversePage.dataverse.id}"/>
                                             <h:outputText value="#{bundle['dataverse.option.themeAndWidgets']}"/>
                                         </h:link>
                                     </li>
                                     <ui:fragment
                                             rendered="#{permissionsWrapper.canManagePermissions(DataversePage.dataverse)}">
                                         <li role="none">
-                                            <h:link id="managePermissions" styleClass="ui-commandlink ui-widget"
-                                                    outcome="permissions-manage" pt:role="menuitem">
+                                            <h:link id="managePermissions" 
+                                                    styleClass="ui-commandlink ui-widget"
+                                                    outcome="permissions-manage" 
+                                                    pt:role="menuitem">
                                                 <h:outputText value="#{bundle['dataverse.option.permissions']}"/>
-                                                <f:param name="id" value="#{DataversePage.dataverse.id}"/>
+                                                <f:param name="id" 
+                                                         value="#{DataversePage.dataverse.id}"/>
                                             </h:link>
                                         </li>
                                     </ui:fragment>
                                     <ui:fragment
                                             rendered="#{permissionsWrapper.canManagePermissions(DataversePage.dataverse)}">
                                         <li role="none">
-                                            <h:link id="manageGroups" styleClass="ui-commandlink ui-widget"
-                                                    outcome="manage-groups" pt:role="menuitem">
+                                            <h:link id="manageGroups" 
+                                                    styleClass="ui-commandlink ui-widget"
+                                                    outcome="manage-groups" 
+                                                    pt:role="menuitem">
                                                 <h:outputText value="#{bundle['dataverse.option.dataverseGroups']}"/>
-                                                <f:param name="dataverseId" value="#{DataversePage.dataverse.id}"/>
+                                                <f:param name="dataverseId" 
+                                                         value="#{DataversePage.dataverse.id}"/>
                                             </h:link>
                                         </li>
                                     </ui:fragment>
@@ -206,42 +249,52 @@
                                         <li role="none">
                                             <h:link id="manageTextMessages"
                                                     styleClass="ui-commandlink ui-widget"
-                                                    outcome="dataverse-textMessages" pt:role="menuitem">
+                                                    outcome="dataverse-textMessages" 
+                                                    pt:role="menuitem">
                                                 <h:outputText
                                                         value="#{bundle['dataverse.option.textMessages']}"/>
                                                 <f:param name="dataverseId"
-                                                            value="#{DataversePage.dataverse.id}"/>
+                                                         value="#{DataversePage.dataverse.id}"/>
                                             </h:link>
                                         </li>
                                     </ui:fragment>
                                     <li role="none">
-                                        <h:link id="manageTemplates" styleClass="ui-commandlink ui-widget"
-                                                outcome="manage-templates" pt:role="menuitem">
+                                        <h:link id="manageTemplates" 
+                                                styleClass="ui-commandlink ui-widget"
+                                                outcome="manage-templates" 
+                                                pt:role="menuitem">
                                             <h:outputText value="#{bundle['dataverse.option.datasetTemplates']}"/>
-                                            <f:param name="dataverseId" value="#{DataversePage.dataverse.id}"/>
+                                            <f:param name="dataverseId" 
+                                                     value="#{DataversePage.dataverse.id}"/>
                                         </h:link>
                                     </li>
-                                    <li role="none" jsf:rendered="#{!settingsWrapper.rsyncOnly}">
-                                        <h:link id="manageGuestbooks" styleClass="ui-commandlink ui-widget"
-                                                outcome="manage-guestbooks" pt:role="menuitem">
+                                    <li role="none" 
+                                        jsf:rendered="#{!settingsWrapper.rsyncOnly}">
+                                        <h:link id="manageGuestbooks" 
+                                                styleClass="ui-commandlink ui-widget"
+                                                outcome="manage-guestbooks"
+                                                pt:role="menuitem">
                                             <h:outputText value="#{bundle['dataverse.option.datasetGuestbooks']}"/>
-                                            <f:param name="dataverseId" value="#{DataversePage.dataverse.id}"/>
+                                            <f:param name="dataverseId" 
+                                                     value="#{DataversePage.dataverse.id}"/>
                                         </h:link>
                                     </li>
-                                    <li role="none" jsf:rendered="#{FeaturedDataversesDialog.canEditFeaturedDataverses}">
+                                    <li role="none" 
+                                        jsf:rendered="#{FeaturedDataversesDialog.canEditFeaturedDataverses}">
                                         <p:commandLink id="browseOpts"
-                                                        action="#{FeaturedDataversesDialog.setupDialog()}"
-                                                        oncomplete="primeFacesShowModal('browseOptsForm', this)"
-                                                        update="dataverseForm:browseOptsForm"
-                                                        pt:role="menuitem">
+                                                       action="#{FeaturedDataversesDialog.setupDialog()}"
+                                                       oncomplete="primeFacesShowModal('browseOptsForm', this)"
+                                                       update="dataverseForm:browseOptsForm"
+                                                       pt:role="menuitem">
                                             <h:outputText value="#{bundle['dataverse.option.featuredDataverse']}"/>
                                         </p:commandLink>
                                     </li>
-                                    <ui:fragment rendered="#{DataversePage.isEmptyDataverse() and !(DataversePage.dataverse.owner == null)
-                                                                         and permissionsWrapper.canIssueDeleteDataverseCommand(DataversePage.dataverse)}">
+                                    <ui:fragment rendered="#{DataversePage.displayDeleteMenuItem()}">
                                         <li class="divider"></li>
                                         <li role="none">
-                                            <p:commandLink id="deleteDataset" onclick="primeFacesShowModal('deleteConfirmation', this)" pt:role="menuitem">
+                                            <p:commandLink id="deleteDataset" 
+                                                           onclick="primeFacesShowModal('deleteConfirmation', this)" 
+                                                           pt:role="menuitem">
                                                 <h:outputText value="#{bundle['dataverse.option.deleteDataverse']}"/>
                                             </p:commandLink>
                                         </li>
@@ -267,28 +320,39 @@
                         </ui:fragment>
 
                         <!-- Featured Dataverses Carousel -->
-                        <div id="carouselBlocksWrapper" role="complementary" aria-label="#{bundle['dataverse.featuredDataverse.regionAriaLabel']}"
+                        <div id="carouselBlocksWrapper" 
+                             role="complementary" 
+                             aria-label="#{bundle['dataverse.featuredDataverse.regionAriaLabel']}"
                              jsf:rendered="#{!empty DataversePage.carouselFeaturedDataverses}">
                             <div id="featuredDataversesBlock">
                                 <div class="customNavigation">
-                                    <a class="btn prev1" title="#{bundle['dataverse.page.pre']}"><span
-                                            class="glyphicon glyphicon-chevron-left"/></a>
+                                    <a class="btn prev1"
+                                       title="#{bundle['dataverse.page.pre']}">
+                                        <span class="glyphicon glyphicon-chevron-left"/>
+                                    </a>
                                 </div>
-                                <div id="featuredDataversesList" class="owl-carousel owl-theme">
-                                    <ui:repeat value="#{DataversePage.carouselFeaturedDataverses}" var="dv"
+                                <div id="featuredDataversesList" 
+                                     class="owl-carousel owl-theme">
+                                    <ui:repeat value="#{DataversePage.carouselFeaturedDataverses}" 
+                                               var="dv"
                                                varStatus="status">
                                         <div>
-                                            <c:set var="dvFeatUrl" value="/dataverse/#{dv.alias}"/>
-                                            <a href="#{widgetWrapper.wrapURL(dvFeatUrl)}" class="item" aria-label="#{bundle.dataverse} #{dv.name}">
+                                            <c:set var="dvFeatUrl" 
+                                                   value="/dataverse/#{dv.alias}"/>
+                                            <a href="#{widgetWrapper.wrapURL(dvFeatUrl)}" 
+                                               class="item"
+                                               aria-label="#{bundle.dataverse} #{dv.name}">
                                                 <ui:fragment rendered="#{empty dv.dataverseTheme.logo}">
                                                     <div class="owl-carousel-logo">
-                                                        <i class="icon-dataverse" role="img" aria-label="#{bundle.dataverse}"></i>
+                                                        <i class="icon-dataverse" 
+                                                           role="img" 
+                                                           aria-label="#{bundle.dataverse}"></i>
                                                     </div>
                                                 </ui:fragment>
                                                 <ui:fragment rendered="#{!empty dv.dataverseTheme.logo}">
                                                     <div class="owl-carousel-logo">
                                                         <img src="/logos/#{dv.logoOwnerId}/#{dv.dataverseTheme.logo}"
-                                                            alt="#{bundle['dataverse.results.cards.dataverse.logoPrefix']} #{dv.name}"/>
+                                                             alt="#{bundle['dataverse.results.cards.dataverse.logoPrefix']} #{dv.name}"/>
                                                     </div>
                                                 </ui:fragment>
                                                 <div class="owl-carousel-description">
@@ -299,8 +363,10 @@
                                     </ui:repeat>
                                 </div>
                                 <div class="customNavigation">
-                                    <a class="btn next1" title="#{bundle['dataverse.page.next']}"><span
-                                            class="glyphicon glyphicon-chevron-right"/></a>
+                                    <a class="btn next1" 
+                                       title="#{bundle['dataverse.page.next']}">
+                                       <span class="glyphicon glyphicon-chevron-right"/>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -310,47 +376,58 @@
 
                 <!-- POPUPS -->
                 <!-- Featured Dataverses Popup -->
-                <p:dialog id="browseOptsForm" header="#{bundle['dataverse.option.featuredDataverse']}"
-                          widgetVar="browseOptsForm" modal="true" onShow="PF('featuredDataversePicklist').updateListRole();">
+                <p:dialog id="browseOptsForm" 
+                          header="#{bundle['dataverse.option.featuredDataverse']}"
+                          widgetVar="browseOptsForm"
+                          modal="true" 
+                          onShow="PF('featuredDataversePicklist').updateListRole();">
                     <ui:fragment
                             rendered="#{!empty FeaturedDataversesDialog.featuredDataverses.source or !empty FeaturedDataversesDialog.featuredDataverses.target}">
                         <div class="form-group">
                             <div class="col-sm-12">
                                 <p class="help-block">#{bundle['dataverse.featuredDataverse.edit.tip']}</p>
-                                <p:pickList id="featuredDataverseList" value="#{FeaturedDataversesDialog.featuredDataverses}"
+                                <p:pickList id="featuredDataverseList" 
+                                            value="#{FeaturedDataversesDialog.featuredDataverses}"
                                             var="featureddataverse"
                                             itemLabel="#{featureddataverse.name}"
-                                            itemValue="#{featureddataverse}" converter="dataverseConverter"
+                                            itemValue="#{featureddataverse}" 
+                                            converter="dataverseConverter"
                                             responsive="true"
-                                            showSourceFilter="true" showTargetFilter="true"
+                                            showSourceFilter="true" 
+                                            showTargetFilter="true"
                                             widgetVar="featuredDataversePicklist"
                                             addLabel="#{bundle['dataverse.featuredDataverse.edit.add']}"
                                             addAllLabel="#{bundle['dataverse.featuredDataverse.edit.addAll']}"
                                             removeLabel="#{bundle['dataverse.featuredDataverse.edit.remove']}"
                                             removeAllLabel="#{bundle['dataverse.featuredDataverse.edit.removeAll']}"
-
-                                            onTransfer="PF('featuredDataversePicklist').updateListRole();"
-                                >
+                                            onTransfer="PF('featuredDataversePicklist').updateListRole();">
 
                                     <f:facet name="sourceCaption">#{bundle['dataverse.featuredDataverse.edit.sourceLabel']}</f:facet>
                                     <f:facet name="targetCaption">#{bundle['dataverse.featuredDataverse.edit.targetLabel']}</f:facet>
 
-                                    <p:ajax event="transfer" update="featuredDataverseList" listener="#{FeaturedDataversesDialog.updateSort}" />
-                                    <p:ajax event="reorder" update="sortOptions" listener="#{FeaturedDataversesDialog.manualReorder}" />
+                                    <p:ajax event="transfer" 
+                                            update="featuredDataverseList" 
+                                            listener="#{FeaturedDataversesDialog.updateSort}" />
+                                    <p:ajax event="reorder" 
+                                            update="sortOptions" 
+                                            listener="#{FeaturedDataversesDialog.manualReorder}" />
                                 </p:pickList>
                             </div>
 
                             <div class="col-sm-12">
-                                <div class="field-radiobutton-spacer">
-                                </div>
+                                <div class="field-radiobutton-spacer"/>
                                 <div class="field-radiobutton-container">
                                     <p>#{bundle['dataverse.featuredDataverse.sort.label']}</p>
                                     <p:selectOneRadio id="sortOptions"
                                                       value="#{FeaturedDataversesDialog.featuredDataversesSorting}"
                                                       layout="pageDirection">
-                                        <p:ajax event="change" update="featuredDataverseList" listener="#{FeaturedDataversesDialog.updateSort}"/>
-                                        <f:selectItems value="#{FeaturedDataversesSorting}" var="sorting"
-                                                       itemValue="#{sorting}" itemLabel="#{bundle['dataverse.featuredDataverse.sort.' += sorting]}" />
+                                        <p:ajax event="change" 
+                                                update="featuredDataverseList" 
+                                                listener="#{FeaturedDataversesDialog.updateSort}"/>
+                                        <f:selectItems value="#{FeaturedDataversesSorting}" 
+                                                       var="sorting"
+                                                       itemValue="#{sorting}" 
+                                                       itemLabel="#{bundle['dataverse.featuredDataverse.sort.' += sorting]}" />
                                     </p:selectOneRadio>
                                 </div>
                             </div>
@@ -358,7 +435,9 @@
                         <div class="button-block">
                             <p:commandButton value="#{bundle.saveChanges}"
                                              action="#{FeaturedDataversesDialog.saveFeaturedDataverse()}"/>
-                            <p:commandButton type="button" value="#{bundle.cancel}" onclick="PF('browseOptsForm').hide()"/>
+                            <p:commandButton type="button" 
+                                             value="#{bundle.cancel}" 
+                                             onclick="PF('browseOptsForm').hide()"/>
                         </div>
                     </ui:fragment>
                     <ui:fragment
@@ -367,40 +446,55 @@
                             <span class="glyphicon glyphicon-exclamation-sign"/> #{bundle['dataverse.nopublished.tip']}
                         </p>
                         <div class="button-block">
-                            <p:commandButton type="button" value="#{bundle.cancel}" onclick="PF('browseOptsForm').hide()"/>
+                            <p:commandButton type="button" 
+                                             value="#{bundle.cancel}" 
+                                             onclick="PF('browseOptsForm').hide()"/>
                         </div>
                     </ui:fragment>
                 </p:dialog>
 
                 <!-- Publish Confirmation Popup -->
-                <p:dialog header="#{bundle['dataverse.publish.header']}" widgetVar="confirmation" modal="true">
+                <p:dialog header="#{bundle['dataverse.publish.header']}" 
+                          widgetVar="confirmation" 
+                          modal="true">
                     <p class="text-warning">
                         <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataverse.publish.tip']}
                     </p>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.continue}" onclick="PF('confirmation').hide()"
+                        <p:commandButton value="#{bundle.continue}" 
+                                         onclick="PF('confirmation').hide()"
                                          action="#{DataversePage.releaseDataverse}"/>
-                        <p:commandButton value="#{bundle.cancel}" onclick="PF('confirmation').hide();" type="button"/>
+                        <p:commandButton value="#{bundle.cancel}" 
+                                         onclick="PF('confirmation').hide();" 
+                                         type="button"/>
                     </div>
                 </p:dialog>
 
-                <p:dialog header="#{bundle['dataverse.publish.header']}" widgetVar="mayNotRelease" modal="true">
+                <p:dialog header="#{bundle['dataverse.publish.header']}" 
+                          widgetVar="mayNotRelease" 
+                          modal="true">
                     <p class="text-danger">
                         <span class="glyphicon glyphicon-exclamation-sign"/> #{bundle['dataverse.publish.failed.tip']}
                     </p>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.cancel}" onclick="PF('mayNotRelease').hide();" type="button"/>
+                        <p:commandButton value="#{bundle.cancel}" 
+                                         onclick="PF('mayNotRelease').hide();" 
+                                         type="button"/>
                     </div>
                 </p:dialog>
 
-                <p:dialog header="#{bundle['dataverse.delete']}" widgetVar="deleteConfirmation" modal="true">
+                <p:dialog header="#{bundle['dataverse.delete']}" 
+                          widgetVar="deleteConfirmation" 
+                          modal="true">
                     <p class="text-warning">
                         <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataverse.delete.tip']}
                     </p>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.continue}" onclick="PF('deleteConfirmation').hide()"
+                        <p:commandButton value="#{bundle.continue}" 
+                                         onclick="PF('deleteConfirmation').hide()"
                                          action="#{DataversePage.deleteDataverse}"/>
-                        <p:commandButton value="#{bundle.cancel}" onclick="PF('deleteConfirmation').hide();"
+                        <p:commandButton value="#{bundle.cancel}" 
+                                         onclick="PF('deleteConfirmation').hide();"
                                          type="button"/>
                     </div>
                 </p:dialog>
@@ -416,8 +510,10 @@
             <!-- Link Dataverse Popup -->
             <p:dialog id="linkDataverseForm"
                       header="#{LinkToDataverseDialog.linkMode == 'SAVEDSEARCH' ? bundle['dataverse.savedsearch.link'] : bundle['dataverse.link']}"
-                      widgetVar="linkDataverseForm" modal="true">
-                <h:form styleClass="form-horizontal" rendered="#{LinkToDataverseDialog.linkingDVSelectItems.size() > 1}">
+                      widgetVar="linkDataverseForm" 
+                      modal="true">
+                <h:form styleClass="form-horizontal" 
+                        rendered="#{LinkToDataverseDialog.linkingDVSelectItems.size() > 1}">
                     <ui:fragment rendered="#{LinkToDataverseDialog.linkMode == 'LINKDATAVERSE'}">
                         <p class="help-block">#{bundle['dataverse.link.dataverse.choose']}</p>
                     </ui:fragment>
@@ -425,17 +521,21 @@
                         <p class="help-block">#{bundle['dataverse.savedsearch.dataverse.choose']}</p>
                     </ui:fragment>
                     <div class="form-group">
-                        <h:outputLabel styleClass="col-sm-4 control-label" for="linkDataverseSelect">
+                        <h:outputLabel styleClass="col-sm-4 control-label" 
+                                       for="linkDataverseSelect">
                             <h:outputText value="#{bundle['dataverse.link.yourDataverses']}" />
                         </h:outputLabel>
                         <div class="col-sm-7">
-                            <h:selectOneMenu id="linkDataverseSelect" styleClass="form-control" value="#{LinkToDataverseDialog.linkingDataverseId}">
+                            <h:selectOneMenu id="linkDataverseSelect" 
+                                             styleClass="form-control" 
+                                             value="#{LinkToDataverseDialog.linkingDataverseId}">
                                 <f:selectItems value="#{LinkToDataverseDialog.linkingDVSelectItems}"/>
                             </h:selectOneMenu>
                         </div>
                     </div>
                     <ui:fragment rendered="#{LinkToDataverseDialog.linkMode == 'SAVEDSEARCH'}">
-                        <div class="form-group" jsf:rendered="#{!empty LinkToDataverseDialog.searchQuery}">
+                        <div class="form-group" 
+                             jsf:rendered="#{!empty LinkToDataverseDialog.searchQuery}">
                             <div class="col-sm-4 control-label section-title">
                                 #{bundle['dataverse.savedsearch.searchquery']}
                             </div>
@@ -445,12 +545,14 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="form-group" jsf:rendered="#{!empty LinkToDataverseDialog.searchFilterQueriesDebug}">
+                        <div class="form-group" 
+                             jsf:rendered="#{!empty LinkToDataverseDialog.searchFilterQueriesDebug}">
                             <div class="col-sm-4 control-label section-title">
                                 #{bundle['dataverse.savedsearch.filterQueries']}
                             </div>
                             <div class="col-sm-7">
-                                <ui:repeat value="#{LinkToDataverseDialog.searchFilterQueriesDebug}" var="fq">
+                                <ui:repeat value="#{LinkToDataverseDialog.searchFilterQueriesDebug}" 
+                                           var="fq">
                                     <p class="form-control-static"><h:outputText value="#{fq}"/></p>
                                 </ui:repeat>
                             </div>
@@ -463,7 +565,9 @@
                         <p:commandButton value="#{bundle['dataverse.savedsearch.save']}"
                                          action="#{LinkToDataverseDialog.saveSavedSearch}"
                                          rendered="#{LinkToDataverseDialog.linkMode == 'SAVEDSEARCH'}"/>
-                        <p:commandButton type="button" value="#{bundle.cancel}" onclick="PF('linkDataverseForm').hide()"/>
+                        <p:commandButton type="button" 
+                                         value="#{bundle.cancel}" 
+                                         onclick="PF('linkDataverseForm').hide()"/>
                     </div>
                 </h:form>
                 <ui:fragment rendered="#{LinkToDataverseDialog.linkingDVSelectItems.size() == 1}">
@@ -482,7 +586,9 @@
                         <p:commandButton value="#{bundle['dataverse.link.save']}"
                                          onclick="PF('linkDataverseForm').hide()"
                                          actionListener="#{LinkToDataverseDialog.saveLinkedDataverse()}"/>
-                        <p:commandButton type="button" value="#{bundle.cancel}" onclick="PF('linkDataverseForm').hide()"/>
+                        <p:commandButton type="button" 
+                                         value="#{bundle.cancel}" 
+                                         onclick="PF('linkDataverseForm').hide()"/>
                     </div>
                 </ui:fragment>
                 <ui:fragment rendered="#{LinkToDataverseDialog.linkingDVSelectItems.size() == 0}">
@@ -490,7 +596,9 @@
                         <span class="glyphicon glyphicon-exclamation-sign"/> #{bundle['dataverse.link.no.linkable']}
                     </p>
                     <div class="button-block">
-                        <p:commandButton type="button" value="#{bundle.cancel}" onclick="PF('linkDataverseForm').hide()"/>
+                        <p:commandButton type="button" 
+                                         value="#{bundle.cancel}" 
+                                         onclick="PF('linkDataverseForm').hide()"/>
                     </div>
                 </ui:fragment>
             </p:dialog>
