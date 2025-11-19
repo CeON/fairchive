@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_NONE;
+
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileMetadataDTO {
     private String description;
@@ -162,6 +164,10 @@ public class FileMetadataDTO {
         private String md5;
         private ChecksumDTO checksum;
         private List<String> tabularTags;
+        @JsonProperty("isOcr")
+        private boolean ocr;
+        @JsonProperty("isHtr")
+        private boolean htr;
 
         // -------------------- GETTERS --------------------
 
@@ -233,6 +239,15 @@ public class FileMetadataDTO {
             return tabularTags;
         }
 
+        public boolean isOcr() {
+            return ocr;
+        }
+
+        public boolean isHtr() {
+            return htr;
+        }
+
+
         // -------------------- SETTERS --------------------
 
         public void setId(Long id) {
@@ -302,6 +317,16 @@ public class FileMetadataDTO {
         public void setTabularTags(List<String> tabularTags) {
             this.tabularTags = tabularTags;
         }
+
+
+        public void setOcr(boolean ocr) {
+            this.ocr = ocr;
+        }
+
+        public void setHtr(boolean htr) {
+            this.htr = htr;
+        }
+
     }
 
     public static class Converter {
@@ -361,6 +386,11 @@ public class FileMetadataDTO {
             converted.setMd5(DataFile.ChecksumType.MD5.equals(dataFile.getChecksumType()) ? dataFile.getChecksumValue() : null);
             converted.setChecksum(checksumCreator.create(dataFile));
             converted.setTabularTags(dataFile.getTagLabels());
+            converted.setOcr(DataFile.IngestType.OCR.equals(dataFile.getIngestType())
+                    && INGEST_STATUS_NONE == dataFile.getIngestStatus());
+            converted.setHtr(DataFile.IngestType.HTR.equals(dataFile.getIngestType())
+                    && INGEST_STATUS_NONE == dataFile.getIngestStatus());
+
             return converted;
         }
     }

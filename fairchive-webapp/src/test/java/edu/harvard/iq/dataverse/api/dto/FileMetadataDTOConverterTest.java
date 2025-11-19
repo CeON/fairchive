@@ -34,6 +34,7 @@ class FileMetadataDTOConverterTest {
         dataFile.setProtocol("doi");
         dataFile.setAuthority("1234");
         dataFile.setIdentifier("id");
+        dataFile.setIngestType(DataFile.IngestType.OCR);
         fileMetadata.setDataFile(dataFile);
 
         // when
@@ -48,5 +49,7 @@ class FileMetadataDTOConverterTest {
                 .containsExactly(3L, 123L, "doi:1234/id");
         assertThat(converted.getDataFile().getTabularTags())
                 .containsExactly("tag1", "tag2");
+        assertThat(converted.getDataFile().isOcr()).isTrue();
+        assertThat(converted.getDataFile().isHtr()).isFalse();
     }
 }
