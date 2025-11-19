@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @Stateless
 public class MetadataBlockService {
@@ -193,7 +194,8 @@ public class MetadataBlockService {
     }
 
     private Set<MetadataBlock> prepareMetadataBlocks(Dataverse dataverse) {
-        Set<MetadataBlock> availableBlocks = new TreeSet<>(Comparator.comparingInt(MetadataBlock::getDisplayOrder));
+        Set<MetadataBlock> availableBlocks = new TreeSet<>(Comparator.comparingInt(MetadataBlock::getDisplayOrder)
+                                                                   .thenComparingLong(MetadataBlock::getId));
         availableBlocks.addAll(this.metadataBlockRepo.findSystemMetadataBlocks());
         availableBlocks.addAll(retriveAllDataverseParentsMetaBlocks(dataverse));
 
