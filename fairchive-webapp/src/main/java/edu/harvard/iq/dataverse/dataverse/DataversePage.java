@@ -1,5 +1,10 @@
 package edu.harvard.iq.dataverse.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +13,6 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang.StringUtils;
 import org.omnifaces.cdi.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +21,9 @@ import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
-
-import edu.harvard.iq.dataverse.util.JsfRedirectHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Try;
@@ -73,23 +74,23 @@ public class DataversePage {
     // -------------------- GETTERS --------------------
 
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
     }
 
     public String getDataverseAlias() {
-        return dataverseAlias;
+        return this.dataverseAlias;
     }
 
     public Long getDataverseId() {
-        return dataverseId;
+        return this.dataverseId;
     }
 
     public boolean isShowDescriptionAndCarousel() {
-        return showDescriptionAndCarousel;
+        return this.showDescriptionAndCarousel;
     }
 
     public List<Dataverse> getCarouselFeaturedDataverses() {
-        return carouselFeaturedDataverses;
+        return this.carouselFeaturedDataverses;
     }
     
     public boolean displayMetrics() {
@@ -119,7 +120,7 @@ public class DataversePage {
     @PostConstruct
     public void postConstruct() {
 
-        if (StringUtils.isNotEmpty(this.dataverseAlias)) {
+        if (isNotEmpty(this.dataverseAlias)) {
         	this.dataverse = dataverseDao.findByAlias(this.dataverseAlias);
         } else if(this.dataverseId != null) {
         	this.dataverse = dataverseDao.find(this.dataverseId);
@@ -135,16 +136,20 @@ public class DataversePage {
 
     public String init() {
 
-        if (!this.dataverse.isReleased() && !this.permissionsWrapper.canViewUnpublishedDataverse(this.dataverse)) {
+        if (!this.dataverse.isReleased() 
+        		&& !this.permissionsWrapper.canViewUnpublishedDataverse(this.dataverse)) {
             return this.permissionsWrapper.notAuthorized();
         }
 
         this.searchIncludeFragment.search();
-        this.linkToDataverseDialog.init(this.dataverse, this.searchIncludeFragment.getQuery(), this.searchIncludeFragment.getFilterQueriesDebug());
+        this.linkToDataverseDialog.init(this.dataverse, 
+        		this.searchIncludeFragment.getQuery(),
+        		this.searchIncludeFragment.getFilterQueriesDebug());
 
         this.featuredDataversesDialog.init(this.dataverse);
 
-        this.showDescriptionAndCarousel = this.searchIncludeFragment.getFilterQueries().isEmpty() && StringUtils.isEmpty(this.searchIncludeFragment.getQuery());
+        this.showDescriptionAndCarousel = this.searchIncludeFragment.getFilterQueries().isEmpty() 
+        		&& isEmpty(this.searchIncludeFragment.getQuery());
         if (this.showDescriptionAndCarousel) {
         	this.carouselFeaturedDataverses = this.featuredDataverseService.findByDataverseIdQuick(this.dataverse.getId());
         }
@@ -154,17 +159,17 @@ public class DataversePage {
 
     public String releaseDataverse() {
         if (!this.session.isUserLoggedIn()) {
-            this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.not.authorized"));
+            this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.publish.not.authorized"));
         }
 
         Try.of(() -> this.dataverseService.publishDataverse(this.dataverse))
                 .onFailure(ex -> {
                     logger.error("Unexpected Exception calling  publish dataverse command", ex);
-                    this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.failure"));
+                    this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.publish.failure"));
                 })
-                .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.publish.success")));
+                .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.publish.success")));
 
-        return JsfRedirectHelper.redirectToDataverse(this.dataverse.getAlias());
+        return redirectToDataverse(this.dataverse.getAlias());
     }
 
     public String deleteDataverse() {
@@ -172,11 +177,11 @@ public class DataversePage {
         Try.run(() -> dataverseService.deleteDataverse(this.dataverse))
                 .onFailure(ex -> {
                     logger.error("Unexpected Exception calling  delete dataverse command", ex);
-                    this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.delete.failure"));
+                    this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.delete.failure"));
                 })
-                .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.delete.success")));
+                .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.delete.success")));
 
-        return JsfRedirectHelper.redirectToDataverse(this.dataverse.getOwner().getAlias());
+        return redirectToDataverse(this.dataverse.getOwner().getAlias());
     }
 
     public Boolean isEmptyDataverse() {
@@ -184,7 +189,9 @@ public class DataversePage {
     }
 
     public boolean isUserCanChangeAllowMessageAndBanners() {
-        return this.dataverse.isAllowMessagesBanners() && (this.session.getUser().isSuperuser() || this.permissionService.isUserAbleToEditDataverse(this.session.getUser(), this.dataverse));
+        return this.dataverse.isAllowMessagesBanners() 
+        		&& (this.session.getUser().isSuperuser() 
+        		|| this.permissionService.isUserAbleToEditDataverse(this.session.getUser(), this.dataverse));
     }
 
     public String redirectToMetrics() {
