@@ -21,9 +21,10 @@ import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
-import edu.harvard.iq.dataverse.util.JsfHelper;
+
 import edu.harvard.iq.dataverse.util.JsfRedirectHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Try;
 
 
@@ -56,6 +57,8 @@ public class DataversePage {
     private FeaturedDataversesDialog featuredDataversesDialog;
     @Inject 
     private SystemConfig sysConfig;
+    @Inject
+    private UIMessages uiMessages;
 
     @Inject @Param(name = "alias")
     private String dataverseAlias;
@@ -151,15 +154,15 @@ public class DataversePage {
 
     public String releaseDataverse() {
         if (!session.isUserLoggedIn()) {
-            JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.not.authorized"));
+            this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.not.authorized"));
         }
 
         Try.of(() -> dataverseService.publishDataverse(dataverse))
                 .onFailure(ex -> {
                     logger.error("Unexpected Exception calling  publish dataverse command", ex);
-                    JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.failure"));
+                    this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.failure"));
                 })
-                .onSuccess(dv -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.publish.success")));
+                .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.publish.success")));
 
         return JsfRedirectHelper.redirectToDataverse(dataverse.getAlias());
     }
@@ -169,9 +172,9 @@ public class DataversePage {
         Try.run(() -> dataverseService.deleteDataverse(dataverse))
                 .onFailure(ex -> {
                     logger.error("Unexpected Exception calling  delete dataverse command", ex);
-                    JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.delete.failure"));
+                    this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.delete.failure"));
                 })
-                .onSuccess(dv -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.delete.success")));
+                .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.delete.success")));
 
         return JsfRedirectHelper.redirectToDataverse(dataverse.getOwner().getAlias());
     }
