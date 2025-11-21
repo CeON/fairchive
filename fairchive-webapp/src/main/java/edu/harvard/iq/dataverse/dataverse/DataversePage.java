@@ -26,7 +26,6 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
-import io.vavr.control.Try;
 
 
 /**
@@ -161,26 +160,26 @@ public class DataversePage {
         if (!this.session.isUserLoggedIn()) {
             this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.publish.not.authorized"));
         }
-
-        Try.of(() -> this.dataverseService.publishDataverse(this.dataverse))
-                .onFailure(ex -> {
-                    logger.error("Unexpected Exception calling  publish dataverse command", ex);
-                    this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.publish.failure"));
-                })
-                .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.publish.success")));
-
+        
+        try {
+        	this.dataverseService.publishDataverse(this.dataverse);
+        	this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.publish.success"));
+        } catch (final Exception e) {
+            logger.error("Unexpected Exception calling  publish dataverse command", e);
+            this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.publish.failure"));
+        }
         return redirectToDataverse(this.dataverse.getAlias());
     }
 
     public String deleteDataverse() {
 
-        Try.run(() -> dataverseService.deleteDataverse(this.dataverse))
-                .onFailure(ex -> {
-                    logger.error("Unexpected Exception calling  delete dataverse command", ex);
-                    this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.delete.failure"));
-                })
-                .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.delete.success")));
-
+    	try {
+    		dataverseService.deleteDataverse(this.dataverse);
+    		this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.delete.success"));
+    	} catch (final Exception e) {
+            logger.error("Unexpected Exception calling  delete dataverse command", e);
+            this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.delete.failure"));
+    	}
         return redirectToDataverse(this.dataverse.getOwner().getAlias());
     }
 
