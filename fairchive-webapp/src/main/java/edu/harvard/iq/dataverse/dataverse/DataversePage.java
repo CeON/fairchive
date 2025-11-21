@@ -112,79 +112,79 @@ public class DataversePage {
 	public boolean displayDeleteMenuItem() {
 		return isEmptyDataverse() 
 				&& this.dataverse.getOwner() != null
-				&& permissionsWrapper.canIssueDeleteDataverseCommand(this.dataverse);
+				&& this.permissionsWrapper.canIssueDeleteDataverseCommand(this.dataverse);
 	}
 
     // -------------------- LOGIC --------------------
     @PostConstruct
     public void postConstruct() {
 
-        if (StringUtils.isNotEmpty(dataverseAlias)) {
-            dataverse = dataverseDao.findByAlias(dataverseAlias);
-        } else if(dataverseId != null) {
-            dataverse = dataverseDao.find(dataverseId);
+        if (StringUtils.isNotEmpty(this.dataverseAlias)) {
+        	this.dataverse = dataverseDao.findByAlias(this.dataverseAlias);
+        } else if(this.dataverseId != null) {
+        	this.dataverse = dataverseDao.find(this.dataverseId);
         } else {
-            dataverse = dataverseDao.findRootDataverse();
+        	this.dataverse = this.dataverseDao.findRootDataverse();
         }
-        if (dataverse == null) {
-            permissionsWrapper.notFound();
+        if (this.dataverse == null) {
+        	this.permissionsWrapper.notFound();
         }
 
-        searchIncludeFragment.setDataverse(dataverse);
+        this.searchIncludeFragment.setDataverse(this.dataverse);
     }
 
     public String init() {
 
-        if (!dataverse.isReleased() && !permissionsWrapper.canViewUnpublishedDataverse(dataverse)) {
-            return permissionsWrapper.notAuthorized();
+        if (!this.dataverse.isReleased() && !this.permissionsWrapper.canViewUnpublishedDataverse(this.dataverse)) {
+            return this.permissionsWrapper.notAuthorized();
         }
 
-        searchIncludeFragment.search();
-        linkToDataverseDialog.init(dataverse, searchIncludeFragment.getQuery(), searchIncludeFragment.getFilterQueriesDebug());
+        this.searchIncludeFragment.search();
+        this.linkToDataverseDialog.init(this.dataverse, this.searchIncludeFragment.getQuery(), this.searchIncludeFragment.getFilterQueriesDebug());
 
-        featuredDataversesDialog.init(dataverse);
+        this.featuredDataversesDialog.init(this.dataverse);
 
-        showDescriptionAndCarousel = searchIncludeFragment.getFilterQueries().isEmpty() && StringUtils.isEmpty(searchIncludeFragment.getQuery());
-        if (showDescriptionAndCarousel) {
-            carouselFeaturedDataverses = featuredDataverseService.findByDataverseIdQuick(dataverse.getId());
+        this.showDescriptionAndCarousel = this.searchIncludeFragment.getFilterQueries().isEmpty() && StringUtils.isEmpty(this.searchIncludeFragment.getQuery());
+        if (this.showDescriptionAndCarousel) {
+        	this.carouselFeaturedDataverses = this.featuredDataverseService.findByDataverseIdQuick(this.dataverse.getId());
         }
 
         return null;
     }
 
     public String releaseDataverse() {
-        if (!session.isUserLoggedIn()) {
+        if (!this.session.isUserLoggedIn()) {
             this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.not.authorized"));
         }
 
-        Try.of(() -> dataverseService.publishDataverse(dataverse))
+        Try.of(() -> this.dataverseService.publishDataverse(this.dataverse))
                 .onFailure(ex -> {
                     logger.error("Unexpected Exception calling  publish dataverse command", ex);
                     this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.failure"));
                 })
                 .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.publish.success")));
 
-        return JsfRedirectHelper.redirectToDataverse(dataverse.getAlias());
+        return JsfRedirectHelper.redirectToDataverse(this.dataverse.getAlias());
     }
 
     public String deleteDataverse() {
 
-        Try.run(() -> dataverseService.deleteDataverse(dataverse))
+        Try.run(() -> dataverseService.deleteDataverse(this.dataverse))
                 .onFailure(ex -> {
                     logger.error("Unexpected Exception calling  delete dataverse command", ex);
                     this.uiMessages.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.delete.failure"));
                 })
                 .onSuccess(dv -> this.uiMessages.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.delete.success")));
 
-        return JsfRedirectHelper.redirectToDataverse(dataverse.getOwner().getAlias());
+        return JsfRedirectHelper.redirectToDataverse(this.dataverse.getOwner().getAlias());
     }
 
     public Boolean isEmptyDataverse() {
-        return !dataverseDao.hasData(dataverse);
+        return !this.dataverseDao.hasData(dataverse);
     }
 
     public boolean isUserCanChangeAllowMessageAndBanners() {
-        return dataverse.isAllowMessagesBanners() && (session.getUser().isSuperuser() || permissionService.isUserAbleToEditDataverse(session.getUser(), this.dataverse));
+        return this.dataverse.isAllowMessagesBanners() && (this.session.getUser().isSuperuser() || this.permissionService.isUserAbleToEditDataverse(this.session.getUser(), this.dataverse));
     }
 
     public String redirectToMetrics() {
