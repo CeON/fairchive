@@ -20,7 +20,7 @@
 
     <!-- Search Form + Add Data Button -->
     <div class="row panelSearchForm" jsf:rendered="#{!SearchIncludeFragment.solrIsDown}">
-        <div class="#{widgetWrapper.widgetView ? 'col-sm-12' : 'col-sm-8'}">
+        <div class="top-search-form-wrapper">
             <h:form>
                 <div class="top-search-form">
                     <h:inputHidden value="#{SearchIncludeFragment.dataverseAlias}" />
@@ -34,12 +34,13 @@
                     <p:remoteCommand name="submitsearch" action="#{SearchIncludeFragment.searchRedirect()}"/>
                 </div>
                 <div class="top-search-form-extra-buttons">
-                    <h:outputLink id="advsearchlink" value="#{widgetWrapper.wrapURL('/search/advanced.xhtml')}">
+                    <h:outputLink id="advsearchlink" class="search-bar-url" value="#{widgetWrapper.wrapURL('/search/advanced.xhtml')}">
                         <f:param name="dataverseIdentifier" value="#{SearchIncludeFragment.dataverse.alias}"/>
                         <h:outputText value="#{bundle['dataverse.search.advancedSearch']}"/>
                     </h:outputLink>
                     <ui:repeat value="#{settingsWrapper.getConfigureSearchBarUrls().entrySet().toArray()}"
                                var="url">
+                        <span class="top-search-form-extra-buttons-separator" aria-hidden="true">|</span>
                         <h:outputLink value="#{url.key}"
                                       target="_blank"
                                       title="#{bundle['opensInNewTab']}">
@@ -48,46 +49,46 @@
                     </ui:repeat>
                 </div>
             </h:form>
-        </div>
-        <div class="col-sm-4 text-right col-manage-action" jsf:rendered="#{!widgetWrapper.widgetView}">
-            <div class="button-block pull-right">
-                <!-- ADD DATA -->
-                <ui:fragment rendered="#{!dataverseSession.user.authenticated and SearchIncludeFragment.couldCreateDatasetOrDataverseIfWasAuthenticated()}">
-                    <button type="button" class="btn btn-default btn-access" onclick="primeFacesShowModal('addData_popup', this)">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"/> #{bundle['dataverse.results.btn.addData']}
-                    </button>
-                </ui:fragment>
-                <h:form id="addDataForm" class="btn-form"
-                        rendered="#{dataverseSession.user.authenticated and 
+            <div class="col-manage-action" jsf:rendered="#{!widgetWrapper.widgetView}">
+                <div class="button-block pull-right">
+                    <!-- ADD DATA -->
+                    <ui:fragment rendered="#{!dataverseSession.user.authenticated and SearchIncludeFragment.couldCreateDatasetOrDataverseIfWasAuthenticated()}">
+                        <button type="button" class="btn btn-default btn-access" onclick="primeFacesShowModal('addData_popup', this)">
+                            <span class="glyphicon glyphicon-plus" aria-hidden="true"/> #{bundle['dataverse.results.btn.addData']}
+                        </button>
+                    </ui:fragment>
+                    <h:form id="addDataForm" class="btn-form"
+                            rendered="#{dataverseSession.user.authenticated and
                                      (permissionsWrapper.canIssueCreateDataverseCommand(SearchIncludeFragment.dataverse)
                                      or (permissionsWrapper.canIssueCreateDatasetCommand(SearchIncludeFragment.dataverse)
                                         and settingsWrapper.isShowAddDatasetButtonOnDataversePage()))}">
-                    <div class="btn-group">
-                        <button id="addData" type="button" class="btn btn-default btn-access dropdown-toggle" data-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false">
-                            <span class="glyphicon glyphicon-plus" aria-hidden="true"/> #{bundle['dataverse.results.btn.addData']} <span class="caret"></span>
-                        </button>
-                        <ul id="addDataMenu" class="dropdown-menu pull-right text-left" role="menu" aria-labelledby="addData">
-                            <ui:fragment rendered="#{permissionsWrapper.canIssueCreateDataverseCommand(SearchIncludeFragment.dataverse) }">
-                                <li role="none">
-                                    <a href="${pageContext.request.contextPath}/createEditDataverse.xhtml?ownerId=#{SearchIncludeFragment.dataverse.id}&amp;dataverseOwnerAlias=#{SearchIncludeFragment.dataverse.alias}"
-                                            role="menuitem">
-                                        #{bundle['dataverse.results.btn.addData.newDataverse']}
-                                    </a>
-                                </li>
-                            </ui:fragment>
-                            <ui:fragment rendered="#{permissionsWrapper.canIssueCreateDatasetCommand(SearchIncludeFragment.dataverse)
+                        <div class="btn-group">
+                            <button id="addData" type="button" class="btn btn-default btn-access dropdown-toggle" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"/> #{bundle['dataverse.results.btn.addData']} <span class="caret"></span>
+                            </button>
+                            <ul id="addDataMenu" class="dropdown-menu pull-right text-left" role="menu" aria-labelledby="addData">
+                                <ui:fragment rendered="#{permissionsWrapper.canIssueCreateDataverseCommand(SearchIncludeFragment.dataverse) }">
+                                    <li role="none">
+                                        <a href="${pageContext.request.contextPath}/createEditDataverse.xhtml?ownerId=#{SearchIncludeFragment.dataverse.id}&amp;dataverseOwnerAlias=#{SearchIncludeFragment.dataverse.alias}"
+                                           role="menuitem">
+                                            #{bundle['dataverse.results.btn.addData.newDataverse']}
+                                        </a>
+                                    </li>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{permissionsWrapper.canIssueCreateDatasetCommand(SearchIncludeFragment.dataverse)
                                                        and settingsWrapper.isShowAddDatasetButtonOnDataversePage()}">
-                                <li role="none">
-                                    <a href="${pageContext.request.contextPath}/createDataset.xhtml?ownerId=#{SearchIncludeFragment.dataverse.id}"
-                                            role="menuitem">
-                                        #{bundle['dataverse.results.btn.addData.newDataset']}
-                                    </a>
-                                </li>
-                            </ui:fragment>
-                        </ul>
-                    </div>
-                </h:form>
+                                    <li role="none">
+                                        <a href="${pageContext.request.contextPath}/createDataset.xhtml?ownerId=#{SearchIncludeFragment.dataverse.id}"
+                                           role="menuitem">
+                                            #{bundle['dataverse.results.btn.addData.newDataset']}
+                                        </a>
+                                    </li>
+                                </ui:fragment>
+                            </ul>
+                        </div>
+                    </h:form>
+                </div>
             </div>
         </div>
     </div>
