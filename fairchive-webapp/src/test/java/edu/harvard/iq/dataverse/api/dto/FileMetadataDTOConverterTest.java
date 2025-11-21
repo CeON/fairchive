@@ -49,7 +49,6 @@ class FileMetadataDTOConverterTest {
                 .containsExactly(3L, 123L, "doi:1234/id");
         assertThat(converted.getDataFile().getTabularTags())
                 .containsExactly("tag1", "tag2");
-        assertThat(converted.getDataFile().isOcr()).isTrue();
-        assertThat(converted.getDataFile().isHtr()).isFalse();
+        assertThat(converted.getDataFile().getProcessingMethod()).isEqualTo(DataFile.IngestType.OCR.toString());
     }
 }

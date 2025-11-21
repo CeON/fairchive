@@ -164,10 +164,7 @@ public class FileMetadataDTO {
         private String md5;
         private ChecksumDTO checksum;
         private List<String> tabularTags;
-        @JsonProperty("isOcr")
-        private boolean ocr;
-        @JsonProperty("isHtr")
-        private boolean htr;
+        private String processingMethod;
 
         // -------------------- GETTERS --------------------
 
@@ -239,14 +236,9 @@ public class FileMetadataDTO {
             return tabularTags;
         }
 
-        public boolean isOcr() {
-            return ocr;
+        public String getProcessingMethod() {
+            return processingMethod;
         }
-
-        public boolean isHtr() {
-            return htr;
-        }
-
 
         // -------------------- SETTERS --------------------
 
@@ -319,14 +311,9 @@ public class FileMetadataDTO {
         }
 
 
-        public void setOcr(boolean ocr) {
-            this.ocr = ocr;
+        public void setProcessingMethod(String processingMethod) {
+            this.processingMethod = processingMethod;
         }
-
-        public void setHtr(boolean htr) {
-            this.htr = htr;
-        }
-
     }
 
     public static class Converter {
@@ -386,10 +373,8 @@ public class FileMetadataDTO {
             converted.setMd5(DataFile.ChecksumType.MD5.equals(dataFile.getChecksumType()) ? dataFile.getChecksumValue() : null);
             converted.setChecksum(checksumCreator.create(dataFile));
             converted.setTabularTags(dataFile.getTagLabels());
-            converted.setOcr(DataFile.IngestType.OCR.equals(dataFile.getIngestType())
-                    && INGEST_STATUS_NONE == dataFile.getIngestStatus());
-            converted.setHtr(DataFile.IngestType.HTR.equals(dataFile.getIngestType())
-                    && INGEST_STATUS_NONE == dataFile.getIngestStatus());
+            converted.setProcessingMethod(INGEST_STATUS_NONE == dataFile.getIngestStatus()
+                    ? dataFile.getIngestType().toString() : DataFile.IngestType.NON.toString());
 
             return converted;
         }
