@@ -275,6 +275,9 @@ public class CreateDatasetPage implements Serializable {
             return null;
         }
 
+        //we need full refresh of the dataset to properly link with role assignments
+        dataset = datasetService.find(dataset.getId());
+        
         AuthenticatedUser user = retrieveAuthenticatedUser();
         // Call Ingest Service one more time, to
         // queue the data ingest jobs for asynchronous execution:
