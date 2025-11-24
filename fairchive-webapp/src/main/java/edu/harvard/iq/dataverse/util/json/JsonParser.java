@@ -721,20 +721,17 @@ public class JsonParser {
     private List<DataFileCategory> getCategories(JsonObject filemetadataJson, Dataset dataset) {
         JsonArray categories = filemetadataJson.getJsonArray(OptionalFileParams.CATEGORIES_ATTR_NAME);
         if (categories == null || categories.isEmpty() || dataset == null) {
-            return null;
+            return new ArrayList<>();
         }
         List<DataFileCategory> dataFileCategories = new ArrayList<>();
-        for (Object category : categories.getValuesAs(JsonString.class)) {
-            JsonString categoryAsJsonString;
-            try {
-                categoryAsJsonString = (JsonString) category;
-            } catch (ClassCastException ex) {
-                logger.info("ClassCastException caught in getCategories: " + ex);
-                return null;
+        for (JsonValue category : categories.getValuesAs(JsonValue.class)) {
+            if (category.getValueType() != ValueType.STRING) {
+                logger.info("Tried to parse category but encountered non string value in json: " + category.toString());
+                return new ArrayList<>();
             }
-            DataFileCategory dfc = new DataFileCategory();
+            String categoryName = ((JsonString) category).getString();
+            DataFileCategory dfc = new DataFileCategory(categoryName);
             dfc.setDataset(dataset);
-            dfc.setName(categoryAsJsonString.getString());
             dataFileCategories.add(dfc);
         }
         return dataFileCategories;

@@ -1,11 +1,9 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.Timestamp;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -13,14 +11,8 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 public class FileMatadataTest {
 
-    private final DataFileCategory category1 = new DataFileCategory();
-    private final DataFileCategory category2 = new DataFileCategory();
-
-    @BeforeEach
-    public void setUp() {
-        this.category1.setName("category1");
-        this.category2.setName("category2");
-    }
+    private final DataFileCategory category1 = new DataFileCategory("category1");
+    private final DataFileCategory category2 = new DataFileCategory("category2");
 
     @Test
     public void getCategoriesByName_works() {
@@ -114,7 +106,7 @@ public class FileMatadataTest {
         FileMetadata meta = new FileMetadata();
         meta.setDatasetVersion(new DatasetVersion());
         meta.getDatasetVersion().setDataset(new Dataset());
-        meta.getDatasetVersion().getDataset().setFileCategories(asList(this.category2));
+        meta.getDatasetVersion().getDataset().addFileCategory(this.category2);
         meta.addCategory(this.category1);
         
         meta.addCategoryByName(this.category2.getName());

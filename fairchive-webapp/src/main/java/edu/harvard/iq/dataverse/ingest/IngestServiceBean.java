@@ -195,6 +195,8 @@ public class IngestServiceBean {
         if (newFiles == null || newFiles.isEmpty()) {
             return result;
         }
+        Preconditions.checkArgument(newFiles.stream().allMatch(df -> df.getOwner() == null), "Can't add file that is already assigned to dataset");
+
         ArrayList<DataFile> newFilesCopy = new ArrayList<>(newFiles);
         // final check for duplicate file names;
         // we tried to make the file names unique on upload, but then
@@ -214,17 +216,14 @@ public class IngestServiceBean {
                 continue;
             }
 
-            boolean unattached = false;
             boolean savedSuccess = false;
             StorageIO<DataFile> storageIO = null;
+            dataFile.setOwner(dataset);
 
             try {
                 logger.debug("Attempting to create a new storageIO object for datafile {} / {}", 
                         dataFile.getId(), dataFile.getStorageIdentifier());
-                if (dataFile.getOwner() == null) {
-                    unattached = true;
-                    dataFile.setOwner(dataset);
-                }
+
                 dataFile.setStorageIdentifier(null);
                 storageIO = dataAccess.createNewStorageIO(dataFile);
 
@@ -293,9 +292,8 @@ public class IngestServiceBean {
                 logger.warn("Failed to delete temp file {}", tempLocationPath, ex);
             }
 
-            if (unattached) {
-                dataFile.setOwner(null);
-            }
+            dataFile.setOwner(null);
+
             // Any necessary post-processing:
             // performPostProcessingTasks(dataFile);
 
@@ -334,35 +332,26 @@ public class IngestServiceBean {
                 logger.debug("Extraction of indexable metadata from file:{} success:{}", 
                         fileName, metadataExtracted);
             }
-            // Make sure the file is attached to the dataset and to the version, if this
-            // hasn't been done yet:
-            if (dataFile.getOwner() == null) {
-                dataFile.setOwner(dataset);
+            // Attach file to dataset and to the version
+            dataFile.setOwner(dataset);
 
-                version.addFileMetadata(dataFile.getFileMetadata());
-                dataFile.getFileMetadata().setDatasetVersion(version);
-                dataset.getFiles().add(dataFile);
+            version.addFileMetadata(dataFile.getFileMetadata());
+            dataFile.getFileMetadata().setDatasetVersion(version);
+            dataset.getFiles().add(dataFile);
 
-                if (dataFile.getFileMetadata().getCategories() != null) {
-                    ListIterator<DataFileCategory> dfcIt = dataFile.getFileMetadata().
-                            getCategories().listIterator();
+            ListIterator<DataFileCategory> dfcIt = dataFile.getFileMetadata().
+                    getCategories().listIterator();
 
-                    while (dfcIt.hasNext()) {
-                        DataFileCategory dataFileCategory = dfcIt.next();
+            while (dfcIt.hasNext()) {
+                DataFileCategory dataFileCategory = dfcIt.next();
 
-                        if (dataFileCategory.getDataset() != null) {
-                            continue;
-                        }
-                        DataFileCategory newCategory = dataset.
-                                getCategoryByName(dataFileCategory.getName());
-                        if (newCategory != null) {
-                            newCategory.addFileMetadata(dataFile.getFileMetadata());
-                            dfcIt.set(newCategory);
-                        } else {
-                            dfcIt.remove();
-                        }
-                    }
+                if (dataFileCategory.getDataset() != null) {
+                    continue;
                 }
+                DataFileCategory newCategory = dataset.
+                        getCategoryByName(dataFileCategory.getName());
+                newCategory.addFileMetadata(dataFile.getFileMetadata());
+                dfcIt.set(newCategory);
             }
             result.add(dataFile);
         }
