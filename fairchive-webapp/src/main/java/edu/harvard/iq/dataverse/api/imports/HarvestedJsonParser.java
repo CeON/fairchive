@@ -16,6 +16,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import io.vavr.control.Option;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -464,6 +465,9 @@ public class HarvestedJsonParser {
                 return new ArrayList<>();
             }
             String categoryName = ((JsonString) category).getString();
+            if (StringUtils.isEmpty(categoryName)) {
+                continue;
+            }
             DataFileCategory dfc = new DataFileCategory(categoryName);
             dfc.setDataset(dataset);
             dataFileCategories.add(dfc);

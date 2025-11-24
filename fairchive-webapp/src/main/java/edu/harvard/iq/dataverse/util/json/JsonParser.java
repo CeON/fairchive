@@ -33,6 +33,9 @@ import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
+
+import org.apache.commons.lang3.StringUtils;
+
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -730,6 +733,9 @@ public class JsonParser {
                 return new ArrayList<>();
             }
             String categoryName = ((JsonString) category).getString();
+            if (StringUtils.isEmpty(categoryName)) {
+                continue;
+            }
             DataFileCategory dfc = new DataFileCategory(categoryName);
             dfc.setDataset(dataset);
             dataFileCategories.add(dfc);
