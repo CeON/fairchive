@@ -94,28 +94,32 @@ public class DatasetFieldUtilTest {
     @Test
     public void groupByBlock() {
         // given
-        MetadataBlock block1 = MocksFactory.makeMetadataBlock("block1", "Block 1", 10);
-        MetadataBlock block2 = MocksFactory.makeMetadataBlock("block2", "Block 2", 5);
+        MetadataBlock block1 = MocksFactory.makeMetadataBlock(1L, "block1", "Block 1", 10);
+        MetadataBlock block2 = MocksFactory.makeMetadataBlock(2L, "block2", "Block 2", 5);
+        MetadataBlock block3 = MocksFactory.makeMetadataBlock(3L, "block3", "Block 2", 5); // the same display order
 
         DatasetFieldType fieldType1 = MocksFactory.makeDatasetFieldType("field1", FieldType.TEXT, false, block1);
         DatasetFieldType fieldType2 = MocksFactory.makeDatasetFieldType("field2", FieldType.TEXT, false, block1);
         DatasetFieldType fieldType3 = MocksFactory.makeDatasetFieldType("field3", FieldType.TEXT, false, block2);
+        DatasetFieldType fieldType4 = MocksFactory.makeDatasetFieldType("field4", FieldType.TEXT, false, block3);
 
         DatasetField field1 = MocksFactory.makeEmptyDatasetField(fieldType1, 1);
         DatasetField field2 = MocksFactory.makeEmptyDatasetField(fieldType2, 1);
         DatasetField field3 = MocksFactory.makeEmptyDatasetField(fieldType3, 1);
+        DatasetField field4 = MocksFactory.makeEmptyDatasetField(fieldType4, 1);
 
-        List<DatasetField> datasetFields = Lists.newArrayList(field1, field2, field3);
+        List<DatasetField> datasetFields = Lists.newArrayList(field1, field2, field3, field4);
 
         // when
         Map<MetadataBlock, List<DatasetField>> retBlocks = DatasetFieldUtil.groupByBlock(datasetFields);
 
         // then
-        assertEquals(2, retBlocks.size());
-        assertThat(retBlocks.keySet(), contains(block2, block1));
+        assertEquals(3, retBlocks.size());
+        assertThat(retBlocks.keySet(), contains(block2, block3, block1));
 
         assertThat(retBlocks.get(block1), contains(field1, field2));
         assertThat(retBlocks.get(block2), contains(field3));
+        assertThat(retBlocks.get(block3), contains(field4));
     }
 
     @Test

@@ -23,9 +23,4 @@ public class ShibAuthenticationProvider implements AuthenticationProvider {
         return false;
     }
 
-    @Override
-    public boolean isDisplayIdentifier() {
-        return false;
-    }
-
 }

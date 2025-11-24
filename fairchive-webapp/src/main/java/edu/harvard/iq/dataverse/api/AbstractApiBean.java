@@ -118,7 +118,7 @@ public abstract class AbstractApiBean {
     protected DataverseLinkingService dvLinkingService;
 
     @Inject
-    DataverseSession session;
+    protected DataverseSession session;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;

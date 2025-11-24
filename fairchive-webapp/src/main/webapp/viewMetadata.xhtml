@@ -98,13 +98,13 @@
                         </ui:repeat>
                     </div>
                     <script>
-                        if ($('#panelCollapse#{block.index}').hasClass('in')) {
+                        $('#panelCollapse#{block.index}').on('shown.bs.collapse', function() {
                             DvJS.Geo.MetadataView.initializeAll('map_#{metadataBlockVal.key.name}');
-                        } else {
-                            $('#panelCollapse#{block.index}').on('shown.bs.collapse', function() {
-                                DvJS.Geo.MetadataView.initializeAll('map_#{metadataBlockVal.key.name}');
-                            });
-                        }
+                        });
+
+                        $(document).on('pfAjaxComplete', function() {
+                            DvJS.Geo.MetadataView.initializeAll('map_#{metadataBlockVal.key.name}');
+                        });
                     </script>
                 </div>
             </div>

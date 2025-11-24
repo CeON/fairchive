@@ -140,6 +140,11 @@ function initDvJS() {
     }
 
     function initializeMapInView(key, data) {
+      const el = document.getElementById(key);
+      const mapVisible = el && el.offsetParent !== null;
+      if (!mapVisible) {
+        return;
+      }
       data.leafMap = L.map(key, INIT_MAP_OPTS);
       let map = data.leafMap;
       map.invalidateSize();
@@ -214,14 +219,16 @@ function initDvJS() {
 
     function activateDrawingTools(map, data) {
       if (data.drawTools.allowMarker) {
-        createNewMarkerControl(map, data.polygonLayer);
+        createNewMarkerControl(map, data);
       }
       if (data.drawTools.allowPolygon) {
-        createNewPolygonControl(map, data.polygonLayer);
+        createNewPolygonControl(map, data);
       }
       if (data.drawTools.allowRectangle) {
-        createNewRectangleControl(map, data.polygonLayer);
+        createNewRectangleControl(map, data);
       }
+
+      createTrashBinControl(map, data);
     }
 
     function createBaseEditControls() {
@@ -230,6 +237,7 @@ function initDvJS() {
           position: 'topleft',
           callback: null,
           kind: '',
+          title: '',
           html: ''
          },
         onAdd: function (map) {
@@ -237,7 +245,7 @@ function initDvJS() {
           link = L.DomUtil.create('a', '', container);
 
           link.href = '#';
-          link.title = 'Create a new ' + this.options.kind;
+          link.title = this.options.title ? this.options.title : 'Create a new ' + this.options.kind;
           link.innerHTML = this.options.html;
           L.DomEvent.on(link, 'click', L.DomEvent.stop)
                     .on(link, 'click', function () {
@@ -256,12 +264,12 @@ function initDvJS() {
       });
     }
 
-    function createNewMarkerControl(map, polygonLayer) {
+    function createNewMarkerControl(map, data) {
       L.NewMarkerControl = L.EditControl.extend({
         options: {
           position: 'topleft',
           callback: function () {
-            polygonLayer.clearLayers();
+            clearMap(data);
             map.editTools.startMarker();
           },
           kind: 'marker',
@@ -275,14 +283,13 @@ function initDvJS() {
       map.addControl(new L.NewMarkerControl());
     }
 
-    function createNewPolygonControl(map, polygonLayer) {
+    function createNewPolygonControl(map, data) {
       L.NewPolygonControl = L.EditControl.extend({
         options: {
           position: 'topleft',
           callback: function () {
-            polygonLayer.clearLayers();
+            clearMap(data);
             var polygon = map.editTools.startPolygon();
-
           },
           kind: 'polygon',
           html: '<svg width="20" height="20" viewBox="0 0 100 100" style="margin-top:5px">' +
@@ -294,12 +301,12 @@ function initDvJS() {
       map.addControl(new L.NewPolygonControl());
     }
 
-    function createNewRectangleControl(map, polygonLayer) {
+    function createNewRectangleControl(map, data) {
       L.NewRectangleControl = L.EditControl.extend({
         options: {
           position: 'topleft',
           callback: function () {
-            polygonLayer.clearLayers();
+            clearMap(data);
             map.editTools.startRectangle();
           },
           kind: 'rectangle',
@@ -311,6 +318,27 @@ function initDvJS() {
 
       map.addControl(new L.NewRectangleControl());
     }
+
+    function createTrashBinControl(map, data) {
+      L.TrashBinControl = L.EditControl.extend({
+        options: {
+          position: 'topleft',
+          callback: function () {
+            clearMap(data);
+          },
+          title: 'Clear map',
+          html: '<svg width="45" height="45" viewBox="0 0 100 100" style="margin-left:1px">' +
+                 '<rect x="18" y="20" width="28" height="30" rx="3" ry="3" />' +
+                 '<line x1="26" y1="20" x2="26" y2="15" />' +
+                 '<line x1="38" y1="20" x2="38" y2="15" />' +
+                 '<line x1="20" y1="15" x2="44" y2="15" />' +
+                 '<rect x="22" y="10" width="20" height="5" rx="1" ry="1" />' +
+                '</svg>'
+         }
+       });
+
+       map.addControl(new L.TrashBinControl());
+     }
 
     function createdShape(e, data) {
         let layer = e.layer;
@@ -340,6 +368,11 @@ function initDvJS() {
         result = geometry.join(" ");
       }
       PF(widgetVars['polygonGeo']).jq.val(result);
+    }
+
+    function clearMap(data) {
+      data.polygonLayer.clearLayers();
+      PF(data.widgetVars['polygonGeo']).jq.val("");
     }
 
     function normalizeToRectangle(coordinates) {
