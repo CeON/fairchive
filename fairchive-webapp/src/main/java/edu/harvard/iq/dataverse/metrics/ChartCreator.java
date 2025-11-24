@@ -32,6 +32,8 @@ public class ChartCreator {
         BarChartModel model = createBarModel(yearlyMetrics, title, xLabel, yLabel);
         model.addSeries(createYearlySeries(yearlyMetrics, yLabel));
 
+        formatYAxis(model, yearlyMetrics, yLabel);
+
         return model;
     }
 
@@ -50,6 +52,8 @@ public class ChartCreator {
         BarChartModel model = createBarModel(yearlyCumulativeMetrics, title, xLabel, yLabel);
         model.addSeries(createYearlySeries(yearlyCumulativeMetrics, yLabel));
 
+        formatYAxis(model, yearlyCumulativeMetrics, yLabel);
+
         return model;
     }
 
@@ -63,6 +67,8 @@ public class ChartCreator {
 
         BarChartModel model = createBarModel(chartMetrics, title, xLabel, yLabel);
         model.addSeries(createMonthlySeries(chartMetrics, yLabel));
+
+        formatYAxis(model, chartMetrics, yLabel);
 
         return model;
     }
@@ -84,14 +90,7 @@ public class ChartCreator {
         xAxis.setLabel(xAxisLabel);
         xAxis.setTickAngle(45);
 
-        Long maxCountMetric = calculateMaxCountMetric(metrics);
-
-        Axis yAxis = model.getAxis(AxisType.Y);
-        yAxis.setLabel(yAxisLabel);
-        yAxis.setMin(0);
-        yAxis.setTickFormat("%d");
-        yAxis.setMax(retrieveTickForMaxDatasetCountValue(maxCountMetric));
-        yAxis.setTickCount(TICKS_COUNT + 1);
+        formatYAxis(model, metrics, yAxisLabel);
 
         return model;
     }
@@ -149,5 +148,38 @@ public class ChartCreator {
                         metric.getCount()));
 
         return chartSeries;
+    }
+
+    private long roundMaxChartValue(long value) {
+        double exactStep = value / 5.0;
+        double scale = Math.pow(10, Math.floor(Math.log10(exactStep)));
+        double m = exactStep / scale;
+        double roundM;
+
+        if (m <= 1) {
+            roundM = 1.0;
+        } else if (m <= 2) {
+            roundM = 2.0;
+        } else if (m <= 5) {
+            roundM = 5.0;
+        } else {
+            roundM = 10.0;
+        }
+
+        double roundStep = roundM * scale;
+        long maxValue = Math.round(roundStep) * 5;
+
+        return maxValue;
+    }
+
+    private void formatYAxis(BarChartModel model, List<ChartMetrics> metrics, String yAxisLabel) {
+        Long maxCountMetric = calculateMaxCountMetric(metrics);
+
+        Axis yAxis = model.getAxis(AxisType.Y);
+        yAxis.setLabel(yAxisLabel);
+        yAxis.setMin(0);
+        yAxis.setTickFormat("%d");
+        yAxis.setMax(roundMaxChartValue(retrieveTickForMaxDatasetCountValue(maxCountMetric)));
+        yAxis.setTickCount(TICKS_COUNT + 1);
     }
 }
