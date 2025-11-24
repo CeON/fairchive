@@ -376,7 +376,7 @@ public class DatasetFieldServiceApi extends AbstractApiBean {
         cvv.setIdentifier(values[3]);
         cvv.setDisplayOrder(Integer.parseInt(values[4]));
         cvv.setSuggestionDetails(values.length > 5 ? values[5]: "");
-        cvv.setDisplayGroup(values.length > 6 ? values[6]: null);
+        cvv.setDisplayGroup(values.length > 7 ? values[7]: null);
         datasetFieldService.save(cvv);
         return cvv.getStrValue();
     }
