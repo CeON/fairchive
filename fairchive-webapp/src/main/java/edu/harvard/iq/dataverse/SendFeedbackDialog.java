@@ -67,6 +67,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
     private String userEmail = "";
     private String userMessage = "";
     private String messageSubject = "";
+    private boolean messageSubjectDisabled = false;
     private Integer op1;
     private Integer op2;
     private Integer userSum;
@@ -109,6 +110,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
         this.userEmail = "";
         this.userMessage = "";
         this.messageSubject = "";
+        this.messageSubjectDisabled = false;
         this.sendCopy = false;
         this.userSum = null;
         final Random random = new Random();
@@ -117,6 +119,12 @@ public class SendFeedbackDialog implements java.io.Serializable {
         this.feedbackTarget = object;
         this.recipientOption = defaultRecipientFor(object);
         this.attachments.clear();
+    }
+
+    public void resetWithSubject(final DvObject object, final String subject) {
+        reset(object);
+        this.messageSubject = subject;
+        this.messageSubjectDisabled = true;
     }
 
     public String getUserEmail() {
@@ -167,6 +175,10 @@ public class SendFeedbackDialog implements java.io.Serializable {
         this.messageSubject = messageSubject;
     }
 
+    public boolean isMessageSubjectDisabled() {
+        return messageSubjectDisabled;
+    }
+
     public boolean getSendCopy() {
         return this.sendCopy;
     }
@@ -205,7 +217,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
     }
 
     public String getSystemRecipientLabel() {
-        return getStringFromBundle(SYSTEM_SUPPORT.name(),
+        return getStringFromBundle("contact." + SYSTEM_SUPPORT.name(),
                 this.dataverseDao.findRootDataverse().getName());
     }
 
