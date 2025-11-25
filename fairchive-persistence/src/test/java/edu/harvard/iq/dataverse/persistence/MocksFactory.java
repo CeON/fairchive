@@ -183,7 +183,10 @@ public class MocksFactory {
     }
 
     public static MetadataBlock makeMetadataBlock(String name, String displayName, int displayOrder) {
-        final Long id = nextId();
+        return makeMetadataBlock(nextId(), name, displayName, displayOrder);
+    }
+
+    public static MetadataBlock makeMetadataBlock(long id, String name, String displayName, int displayOrder) {
         MetadataBlock metadataBlock = new MetadataBlock();
         metadataBlock.setId(id);
         metadataBlock.setName(name);

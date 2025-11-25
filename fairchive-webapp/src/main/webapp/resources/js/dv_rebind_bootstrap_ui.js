@@ -987,6 +987,7 @@ function post_differences(){
  */
 function sharrre(){
     var language = $('#sharrre-widget').data('language');
+    var linkedInText = $('#sharrre-widget').data('text') + $('#sharrre-widget').data('url');
 
     var sharrreLocales = {
             pl: {
@@ -1039,7 +1040,7 @@ function sharrre(){
                 api.openPopup('facebook');
             });
             $(api.element).on('click', '.sharrre-linkedin', function() {
-                api.openPopup('linkedin');
+                window.open('https://www.linkedin.com/shareArticle?mini=true&text= ' + linkedInText + '&source=radogost&target=new', '_blank');
             });
         }
     });

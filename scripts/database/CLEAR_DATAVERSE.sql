@@ -18,6 +18,13 @@ alter sequence customquestion_id_seq restart with 1;
 delete from guestbookresponse;
 alter sequence guestbookresponse_id_seq restart with 1;
 
+delete from dataverselocalizedmessage;
+alter sequence dataverselocalizedmessage_id_seq restart with 1;
+
+delete from dataversetextmessage;
+alter sequence dataversetextmessage_id_seq restart with 1;
+
+
 -- delete all files
 delete from filemetadata_datafilecategory;
 
@@ -53,9 +60,10 @@ update dataset set thumbnailfile_id = null;
 delete from datafiletag;
 alter sequence datafiletag_id_seq restart with 1;
 
+delete from datafile;
+
 delete from dvobject where dtype = 'DataFile';
 
-delete from datafile;
 
 delete from filetermsofuse where id not in (select termsofuse_id from filemetadata);
 alter sequence termsofuse_id_seq restart with 1;
@@ -152,6 +160,9 @@ delete from authenticateduserlookup where authenticateduser_id > 1;
 
 delete from oauth2tokendata;
 alter sequence oauth2tokendata_id_seq restart with 1;
+
+delete from confirmemaildata  where id > 1;
+alter sequence confirmemaildata_id_seq restart with 2;
 
 delete from authenticateduser where id > 1;
 alter sequence authenticateduser_id_seq restart with 2;
