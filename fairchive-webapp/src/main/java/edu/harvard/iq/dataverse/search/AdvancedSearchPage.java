@@ -12,6 +12,7 @@ import edu.harvard.iq.dataverse.search.advanced.field.GroupingSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryWrapper;
 import edu.harvard.iq.dataverse.search.periodo.PeriodoDataFinder;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.validation.SearchFormValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -54,6 +55,7 @@ public class AdvancedSearchPage implements Serializable {
     private SearchFormValidationService validationService;
     private AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder;
     private PeriodoDataFinder periods;
+    private SettingsWrapper settingsWrapper;
 
     private Dataverse dataverse;
     private String dataverseIdentifier;
@@ -74,13 +76,15 @@ public class AdvancedSearchPage implements Serializable {
                               WidgetWrapper widgetWrapper, QueryWrapperCreator queryWrapperCreator,
                               SearchFormValidationService validationService,
                               AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder,
-                              PeriodoDataFinder periods) {
+                              PeriodoDataFinder periods,
+                              SettingsWrapper settingsWrapper) {
         this.dataverseDao = dataverseDao;
         this.widgetWrapper = widgetWrapper;
         this.queryWrapperCreator = queryWrapperCreator;
         this.validationService = validationService;
         this.advancedSearchBlocksBuilder = advancedSearchBlocksBuilder;
         this.periods = periods;
+        this.settingsWrapper = settingsWrapper;
     }
 
     // -------------------- LOGIC --------------------
@@ -202,6 +206,10 @@ public class AdvancedSearchPage implements Serializable {
 
     public SearchBlock getFilesSearchBlock() {
         return filesSearchBlock;
+    }
+
+    public boolean isExpandAllAdvancedSearchBlocksEnabled() {
+        return settingsWrapper.isExpandAllAdvancedSearchBlocksEnabled();
     }
 
     // -------------------- SETTERS --------------------

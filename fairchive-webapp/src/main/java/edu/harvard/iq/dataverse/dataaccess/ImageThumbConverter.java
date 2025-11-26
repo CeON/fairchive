@@ -309,8 +309,12 @@ public class ImageThumbConverter {
      */
     public String getImageThumbnailAsBase64(final DataFile file, final int size) {
         try(final InputStream in = getThumbnailStream(file, size)) {
-            requireNonNull(in);
-            return getImageAsBase64FromInputStream(in);
+            if(in != null) {
+                return getImageAsBase64FromInputStream(in);
+            } else {
+                logger.warn("Thumbnail not found");
+                return null;
+            }
         } catch (final Exception e) {
             logger.warn("Faild to retrieve thumbnail.", e);
             return null;

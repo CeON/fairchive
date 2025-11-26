@@ -266,6 +266,9 @@ public class CreateDatasetPage implements Serializable {
             provPopupFragmentBean.saveStageProvFreeformToLatestVersion();
         }
 
+        //we need full refresh of the dataset to properly link with role assignments
+        dataset = datasetService.find(dataset.getId());
+
         saveDatasetProcess.setAddingFiles(asyncExecutionService.executeAsync(() -> datasetService.addFilesToDataset(dataset, newFiles)));
 
     }
