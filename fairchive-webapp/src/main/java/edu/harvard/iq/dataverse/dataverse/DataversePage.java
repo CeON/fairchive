@@ -174,7 +174,7 @@ public class DataversePage {
     public String deleteDataverse() {
 
     	try {
-    		dataverseService.deleteDataverse(this.dataverse);
+    		this.dataverseService.deleteDataverse(this.dataverse);
     		this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.delete.success"));
     	} catch (final Exception e) {
             logger.error("Unexpected Exception calling  delete dataverse command", e);
@@ -189,7 +189,7 @@ public class DataversePage {
 
     public boolean isUserCanChangeAllowMessageAndBanners() {
         return this.dataverse.isAllowMessagesBanners() 
-        		&& (this.session.getUser().isSuperuser() 
+        		&& (this.session.isSuperUserLoggedIn()
         		|| this.permissionService.isUserAbleToEditDataverse(this.session.getUser(), this.dataverse));
     }
 
