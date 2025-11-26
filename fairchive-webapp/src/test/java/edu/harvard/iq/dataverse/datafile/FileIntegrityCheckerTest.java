@@ -168,11 +168,30 @@ public class FileIntegrityCheckerTest {
     }
 
     @Test
-    public void checkFilesIntegrity__with_no_storage_md5() throws IOException {
+    public void checkFilesIntegrity__with_storage_md5_supported_and_no_storage_datafile_md5() throws IOException {
         // given
-        DataFile datafile1 = makeDataFile(102L, null, null);
+        DataFile datafile1 = makeDataFile(102L, ChecksumType.MD5, "md5hash1");
 
-        StorageIO<DataFile> datafileStorage1 = mockDataFileStorageIO(true, 102L, true, "md5hash_other");
+        StorageIO<DataFile> datafileStorage1 = mockDataFileStorageIO(true, 102L, true, null);
+
+        when(dataFileService.findAll()).thenReturn(Lists.newArrayList(datafile1));
+        when(dataAccess.getStorageIO(datafile1)).thenReturn(datafileStorage1);
+
+        // when
+        FilesIntegrityReport integrityReport = fileIntegrityChecker.checkFilesIntegrity();
+
+        // then
+        assertEquals(1, integrityReport.getCheckedCount());
+        assertEquals(1, integrityReport.getSkippedChecksumVerification());
+        assertEquals(0, integrityReport.getSuspicious().size());
+    }
+
+    @Test
+    public void checkFilesIntegrity__with_storage_md5_not_supported_and_no_storage_datafile_md5() throws IOException {
+        // given
+        DataFile datafile1 = makeDataFile(102L, ChecksumType.MD5, "md5hash1");
+
+        StorageIO<DataFile> datafileStorage1 = mockDataFileStorageIO(true, 102L, false, null);
 
         when(dataFileService.findAll()).thenReturn(Lists.newArrayList(datafile1));
         when(dataAccess.getStorageIO(datafile1)).thenReturn(datafileStorage1);
@@ -208,11 +227,30 @@ public class FileIntegrityCheckerTest {
     }
 
     @Test
-    public void checkFilesIntegrity__with_no_storage_aux_md5() throws IOException {
+    public void checkFilesIntegrity__with_storage_md5_supported_and_no_storage_aux_file_md5() throws IOException {
         // given
-        DataFile datafile1 = makeTabularDataFile(102L, null, null);
+        DataFile datafile1 = makeTabularDataFile(102L, ChecksumType.MD5, "md5hash1");
 
-        StorageIO<DataFile> datafileStorage1 = mockDataFileStorageIOWithAuxObject(true, 102L, true, "md5hash_other");
+        StorageIO<DataFile> datafileStorage1 = mockDataFileStorageIOWithAuxObject(true, 102L, true, null);
+
+        when(dataFileService.findAll()).thenReturn(Lists.newArrayList(datafile1));
+        when(dataAccess.getStorageIO(datafile1)).thenReturn(datafileStorage1);
+
+        // when
+        FilesIntegrityReport integrityReport = fileIntegrityChecker.checkFilesIntegrity();
+
+        // then
+        assertEquals(1, integrityReport.getCheckedCount());
+        assertEquals(1, integrityReport.getSkippedChecksumVerification());
+        assertEquals(0, integrityReport.getSuspicious().size());
+    }
+
+    @Test
+    public void checkFilesIntegrity__with_storage_md5_not_supported_and_no_storage_aux_file_md5() throws IOException {
+        // given
+        DataFile datafile1 = makeTabularDataFile(102L, ChecksumType.MD5, "md5hash1");
+
+        StorageIO<DataFile> datafileStorage1 = mockDataFileStorageIOWithAuxObject(true, 102L, false, null);
 
         when(dataFileService.findAll()).thenReturn(Lists.newArrayList(datafile1));
         when(dataAccess.getStorageIO(datafile1)).thenReturn(datafileStorage1);

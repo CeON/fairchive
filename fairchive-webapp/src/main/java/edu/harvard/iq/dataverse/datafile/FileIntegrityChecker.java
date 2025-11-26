@@ -117,17 +117,24 @@ public class FileIntegrityChecker {
                 return FileIntegrityCheckResult.DIFFERENT_SIZE;
             }
 
-            boolean withMd5Compare = storageIO.isMD5CheckSupported() && dataFile.getChecksumType() == ChecksumType.MD5;
+            boolean withMd5Compare = storageIO.isMD5CheckSupported()
+                    && dataFile.getChecksumType() == ChecksumType.MD5;
+
+            if (!withMd5Compare) {
+                return FileIntegrityCheckResult.OK_SKIPPED_CHECKSUM_VERIFICATION;
+            }
 
             String storageChecksum = dataFile.isTabularData()
                     ? storageIO.getAuxObjectMD5(StorageIOConstants.SAVED_ORIGINAL_FILENAME_EXTENSION)
                     : storageIO.getMD5();
-            if (withMd5Compare && StringUtils.isNotEmpty(storageChecksum) && !haveSameMd5(dataFile, storageChecksum)) {
-                return FileIntegrityCheckResult.DIFFERENT_CHECKSUM;
+
+            if (StringUtils.isEmpty(storageChecksum)) {
+                return FileIntegrityCheckResult.OK_SKIPPED_CHECKSUM_VERIFICATION;
             }
 
-            return withMd5Compare ? FileIntegrityCheckResult.OK : FileIntegrityCheckResult.OK_SKIPPED_CHECKSUM_VERIFICATION;
-
+            return haveSameMd5(dataFile, storageChecksum)
+                    ? FileIntegrityCheckResult.OK
+                    : FileIntegrityCheckResult.DIFFERENT_CHECKSUM;
         } catch (IOException e) {
             logger.info(e.getMessage());
             return FileIntegrityCheckResult.STORAGE_ERROR;
