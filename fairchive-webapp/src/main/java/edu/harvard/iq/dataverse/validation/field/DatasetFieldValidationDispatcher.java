@@ -93,7 +93,7 @@ public class DatasetFieldValidationDispatcher {
                 .orElse(false);
     }
 
-    private List<ValidationDescriptor> retrieveDescriptors(DatasetField field) {
+    public List<ValidationDescriptor> retrieveDescriptors(DatasetField field) {
         String configJson = field.getDatasetFieldType().getValidation();
         List<ValidationDescriptor> existing = descriptorsCache.get(configJson);
         if (existing != null) {
