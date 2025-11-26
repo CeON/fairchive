@@ -1,9 +1,11 @@
 package edu.harvard.iq.dataverse.api.imports;
 
+import static edu.harvard.iq.dataverse.validation.field.validators.DependantFieldValidator.DEPENDANT_FIELD_PARAM;
 import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 
 import java.io.StringReader;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javax.ejb.EJB;
@@ -17,6 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.xml.stream.XMLStreamException;
 
+import edu.harvard.iq.dataverse.validation.field.ValidationDescriptor;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
@@ -148,13 +151,10 @@ public class ImportServiceBean {
             ds.setOwner(owner);
             ds.getLatestVersion().setDatasetFields(ds.getLatestVersion().initDatasetFields());
 
-            // Check data against validation contraints
+            // Check data against validation constraints
             DatasetVersion versionToValidate = ds.getVersions().get(0);
-            List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(versionToValidate);
-            if (!fieldValidationResults.isEmpty()) {
-                // For migration and harvest, add NA for missing required values
-                fieldValidationResults.forEach(r -> ((DatasetField) r.getField()).setFieldValue(DatasetField.NA_VALUE));
-            }
+            // For migration and harvest, remove invalid dataset fields
+            removeInvalidFieldsFromDataset(versionToValidate);
 
             // A Global ID is required, in order for us to be able to harvest and import
             // this dataset:
@@ -211,6 +211,31 @@ public class ImportServiceBean {
             throw new ImportException(
                     String.format("Failed to import harvested dataset: %s (%s)", ex.getClass(), ex.getMessage()), ex);
         }
+    }
+
+    private void removeInvalidFieldsFromDataset(DatasetVersion  datasetVersion) {
+        List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(datasetVersion);
+        if (!fieldValidationResults.isEmpty()) {
+            for (FieldValidationResult fieldValidationResult : fieldValidationResults) {
+                DatasetField invalidField = (DatasetField)fieldValidationResult.getField();
+                datasetVersion.getDatasetFields().remove(invalidField);
+                removeDependantFieldFromDataset(invalidField, datasetVersion);
+            }
+        }
+    }
+
+    private void removeDependantFieldFromDataset(DatasetField invalidField, DatasetVersion datasetVersion) {
+        List<ValidationDescriptor> validationDescriptors = fieldValidationService.retrieveValidatorDescriptor(invalidField);
+        Optional<String> dependantField = validationDescriptors
+                .stream()
+                .filter(v -> v.getParameters().containsKey(DEPENDANT_FIELD_PARAM))
+                .map(v -> v.getParameters().get(DEPENDANT_FIELD_PARAM))
+                .map(String.class::cast)
+                .findFirst();
+        dependantField.ifPresent(dependant ->
+                datasetVersion.getDatasetFields()
+                        .removeIf(field -> field.getDatasetFieldType().getName().equals(dependant))
+        );
     }
 
     public JsonObject ddiToJson(String xmlToParse) throws ImportException {
