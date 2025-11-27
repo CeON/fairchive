@@ -3,8 +3,6 @@ package edu.harvard.iq.dataverse.dataverse;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.search.savedsearch.SavedSearchService;
 import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Try;
