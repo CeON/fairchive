@@ -151,7 +151,7 @@ public class CuratePublishedDatasetVersionCommand extends AbstractDatasetCommand
         }
 
         tempDataset.getEditVersion().getFileMetadatas().removeAll(filesToRemove);
-        tempDataset.getCategories().forEach(category -> category.getFileMetadatas().removeAll(filesToRemove));
+        tempDataset.getCategories().forEach(category -> category.removeFileMetadatas(filesToRemove));
     }
 
     private Optional<FileMetadata> findFileMetadataOfDataFileInVersion(DatasetVersion version, DataFile dataFile) {

@@ -391,11 +391,6 @@ public class AddReplaceFileHelper {
             }
         }
 
-        msg("step_090_notifyUser");
-        if (!this.step_090_notifyUser()) {
-            return false;
-        }
-
         msg("step_100_startIngestJobs");
         return this.step_100_startIngestJobs();
 
@@ -1299,20 +1294,6 @@ public class AddReplaceFileHelper {
         }
 
         return new DataFileListDTO.Converter().convert(newlyAddedFiles);
-    }
-
-
-    /**
-     * Currently this is a placeholder if we decide to send
-     * user notifications.
-     */
-    private boolean step_090_notifyUser() {
-        return !this.hasError();
-
-        // Create a notification!
-
-        // skip for now, may be part of dataset update listening
-        //
     }
 
 

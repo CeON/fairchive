@@ -202,9 +202,8 @@ class DatasetFilesTabFacadeTest {
         Long id = 1L;
         DatasetVersion datasetVersion = new DatasetVersion();
         FileMetadata fileMetadata = new FileMetadata();
-        DataFileCategory category = new DataFileCategory();
         String categoryName = "testName";
-        category.setName(categoryName);
+        DataFileCategory category = new DataFileCategory(categoryName);
         fileMetadata.addCategory(category);
         datasetVersion.addFileMetadata(fileMetadata);
 
@@ -271,7 +270,7 @@ class DatasetFilesTabFacadeTest {
     void retrieveDatasetFileCategories() {
         //given
         Dataset dataset = new Dataset();
-        dataset.addFileCategory(new DataFileCategory());
+        dataset.addFileCategory(new DataFileCategory("abc"));
 
         //when
         when(datasetService.find(any())).thenReturn(dataset);
@@ -287,7 +286,7 @@ class DatasetFilesTabFacadeTest {
     void removeDatasetFileCategories() {
         //given
         Dataset dataset = new Dataset();
-        DataFileCategory category = new DataFileCategory();
+        DataFileCategory category = new DataFileCategory("abc");
         dataset.addFileCategory(category);
 
         //when
