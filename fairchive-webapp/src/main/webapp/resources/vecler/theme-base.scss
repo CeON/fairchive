@@ -4237,6 +4237,26 @@ div.ui-dialog.largePopUp {
 	}
 }
 
+/* Send e-mail modal */
+
+#emailForm\:attachmentsList_list {
+	padding-left: 2rem;
+
+	.ui-datalist-item {
+		display: flex;
+		padding: 0.5rem 0;
+
+		&::before {
+			content: "•";
+			font-weight: bold;
+			position: relative;
+			left: -0.5em;
+			top: 0.5em;
+		}
+	}
+}
+
+
 /* DatePicker */
 .ui-datepicker-inline {
 	margin: 1em auto 0;
