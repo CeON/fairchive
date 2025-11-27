@@ -162,15 +162,15 @@ public class DataversePage {
 
     public String releaseDataverse() {
         if (!this.session.isUserLoggedIn()) {
-            this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.publish.not.authorized"));
+            addErrorMessage("dataverse.publish.not.authorized");
         }
         
         try {
         	this.dataverseService.publishDataverse(this.dataverse);
-        	this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.publish.success"));
+        	addSuccessMessage("dataverse.publish.success");
         } catch (final Exception e) {
             logger.error("Unexpected Exception calling  publish dataverse command", e);
-            this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.publish.failure"));
+            addErrorMessage("dataverse.publish.failure");
         }
         return redirectToDataverse(this.dataverse.getAlias());
     }
@@ -179,10 +179,10 @@ public class DataversePage {
 
     	try {
     		this.dataverseService.deleteDataverse(this.dataverse);
-    		this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.delete.success"));
+    		addSuccessMessage("dataverse.delete.success");
     	} catch (final Exception e) {
             logger.error("Unexpected Exception calling  delete dataverse command", e);
-            this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.delete.failure"));
+            addErrorMessage("dataverse.delete.failure");
     	}
         return redirectToDataverse(this.dataverse.getOwner().getAlias());
     }
@@ -199,6 +199,14 @@ public class DataversePage {
 
     public String redirectToMetrics() {
         return "/metrics.xhtml?faces-redirect=true";
+    }
+    
+    private void addSuccessMessage(final String key) {
+    	this.uiMessages.addFlashSuccessMessage(getStringFromBundle(key));
+    }
+    
+    private void addErrorMessage(final String key) {
+    	this.uiMessages.addFlashErrorMessage(getStringFromBundle(key));
     }
 
 }
