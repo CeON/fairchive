@@ -548,11 +548,11 @@ public class JsonParserTest {
         //then
         assertEquals("myLabel", fileMetadatas.get(0).getLabel());
         assertEquals("Documentation", fileMetadatas.get(0).getCategories().get(0).getName());
-        assertNull(fileMetadatas.get(1).getCategories());
+        assertEquals(0, fileMetadatas.get(1).getCategories().size());
         List<FileMetadata> codeCoverage = new JsonParser().parseFiles(Json.createArrayBuilder().add(Json.createObjectBuilder().add(
                 "label",
                 "myLabel").add("dataFile", Json.createObjectBuilder().add("categories", JsonValue.NULL))).build(), dsv);
-        assertNull(codeCoverage.get(0).getCategories());
+        assertEquals(0, codeCoverage.get(0).getCategories().size());
     }
 
     @Test

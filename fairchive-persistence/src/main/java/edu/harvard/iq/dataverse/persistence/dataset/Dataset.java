@@ -444,10 +444,6 @@ public class Dataset extends DvObjectContainer {
         return dataFileCategories;
     }
 
-    public void setFileCategories(List<DataFileCategory> categories) {
-        this.dataFileCategories = categories;
-    }
-
     public void addFileCategory(DataFileCategory category) {
         if (dataFileCategories == null) {
             dataFileCategories = new ArrayList<>();
@@ -465,39 +461,20 @@ public class Dataset extends DvObjectContainer {
         return ret;
     }
 
-    public void setCategoriesByName(List<String> newCategoryNames) {
-        if (newCategoryNames != null) {
-            Collection<String> oldCategoryNames = getCategoryNames();
-
-            for (String newCategoryName : newCategoryNames) {
-                if (!oldCategoryNames.contains(newCategoryName)) {
-                    DataFileCategory newCategory = new DataFileCategory();
-                    newCategory.setName(newCategoryName);
-                    newCategory.setDataset(this);
-                    addFileCategory(newCategory);
-                }
-            }
-        }
-    }
-
     public DataFileCategory getCategoryByName(String categoryName) {
-        if (categoryName != null && !categoryName.isEmpty()) {
-            if (dataFileCategories != null) {
-                for (DataFileCategory dataFileCategory : dataFileCategories) {
-                    if (categoryName.equals(dataFileCategory.getName())) {
-                        return dataFileCategory;
-                    }
+        if (dataFileCategories != null) {
+            for (DataFileCategory dataFileCategory : dataFileCategories) {
+                if (categoryName.equals(dataFileCategory.getName())) {
+                    return dataFileCategory;
                 }
             }
-
-            DataFileCategory newCategory = new DataFileCategory();
-            newCategory.setName(categoryName);
-            newCategory.setDataset(this);
-            addFileCategory(newCategory);
-
-            return newCategory;
         }
-        return null;
+
+        DataFileCategory newCategory = new DataFileCategory(categoryName);
+        newCategory.setDataset(this);
+        addFileCategory(newCategory);
+
+        return newCategory;
     }
 
     private Collection<String> getCategoryNames() {

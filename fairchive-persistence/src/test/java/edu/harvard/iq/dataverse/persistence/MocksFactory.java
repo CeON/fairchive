@@ -132,7 +132,16 @@ public class MocksFactory {
         Dataset ds = new Dataset();
         ds.setId(nextId());
         ds.setIdentifier("sample-ds-" + ds.getId());
-        ds.setCategoriesByName(Arrays.asList("CatOne", "CatTwo", "CatThree"));
+        DataFileCategory cat1 = new DataFileCategory("CatOne");
+        cat1.setDataset(ds);
+        ds.addFileCategory(cat1);
+        DataFileCategory cat2 = new DataFileCategory("CatTwo");
+        cat2.setDataset(ds);
+        ds.addFileCategory(cat2);
+        DataFileCategory cat3 = new DataFileCategory("CatThree");
+        cat3.setDataset(ds);
+        ds.addFileCategory(cat3);
+
         final List<DataFile> files = makeFiles(10);
         final List<FileMetadata> metadatas = new ArrayList<>(10);
         final List<DataFileCategory> categories = ds.getCategories();
