@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.util.bagit;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.common.DateUtil;
 import edu.harvard.iq.dataverse.export.ExporterType;
@@ -28,7 +27,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -36,6 +34,7 @@ import java.util.TreeMap;
 public class OREMap {
 
     public static final String NAME = "OREMap";
+    private static final String CREATOR = "A Fairchive Instance";
     private Map<String, String> localContext = new TreeMap<String, String>();
     private DatasetVersion version;
     private boolean excludeEmail = false;
@@ -241,8 +240,7 @@ public class OREMap {
         // Now create the overall map object with it's metadata
         JsonObject oremap = Json.createObjectBuilder()
                 .add(JsonLDTerm.dcTerms("modified").getLabel(), LocalDate.now(clock).toString())
-                .add(JsonLDTerm.dcTerms("creator").getLabel(),
-                     BundleUtil.getStringFromBundleWithLocale("institution.name", Locale.ENGLISH))
+                .add(JsonLDTerm.dcTerms("creator").getLabel(), CREATOR)
                 .add("@type", JsonLDTerm.ore("ResourceMap").getLabel())
                 // Define an id for the map itself (separate from the @id of the dataset being
                 // described

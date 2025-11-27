@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_NONE;
+
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileMetadataDTO {
     private String description;
@@ -162,6 +164,7 @@ public class FileMetadataDTO {
         private String md5;
         private ChecksumDTO checksum;
         private List<String> tabularTags;
+        private String processingMethod;
 
         // -------------------- GETTERS --------------------
 
@@ -233,6 +236,10 @@ public class FileMetadataDTO {
             return tabularTags;
         }
 
+        public String getProcessingMethod() {
+            return processingMethod;
+        }
+
         // -------------------- SETTERS --------------------
 
         public void setId(Long id) {
@@ -302,6 +309,11 @@ public class FileMetadataDTO {
         public void setTabularTags(List<String> tabularTags) {
             this.tabularTags = tabularTags;
         }
+
+
+        public void setProcessingMethod(String processingMethod) {
+            this.processingMethod = processingMethod;
+        }
     }
 
     public static class Converter {
@@ -361,6 +373,9 @@ public class FileMetadataDTO {
             converted.setMd5(DataFile.ChecksumType.MD5.equals(dataFile.getChecksumType()) ? dataFile.getChecksumValue() : null);
             converted.setChecksum(checksumCreator.create(dataFile));
             converted.setTabularTags(dataFile.getTagLabels());
+            converted.setProcessingMethod(INGEST_STATUS_NONE == dataFile.getIngestStatus()
+                    ? dataFile.getIngestType().toString() : DataFile.IngestType.NON.toString());
+
             return converted;
         }
     }
