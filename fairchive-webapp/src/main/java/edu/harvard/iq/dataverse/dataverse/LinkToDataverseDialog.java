@@ -89,8 +89,8 @@ public class LinkToDataverseDialog implements java.io.Serializable {
     // -------------------- LOGIC --------------------
 
     public void init(Dataverse dataverse, String searchQuery, List<String> searchFilterQueriesDebug) {
-        canLinkDataverse = session.getUser().isSuperuser() && !dataverse.isRoot();
-        canLinkSavedSearch = session.getUser().isSuperuser() && isNotEmpty(searchQuery);
+        canLinkDataverse = session.isSuperUserLoggedIn() && !dataverse.isRoot();
+        canLinkSavedSearch = session.isSuperUserLoggedIn() && isNotEmpty(searchQuery);
 
         if (canLinkDataverse || canLinkSavedSearch) {
             this.dataverse = dataverse;
@@ -115,8 +115,7 @@ public class LinkToDataverseDialog implements java.io.Serializable {
             return EMPTY;
         }
 
-        AuthenticatedUser savedSearchCreator = getAuthenticatedUser();
-        if (savedSearchCreator == null) {
+        if (this.session.isUserLoggedIn()) {
             String msg = getStringFromBundle("dataverse.link.user");
             logger.error(msg);
             this.uiMessages.addFlashErrorMessage(msg);
@@ -142,8 +141,7 @@ public class LinkToDataverseDialog implements java.io.Serializable {
         }
         targetDataverseLink = dataverseRepository.getById(linkingDataverseId);
 
-        AuthenticatedUser savedSearchCreator = getAuthenticatedUser();
-        if (savedSearchCreator == null) {
+        if (this.session.isUserLoggedIn()) {
             String msg = getStringFromBundle("dataverse.search.user");
             logger.error(msg);
             this.uiMessages.addFlashErrorMessage(msg);
@@ -220,15 +218,6 @@ public class LinkToDataverseDialog implements java.io.Serializable {
         result[1] = "<a href=\"/dataverse/" + savedTargetDataverseLink.getAlias() + 
         		'"' + '>' + escapeHtml(savedTargetDataverseLink.getDisplayName()) + "</a>";
         return result;
-    }
-
-    private AuthenticatedUser getAuthenticatedUser() {
-        User user = session.getUser();
-        if (user.isAuthenticated()) {
-            return (AuthenticatedUser) user;
-        } else {
-            return null;
-        }
     }
 
     // -------------------- SETTERS --------------------
