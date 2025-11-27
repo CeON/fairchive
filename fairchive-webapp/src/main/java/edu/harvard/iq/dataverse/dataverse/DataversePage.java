@@ -161,31 +161,34 @@ public class DataversePage {
     }
 
     public String releaseDataverse() {
-        if (!this.session.isUserLoggedIn()) {
+        if (this.session.isUserLoggedIn()) {
+            try {
+            	this.dataverseService.publishDataverse(this.dataverse);
+            	addSuccessMessage("dataverse.publish.success");
+            } catch (final Exception e) {
+                logger.error("Unexpected Exception calling  publish dataverse command", e);
+                addErrorMessage("dataverse.publish.failure");
+            }
+        } else {
             addErrorMessage("dataverse.publish.not.authorized");
-        }
-        
-        try {
-        	this.dataverseService.publishDataverse(this.dataverse);
-        	addSuccessMessage("dataverse.publish.success");
-        } catch (final Exception e) {
-            logger.error("Unexpected Exception calling  publish dataverse command", e);
-            addErrorMessage("dataverse.publish.failure");
         }
         return redirectToDataverse(this.dataverse.getAlias());
     }
 
-    public String deleteDataverse() {
-
-    	try {
-    		this.dataverseService.deleteDataverse(this.dataverse);
-    		addSuccessMessage("dataverse.delete.success");
-    	} catch (final Exception e) {
-            logger.error("Unexpected Exception calling  delete dataverse command", e);
-            addErrorMessage("dataverse.delete.failure");
-    	}
-        return redirectToDataverse(this.dataverse.getOwner().getAlias());
-    }
+	public String deleteDataverse() {
+		if (this.session.isUserLoggedIn()) {
+			try {
+				this.dataverseService.deleteDataverse(this.dataverse);
+				addSuccessMessage("dataverse.delete.success");
+			} catch (final Exception e) {
+				logger.error("Unexpected Exception calling  delete dataverse command", e);
+				addErrorMessage("dataverse.delete.failure");
+			}
+		} else {
+			addErrorMessage("dataverse.publish.not.authorized");
+		}
+		return redirectToDataverse(this.dataverse.getOwner().getAlias());
+	}
 
     public Boolean isEmptyDataverse() {
         return this.dataverses.isEmpty(this.dataverse);
