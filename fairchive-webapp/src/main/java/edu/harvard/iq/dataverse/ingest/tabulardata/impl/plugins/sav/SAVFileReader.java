@@ -771,7 +771,7 @@ public class SAVFileReader extends TabularDataFileReader {
                 bb_Case_Weight_Variable_Index.order(ByteOrder.LITTLE_ENDIAN);
             }
 
-            caseWeightVariableOBSIndex = bb_Case_Weight_Variable_Index.getInt();
+            bb_Case_Weight_Variable_Index.getInt();
 
             /// caseWeightVariableOBSIndex will be used later on to locate
             /// the weight variable; so we'll be able to mark the corresponding
