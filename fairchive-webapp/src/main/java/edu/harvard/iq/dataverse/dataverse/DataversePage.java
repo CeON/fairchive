@@ -4,6 +4,7 @@ import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,6 @@ import javax.inject.Named;
 
 import org.omnifaces.cdi.Param;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
@@ -35,7 +35,7 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 @Named("DataversePage")
 public class DataversePage {
 
-    private static final Logger logger = LoggerFactory.getLogger(DataversePage.class);
+    private static final Logger logger = getLogger(DataversePage.class);
 
     @Inject
     private DataverseDao dataverseDao;
@@ -113,6 +113,10 @@ public class DataversePage {
 		return isEmptyDataverse() 
 				&& this.dataverse.getOwner() != null
 				&& this.permissionsWrapper.canIssueDeleteDataverseCommand(this.dataverse);
+	}
+	
+	public String getReleaseDialogName() {
+		return this.dataverse.canBeReleased() ? "confirmation" : "mayNotRelease";
 	}
 
     // -------------------- LOGIC --------------------
