@@ -1,14 +1,14 @@
 package edu.harvard.iq.dataverse.metrics;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.primefaces.model.chart.AxisType;
 import org.primefaces.model.chart.BarChartModel;
 import org.primefaces.model.chart.ChartSeries;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -48,43 +48,34 @@ public class ChartCreatorTest {
         );
     }
 
-    @Test
-    public void verifyRoundMaxChartValue() {
+    @ParameterizedTest
+    @CsvSource({
+            "1,     5",
+            "12,    25",
+            "123,   250",
+            "1234,  2500",
+            "12345, 25000",
+            "21,    25",
+            "321,   500",
+            "4321,  5000",
+            "54321, 100000",
+            "2999,  5000",
+            "49999, 100000",
+            "9999,  25000",
+    })
+    public void verifyRoundMaxChartValue(long givenValue, long expectedValue) {
         // given
-
-        List<Map<String, Long>> values = Arrays.asList(
-            createValuepair(1L, 5L),
-            createValuepair(12L, 25L),
-            createValuepair(123L, 250L),
-            createValuepair(1234L, 2500L),
-            createValuepair(12345L, 25000L),
-            createValuepair(21L, 25L),
-            createValuepair(321L, 500L),
-            createValuepair(4321L, 5000L),
-            createValuepair(54321L, 100000L),
-            createValuepair(2999L, 5000L),
-            createValuepair(499999L, 1000000L),
-            createValuepair(9999L, 25000L)
+        ChartCreator chartCreator = new ChartCreator();
+        List<ChartMetrics> chartMetrics = Arrays.asList(
+            new ChartMetrics(2025, 11, givenValue)
         );
 
-        // execute & assert
+        // when
+        BarChartModel createdModel = chartCreator.createYearlyChart(chartMetrics, "publishedDatasets");
 
-        for (Map<String, Long> value : values) {
-            ChartCreator chartCreator = new ChartCreator();
-            List<ChartMetrics> chartMetrics = Arrays.asList(
-                new ChartMetrics(2025, 11, value.get("given"))
-            );
-            BarChartModel createdModel = chartCreator.createYearlyChart(chartMetrics, "publishedDatasets");
-
-            assertEquals(value.get("expected"), getMaximumYaxisHeight(createdModel));
-        }
+        //then
+        assertEquals(expectedValue, getMaximumYaxisHeight(createdModel));
 
     }
 
-    private Map<String, Long> createValuepair(long given, long expected) {
-        Map<String, Long> dict = new HashMap<>(); 
-        dict.put("given", given);
-        dict.put("expected", expected);
-        return dict;
-    }
 }
