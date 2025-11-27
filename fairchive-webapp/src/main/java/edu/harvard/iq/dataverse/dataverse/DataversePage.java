@@ -17,12 +17,12 @@ import javax.inject.Named;
 import org.omnifaces.cdi.Param;
 import org.slf4j.Logger;
 
-import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
@@ -38,7 +38,7 @@ public class DataversePage {
     private static final Logger logger = getLogger(DataversePage.class);
 
     @Inject
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverses;
     @Inject
     private DataverseService dataverseService;
     @Inject
@@ -124,11 +124,11 @@ public class DataversePage {
     public void postConstruct() {
 
         if (isNotEmpty(this.dataverseAlias)) {
-        	this.dataverse = dataverseDao.findByAlias(this.dataverseAlias);
+        	this.dataverse = this.dataverses.findByAlias(this.dataverseAlias).orElse(null);
         } else if(this.dataverseId != null) {
-        	this.dataverse = dataverseDao.find(this.dataverseId);
+        	this.dataverse = this.dataverses.getById(this.dataverseId);
         } else {
-        	this.dataverse = this.dataverseDao.findRootDataverse();
+        	this.dataverse = this.dataverses.findRoot();
         }
         if (this.dataverse == null) {
         	this.permissionsWrapper.notFound();
@@ -188,7 +188,7 @@ public class DataversePage {
     }
 
     public Boolean isEmptyDataverse() {
-        return !this.dataverseDao.hasData(dataverse);
+        return this.dataverses.isEmpty(this.dataverse);
     }
 
     public boolean isUserCanChangeAllowMessageAndBanners() {
