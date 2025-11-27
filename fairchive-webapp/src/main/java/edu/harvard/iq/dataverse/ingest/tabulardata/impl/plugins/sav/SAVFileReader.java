@@ -246,8 +246,6 @@ public class SAVFileReader extends TabularDataFileReader {
     private List<Integer> formatDecimalPointPositionList = new ArrayList<Integer>();
 
 
-    private int caseWeightVariableOBSIndex = 0;
-
 
     // date/time data formats
 
