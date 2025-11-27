@@ -121,7 +121,13 @@ public class SendFeedbackDialog implements java.io.Serializable {
         this.attachments.clear();
     }
 
+    public void resetWithSubject(final String subject) {
+        System.out.println("resetWithSubject: only subject");
+        resetWithSubject(null, subject);
+    }
+
     public void resetWithSubject(final DvObject object, final String subject) {
+        System.out.println("resetWithSubject: subject + dvobject");
         reset(object);
         this.messageSubject = subject;
         this.messageSubjectDisabled = true;
