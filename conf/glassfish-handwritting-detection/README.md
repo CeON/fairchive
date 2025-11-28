@@ -9,8 +9,10 @@ All dependencies are in shell script `install.htr.sh` which are needed by TrOcr 
 ### Configuration
 * place `trocr-line.py` on server where glassfish is running in `/opt/glassfish` directory
 * copy WordDetectorNN(`https://github.com/rscipien/WordDetectorNN/raw/refs/heads/master/model/weights`) model weights to `/opt/glassfish`
-* set path to htr script in database `settings` table key `:HTRCommand` value: `python /opt/glassfish/trocr-line.py --weights /opt/glassfish/weights`
-* install all dependencies from `install.htr.sh`
+* set path to htr script in database `setting` table 
+  * key `:HTRCommand` 
+  * value `/opt/glassfish/python/bin/python /opt/glassfish/trocr-line.py --weights /opt/glassfish/weight`
+* install all dependencies from `install.htr.sh` or `install.htr.sh docker`
 * you can test if script is working running `cat some-image.jpg | python trocr-line.py --weights /opt/glassfish/weights`
 
 ### Script structure trocr-line.py
