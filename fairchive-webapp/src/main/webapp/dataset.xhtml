@@ -140,6 +140,16 @@
                                               value="#{bundle['dataset.inreview.infoMessage']} "/>
                             </p>
                         </div>
+                        <div jsf:rendered="#{DatasetPage.displaySubmitForReviewButton()}"
+                             class="alert alert-warning"
+                             role="alert"
+                             aria-atomic="true">
+                            <p class="text-block">
+                                <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.submitForReview.requirement']}</strong> –
+                                <h:outputText escape="false"
+                                              value="#{bundle['dataset.submitForReview.requirementInfoMessage']} "/>
+                            </p>
+                        </div>
                         <div jsf:rendered="#{DatasetPage.isLockedBy('DcmUpload')}" 
                              class="alert alert-warning" 
                              role="alert" 
