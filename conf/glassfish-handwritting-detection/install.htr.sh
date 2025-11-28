@@ -1,6 +1,14 @@
 # Python for local docker installation, python3.9, pip should be already on test, prod environment
-yum install -y python
-python3 -m ensurepip --upgrade
+# Command for docker
+if [ "$1" = "docker" ]; then
+    echo "Docker"
+    yum install -y python
+    python3 -m ensurepip --upgrade
+fi
+# Create virtual env
+python3 -m venv /opt/glassfish/python
+# activate venv
+source /opt/glassfish/python/bin/activate
 
 # on production install using glassfish user
 pip3 install -q transformers
