@@ -629,7 +629,7 @@ div[id$='roleDisplay'] span.label, div[id$='roleDetails'] span.label {display:in
 #sharrre-block a:last-of-type {margin-right:0;}
 #sharrre-block a span {color:#fff; font-size:14px;}
 #sharrre-block a.sharrre-facebook {background:#3a5795;}
-#sharrre-block a.sharrre-twitter {background:#55acee;}
+#sharrre-block a.sharrre-twitter {background:#000000;}
 #sharrre-block a.sharrre-google {background:#d73d32;}
 
 /* -------- THEME/THUMBNAIL UPLOAD -------- */
