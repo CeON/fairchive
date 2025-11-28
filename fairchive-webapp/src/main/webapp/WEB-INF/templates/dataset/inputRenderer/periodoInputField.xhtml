@@ -30,10 +30,13 @@
             autoHighlight="false"
             maxResults="7"
             moreText="#{bundle['periodo.moreText']}"
+            forceSelection="true"
             queryDelay="700">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  
                 update="periodoDetails"/>
+        <p:ajax event="blur" 
+                update="periodoDetails" />
 
         <p:column style="width: 12em;">
             <h:outputText value="#{suggestion.value}"/>
