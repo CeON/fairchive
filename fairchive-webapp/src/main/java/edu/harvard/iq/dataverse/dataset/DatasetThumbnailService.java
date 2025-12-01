@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 public class DatasetThumbnailService {
 
     private static final Logger logger = Logger.getLogger(DatasetThumbnailService.class.getCanonicalName());
-    public static String datasetLogoFilenameFinal = "dataset_logo_original";
+    private static String datasetLogoFilenameFinal = "dataset_logo_original";
     public static String datasetLogoThumbnail48 = "dataset_logo.thumb48";
     
     @Inject
