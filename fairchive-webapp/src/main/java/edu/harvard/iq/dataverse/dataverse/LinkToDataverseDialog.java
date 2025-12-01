@@ -1,17 +1,11 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.search.savedsearch.SavedSearchService;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import edu.harvard.iq.dataverse.util.JsfRedirectHelper;
+import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Try;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +14,13 @@ import javax.ejb.EJB;
 import javax.faces.model.SelectItem;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
+import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +43,8 @@ public class LinkToDataverseDialog implements java.io.Serializable {
     private DataverseLinkingService linkingService;
     @Inject
     private DataverseSession session;
+    @Inject 
+    private UIMessages uiMessages;
     
     private boolean canLinkDataverse;
     private boolean canLinkSavedSearch;
@@ -84,8 +87,8 @@ public class LinkToDataverseDialog implements java.io.Serializable {
     // -------------------- LOGIC --------------------
 
     public void init(Dataverse dataverse, String searchQuery, List<String> searchFilterQueriesDebug) {
-        canLinkDataverse = session.getUser().isSuperuser() && !dataverse.isRoot();
-        canLinkSavedSearch = session.getUser().isSuperuser() && StringUtils.isNotEmpty(searchQuery);
+        canLinkDataverse = session.isSuperUserLoggedIn() && !dataverse.isRoot();
+        canLinkSavedSearch = session.isSuperUserLoggedIn() && isNotEmpty(searchQuery);
 
         if (canLinkDataverse || canLinkSavedSearch) {
             this.dataverse = dataverse;
@@ -106,16 +109,15 @@ public class LinkToDataverseDialog implements java.io.Serializable {
     public String saveLinkedDataverse() {
 
         if (linkingDataverseId == null) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataverse.link.select"));
-            return "";
+            this.uiMessages.addErrorMessage(getStringFromBundle("dataverse.link.select"));
+            return EMPTY;
         }
 
-        AuthenticatedUser savedSearchCreator = getAuthenticatedUser();
-        if (savedSearchCreator == null) {
-            String msg = BundleUtil.getStringFromBundle("dataverse.link.user");
+        if (this.session.isUserLoggedIn()) {
+            String msg = getStringFromBundle("dataverse.link.user");
             logger.error(msg);
-            JsfHelper.addFlashErrorMessage(msg);
-            return JsfRedirectHelper.redirectToDataverse(dataverse.getAlias());
+            this.uiMessages.addFlashErrorMessage(msg);
+            return redirectToDataverse(dataverse.getAlias());
         }
 
         Try.of(() -> linkingService.saveLinkedDataverse(dataverseRepository.getById(linkingDataverseId), dataverse))
@@ -123,41 +125,42 @@ public class LinkToDataverseDialog implements java.io.Serializable {
                 .onSuccess(savedLinkingDv -> {
                     Dataverse savedTargetDataverseLink = savedLinkingDv.getLinkingDataverse();
 
-                    JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.linked.success.wait", getSuccessMessageArguments(savedTargetDataverseLink)));
+                    this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.linked.success.wait", 
+                    		getSuccessMessageArguments(savedTargetDataverseLink)));
                 });
 
-        return JsfRedirectHelper.redirectToDataverse(dataverse.getAlias());
+        return redirectToDataverse(dataverse.getAlias());
     }
     
     public String saveSavedSearch() {
         if (linkingDataverseId == null) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataverse.link.select"));
-            return "";
+        	this.uiMessages.addErrorMessage(getStringFromBundle("dataverse.link.select"));
+            return EMPTY;
         }
         targetDataverseLink = dataverseRepository.getById(linkingDataverseId);
 
-        AuthenticatedUser savedSearchCreator = getAuthenticatedUser();
-        if (savedSearchCreator == null) {
-            String msg = BundleUtil.getStringFromBundle("dataverse.search.user");
+        if (this.session.isUserLoggedIn()) {
+            String msg = getStringFromBundle("dataverse.search.user");
             logger.error(msg);
-            JsfHelper.addFlashErrorMessage(msg);
-            return JsfRedirectHelper.redirectToDataverse(dataverse.getAlias());
+            this.uiMessages.addFlashErrorMessage(msg);
+            return redirectToDataverse(dataverse.getAlias());
         }
 
 
         Try.of(() -> savedSearchService.saveSavedDataverseSearch(searchQuery, searchFilterQueriesDebug, targetDataverseLink))
                 .onSuccess(savedSearch -> {
-                    String hrefArgument = "<a href=\"/dataverse/" + targetDataverseLink.getAlias() + "\">" + StringEscapeUtils.escapeHtml(targetDataverseLink
-                                                                                                                                                  .getDisplayName()) + "</a>";
-                    JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.saved.search.success", hrefArgument));
+                    String hrefArgument = "<a href=\"/dataverse/" + 
+                    		targetDataverseLink.getAlias() + '"' + '>' +
+                    		escapeHtml(targetDataverseLink.getDisplayName()) + "</a>";
+                    this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.saved.search.success", hrefArgument));
                 })
                 .onFailure(ex -> {
                     logger.error("There was a problem linking this search", ex);
-                    JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.saved.search.failure") + " " + ex);
+                    this.uiMessages.addFlashErrorMessage(getStringFromBundle("dataverse.saved.search.failure") + ' ' + ex);
                 });
 
 
-        return JsfRedirectHelper.redirectToDataverse(dataverse.getAlias());
+        return redirectToDataverse(dataverse.getAlias());
     }
 
     // -------------------- PRIVATE --------------------
@@ -166,7 +169,7 @@ public class LinkToDataverseDialog implements java.io.Serializable {
         linkingDVSelectItems = new ArrayList<>();
 
         //Since only a super user function add all dvs
-        List<Dataverse> dataversesForLinking = dataverseRepository.findAll();// permissionService.getDataversesUserHasPermissionOn(session.getUser(), Permission.PublishDataverse);
+        List<Dataverse> dataversesForLinking = dataverseRepository.findAll();
 
 
         //for linking - make sure the link hasn't occurred and its not int the tree
@@ -187,8 +190,8 @@ public class LinkToDataverseDialog implements java.io.Serializable {
 
         for (Dataverse selectDV : dataversesForLinking) {
             linkingDVSelectItems.add(new SelectItem(selectDV.getId(),
-                    selectDV.getDisplayName() + " (" + BundleUtil.getStringFromBundle("dataverse.alias")
-                            + ": " + selectDV.getAlias() + ")"));
+                    selectDV.getDisplayName() + ' ' + '(' + getStringFromBundle("dataverse.alias")
+                            + ':' + ' ' + selectDV.getAlias() + ')'));
         }
 
         if (dataversesForLinking.size() == 1 && dataversesForLinking.get(0) != null) {
@@ -199,29 +202,20 @@ public class LinkToDataverseDialog implements java.io.Serializable {
     
 
     private void handleSaveLinkedDataverseExceptions(Throwable ex, long dataverseToLinkId) {
-        String msg = BundleUtil.getStringFromBundle("dataverse.link.error", dataverse.getDisplayName());
-        JsfHelper.addFlashErrorMessage(msg);
+        String msg = getStringFromBundle("dataverse.link.error", dataverse.getDisplayName());
+        this.uiMessages.addFlashErrorMessage(msg);
 
-        logger.error("Unable to link dataverse with id: " + dataverse.getId() + " to " + dataverseToLinkId, ex);
+        logger.error("Unable to link dataverse with id: " + dataverse.getId() +
+        		" to " + dataverseToLinkId, ex);
     }
 
 
     private Object[] getSuccessMessageArguments(Dataverse savedTargetDataverseLink) {
-        List<String> arguments = new ArrayList<>();
-        arguments.add(StringEscapeUtils.escapeHtml(dataverse.getDisplayName()));
-        String linkString = "<a href=\"/dataverse/" + savedTargetDataverseLink.getAlias() + "\">" + StringEscapeUtils.escapeHtml(savedTargetDataverseLink
-                                                                                                                                    .getDisplayName()) + "</a>";
-        arguments.add(linkString);
-        return arguments.toArray();
-    }
-
-    private AuthenticatedUser getAuthenticatedUser() {
-        User user = session.getUser();
-        if (user.isAuthenticated()) {
-            return (AuthenticatedUser) user;
-        } else {
-            return null;
-        }
+        final Object[] result = new Object[2];
+        result[0] = escapeHtml(this.dataverse.getDisplayName());
+        result[1] = "<a href=\"/dataverse/" + savedTargetDataverseLink.getAlias() + 
+        		'"' + '>' + escapeHtml(savedTargetDataverseLink.getDisplayName()) + "</a>";
+        return result;
     }
 
     // -------------------- SETTERS --------------------

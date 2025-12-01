@@ -1,27 +1,31 @@
 package edu.harvard.iq.dataverse.dataverse;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
-import edu.harvard.iq.dataverse.PermissionServiceBean;
-import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import edu.harvard.iq.dataverse.util.JsfRedirectHelper;
-import io.vavr.control.Try;
-import org.apache.commons.lang.StringUtils;
-import org.omnifaces.cdi.Param;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.omnifaces.cdi.Param;
+import org.slf4j.Logger;
+
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
+import edu.harvard.iq.dataverse.util.SystemConfig;
+import edu.harvard.iq.dataverse.util.UIMessages;
 
 
 /**
@@ -31,10 +35,10 @@ import java.util.List;
 @Named("DataversePage")
 public class DataversePage {
 
-    private static final Logger logger = LoggerFactory.getLogger(DataversePage.class);
+    private static final Logger logger = getLogger(DataversePage.class);
 
     @Inject
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverses;
     @Inject
     private DataverseService dataverseService;
     @Inject
@@ -51,6 +55,10 @@ public class DataversePage {
     private LinkToDataverseDialog linkToDataverseDialog;
     @Inject
     private FeaturedDataversesDialog featuredDataversesDialog;
+    @Inject 
+    private SystemConfig sysConfig;
+    @Inject
+    private UIMessages uiMessages;
 
     @Inject @Param(name = "alias")
     private String dataverseAlias;
@@ -65,99 +73,143 @@ public class DataversePage {
     // -------------------- GETTERS --------------------
 
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
     }
 
     public String getDataverseAlias() {
-        return dataverseAlias;
+        return this.dataverseAlias;
     }
 
     public Long getDataverseId() {
-        return dataverseId;
+        return this.dataverseId;
     }
 
     public boolean isShowDescriptionAndCarousel() {
-        return showDescriptionAndCarousel;
+        return this.showDescriptionAndCarousel;
     }
 
     public List<Dataverse> getCarouselFeaturedDataverses() {
-        return carouselFeaturedDataverses;
+        return this.carouselFeaturedDataverses;
     }
+    
+    public boolean displayMetrics() {
+    	return this.dataverse.isRoot() && !this.sysConfig.isRsyncOnly();
+    }
+    
+	public boolean displayEditPublishButtons() {
+		return this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)
+				|| this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse);
+	}
+	
+	public boolean displayPublishButton() {
+		return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse);
+	}
+	
+	public boolean displayEditButton() {
+		return this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse);
+	}
+	
+	public boolean displayDeleteMenuItem() {
+		return isEmptyDataverse() 
+				&& this.dataverse.getOwner() != null
+				&& this.permissionsWrapper.canIssueDeleteDataverseCommand(this.dataverse);
+	}
+	
+	public String getReleaseDialogName() {
+		return this.dataverse.canBeReleased() ? "confirmation" : "mayNotRelease";
+	}
 
     // -------------------- LOGIC --------------------
     @PostConstruct
     public void postConstruct() {
 
-        if (StringUtils.isNotEmpty(dataverseAlias)) {
-            dataverse = dataverseDao.findByAlias(dataverseAlias);
-        } else if(dataverseId != null) {
-            dataverse = dataverseDao.find(dataverseId);
+        if (isNotEmpty(this.dataverseAlias)) {
+        	this.dataverse = this.dataverses.findByAlias(this.dataverseAlias).orElse(null);
+        } else if(this.dataverseId != null) {
+        	this.dataverse = this.dataverses.getById(this.dataverseId);
         } else {
-            dataverse = dataverseDao.findRootDataverse();
+        	this.dataverse = this.dataverses.findRoot();
         }
-        if (dataverse == null) {
-            permissionsWrapper.notFound();
+        if (this.dataverse == null) {
+        	this.permissionsWrapper.notFound();
         }
 
-        searchIncludeFragment.setDataverse(dataverse);
+        this.searchIncludeFragment.setDataverse(this.dataverse);
     }
 
     public String init() {
 
-        if (!dataverse.isReleased() && !permissionsWrapper.canViewUnpublishedDataverse(dataverse)) {
-            return permissionsWrapper.notAuthorized();
+        if (!this.dataverse.isReleased() 
+        		&& !this.permissionsWrapper.canViewUnpublishedDataverse(this.dataverse)) {
+            return this.permissionsWrapper.notAuthorized();
         }
 
-        searchIncludeFragment.search();
-        linkToDataverseDialog.init(dataverse, searchIncludeFragment.getQuery(), searchIncludeFragment.getFilterQueriesDebug());
+        this.searchIncludeFragment.search();
+        this.linkToDataverseDialog.init(this.dataverse, 
+        		this.searchIncludeFragment.getQuery(),
+        		this.searchIncludeFragment.getFilterQueriesDebug());
 
-        featuredDataversesDialog.init(dataverse);
+        this.featuredDataversesDialog.init(this.dataverse);
 
-        showDescriptionAndCarousel = searchIncludeFragment.getFilterQueries().isEmpty() && StringUtils.isEmpty(searchIncludeFragment.getQuery());
-        if (showDescriptionAndCarousel) {
-            carouselFeaturedDataverses = featuredDataverseService.findByDataverseIdQuick(dataverse.getId());
+        this.showDescriptionAndCarousel = this.searchIncludeFragment.getFilterQueries().isEmpty() 
+        		&& isEmpty(this.searchIncludeFragment.getQuery());
+        if (this.showDescriptionAndCarousel) {
+        	this.carouselFeaturedDataverses = this.featuredDataverseService.findByDataverseIdQuick(this.dataverse.getId());
         }
 
         return null;
     }
 
     public String releaseDataverse() {
-        if (!session.isUserLoggedIn()) {
-            JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.not.authorized"));
+        if (this.session.isUserLoggedIn()) {
+            try {
+            	this.dataverseService.publishDataverse(this.dataverse);
+            	addSuccessMessage("dataverse.publish.success");
+            } catch (final Exception e) {
+                logger.error("Unexpected Exception calling  publish dataverse command", e);
+                addErrorMessage("dataverse.publish.failure");
+            }
+        } else {
+            addErrorMessage("dataverse.publish.not.authorized");
         }
-
-        Try.of(() -> dataverseService.publishDataverse(dataverse))
-                .onFailure(ex -> {
-                    logger.error("Unexpected Exception calling  publish dataverse command", ex);
-                    JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.failure"));
-                })
-                .onSuccess(dv -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.publish.success")));
-
-        return JsfRedirectHelper.redirectToDataverse(dataverse.getAlias());
+        return redirectToDataverse(this.dataverse.getAlias());
     }
 
-    public String deleteDataverse() {
-
-        Try.run(() -> dataverseService.deleteDataverse(dataverse))
-                .onFailure(ex -> {
-                    logger.error("Unexpected Exception calling  delete dataverse command", ex);
-                    JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.delete.failure"));
-                })
-                .onSuccess(dv -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.delete.success")));
-
-        return JsfRedirectHelper.redirectToDataverse(dataverse.getOwner().getAlias());
-    }
+	public String deleteDataverse() {
+		if (this.session.isUserLoggedIn()) {
+			try {
+				this.dataverseService.deleteDataverse(this.dataverse);
+				addSuccessMessage("dataverse.delete.success");
+			} catch (final Exception e) {
+				logger.error("Unexpected Exception calling  delete dataverse command", e);
+				addErrorMessage("dataverse.delete.failure");
+			}
+		} else {
+			addErrorMessage("dataverse.publish.not.authorized");
+		}
+		return redirectToDataverse(this.dataverse.getOwner().getAlias());
+	}
 
     public Boolean isEmptyDataverse() {
-        return !dataverseDao.hasData(dataverse);
+        return this.dataverses.isEmpty(this.dataverse);
     }
 
     public boolean isUserCanChangeAllowMessageAndBanners() {
-        return dataverse.isAllowMessagesBanners() && (session.getUser().isSuperuser() || permissionService.isUserAbleToEditDataverse(session.getUser(), this.dataverse));
+        return this.dataverse.isAllowMessagesBanners() 
+        		&& (this.session.isSuperUserLoggedIn()
+        		|| this.permissionService.isUserAbleToEditDataverse(this.session.getUser(), this.dataverse));
     }
 
     public String redirectToMetrics() {
         return "/metrics.xhtml?faces-redirect=true";
+    }
+    
+    private void addSuccessMessage(final String key) {
+    	this.uiMessages.addFlashSuccessMessage(getStringFromBundle(key));
+    }
+    
+    private void addErrorMessage(final String key) {
+    	this.uiMessages.addFlashErrorMessage(getStringFromBundle(key));
     }
 
 }

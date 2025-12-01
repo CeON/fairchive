@@ -301,7 +301,6 @@
                                                 <p:ajax update="@widgetVar(optionBlock)" onsuccess="#{CreateEditDataversePage.refreshDatasetFieldTypes(mdb.id,
                                                 CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected,
                                                 CreateEditDataversePage.mdbOptions.isShowDatasetFieldTypes(mdb.id))}" />
-                                            </input>
                                             <input type="checkbox" jsf:itemValue="#{mdb}" id="#{mdb.idString}"
                                                     jsf:value="#{CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected}"
                                                     name="mdbSelectOptional"
@@ -309,7 +308,6 @@
                                                 <p:ajax update="@widgetVar(optionBlock)" onsuccess="#{CreateEditDataversePage.refreshDatasetFieldTypes(mdb.id,
                                                 CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected,
                                                 CreateEditDataversePage.mdbOptions.isShowDatasetFieldTypes(mdb.id))}" />
-                                            </input>
                                             
                                             <h:outputText
                                                     value="#{mdb.localeDisplayName} #{mdb.isCitationMetaBlock() ? bundle['dataverse.field.required']: ''}"
