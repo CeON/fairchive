@@ -7,6 +7,8 @@ import edu.harvard.iq.dataverse.search.dataversestree.NodeData;
 import edu.harvard.iq.dataverse.search.dataversestree.NodesInfo;
 import edu.harvard.iq.dataverse.search.dataversestree.SolrTreeService;
 import edu.harvard.iq.dataverse.search.dataversestree.TreeNodeBrowser;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.NodeExpandEvent;
@@ -41,6 +43,7 @@ public class CreateDatasetDialog implements Serializable {
     private TreeNodeBrowser treeNodeBrowser;
     private DataverseSession session;
     private SystemConfig systemConfig;
+    private SettingsServiceBean settingsService;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -49,13 +52,14 @@ public class CreateDatasetDialog implements Serializable {
     @Inject
     public CreateDatasetDialog(SolrTreeService solrTreeService, DataverseRequestServiceBean dataverseRequestService,
                                DataverseLookupService dataverseLookupService, DataverseDao dataverseDao,
-                               DataverseSession session, SystemConfig systemConfig) {
+                               DataverseSession session, SystemConfig systemConfig, SettingsServiceBean settingsService) {
         this.solrTreeService = solrTreeService;
         this.dataverseRequestService = dataverseRequestService;
         this.dataverseLookupService = dataverseLookupService;
         this.dataverseDao = dataverseDao;
         this.session = session;
         this.systemConfig = systemConfig;
+        this.settingsService = settingsService;
     }
 
     // -------------------- GETTERS --------------------
@@ -112,6 +116,10 @@ public class CreateDatasetDialog implements Serializable {
         treeNodeBrowser.trimTree(parentIdsCache.keySet());
 
         prevTreeFilter = treeFilter;
+    }
+
+    public boolean showContactToCreateDataverseTip() {
+        return settingsService.isTrueForKey(Key.ShowContactToCreateDataverseTip);
     }
 
     public String createDataset() {

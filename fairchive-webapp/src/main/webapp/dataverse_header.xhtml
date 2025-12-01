@@ -622,7 +622,7 @@
               widgetVar="createDatasetDialog" 
               modal="true">
         <div class="form-horizontal">
-            <h:form id="create-dataset-dialog">
+            <o:form id="create-dataset-dialog">
                 <p jsf:rendered="#{not empty CreateDatasetDialog.selectDataverseInfo}">#{CreateDatasetDialog.selectDataverseInfo}</p>
                 <p>#{bundle['add.dataset.dialog.info']}</p>
                 <div class="form-group">
@@ -671,6 +671,17 @@
                                    display="text"/>
                     </div>
                 </div>
+                <p jsf:rendered="#{CreateDatasetDialog.showContactToCreateDataverseTip()}">
+                    <h:outputFormat value="#{bundle['add.dataset.dialog.createDataverse.tip']}" escape="false">
+                        <o:param>
+                            <p:commandLink value="#{installationConfig.supportTeamName}"
+                                           oncomplete="PF('createDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" update=":contactDialog"
+                                           actionListener="#{sendFeedbackDialog.resetWithSubject(bundle['add.dataset.dialog.createDataverse.message.subject'])}">
+                                <o:ignoreValidationFailed />
+                            </p:commandLink>
+                        </o:param>
+                    </h:outputFormat>
+                </p>
                 <div class="row button-block">
                     <p:commandButton value="#{bundle['add.dataset.dialog.button.create']}"
                                      action="#{CreateDatasetDialog.createDataset()}" 
@@ -684,7 +695,7 @@
                         #{bundle.cancel}
                     </button>
                 </div>
-            </h:form>
+            </o:form>
         </div>
     </p:dialog>
 
