@@ -37,6 +37,11 @@ public class UIMessages {
         addAjaxHasErrorParam();
         addSuccessMessage(message);
     }
+    
+    public void addFlashErrorMessage(final String message) {
+        addAjaxHasErrorParam();
+        addComponentErrorMessage((String) null, message);
+    }
 
     private static void addAjaxHasErrorParam() {
         PrimeFaces.current().ajax().addCallbackParam("hasErrorMessage", true);

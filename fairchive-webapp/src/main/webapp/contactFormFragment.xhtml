@@ -87,27 +87,37 @@
 					</div>
 				</div>
 			</ui:fragment>
-			<!-- subject -->
-			<div class="form-group">
-				<p:outputLabel for="messageSubject"
-					           styleClass="col-sm-3 control-label"
-					           indicateRequired="false">
+            <!-- subject -->
+            <ui:fragment rendered="#{sendFeedbackDialog.messageSubjectDisabled}">
+            <div class="form-group">
+                    <div class="col-sm-3 control-label section-title">#{bundle['contact.subject']}</div>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">#{sendFeedbackDialog.messageSubject}</p>
+                    </div>
+            </div>
+            </ui:fragment>
+            <ui:fragment rendered="#{not sendFeedbackDialog.messageSubjectDisabled}">
+            <div class="form-group">
+                <p:outputLabel for="messageSubject"
+                               styleClass="col-sm-3 control-label"
+                               indicateRequired="false">
                     #{bundle['contact.subject']} 
                     <span
-						class="glyphicon glyphicon-asterisk text-danger"
-						title="#{bundle.requiredField}" />
-				</p:outputLabel>
-				<div class="col-sm-9">
-					<p:inputText id="messageSubject" 
-					             styleClass="form-control"
-						         value="#{sendFeedbackDialog.messageSubject}"
-						         requiredMessage="#{bundle['contact.subject.required']}"
-						         required="true" />
-					<p:message for="messageSubject" 
-					           styleClass="bg-danger text-danger"
-						       display="text" />
-				</div>
-			</div>
+                        class="glyphicon glyphicon-asterisk text-danger"
+                        title="#{bundle.requiredField}" />
+                </p:outputLabel>
+                <div class="col-sm-9">
+                    <p:inputText id="messageSubject" 
+                                 styleClass="form-control"
+                                 value="#{sendFeedbackDialog.messageSubject}"
+                                 requiredMessage="#{bundle['contact.subject.required']}"
+                                 required="true" />
+                    <p:message for="messageSubject" 
+                               styleClass="bg-danger text-danger"
+                               display="text" />
+                </div>
+            </div>
+            </ui:fragment>
 			<!-- message -->
 			<div class="form-group">
 				<p:outputLabel for="userMessage" 

@@ -360,6 +360,10 @@ public abstract class DvObject extends DataverseEntity implements Serializable, 
     public boolean isNotRoot() {
         return this.getOwner() != null;
     }
+    
+    public boolean canBeReleased() {
+    	return !isReleased() && (isRoot() || getOwner().isReleased());
+    }
 
     public void setIdentifierRegistered(boolean identifierRegistered) {
         this.identifierRegistered = identifierRegistered;

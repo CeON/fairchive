@@ -34,10 +34,13 @@
             autoHighlight="false"
             maxResults="7"
             moreText="#{bundle['geonames.moreText']}"
+            forceSelection="true"
             queryDelay="700">
         <p:ajax process="@form:@id(fieldsByTypeFragment)" 
                 event="focus"  
                 update="geoNameDetails"/>
+        <p:ajax event="blur" 
+                update="geoNameDetails" />
 
         <p:column style="width: 12em;">
             <h:outputText value="#{suggestion.name}"/>

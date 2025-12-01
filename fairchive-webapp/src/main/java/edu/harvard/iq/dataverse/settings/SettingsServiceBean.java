@@ -749,6 +749,12 @@ public class SettingsServiceBean {
          */
         SelectDataverseInfo,
 
+        /**
+         * If true then show tip in "Add dataset" modal window
+         * about contacting support to create a new dataverse
+         */
+        ShowContactToCreateDataverseTip,
+
         CookieDomain,
         CookieName,
         CookieSecure,

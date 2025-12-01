@@ -117,11 +117,15 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
                 .getResultList();
     }
 
-    public Long countChildrenOf(final Dataverse datavserse) {
+    public Long countChildrenOf(final Dataverse dataverse) {
         return this.em.createQuery(
                 "SELECT COUNT(obj) FROM DvObject obj WHERE obj.owner.id=:id",
                 Long.class)
-                .setParameter("id", datavserse.getId())
+                .setParameter("id", dataverse.getId())
                 .getSingleResult();
+    }
+    
+    public boolean isEmpty(final Dataverse dataverse) {
+        return countChildrenOf(dataverse) == 0;
     }
 }
