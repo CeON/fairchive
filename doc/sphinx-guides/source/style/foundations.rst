@@ -302,14 +302,14 @@ With the use of `FontCustom <https://github.com/FontCustom/fontcustom>`__ we wer
 Socicon Icon Font 
 -----------------
 
-We use `Socicon <http://www.socicon.com>`__ for our custom social icons. In the footer we use icons for Twitter and Github. In our Share feature, we also use custom social icons to allow users to select from a list of social media channels.
+We use `Socicon <http://www.socicon.com>`__ for our custom social icons. In the footer we use icons for X and Github. In our Share feature, we also use custom social icons to allow users to select from a list of social media channels.
 
 .. raw:: html
 
 	<div class="panel panel-default code-example">
 	  <div class="panel-body">
       <span class="socicon socicon-github h1" title="Dataverse On GitHub"></span>
-      <span class="socicon socicon-twitter h1" title="Dataverse On Twitter"></span>
+      <span class="socicon socicon-x h1" title="Dataverse On X"></span>
       <span class="socicon socicon-facebook h1" title="Dataverse On Facebook"></span>
 	  </div>
 	</div>
@@ -317,7 +317,7 @@ We use `Socicon <http://www.socicon.com>`__ for our custom social icons. In the 
 .. code-block:: html
 
    <span class="socicon socicon-github" title="Dataverse On GitHub"></span>
-   <span class="socicon socicon-twitter" title="Dataverse On Twitter"></span>
+   <span class="socicon socicon-x" title="Dataverse On X"></span>
    <span class="socicon socicon-facebook" title="Dataverse On Facebook"></span>
 
 

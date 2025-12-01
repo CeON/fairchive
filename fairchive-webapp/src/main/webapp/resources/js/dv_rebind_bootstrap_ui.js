@@ -992,13 +992,13 @@ function sharrre(){
     var sharrreLocales = {
             pl: {
                 'sharrre.button.facebook.title': 'Udostępnij na Facebooku',
-                'sharrre.button.twitter.title': 'Udostępnij na Twitterze',
+                'sharrre.button.twitter.title': 'Udostępnij na X',
                 'sharrre.button.linkedin.title': 'Udostępnij na LinkedIn',
                 'sharrre.button.newWindonw.info': '(otwierane w nowym oknie)'
             },
             en: {
                 'sharrre.button.facebook.title': 'Share on Facebook',
-                'sharrre.button.twitter.title': 'Share in Twitter',
+                'sharrre.button.twitter.title': 'Share in X',
                 'sharrre.button.linkedin.title': 'Share on LinkedIn',
                 'sharrre.button.newWindonw.info': '(opens in new window)'
             }
@@ -1019,7 +1019,7 @@ function sharrre(){
         template: '<div id="sharrre-block" class="clearfix">\n\
                     <input type="hidden" id="sharrre-total" name="sharrre-total" value="{total}"/> \n\
                     <a href="#" class="sharrre-facebook" title="{sharrre.button.facebook.title} {sharrre.button.newWindonw.info}" aria-label="{sharrre.button.facebook.title} {sharrre.button.newWindonw.info}"><span class="socicon socicon-facebook" aria-hidden="true"/></a> \n\
-                    <a href="#" class="sharrre-twitter" title="{sharrre.button.twitter.title} {sharrre.button.newWindonw.info}" aria-label="{sharrre.button.twitter.title} {sharrre.button.newWindonw.info}"><span class="socicon socicon-twitter" aria-hidden="true"/></a> \n\
+                    <a href="#" class="sharrre-twitter" title="{sharrre.button.twitter.title} {sharrre.button.newWindonw.info}" aria-label="{sharrre.button.twitter.title} {sharrre.button.newWindonw.info}"><span class="socicon socicon-x" aria-hidden="true"/></a> \n\
                     <a href="#" class="sharrre-linkedin" title="{sharrre.button.linkedin.title} {sharrre.button.newWindonw.info}" aria-label="{sharrre.button.linkedin.title} {sharrre.button.newWindonw.info}"><span class="socicon socicon-linkedin" aria-hidden="true"/></a>\n\
                     </div>',
         enableHover: false,
