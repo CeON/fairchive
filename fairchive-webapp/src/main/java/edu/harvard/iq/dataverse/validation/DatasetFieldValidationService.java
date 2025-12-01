@@ -41,9 +41,4 @@ public class DatasetFieldValidationService {
                 });
         return fieldValidationResults;
     }
-
-    public List<ValidationDescriptor> retrieveValidatorDescriptor(DatasetField datasetField) {
-        DatasetFieldValidationDispatcher datasetFieldValidationDispatcher = dispatcherFactory.create(Collections.singletonList(datasetField));
-        return datasetFieldValidationDispatcher.retrieveDescriptors(datasetField);
-    }
 }

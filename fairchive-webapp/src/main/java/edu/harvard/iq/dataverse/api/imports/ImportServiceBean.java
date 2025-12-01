@@ -230,28 +230,20 @@ public class ImportServiceBean {
     }
 
     private void removeInvalidFieldsFromDataset(DatasetVersion  datasetVersion) {
-        List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(datasetVersion);
-        if (!fieldValidationResults.isEmpty()) {
+        int maxValidationCount = 0;
+        while (maxValidationCount <= 10) {
+            List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(datasetVersion);
+            if (fieldValidationResults == null || fieldValidationResults.isEmpty()) {
+                break;
+            }
+
             for (FieldValidationResult fieldValidationResult : fieldValidationResults) {
                 DatasetField invalidField = (DatasetField)fieldValidationResult.getField();
                 datasetVersion.getDatasetFields().remove(invalidField);
-                removeDependantFieldFromDataset(invalidField, datasetVersion);
             }
-        }
-    }
 
-    private void removeDependantFieldFromDataset(DatasetField invalidField, DatasetVersion datasetVersion) {
-        List<ValidationDescriptor> validationDescriptors = fieldValidationService.retrieveValidatorDescriptor(invalidField);
-        Optional<String> dependantField = validationDescriptors
-                .stream()
-                .filter(v -> v.getParameters().containsKey(DEPENDANT_FIELD_PARAM))
-                .map(v -> v.getParameters().get(DEPENDANT_FIELD_PARAM))
-                .map(String.class::cast)
-                .findFirst();
-        dependantField.ifPresent(dependant ->
-                datasetVersion.getDatasetFields()
-                        .removeIf(field -> field.getDatasetFieldType().getName().equals(dependant))
-        );
+            maxValidationCount++;
+        }
     }
 
     public JsonObject ddiToJson(String xmlToParse) throws ImportException {

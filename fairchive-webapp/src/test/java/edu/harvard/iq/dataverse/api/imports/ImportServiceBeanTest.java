@@ -94,14 +94,10 @@ class ImportServiceBeanTest {
         when(invalidFieldResult.getField()).thenReturn(invalidField);
         List<FieldValidationResult> validationResults = asList(invalidFieldResult);
 
-        List<ValidationDescriptor> validationDescriptors = new ArrayList<>();
-
         when(harvestedJsonParser.parseDataset(jsonMetadata)).thenReturn(dataset);
         when(datasetDao.findByGlobalId(anyString())).thenReturn(null);
         when(fieldValidationService.validateFieldsOfDatasetVersion(datasetVersion))
                 .thenReturn(validationResults);
-        when(fieldValidationService.retrieveValidatorDescriptor(invalidField))
-                .thenReturn(validationDescriptors);
         when(engineSvc.submit(any(CreateHarvestedDatasetCommand.class))).thenReturn(dataset);
 
         // When
@@ -121,60 +117,6 @@ class ImportServiceBeanTest {
                 .contains(validField);
         Assertions.assertThat(datasetVersion.getDatasetFields())
                 .doesNotContain(invalidField);
-    }
-
-    @Test
-    void shouldRemoveDependantFieldWhenParentFieldIsInvalid() throws Exception {
-        // Given
-        Dataset dataset = createDatasetWithInvalidFields();
-        DatasetVersion datasetVersion = dataset.getLatestVersion();
-
-        DatasetField invalidParentField = createDatasetField(1L, "author");
-        DatasetField dependentField = createDatasetField(2L,"authorAffiliation");
-        DatasetField unrelatedField = createDatasetField(3L,"title");
-
-        List<DatasetField> datasetFields = new ArrayList<>(
-                asList(invalidParentField, dependentField, unrelatedField)
-        );
-        datasetVersion.setDatasetFields(datasetFields);
-
-        FieldValidationResult invalidFieldResult = mock(FieldValidationResult.class);
-        when(invalidFieldResult.getField()).thenReturn(invalidParentField);
-        List<FieldValidationResult> validationResults = asList(invalidFieldResult);
-
-        ValidationDescriptor validationDescriptor = mock(ValidationDescriptor.class);
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("dependantField", "authorAffiliation");
-        when(validationDescriptor.getParameters()).thenReturn(parameters);
-        List<ValidationDescriptor> validationDescriptors = asList(validationDescriptor);
-
-        when(harvestedJsonParser.parseDataset(jsonMetadata)).thenReturn(dataset);
-        when(datasetDao.findByGlobalId(anyString())).thenReturn(null);
-        when(fieldValidationService.validateFieldsOfDatasetVersion(datasetVersion))
-                .thenReturn(validationResults);
-        when(fieldValidationService.retrieveValidatorDescriptor(invalidParentField))
-                .thenReturn(validationDescriptors);
-        when(engineSvc.submit(any(CreateHarvestedDatasetCommand.class))).thenReturn(dataset);
-
-        // When
-        Dataset result = importServiceBean.doImportHarvestedDataset(
-                dataverseRequest,
-                harvestingClient,
-                harvestIdentifier,
-                HarvestImporterType.DATAVERSE_JSON,
-                jsonMetadata
-        );
-
-        // Then
-        Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(datasetVersion.getDatasetFields())
-                .hasSize(1);
-        Assertions.assertThat(datasetVersion.getDatasetFields())
-                .contains(unrelatedField);
-        Assertions.assertThat(datasetVersion.getDatasetFields())
-                .doesNotContain(invalidParentField);
-        Assertions.assertThat(datasetVersion.getDatasetFields())
-                .doesNotContain(dependentField);
     }
 
     private Dataset createDatasetWithInvalidFields() {
