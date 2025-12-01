@@ -10,7 +10,6 @@ import edu.harvard.iq.dataverse.authorization.EditableAccountField;
 import edu.harvard.iq.dataverse.authorization.UserRecordIdentifier;
 import edu.harvard.iq.dataverse.authorization.providers.common.BaseUserPage;
 import edu.harvard.iq.dataverse.authorization.providers.shib.ShibAuthenticationProvider;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.consent.ConsentDto;
 import edu.harvard.iq.dataverse.consent.ConsentService;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailException;
@@ -66,15 +65,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MinutesUntilConfirmEmailTokenExpires;
 import static java.lang.String.format;
+import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 @SuppressWarnings("serial")
 @ViewScoped
 @Named("DataverseUserPage")
 public class DataverseUserPage extends BaseUserPage {
 
-    private static final Logger logger = Logger.getLogger(DataverseUserPage.class.getCanonicalName());
+    private static final Logger logger = getLogger(DataverseUserPage.class.getCanonicalName());
 
     public enum EditMode {
         CREATE, EDIT, CHANGE_PASSWORD
@@ -83,9 +85,9 @@ public class DataverseUserPage extends BaseUserPage {
     private static final int ADDITIONAL_MESSAGE_MAX_LENGTH = 512;
 
     @Inject
-    DataverseSession session;
+    private DataverseSession session;
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
     private UserNotificationService userNotificationService;
     @EJB
@@ -93,21 +95,21 @@ public class DataverseUserPage extends BaseUserPage {
     @EJB
     private UserNotificationMapper userNotificationMapper;
     @EJB
-    BuiltinUserServiceBean builtinUserService;
+    private BuiltinUserServiceBean builtinUserService;
     @EJB
-    AuthenticationServiceBean authenticationService;
+    private AuthenticationServiceBean authenticationService;
     @EJB
-    ConfirmEmailServiceBean confirmEmailService;
+    private ConfirmEmailServiceBean confirmEmailService;
     @Inject
-    SystemConfig systemConfig;
+    private SystemConfig systemConfig;
     @EJB
-    PasswordValidatorServiceBean passwordValidatorService;
+    private PasswordValidatorServiceBean passwordValidatorService;
     @Inject
-    SettingsWrapper settingsWrapper;
+    private SettingsWrapper settingsWrapper;
     @Inject
-    SettingsServiceBean settingsService;
+    private SettingsServiceBean settingsService;
     @Inject
-    PermissionsWrapper permissionsWrapper;
+    private PermissionsWrapper permissionsWrapper;
 
     @Inject
     private ConsentService consentService;
@@ -283,14 +285,14 @@ public class DataverseUserPage extends BaseUserPage {
         if (editMode == EditMode.CREATE && userNameFound) {
             ((UIInput) toValidate).setValid(false);
             FacesMessage message = new FacesMessage(
-                    FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("user.username.taken"), null);
+                    FacesMessage.SEVERITY_ERROR, getStringFromBundle("user.username.taken"), null);
             context.addMessage(toValidate.getClientId(context), message);
         }
 
         if (editMode == EditMode.CREATE && !userNameValid) {
             ((UIInput) toValidate).setValid(false);
             FacesMessage message = new FacesMessage(
-                    FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("user.username.invalid"), null);
+                    FacesMessage.SEVERITY_ERROR, getStringFromBundle("user.username.invalid"), null);
             context.addMessage(toValidate.getClientId(context), message);
         }
     }
@@ -299,7 +301,7 @@ public class DataverseUserPage extends BaseUserPage {
         if (Objects.isNull(value)) {
             ((UIInput) toValidate).setValid(false);
             FacesMessage message = new FacesMessage(
-                    FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("user.notificationsLanguage.requiredMessage"), null);
+                    FacesMessage.SEVERITY_ERROR, getStringFromBundle("user.notificationsLanguage.requiredMessage"), null);
             context.addMessage(toValidate.getClientId(context), message);
         }
     }
@@ -310,7 +312,7 @@ public class DataverseUserPage extends BaseUserPage {
         if (!emailValid) {
             ((UIInput) toValidate).setValid(false);
             FacesMessage message = new FacesMessage(
-                    FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("oauth2.newAccount.emailInvalid"), null);
+                    FacesMessage.SEVERITY_ERROR, getStringFromBundle("oauth2.newAccount.emailInvalid"), null);
             context.addMessage(toValidate.getClientId(context), message);
             logger.info("Email is not valid: " + userEmail);
             return;
@@ -334,21 +336,21 @@ public class DataverseUserPage extends BaseUserPage {
             ((UIInput) toValidate).setValid(false);
 
             FacesMessage message = new FacesMessage(
-                    FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("user.email.taken"), null);
+                    FacesMessage.SEVERITY_ERROR, getStringFromBundle("user.email.taken"), null);
             context.addMessage(toValidate.getClientId(context), message);
         }
     }
 
     public void validateNewPassword(FacesContext context, UIComponent toValidate, Object value) {
         String password = (String) value;
-        if (StringUtils.isBlank(password)) {
+        if (isBlank(password)) {
             logger.log(Level.WARNING, "new password is blank");
 
             ((UIInput) toValidate).setValid(false);
 
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    BundleUtil.getStringFromBundle("passwdVal.passwdReset.valFacesError"),
-                    BundleUtil.getStringFromBundle("passwdVal.passwdReset.valFacesErrorDesc"));
+                    getStringFromBundle("passwdVal.passwdReset.valFacesError"),
+                    getStringFromBundle("passwdVal.passwdReset.valFacesErrorDesc"));
             context.addMessage(toValidate.getClientId(context), message);
             return;
 
@@ -368,7 +370,7 @@ public class DataverseUserPage extends BaseUserPage {
             if (prv.isPasswordUpdateAllowed()) {
                 if (!prv.verifyPassword(currentUser.getAuthenticatedUserLookup().getPersistentUserId(), currentPassword)) {
                     FacesContext.getCurrentInstance().addMessage("currentPassword",
-                         new FacesMessage(FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("user.error.wrongPassword"), null));
+                         new FacesMessage(FacesMessage.SEVERITY_ERROR, getStringFromBundle("user.error.wrongPassword"), null));
                     return null;
                 }
                 prv.updatePassword(currentUser.getAuthenticatedUserLookup().getPersistentUserId(), inputPassword);
@@ -378,7 +380,7 @@ public class DataverseUserPage extends BaseUserPage {
                 logger.log(Level.WARNING,
                         "Attempt to change a password on {0}, whose provider ({1}) does not support password change",
                            new Object[] { currentUser.getIdentifier(), prv });
-                JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("user.error.cannotChangePassword"), "");
+                JsfHelper.addErrorMessage(getStringFromBundle("user.error.cannotChangePassword"), "");
                 return null;
             }
         }
@@ -442,7 +444,7 @@ public class DataverseUserPage extends BaseUserPage {
             String emailAfterUpdate = savedUser.getEmail();
             editMode = null;
             StringBuilder msg = new StringBuilder(
-                    BundleUtil.getStringFromBundle(
+                    getStringFromBundle(
                             passwordChanged ? "userPage.passwordChanged" : "userPage.informationUpdated"));
             if (!emailBeforeUpdate.equals(emailAfterUpdate)) {
                 String expTime = ConfirmEmailUtil.friendlyExpirationTime(settingsService.getValueForKeyAsLong(
@@ -456,7 +458,7 @@ public class DataverseUserPage extends BaseUserPage {
                     logger.log(Level.INFO, "Unable to send email confirmation link to user id {0}", savedUser.getId());
                 }
                 session.logIn(currentUser);
-                JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("confirmEmail.changed", currentUser.getEmail(), expTime));
+                JsfHelper.addFlashSuccessMessage(getStringFromBundle("confirmEmail.changed", currentUser.getEmail(), expTime));
             } else {
                 JsfHelper.addFlashSuccessMessage(msg.toString());
             }
@@ -545,8 +547,8 @@ public class DataverseUserPage extends BaseUserPage {
         try {
             confirmEmailService.beginConfirm(currentUser);
             String expirationString =
-                    ConfirmEmailUtil.friendlyExpirationTime(settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MinutesUntilConfirmEmailTokenExpires));
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("confirmEmail.submitRequest.success",
+                    ConfirmEmailUtil.friendlyExpirationTime(settingsService.getValueForKeyAsLong(MinutesUntilConfirmEmailTokenExpires));
+            JsfHelper.addFlashSuccessMessage(getStringFromBundle("confirmEmail.submitRequest.success",
                                                                             userEmail, expirationString));
         } catch (ConfirmEmailException ex) {
             Logger.getLogger(DataverseUserPage.class.getName()).log(Level.SEVERE, null, ex);
