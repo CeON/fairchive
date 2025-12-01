@@ -34,7 +34,7 @@ import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.PasswordValidatorServiceBean;
 import io.vavr.control.Option;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.SelectEvent;
@@ -61,15 +61,22 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MinutesUntilConfirmEmailTokenExpires;
 import static java.lang.String.format;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Level.WARNING;
 import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.contains;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 
 @SuppressWarnings("serial")
 @ViewScoped
@@ -344,7 +351,7 @@ public class DataverseUserPage extends BaseUserPage {
     public void validateNewPassword(FacesContext context, UIComponent toValidate, Object value) {
         String password = (String) value;
         if (isBlank(password)) {
-            logger.log(Level.WARNING, "new password is blank");
+            logger.warning("new password is blank");
 
             ((UIInput) toValidate).setValid(false);
 
@@ -377,7 +384,7 @@ public class DataverseUserPage extends BaseUserPage {
                 passwordChanged = true;
             } else {
                 // erroneous state - we can't change the password for this user, so should not have gotten here. Log and bail out.
-                logger.log(Level.WARNING,
+                logger.log(WARNING,
                         "Attempt to change a password on {0}, whose provider ({1}) does not support password change",
                            new Object[] { currentUser.getIdentifier(), prv });
                 JsfHelper.addErrorMessage(getStringFromBundle("user.error.cannotChangePassword"), "");
@@ -425,12 +432,12 @@ public class DataverseUserPage extends BaseUserPage {
             try {
                 redirectPage = URLDecoder.decode(redirectPage, "UTF-8");
             } catch (UnsupportedEncodingException ex) {
-                logger.log(Level.SEVERE, "Server does not support 'UTF-8' encoding.", ex);
+                logger.log(SEVERE, "Server does not support 'UTF-8' encoding.", ex);
                 redirectPage = "dataverse.xhtml?alias=" + dataverseDao.findRootDataverse().getAlias();
             }
 
-            logger.log(Level.FINE, "Sending user to = {0}", redirectPage);
-            return redirectPage + (!redirectPage.contains("?") ? "?" : "&") + "faces-redirect=true";
+            logger.log(FINE, "Sending user to = {0}", redirectPage);
+            return redirectPage + (!redirectPage.contains("?") ? '?' : '&') + "faces-redirect=true";
 
             // Happens if user is logged out while editing
         } else if (!isUserAuthenticated()) {
@@ -448,14 +455,14 @@ public class DataverseUserPage extends BaseUserPage {
                             passwordChanged ? "userPage.passwordChanged" : "userPage.informationUpdated"));
             if (!emailBeforeUpdate.equals(emailAfterUpdate)) {
                 String expTime = ConfirmEmailUtil.friendlyExpirationTime(settingsService.getValueForKeyAsLong(
-                        SettingsServiceBean.Key.MinutesUntilConfirmEmailTokenExpires));
+                        MinutesUntilConfirmEmailTokenExpires));
 
                 // delete unexpired token, if it exists (clean slate)
                 confirmEmailService.deleteTokenForUser(currentUser);
                 try {
                     confirmEmailService.beginConfirm(currentUser);
                 } catch (ConfirmEmailException ex) {
-                    logger.log(Level.INFO, "Unable to send email confirmation link to user id {0}", savedUser.getId());
+                    logger.log(INFO, "Unable to send email confirmation link to user id {0}", savedUser.getId());
                 }
                 session.logIn(currentUser);
                 JsfHelper.addFlashSuccessMessage(getStringFromBundle("confirmEmail.changed", currentUser.getEmail(), expTime));
@@ -468,7 +475,8 @@ public class DataverseUserPage extends BaseUserPage {
 
     public String cancel() {
         if (editMode == EditMode.CREATE) {
-            return "/dataverse.xhtml?alias=" + dataverseDao.findRootDataverse().getAlias() + "&faces-redirect=true";
+            return "/dataverse.xhtml?faces-redirect=true&alias=".
+            		concat(dataverseDao.findRootDataverse().getAlias());
         }
         editMode = null;
         return null;
@@ -551,7 +559,7 @@ public class DataverseUserPage extends BaseUserPage {
             JsfHelper.addFlashSuccessMessage(getStringFromBundle("confirmEmail.submitRequest.success",
                                                                             userEmail, expirationString));
         } catch (ConfirmEmailException ex) {
-            Logger.getLogger(DataverseUserPage.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(SEVERE, null, ex);
         }
     }
 
@@ -662,7 +670,7 @@ public class DataverseUserPage extends BaseUserPage {
     // -------------------- PRIVATE ---------------------
 
     private boolean isUserLanguageConfigured() {
-        return StringUtils.isNotEmpty(settingsWrapper.getConfiguredLocaleName(currentUser.getNotificationsLanguage().toLanguageTag()));
+        return isNotEmpty(settingsWrapper.getConfiguredLocaleName(currentUser.getNotificationsLanguage().toLanguageTag()));
     }
 
     private String getLocalizedDisplayNameForLanguage(Locale language) {
@@ -670,12 +678,12 @@ public class DataverseUserPage extends BaseUserPage {
     }
 
     private String truncateToFullWord(String input) {
-        String wordSeparator = " ";
-        boolean inputIsOnlyOneWord = !StringUtils.contains(input, wordSeparator);
+        String wordSeparator = SPACE;
+        boolean inputIsOnlyOneWord = !contains(input, wordSeparator);
         if (inputIsOnlyOneWord) {
             return input.substring(0, 100); // probably not a valid text, shorten it further
         }
-        return StringUtils.substringBeforeLast(input, wordSeparator);
+        return substringBeforeLast(input, wordSeparator);
     }
 
     private void displayNotification() {
