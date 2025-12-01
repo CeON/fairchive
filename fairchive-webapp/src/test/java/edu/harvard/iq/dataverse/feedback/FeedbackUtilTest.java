@@ -501,8 +501,7 @@ public class FeedbackUtilTest {
         fmd.setDataFile(dataFile);
         fmd.setLabel("file.txt");
         List<DataFileCategory> fileCategories = new ArrayList<>();
-        DataFileCategory dataFileCategory = new DataFileCategory();
-        dataFileCategory.setName("Data");
+        DataFileCategory dataFileCategory = new DataFileCategory("Data");
         fileCategories.add(dataFileCategory);
         fmd.setCategories(fileCategories);
         List<FileMetadata> fileMetadatas = new ArrayList<>();
@@ -573,8 +572,7 @@ public class FeedbackUtilTest {
         fmd.setDataFile(dataFile);
         fmd.setLabel("file.txt");
         List<DataFileCategory> fileCategories = new ArrayList<>();
-        DataFileCategory dataFileCategory = new DataFileCategory();
-        dataFileCategory.setName("Data");
+        DataFileCategory dataFileCategory = new DataFileCategory("Data");
         fileCategories.add(dataFileCategory);
         fmd.setCategories(fileCategories);
         List<FileMetadata> fileMetadatas = new ArrayList<>();
@@ -649,8 +647,7 @@ public class FeedbackUtilTest {
         fmd.setDataFile(dataFile);
         fmd.setLabel("file.txt");
         List<DataFileCategory> fileCategories = new ArrayList<>();
-        DataFileCategory dataFileCategory = new DataFileCategory();
-        dataFileCategory.setName("Data");
+        DataFileCategory dataFileCategory = new DataFileCategory("Data");
         fileCategories.add(dataFileCategory);
         fmd.setCategories(fileCategories);
         List<FileMetadata> fileMetadatas = new ArrayList<>();
@@ -727,8 +724,7 @@ public class FeedbackUtilTest {
         fmd.setDataFile(dataFile);
         fmd.setLabel("file.txt");
         List<DataFileCategory> fileCategories = new ArrayList<>();
-        DataFileCategory dataFileCategory = new DataFileCategory();
-        dataFileCategory.setName("Data");
+        DataFileCategory dataFileCategory = new DataFileCategory("Data");
         fileCategories.add(dataFileCategory);
         fmd.setCategories(fileCategories);
         List<FileMetadata> fileMetadatas = new ArrayList<>();

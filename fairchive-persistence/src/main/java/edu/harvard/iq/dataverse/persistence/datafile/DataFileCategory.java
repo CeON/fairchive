@@ -5,6 +5,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -16,6 +17,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.base.Preconditions;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -40,6 +45,13 @@ public class DataFileCategory implements Serializable, JpaEntity<Long> {
     @ManyToMany(mappedBy = "fileCategories")
     private Collection<FileMetadata> fileMetadatas = new ArrayList<>();
 
+    protected DataFileCategory() {}
+    
+    public DataFileCategory(String name) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(name));
+        this.name = name;
+    }
+
     @Override
     public Long getId() {
         return this.id;
@@ -61,23 +73,16 @@ public class DataFileCategory implements Serializable, JpaEntity<Long> {
         return this.name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Collection<FileMetadata> getFileMetadatas() {
-        if (this.fileMetadatas == null) {
-            this.fileMetadatas = new ArrayList<>();
-        }
         return this.fileMetadatas;
-    }
-
-    public void setFileMetadatas(final Collection<FileMetadata> fileMetadatas) {
-        this.fileMetadatas = fileMetadatas;
     }
 
     public void addFileMetadata(final FileMetadata fileMetadata) {
         getFileMetadatas().add(fileMetadata);
+    }
+
+    public void removeFileMetadatas(final List<FileMetadata> fileMetadatas) {
+        this.fileMetadatas.removeAll(fileMetadatas);
     }
 
 

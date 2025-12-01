@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -176,6 +177,7 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     }
 
     public void addCategory(final DataFileCategory category) {
+        category.addFileMetadata(this);
         this.fileCategories.add(category);
     }
 
@@ -198,10 +200,11 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
 
     public void addCategoryByName(final String name) {
         if (isNotEmpty(name) && !getCategoryNames().contains(name)) {
-            final DataFileCategory fileCategory = this.getDatasetVersion()
-                    .getDataset().getCategoryByName(name);
+            final DataFileCategory fileCategory = Optional.ofNullable(datasetVersion)
+                    .map(DatasetVersion::getDataset)
+                    .map(ds -> ds.getCategoryByName(name))
+                    .orElseGet(() -> new DataFileCategory(name));
             addCategory(fileCategory);
-            fileCategory.addFileMetadata(this);
         }
     }
 

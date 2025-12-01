@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse.metrics;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.primefaces.model.chart.AxisType;
 import org.primefaces.model.chart.BarChartModel;
 import org.primefaces.model.chart.ChartSeries;
@@ -22,7 +24,7 @@ public class ChartCreatorTest {
         BarChartModel createdModel = chartCreator.createYearlyChart(chartMetrics, "publishedDatasets");
 
         //then
-        assertEquals(84L, getMaximumYaxisHeight(createdModel));
+        assertEquals(100L, getMaximumYaxisHeight(createdModel));
         assertEquals(7, getYearValueFromModel(createdModel, 2018));
         assertEquals(78, getYearValueFromModel(createdModel, 2019));
         assertEquals(8, getYearValueFromModel(createdModel, 2020));
@@ -45,4 +47,35 @@ public class ChartCreatorTest {
                 new ChartMetrics(2020, 12, 8L)
         );
     }
+
+    @ParameterizedTest
+    @CsvSource({
+            "1,     5",
+            "12,    25",
+            "123,   250",
+            "1234,  2500",
+            "12345, 25000",
+            "21,    25",
+            "321,   500",
+            "4321,  5000",
+            "54321, 100000",
+            "2999,  5000",
+            "49999, 100000",
+            "9999,  25000",
+    })
+    public void verifyRoundMaxChartValue(long givenValue, long expectedValue) {
+        // given
+        ChartCreator chartCreator = new ChartCreator();
+        List<ChartMetrics> chartMetrics = Arrays.asList(
+            new ChartMetrics(2025, 11, givenValue)
+        );
+
+        // when
+        BarChartModel createdModel = chartCreator.createYearlyChart(chartMetrics, "publishedDatasets");
+
+        //then
+        assertEquals(expectedValue, getMaximumYaxisHeight(createdModel));
+
+    }
+
 }
