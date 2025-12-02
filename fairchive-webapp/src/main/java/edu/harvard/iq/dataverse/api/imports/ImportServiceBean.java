@@ -230,10 +230,14 @@ public class ImportServiceBean {
     }
 
     private void removeInvalidFieldsFromDataset(DatasetVersion  datasetVersion) {
-        int maxValidationCount = 0;
-        while (maxValidationCount <= 10) {
+        // We do not expect the validation-removal process to require many iterations.
+        // 10 attempts is a safe upper bound to prevent accidental infinite loops.
+        // Under normal circumstances, all invalid fields should be resolved in first pass
+        // Only dependent fields may use more passes
+        int validationAttemptNumber = 0;
+        while (validationAttemptNumber <= 10) {
             List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(datasetVersion);
-            if (fieldValidationResults == null || fieldValidationResults.isEmpty()) {
+            if (fieldValidationResults.isEmpty()) {
                 break;
             }
 
@@ -242,7 +246,7 @@ public class ImportServiceBean {
                 datasetVersion.getDatasetFields().remove(invalidField);
             }
 
-            maxValidationCount++;
+            validationAttemptNumber++;
         }
     }
 
