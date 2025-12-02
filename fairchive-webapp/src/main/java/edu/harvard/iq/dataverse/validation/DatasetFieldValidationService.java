@@ -1,12 +1,17 @@
 package edu.harvard.iq.dataverse.validation;
 
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.DatasetFieldValidationDispatcherFactory;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
+import edu.harvard.iq.dataverse.validation.field.ValidationDescriptor;
+import edu.harvard.iq.dataverse.validation.field.DatasetFieldValidationDispatcher;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+
+import java.util.Collections;
 import java.util.List;
 
 @Stateless
