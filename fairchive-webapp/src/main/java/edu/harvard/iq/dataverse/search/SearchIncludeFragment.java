@@ -485,6 +485,10 @@ public class SearchIncludeFragment {
     }
     
     public boolean displaySaveToFileButton() {
+        return getSearchResultsCount() > 0 && saveFileLimitExceeded();
+    }
+
+    public boolean saveFileLimitExceeded() {
         return getSearchResultsCount() < getMaxResultsCountSavedToFile();
     }
     

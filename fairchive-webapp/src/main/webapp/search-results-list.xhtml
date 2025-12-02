@@ -17,7 +17,7 @@
 			<p:fileDownload value="#{SearchIncludeFragment.searchResultsFile}" />
 		</p:commandButton>
 	</h:form>
-	<div jsf:rendered="#{!SearchIncludeFragment.displaySaveToFileButton()}">
+	<div jsf:rendered="#{!SearchIncludeFragment.saveFileLimitExceeded()}">
 	   <h:outputFormat value="#{bundle['dataverse.results.msg.tooManyResults']}">
 	       <f:param value="#{SearchIncludeFragment.getMaxResultsCountSavedToFile()}"/>
 	   </h:outputFormat>
