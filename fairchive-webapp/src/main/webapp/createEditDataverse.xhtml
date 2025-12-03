@@ -290,25 +290,36 @@
                                 <ui:repeat value="#{CreateEditDataversePage.allMetadataBlocks.toArray()}" var="mdb">
                                     <div class="checkbox">
                                         <label for="#{mdb.idString}">
-                                            <input type="checkbox" jsf:itemValue="#{mdb}" id="#{mdb.idString}"
-                                                    jsf:value="#{CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected}"
-                                                    name="mdbSelectRequired" disabled="" checked="checked"
-                                                    jsf:rendered="#{mdb.isCitationMetaBlock() and !CreateEditDataversePage.mdbOptions.inheritMetaBlocksFromParent}"/>
-                                            <input type="checkbox" jsf:itemValue="#{mdb}" id="#{mdb.idString}"
-                                                    jsf:value="#{CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected}"
-                                                    name="mdbSelectRequiredInherited" disabled="disabled"
-                                                    jsf:rendered="#{CreateEditDataversePage.mdbOptions.inheritMetaBlocksFromParent}">
-                                                <p:ajax update="@widgetVar(optionBlock)" onsuccess="#{CreateEditDataversePage.refreshDatasetFieldTypes(mdb.id,
-                                                CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected,
-                                                CreateEditDataversePage.mdbOptions.isShowDatasetFieldTypes(mdb.id))}" />
-                                            <input type="checkbox" jsf:itemValue="#{mdb}" id="#{mdb.idString}"
-                                                    jsf:value="#{CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected}"
-                                                    name="mdbSelectOptional"
-                                                    jsf:rendered="#{!mdb.isCitationMetaBlock() and !CreateEditDataversePage.mdbOptions.inheritMetaBlocksFromParent}">
-                                                <p:ajax update="@widgetVar(optionBlock)" onsuccess="#{CreateEditDataversePage.refreshDatasetFieldTypes(mdb.id,
-                                                CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected,
-                                                CreateEditDataversePage.mdbOptions.isShowDatasetFieldTypes(mdb.id))}" />
-                                            
+                                            <input type="checkbox" 
+                                                   jsf:itemValue="#{mdb}" 
+                                                   id="#{mdb.idString}"
+                                                   jsf:value="#{CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected}"
+                                                   name="mdbSelectRequired" 
+                                                   disabled="" 
+                                                   checked="checked"
+                                                   jsf:rendered="#{mdb.isCitationMetaBlock() and !CreateEditDataversePage.mdbOptions.inheritMetaBlocksFromParent}"/>
+                                            <input type="checkbox" 
+                                                   jsf:itemValue="#{mdb}" 
+                                                   id="#{mdb.idString}"
+                                                   jsf:value="#{CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected}"
+                                                   name="mdbSelectRequiredInherited" 
+                                                   disabled="disabled"
+                                                   jsf:rendered="#{CreateEditDataversePage.mdbOptions.inheritMetaBlocksFromParent}">
+                                                <p:ajax update="@widgetVar(optionBlock)" 
+                                                        onsuccess="#{CreateEditDataversePage.refreshDatasetFieldTypes(mdb.id,
+                                                                   CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected,
+                                                                   CreateEditDataversePage.mdbOptions.isShowDatasetFieldTypes(mdb.id))}" />
+                                            </input>
+                                            <input type="checkbox" 
+                                                   jsf:itemValue="#{mdb}" id="#{mdb.idString}"
+                                                   jsf:value="#{CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected}"
+                                                   name="mdbSelectOptional"
+                                                   jsf:rendered="#{!mdb.isCitationMetaBlock() and !CreateEditDataversePage.mdbOptions.inheritMetaBlocksFromParent}">
+                                                <p:ajax update="@widgetVar(optionBlock)" 
+                                                        onsuccess="#{CreateEditDataversePage.refreshDatasetFieldTypes(mdb.id,
+                                                                   CreateEditDataversePage.mdbOptions.mdbViewOptions.get(mdb.id).selected,
+                                                                   CreateEditDataversePage.mdbOptions.isShowDatasetFieldTypes(mdb.id))}" />
+                                            </input>
                                             <h:outputText
                                                     value="#{mdb.localeDisplayName} #{mdb.isCitationMetaBlock() ? bundle['dataverse.field.required']: ''}"
                                                     styleClass="#{CreateEditDataversePage.mdbOptions.inheritMetaBlocksFromParent ? 'text-muted' : ''}"
