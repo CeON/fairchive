@@ -34,7 +34,7 @@ public class HarvesterServiceBean {
     private EntityManager em;
 
     @EJB
-    HarvestingClientDao harvestingClientService;
+    private HarvestingClientDao harvestingClientService;
     @EJB
     private OAIHarvester oaiHarvester;
     @EJB
