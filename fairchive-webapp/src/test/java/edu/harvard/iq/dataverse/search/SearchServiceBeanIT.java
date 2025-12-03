@@ -28,21 +28,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 /**
  * @author madryk
@@ -153,11 +145,29 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 "datafile_58_draft",
                 "datafile_55_draft", "datafile_53_draft", // both have the same create date
                 "dataset_66_draft", "dataset_71_draft", "dataset_56_draft", "dataset_56", "dataset_57", "dataset_101", "dataset_102", "dataset_72");
+        searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "nameSort", SortOrder.asc, 0, 20, false)
+            .getSolrSearchResults().forEach(r -> System.out.println(r.getId() + " - " + r.getTitle() + " - " + r.getName()));
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "nameSort", SortOrder.asc, 0, 20, false),
-                "dataverse_21", "dataset_66_draft", "dataset_52_draft", "dataverse_19", "dataverse_23",
-                "datafile_58_draft", "dataverse_68", "datafile_55_draft", "datafile_53_draft", "dataverse_51", "dataverse_20",
-                "dataverse_67", "dataverse_22", "dataset_56_draft", "dataset_56", "dataset_57", "dataset_72",
-                "dataset_71_draft", "dataset_73", "dataset_74");  // don't have any name (no title)
+                "dataverse_21",         // Andromeda
+                "dataset_57",           // Dataset with versions (ver2)
+                "dataset_66_draft",     // Draft only dataset
+                "dataset_52_draft",     // Draft with files
+                "dataverse_19",         // Own Metadatablock Dataverse
+                "dataverse_23",         // Papo
+                "datafile_58_draft",    // restricted.zip
+                "dataverse_68",         // subDataverse
+                "datafile_55_draft",    // testfile1.zip
+                "datafile_53_draft",    // testfile6.zip
+                "dataverse_51",         // Unreleased Dataverse
+                "dataverse_20",         // Wally
+                "dataverse_67",         // withoutData
+                "dataverse_22",         // Zebra
+                "dataset_56_draft",     // null
+                "dataset_56",           // null
+                "dataset_72",           // null
+                "dataset_71_draft",     // null
+                "dataset_73",           // null
+                "dataset_74");          // null
     }
 
     @Test
@@ -203,24 +213,24 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 "dataset_52_draft", "dataverse_51", "dataverse_68", "dataverse_21", "dataverse_20", "dataverse_22",
                 "dataverse_23", "dataverse_19", "dataverse_67");
 
-        assertEquals(Long.valueOf(22), searchResponse.getNumResultsFound());
-        assertEquals(Long.valueOf(0), searchResponse.getResultsStart());
+        assertThat(searchResponse.getNumResultsFound()).isEqualTo(22);
+        assertThat(searchResponse.getResultsStart()).isEqualTo(0);
 
-        assertThat(searchResponse.getSpellingSuggestionsByToken(), aMapWithSize(0));
+        assertThat(searchResponse.getSpellingSuggestionsByToken()).isEmpty();
 
-        assertEquals(new DvObjectCounts(8, 11, 3), searchResponse.getDvObjectCounts());
-        assertEquals(new PublicationStatusCounts(0, 9, 12, 7, 0), searchResponse.getPublicationStatusCounts());
+        assertThat(searchResponse.getDvObjectCounts()).isEqualTo(new DvObjectCounts(8, 11, 3));
+        assertThat(searchResponse.getPublicationStatusCounts()).isEqualTo(new PublicationStatusCounts(0, 9, 12, 7, 0));
 
 
-        assertThat(searchResponse.getFilterQueriesActual(),
-                containsInAnyOrder("dvObjectType:(dataverses OR datasets OR files)", "-entityId:1"));
+        assertThat(searchResponse.getFilterQueriesActual())
+                .containsExactlyInAnyOrder("dvObjectType:(dataverses OR datasets OR files)", "-entityId:1");
 
 
         List<FacetCategory> facets = searchResponse.getFacetCategoryList();
-        assertThat(facets.stream().map(FacetCategory::getName).collect(Collectors.toList()),
-                containsInAnyOrder("dvCategory", "publicationStatus", "publicationDate", "metadataSource",
+        assertThat(facets).extracting(FacetCategory::getName)
+                .containsExactlyInAnyOrder("dvCategory", "publicationStatus", "publicationDate", "metadataSource",
                         "authorAffiliation_ss", "dateOfDeposit_ss", "subject_ss",
-                        "authorName_ss", "fileAccess", "fileTag", "fileTypeGroupFacet", "license"));
+                        "authorName_ss", "fileAccess", "fileTag", "fileTypeGroupFacet", "license");
 
         FacetCategory dvCategoryFacet = extractFacetWithName(facets, "dvCategory");
         assertContainsFacetCount(dvCategoryFacet, "Journal", 1);
@@ -267,17 +277,20 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 "willDefenitelyNotExists", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 0, 20, false);
 
         // then
-        assertThat(searchResponse.getSolrSearchResults(), is(empty()));
+        assertThat(searchResponse.getSolrSearchResults()).isEmpty();
 
-        assertEquals(Long.valueOf(0), searchResponse.getNumResultsFound());
-        assertEquals(Long.valueOf(0), searchResponse.getResultsStart());
+        assertThat(searchResponse.getNumResultsFound()).isEqualTo(0L);
+        assertThat(searchResponse.getResultsStart()).isEqualTo(0L);
 
-        assertEquals(DvObjectCounts.emptyDvObjectCounts(), searchResponse.getDvObjectCounts());
-        assertEquals(PublicationStatusCounts.emptyPublicationStatusCounts(), searchResponse.getPublicationStatusCounts());
+        assertThat(searchResponse.getDvObjectCounts())
+                .isEqualTo(DvObjectCounts.emptyDvObjectCounts());
 
-        assertThat(searchResponse.getSpellingSuggestionsByToken(), aMapWithSize(0));
+        assertThat(searchResponse.getPublicationStatusCounts())
+                .isEqualTo(PublicationStatusCounts.emptyPublicationStatusCounts());
 
-        assertThat(searchResponse.getFacetCategoryList(), is(empty()));
+        assertThat(searchResponse.getSpellingSuggestionsByToken()).hasSize(0);
+
+        assertThat(searchResponse.getFacetCategoryList()).isEmpty();
     }
 
     @Test
@@ -293,11 +306,14 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 filters);
 
         // then
-        assertThat(solrSearchMapResults, hasSize(1));
-        assertThat(solrSearchMapResults.get(0).getMarker(), is(new GeoPoint(35.840585,36.19439)));
-        assertThat(solrSearchMapResults.get(0).getDoi(), is("doi:10.18150/FK2/QTVQKL"));
-        assertThat(solrSearchMapResults.get(0).getDatasetUrl(), is("/dataset.xhtml?persistentId=doi:10.18150/FK2/QTVQKL&version=DRAFT"));
-        assertThat(solrSearchMapResults.get(0).getCustomData(), anEmptyMap());
+        assertThat(solrSearchMapResults).hasSize(1);
+        assertThat(solrSearchMapResults.get(0).getMarker())
+                .isEqualTo(new GeoPoint(35.840585, 36.19439));
+        assertThat(solrSearchMapResults.get(0).getDoi())
+                .isEqualTo("doi:10.18150/FK2/QTVQKL");
+        assertThat(solrSearchMapResults.get(0).getDatasetUrl())
+                .isEqualTo("/dataset.xhtml?persistentId=doi:10.18150/FK2/QTVQKL&version=DRAFT");
+        assertThat(solrSearchMapResults.get(0).getCustomData()).isEmpty();
     }
 
     @Test
@@ -308,7 +324,7 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 "doi:10.18150/FK2/MLXK1N", Collections.emptyList());
 
         // then
-        assertThat(solrSearchMapResults, is(empty()));
+        assertThat(solrSearchMapResults).isEmpty();
     }
 
     // -------------------- PRIVATE --------------------
@@ -321,8 +337,8 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 break;
             }
         }
-        assertNotNull(actualFacetLabel);
-        assertEquals(Long.valueOf(expectedCount), actualFacetLabel.getCount());
+        assertThat(actualFacetLabel).isNotNull();
+        assertThat(actualFacetLabel.getCount()).isEqualTo(expectedCount);
     }
 
     private FacetCategory extractFacetWithName(List<FacetCategory> facetCategories, String name) {
@@ -334,8 +350,8 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
 
     private void assertSearchResultIds(SolrQueryResponse queryResponse, String ... expectedSolrDocIds) {
 
-        assertThat(queryResponse.getSolrSearchResults().stream().map(SolrSearchResult::getId).collect(Collectors.toList()),
-                contains(expectedSolrDocIds));
+        assertThat(queryResponse.getSolrSearchResults()).extracting(SolrSearchResult::getId)
+                .containsExactly(expectedSolrDocIds);
 
     }
 }

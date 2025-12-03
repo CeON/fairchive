@@ -22,6 +22,10 @@ import edu.harvard.iq.dataverse.util.json.JsonParser;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -41,9 +45,16 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
-public class FeedbackUtilTest {
+@ExtendWith(MockitoExtension.class)
+public class FeedbackServiceTest {
 
+    @InjectMocks private FeedbackService feedbackService;
+
+    @Mock private FeedbackContactResolver contactResolver;
+    
     private static final String installationBrandName = "LibraScholar";
     private static final String supportTeamName = "LibraScholar SWAT Team";
     private static final String baseUrl = "https://dataverse.librascholar.edu";
@@ -172,8 +183,14 @@ public class FeedbackUtilTest {
         String messageSubject = "nice dataverse";
         String userMessage = "Let's talk!";
 
+        List<FeedbackContact> contacts = new ArrayList<>();
+        contacts.add(new FeedbackContact(null, "dvContact1@librascholar.edu"));
+        contacts.add(new FeedbackContact(null, "dvContact2@librascholar.edu"));
+
+        when(contactResolver.resolveDataverseContact(dataverse)).thenReturn(contacts);
+
         // when
-        List<Feedback> feedbacks1 = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks1 = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataverse)
                 .withUserEmail(userEmail)
                 .withMessageSubject(messageSubject)
@@ -208,10 +225,11 @@ public class FeedbackUtilTest {
         assertEquals(installationBrandName + " contact: " + "nice dataverse", jsonObject.getString("subject"));
 
         // given
-        dataverse.setDataverseContacts(new ArrayList<>());
+        reset(contactResolver);
+        when(contactResolver.resolveDataverseContact(dataverse)).thenReturn(new ArrayList<>());
 
         // when
-        List<Feedback> feedbacks2 = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks2 = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataverse)
                 .withUserEmail(userEmail)
                 .withMessageSubject(messageSubject)
@@ -240,7 +258,7 @@ public class FeedbackUtilTest {
         String userMessage = "Let's talk!";
 
         // when
-        List<Feedback> feedbacks1 = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks1 = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataverse)
                 .withRecipient(FeedbackRecipient.SYSTEM_SUPPORT)
                 .withUserEmail(userEmail)
@@ -292,8 +310,14 @@ public class FeedbackUtilTest {
         String messageSubject = "nice dataset";
         String userMessage = "Let's talk!";
 
+        List<FeedbackContact> contacts = new ArrayList<>();
+        contacts.add(new FeedbackContact("Brady, Tom", "ContactEmail1@mailinator.com"));
+        contacts.add(new FeedbackContact("LastContact2, FirstContact2", "ContactEmail12@mailinator.com"));
+
+        when(contactResolver.resolveDatasetContact(dataset)).thenReturn(contacts);
+
         // when
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataset)
                 .withMessageSubject(messageSubject)
                 .withUserMessage(userMessage)
@@ -338,16 +362,19 @@ public class FeedbackUtilTest {
         dataset.setAuthority("10.7910/DVN");
         dataset.setIdentifier("TJCLKP");
         Dataverse dataverse = new Dataverse();
-        List<DataverseContact> dataverseContacts = new ArrayList<>();
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact1@librascholar.edu"));
-        dataverse.setDataverseContacts(dataverseContacts);
+        dataverse.setId(1L);
         dataset.setOwner(dataverse);
 
         String messageSubject = "nice dataset";
         String userMessage = "Let's talk!";
 
+        List<FeedbackContact> contacts = new ArrayList<>();
+        contacts.add(new FeedbackContact(null, "dvContact1@librascholar.edu"));
+
+        when(contactResolver.resolveDataverseContact(dataverse)).thenReturn(contacts);
+
         // when
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withRecipient(FeedbackRecipient.DATAVERSE_CONTACT)
                 .withFeedbackTarget(dataset)
                 .withMessageSubject(messageSubject)
@@ -401,7 +428,7 @@ public class FeedbackUtilTest {
         String userMessage = "Let's talk!";
 
         // when
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withRecipient(FeedbackRecipient.SYSTEM_SUPPORT)
                 .withFeedbackTarget(dataset)
                 .withMessageSubject(messageSubject)
@@ -452,7 +479,7 @@ public class FeedbackUtilTest {
         String userMessage = "Let's talk!";
 
         // when
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataset)
                 .withMessageSubject(messageSubject)
                 .withUserMessage(userMessage)
@@ -525,8 +552,13 @@ public class FeedbackUtilTest {
         String messageSubject = "nice file";
         String userMessage = "Let's talk!";
 
+        List<FeedbackContact> contacts = new ArrayList<>();
+        contacts.add(new FeedbackContact(null, "finch@mailinator.com"));
+
+        when(contactResolver.resolveDatasetContact(dataset)).thenReturn(contacts);
+
         // when
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataFile)
                 .withMessageSubject(messageSubject)
                 .withUserMessage(userMessage)
@@ -591,16 +623,19 @@ public class FeedbackUtilTest {
         dataset.setAuthority("10.7910/DVN");
         dataset.setIdentifier("TJCLKP");
         Dataverse dataverse = new Dataverse();
-        List<DataverseContact> dataverseContacts = new ArrayList<>();
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact1@librascholar.edu"));
-        dataverse.setDataverseContacts(dataverseContacts);
+        dataverse.setId(1L);
         dataset.setOwner(dataverse);
 
         String messageSubject = "nice file";
         String userMessage = "Let's talk!";
 
+        List<FeedbackContact> contacts = new ArrayList<>();
+        contacts.add(new FeedbackContact(null, "dvContact1@librascholar.edu"));
+
+        when(contactResolver.resolveDataverseContact(dataverse)).thenReturn(contacts);
+
         // when
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataFile)
                 .withRecipient(FeedbackRecipient.DATAVERSE_CONTACT)
                 .withMessageSubject(messageSubject)
@@ -675,7 +710,7 @@ public class FeedbackUtilTest {
         String userMessage = "Let's talk!";
 
         // when
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataFile)
                 .withRecipient(FeedbackRecipient.SYSTEM_SUPPORT)
                 .withMessageSubject(messageSubject)
@@ -749,7 +784,7 @@ public class FeedbackUtilTest {
         String userMessage = "Let's talk!";
 
         // when
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dataFile)
                 .withMessageSubject(messageSubject)
                 .withUserMessage(userMessage)
@@ -774,7 +809,7 @@ public class FeedbackUtilTest {
         String userMessage = "Help!";
 
         // when
-        List<Feedback> feedbacks1 = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks1 = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withMessageSubject(messageSubject)
                 .withUserMessage(userMessage)
                 .withSystemEmail(systemAddress)
@@ -797,7 +832,7 @@ public class FeedbackUtilTest {
         assertEquals(expectedBody, feedback.getBody());
         assertEquals("support@librascholar.edu", feedback.getToEmail());
         assertEquals("personClickingContactOrSupportButton@example.com", feedback.getFromEmail());
-        List<Feedback> feedbacks2 = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks2 = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withMessageSubject(messageSubject)
                 .withUserMessage(userMessage)
                 .withUserEmail(userEmail)
@@ -807,7 +842,7 @@ public class FeedbackUtilTest {
         assertEquals(1, feedbacks2.size());
         feedback = feedbacks2.get(0);
         assertEquals(null, feedback.getToEmail());
-        List<Feedback> feedbacks3 = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks3 = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withMessageSubject(messageSubject)
                 .withUserEmail(userEmail)
                 .withDataverseSiteUrl(baseUrl)
@@ -826,7 +861,7 @@ public class FeedbackUtilTest {
         String messageSubject = "I'm clicking the support button.";
         String userMessage = "Help!";
         DvObject dvObject = null;
-        List<Feedback> feedbacks = FeedbackUtil.gatherFeedback(new FeedbackInfo<>()
+        List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                 .withFeedbackTarget(dvObject)
                 .withUserEmail(dataverseSessionAuthenticated, userEmail)
                 .withMessageSubject(messageSubject)
