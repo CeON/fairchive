@@ -47,7 +47,11 @@ final class PeriodoImporter {
      */
     public static Iterator<Period> readPeriods(final InputStream json, 
     		final InputStream translations) throws Exception {
-        return importNames(json, translations).iterator();
+		if (translations != null) {
+			return importNames(json, translations).iterator();
+		} else {
+			return readPeriods(json);
+		}
     }
     
     /**
@@ -62,8 +66,11 @@ final class PeriodoImporter {
     public static Iterator<Period> readPeriods(final InputStream json, 
     		final InputStream translations, final InputStream exclusions) 
     				throws Exception {
-        return importNames(json, translations, exclusions).
-        		iterator();
+		if (exclusions != null) {
+			return importNames(json, translations, exclusions).iterator();
+		} else {
+			return readPeriods(json, translations);
+		}
     }
 
     private static List<Period> importNames(final InputStream json) throws Exception {

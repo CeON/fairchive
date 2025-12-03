@@ -54,22 +54,11 @@ public class PeriodoApi extends AbstractApiBean {
 			@FormDataParam("exclusions") FormDataBodyPart exclusions) throws Exception {
 		try {
 			findSuperuserOrDie();
-
 			if (dataset != null) {
-				try (final InputStream json = inputStreamFrom(dataset)) {
-					if (translations != null) {
-						try (final InputStream tsv = inputStreamFrom(translations)) {
-							if (exclusions != null) {
-								try (final InputStream csv = inputStreamFrom(exclusions)) {
-									this.indexingService.importNames(json, tsv, csv);
-								}
-							} else {
-								this.indexingService.importNames(json, tsv);
-							}
-						}
-					} else {
-						this.indexingService.importNames(json);
-					}
+				try (final InputStream json = streamFrom(dataset);
+					 final InputStream tsv = streamFrom(translations);
+					 final InputStream csv = streamFrom(exclusions)) {
+					this.indexingService.importNames(json, tsv, csv);
 				}
 				return ok("Imported");
 			} else {
@@ -103,7 +92,7 @@ public class PeriodoApi extends AbstractApiBean {
         }
     }
     
-    private static InputStream inputStreamFrom(final FormDataBodyPart file) {
-        return file.getEntityAs(InputStream.class);
+    private static InputStream streamFrom(final FormDataBodyPart file) {
+        return file != null ? file.getEntityAs(InputStream.class) : null;
     }
 }
