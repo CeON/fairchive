@@ -40,9 +40,15 @@ public class PeriodoIndexingService {
         store(PeriodoImporter.readPeriods(in));
     }
     
-    public void importNames(final InputStream json, final InputStream tsv) 
+    public void importNames(final InputStream json, final InputStream translations) 
             throws Exception {
-        store(PeriodoImporter.readPeriods(json, tsv));
+        store(PeriodoImporter.readPeriods(json, translations));
+    }
+    
+    public void importNames(final InputStream json, final InputStream translations, 
+    		final InputStream exclusions) 
+            throws Exception {
+        store(PeriodoImporter.readPeriods(json, translations, exclusions));
     }
     
     public void clear() throws Exception {

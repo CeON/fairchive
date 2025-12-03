@@ -164,6 +164,23 @@ public class PeriodoIT extends WebappArquillianDeployment {
         assertThat(this.finder.findById("p0f65r29qvb").get().getTextEn()).isNotNull();
         assertThat(this.finder.findById("p0f65r29qvb").get().getTextPl()).isNotNull();
     }
+    
+    @Test
+    void importingTranslations_supplementsTranlationsFields_andRemovesExclusions() 
+    		throws Exception {
+		try (final InputStream json = openJsonFile()) {
+			try (final InputStream tsv = openTranslationsFile()) {
+				try (final InputStream csv = openExclutionsFile()) {
+					this.indexer.importNames(json, tsv, csv);
+				}
+			}
+		}
+
+        assertThat(this.finder.findById("p0f65r29qvb").get().getTextEn()).isNotNull();
+        assertThat(this.finder.findById("p0f65r29qvb").get().getTextPl()).isNotNull();
+        
+        assertThat(this.finder.findById("p0zj6g8ccr2")).isEmpty();
+    }
 
     private InputStream openJsonFile() {
         return getClass().getResourceAsStream("/periodo/dataset.json");
@@ -171,5 +188,9 @@ public class PeriodoIT extends WebappArquillianDeployment {
     
     private InputStream openTranslationsFile() {
         return getClass().getResourceAsStream("/periodo/translations.tsv");
+    }
+    
+    private InputStream openExclutionsFile() {
+        return getClass().getResourceAsStream("/periodo/exclusions.csv");
     }
 }
