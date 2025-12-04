@@ -41,6 +41,7 @@ public class PeriodoApi extends AbstractApiBean {
      * Invoke with
      * curl --insecure -X POST -F "dataset=@./periodo-dataset.json;type=text/json" \
      *      -F "translations=@./translations.tsv;type=text/csv" \
+     *      -F "exclusions=@./exclusions.csv;type=text/csv" \
      *      -H "X-Dataverse-key: {API key}" https://localhost:8181/api/v1/periodo
      */
 
@@ -48,36 +49,29 @@ public class PeriodoApi extends AbstractApiBean {
     @Path("/")
     @Consumes(MULTIPART_FORM_DATA)
     @Produces(APPLICATION_JSON)
-    public Response upload(@FormDataParam("dataset") FormDataBodyPart dataset,
-            @FormDataParam("translations") FormDataBodyPart translations)
-            throws Exception {
-        try {
-            findSuperuserOrDie();
-
-            if (dataset != null) {
-                try (final InputStream json = inputStreamFrom(dataset)) {
-                    if (translations != null) {
-                        try (final InputStream tsv = inputStreamFrom(translations)) {
-                            this.indexingService.importNames(json, tsv);
-                            return ok("Imported");
-                        }
-                    } else {
-                        this.indexingService.importNames(json);
-                        return ok("Imported");
-                    }
-                }
-            } else {
-                return status(BAD_REQUEST).entity("Periodo JSON content not found.")
-                        .build();
-            }
-        } catch (final AbstractApiBean.WrappedResponse wrappedResponse) {
-            return wrappedResponse.getResponse();
-        } catch(final SolrServerException e) {
-            return status(INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        } catch (final Exception e) {
-            return status(BAD_REQUEST).entity(e.getMessage()).build();
-        }
-    }
+	public Response upload(@FormDataParam("dataset") FormDataBodyPart dataset,
+			@FormDataParam("translations") FormDataBodyPart translations,
+			@FormDataParam("exclusions") FormDataBodyPart exclusions) throws Exception {
+		try {
+			findSuperuserOrDie();
+			if (dataset != null) {
+				try (final InputStream json = streamFrom(dataset);
+					 final InputStream tsv = streamFrom(translations);
+					 final InputStream csv = streamFrom(exclusions)) {
+					this.indexingService.importNames(json, tsv, csv);
+				}
+				return ok("Imported");
+			} else {
+				return status(BAD_REQUEST).entity("Periodo JSON content not found.").build();
+			}
+		} catch (final AbstractApiBean.WrappedResponse wrappedResponse) {
+			return wrappedResponse.getResponse();
+		} catch (final SolrServerException e) {
+			return status(INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		} catch (final Exception e) {
+			return status(BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
     
     /**
      * Invoke with
@@ -98,7 +92,7 @@ public class PeriodoApi extends AbstractApiBean {
         }
     }
     
-    private static InputStream inputStreamFrom(final FormDataBodyPart file) {
-        return file.getEntityAs(InputStream.class);
+    private static InputStream streamFrom(final FormDataBodyPart file) {
+        return file != null ? file.getEntityAs(InputStream.class) : null;
     }
 }
