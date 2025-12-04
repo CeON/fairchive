@@ -413,6 +413,11 @@ public class EditDatafilesPage implements java.io.Serializable {
                 getHumanMaxBatchUploadSize());
     }
 
+    public String getUploadBatchFileCountTooBigMessage() {
+        return getStringFromBundle("file.selectToAdd.tipBatchFileCountLimit",
+                multipleUploadFilesLimit);
+    }
+
     public void reset() { }
 
     public String getDropBoxKey() {
@@ -942,6 +947,15 @@ public class EditDatafilesPage implements java.io.Serializable {
         }
     }
 
+    private boolean numberOfFilesExceedsLimit() {
+        if (isSuperuserLoggedIn() && this.ignoringMaxUploadLimit) {
+            return false;
+        } else {
+            return getMaxNumberOfFiles() > 0
+                    && newFiles.size() >= getMaxNumberOfFiles();
+        }
+    }
+
     /**
      * Handle native file replace
      */
@@ -951,6 +965,9 @@ public class EditDatafilesPage implements java.io.Serializable {
 
         if (sizeExceedsLimit(fileSize)) {
             this.uploadWarningMessage = getUploadBatchTooBigMessage();
+            this.uploadComponentId = event.getComponent().getClientId();
+        } else if (numberOfFilesExceedsLimit()) {
+            this.uploadWarningMessage = getUploadBatchFileCountTooBigMessage();
             this.uploadComponentId = event.getComponent().getClientId();
         } else {
             this.uploadInProgress = true;
