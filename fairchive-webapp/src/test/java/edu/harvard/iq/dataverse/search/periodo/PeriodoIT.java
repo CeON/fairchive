@@ -153,27 +153,24 @@ public class PeriodoIT extends WebappArquillianDeployment {
     }
     
     
-    @Test
-    void importingTranslations_supplementsTranlationsFields() throws Exception {
-        try (final InputStream json = openJsonFile()) {
-            try (final InputStream tsv = openTranslationsFile()) {
-                this.indexer.importNames(json, tsv);
-            }
-        }
+	@Test
+	void importingTranslations_supplementsTranlationsFields() throws Exception {
+		try (final InputStream json = openJsonFile(); 
+				 final InputStream tsv = openTranslationsFile()) {
+			this.indexer.importNames(json, tsv);
+		}
 
-        assertThat(this.finder.findById("p0f65r29qvb").get().getTextEn()).isNotNull();
-        assertThat(this.finder.findById("p0f65r29qvb").get().getTextPl()).isNotNull();
-    }
+		assertThat(this.finder.findById("p0f65r29qvb").get().getTextEn()).isNotNull();
+		assertThat(this.finder.findById("p0f65r29qvb").get().getTextPl()).isNotNull();
+	}
     
     @Test
     void importingTranslations_supplementsTranlationsFields_andRemovesExclusions() 
     		throws Exception {
-		try (final InputStream json = openJsonFile()) {
-			try (final InputStream tsv = openTranslationsFile()) {
-				try (final InputStream csv = openExclutionsFile()) {
-					this.indexer.importNames(json, tsv, csv);
-				}
-			}
+		try (final InputStream json = openJsonFile();
+				final InputStream tsv = openTranslationsFile();
+				final InputStream csv = openExclutionsFile()) {
+			this.indexer.importNames(json, tsv, csv);
 		}
 
         assertThat(this.finder.findById("p0f65r29qvb").get().getTextEn()).isNotNull();

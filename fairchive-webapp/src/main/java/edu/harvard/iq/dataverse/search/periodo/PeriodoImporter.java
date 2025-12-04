@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.search.periodo;
 import static java.lang.Long.MAX_VALUE;
 import static java.lang.Long.parseLong;
 import static java.lang.System.currentTimeMillis;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -34,9 +35,17 @@ final class PeriodoImporter {
     /**
      * Consumes JSON files published on https://perio.do
      */
-    public static Iterator<Period> readPeriods(final InputStream json) 
-            throws Exception {
-        return importNames(json).iterator();
+    public static Iterator<Period> readPeriods(final InputStream json) throws Exception {
+        try {
+            log.info("Reading Perio.do json");
+            final long from = currentTimeMillis();
+            final List<Period> result = readJson(json);
+            logExecutionDuration(from);
+            return result.iterator();
+        } catch (final Exception e) {
+            log.warn("Importing Perio.do failed.", e);
+            throw e;
+        }
     }
     
     /**
@@ -45,14 +54,25 @@ final class PeriodoImporter {
      *          - header row
      *          - {period url}\t{english text}\t{polish text}.... (rest of columns ignored)
      */
-    public static Iterator<Period> readPeriods(final InputStream json, 
-    		final InputStream translations) throws Exception {
+	public static Iterator<Period> readPeriods(final InputStream json, 
+			final InputStream translations)
+			throws Exception {
 		if (translations != null) {
-			return importNames(json, translations).iterator();
+			try {
+				log.info("Reading Perio.do json");
+				final long from = currentTimeMillis();
+				final List<Period> result = readJson(json);
+				supplementWithTranslations(result, translations);
+				logExecutionDuration(from);
+				return result.iterator();
+			} catch (final Exception e) {
+				log.warn("Importing Perio.do failed.", e);
+				throw e;
+			}
 		} else {
 			return readPeriods(json);
 		}
-    }
+	}
     
     /**
      * @param json file downloaded from https://perio.do
@@ -67,56 +87,23 @@ final class PeriodoImporter {
     		final InputStream translations, final InputStream exclusions) 
     				throws Exception {
 		if (exclusions != null) {
-			return importNames(json, translations, exclusions).iterator();
+			try {
+				log.info("Reading Perio.do json");
+				final long from = currentTimeMillis();
+				final List<Period> result = readJson(json);
+				supplementWithTranslations(result, translations);
+				removeExclusions(result, exclusions);
+				logExecutionDuration(from);
+				return result.iterator();
+			} catch (final Exception e) {
+				log.warn("Importing Perio.do failed.", e);
+				throw e;
+			}
 		} else {
 			return readPeriods(json, translations);
 		}
-    }
-
-    private static List<Period> importNames(final InputStream json) throws Exception {
-        try {
-            log.info("Reading Perio.do json");
-            final long from = currentTimeMillis();
-            final List<Period> result = readJson(json);
-            logExecutionDuration(from);
-            return result;
-        } catch (final Exception e) {
-            log.warn("Importing Perio.do failed.", e);
-            throw e;
-        }
-    }
+	}
     
-    private static List<Period> importNames(final InputStream json, 
-    		final InputStream translations) throws Exception {
-        try {
-            log.info("Reading Perio.do json");
-            final long from = currentTimeMillis();
-            final List<Period> result = readJson(json);
-            supplementWithTranslations(result, translations);
-            logExecutionDuration(from);
-            return result;
-        } catch (final Exception e) {
-            log.warn("Importing Perio.do failed.", e);
-            throw e;
-        }
-    }
-    
-    private static List<Period> importNames(final InputStream json, 
-    		final InputStream translations, final InputStream exclusions) 
-    				throws Exception {
-        try {
-            log.info("Reading Perio.do json");
-            final long from = currentTimeMillis();
-            final List<Period> result = readJson(json);
-            supplementWithTranslations(result, translations);
-            removeExclusions(result, exclusions);
-            logExecutionDuration(from);
-            return result;
-        } catch (final Exception e) {
-            log.warn("Importing Perio.do failed.", e);
-            throw e;
-        }
-    }
     
 	private static void supplementWithTranslations(final List<Period> result, 
 			final InputStream translations) throws Exception {
@@ -270,7 +257,7 @@ final class PeriodoImporter {
     }
     
     private static Reader reader(final InputStream in) throws IOException{
-    	return new InputStreamReader(in, "UTF-8");
+    	return new InputStreamReader(in, UTF_8);
     }
     
 	private static void logExecutionDuration(final long begin) {
