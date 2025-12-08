@@ -155,6 +155,18 @@
                                                     <span class="icon-text no-text">,</span>
                                                     <o:skipValidators/>
                                                 </p:commandLink>
+
+                                                <ui:fragment rendered="#{fieldsByType.datasetFieldType.hasMetadata('copyFrom')}">
+                                                    <ui:repeat id="copyFromFields" value="#{fieldsByType.datasetFieldType.getMetadata('copyFrom')}" var="copyFromFields">
+                                                        <p:commandLink title="#{bundle['dataset.edit.copy.hint']}"
+                                                                       styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                                       actionListener="#{fieldsByType.copyValues(editDatasetMetadataPage.findCopySources(copyFromFields.source), copyFromFields.source, valCount.index)}"
+                                                                       update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
+                                                            <span class="icon-text">#{bundle[copyFromFields.text]}</span>
+                                                            <o:skipValidators />
+                                                        </p:commandLink>
+                                                    </ui:repeat>
+                                                </ui:fragment>
                                             </div>
                                         </div>
 
