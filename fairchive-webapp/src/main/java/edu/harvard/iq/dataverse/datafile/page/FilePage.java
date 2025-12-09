@@ -43,6 +43,7 @@ import edu.harvard.iq.dataverse.datafile.FileDownloadServiceBean;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean.RetrieveDatasetVersionResponse;
+import edu.harvard.iq.dataverse.datasetutility.WorldMapPermissionHelper;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.UpdateDatasetException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateNewDatasetCommand;
@@ -93,6 +94,7 @@ public class FilePage implements java.io.Serializable {
     private ExternalToolHandler externalToolHandler;
     private UIMessages ui;
     private FileDownloadServiceBean fileDownloadService;
+    private WorldMapPermissionHelper worldMapPermissionHelper;
 
     private FileMetadata fileMetadata;
     private Long fileId;
@@ -123,7 +125,8 @@ public class FilePage implements java.io.Serializable {
                     ExportService exportService, FileService fileService,
                     GuestbookResponseDialog guestbookResponseDialog, CitationFactory citationFactory,
                     DataverseSession session, ExternalToolHandler externalToolHandler, UIMessages ui,
-                    FileDownloadServiceBean fileDownloadService) {
+                    FileDownloadServiceBean fileDownloadService,
+                    WorldMapPermissionHelper worldMapPermissionHelper) {
         this.datafileService = datafileService;
         this.datasetVersionService = datasetVersionService;
         this.permissionService = permissionService;
@@ -140,6 +143,7 @@ public class FilePage implements java.io.Serializable {
         this.externalToolHandler = externalToolHandler;
         this.ui = ui;
         this.fileDownloadService = fileDownloadService;
+        this.worldMapPermissionHelper = worldMapPermissionHelper;
     }
 
     // -------------------- GETTERS --------------------
@@ -389,6 +393,12 @@ public class FilePage implements java.io.Serializable {
         return !(this.fileMetadata.getDataFile().isFilePackage() ||
                 isDatasetDeaccesioned());
     }
+    
+	public boolean displayFileConfigureDropdownFragment() {
+		return canUpdateDataset() && (getConfigureTools().size() > 0
+				|| this.worldMapPermissionHelper.canUserSeeMapDataButtonFromPage(this.fileMetadata)
+				|| this.worldMapPermissionHelper.canSeeMapButtonReminderToPublishFromPage(this.fileMetadata));
+	}
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
@@ -519,6 +529,10 @@ public class FilePage implements java.io.Serializable {
         setFileMetadatasForTab(activeTabIndex == 1 || activeTabIndex == 2
                 ? loadFileMetadataTabList()
                 : new ArrayList<>());
+    }
+    
+    public boolean isThumbnailAvailable() {
+    	return isThumbnailAvailable(this.fileMetadata);
     }
 
     public boolean isThumbnailAvailable(FileMetadata fileMetadata) {
