@@ -12,21 +12,19 @@
     <!--@elvariable id="fileMetadata" type="edu.harvard.iq.dataverse.persistence.datafile.FileMetadata"-->
 
     <!-- No files accessible in Dataset -->
-    <ui:fragment rendered="#{datasetFilesTab.fileMetadatasSearch.getAllAvailableFilesCount() eq 0 and datasetFilesTab.dataset.hasEverBeenPublished()
-                            and !datasetFilesTab.isFilesTabDisplayable()}">
-        <div class="panel panel-default" jsf:rendered="#{!settingsWrapper.rsyncOnly}">
+    <ui:fragment rendered="#{datasetFilesTab.displayNoFilesAvailable()}">
+        <div class="panel panel-default" 
+             jsf:rendered="#{!settingsWrapper.rsyncOnly}">
             <div class="panel-body">
                 <div class="col-sm-9">
-                    <ui:fragment rendered="#{!datasetFilesTab.dataset.hasActiveEmbargo()}">
-                        <p>#{bundle['file.notFound.tip']}</p>
-                    </ui:fragment>
-                    <ui:fragment rendered="#{datasetFilesTab.dataset.hasActiveEmbargo()}">
-                        <p>
-                            <h:outputFormat value="#{bundle['dataset.embargo.filesTab.message.empty']}">
-                                <f:param value="#{datasetFilesTab.getEmbargoDateForDisplay()}"/>
-                            </h:outputFormat>
-                        </p>
-                    </ui:fragment>
+                    <p jsf:rendered="#{!datasetFilesTab.dataset.hasActiveEmbargo()}">
+                        #{bundle['file.notFound.tip']}
+                    </p>
+                    <p jsf:rendered="#{datasetFilesTab.dataset.hasActiveEmbargo()}">
+                        <h:outputFormat value="#{bundle['dataset.embargo.filesTab.message.empty']}">
+                            <f:param value="#{datasetFilesTab.getEmbargoDateForDisplay()}"/>
+                        </h:outputFormat>
+                    </p>
                 </div>
             </div>
         </div>
