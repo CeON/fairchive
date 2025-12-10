@@ -60,6 +60,9 @@ public class Period {
     public String getDetails(final String beginDecorator,
             final String endDecorator, final String separator) {
         final StringBuilder result = new StringBuilder(80);
+        result.append(beginDecorator).append(getStringFromBundle("periodo.id"))
+        .append(endDecorator).append(": ")
+        .append(this.id).append(separator);
         result.append(beginDecorator).append(getStringFromBundle("periodo.label"))
                 .append(endDecorator).append(": ")
                 .append(this.label).append(separator);
