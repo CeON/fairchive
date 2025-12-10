@@ -67,7 +67,7 @@ public class DatasetEmbargoDialog implements Serializable {
 
     /**
     *
-    * @return current embargo date set on dataset or [TODAY] whichever is greater
+    * @return current embargo date set on dataset
     */
     public Date getCurrentEmbargoDate() {
         return currentEmbargoDate;
@@ -98,20 +98,12 @@ public class DatasetEmbargoDialog implements Serializable {
 
     // -------------------- LOGIC --------------------
 
-    /**
-     * Method that must be executed before any
-     * further operations can be done on this dialog.
-     * <p>
-     * Note that it not initialize dataset versions
-     * which is done in {@link #reloadAndRenderDialog()} to
-     * enable lazy loading of them.
-     */
     public void init(Dataset dataset) {
         this.dataset = dataset;
     }
 
     /**
-     * Loads dataset versions and causes deaccession dialog to render
+     * Loads current embargo date and causes deaccession dialog to render
      */
     public void reloadAndRenderDialog() {
         initCurrentEmbargo();
