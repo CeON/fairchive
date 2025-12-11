@@ -173,16 +173,15 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
         return super.getInputStream();
     }
 
-
     @Override
     public ReadableByteChannel getReadChannel() throws IOException {
-        //Make sure StorageIO.channel variable exists
-        if (super.getReadChannel() == null) {
-            getInputStream();
+        if (!canRead()) {
+            throw new IOException("No NIO read access in this DataAccessObject.");
         }
+        getInputStream();
         return super.getReadChannel();
     }
-
+    
     // StorageIO method for copying a local Path (for ex., a temp file), into this DataAccess location:
     @Override
     public void savePath(Path fileSystemPath) throws IOException {
