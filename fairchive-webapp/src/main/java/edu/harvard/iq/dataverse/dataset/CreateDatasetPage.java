@@ -282,9 +282,6 @@ public class CreateDatasetPage implements Serializable {
         }
 
         AuthenticatedUser user = retrieveAuthenticatedUser();
-        // Call Ingest Service one more time, to
-        // queue the data ingest jobs for asynchronous execution:
-        ingestService.startIngestJobsForDataset(dataset, user);
 
         //After dataset saved, then persist prov json data
         boolean hasProvenanceErrors = false;
@@ -304,7 +301,8 @@ public class CreateDatasetPage implements Serializable {
             .onFailure(ex -> handleErrorMessage(getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"), ex))
             .onSuccess(addFilesResult -> updateVersion(addFilesResult))
             .onSuccess(addFilesResult -> handleSuccessOrPartialSuccessMessages(newFiles.size(), addFilesResult, showProvenanceErrors))
-            .onSuccess(addFilesResult -> dataset = addFilesResult.getDataset());
+            .onSuccess(addFilesResult -> dataset = datasetDao.find(dataset.getId()))
+            .onSuccess(addFilesResult -> ingestService.startIngestJobsForDataset(dataset, user));
 
         return returnToDraftVersion();
     }
