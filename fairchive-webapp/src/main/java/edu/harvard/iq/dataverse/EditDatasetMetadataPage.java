@@ -34,6 +34,7 @@ import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Logger.getLogger;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +172,20 @@ public class EditDatasetMetadataPage implements Serializable {
 
     public void initMetadataImportDialog() {
         importerForm = ImporterForm.createInitializedForm(selectedImporter, session.getLocale(), this::getMetadataBlocksForEdit);
+    }
+
+    public List<DatasetField> findCopySources(String sourceId) {
+        List<DatasetField> sourceFields = new ArrayList();
+        for (List<DatasetFieldsByType> datasetFieldsByTypeList : metadataBlocksForEdit.values()) {
+            for (DatasetFieldsByType datasetFieldsByType : datasetFieldsByTypeList) {
+                for (DatasetField datasetField : datasetFieldsByType.getDatasetFields()) {
+                    if (sourceId.equals(datasetField.getTypeName())) {
+                        sourceFields.add(datasetField);
+                    }
+                }
+            }
+        }
+        return sourceFields;
     }
 
     // -------------------- PRIVATE --------------------
