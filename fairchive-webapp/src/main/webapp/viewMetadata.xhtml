@@ -27,7 +27,7 @@
                 <div id="panelCollapse#{block.index}" class="collapse in">
                     <div class="panel-body metadata-panel-body">
                         <ui:fragment>
-                            <div jsf:rendered="#{!empty globalId}"
+                            <div jsf:rendered="#{!empty globalId and metadataBlockVal.key.name eq 'citation'}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">
                                     #{bundle['dataset.metadata.persistentId']}
@@ -42,7 +42,7 @@
                                     <p class="text-block">#{globalId}</p>
                                 </div>
                             </div>
-                            <div jsf:rendered="#{!empty altPID}"
+                            <div jsf:rendered="#{!empty altPID and metadataBlockVal.key.name eq 'citation'}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">
                                     #{bundle['dataset.metadata.alternativePersistentId']}
@@ -57,7 +57,7 @@
                                     <p class="text-block">#{altPID}</p>
                                 </div>
                             </div>
-                            <div jsf:rendered="#{!empty publicationDate}"
+                            <div jsf:rendered="#{!empty publicationDate and metadataBlockVal.key.name eq 'citation'}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">
                                     #{bundle['dataset.metadata.publicationDate']}
