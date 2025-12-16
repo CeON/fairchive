@@ -43,6 +43,19 @@ select
     END AS fieldvalue
 from coordinates;
 
+-- move datasetfield visibility on collection level to geographicCoordinates
+-- take what was set on westLongitude and remove rest of fields eastLongitude, northLongitude, southLongitude
+update dataversefieldtypeinputlevel
+set datasetfieldtype_id = (select id from datasetfieldtype dt where dt.name = 'geographicCoordinates')
+where datasetfieldtype_id = (select id from datasetfieldtype dt where dt.name = 'westLongitude')
+
+delete from dataversefieldtypeinputlevel
+where datasetfieldtype_id = (select id from datasetfieldtype dt
+  where dt.name = 'eastLongitude'
+  or dt.name = 'northLongitude'
+  or dt.name = 'southLongitude'
+)
+
 -- remove values connected with geo fields
 delete from  datasetfield d where datasetfieldtype_id in (
   select id from datasetfieldtype dt where dt.name = 'westLongitude'
