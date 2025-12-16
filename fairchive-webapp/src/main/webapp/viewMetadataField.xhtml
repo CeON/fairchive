@@ -37,43 +37,44 @@
                 <ui:repeat var="childField" 
                            value="#{datasetField.datasetFieldsChildren}" 
                            varStatus="childLoop">
-                    <c:set var="isGeoCoordinatesField" 
-                           value="#{isGeospatial and childField.datasetFieldType.fieldType.isTextbox()}"/>
-                    <c:set var="currentGeoCoordsIndex" 
-                           value="map_#{mdBlockName}_#{fieldIndex}_#{fieldsLoop.index}_#{childLoop.index}"/>
-
-                    <script jsf:rendered="#{isGeoCoordinatesField}">
-                        DvJS.Geo.MetadataView.prepare('#{currentGeoCoordsIndex}');
-                    </script>
-
-                    <div jsf:rendered="#{childField.parentDisplayFormatIsNewLine}">
-                            <ui:repeat value="#{childField.values}" 
-                                       var="value" 
-                                       varStatus="valuesLoop">
-                                <c:set var="valueToDisplay" 
-                                       value="#{datasetFieldValueRenderer.getRendererFor(childField).render(value)}"/>
-                                <h:outputText value="#{valuesLoop.first?'':'; '}#{ valueToDisplay }"
-                                              escape="false"/>
-                            </ui:repeat>
-                    </div>
-                    <script jsf:rendered="#{isGeoCoordinatesField}">
-                        var escapedCoordinates = "#{of:escapeJS(childField.value)}";
-                        DvJS.Geo.MetadataView.storeCoordinates('#{currentGeoCoordsIndex}', escapedCoordinates);
-                    </script>
-                    <h:outputText value="#{childField.parentDisplayFormat} " 
-                                  rendered="#{!childLoop.first and !childField.parentDisplayFormatIsNewLine}" 
-                                  escape="false" />
-                    <ui:repeat value="#{childField.values}" 
-                               var="value" 
-                               varStatus="valuesLoop">
-                        <h:outputText value="#{valuesLoop.first?'':'; '}#{ value }" 
-                                      rendered="#{!childField.parentDisplayFormatIsNewLine}"
-                                      escape="false"/>
-                    </ui:repeat>
-
-                    <div id="#{currentGeoCoordsIndex}" 
-                         class="geo-map" 
-                         jsf:rendered="#{isGeoCoordinatesField}"/>
+                    <ui:fragment rendered="#{!isViewedFromAnonymizedPrivateUrl or childField.isVisibleThroughAnonymizedUrl()}">
+	                    <c:set var="isGeoCoordinatesField" 
+	                           value="#{isGeospatial and childField.datasetFieldType.fieldType.isTextbox()}"/>
+	                    <c:set var="currentGeoCoordsIndex" 
+	                           value="map_#{mdBlockName}_#{fieldIndex}_#{fieldsLoop.index}_#{childLoop.index}"/>
+	                    <script jsf:rendered="#{isGeoCoordinatesField}">
+	                        DvJS.Geo.MetadataView.prepare('#{currentGeoCoordsIndex}');
+	                    </script>
+	
+	                    <div jsf:rendered="#{childField.parentDisplayFormatIsNewLine}">
+	                            <ui:repeat value="#{childField.values}" 
+	                                       var="value" 
+	                                       varStatus="valuesLoop">
+	                                <c:set var="valueToDisplay" 
+	                                       value="#{datasetFieldValueRenderer.getRendererFor(childField).render(value)}"/>
+	                                <h:outputText value="#{valuesLoop.first?'':'; '}#{ valueToDisplay }"
+	                                              escape="false"/>
+	                            </ui:repeat>
+	                    </div>
+	                    <script jsf:rendered="#{isGeoCoordinatesField}">
+	                        var escapedCoordinates = "#{of:escapeJS(childField.value)}";
+	                        DvJS.Geo.MetadataView.storeCoordinates('#{currentGeoCoordsIndex}', escapedCoordinates);
+	                    </script>
+	                    <h:outputText value="#{childField.parentDisplayFormat} " 
+	                                  rendered="#{!childLoop.first and !childField.parentDisplayFormatIsNewLine}" 
+	                                  escape="false" />
+	                    <ui:repeat value="#{childField.values}" 
+	                               var="value" 
+	                               varStatus="valuesLoop">
+	                        <h:outputText value="#{valuesLoop.first?'':'; '}#{ value }" 
+	                                      rendered="#{!childField.parentDisplayFormatIsNewLine}"
+	                                      escape="false"/>
+	                    </ui:repeat>
+	
+	                    <div id="#{currentGeoCoordsIndex}" 
+	                         class="geo-map" 
+	                         jsf:rendered="#{isGeoCoordinatesField}"/>
+                    </ui:fragment>
                 </ui:repeat>
             </div>
         </ui:repeat>
