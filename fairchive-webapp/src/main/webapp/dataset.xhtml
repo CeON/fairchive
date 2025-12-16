@@ -430,7 +430,7 @@
                                                     <h:outputText value="#{bundle['dataset.editBtn.itemLabel.metadata']}"/>
                                                 </h:outputLink>
                                             </li>
-                                            <li>
+                                            <li jsf:rendered="#{DatasetPage.displayGeustbookTab()}">
                                                 <h:outputLink
                                                         value="/selectGuestbook.xhtml?datasetId=#{DatasetPage.dataset.id}">
                                                     <h:outputText
