@@ -102,6 +102,7 @@
                 <f:viewAction action="#{DatasetGuestbookTab.init(DatasetPage.dataset)}"/>
                 <f:viewAction action="#{datasetVersionsTab.init(DatasetPage.dataset)}"/>
                 <f:viewAction action="#{datasetDeaccessionDialog.init(DatasetPage.dataset)}"/>
+                <f:viewAction action="#{datasetEmbargoDialog.init(DatasetPage.dataset)}"/>
                 <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(DatasetPage.dataset)}"/>
                 <f:viewAction action="#{privateUrlDialog.init}"/>
                 <f:viewAction action="#{anonymizedPrivateUrlDialog.init}"/>
@@ -438,11 +439,8 @@
                                                 </h:outputLink>
                                             </li>
                                             <li>
-                                                <p:commandLink id="setEmbargo"
-                                                               action="#{DatasetPage.initCurrentEmbargo()}"
-                                                               update="setEmbargoPanel"
-                                                               oncomplete="primeFacesShowModal('setEmbargoConfirmation', this)"
-                                                               rendered="#{DatasetPage.displaySetEmbargoButton()}">
+                                                <p:commandLink id="setEmbargoLink"
+                                                                   onclick="showEmbargoDialog(); return false;">
                                                     <h:outputText
                                                             value="#{bundle['dataset.editBtn.itemLabel.embargo']}"/>
                                                 </p:commandLink>
@@ -908,141 +906,6 @@
                                          action="#{DatasetPage.deleteDataset()}"/>
                         <p:commandButton value="#{bundle.cancel}"
                                          onclick="PF('deleteConfirmation').hide();"
-                                         type="button"/>
-                    </div>
-                </p:dialog>
-                <!-- Set Embargo -->
-                <p:dialog id="SetEmbargo" 
-                          styleClass="smallPopUp" 
-                          header="#{bundle['dataset.embargo.header']}"
-                          widgetVar="setEmbargoConfirmation" 
-                          modal="true">
-                    <p:fragment id="setEmbargoPanel">
-                        <p class="help-block">
-                            <h:outputFormat value="#{bundle['dataset.embargo.description.message']}"
-                                            escape="false"
-                                            rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo()}">
-                                <br />
-                            </h:outputFormat>
-                            <h:outputFormat value="#{bundle['dataset.embargo.max.message']}"
-                                            escape="false"
-                                            rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo() and DatasetPage.isMaximumEmbargoLengthSet()}">
-                                <f:param value="#{DatasetPage.getMaximumEmbargoLength()}"/>
-                                <br />
-                            </h:outputFormat>
-                            <h:outputFormat value="#{bundle['dataset.embargo.message']}"
-                                            escape="false"
-                                            rendered="#{not empty DatasetPage.currentEmbargoDate}">
-                                <f:param value="#{DatasetPage.currentEmbargoDateForDisplay}"/>
-                                <br />
-                            </h:outputFormat>
-                        </p>
-                        <div jsf:rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo()}">
-                            <p:outputLabel for="embargoDatePicker" 
-                                           value="#{bundle['dataset.embargo.calendar.label']}" />
-                            <span class="glyphicon glyphicon-question-sign tooltip-icon" 
-                                  tabindex="0"
-                                  role="button"
-                                  data-toggle="tooltip" 
-                                  data-placement="auto right"
-                                  data-original-title="#{bundle['dataset.embargo.calendar.label.tip']}"></span>
-                            <p:calendar
-                                    id="embargoDatePicker"
-                                    rendered="#{!DatasetPage.isMaximumEmbargoLengthSet()}"
-                                    value="#{DatasetPage.currentEmbargoDate}"
-                                    showButtonBar="true"
-                                    mindate="#{DatasetPage.getTomorrowsDate()}"
-                                    effect="drop"
-                                    navigator="true"
-                                    pattern="#{settingsWrapper.getSettingValue(':DefaultDateFormat')}"
-                                    validator="#{DatasetPage.validateEmbargoDate}"
-                                    locale="#{dataverseSession.localeCode}"
-                                    timeZone="UTC"
-                                    mode="inline"
-                                    widgetVar="embargoDatePickerCalendar"
-                            />
-                            <p:calendar
-                                    id="embargoDatePickerMaxLimited"
-                                    rendered="#{DatasetPage.isMaximumEmbargoLengthSet()}"
-                                    value="#{DatasetPage.currentEmbargoDate}"
-                                    showButtonBar="true"
-                                    mindate="#{DatasetPage.getTomorrowsDate()}"
-                                    maxdate="#{DatasetPage.getMaximumEmbargoDate().get()}"
-                                    effect="drop"
-                                    navigator="true"
-                                    pattern="#{settingsWrapper.getSettingValue(':DefaultDateFormat')}"
-                                    validator="#{DatasetPage.validateEmbargoDate}"
-                                    locale="#{dataverseSession.localeCode}"
-                                    timeZone="UTC"
-                                    mode="inline"
-                                    widgetVar="embargoDatePickerMaxLimitedCalendar"
-                            />
-                            <p:message id="embargoMsg" for="embargoDatePicker" display="text" />
-                            <p:message id="embargoMsgMaxLimited" for="embargoDatePickerMaxLimited" display="text" />
-                        </div>
-                        <div class="button-block">
-                            <p:commandButton value="#{bundle['dataset.embargo.set.button']}"
-                                             action="#{DatasetPage.updateEmbargoDate()}"
-                                             update="setEmbargoPanel,:messagePanel, dataset-summary-metadata"
-                                             rendered="#{DatasetPage.isUserAbleToSetOrUpdateEmbargo()}"
-                                             oncomplete="if (args &amp;&amp; !args.validationFailed) { PF('setEmbargoConfirmation').hide(); } else { #{DatasetPage.initCurrentEmbargo()}; }"
-                            />
-                            <p:commandButton value="#{bundle['dataset.embargo.lift.button']}"
-                                             onclick="PF('setEmbargoConfirmation').hide();PF('removeEmbargoConfirmation').show()"
-                                             rendered="#{DatasetPage.isUserAbleToLiftEmbargo()}" update="setEmbargoPanel"/>
-                            <p:commandButton styleClass="btn btn-default"
-                                             value="#{bundle.close}"
-                                             onclick="PF('setEmbargoConfirmation').hide();"
-                                             update="setEmbargoPanel, embargoDatePicker"
-                                             resetValues="true"
-                            />
-                        </div>
-                        <script type="text/javascript">
-                            // Move input to the correct place and make it usable
-
-                            $(document).ready(function() {
-                                var datePickerInput = $("#datasetForm\\:embargoDatePicker_input");
-                                var calendar = (PF("embargoDatePickerCalendar") ? PF("embargoDatePickerCalendar") : PF("embargoDatePickerMaxLimitedCalendar"));
-
-                                if (calendar) {
-                                    datePickerInput.val($.datepicker.formatDate("yy-mm-dd", calendar.getDate()));
-                                }
-
-                                if (datePickerInput.length  > 0) {
-                                    datePickerInput.attr("type", "text")
-                                    datePickerInput.insertAfter($("label[for*=embargoDatePicker_input]").next());
-
-                                    datePickerInput.on("input", function() {
-                                        if (calendar) {
-                                            calendar.setDate(this.value);
-                                        }
-                                    });
-                                }
-                            });
-                        </script>
-                    </p:fragment>
-                </p:dialog>
-                <!-- Confirm embargo lift -->
-                <p:dialog styleClass="smallPopUp" 
-                          header="#{bundle['dataset.embargo.header']}"
-                          widgetVar="removeEmbargoConfirmation" 
-                          modal="true" 
-                          closable="false">
-                    <p class="text-warning">
-                        <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.embargo.lift.confirmationText']}
-                    </p>
-                    <p jsf:rendered="#{DatasetPage.dataset.hasEverBeenPublished()}" 
-                       class="text-warning">
-                       <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.embargo.lift.publishedConfirmationText']}
-                    </p>
-                    <div class="button-block">
-                        <p:commandButton value="#{bundle['dataset.embargo.lift.confirmButton']}"
-                                         immediate="true"
-                                         action="#{DatasetPage.liftEmbargo()}"
-                                         update="setEmbargoPanel,:messagePanel, dataset-summary-metadata"
-                                         onclick="PF('removeEmbargoConfirmation').hide();"/>
-                        <p:commandButton value="#{bundle.cancel}"
-                                         onclick="PF('removeEmbargoConfirmation').hide();PF('setEmbargoConfirmation').show();"
                                          type="button"/>
                     </div>
                 </p:dialog>
@@ -1543,6 +1406,7 @@
 
 
             <ui:include src="dataset-deaccession-dialog.xhtml"/>
+            <ui:include src="dataset-embargo-dialog.xhtml"/>
 
         </ui:define>
     </ui:composition>
