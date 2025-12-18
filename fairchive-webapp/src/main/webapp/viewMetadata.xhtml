@@ -26,7 +26,7 @@
                 </a>
                 <div id="panelCollapse#{block.index}" class="collapse in">
                     <div class="panel-body metadata-panel-body">
-                        <ui:fragment>
+                        <ui:fragment rendered="#{metadataBlockVal.key.name eq 'citation'}">
                             <div jsf:rendered="#{!empty globalId}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">

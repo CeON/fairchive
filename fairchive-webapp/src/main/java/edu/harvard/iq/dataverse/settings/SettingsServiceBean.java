@@ -8,6 +8,7 @@ import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.Setting;
 import edu.harvard.iq.dataverse.persistence.SettingRepository;
 import edu.harvard.iq.dataverse.util.StringUtil;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +28,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -846,7 +848,10 @@ public class SettingsServiceBean {
          * only the collection block, the file block, and the first dataset
          * metadata block.
          */
-        ExpandAllAdvancedSearchBlocks;
+        ExpandAllAdvancedSearchBlocks,
+        
+        /** Set this to {@code true} to display guest books */
+        DiplayGuestbooks;
 
         @Override
         public String toString() {
@@ -922,6 +927,12 @@ public class SettingsServiceBean {
     public String getValueForKeyWithPostfix(final Key key, final String postfix) {
         return get(key.toString() + '.' + postfix);
     }
+    
+	public boolean getValueForKeyAsBoolean(final Key key, final boolean defaultValue) {
+
+		final String val = this.getValueForKey(key);
+		return isNotBlank(val) ? Boolean.valueOf(val.trim()) : defaultValue;
+	}
 
     /**
      * Attempt to convert the value to an integer
