@@ -315,7 +315,6 @@ public class SendFeedbackDialog implements java.io.Serializable {
             }
             for (final Feedback feedback : feedbacks) {
 
-                System.out.println("--------------sendMessage(): " + this.mailService);
                 this.mailService.sendMailAsync(feedback.getFromEmail(),
                         feedback.getToEmail(),
                         feedback.getSubject(), feedback.getBody(),
