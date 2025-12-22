@@ -102,7 +102,8 @@ public class DataversePage {
 	}
 	
 	public boolean displayPublishButton() {
-		return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse);
+		return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse) &&
+				!this.dataverse.isReleased();
 	}
 	
 	public boolean displayEditButton() {

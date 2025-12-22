@@ -9,9 +9,9 @@ import static org.apache.pdfbox.tools.imageio.ImageIOUtil.writeImage;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -88,8 +88,8 @@ public class OcrService {
                             }
                         }
 
-                        try (final OutputStream ocr = storage.openAuxOutput("ocr")) {
-                            out.writeTo(ocr);
+                        try (final InputStream in = new ByteArrayInputStream(out.toByteArray())) {
+                            storage.saveInputStreamAsAux(in, "ocr");
                         }
                     }
                 }
@@ -120,8 +120,8 @@ public class OcrService {
                     copy(process.getErrorStream(), err);
 
                     if (process.waitFor() == 0) {
-                        try (final OutputStream ocr = storage.openAuxOutput("ocr")) {
-                            out.writeTo(ocr);
+                        try (final InputStream in = new ByteArrayInputStream(out.toByteArray())) {
+                            storage.saveInputStreamAsAux(in, "ocr");
                         }
                     } else {
                         log.warn(err.toString());

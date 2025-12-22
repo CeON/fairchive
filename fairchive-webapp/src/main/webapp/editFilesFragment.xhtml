@@ -109,6 +109,10 @@
                                         <f:param value="#{settingsWrapper.guidesBaseUrl}"/>
                                         <f:param value="#{settingsWrapper.guidesVersion}"/>
                                     </h:outputFormat>
+                                    <h:outputFormat value=" #{bundle['file.selectToAdd.tipBatchFileCountLimit']}" escape="false"
+                                                    rendered="#{EditDatafilesPage.fileMetadatas >= multipleUploadFilesLimit}">
+                                        <f:param value="#{EditDatafilesPage.multipleUploadFilesLimit}"/>
+                                    </h:outputFormat>
                                     <h:outputFormat value=" #{bundle['file.selectToAdd.tipLimit']}" escape="false"
                                                     rendered="#{!EditDatafilesPage.unlimitedUploadFileSize}">
                                         <f:param value="#{EditDatafilesPage.humanMaxFileUploadSize}"/>

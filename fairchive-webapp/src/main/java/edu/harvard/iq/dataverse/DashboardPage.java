@@ -18,6 +18,11 @@ import org.omnifaces.cdi.ViewScoped;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaximumEmbargoLength;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OAIServerEnabled;
+
 import java.text.NumberFormat;
 import java.util.List;
 
@@ -117,7 +122,7 @@ public class DashboardPage implements java.io.Serializable {
     }
 
     public boolean isHarvestServerEnabled() {
-        return settingsService.isTrueForKey(SettingsServiceBean.Key.OAIServerEnabled);
+        return settingsService.isTrueForKey(OAIServerEnabled);
     }
 
     public int getNumberOfOaiSets() {
@@ -154,7 +159,7 @@ public class DashboardPage implements java.io.Serializable {
 
     @Deprecated
     public String getHarvestServerInfoLabel() {
-        if (!settingsService.isTrueForKey(SettingsServiceBean.Key.OAIServerEnabled)) {
+        if (!settingsService.isTrueForKey(OAIServerEnabled)) {
             return "OAI server disabled.";
         }
 
@@ -162,7 +167,7 @@ public class DashboardPage implements java.io.Serializable {
 
         List<OAISet> configuredHarvestingSets = oaiSetService.findAll();
         if (configuredHarvestingSets == null || configuredHarvestingSets.isEmpty()) {
-            infoLabel = infoLabel.concat(BundleUtil.getStringFromBundle("harvestserver.service.empty"));
+            infoLabel = infoLabel.concat(getStringFromBundle("harvestserver.service.empty"));
             return infoLabel;
         }
 
@@ -180,11 +185,11 @@ public class DashboardPage implements java.io.Serializable {
     }
 
     public int getMaximumEmbargoLength() {
-        return settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MaximumEmbargoLength).intValue();
+        return settingsService.getValueForKeyAsLong(MaximumEmbargoLength).intValue();
     }
 
     public boolean isMaximumEmbargoLengthSet() {
-        return settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MaximumEmbargoLength) > 0;
+        return settingsService.getValueForKeyAsLong(MaximumEmbargoLength) > 0;
     }
 
     /**

@@ -77,6 +77,15 @@ public class DatasetFieldsByType {
         datasetFields.addAll(position, divided);
     }
 
+    public void copyValues(List<DatasetField> sources, String sourceName, int position) {
+        List<DatasetField> copied = FieldValueCopy.create(datasetFieldType, sourceName).copy(sources, datasetFields.get(position));
+
+        if (datasetFields.size() > 1 || !sources.isEmpty()) { // remove field only if that won't left us with no fields
+            datasetFields.remove(position);
+        }
+        datasetFields.addAll(position, copied);
+    }
+
     public void removeDatasetField(int position) {
         datasetFields.remove(position);
     }

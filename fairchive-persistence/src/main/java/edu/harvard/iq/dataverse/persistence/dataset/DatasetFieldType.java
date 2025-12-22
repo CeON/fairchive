@@ -181,6 +181,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     @Column(name="metadata", nullable = false)
     @Convert(converter = JsonMapConverter.class)
     private Map<String, Object> metadata = emptyMap();
+    @Column
     private boolean visibleThroughAnonymizedUrl;
 
     /**

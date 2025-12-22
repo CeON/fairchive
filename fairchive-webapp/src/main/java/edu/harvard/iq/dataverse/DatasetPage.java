@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.valueOf;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DiplayGuestbooks;
 import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -182,8 +183,6 @@ public class DatasetPage implements Serializable {
     private Long datasetDownloadCount;
 
     private List<DatasetFileTermDifferenceItem> fileTermDiffsWithLatestReleased;
-
-    private Date currentEmbargoDate;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -435,7 +434,8 @@ public class DatasetPage implements Serializable {
     }
     
     public boolean displayGeustbookTab() {
-        return !isViewedFromAnonymizedPrivateUrl()
+    	return this.settingsService.getValueForKeyAsBoolean(DiplayGuestbooks, false)
+    			&& !isViewedFromAnonymizedPrivateUrl()
                 && !this.workingVersion.isDeaccessioned();
     }
     
@@ -718,7 +718,6 @@ public class DatasetPage implements Serializable {
 
         // init the citation
         displayCitation = citationFactory.create(workingVersion).toString(true);
-        initCurrentEmbargo();
         datasetCitationsCount = datasetCitationsCountRepository.findByDatasetId(dataset.getId())
                 .map(DatasetCitationsCount::getCitationsCount).orElse(0);
 
@@ -1266,14 +1265,6 @@ public class DatasetPage implements Serializable {
     }
 
     /**
-     *
-     * @return current embargo date set on dataset or [TODAY] whichever is greater
-     */
-    public Date getCurrentEmbargoDate() {
-        return currentEmbargoDate;
-    }
-
-    /**
      * publisher (aka - name of root dataverse)
      *
      * @return the publisher of the version
@@ -1345,44 +1336,9 @@ public class DatasetPage implements Serializable {
         this.contributorMessageToCurator = contributorMessageToCurator;
     }
 
-    public void initCurrentEmbargo() {
-        currentEmbargoDate = dataset.getEmbargoDate().getOrNull();
-    }
-
-    public void setCurrentEmbargoDate(Date currentEmbargoDate) {
-        this.currentEmbargoDate = currentEmbargoDate;
-    }
-
-    public Date getTomorrowsDate() {
-        return Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
-    }
-
-    public void updateEmbargoDate() {
-        Try.of(() -> datasetService.setDatasetEmbargoDate(dataset, currentEmbargoDate))
-                .onSuccess(ds -> JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("dataset.embargo.save.successMessage")))
-                .onFailure(ds -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.embargo.save.failureMessage")));
-    }
-
-    public void liftEmbargo() {
-        Try.of(() -> datasetService.liftDatasetEmbargoDate(dataset))
-                .onSuccess(ds -> currentEmbargoDate = null)
-                .onSuccess(ds -> JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("dataset.embargo.lift.successMessage")))
-                .onFailure(ds -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.embargo.lift.failureMessage")));
-    }
-
     public String getCurrentEmbargoDateForDisplay() {
         SimpleDateFormat format = new SimpleDateFormat(settingsService.getValueForKey(SettingsServiceBean.Key.DefaultDateFormat));
-        return currentEmbargoDate != null ? format.format(currentEmbargoDate) : "";
-    }
-
-    public String getMaximumEmbargoDateForDisplay() {
-        SimpleDateFormat format = new SimpleDateFormat(settingsService.getValueForKey(SettingsServiceBean.Key.DefaultDateFormat));
-        return getMaximumEmbargoDate().isDefined() ? format.format(getMaximumEmbargoDate().get()) : "";
-    }
-
-    public void validateEmbargoDate(FacesContext context, UIComponent toValidate, Object embargoDate) {
-        validateVersusMinimumDate(context, toValidate, embargoDate);
-        validateVersusMaximumDate(context, toValidate, embargoDate);
+        return dataset.getEmbargoDate().getOrNull() != null ? format.format(dataset.getEmbargoDate().getOrNull()) : "";
     }
 
     public void validateReplyToEmail(FacesContext context, UIComponent component, Object value) throws ValidatorException {
@@ -1408,24 +1364,6 @@ public class DatasetPage implements Serializable {
 
     public boolean isUserAbleToLiftEmbargo() {
         return dataset.hasActiveEmbargo();
-    }
-
-    public int getMaximumEmbargoLength() {
-        return settingsService.getValueForKeyAsInt(SettingsServiceBean.Key.MaximumEmbargoLength);
-    }
-
-    public boolean isMaximumEmbargoLengthSet() {
-        return getMaximumEmbargoLength() > 0;
-    }
-
-    public Option<Date> getMaximumEmbargoDate() {
-        if(isMaximumEmbargoLengthSet()) {
-            return Option.of(Date.from(Instant
-                    .now().atOffset(ZoneOffset.UTC)
-                    .plus(settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MaximumEmbargoLength), ChronoUnit.MONTHS)
-                    .toInstant()));
-        }
-        return Option.none();
     }
 
     public int getFileSize() {
@@ -1457,26 +1395,6 @@ public class DatasetPage implements Serializable {
        isLatestDatasetWithAnyFilesIncluded = Optional.of(isLatestDatasetWithAnyFilesIncluded.orElseGet(() -> datasetPageFacade.isLatestDatasetWithAnyFilesIncluded(dataset.getLatestVersion().getId())));
 
        return isLatestDatasetWithAnyFilesIncluded.get();
-    }
-
-    private void validateVersusMaximumDate(FacesContext context, UIComponent toValidate, Object embargoDate) {
-        if(isMaximumEmbargoLengthSet() &&
-                !Objects.isNull(embargoDate) &&
-                ((Date) embargoDate).toInstant().isAfter(getMaximumEmbargoDate().get().toInstant())) {
-            ((UIInput) toValidate).setValid(false);
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    BundleUtil.getStringFromBundle("dataset.embargo.validate.max.failureMessage", getMaximumEmbargoDateForDisplay()), null);
-            context.addMessage(toValidate.getClientId(context), message);
-        }
-    }
-
-    private void validateVersusMinimumDate(FacesContext context, UIComponent toValidate, Object embargoDate) {
-        if(!Objects.isNull(embargoDate) &&
-                ((Date) embargoDate).toInstant().isBefore(getTomorrowsDate().toInstant())) {
-            ((UIInput) toValidate).setValid(false);
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("dataset.embargo.validate.min.failureMessage"), null);
-            context.addMessage(toValidate.getClientId(context), message);
-        }
     }
 
     /*

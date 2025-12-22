@@ -110,4 +110,18 @@ public class SearchForTypes {
     public static SearchForTypes all() {
         return byTypes(SearchObjectType.values());
     }
+
+    // -------------------- SETTERS --------------------
+
+    public void setContainsDataset(boolean value) {
+        toggleType(SearchObjectType.DATASETS);
+    }
+
+    public void setContainsDataverse(boolean value) {
+        toggleType(SearchObjectType.DATAVERSES);
+    }
+
+    public void setContainsFiles(boolean value) {
+        toggleType(SearchObjectType.FILES);
+    }
 }

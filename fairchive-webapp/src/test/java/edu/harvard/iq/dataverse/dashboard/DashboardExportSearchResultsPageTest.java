@@ -76,11 +76,14 @@ public class DashboardExportSearchResultsPageTest {
     public void selectionAndSavingWorks() throws Exception {
         assertThat(this.page.getBlocks().size()).isEqualTo(1);
         assertThat(this.page.getBlocks().get(0)).isSameAs(this.metadataBlock);
-
+        assertThat(this.page.getExportedCount()).isZero();
+        
+        
         this.page.getBlocks().get(0).getDatasetFieldTypes().get(0).setExportToFile(true);
         this.page.save();
 
         verify(this.datasetFiledTypeRepo).saveAll(this.types);
+        assertThat(this.page.getExportedCount()).isOne();
         assertThat(this.type1.isExportToFile()).isTrue();
         assertThat(this.type2.isExportToFile()).isFalse();
     }

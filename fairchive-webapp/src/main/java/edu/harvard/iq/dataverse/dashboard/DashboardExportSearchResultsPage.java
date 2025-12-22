@@ -7,13 +7,15 @@ import java.io.Serializable;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import org.omnifaces.cdi.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
 
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.NavigationWrapper;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
@@ -56,6 +58,15 @@ public class DashboardExportSearchResultsPage implements Serializable {
     public List<MetadataBlock> getBlocks() {
         return this.blocks;
     }
+    
+    public long getExportedCount() {
+    	return this.blocks.stream()
+    			.map(MetadataBlock::getDatasetFieldTypes)
+    			.flatMap(List::stream)
+    			.filter(DatasetFieldType::isExportToFile)
+    			.count();
+    }
+    			
 
     public String verifyAccess() {
         return this.session.canEditDashboard() ? EMPTY : this.navigation.notAuthorized();
