@@ -3,6 +3,8 @@ package edu.harvard.iq.dataverse.feedback;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 
+import java.util.Objects;
+
 import javax.mail.internet.InternetAddress;
 
 /**
@@ -125,5 +127,79 @@ public class FeedbackInfo<T extends DvObject> {
 
     private static String loggedInUserEmail(DataverseSession dataverseSession) {
         return dataverseSession.getUser().getDisplayInfo().getEmailAddress();
+    }
+
+
+    public void setFeedbackTarget(T feedbackTarget) {
+        this.feedbackTarget = feedbackTarget;
+    }
+
+    public void setRecipient(FeedbackRecipient recipient) {
+        this.recipient = recipient;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public void setSystemEmail(String systemEmail) {
+        this.systemEmail = systemEmail;
+    }
+
+    public void setMessageSubject(String messageSubject) {
+        this.messageSubject = messageSubject;
+    }
+
+    public void setUserMessage(String userMessage) {
+        this.userMessage = userMessage;
+    }
+
+    public void setDataverseSiteUrl(String dataverseSiteUrl) {
+        this.dataverseSiteUrl = dataverseSiteUrl;
+    }
+
+    public void setInstallationBrandName(String installationBrandName) {
+        this.installationBrandName = installationBrandName;
+    }
+
+    public void setSupportTeamName(String supportTeamName) {
+        this.supportTeamName = supportTeamName;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataverseSiteUrl, feedbackTarget, installationBrandName, messageSubject, recipient,
+                supportTeamName, systemEmail, userEmail, userMessage);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        FeedbackInfo other = (FeedbackInfo) obj;
+        return Objects.equals(dataverseSiteUrl, other.dataverseSiteUrl)
+                && Objects.equals(feedbackTarget, other.feedbackTarget)
+                && Objects.equals(installationBrandName, other.installationBrandName)
+                && Objects.equals(messageSubject, other.messageSubject)
+                && recipient == other.recipient
+                && Objects.equals(supportTeamName, other.supportTeamName)
+                && Objects.equals(systemEmail, other.systemEmail)
+                && Objects.equals(userEmail, other.userEmail)
+                && Objects.equals(userMessage, other.userMessage);
+    }
+
+    @Override
+    public String toString() {
+        return "FeedbackInfo [feedbackTarget=" + feedbackTarget + ", recipient=" + recipient + ", userEmail="
+                + userEmail + ", systemEmail=" + systemEmail + ", messageSubject=" + messageSubject + ", userMessage="
+                + userMessage + ", dataverseSiteUrl=" + dataverseSiteUrl + ", installationBrandName="
+                + installationBrandName + ", supportTeamName=" + supportTeamName + "]";
     }
 }

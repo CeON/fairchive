@@ -259,6 +259,13 @@ INSERT INTO datasetversion (id, version, dataset_id, versionstate, versionnumber
 INSERT INTO datasetversion (id, version, dataset_id, versionstate, versionnumber, minorversionnumber, unf, archivenote, versionnote, deaccessionlink, createtime, lastupdatetime, releasetime, archivetime, archivalcopylocation)
     VALUES (51, 1, 57, 'RELEASED', 2, 0, NULL, NULL, NULL, NULL, '2020-01-06 09:10:00', '2020-01-06 12:00:43', '2020-01-06 12:00:43', NULL, NULL);
 
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (5001, NULL, 50, 1, 0, 'Dataset with versions (ver1)');
+
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (5101, NULL, 51, 1, 0, 'Dataset with versions (ver2)');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (5102, NULL, 51, 13, 0, NULL);
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (5103, 5102, NULL, 14, 0, 'John Doe (contact)');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (5104, 5102, NULL, 16, 0, 'contact.ds57@mailinator.com');
+
 --- Dataset after embargo for reindex
 
 INSERT INTO dvobject (id, dtype, owner_id, previewimageavailable, protocol, authority, identifier, globalidcreatetime, identifierregistered, storageidentifier, releaseuser_id, publicationdate,

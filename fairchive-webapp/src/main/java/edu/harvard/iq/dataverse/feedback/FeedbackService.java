@@ -10,17 +10,26 @@ import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class FeedbackUtil {
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
-    private static final Logger logger = Logger.getLogger(FeedbackUtil.class.getCanonicalName());
+@ApplicationScoped
+public class FeedbackService implements Serializable {
+
+    private static final Logger logger = Logger.getLogger(FeedbackService.class.getCanonicalName());
 
     private static final String NO_DATASET_CONTACT_INTRO = getStringFromBundle("contact.context.dataset.noContact");
 
+    @Inject
+    private FeedbackContactResolver contactResolver;
+
+
     @SuppressWarnings("unchecked")
-    public static <T extends DvObject> List<Feedback> gatherFeedback(FeedbackInfo<T> feedbackInfo) {
+    public <T extends DvObject> List<Feedback> gatherFeedback(FeedbackInfo<T> feedbackInfo) {
         if (feedbackInfo.getFeedbackTarget() == null) {
             return Lists.newArrayList(getFeedbackToRepoSupport(feedbackInfo));
         }
@@ -37,7 +46,7 @@ public class FeedbackUtil {
         }
     }
 
-    private static List<Feedback> getFeedbacksToDataverse(FeedbackInfo<Dataverse> feedbackInfo) {
+    private List<Feedback> getFeedbacksToDataverse(FeedbackInfo<Dataverse> feedbackInfo) {
         List<FeedbackContact> dataverseContacts = resolveContactsForDataverse(feedbackInfo);
 
         String dataverseContextEnding = getStringFromBundle("contact.context.dataverse.ending",
@@ -71,7 +80,7 @@ public class FeedbackUtil {
                 .collect(toList());
     }
 
-    private static List<Feedback> getFeedbacksToDataset(FeedbackInfo<Dataset> feedbackInfo) {
+    private List<Feedback> getFeedbacksToDataset(FeedbackInfo<Dataset> feedbackInfo) {
         List<FeedbackContact> recipients = resolveContactsForDataset(feedbackInfo);
         String datasetPid = feedbackInfo.getFeedbackTarget().getGlobalId().toString();
 
@@ -105,7 +114,7 @@ public class FeedbackUtil {
         }).collect(toList());
     }
 
-    private static List<Feedback> getFeedbacksToDataFile(FeedbackInfo<DataFile> feedbackInfo) {
+    private List<Feedback> getFeedbacksToDataFile(FeedbackInfo<DataFile> feedbackInfo) {
         List<FeedbackContact> datasetContacts = resolveContactsForDataFile(feedbackInfo);
 
         DataFile dataFile = feedbackInfo.getFeedbackTarget();
@@ -143,7 +152,7 @@ public class FeedbackUtil {
         }).collect(toList());
     }
 
-    private static Feedback getFeedbackToRepoSupport(FeedbackInfo<?> feedbackInfo) {
+    private Feedback getFeedbackToRepoSupport(FeedbackInfo<?> feedbackInfo) {
         String noDvObjectContextIntro = getStringFromBundle("contact.context.support.intro", 
                 feedbackInfo.getSupportTeamName(), feedbackInfo.getUserEmail());
         String noDvObjectContextEnding = getStringFromBundle("contact.context.support.ending", "");
@@ -155,9 +164,9 @@ public class FeedbackUtil {
                 noDvObjectContextIntro + feedbackInfo.getUserMessage() + noDvObjectContextEnding);
     }
 
-    public static List<FeedbackContact> resolveContactsForDataverse(FeedbackInfo<Dataverse> feedbackInfo) {
+    public List<FeedbackContact> resolveContactsForDataverse(FeedbackInfo<Dataverse> feedbackInfo) {
         if (feedbackInfo.getRecipient() == null || feedbackInfo.getRecipient() == FeedbackRecipient.DATAVERSE_CONTACT) {
-            return FeedbackContact.fromDataverse(feedbackInfo.getFeedbackTarget());
+            return contactResolver.resolveDataverseContact(feedbackInfo.getFeedbackTarget());
         } else if (feedbackInfo.getRecipient() == FeedbackRecipient.SYSTEM_SUPPORT) {
             return Lists.newArrayList(new FeedbackContact(feedbackInfo.getSystemEmail()));
         }
@@ -165,11 +174,11 @@ public class FeedbackUtil {
         return emptyList();
     }
 
-    public static List<FeedbackContact> resolveContactsForDataset(FeedbackInfo<Dataset> feedbackInfo) {
+    public List<FeedbackContact> resolveContactsForDataset(FeedbackInfo<Dataset> feedbackInfo) {
         if (feedbackInfo.getRecipient() == null || feedbackInfo.getRecipient() == FeedbackRecipient.DATASET_CONTACT) {
-            return FeedbackContact.fromDataset(feedbackInfo.getFeedbackTarget());
+            return contactResolver.resolveDatasetContact(feedbackInfo.getFeedbackTarget());
         } else if (feedbackInfo.getRecipient() == FeedbackRecipient.DATAVERSE_CONTACT) {
-            return FeedbackContact.fromDataverse(feedbackInfo.getFeedbackTarget().getOwner());
+            return contactResolver.resolveDataverseContact(feedbackInfo.getFeedbackTarget().getOwner());
         } else if (feedbackInfo.getRecipient() == FeedbackRecipient.SYSTEM_SUPPORT) {
             return Lists.newArrayList(new FeedbackContact(feedbackInfo.getSystemEmail()));
         }
@@ -177,11 +186,11 @@ public class FeedbackUtil {
         return emptyList();
     }
 
-    public static List<FeedbackContact> resolveContactsForDataFile(FeedbackInfo<DataFile> feedbackInfo) {
+    public List<FeedbackContact> resolveContactsForDataFile(FeedbackInfo<DataFile> feedbackInfo) {
         if (feedbackInfo.getRecipient() == null || feedbackInfo.getRecipient() == FeedbackRecipient.DATASET_CONTACT) {
-            return FeedbackContact.fromDataset(feedbackInfo.getFeedbackTarget().getOwner());
+            return contactResolver.resolveDatasetContact(feedbackInfo.getFeedbackTarget().getOwner());
         } else if (feedbackInfo.getRecipient() == FeedbackRecipient.DATAVERSE_CONTACT) {
-            return FeedbackContact.fromDataverse(feedbackInfo.getFeedbackTarget().getOwner().getOwner());
+            return contactResolver.resolveDataverseContact(feedbackInfo.getFeedbackTarget().getOwner().getOwner());
         } else if (feedbackInfo.getRecipient() == FeedbackRecipient.SYSTEM_SUPPORT) {
             return Lists.newArrayList(new FeedbackContact(feedbackInfo.getSystemEmail()));
         }
