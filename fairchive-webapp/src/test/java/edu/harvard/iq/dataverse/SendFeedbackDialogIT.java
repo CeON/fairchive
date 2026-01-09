@@ -128,7 +128,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isFalse();
         assertThat(this.dialog.loggedInUserEmail()).isNull();
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isFalse();
         assertThat(this.dialog.displayOnlyOneRecipient()).isTrue();
 
         this.dialog.setUserEmail(GUEST_USER_EMAIL);
@@ -167,7 +166,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isTrue();
         assertThat(this.dialog.displayOnlyOneRecipient()).isTrue();
 
         this.dialog.setMessageSubject("abc subject");
@@ -205,7 +203,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isTrue();
         assertThat(this.dialog.displayOnlyOneRecipient()).isTrue();
 
         this.dialog.setMessageSubject("abc subject");
@@ -270,7 +267,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isTrue();
         assertThat(this.dialog.displayOnlyOneRecipient()).isFalse();
 
         this.dialog.setMessageSubject("abc subject");
@@ -310,7 +306,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isTrue();
         assertThat(this.dialog.displayOnlyOneRecipient()).isFalse();
 
         this.dialog.setMessageSubject("abc subject");
@@ -360,7 +355,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isTrue();
         assertThat(this.dialog.displayOnlyOneRecipient()).isFalse();
 
         this.dialog.setMessageSubject("abc subject");
@@ -399,7 +393,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isTrue();
         assertThat(this.dialog.displayOnlyOneRecipient()).isFalse();
 
         this.dialog.setMessageSubject("abc subject");
@@ -449,7 +442,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isTrue();
         assertThat(this.dialog.displayOnlyOneRecipient()).isFalse();
 
         this.dialog.setMessageSubject("abc subject");
@@ -488,7 +480,6 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
         assertThat(this.dialog.isLoggedIn()).isTrue();
         assertThat(this.dialog.loggedInUserEmail()).isEqualTo(USER_EMAIL);
         assertThat(this.dialog.getAttachments()).isEmpty();
-        assertThat(this.dialog.displayFileUpload()).isTrue();
         assertThat(this.dialog.displayOnlyOneRecipient()).isFalse();
 
         this.dialog.setMessageSubject("abc subject");
