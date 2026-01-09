@@ -12,15 +12,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +24,6 @@ import java.util.stream.Stream;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.validator.ValidatorException;
@@ -48,7 +42,6 @@ import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetSummaryService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnail;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
@@ -103,7 +96,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 
 /**
@@ -139,7 +131,6 @@ public class DatasetPage implements Serializable {
     private DataverseRequestServiceBean dvRequestService;
     private ThumbnailServiceWrapper thumbnailServiceWrapper;
     private ExportService exportService;
-    private DatasetService datasetService;
     private DatasetThumbnailService datasetThumbnailService;
     private DatasetSummaryService datasetSummaryService;
     private GuestbookResponseServiceBean guestbookResponseService;
@@ -195,7 +186,7 @@ public class DatasetPage implements Serializable {
                        DataFileServiceBean datafileService, PermissionServiceBean permissionService,
                        MapLayerMetadataServiceBean mapLayerMetadataService, SettingsServiceBean settingsService,
                        DataverseRequestServiceBean dvRequestService, ThumbnailServiceWrapper thumbnailServiceWrapper,
-                       ExportService exportService, DatasetService datasetService,
+                       ExportService exportService, 
                        DatasetThumbnailService datasetThumbnailService, DatasetSummaryService datasetSummaryService,
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
                        AuthenticationServiceBean authenticationService, DatasetPageFacade datasetPageFacade,
@@ -214,7 +205,6 @@ public class DatasetPage implements Serializable {
         this.dvRequestService = dvRequestService;
         this.thumbnailServiceWrapper = thumbnailServiceWrapper;
         this.exportService = exportService;
-        this.datasetService = datasetService;
         this.datasetThumbnailService = datasetThumbnailService;
         this.datasetSummaryService = datasetSummaryService;
         this.guestbookResponseService = guestbookResponseService;

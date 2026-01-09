@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+@SuppressWarnings("serial")
 @ApplicationScoped
 public class FeedbackService implements Serializable {
 

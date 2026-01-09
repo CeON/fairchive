@@ -183,7 +183,7 @@ public class FeedbackInfo<T extends DvObject> {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        FeedbackInfo other = (FeedbackInfo) obj;
+        FeedbackInfo<?> other = (FeedbackInfo<?>) obj;
         return Objects.equals(dataverseSiteUrl, other.dataverseSiteUrl)
                 && Objects.equals(feedbackTarget, other.feedbackTarget)
                 && Objects.equals(installationBrandName, other.installationBrandName)

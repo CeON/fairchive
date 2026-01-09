@@ -175,7 +175,7 @@ public class EditDatasetMetadataPage implements Serializable {
     }
 
     public List<DatasetField> findCopySources(String sourceId) {
-        List<DatasetField> sourceFields = new ArrayList();
+        List<DatasetField> sourceFields = new ArrayList<>();
         for (List<DatasetFieldsByType> datasetFieldsByTypeList : metadataBlocksForEdit.values()) {
             for (DatasetFieldsByType datasetFieldsByType : datasetFieldsByTypeList) {
                 for (DatasetField datasetField : datasetFieldsByType.getDatasetFields()) {
