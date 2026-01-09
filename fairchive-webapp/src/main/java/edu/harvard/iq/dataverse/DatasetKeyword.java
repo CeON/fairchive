@@ -38,15 +38,6 @@ public class DatasetKeyword {
     public void setDatasetVersion(DatasetVersion metadata) {
         this.datasetVersion = metadata;
     }
-    /*
-    @Version
-    private Long version;
-    public Long getVersion() {
-        return this.version;
-    }
-    public void setVersion(Long version) {
-        this.version = version;
-    }  */
 
     private DatasetField vocab;
 
@@ -70,9 +61,6 @@ public class DatasetKeyword {
 
 
     public boolean isEmpty() {
-        /*return ((value==null || value.getValue().trim().equals(""))
-            && (vocab==null || vocab.getValue().trim().equals(""))
-            && (vocabURI==null || vocabURI.getValue().trim().equals("")));*/
         return false;
     }
 
