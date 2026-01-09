@@ -9,7 +9,6 @@ import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWith
 import static edu.harvard.iq.dataverse.feedback.FeedbackRecipient.SYSTEM_SUPPORT;
 import static edu.harvard.iq.dataverse.feedback.FeedbackRecipient.defaultRecipientFor;
 import static edu.harvard.iq.dataverse.feedback.FeedbackRecipient.possibleRecipientsFor;
-import static edu.harvard.iq.dataverse.feedback.FeedbackUtil.gatherFeedback;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SystemEmail;
 import static edu.harvard.iq.dataverse.util.MailUtil.parseSystemAddress;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
@@ -41,6 +40,7 @@ import org.primefaces.model.file.UploadedFile;
 import edu.harvard.iq.dataverse.feedback.Feedback;
 import edu.harvard.iq.dataverse.feedback.FeedbackInfo;
 import edu.harvard.iq.dataverse.feedback.FeedbackRecipient;
+import edu.harvard.iq.dataverse.feedback.FeedbackService;
 import edu.harvard.iq.dataverse.mail.MailService;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -57,6 +57,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
 
     private final static long MAX_ATTACHMENTS_SIZE_IN_BYTES = 10000000;
 
+    private FeedbackService feedbackService;
     private MailService mailService;
     private SettingsServiceBean sessings;
     private DataverseDao dataverseDao;
@@ -85,11 +86,17 @@ public class SendFeedbackDialog implements java.io.Serializable {
     private String rootDataverseName;
     private List<UploadedFile> attachments = new ArrayList<>();
 
+    public SendFeedbackDialog() {
+        // TODO Auto-generated constructor stub
+    }
+    
     @Inject
-    public SendFeedbackDialog(final MailService mailService,
+    public SendFeedbackDialog(final FeedbackService feedbackService,
+            final MailService mailService,
             final SettingsServiceBean settings,
             final DataverseDao dataverseDao, SystemConfig config,
             final DataverseSession session, final UIMessages uiMessages) {
+        this.feedbackService = feedbackService;
         this.mailService = mailService;
         this.sessings = settings;
         this.dataverseDao = dataverseDao;
@@ -291,7 +298,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
                     this.rootDataverseName);
             final String supportTeamName = getSupportTeamName(this.systemAddress,
                     this.rootDataverseName);
-            final List<Feedback> feedbacks = gatherFeedback(new FeedbackInfo<>()
+            final List<Feedback> feedbacks = feedbackService.gatherFeedback(new FeedbackInfo<>()
                     .withFeedbackTarget(this.feedbackTarget)
                     .withRecipient(this.recipientOption)
                     .withUserEmail(this.session, this.userEmail)
@@ -307,6 +314,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
                                 getStringFromBundle("contact.send.failure"));
             }
             for (final Feedback feedback : feedbacks) {
+
                 this.mailService.sendMailAsync(feedback.getFromEmail(),
                         feedback.getToEmail(),
                         feedback.getSubject(), feedback.getBody(),
