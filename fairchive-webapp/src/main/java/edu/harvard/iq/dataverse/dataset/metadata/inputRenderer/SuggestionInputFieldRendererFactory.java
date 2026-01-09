@@ -59,7 +59,8 @@ public class SuggestionInputFieldRendererFactory implements InputFieldRendererFa
                 rendererOptions.getSuggestionDisplayType() == null ? SuggestionDisplayType.SIMPLE : rendererOptions.getSuggestionDisplayType(),
                 fieldType.getName(),
                 fieldType.getMetadataBlock().getName(),
-                rendererOptions.getConditionalRendering());
+                rendererOptions.getConditionalRendering(),
+                rendererOptions.getScrollHeight());
     }
 
     // -------------------- PRIVATE --------------------
@@ -103,6 +104,7 @@ public class SuggestionInputFieldRendererFactory implements InputFieldRendererFa
         private List<String> suggestionFilteredBy;
         private SuggestionDisplayType suggestionDisplayType;
         private ConditionalRendering conditionalRendering;
+        private Integer scrollHeight;
 
         // -------------------- GETTERS --------------------
 
@@ -141,6 +143,10 @@ public class SuggestionInputFieldRendererFactory implements InputFieldRendererFa
 
         public ConditionalRendering getConditionalRendering() {
             return conditionalRendering;
+        }
+
+        public Integer getScrollHeight() {
+            return scrollHeight;
         }
     }
 

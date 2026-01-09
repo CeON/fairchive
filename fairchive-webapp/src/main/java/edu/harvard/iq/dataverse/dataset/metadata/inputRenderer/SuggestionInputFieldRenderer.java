@@ -26,6 +26,7 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
     private SuggestionDisplayType suggestionDisplayType;
     private String datasetFieldTypeName;
     private String metadataBlockName;
+    private Integer scrollHeight;
     private ConditionalRendering conditionalRendering;
 
     // -------------------- CONSTRUCTORS --------------------
@@ -42,7 +43,8 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
             SuggestionDisplayType suggestionDisplayType,
             String datasetFieldTypeName,
             String metadataBlockName,
-            ConditionalRendering conditionalRendering) {
+            ConditionalRendering conditionalRendering,
+            Integer scrollHeight) {
 
         this.suggestionHandler = suggestionHandler;
         this.datasetFieldTypeToSuggestionFilterMapping = datasetFieldTypeToSuggestionFilterMapping;
@@ -50,6 +52,7 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
         this.datasetFieldTypeName = datasetFieldTypeName;
         this.metadataBlockName = metadataBlockName;
         this.conditionalRendering = conditionalRendering;
+        this.scrollHeight = scrollHeight;
     }
 
     // -------------------- GETTERS --------------------
@@ -87,6 +90,10 @@ public class SuggestionInputFieldRenderer implements InputFieldRenderer {
     @Override
     public Option<ConditionalRendering> getConditionalRendering() {
         return Option.of(conditionalRendering);
+    }
+
+    public Integer getScrollHeight() {
+        return scrollHeight;
     }
 
     public SuggestionDisplayType getSuggestionDisplayType() {
