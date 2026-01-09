@@ -34,6 +34,10 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Authority;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,21 +45,21 @@ public class CollectionDepositManagerImpl implements CollectionDepositManager {
 
     private static final Logger logger = Logger.getLogger(CollectionDepositManagerImpl.class.getCanonicalName());
     @EJB
-    DataverseDao dataverseDao;
+    private DataverseDao dataverseDao;
     @EJB
-    PermissionServiceBean permissionService;
+    private PermissionServiceBean permissionService;
     @Inject
     SwordAuth swordAuth;
     @Inject
     private UrlManagerServiceBean urlManagerServiceBean;
     @EJB
-    EjbDataverseEngine engineSvc;
+    private EjbDataverseEngine engineSvc;
     @EJB
     DatasetFieldServiceBean datasetFieldService;
     @EJB
-    ImportGenericServiceBean importGenericService;
+    private ImportGenericServiceBean importGenericService;
     @EJB
-    SwordServiceBean swordService;
+    private SwordServiceBean swordService;
     @Inject
     SettingsServiceBean settingsService;
     @Inject
@@ -66,7 +70,8 @@ public class CollectionDepositManagerImpl implements CollectionDepositManager {
     private HttpServletRequest request;
 
     @Override
-    public DepositReceipt createNew(String collectionUri, Deposit deposit, AuthCredentials authCredentials, SwordConfiguration config)
+    public DepositReceipt createNew(String collectionUri, Deposit deposit, 
+    		AuthCredentials authCredentials, SwordConfiguration config)
             throws SwordError, SwordServerException, SwordAuthException {
         SwordUtil.checkState(!systemConfig.isReadonlyMode(), UriRegistry.ERROR_BAD_REQUEST, "Repository is running in readonly mode");
 
@@ -101,8 +106,8 @@ public class CollectionDepositManagerImpl implements CollectionDepositManager {
 
                     Dataset dataset = new Dataset();
                     dataset.setOwner(dvThatWillOwnDataset);
-                    String protocol = settingsService.getValueForKey(SettingsServiceBean.Key.Protocol);
-                    String authority = settingsService.getValueForKey(SettingsServiceBean.Key.Authority);
+                    String protocol = settingsService.getValueForKey(Protocol);
+                    String authority = settingsService.getValueForKey(Authority);
 
                     dataset.setProtocol(protocol);
                     dataset.setAuthority(authority);
