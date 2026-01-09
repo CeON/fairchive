@@ -56,15 +56,25 @@ public class FieldValueCopy {
                 DatasetField targetMapping = getChildrenField(target, copyMapping.get("to"));
 
                 targetMapping.setValue(sourceMapping.getValue());
+                setControlledVocabulary(targetMapping);
+
             }
             if (!type.equals("copy")) {
-                getChildrenField(target, typeField).setValue(type);
+                DatasetField targetMapping = getChildrenField(target, typeField);
+                targetMapping.setValue(type);
+                setControlledVocabulary(targetMapping);
             }
         }
         return fields;
     }
 
     // -------------------- PRIVATE --------------------
+
+    private void setControlledVocabulary(DatasetField targetMapping) {
+        if (targetMapping.getDatasetFieldType().isAllowControlledVocabulary()) {
+            targetMapping.getControlledVocabularyValues().add(targetMapping.getDatasetFieldType().getControlledVocabularyValue(targetMapping.getValue()));
+        }
+    }
 
     private DatasetField getChildrenField(DatasetField compound, String name) {
         for (DatasetField child : compound.getDatasetFieldsChildren()) {
