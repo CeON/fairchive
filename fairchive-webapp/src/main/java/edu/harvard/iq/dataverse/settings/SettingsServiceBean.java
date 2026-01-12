@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.persistence.Setting;
 import edu.harvard.iq.dataverse.persistence.SettingRepository;
 import edu.harvard.iq.dataverse.util.StringUtil;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,6 +29,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -942,7 +944,7 @@ public class SettingsServiceBean {
 
         final String val = this.getValueForKey(key);
         try {
-            return parseLong(val);
+            return isNotBlank(val) ? parseLong(val) : null;
         } catch (final NumberFormatException ex) {
             log.warn("Incorrect setting. Could not convert \"" +
                     val + "\" from setting " + key + " to long.");
