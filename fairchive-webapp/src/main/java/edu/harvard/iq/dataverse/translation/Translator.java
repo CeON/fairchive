@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 
 import com.google.gson.JsonParser;
 
-import edu.harvard.iq.dataverse.dataset.tab.DatasetMetadataTab;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 /**
@@ -33,7 +32,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 @ApplicationScoped
 public class Translator {
 	
-	private final static Logger log = getLogger(DatasetMetadataTab.class);
+	private final static Logger log = getLogger(Translator.class);
 	
 	private SettingsServiceBean settings;
 	
