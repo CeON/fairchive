@@ -824,13 +824,8 @@ public class SettingsServiceBean {
         ShowAddDatasetButtonOnDataversePage,
 
         /**
-         * If set to {@code true} (the default) or any other truthy value,
-         * the button for machine translation of dataset metadata will be rendered on dataverse page
-         */
-        ShowMachineTranslation,
-
-        /**
-         * URL of machine tranlsation service
+         * URL of machine tranlsation service.
+         * If not set or empty - no gui elements will be rendered.
          */
         MachineTranslationURL,
 
