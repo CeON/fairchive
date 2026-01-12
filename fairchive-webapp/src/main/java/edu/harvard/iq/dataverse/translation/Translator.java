@@ -16,6 +16,7 @@ import javax.inject.Inject;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -52,14 +53,16 @@ public class Translator {
 		if (isNotBlank(text)) {
 			try (final CloseableHttpClient client = HttpClients.createDefault()) {
 				final HttpPost post = createRequest(text, targetLang);
-				final HttpEntity entity = client.execute(post).getEntity();
-				if (entity != null) {
-					return translatedTextFrom(entity);
-				} else {
-					log.warn("Received empty response from libtranslate service");
-					return EMPTY;
+				try (final CloseableHttpResponse response = client.execute(post)) {
+					final HttpEntity entity = response.getEntity();
+					if (entity != null) {
+						return translatedTextFrom(entity);
+					} else {
+						log.warn("Received empty response from libtranslate service");
+						return EMPTY;
+					}
 				}
-			} catch(final IOException e) {
+			} catch (final IOException e) {
 				log.warn(e.toString());
 				return text;
 			}
