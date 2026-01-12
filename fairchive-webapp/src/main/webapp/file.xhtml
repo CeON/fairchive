@@ -131,9 +131,7 @@
                                     <!-- Map Data/Set Up Button Block -->
 
 
-                                    <ui:fragment rendered="#{FilePage.canUpdateDataset()
-                                                             and (FilePage.getConfigureTools().size() > 0
-                                                             or worldMapPermissionHelper.canUserSeeMapDataButtonFromPage(FilePage.fileMetadata) or worldMapPermissionHelper.canSeeMapButtonReminderToPublishFromPage(FilePage.fileMetadata))}">
+                                    <ui:fragment rendered="#{FilePage.displayFileConfigureDropdownFragment()}">
                                         <ui:include src="file-configure-dropdown-fragment.xhtml">
                                             <ui:param name="configureTools" 
                                                       value="#{FilePage.getConfigureTools()}"/>
@@ -259,10 +257,10 @@
                             <div id="border-block">
                                 <div id="preview-square">
                                     <span class="icon-#{dataFileServiceBean.getFileClass(FilePage.fileMetadata.dataFile)} text-muted" 
-                                          jsf:rendered="#{!FilePage.isThumbnailAvailable(FilePage.fileMetadata)}"/>
+                                          jsf:rendered="#{!FilePage.isThumbnailAvailable()}"/>
                                     <p:graphicImage styleClass="img-responsive"
                                                     value="/api/access/datafile/#{FilePage.fileId}?imageThumb=400"
-                                                    rendered="#{FilePage.isThumbnailAvailable(FilePage.fileMetadata)}"/>
+                                                    rendered="#{FilePage.isThumbnailAvailable()}"/>
                                 </div>
                             </div>
                         </div>

@@ -280,6 +280,13 @@ public class DatasetFilesTab implements Serializable {
 
         updateMultipleFileOptionFlags();
     }
+    
+	public boolean displayNoFilesAvailable() {
+		return this.fileMetadatasSearch.getAllAvailableFilesCount() == 0 
+				&& this.dataset.hasEverBeenPublished()
+				&& !this.isFilesTabDisplayable();
+	}
+    
 
     public boolean isFilesTabDisplayable() {
         assert dataset != null;

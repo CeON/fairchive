@@ -43,6 +43,7 @@ import edu.harvard.iq.dataverse.datafile.FileDownloadServiceBean;
 import edu.harvard.iq.dataverse.datafile.FileService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean.RetrieveDatasetVersionResponse;
+import edu.harvard.iq.dataverse.datasetutility.WorldMapPermissionHelper;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.UpdateDatasetException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateNewDatasetCommand;
@@ -93,6 +94,7 @@ public class FilePage implements java.io.Serializable {
     private ExternalToolHandler externalToolHandler;
     private UIMessages ui;
     private FileDownloadServiceBean fileDownloadService;
+    private WorldMapPermissionHelper worldMapPermissionHelper;
 
     private FileMetadata fileMetadata;
     private Long fileId;
@@ -116,14 +118,23 @@ public class FilePage implements java.io.Serializable {
     public FilePage() { }
 
     @Inject
-    public FilePage(DataFileServiceBean datafileService, DatasetVersionServiceBean datasetVersionService,
-                    PermissionServiceBean permissionService, SystemConfig systemConfig,
-                    ExternalToolServiceBean externalToolService, DataverseRequestServiceBean dvRequestService,
-                    PermissionsWrapper permissionsWrapper, FileDownloadHelper fileDownloadHelper,
-                    ExportService exportService, FileService fileService,
-                    GuestbookResponseDialog guestbookResponseDialog, CitationFactory citationFactory,
-                    DataverseSession session, ExternalToolHandler externalToolHandler, UIMessages ui,
-                    FileDownloadServiceBean fileDownloadService) {
+    public FilePage(final DataFileServiceBean datafileService, 
+    				final DatasetVersionServiceBean datasetVersionService,
+                    final PermissionServiceBean permissionService, 
+                    final SystemConfig systemConfig,
+                    final ExternalToolServiceBean externalToolService, 
+                    final DataverseRequestServiceBean dvRequestService,
+                    final PermissionsWrapper permissionsWrapper, 
+                    final FileDownloadHelper fileDownloadHelper,
+                    final ExportService exportService, 
+                    final FileService fileService,
+                    final GuestbookResponseDialog guestbookResponseDialog, 
+                    final CitationFactory citationFactory,
+                    final DataverseSession session, 
+                    final ExternalToolHandler externalToolHandler,
+                    final UIMessages ui,
+                    final FileDownloadServiceBean fileDownloadService,
+                    final WorldMapPermissionHelper worldMapPermissionHelper) {
         this.datafileService = datafileService;
         this.datasetVersionService = datasetVersionService;
         this.permissionService = permissionService;
@@ -140,6 +151,7 @@ public class FilePage implements java.io.Serializable {
         this.externalToolHandler = externalToolHandler;
         this.ui = ui;
         this.fileDownloadService = fileDownloadService;
+        this.worldMapPermissionHelper = worldMapPermissionHelper;
     }
 
     // -------------------- GETTERS --------------------
@@ -217,7 +229,7 @@ public class FilePage implements java.io.Serializable {
         if (file.getOwner().isHarvested()) {
             // if so, we'll simply forward to the remote URL for the original
             // source of this harvested dataset:
-            String originalSourceURL = file.getOwner().getRemoteArchiveURL();
+            final String originalSourceURL = file.getOwner().getRemoteArchiveURL();
             if (isNotBlank(originalSourceURL)) {
                 logger.fine("redirecting to " + originalSourceURL);
                 try {
@@ -237,9 +249,9 @@ public class FilePage implements java.io.Serializable {
             return permissionsWrapper.notAuthorized();
         }
 
-        RetrieveDatasetVersionResponse retrieveDatasetVersionResponse
+        final RetrieveDatasetVersionResponse retrieveDatasetVersionResponse
                 = datasetVersionService.selectRequestedVersion(file.getOwner().getVersions(), version);
-        DatasetVersion version = retrieveDatasetVersionResponse.getDatasetVersion();
+        final DatasetVersion version = retrieveDatasetVersionResponse.getDatasetVersion();
         fileMetadata = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(version.getId(), fileId);
 
         if (fileMetadata == null) {
@@ -254,7 +266,7 @@ public class FilePage implements java.io.Serializable {
         // -> Go to the Login page
         // Check permisisons
 
-        boolean authorized = fileMetadata.getDatasetVersion().isReleased()
+        final boolean authorized = fileMetadata.getDatasetVersion().isReleased()
                 || (!fileMetadata.getDatasetVersion().isReleased() && this.canViewUnpublishedDataset());
 
         if (!authorized) {
@@ -270,7 +282,7 @@ public class FilePage implements java.io.Serializable {
         // isTabularData() works - true for tabular types where a .tab file has been
         // created and false for other mimetypes
         // For tabular data, indicate successful ingest by returning a contentType for the derived .tab file
-        String contentType = file.isTabularData() ? TSV_ALT.getMimeValue() : file.getContentType();
+        final String contentType = file.isTabularData() ? TSV_ALT.getMimeValue() : file.getContentType();
         configureTools = externalToolService.findExternalTools(CONFIGURE, contentType, file, version);
         exploreTools = externalToolService.findExternalTools(EXPLORE, contentType, file, version);
         previewTools = externalToolService.findExternalTools(PREVIEW, contentType, file, version);
@@ -389,6 +401,12 @@ public class FilePage implements java.io.Serializable {
         return !(this.fileMetadata.getDataFile().isFilePackage() ||
                 isDatasetDeaccesioned());
     }
+    
+	public boolean displayFileConfigureDropdownFragment() {
+		return canUpdateDataset() && (getConfigureTools().size() > 0
+				|| this.worldMapPermissionHelper.canUserSeeMapDataButtonFromPage(this.fileMetadata)
+				|| this.worldMapPermissionHelper.canSeeMapButtonReminderToPublishFromPage(this.fileMetadata));
+	}
 
     private boolean canViewUnpublishedDataset() {
         return this.permissionsWrapper.canViewUnpublishedDataset(
@@ -460,12 +478,12 @@ public class FilePage implements java.io.Serializable {
     }
 
     public List<String[]> getExporters() {
-        List<String[]> retList = new ArrayList<>();
+        final List<String[]> retList = new ArrayList<>();
 
         for (final Exporter exporter : exportService.exporters()) {
             if (exporter.isAvailableToUsers()) {
-                String myHostURL = systemConfig.getDataverseSiteUrl();
-                String[] temp = new String[2];
+                final String myHostURL = systemConfig.getDataverseSiteUrl();
+                final String[] temp = new String[2];
                 temp[0] = exporter.getDisplayName();
                 temp[1] = myHostURL + "/api/datasets/export?exporter=" 
                         + exporter.getProviderName() + "&persistentId="
@@ -476,9 +494,10 @@ public class FilePage implements java.io.Serializable {
         return retList;
     }
 
-    public String saveProvFreeform(String freeformTextInput, DataFile dataFileFromPopup){
+    public String saveProvFreeform(final String freeformTextInput, 
+    		                       final DataFile dataFileFromPopup){
 
-        Try<Dataset> saveProvOperation = Try.of(
+        final Try<Dataset> saveProvOperation = Try.of(
                 () -> fileService.saveProvenanceFileWithDesc(fileMetadata, dataFileFromPopup, freeformTextInput))
                 .onFailure(this::handleProvenanceExceptions);
         if (saveProvOperation.isFailure()){
@@ -502,7 +521,7 @@ public class FilePage implements java.io.Serializable {
     }
 
     public String deleteFile() {
-        Try<Dataset> deleteFileOperation = Try.of(() -> fileService.deleteFile(this.fileMetadata))
+        final Try<Dataset> deleteFileOperation = Try.of(() -> fileService.deleteFile(this.fileMetadata))
                 .onFailure(this::handleDeleteFileExceptions);
 
         if (deleteFileOperation.isFailure()) {
@@ -514,14 +533,18 @@ public class FilePage implements java.io.Serializable {
     }
 
     public void tabChanged(TabChangeEvent<?> event) {
-        TabView tv = (TabView) event.getComponent();
-        int activeTabIndex = tv.getActiveIndex();
+        final TabView tv = (TabView) event.getComponent();
+        final int activeTabIndex = tv.getActiveIndex();
         setFileMetadatasForTab(activeTabIndex == 1 || activeTabIndex == 2
                 ? loadFileMetadataTabList()
                 : new ArrayList<>());
     }
+    
+    public boolean isThumbnailAvailable() {
+    	return isThumbnailAvailable(this.fileMetadata);
+    }
 
-    public boolean isThumbnailAvailable(FileMetadata fileMetadata) {
+    public boolean isThumbnailAvailable(final FileMetadata fileMetadata) {
         // new and optimized logic:
         // - check download permission here (should be cached - so it's free!)
         // - only then ask the file service if the thumbnail is available/exists.
@@ -540,7 +563,7 @@ public class FilePage implements java.io.Serializable {
         return thumbnailAvailable;
     }
 
-    public Optional<StreamedContent> getLicenseIconContent(FileTermsOfUse termsOfUse) {
+    public Optional<StreamedContent> getLicenseIconContent(final FileTermsOfUse termsOfUse) {
         return termsOfUse.getIcon().map(this::toStreamedContent);
     }
     
@@ -551,7 +574,7 @@ public class FilePage implements java.io.Serializable {
                 .build();
     }
 
-    public StreamedContent getOtherTermsIconContent(FileTermsOfUse.TermsOfUseType termsOfUseType) {
+    public StreamedContent getOtherTermsIconContent(final FileTermsOfUse.TermsOfUseType termsOfUseType) {
         if (termsOfUseType.equals(RESTRICTED)) {
             return DefaultStreamedContent.builder()
                     .stream(() -> new ByteArrayInputStream(FileUtil.getFileFromResources(
@@ -581,7 +604,7 @@ public class FilePage implements java.io.Serializable {
         */
 
         DataFile dataFileToTest = fileMetadata.getDataFile();
-        DatasetVersion currentVersion = dataset.getLatestVersion();
+        final DatasetVersion currentVersion = dataset.getLatestVersion();
 
         if (!currentVersion.isDraft() || dataset.getReleasedVersion() == null) {
             return false;
@@ -600,7 +623,7 @@ public class FilePage implements java.io.Serializable {
         }
 
         int numFiles = dataFiles.size();
-        DataFile current = dataFiles.get(numFiles - 1);
+        final DataFile current = dataFiles.get(numFiles - 1);
         DatasetVersion publishedVersion = dataset.getReleasedVersion();
 
         return datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(publishedVersion.getId(), current.getId()) == null;
@@ -672,7 +695,7 @@ public class FilePage implements java.io.Serializable {
         }
     }
 
-    public void showPreview(GuestbookResponse guestbookResponse) {
+    public void showPreview(final GuestbookResponse guestbookResponse) {
         fileDownloadHelper.writeGuestbookResponseForPreview(guestbookResponse, fileMetadata, previewTools.get(0));
         guestbookResponseProvided = true;
     }
@@ -717,14 +740,14 @@ public class FilePage implements java.io.Serializable {
     }
 
     private List<FileMetadata> loadFileMetadataTabList() {
-        List<DataFile> allfiles = allRelatedFiles();
-        List<FileMetadata> retList = new ArrayList<>();
-        for (DatasetVersion versionLoop : fileMetadata.getDatasetVersion().getDataset().getVersions()) {
+        final List<DataFile> allfiles = allRelatedFiles();
+        final List<FileMetadata> retList = new ArrayList<>();
+        for (final DatasetVersion versionLoop : fileMetadata.getDatasetVersion().getDataset().getVersions()) {
             boolean foundFmd = false;
 
             if (versionLoop.isReleased() || versionLoop.isDeaccessioned()
                     || permissionsWrapper.canViewUnpublishedDataset(fileMetadata.getDatasetVersion().getDataset())) {
-                for (DataFile df : allfiles) {
+                for (final DataFile df : allfiles) {
                     FileMetadata fmd = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionLoop.getId(), df.getId());
                     if (fmd != null) {
                         fmd.setContributorNames(datasetVersionService.getContributorsNames(versionLoop));
@@ -737,10 +760,10 @@ public class FilePage implements java.io.Serializable {
                 }
                 // no File metadata found make dummy one
                 if (!foundFmd) {
-                    FileMetadata dummy = new FileMetadata();
+                    final FileMetadata dummy = new FileMetadata();
                     dummy.setDatasetVersion(versionLoop);
                     dummy.setDataFile(null);
-                    FileVersionDifference fvd = new FileVersionDifference(dummy, getPreviousFileMetadata(versionLoop));
+                    final FileVersionDifference fvd = new FileVersionDifference(dummy, getPreviousFileMetadata(versionLoop));
                     dummy.setFileVersionDifference(fvd);
                     retList.add(dummy);
                 }
@@ -749,11 +772,11 @@ public class FilePage implements java.io.Serializable {
         return retList;
     }
 
-    private FileMetadata getPreviousFileMetadata(DatasetVersion currentversion) {
-        List<DataFile> allfiles = allRelatedFiles();
+    private FileMetadata getPreviousFileMetadata(final DatasetVersion currentversion) {
+        final List<DataFile> allfiles = allRelatedFiles();
         boolean foundCurrent = false;
         DatasetVersion priorVersion = null;
-        for (DatasetVersion versionLoop : fileMetadata.getDatasetVersion().getDataset().getVersions()) {
+        for (final DatasetVersion versionLoop : fileMetadata.getDatasetVersion().getDataset().getVersions()) {
             if (foundCurrent) {
                 priorVersion = versionLoop;
                 break;
@@ -763,8 +786,8 @@ public class FilePage implements java.io.Serializable {
             }
         }
         if (priorVersion != null && priorVersion.getAllFilesMetadataSorted() != null) {
-            for (FileMetadata fmdTest : priorVersion.getAllFilesMetadataSorted()) {
-                for (DataFile fileTest : allfiles) {
+            for (final FileMetadata fmdTest : priorVersion.getAllFilesMetadataSorted()) {
+                for (final DataFile fileTest : allfiles) {
                     if (fmdTest.getDataFile().equals(fileTest)) {
                         return fmdTest;
                     }
@@ -774,11 +797,11 @@ public class FilePage implements java.io.Serializable {
         return null;
     }
 
-    private FileMetadata getPreviousFileMetadata(FileMetadata fmdIn) {
-        DataFile dfPrevious = datafileService.findPreviousFile(fmdIn.getDataFile());
+    private FileMetadata getPreviousFileMetadata(final FileMetadata fmdIn) {
+        final DataFile dfPrevious = datafileService.findPreviousFile(fmdIn.getDataFile());
         DatasetVersion dvPrevious = null;
         boolean gotCurrent = false;
-        for (DatasetVersion dvloop : fileMetadata.getDatasetVersion().getDataset().getVersions()) {
+        for (final DatasetVersion dvloop : fileMetadata.getDatasetVersion().getDataset().getVersions()) {
             if (gotCurrent) {
                 dvPrevious = dvloop;
                 break;
@@ -788,11 +811,11 @@ public class FilePage implements java.io.Serializable {
             }
         }
 
-        List<DataFile> allfiles = allRelatedFiles();
+        final List<DataFile> allfiles = allRelatedFiles();
 
         if (dvPrevious != null && dvPrevious.getAllFilesMetadataSorted() != null) {
-            for (FileMetadata fmdTest : dvPrevious.getAllFilesMetadataSorted()) {
-                for (DataFile fileTest : allfiles) {
+            for (final FileMetadata fmdTest : dvPrevious.getAllFilesMetadataSorted()) {
+                for (final DataFile fileTest : allfiles) {
                     if (fmdTest.getDataFile().equals(fileTest)) {
                         return fmdTest;
                     }
@@ -800,8 +823,8 @@ public class FilePage implements java.io.Serializable {
             }
         }
 
-        Long dfId = dfPrevious != null ? dfPrevious.getId() : fmdIn.getDataFile().getId();
-        Long versionId = dvPrevious != null ? dvPrevious.getId() : null;
+        final Long dfId = dfPrevious != null ? dfPrevious.getId() : fmdIn.getDataFile().getId();
+        final Long versionId = dvPrevious != null ? dvPrevious.getId() : null;
 
         return datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionId, dfId);
     }
@@ -816,9 +839,9 @@ public class FilePage implements java.io.Serializable {
     }
 
     private List<DataFile> allRelatedFiles() {
-        List<DataFile> dataFiles = new ArrayList<>();
-        DataFile dataFileToTest = fileMetadata.getDataFile();
-        Long rootDataFileId = dataFileToTest.getRootDataFileId();
+        final List<DataFile> dataFiles = new ArrayList<>();
+        final DataFile dataFileToTest = fileMetadata.getDataFile();
+        final Long rootDataFileId = dataFileToTest.getRootDataFileId();
         if (rootDataFileId < 0) {
             dataFiles.add(dataFileToTest);
         } else {
