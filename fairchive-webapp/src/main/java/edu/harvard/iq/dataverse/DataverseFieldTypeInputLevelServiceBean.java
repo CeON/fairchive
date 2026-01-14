@@ -26,7 +26,6 @@ import java.util.List;
 @Stateless
 public class DataverseFieldTypeInputLevelServiceBean {
 
-    //    private static final Logger logger = Logger.getLogger(DataverseFieldTypeInputLevelServiceBean.class.getCanonicalName());
     public static final LruCache<Long, List<DataverseFieldTypeInputLevel>> cache = new LruCache<>();
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
@@ -45,10 +44,6 @@ public class DataverseFieldTypeInputLevelServiceBean {
         return res;
     }
 
-    private void msg(String s) {
-        //logger.fine(s);
-    }
-
     /**
      * Find a list of DataverseFieldTypeInputLevel objects
      * Search criteria:
@@ -60,7 +55,6 @@ public class DataverseFieldTypeInputLevelServiceBean {
      * @return List of DataverseFieldTypeInputLevel
      */
     public List<DataverseFieldTypeInputLevel> findByDataverseIdAndDatasetFieldTypeIdList(Long dataverseId, List<Long> datasetFieldIdList) {
-        msg("---- findByDataverseIdAndDatasetFieldTypeIdList ----");
         Preconditions.checkNotNull(dataverseId);
         Preconditions.checkNotNull(datasetFieldIdList);
         
@@ -73,17 +67,11 @@ public class DataverseFieldTypeInputLevelServiceBean {
                     .setParameter("datasetFieldIdList", datasetFieldIdList)
                     .setParameter("dataverseId", dataverseId)
                     .getResultList();
-            /*List res = query.getResultList();
-            msg("Number of results: " + res.size());
-            return res;*/
+
         } catch (NoResultException nre) {
             return new ArrayList<>();
         }
     }
-    //
-
-    //    Query query = em.createQuery("select object(o) from MapLayerMetadata as o where o.dataset=:dataset");// order by o.name");
-    //    query.setParameter("dataset", dataset);
 
     public DataverseFieldTypeInputLevel findByDataverseIdDatasetFieldTypeId(Long dataverseId, Long datasetFieldTypeId) {
         Query query = em.createNamedQuery("DataverseFieldTypeInputLevel.findByDataverseIdDatasetFieldTypeId", DataverseFieldTypeInputLevel.class);
@@ -110,7 +98,6 @@ public class DataverseFieldTypeInputLevelServiceBean {
     }
 
     public void create(DataverseFieldTypeInputLevel dataverseFieldTypeInputLevel) {
-
         em.persist(dataverseFieldTypeInputLevel);
     }
 

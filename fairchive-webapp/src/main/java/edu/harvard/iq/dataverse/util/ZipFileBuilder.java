@@ -1,11 +1,13 @@
 package edu.harvard.iq.dataverse.util;
 
-import org.apache.commons.io.IOUtils;
+
+import static java.nio.file.Files.newInputStream;
+import static java.nio.file.Files.newOutputStream;
+import static org.apache.commons.io.IOUtils.copy;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -13,28 +15,28 @@ import java.util.zip.ZipOutputStream;
 /**
  * Convenience class to create a zip file, used by ShapefileHandler
  */
-public class ZipFileBuilder implements Closeable {
+public final class ZipFileBuilder implements Closeable {
 
-    private final ZipOutputStream zipOutputStream;
+    private final ZipOutputStream zipStream;
 
     // -------------------- CONSTRUCTOR --------------------
 
-    public ZipFileBuilder(Path outputZipFilename) throws IOException {
-        zipOutputStream = new ZipOutputStream(Files.newOutputStream(outputZipFilename));
+    public ZipFileBuilder(final Path outputZipFilename) throws IOException {
+        this.zipStream = new ZipOutputStream(newOutputStream(outputZipFilename));
     }
 
     // -------------------- LOGIC --------------------
 
-    public void addToZipFile(Path filePath) throws IOException {
-        try(InputStream inputStream = Files.newInputStream(filePath)) {
-            zipOutputStream.putNextEntry(new ZipEntry(filePath.getFileName().toString()));
-            IOUtils.copy(inputStream, zipOutputStream);
-            zipOutputStream.closeEntry();
+    public void addToZipFile(final Path filePath) throws IOException {
+        try(final InputStream in = newInputStream(filePath)) {
+            this.zipStream.putNextEntry(new ZipEntry(filePath.getFileName().toString()));
+            copy(in, this.zipStream);
+            this.zipStream.closeEntry();
         }
     }
 
     @Override
     public void close() throws IOException {
-        zipOutputStream.close();
+       this.zipStream.close();
     }
 }

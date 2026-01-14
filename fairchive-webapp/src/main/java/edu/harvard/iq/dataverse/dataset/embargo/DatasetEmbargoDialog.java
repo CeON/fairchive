@@ -1,37 +1,29 @@
 package edu.harvard.iq.dataverse.dataset.embargo;
 
-import edu.harvard.iq.dataverse.DatasetPage;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.dataset.DatasetService;
-import edu.harvard.iq.dataverse.persistence.config.URLValidator;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
-import org.apache.commons.lang.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.faces.validator.ValidatorException;
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.dataset.DatasetService;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.JsfHelper;
+import io.vavr.control.Option;
+import io.vavr.control.Try;
 
 /**
  * Backing bean responsible for handling dataset embargo

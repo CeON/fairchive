@@ -253,18 +253,7 @@ public class PermissionServiceBean {
                 throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.downloadNotAllowedInReview"), command);
             }
         }
-        if (dataset.isLockedFor(Ingest)) {
-            throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.downloadNotAllowed"), command);
-        }
-        if (dataset.isLockedFor(pidRegister)) {
-            throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.downloadNotAllowed"), command);
-        }
-        // TODO: Do we need to check for "Workflow"? Should the message be more specific?
-        if (dataset.isLockedFor(Workflow)) {
-            throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.downloadNotAllowed"), command);
-        }
-        // TODO: Do we need to check for "DcmUpload"? Should the message be more specific?
-        if (dataset.isLockedFor(DcmUpload)) {
+        if (dataset.isLockedForAny(Ingest, pidRegister, Workflow, DcmUpload)) {
             throw new IllegalCommandException(getStringFromBundle("dataset.message.locked.downloadNotAllowed"), command);
         }
     }

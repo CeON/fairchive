@@ -20,6 +20,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
  *
  * @author Krzysztof Mądry, Rafał Ścipień
  */
+@SuppressWarnings("serial")
 @ApplicationScoped
 public class FeedbackContactResolver implements Serializable {
 
