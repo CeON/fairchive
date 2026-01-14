@@ -771,6 +771,14 @@ public class EditDatafilesPage implements java.io.Serializable {
     public boolean showFileUploadComponent() {
         return this.mode == FileEditMode.UPLOAD || this.mode == FileEditMode.CREATE;
     }
+    
+	public boolean displayFilesTable() {
+		return !this.fileMetadatas.isEmpty() || !showFileUploadFragment();
+	}
+	
+	public boolean displayFilesCount() {
+		return !this.fileMetadatas.isEmpty();
+	}
 
     /**
      * Using information from the DropBox choose, ingest the chosen files

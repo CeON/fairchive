@@ -402,7 +402,7 @@
                     <!-- Files Table -->
                     <p:dataTable id="filesTable"
                                  value="#{EditDatafilesPage.fileMetadatas}"
-                                 rendered="#{!empty EditDatafilesPage.fileMetadatas or !EditDatafilesPage.showFileUploadFragment()}"
+                                 rendered="#{EditDatafilesPage.displayFilesTable()}"
                                  rowIndexVar="rowNum"
                                  rowKey="#{fileMetadata.dataFile.storageIdentifier}"
                                  rowSelectMode="checkbox"
@@ -416,22 +416,28 @@
                             <div jsf:id="filesHeaderBlock" class="row">
                                 <div id="filesHeaderCount" class="col-xs-6 text-left">
                                     <!-- Files Count -->
-                                    <h:outputFormat value="#{bundle['file.count.shown']}" styleClass="highlightBold"
-                                                    rendered="#{!empty EditDatafilesPage.fileMetadatas}">
+                                    <h:outputFormat value="#{bundle['file.count.shown']}" 
+                                                    styleClass="highlightBold"
+                                                    rendered="#{EditDatafilesPage.displayFilesCount()}">
                                         <f:param value="#{EditDatafilesPage.fileMetadatas.size()}"/>
                                     </h:outputFormat>
                                 </div>
                             </div>
                         </f:facet>
-                        <p:column selectionMode="multiple" class="col-select-width text-center"
+                        <p:column selectionMode="multiple" 
+                                  class="col-select-width text-center"
                                   style="width:40px !important;"/>
-                        <p:column class="col-file-thumb text-center" style="width:73px !important;padding:4px 10px;">
+                        <p:column class="col-file-thumb text-center" 
+                                  style="width:73px !important;padding:4px 10px;">
                             <div class="thumbnail-block">
                                 <!-- Thumbnail Preview -->
                                 <span class="file-thumbnail-preview-img"
                                       jsf:rendered="#{!empty fileMetadata.dataFile.id and dataFileServiceBean.isThumbnailAvailable(fileMetadata.dataFile)}"
-                                      data-container="body" data-toggle="popover" data-placement="top"
-                                      data-trigger="hover" data-html="true"
+                                      data-container="body" 
+                                      data-toggle="popover"
+                                      data-placement="top"
+                                      data-trigger="hover"
+                                      data-html="true"
                                       data-content="&lt;img src=&#34;/api/access/datafile/#{fileMetadata.dataFile.id}?imageThumb=400&#34; alt=&#34; #{bundle['file.preview']} #{fileMetadata.label}&#34; /&gt;">
                                 <p:graphicImage
                                         value="/api/access/datafile/#{fileMetadata.dataFile.id}?imageThumb=true"/>
@@ -443,7 +449,8 @@
                                         rendered="#{empty fileMetadata.dataFile.id and !empty fileMetadata.dataFile.storageIdentifier and fileMetadata.dataFile.previewImageAvailable}">
                                     <h:graphicImage
                                             value="#{EditDatafilesPage.getTemporaryPreviewAsBase64(fileMetadata.dataFile.storageIdentifier)}"/>
-                                    <h:outputText id="imgPreview" value="#{bundle['preview']}"
+                                    <h:outputText id="imgPreview" 
+                                                  value="#{bundle['preview']}"
                                                   styleClass="bg-info text-info text-center show"/>
                                 </ui:fragment>
                                 <!-- Restricted File Icon -->
@@ -452,9 +459,11 @@
                                     <span class="icon-unlock text-success"/>
                                 </div>
                                 <!-- Dataset Thumbnail -->
-                                <span id="datasetThumbnail" class="bg-info text-info text-center small show"
+                                <span id="datasetThumbnail" 
+                                      class="bg-info text-info text-center small show"
                                       jsf:rendered="#{EditDatafilesPage.isDesignatedDatasetThumbnail(fileMetadata)}"
-                                      data-toggle="tooltip" data-placement="bottom"
+                                      data-toggle="tooltip" 
+                                      data-placement="bottom"
                                       title="#{bundle['file.selectedThumbnail.tip']}">
                                 #{bundle['file.selectedThumbnail']}
                             </span>
@@ -462,14 +471,15 @@
                         </p:column>
                         <p:column class="col-file-metadata">
                             <ui:fragment>
-                                <label class="control-label" for="fileName"
+                                <label class="control-label"
+                                       for="fileName"
                                        style="margin-right:1em;margin-bottom:.5em;">
                                     #{bundle['file.fileName']}
                                 </label>
-                                <p:inputText id="fileName" value="#{fileMetadata.label}"
+                                <p:inputText id="fileName"
+                                             value="#{fileMetadata.label}"
                                              style="width:60%; margin-bottom:.5em;"
-                                             disabled="#{fileMetadata.dataFile.filePackage}">
-                                </p:inputText>
+                                             disabled="#{fileMetadata.dataFile.filePackage}"/>
                                 <p:message for="fileName"/>
                             </ui:fragment>
                             <!-- TYPE + SIZE + DATE + CHECKSUM -->
