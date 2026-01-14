@@ -18,7 +18,7 @@ public class RorLabel implements Serializable {
 
     public RorLabel() { }
 
-    public RorLabel(String label, String code) {
+    public RorLabel(final String label, final String code) {
         this.label = label;
         this.code = code;
     }
@@ -26,20 +26,20 @@ public class RorLabel implements Serializable {
     // -------------------- GETTERS --------------------
 
     public String getLabel() {
-        return label;
+        return this.label;
     }
 
     public String getCode() {
-        return code;
+        return this.code;
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setLabel(String label) {
+    public void setLabel(final String label) {
         this.label = label;
     }
 
-    public void setCode(String code) {
+    public void setCode(final String code) {
         this.code = code;
     }
 }

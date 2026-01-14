@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.persistence.ror;
 import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 import javax.ejb.Singleton;
-import javax.persistence.Query;
 
 @Singleton
 public class RorDataRepository extends JpaRepository<Long, RorData> {
@@ -17,9 +16,9 @@ public class RorDataRepository extends JpaRepository<Long, RorData> {
     // -------------------- LOGIC --------------------
 
     public int truncateAll() {
-        Query query = em.createNativeQuery(
+        return this.em.createNativeQuery(
                 "TRUNCATE TABLE rordata, rordata_acronym, rordata_label, rordata_namealias " +
-                        "RESTART IDENTITY");
-        return query.executeUpdate();
+                        "RESTART IDENTITY").
+        		executeUpdate();
     }
 }
