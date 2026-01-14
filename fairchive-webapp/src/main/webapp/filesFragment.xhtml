@@ -271,7 +271,7 @@
             <div class="thumbnail-block text-center">
                 <!-- Thumbnail Preview -->
                 <span class="file-thumbnail-preview-img"
-                      jsf:rendered="#{!empty fileMetadata.dataFile.id and datasetFilesTab.isThumbnailAvailable(fileMetadata)}"
+                      jsf:rendered="#{datasetFilesTab.displayThumbnailFor(fileMetadata)}"
                       data-container="body"
                       data-toggle="popover"
                       data-placement="top"

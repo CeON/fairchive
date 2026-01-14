@@ -404,6 +404,11 @@ public class DatasetFilesTab implements Serializable {
     public void updateFileSearchStatus(String searchTerm) {
         fileMetadatasSearch.setLoadedSearchData(!searchTerm.isEmpty());
     }
+    
+	public boolean displayThumbnailFor(final FileMetadata fileMetadata) {
+		return fileMetadata.getDataFile().getId() != null 
+				&& isThumbnailAvailable(fileMetadata);
+	}
 
     public boolean isThumbnailAvailable(FileMetadata fileMetadata) {
 
