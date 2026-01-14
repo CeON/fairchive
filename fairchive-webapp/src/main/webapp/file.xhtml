@@ -618,9 +618,8 @@
                                         <span class="glyphicon glyphicon-pencil" 
                                               aria-hidden="true"/> #{bundle['file.dataFilesTab.metadata.addBtn']}
                                     </h:outputLink>
-                                    <div class="btn-group" jsf:rendered="#{isStandaloneView and (dataverseSession.user.authenticated
-                                                         and permissionsWrapper.canIssueUpdateDatasetCommand(FilePage.fileMetadata.datasetVersion.dataset)
-                                                         and (dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile)))}">
+                                    <div class="btn-group" 
+                                         jsf:rendered="#{isStandaloneView and FilePage.displayEditMetadataButton()}">
                                         <p:commandLink styleClass="btn btn-default btn-access" 
                                                        onclick="primeFacesShowModal('fileAlreadyReplacedPrevious', this)"
                                                        disabled="#{FilePage.lockedFromEdits}">

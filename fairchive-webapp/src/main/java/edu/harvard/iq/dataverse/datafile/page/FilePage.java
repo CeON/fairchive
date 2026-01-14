@@ -397,6 +397,17 @@ public class FilePage implements java.io.Serializable {
                                 .hasBeenDeleted(this.fileMetadata.getDataFile()));
     }
     
+    public boolean displayEditMetadataButton() throws Exception {
+        return this.session.isUserLoggedIn()
+                && this.permissionsWrapper.canIssueUpdateDatasetCommand(
+                        this.fileMetadata.getDatasetVersion().getDataset())
+                && (this.datafileService
+                        .hasReplacement(this.fileMetadata.getDataFile())
+                        || this.datafileService
+                                .hasBeenDeleted(this.fileMetadata.getDataFile()));
+    }
+    
+    
     public boolean displayMetrics() {
         return !(this.fileMetadata.getDataFile().isFilePackage() ||
                 isDatasetDeaccesioned());
