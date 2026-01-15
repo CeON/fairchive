@@ -256,7 +256,7 @@ final class MediaResourceManagerImpl implements MediaResourceManager {
             // Make sure that the upload type is not rsync - handled above for dual mode
             // -------------------------------------
 
-            if (dataset.getEditVersion().isHasPackageFile()) {
+            if (dataset.getEditVersion().hasPackageFile()) {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, BundleUtil.getStringFromBundle("file.api.alreadyHasPackageFile"));
             }
 

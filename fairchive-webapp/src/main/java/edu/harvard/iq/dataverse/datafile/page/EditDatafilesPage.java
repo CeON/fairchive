@@ -620,7 +620,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                     return;
                 }
                 for (final DatasetVersion version : lockTest.getVersions()) {
-                    if (version.isHasPackageFile()) {
+                    if (version.hasPackageFile()) {
                         logger.log(INFO, ResourceBundle.getBundle("Bundle")
                                 .getString("file.api.alreadyHasPackageFile"));
                         saveAndAddFilesProcess.setPreconditionErrors(true);

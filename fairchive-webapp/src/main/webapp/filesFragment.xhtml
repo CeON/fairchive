@@ -407,7 +407,7 @@
                         <ul class="dropdown-menu multi-level pull-right text-left" 
                             role="menu">
                             <ui:fragment rendered="#{!datasetFilesTab.dataset.released
-                                                     or !datasetFilesTab.workingVersion.hasPackageFile}">
+                                                     or !datasetFilesTab.workingVersion.hasPackageFile()}">
                                 <li class="#{datasetFilesTab.lockedFromEdits ? 'disabled' : ''}">
                                     <p:commandLink onclick="testFilesSelectedForDelete(this);" 
                                                    id="deleteSelectedFile">

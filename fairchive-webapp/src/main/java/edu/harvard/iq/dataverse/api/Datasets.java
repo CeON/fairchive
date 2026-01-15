@@ -1445,7 +1445,7 @@ public class Datasets extends AbstractApiBean {
 
         // (2a) Make sure dataset does not have package file
         for (DatasetVersion dv : dataset.getVersions()) {
-            if (dv.isHasPackageFile()) {
+            if (dv.hasPackageFile()) {
                 return error(Response.Status.FORBIDDEN,
                              ResourceBundle.getBundle("Bundle").getString("file.api.alreadyHasPackageFile")
                 );

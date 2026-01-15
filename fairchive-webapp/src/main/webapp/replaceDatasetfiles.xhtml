@@ -78,7 +78,7 @@
                                     <div id="panelCollapseHTTP" class="panel-collapse collapse in"
                                          aria-labelledby="headingHTTP" role="region">
                                         <div class="panel-body" jsf:id="httpUploadDisabledDueToExistingRsyncPackage"
-                                             jsf:rendered="#{ReplaceDatafilesPage.dataset.getEditVersion().hasPackageFile and
+                                             jsf:rendered="#{ReplaceDatafilesPage.dataset.getEditVersion().hasPackageFile() and
                                               !ReplaceDatafilesPage.dataset.released}">
                                             <p class="help-block">
                                                 <span class="glyphicon glyphicon-warning-sign text-warning"></span>

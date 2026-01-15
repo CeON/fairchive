@@ -498,12 +498,12 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
         return true;
     }
 
-	public boolean isHasPackageFile() {
+	public boolean hasPackageFile() {
 		return this.fileMetadatas.size() == 1 
 				&& this.fileMetadatas.get(0).getDataFile().isFilePackage();
 	}
     // XHTML
-    public boolean isHasNonPackageFile() {
+    public boolean hasNonPackageFile() {
         // The presence of any non-package file means that HTTP Upload was used 
         // (no mixing allowed) so we just check the first file.
         return !fileMetadatas.isEmpty()

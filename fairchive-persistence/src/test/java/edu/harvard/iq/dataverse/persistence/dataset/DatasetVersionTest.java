@@ -318,20 +318,20 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
     @Test 
     void isPackage() {
     	
-    	assertThat(this.datasetVersion.isHasPackageFile()).isFalse();
-    	assertThat(this.datasetVersion.isHasNonPackageFile()).isFalse();
+    	assertThat(this.datasetVersion.hasPackageFile()).isFalse();
+    	assertThat(this.datasetVersion.hasNonPackageFile()).isFalse();
     	
     	this.fileMetadata.setDataFile(new DataFile(""));
     	this.datasetVersion.addFileMetadata(this.fileMetadata);
     	
     	
-    	assertThat(this.datasetVersion.isHasPackageFile()).isFalse();
-    	assertThat(this.datasetVersion.isHasNonPackageFile()).isTrue();
+    	assertThat(this.datasetVersion.hasPackageFile()).isFalse();
+    	assertThat(this.datasetVersion.hasNonPackageFile()).isTrue();
     	
     	this.fileMetadata.getDataFile().setContentType(DATAVERSE_PACKAGE.getMimeValue());
     	
-    	assertThat(this.datasetVersion.isHasPackageFile()).isTrue();
-    	assertThat(this.datasetVersion.isHasNonPackageFile()).isFalse();
+    	assertThat(this.datasetVersion.hasPackageFile()).isTrue();
+    	assertThat(this.datasetVersion.hasNonPackageFile()).isFalse();
     }
 
     // -------------------- PRIVATE --------------------
