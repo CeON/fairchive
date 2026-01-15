@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_NO_PRIMARY_SOURCE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_WITH_PRIMARY_SOURCE;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.ARCHIVED;

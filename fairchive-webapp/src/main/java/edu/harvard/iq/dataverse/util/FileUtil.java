@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.ImageMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;

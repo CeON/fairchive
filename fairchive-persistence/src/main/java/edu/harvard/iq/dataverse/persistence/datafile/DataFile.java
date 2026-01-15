@@ -85,7 +85,6 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     public static final Long ROOT_DATAFILE_ID_DEFAULT = -1L;
 
-
     static final String FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE =
             "SELECT t0.ID, t0.CREATEDATE, " +
             "t0.PUBLICATIONDATE, t0.PREVIEWIMAGEAVAILABLE, t0.STORAGEIDENTIFIER, t0.AUTHORITY, t0.PROTOCOL, t0.IDENTIFIER, " +
@@ -743,6 +742,10 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     public void setGuestbookResponses(List<GuestbookResponse> guestbookResponses) {
         this.guestbookResponses = guestbookResponses;
     }
+    
+    public static String packageMIME() {
+    	return DATAVERSE_PACKAGE.getMimeValue();
+    }
 
     // -------------------- equals & hashCode --------------------
 
@@ -759,6 +762,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         DataFile other = (DataFile) object;
         return Objects.equals(getId(), other.getId());
     }
+    
 
     // -------------------- INNER CLASSES --------------------
 

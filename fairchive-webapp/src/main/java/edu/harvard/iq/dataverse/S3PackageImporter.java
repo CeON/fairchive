@@ -30,7 +30,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
 import edu.harvard.iq.dataverse.dataaccess.S3AccessIO;
 import edu.harvard.iq.dataverse.dataaccess.S3ClientFactory;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
@@ -136,7 +135,7 @@ public class S3PackageImporter extends AbstractApiBean implements java.io.Serial
 
     public DataFile createPackageDataFile(Dataset dataset, String folderName, long totalSize) throws IOException {
         AmazonS3 s3 = s3ClientFactory.getClient();
-        DataFile packageFile = new DataFile(PackageMimeType.DATAVERSE_PACKAGE.getMimeValue());
+        DataFile packageFile = new DataFile(DataFile.packageMIME());
         packageFile.setChecksumType(DataFile.ChecksumType.SHA1);
 
         //This is a brittle calculation, changes of the dcm post_upload script will blow this up

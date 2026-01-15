@@ -44,7 +44,6 @@ import javax.servlet.http.HttpServletRequest;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -222,7 +221,7 @@ public class FileRecordWriter extends AbstractItemWriter {
      */
     @SuppressWarnings("unchecked")
     private DataFile createPackageDataFile(List<File> files) {
-        DataFile packageFile = new DataFile(PackageMimeType.DATAVERSE_PACKAGE.getMimeValue());
+        DataFile packageFile = new DataFile(DataFile.packageMIME());
         packageFile.setStorageIdentifier(FileUtil.generateStorageIdentifier());
 
         String datasetDirectory = null;

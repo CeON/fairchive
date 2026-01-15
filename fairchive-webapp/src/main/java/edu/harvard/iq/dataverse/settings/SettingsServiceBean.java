@@ -9,7 +9,6 @@ import edu.harvard.iq.dataverse.persistence.Setting;
 import edu.harvard.iq.dataverse.persistence.SettingRepository;
 import edu.harvard.iq.dataverse.util.StringUtil;
 
-import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

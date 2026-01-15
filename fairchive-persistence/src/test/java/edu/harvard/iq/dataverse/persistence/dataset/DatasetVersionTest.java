@@ -7,7 +7,6 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.descriptionTe
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributionDate;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
-import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeFileMetadata;
 import static org.assertj.core.api.Assertions.tuple;
@@ -328,7 +327,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
     	assertThat(this.datasetVersion.hasPackageFile()).isFalse();
     	assertThat(this.datasetVersion.hasNonPackageFile()).isTrue();
     	
-    	this.fileMetadata.getDataFile().setContentType(DATAVERSE_PACKAGE.getMimeValue());
+    	this.fileMetadata.getDataFile().setContentType(DataFile.packageMIME());
     	
     	assertThat(this.datasetVersion.hasPackageFile()).isTrue();
     	assertThat(this.datasetVersion.hasNonPackageFile()).isFalse();
