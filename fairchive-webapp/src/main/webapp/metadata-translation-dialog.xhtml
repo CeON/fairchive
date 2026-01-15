@@ -15,20 +15,22 @@
                   modal="true">
         <h:form id="translateForm">
         <p:panel>
-            <span style="margin: 10px;">#{bundle['dataset.translation.language.header']}</span>
-	       <p:selectOneMenu id="translationLanguageMenu" 
-	                        value="#{dialog.selectedLanguageCode }"
-	                        scrollHeight="15"
-	                        showClear="true">
-	           <f:selectItem itemLabel="#{bundle['dataset.translation.select']}"
-                             itemValue="#{null}"
-                             noSelectionOption="true" />
-		       <f:selectItems value="#{dialog.languages}"
-		                      var="lang"
-		                      itemLabel="#{lang.label}"
-		                      itemValue="#{lang.code}" />
-		       <p:ajax update="translatedMetadata" /> 
-	       </p:selectOneMenu>
+			<div style="text-align:right">
+				<span style="margin: 10px;">#{bundle['dataset.translation.language.header']}</span>
+			   <p:selectOneMenu id="translationLanguageMenu"
+								value="#{dialog.selectedLanguageCode }"
+								scrollHeight="15"
+								showClear="true">
+				   <f:selectItem itemLabel="#{bundle['dataset.translation.select']}"
+								 itemValue="#{null}"
+								 noSelectionOption="true" />
+				   <f:selectItems value="#{dialog.languages}"
+								  var="lang"
+								  itemLabel="#{lang.label}"
+								  itemValue="#{lang.code}" />
+				   <p:ajax update="translatedMetadata" />
+			   </p:selectOneMenu>
+			</div>
 	       </p:panel>
 	       <c:set var="globalId" 
 	              value="#{dialog.datasetGlobalIdString}"/>
