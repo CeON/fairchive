@@ -498,21 +498,16 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
         return true;
     }
 
-    public boolean isHasPackageFile() {
-        if (fileMetadatas.size() != 1) {
-            return false;
-        }
-        return DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0)
-                .getDataFile().getContentType());
-    }
-
+	public boolean isHasPackageFile() {
+		return this.fileMetadatas.size() == 1 
+				&& this.fileMetadatas.get(0).getDataFile().isFilePackage();
+	}
     // XHTML
     public boolean isHasNonPackageFile() {
         // The presence of any non-package file means that HTTP Upload was used 
         // (no mixing allowed) so we just check the first file.
         return !fileMetadatas.isEmpty()
-                && !DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0)
-                        .getDataFile().getContentType());
+                && !this.fileMetadatas.get(0).getDataFile().isFilePackage();
     }
     
     public boolean isNewerThan(final DatasetVersion other) {
