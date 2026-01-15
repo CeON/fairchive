@@ -501,9 +501,6 @@ public class FileUtil implements java.io.Serializable {
                         || contentType.equalsIgnoreCase(ApplicationMimeType.GEO_SHAPE.getMimeValue()));
     }
 
-    public static boolean isPackageFile(DataFile dataFile) {
-        return PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(dataFile.getContentType());
-    }
 
     public static byte[] getFileFromResources(String path) {
         

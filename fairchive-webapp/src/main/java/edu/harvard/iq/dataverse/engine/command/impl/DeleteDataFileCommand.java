@@ -84,7 +84,7 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
             // as of now, they are not supported by StorageIO (they only work 
             // with local filesystem as the storage mechanism). 
 
-            if (FileUtil.isPackageFile(doomed)) {
+            if (doomed.isFilePackage()) {
                 try {
                     String datasetDirectory = doomed.getOwner().getFileSystemDirectory(ctxt.systemConfig().getFilesDirectory()).toString();
                     Path datasetDirectoryPath = Paths.get(datasetDirectory, doomed.getStorageIdentifier());
