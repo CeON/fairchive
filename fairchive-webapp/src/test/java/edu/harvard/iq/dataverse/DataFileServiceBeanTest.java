@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse;
 
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,124 +39,7 @@ public class DataFileServiceBeanTest {
         fileWithBogusContentType = createDataFile("foo/bar");
         dataFileServiceBean = new DataFileServiceBean();
     }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not astro files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassAstro() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassAstro(null));
-        assertFalse(dataFileServiceBean.isFileClassAstro(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassAstro(fileWithBogusContentType));
-    }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not audio files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassAudio() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassAudio(null));
-        assertFalse(dataFileServiceBean.isFileClassAudio(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassAudio(fileWithBogusContentType));
-    }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not code files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassCode() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassCode(null));
-        assertFalse(dataFileServiceBean.isFileClassCode(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassCode(fileWithBogusContentType));
-    }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not document files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassDocument() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassDocument(null));
-        assertFalse(dataFileServiceBean.isFileClassDocument(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassDocument(fileWithBogusContentType));
-    }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not geo files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassGeo() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassGeo(null));
-        assertFalse(dataFileServiceBean.isFileClassGeo(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassGeo(fileWithBogusContentType));
-    }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not image files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassImage() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassImage(null));
-        assertFalse(dataFileServiceBean.isFileClassImage(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassImage(fileWithBogusContentType));
-    }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not network files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassNetwork() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassNetwork(null));
-        assertFalse(dataFileServiceBean.isFileClassNetwork(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassNetwork(fileWithBogusContentType));
-    }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not tabular files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassTabularData() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassTabularData(null));
-        assertFalse(dataFileServiceBean.isFileClassTabularData(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassTabularData(fileWithBogusContentType));
-    }
-
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not video files.
-     *
-     * @throws Exception when the test is in error.
-     */
-    @Test
-    public void testIsFileClassVideo() throws Exception {
-        assertFalse(dataFileServiceBean.isFileClassVideo(null));
-        assertFalse(dataFileServiceBean.isFileClassVideo(fileWoContentType));
-        assertFalse(dataFileServiceBean.isFileClassVideo(fileWithBogusContentType));
-    }
-
+    
     /**
      * Expect that files without content type or with a bogus content type are
      * classed as "other". Note that the file classes are not coded as constants!
@@ -163,10 +48,66 @@ public class DataFileServiceBeanTest {
      */
     @Test
     public void testGetFileClass() throws Exception {
-        assertEquals("other", dataFileServiceBean.getFileClass(fileWoContentType));
-        assertEquals("other", dataFileServiceBean.getFileClass(fileWithBogusContentType));
+    	assertEquals("image", getFileClass("image/png"));
+    	
+    	assertEquals("video", getFileClass("video/mp4"));	
+    	
+    	assertEquals("audio", getFileClass("audio/wav"));
+    	
+    	assertEquals("code", getFileClass("application/x-r-syntax"));
+    	assertEquals("code", getFileClass("text/x-stata-syntax"));
+    	assertEquals("code", getFileClass("text/x-sas-syntax"));
+    	assertEquals("code", getFileClass("text/x-spss-syntax"));
+    	
+    	assertEquals("document", getFileClass("text/plain"));
+    	assertEquals("document", getFileClass("application/pdf"));
+    	assertEquals("document", getFileClass("application/msword"));
+    	assertEquals("document", getFileClass("application/vnd.ms-excel"));
+    	assertEquals("document", getFileClass("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+    	assertEquals("document", getFileClass("text/plain;something"));
+    	
+    	assertEquals("astro", getFileClass("application/fits"));
+    	assertEquals("astro", getFileClass("image/fits"));
+    	
+    	assertEquals("network", getFileClass("text/xml-graphml"));
+    	
+    	assertEquals("geodata", getFileClass("application/zipped-shapefile"));
+    	
+    	assertEquals("tabular", getFileClass("text/tsv"));
+    	assertEquals("tabular", getFileClass("text/x-fixed-field"));
+    	assertEquals("tabular", getFileClass("application/x-sas-transport"));
+    	assertEquals("tabular", getFileClass("application/x-sas-system"));
+    	
+    	assertEquals("tabular", getFileClass("application/x-stata"));
+    	assertEquals("tabular", getFileClass("application/x-stata-13"));
+    	assertEquals("tabular", getFileClass("application/x-stata-14"));
+    	assertEquals("tabular", getFileClass("application/x-stata-15"));
+    	assertEquals("tabular", getFileClass("application/x-rlang-transport"));
+    	assertEquals("tabular", getFileClass("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+    	assertEquals("tabular", getFileClass("application/x-spss-sav"));
+    	assertEquals("tabular", getFileClass("application/x-spss-por"));
+    	assertEquals("tabular", getFileClass("text/csv"));
+    	assertEquals("tabular", getFileClass("text/comma-separated-values"));
+    	assertEquals("tabular", getFileClass("text/tsv"));
+    	assertEquals("tabular", getFileClass("text/tab-separated-values"));
+    	
+    	DataFile tabular = createDataFile("");
+    	tabular.setDataTable(new DataTable());
+    	assertEquals("tabular", dataFileServiceBean.getFileClass(tabular));
+    	
+    	assertEquals("package", getFileClass("application/vnd.dataverse.file-package"));
+    	
+        assertEquals("other", getFileClass(""));
+        assertEquals("other", getFileClass("foo/bar"));
+    }
+    
+    private String getFileClass(final String mime) {
+    	return dataFileServiceBean.getFileClass(createDataFile(mime));
     }
 
+    
+    
+    
     /**
      * Create a DataFile with properties.
      *

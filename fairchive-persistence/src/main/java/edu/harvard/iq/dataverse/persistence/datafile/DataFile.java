@@ -221,6 +221,92 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     public String getContentType() {
         return contentType;
     }
+    
+	public String getFileClass() {
+		if (isTabularData() || isTabular()) {
+			return "tabular";
+		}
+		if(isDocument()) {
+			return "document";
+		}
+		if (isImage()) {
+			return "image";
+		}
+		if (isVideo()) {
+			return "video";
+		}
+		if (isAudio()) {
+			return "audio";
+		}
+		if(isCode()) {
+			return "code";
+		}
+		if(isAstro()) {
+			return "astro";
+		}
+		if(isNetwork()) {
+			return "network";
+		}
+		if(isFilePackage()) {
+			return "package";
+		}
+		if(isShapefileType()) {
+			return "geodata";
+		}
+		return "other";
+	}
+    
+    private boolean isVideo() {
+    	return this.contentType.startsWith("video/");
+    }
+    
+    private boolean isAudio() {
+    	return this.contentType.startsWith("audio/");
+    }
+    
+    private boolean isCode() {
+    	return this.contentType.equals("application/x-r-syntax") ||
+    			this.contentType.equals("text/x-stata-syntax") ||
+    			this.contentType.equals("text/x-sas-syntax") ||
+    			this.contentType.equals("text/x-spss-syntax");
+    			
+    }
+    
+    private boolean isDocument() {
+    	return this.contentType.startsWith("text/plain") ||
+    			this.contentType.startsWith("application/pdf") ||
+    			this.contentType.startsWith("application/msword") ||
+    			this.contentType.startsWith("application/vnd.ms-excel") ||
+    			this.contentType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    			
+    }
+    
+    private boolean isAstro() {
+    	return this.contentType.equals("application/fits") ||
+    			this.contentType.equals("image/fits");
+    }
+    
+    private boolean isTabular() {
+    	return this.contentType.equals("application/x-sas-transport") ||
+    			this.contentType.equals("application/x-sas-system") ||
+    			this.contentType.equals("application/x-stata") ||
+    			this.contentType.equals("application/x-stata-13") ||
+    			this.contentType.equals("application/x-stata-14") ||
+    			this.contentType.equals("application/x-stata-15") ||
+    			this.contentType.equals("application/x-rlang-transport") ||
+    			this.contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
+    			this.contentType.equals("application/x-spss-sav") ||
+    			this.contentType.equals("application/x-spss-por") ||
+    			this.contentType.equals("text/x-fixed-field") ||
+    			this.contentType.equals("text/csv") ||
+    			this.contentType.equals("text/comma-separated-values") ||
+    			this.contentType.equals("text/tsv") ||
+    			this.contentType.equals("text/tab-separated-values");
+    }
+    
+    private boolean isNetwork() {
+    	return this.contentType.equals("text/xml-graphml");
+    }
 
     public ChecksumType getChecksumType() {
         return checksumType;

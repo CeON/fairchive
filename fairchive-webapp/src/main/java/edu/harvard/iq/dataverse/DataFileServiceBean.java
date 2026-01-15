@@ -479,7 +479,7 @@ public class DataFileServiceBean implements Serializable {
         return MimePrefix.OTHER.getPrefixValue();
     }
 
-    public boolean isFileClassImage(DataFile file) {
+    private boolean isFileClassImage(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -496,7 +496,7 @@ public class DataFileServiceBean implements Serializable {
         return (contentType != null && (contentType.toLowerCase().startsWith("image/")));
     }
 
-    public boolean isFileClassAudio(DataFile file) {
+    private boolean isFileClassAudio(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -506,7 +506,7 @@ public class DataFileServiceBean implements Serializable {
         return (contentType != null && (contentType.toLowerCase().startsWith("audio/")));
     }
 
-    public boolean isFileClassCode(DataFile file) {
+    private boolean isFileClassCode(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -519,7 +519,7 @@ public class DataFileServiceBean implements Serializable {
 
     }
 
-    public boolean isFileClassDocument(DataFile file) {
+    private boolean isFileClassDocument(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -537,7 +537,7 @@ public class DataFileServiceBean implements Serializable {
 
     }
 
-    public boolean isFileClassAstro(DataFile file) {
+    private boolean isFileClassAstro(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -547,7 +547,7 @@ public class DataFileServiceBean implements Serializable {
                 || ImageMimeType.FITSIMAGE.getMimeValue().equalsIgnoreCase(contentType));
     }
 
-    public boolean isFileClassNetwork(DataFile file) {
+    private boolean isFileClassNetwork(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -556,7 +556,7 @@ public class DataFileServiceBean implements Serializable {
         return TextMimeType.NETWORK_GRAPHML.getMimeValue().equalsIgnoreCase(contentType);
     }
 
-    public boolean isFileClassGeo(DataFile file) {
+    private boolean isFileClassGeo(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -565,7 +565,7 @@ public class DataFileServiceBean implements Serializable {
         return ApplicationMimeType.GEO_SHAPE.getMimeValue().equalsIgnoreCase(contentType);
     }
 
-    public boolean isFileClassTabularData(DataFile file) {
+    private boolean isFileClassTabularData(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -590,7 +590,7 @@ public class DataFileServiceBean implements Serializable {
 
     }
 
-    public boolean isFileClassVideo(DataFile file) {
+    private boolean isFileClassVideo(DataFile file) {
         if (file == null) {
             return false;
         }
@@ -601,7 +601,7 @@ public class DataFileServiceBean implements Serializable {
         return contentType != null && contentType.toLowerCase().startsWith("video/");
     }
 
-    public boolean isFileClassPackage(DataFile file) {
+    private boolean isFileClassPackage(DataFile file) {
         if (file == null) {
             return false;
         }
