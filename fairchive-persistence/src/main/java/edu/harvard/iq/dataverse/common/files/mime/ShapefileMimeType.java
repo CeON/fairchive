@@ -1,22 +1,23 @@
 package edu.harvard.iq.dataverse.common.files.mime;
 
-public enum ShapefileMimeType {
-    
-    SHAPEFILE_FILE_TYPE("application/zipped-shapefile", "Shapefile as ZIP Archive");
+public enum ShapefileMimeType implements MimeType {
 
-    private String mimeValue;
-    private String friendlyName;
+	SHAPEFILE_FILE_TYPE("application/zipped-shapefile", "Shapefile as ZIP Archive");
 
-    ShapefileMimeType(String mimeType, String friendlyName) {
-        this.mimeValue = mimeType;
-        this.friendlyName = friendlyName;
-    }
+	private final String mimeValue;
+	private final String friendlyName;
 
-    public String getMimeValue() {
-        return mimeValue;
-    }
+	ShapefileMimeType(final String mimeType, final String friendlyName) {
+		this.mimeValue = mimeType;
+		this.friendlyName = friendlyName;
+	}
 
-    public String getFriendlyName() {
-        return friendlyName;
-    }
+	@Override
+	public String getMimeValue() {
+		return this.mimeValue;
+	}
+
+	public String getFriendlyName() {
+		return this.friendlyName;
+	}
 }

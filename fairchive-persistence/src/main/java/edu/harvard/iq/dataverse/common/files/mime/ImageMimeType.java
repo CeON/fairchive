@@ -1,16 +1,16 @@
 package edu.harvard.iq.dataverse.common.files.mime;
 
-public enum ImageMimeType {
+public enum ImageMimeType implements MimeType {
 
     FITSIMAGE("image/fits");
 
-    private String mimeValue;
+    private final String mimeValue;
 
-    ImageMimeType(String mimeType) {
+    ImageMimeType(final String mimeType) {
         this.mimeValue = mimeType;
     }
-
+    @Override
     public String getMimeValue() {
-        return mimeValue;
+        return this.mimeValue;
     }
 }

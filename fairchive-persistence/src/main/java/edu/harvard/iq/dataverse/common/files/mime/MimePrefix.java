@@ -14,13 +14,13 @@ public enum MimePrefix {
     PACKAGE("package"),
     OTHER("other");
 
-    private String prefixValue;
+    private final String prefix;
 
-    MimePrefix(String prefix) {
-        this.prefixValue = prefix;
+    MimePrefix(final String prefix) {
+        this.prefix = prefix;
     }
 
     public String getPrefixValue() {
-        return prefixValue;
+        return this.prefix;
     }
 }
