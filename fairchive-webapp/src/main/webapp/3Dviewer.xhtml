@@ -11,28 +11,45 @@
 <h:head>
 	<meta content="charset=UTF-8" />
 	<title>#{bundle['3dpreview']}</title>
+    
 	<!-- https://3dviewer.net -->
 	<script type="text/javascript" src="/javax.faces.resource/js/o3dv.min.js"/>
 		
-	<script type="text/javascript">
+	<script type="text/javascript">        
 window.addEventListener ('load', () => {
-    // get the parent element of the viewer
-    let div = document.getElementById ('viewer');
-
     // initialize the viewer with the parent element and some parameters
-    let viewer = new OV.EmbeddedViewer (div, {
+    let viewer = new OV.EmbeddedViewer (document.getElementById ('viewer'), {
         backgroundColor : new OV.RGBAColor (255, 255, 255, 255),
         defaultColor : new OV.RGBColor (200, 200, 200),
         edgeSettings : new OV.EdgeSettings (false, new OV.RGBColor (0, 0, 0), 1),
+        onModelLoaded: () => {
+            document.getElementById('spinner').style.display = 'none';
+        },
+        onModelLoadFailed: () => {
+            document.getElementById('spinner').style.display = 'none';
+        }
     });
     
     let url = atob((new URLSearchParams(window.location.search)).get("fileUrl64")).trim();
     viewer.LoadModelFromUrlList ([url]);
 });
-</script>
+    </script>
 </h:head>
 
 <h:body style="width: 100%; height: 100%;">
-<div id="viewer" style="width: 98%; height: 98%"/>
+    <img id="spinner" src="/resources/images/ajax-loading.gif"
+        style="
+          position:absolute;
+          top:50%;
+          left:50%;
+          transform:translate(-50%, -50%);
+          display:block;
+          z-index:10;
+          width:auto;
+          height:auto;
+          max-width:none;
+          max-height:none;
+        "/>
+    <div id="viewer" style="width: 98%; height: 98%"/>
 </h:body>
 </html>
