@@ -282,7 +282,7 @@
                 <a href="#{fileUrlFinal}" target="#{fileCardUrlsTarget}" tabindex="-1"
                    aria-label="#{bundle.file} #{result.name} #{result.draftState ? bundle['dataset.versionUI.draft'] : ''}" >
                     <h:graphicImage value="#{result.imageUrl}" rendered="#{!empty result.imageUrl}" alt="#{bundle['dataverse.results.cards.file.thumbnailPrefix']} #{result.name}"/>
-                    <span class="icon-#{dataFileServiceBean.getFileClass(result.entity)} text-muted h1"
+                    <span class="icon-#{result.entity.fileClass} text-muted h1"
                           jsf:rendered="#{empty result.imageUrl}" role="img" aria-label="#{bundle.file}"/>
                 </a>
             </div>

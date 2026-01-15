@@ -79,7 +79,7 @@
                                         <p:graphicImage value="/api/access/datafile/#{fileMetadata.dataFile.id}?imageThumb=true"/>
                                     </span>
                                     <!-- Default Icon -->
-                                    <span class="icon-#{dataFileServiceBean.getFileClass(fileMetadata.dataFile)} file-thumbnail-icon text-muted"
+                                    <span class="icon-#{fileMetadata.dataFile.fileClass} file-thumbnail-icon text-muted"
                                           jsf:rendered="#{(!dataFileServiceBean.isThumbnailAvailable(fileMetadata.dataFile))}"/>
                                     <!-- Restricted File Icon -->
                                     <div class="file-icon-restricted-block" jsf:rendered="#{fileMetadata.termsOfUse.termsOfUseType eq termsOfUseTypeEnum.RESTRICTED }">

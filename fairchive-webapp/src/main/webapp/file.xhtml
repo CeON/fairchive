@@ -256,7 +256,7 @@
                         <div id="file-preview-icon-block" class="col-sm-4">
                             <div id="border-block">
                                 <div id="preview-square">
-                                    <span class="icon-#{dataFileServiceBean.getFileClass(FilePage.fileMetadata.dataFile)} text-muted" 
+                                    <span class="icon-#{FilePage.fileMetadata.dataFile.fileClass} text-muted" 
                                           jsf:rendered="#{!FilePage.isThumbnailAvailable()}"/>
                                     <p:graphicImage styleClass="img-responsive"
                                                     value="/api/access/datafile/#{FilePage.fileId}?imageThumb=400"

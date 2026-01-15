@@ -223,6 +223,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
 	public String getFileClass() {
+		// order of if's is important
 		if (isTabularData() || isTabular()) {
 			return "tabular";
 		}

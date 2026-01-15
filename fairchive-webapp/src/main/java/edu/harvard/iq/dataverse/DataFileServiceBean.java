@@ -1,9 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.ImageMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.MimePrefix;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
@@ -53,7 +49,6 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataFile
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
-import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -452,161 +447,6 @@ public class DataFileServiceBean implements Serializable {
         }
 
         return false;
-    }
-
-    public String getFileClass(DataFile file) {
-        if (isFileClassImage(file)) {
-            return MimePrefix.IMAGE.getPrefixValue();
-        } else if (isFileClassVideo(file)) {
-            return MimePrefix.VIDEO.getPrefixValue();
-        } else if (isFileClassAudio(file)) {
-            return MimePrefix.AUDIO.getPrefixValue();
-        } else if (isFileClassCode(file)) {
-            return MimePrefix.CODE.getPrefixValue();
-        } else if (isFileClassDocument(file)) {
-            return MimePrefix.DOCUMENT.getPrefixValue();
-        } else if (isFileClassAstro(file)) {
-            return MimePrefix.ASTRO.getPrefixValue();
-        } else if (isFileClassNetwork(file)) {
-            return MimePrefix.NETWORK.getPrefixValue();
-        } else if (isFileClassGeo(file)) {
-            return MimePrefix.GEO.getPrefixValue();
-        } else if (isFileClassTabularData(file)) {
-            return MimePrefix.TABULAR.getPrefixValue();
-        } else if (isFileClassPackage(file)) {
-            return MimePrefix.PACKAGE.getPrefixValue();
-        }
-        return MimePrefix.OTHER.getPrefixValue();
-    }
-
-    private boolean isFileClassImage(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // Some browsers (Chrome?) seem to identify FITS files as mime
-        // type "image/fits" on upload; this is both incorrect (the official
-        // mime type for FITS is "application/fits", and problematic: then
-        // the file is identified as an image, and the page will attempt to
-        // generate a preview - which of course is going to fail...
-        if (ImageMimeType.FITSIMAGE.getMimeValue().equalsIgnoreCase(contentType)) {
-            return false;
-        }
-        // besides most image/* types, we can generate thumbnails for pdf and "world map" files:
-        return (contentType != null && (contentType.toLowerCase().startsWith("image/")));
-    }
-
-    private boolean isFileClassAudio(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // TODO:
-        // verify that there are no audio types that don't start with "audio/" - some exotic mp[34]... ?
-        return (contentType != null && (contentType.toLowerCase().startsWith("audio/")));
-    }
-
-    private boolean isFileClassCode(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // The following are the "control card/syntax" formats that we recognize as "code":
-        return ApplicationMimeType.R_SYNTAX.getMimeValue().equalsIgnoreCase(contentType)
-                || TextMimeType.STATA_SYNTAX.getMimeValue().equalsIgnoreCase(contentType)
-                || TextMimeType.SAS_SYNTAX.getMimeValue().equalsIgnoreCase(contentType)
-                || TextMimeType.SPSS_CCARD.getMimeValue().equalsIgnoreCase(contentType);
-
-    }
-
-    private boolean isFileClassDocument(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        // "Documents": PDF, assorted MS docs, etc.
-        String contentType = file.getContentType();
-        int scIndex;
-        if (contentType != null && (scIndex = contentType.indexOf(';')) > 0) {
-            contentType = contentType.substring(0, scIndex);
-        }
-        return TextMimeType.PLAIN_TEXT.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.DOCUMENT_PDF.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.DOCUMENT_MSWORD.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.DOCUMENT_MSEXCEL.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.DOCUMENT_MSWORD_OPENXML.getMimeValue().equalsIgnoreCase(contentType);
-
-    }
-
-    private boolean isFileClassAstro(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // The only known/supported "Astro" file type is FITS, so far:
-        return (ApplicationMimeType.FITS.getMimeValue().equalsIgnoreCase(contentType) 
-                || ImageMimeType.FITSIMAGE.getMimeValue().equalsIgnoreCase(contentType));
-    }
-
-    private boolean isFileClassNetwork(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // The only known/supported Network Data type is GRAPHML, so far:
-        return TextMimeType.NETWORK_GRAPHML.getMimeValue().equalsIgnoreCase(contentType);
-    }
-
-    private boolean isFileClassGeo(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // The only known/supported Geo Data type is SHAPE, so far:
-        return ApplicationMimeType.GEO_SHAPE.getMimeValue().equalsIgnoreCase(contentType);
-    }
-
-    private boolean isFileClassTabularData(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        // "Tabular data" is EITHER an INGESTED tabular data file, i.e.
-        // a file with a DataTable and DataVariables; or a DataFile
-        // of one of the many known tabular data formats - SPSS, Stata, etc.
-        // that for one reason or another didn't get ingested:
-        if (file.isTabularData()) {
-            return true;
-        }
-        // The formats we know how to ingest:
-        if (canIngestAsTabular(file)) {
-            return true;
-        }
-        String contentType = file.getContentType();
-        // And these are the formats we DON'T know how to ingest,
-        // but nevertheless recognize as "tabular data":
-        return (TextMimeType.TSV.getMimeValue().equalsIgnoreCase(contentType)
-                || TextMimeType.FIXED_FIELD.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.SAS_TRANSPORT.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.SAS_SYSTEM.getMimeValue().equalsIgnoreCase(contentType));
-
-    }
-
-    private boolean isFileClassVideo(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // TODO:
-        // check if there are video types that don't start with "audio/" -
-        // some exotic application/... formats ?
-        return contentType != null && contentType.toLowerCase().startsWith("video/");
-    }
-
-    private boolean isFileClassPackage(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        return PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(contentType);
     }
 
     /**
