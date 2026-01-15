@@ -307,7 +307,7 @@ public class IngestServiceBean {
             String fileName = fileMetadata.getLabel();
 
             boolean metadataExtracted = false;
-            if (FileUtil.canIngestAsTabular(dataFile) && !FALSE.equals(dataFile.getIncludedInIngest())) {
+            if (dataFile.isIngestableAsTabular() && !FALSE.equals(dataFile.getIncludedInIngest())) {
                 // Note that we don't try to ingest the file right away - instead we mark it
                 // as "scheduled for ingest", then at the end of the save process it will be
                 // queued for async. ingest in the background. In the meantime, the file will

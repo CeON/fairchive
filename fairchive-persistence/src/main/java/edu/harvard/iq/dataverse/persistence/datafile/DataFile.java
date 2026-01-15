@@ -350,6 +350,10 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     public Boolean getIncludedInIngest() {
         return this.ingestType != IngestType.NON;
     }
+    
+    public boolean isIngestableAsTabular() {
+    	return isTabular();
+    }
 
     public Dataset getThumbnailForDataset() {
         return thumbnailForDataset;

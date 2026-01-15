@@ -1,19 +1,24 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType.MD5;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType.SHA1;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType.SHA256;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType.SHA512;
 import static edu.harvard.iq.dataverse.persistence.datafile.DataFileTag.TagType.Survey;
 import static edu.harvard.iq.dataverse.persistence.datafile.DataFileTag.TagType.TimeSeries;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.DRAFT;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
-import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
@@ -197,6 +202,17 @@ public class DataFileTest {
         assertEquals("other", getFileClass(""));
         assertEquals("other", getFileClass("foo/bar"));
     }
+    
+    @Test
+    void isIngestableAsTabular() {
+    	
+    	assertFalse(new DataFile("").isIngestableAsTabular());
+    	assertFalse(new DataFile("text/plain").isIngestableAsTabular());
+    	
+    	assertTrue(new DataFile("text/tsv").isIngestableAsTabular());
+    	assertTrue(new DataFile("application/x-stata").isIngestableAsTabular());
+    }
+    
     
     private static String getFileClass(final String mime) {
     	return new DataFile(mime).getFileClass();

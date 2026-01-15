@@ -182,12 +182,6 @@ public class FileUtil implements java.io.Serializable {
         return "";
     }
 
-
-    public static boolean canIngestAsTabular(DataFile dataFile) {
-        String mimeType = dataFile.getContentType();
-        return canIngestAsTabular(mimeType);
-    }
-
     public static boolean canIngestAsTabular(String mimeType) {
             return ApplicationMimeType.isIngestable(mimeType)
                     || TextMimeType.isIngestable(mimeType);

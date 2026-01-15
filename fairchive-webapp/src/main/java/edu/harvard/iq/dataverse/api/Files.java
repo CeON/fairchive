@@ -296,7 +296,7 @@ public class Files extends AbstractApiBean {
             return error(Response.Status.FORBIDDEN, "Dataset already locked with an Ingest lock");
         }
 
-        if (!FileUtil.canIngestAsTabular(dataFile)) {
+        if (!dataFile.isIngestableAsTabular()) {
             return error(Response.Status.BAD_REQUEST, "Tabular ingest is not supported for this file type (id: " + id + ", type: " + dataFile.getContentType() + ")");
         }
 
