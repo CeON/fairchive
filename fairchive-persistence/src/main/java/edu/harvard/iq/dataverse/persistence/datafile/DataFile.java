@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType.SHAPEFILE_FILE_TYPE;
 import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
@@ -43,7 +44,6 @@ import com.google.gson.annotations.Expose;
 import edu.harvard.iq.dataverse.common.FileSizeUtil;
 import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
 import edu.harvard.iq.dataverse.common.files.mime.MimeType;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
@@ -556,7 +556,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     public boolean isFilePackage() {
-        return PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(contentType);
+        return DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(this.contentType);
     }
 
     public boolean hasMimeType(MimeType... mimeTypes) {
