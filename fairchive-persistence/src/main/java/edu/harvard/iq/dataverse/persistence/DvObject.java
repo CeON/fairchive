@@ -30,6 +30,7 @@ import static javax.persistence.InheritanceType.JOINED;
 import static javax.persistence.TemporalType.TIMESTAMP;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -480,6 +481,10 @@ public abstract class DvObject extends DataverseEntity implements Serializable, 
     
     public String getStorageIdentifier() {
         return storageIdentifier;
+    }
+    
+    protected boolean isStored() {
+    	return isNotEmpty(this.storageIdentifier);
     }
 
     public void setStorageIdentifier(String storageIdentifier) {

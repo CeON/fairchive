@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType.SHAPEFILE_FILE_TYPE;
 import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
@@ -43,8 +42,6 @@ import com.google.gson.annotations.Expose;
 
 import edu.harvard.iq.dataverse.common.FileSizeUtil;
 import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.ImageMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.MimeType;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
@@ -561,7 +558,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     public boolean isFilePackage() {
-        return DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(this.contentType);
+        return packageMIME().equalsIgnoreCase(this.contentType);
     }
     
     /**
@@ -570,26 +567,27 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
      * can/will be generated; but it means that we can try.
      */
     public boolean isThumbnailSupported() {
-        if (isHarvested() || "".equals(getStorageIdentifier())) {
+    	
+        if (isHarvested()) {
             return false;
         }
-
-        // Some browsers (Chrome?) seem to identify FITS files as mime
-        // type "image/fits" on upload; this is both incorrect (the official
-        // mime type for FITS is "application/fits", and problematic: then
-        // the file is identified as an image, and the page will attempt to
-        // generate a preview - which of course is going to fail...
-        if (ImageMimeType.FITSIMAGE.getMimeValue().equalsIgnoreCase(contentType)) {
+        if (!isStored()) {
             return false;
         }
-        // besides most image/* types, we can generate thumbnails for
-        // pdf and "world map" files:
-
-        return contentType != null &&
-                (contentType.startsWith("image/")
-                        || contentType.equalsIgnoreCase("application/pdf")
-                        || (isTabularData() && hasGeospatialTag())
-                        || contentType.equalsIgnoreCase(ApplicationMimeType.GEO_SHAPE.getMimeValue()));
+        
+        if(this.contentType == null) {
+        	return false;
+        }
+        
+        if(isImage()) {
+        	return true;
+        }
+        
+        if(isShapeOrTabularWithGeospatialTag()) {
+        	return true;
+        }
+        
+        return false;
     }
 
     public boolean hasMimeType(MimeType... mimeTypes) {
@@ -778,7 +776,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
     public static String packageMIME() {
-    	return DATAVERSE_PACKAGE.getMimeValue();
+    	return "application/vnd.dataverse.file-package";
     }
 
     // -------------------- equals & hashCode --------------------
