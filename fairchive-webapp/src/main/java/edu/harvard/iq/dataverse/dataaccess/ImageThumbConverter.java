@@ -95,7 +95,7 @@ public class ImageThumbConverter {
 
     public boolean isThumbnailAvailable(final DataFile file, final int size) {
         requireNonNull(file);
-        if (FileUtil.isThumbnailSupported(file)) {
+        if (file.isThumbnailSupported()) {
             try (final StorageIO<DataFile> storage = getStorage(file)) {
                 if (storage.isAuxObjectCached(suffix(size))) {
                     return true;

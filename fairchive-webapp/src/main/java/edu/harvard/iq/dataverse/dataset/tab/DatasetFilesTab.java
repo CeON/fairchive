@@ -86,7 +86,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
-import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.PrimefacesUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -422,7 +421,7 @@ public class DatasetFilesTab implements Serializable {
             return !"".equals(datafileThumbnailsMap.get(dataFileId));
         }
 
-        if (!FileUtil.isThumbnailSupported(fileMetadata.getDataFile())) {
+        if (!fileMetadata.getDataFile().isThumbnailSupported()) {
             datafileThumbnailsMap.put(dataFileId, EMPTY);
             return false;
         }

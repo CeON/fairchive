@@ -24,7 +24,6 @@ package edu.harvard.iq.dataverse.util;
 import com.google.common.base.Preconditions;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.ImageMimeType;
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -464,36 +463,6 @@ public class FileUtil implements java.io.Serializable {
 
         return StringUtils.EMPTY;
     }
-
-    /**
-     * This method tells you if thumbnail generation is *supported*
-     * on this type of file. i.e., if true, it does not guarantee that a thumbnail
-     * can/will be generated; but it means that we can try.
-     */
-    public static boolean isThumbnailSupported(DataFile file) {
-        if (file == null || file.isHarvested() || "".equals(file.getStorageIdentifier())) {
-            return false;
-        }
-        String contentType = file.getContentType();
-
-        // Some browsers (Chrome?) seem to identify FITS files as mime
-        // type "image/fits" on upload; this is both incorrect (the official
-        // mime type for FITS is "application/fits", and problematic: then
-        // the file is identified as an image, and the page will attempt to
-        // generate a preview - which of course is going to fail...
-        if (ImageMimeType.FITSIMAGE.getMimeValue().equalsIgnoreCase(contentType)) {
-            return false;
-        }
-        // besides most image/* types, we can generate thumbnails for
-        // pdf and "world map" files:
-
-        return contentType != null &&
-                (contentType.startsWith("image/")
-                        || contentType.equalsIgnoreCase("application/pdf")
-                        || (file.isTabularData() && file.hasGeospatialTag())
-                        || contentType.equalsIgnoreCase(ApplicationMimeType.GEO_SHAPE.getMimeValue()));
-    }
-
 
     public static byte[] getFileFromResources(String path) {
         

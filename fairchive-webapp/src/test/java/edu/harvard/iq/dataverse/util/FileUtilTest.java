@@ -12,9 +12,6 @@ import org.junit.jupiter.api.Test;
 import com.google.common.collect.Lists;
 
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
-import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -149,62 +146,5 @@ public class FileUtilTest {
         assertEquals(".RData", FileUtil.generateOriginalExtension("application/x-rlang-transport"));
         assertEquals(".csv", FileUtil.generateOriginalExtension("text/csv"));
         assertEquals(".xlsx", FileUtil.generateOriginalExtension("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-    }
-
-
-    @Test
-    public void testIsThumbnailSupported() throws Exception {
-        // null file:
-        assertFalse(FileUtil.isThumbnailSupported(null));
-        
-        // file with no content type:
-        DataFile filewNoContentType = new DataFile("");
-        filewNoContentType.setOwner(new Dataset());
-        filewNoContentType.setStorageIdentifier("");
-        assertFalse(FileUtil.isThumbnailSupported(filewNoContentType));
-        
-        DataFile filewBogusContentType = new DataFile("");
-        filewBogusContentType.setOwner(new Dataset());
-        filewBogusContentType.setStorageIdentifier("");
-        assertFalse(FileUtil.isThumbnailSupported(filewBogusContentType));
-        
-        
-        DataFile file = new DataFile("");
-        file.setOwner(new Dataset());
-        file.setStorageIdentifier("https://abc.com");
-        assertFalse(FileUtil.isThumbnailSupported(file));
-        
-        file.setStorageIdentifier("");
-        file.setContentType("image/png");
-        assertFalse(FileUtil.isThumbnailSupported(file));
-        
-        file.setStorageIdentifier("abc");
-        
-        file.setContentType("image/fits");
-        assertFalse(FileUtil.isThumbnailSupported(file));    
-        
-        file.setContentType("image/png");
-        assertTrue(FileUtil.isThumbnailSupported(file));
-        
-        file.setContentType("application/pdf");
-        assertTrue(FileUtil.isThumbnailSupported(file));
-        
-        file.setContentType("application/zipped-shapefile");
-        assertTrue(FileUtil.isThumbnailSupported(file));
-        
-        file.setContentType("");
-        file.setDataTable(new DataTable());
-        assertFalse(FileUtil.isThumbnailSupported(file));
- 
-        DataFileTag tag = new DataFileTag();
-        tag.setType(DataFileTag.TagType.Geospatial);
-        file.addTag(tag);
-        assertTrue(FileUtil.isThumbnailSupported(file));
-        
-        file.setDataTable(null);
-        assertFalse(FileUtil.isThumbnailSupported(file));
-        
-        file.setContentType(null);
-        assertFalse(FileUtil.isThumbnailSupported(file));
     }
 }

@@ -214,6 +214,48 @@ public class DataFileTest {
     }
     
     
+    @Test
+    public void testIsThumbnailSupported() throws Exception {    
+        
+        DataFile file = new DataFile("");
+        file.setOwner(new Dataset());
+        file.setStorageIdentifier("https://abc.com");
+        assertFalse(file.isThumbnailSupported());
+        
+        file.setStorageIdentifier("");
+        file.setContentType("image/png");
+        assertFalse(file.isThumbnailSupported());
+        
+        file.setStorageIdentifier("abc");
+        
+        file.setContentType("image/fits");
+        assertFalse(file.isThumbnailSupported());   
+        
+        file.setContentType("image/png");
+        assertTrue(file.isThumbnailSupported());
+        
+        file.setContentType("application/pdf");
+        assertTrue(file.isThumbnailSupported());
+        
+        file.setContentType("application/zipped-shapefile");
+        assertTrue(file.isThumbnailSupported());
+        
+        file.setContentType("");
+        file.setDataTable(new DataTable());
+        assertFalse(file.isThumbnailSupported());
+ 
+        DataFileTag tag = new DataFileTag();
+        tag.setType(DataFileTag.TagType.Geospatial);
+        file.addTag(tag);
+        assertTrue(file.isThumbnailSupported());
+        
+        file.setDataTable(null);
+        assertFalse(file.isThumbnailSupported());
+        
+        file.setContentType(null);
+        assertFalse(file.isThumbnailSupported());
+    }
+    
     private static String getFileClass(final String mime) {
     	return new DataFile(mime).getFileClass();
     }
