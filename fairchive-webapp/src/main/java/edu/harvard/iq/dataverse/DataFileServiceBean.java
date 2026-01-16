@@ -658,18 +658,7 @@ public class DataFileServiceBean implements Serializable {
     }
 
     public boolean isSameTermsOfUse(FileTermsOfUse termsOfUse1, FileTermsOfUse termsOfUse2) {
-        if (termsOfUse1.getTermsOfUseType() != termsOfUse2.getTermsOfUseType()) {
-            return false;
-        }
-        if (termsOfUse1.getTermsOfUseType() == LICENSE_BASED) {
-            return termsOfUse1.getLicense().getId().equals(termsOfUse2.getLicense().getId());
-        }
-        if (termsOfUse1.getTermsOfUseType() == RESTRICTED) {
-            return termsOfUse1.getRestrictType() == termsOfUse2.getRestrictType() &&
-                    StringUtils.equals(termsOfUse1.getRestrictCustomText(), 
-                            termsOfUse2.getRestrictCustomText());
-        }
-        return true;
+        return termsOfUse1.isSameAs(termsOfUse2);
     }
 
     // -------------------- PRIVATE --------------------
