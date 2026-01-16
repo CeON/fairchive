@@ -1,8 +1,20 @@
 package edu.harvard.iq.dataverse.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
+import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -11,14 +23,6 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.util.FileUtil.ApiBatchDownloadType;
 import edu.harvard.iq.dataverse.util.FileUtil.ApiDownloadType;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FileUtilTest {
 
@@ -147,24 +151,60 @@ public class FileUtilTest {
         assertEquals(".xlsx", FileUtil.generateOriginalExtension("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
     }
 
-    /**
-     * Expect that {@code null}, a DataFile without content type and a DataFile
-     * with bogus content type are not files that thumbnails can be created for.
-     *
-     * @throws Exception when the test is in error.
-     */
+
     @Test
     public void testIsThumbnailSupported() throws Exception {
         // null file:
         assertFalse(FileUtil.isThumbnailSupported(null));
+        
         // file with no content type:
         DataFile filewNoContentType = new DataFile("");
         filewNoContentType.setOwner(new Dataset());
         filewNoContentType.setStorageIdentifier("");
         assertFalse(FileUtil.isThumbnailSupported(filewNoContentType));
+        
         DataFile filewBogusContentType = new DataFile("");
         filewBogusContentType.setOwner(new Dataset());
         filewBogusContentType.setStorageIdentifier("");
         assertFalse(FileUtil.isThumbnailSupported(filewBogusContentType));
+        
+        
+        DataFile file = new DataFile("");
+        file.setOwner(new Dataset());
+        file.setStorageIdentifier("https://abc.com");
+        assertFalse(FileUtil.isThumbnailSupported(file));
+        
+        file.setStorageIdentifier("");
+        file.setContentType("image/png");
+        assertFalse(FileUtil.isThumbnailSupported(file));
+        
+        file.setStorageIdentifier("abc");
+        
+        file.setContentType("image/fits");
+        assertFalse(FileUtil.isThumbnailSupported(file));    
+        
+        file.setContentType("image/png");
+        assertTrue(FileUtil.isThumbnailSupported(file));
+        
+        file.setContentType("application/pdf");
+        assertTrue(FileUtil.isThumbnailSupported(file));
+        
+        file.setContentType("application/zipped-shapefile");
+        assertTrue(FileUtil.isThumbnailSupported(file));
+        
+        file.setContentType("");
+        file.setDataTable(new DataTable());
+        assertFalse(FileUtil.isThumbnailSupported(file));
+ 
+        DataFileTag tag = new DataFileTag();
+        tag.setType(DataFileTag.TagType.Geospatial);
+        file.addTag(tag);
+        assertTrue(FileUtil.isThumbnailSupported(file));
+        
+        file.setDataTable(null);
+        assertFalse(FileUtil.isThumbnailSupported(file));
+        
+        file.setContentType(null);
+        assertFalse(FileUtil.isThumbnailSupported(file));
     }
 }
