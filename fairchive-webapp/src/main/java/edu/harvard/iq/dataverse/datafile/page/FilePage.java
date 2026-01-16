@@ -644,7 +644,7 @@ public class FilePage implements java.io.Serializable {
      * To help with replace development
      */
     public boolean isReplacementFile() {
-        return datafileService.isReplacementFile(this.getFile());
+        return this.file.isReplacementFile();
     }
 
     public boolean isPubliclyDownloadable() {

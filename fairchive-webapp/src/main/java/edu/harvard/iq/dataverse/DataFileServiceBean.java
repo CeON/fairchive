@@ -492,22 +492,6 @@ public class DataFileServiceBean implements Serializable {
         return findFileMetadataByDatasetVersionIdAndDataFileId(dsv.getId(), df.getId()) == null;
     }
 
-    /**
-     * Is this a replacement file??
-     * The indication of a previousDataFileId says that it is
-     */
-    public boolean isReplacementFile(DataFile df) {
-        if (df.getPreviousDataFileId() == null) {
-            return false;
-        } else if (df.getPreviousDataFileId() < 1) {
-            String errMSg = "Stop! previousDataFileId should either be null or a number greater than 0";
-            logger.error(errMSg);
-            return false;
-        } else {
-            return df.getPreviousDataFileId() > 0;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     public List<Long> selectFilesWithMissingOriginalTypes() {
         return em.createNativeQuery("SELECT f.id FROM datafile f, datatable t where t.datafile_id = f.id " +

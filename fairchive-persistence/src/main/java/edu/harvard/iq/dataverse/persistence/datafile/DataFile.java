@@ -306,6 +306,11 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     private boolean isNetwork() {
     	return this.contentType.equals("text/xml-graphml");
     }
+    
+    public boolean isReplacementFile() {
+        return this.previousDataFileId != null;
+    }
+    
 
     public ChecksumType getChecksumType() {
         return checksumType;
