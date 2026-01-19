@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -254,6 +256,57 @@ public class DataFileTest {
         
         file.setContentType(null);
         assertFalse(file.isThumbnailSupported());
+    }
+    
+    @ParameterizedTest
+    @CsvSource({
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, true",
+            "text/tsv, true",
+            "text/tab-separated-values, true",
+            "application/octet-strean, false",
+            "text/plain, false"
+    })
+    public void isSelectivelyIngestable(String mimeType, boolean expected) {
+        // given
+        DataFile dataFile = new DataFile(mimeType);
+        // when
+        boolean ret = dataFile. isSelectivelyIngestable();
+        // then
+        assertThat(ret).isEqualTo(expected);
+    }
+    
+    @ParameterizedTest
+    @CsvSource({
+            "application/x-spss-por, true",
+            "text/tsv, false",
+            "application/octet-strean, false",
+            "text/plain, false"
+    })
+    public void supportsInclusionOfLabels(String mimeType, boolean expected) {
+        // given
+        DataFile dataFile = new DataFile(mimeType);
+        // when
+        boolean ret = dataFile.supportsInclusionOfLabels();
+        // then
+        assertThat(ret).isEqualTo(expected);
+    }
+    
+    @ParameterizedTest
+    @CsvSource({
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, false",
+            "text/csv, true",
+            "text/comma-separated-values, true",
+            "text/tsv, false",
+            "application/octet-strean, false",
+            "text/plain, false"
+    })
+    public void supportsPickingEncoding(String mimeType, boolean expected) {
+        // given
+        DataFile dataFile = new DataFile(mimeType);
+        // when
+        boolean ret = dataFile.supportsPickingEncoding();
+        // then
+        assertThat(ret).isEqualTo(expected);
     }
     
     private static String getFileClass(final String mime) {

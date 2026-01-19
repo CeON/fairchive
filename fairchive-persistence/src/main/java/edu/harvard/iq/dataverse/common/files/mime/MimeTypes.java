@@ -85,7 +85,7 @@ public final class MimeTypes {
 		return supportsPickingEncoding.contains(mimeType);
 	}
 	
-    public static boolean supportsInclusionOfLabelsFile(final String mimeType) {
+    public static boolean supportsInclusionOfLabels(final String mimeType) {
         return SPSS_POR.equals(mimeType);
     }
 	

@@ -1191,22 +1191,6 @@ public class EditDatafilesPage implements java.io.Serializable {
         return this.ingestService.exceedsIngestSizeLimit(dataFile);
     }
 
-    public boolean supportsAdvancedIngestOptions(final DataFile file) {
-        return supportsPickingEncoding(file) || supportsInclusionOfLabelsFile(file);
-    }
-
-    public boolean supportsPickingEncoding(DataFile file) {
-        return this.ingestService.supportsPickingEncoding(file);
-    }
-
-    public boolean supportsInclusionOfLabelsFile(DataFile file) {
-        return this.ingestService.supportsInclusionOfLabelsFile(file);
-    }
-
-    public boolean isSelectivelyIngestableFile(DataFile file) {
-        return this.ingestService.isSelectivelyIngestableFile(file);
-    }
-
     public void clearFileMetadataSelectedForIngestOptionsPopup() {
         fileMetadataSelectedForIngestOptionsPopup = null;
     }

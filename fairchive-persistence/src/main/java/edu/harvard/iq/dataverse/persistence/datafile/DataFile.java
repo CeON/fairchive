@@ -670,12 +670,32 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         return MimeTypes.supportsPickingEncoding(this.contentType);
     }
 
-    public boolean supportsInclusionOfLabelsFile() {
-        return MimeTypes.supportsInclusionOfLabelsFile(this.contentType);
+    public boolean supportsInclusionOfLabels() {
+        return MimeTypes.supportsInclusionOfLabels(this.contentType);
+    }
+    
+    public boolean supportsAdvancedIngestOptions() {
+        return supportsPickingEncoding() || supportsInclusionOfLabels();
     }
 
-    public boolean isSelectivelyIngestableFile() {
+    public boolean isSelectivelyIngestable() {
         return MimeTypes.isSelectivelyIngestable(this.contentType) || isImage();
+    }
+    
+    public boolean canBeUningested() {
+        // File from draft version can be uningested if it:
+        // was not published yet (ie. it has only one metadata set, but we assume that
+        //     the file is from the latest, draft version – which is NOT checked here);
+        if(getFileMetadatas().size() != 1) {
+            return false;
+        }
+        // is of XLSX, CSV or TSV type or image;
+        if(! isSelectivelyIngestable()) {
+            return false;
+        }
+        // has been ingested (successfully or not).
+        
+        return hasBeenIngested();
     }
 
     // -------------------- PRIVATE --------------------

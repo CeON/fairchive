@@ -36,6 +36,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -702,4 +704,25 @@ public class Dataset extends DvObjectContainer {
     public boolean isAncestorOf(DvObject other) {
         return equals(other) || equals(other.getOwner());
     }
+    
+    public List<DataFile> listUningestableFiles() {
+        if (getLatestVersion().isDraft()) {
+	        return getLatestVersion().getFileMetadatas().stream()
+					.map(FileMetadata::getDataFile)
+					.filter(DataFile::canBeUningested)
+					.collect(toList());      
+        } else {
+	        return emptyList();
+        }
+    }
+    
+	public boolean hasUningestableFiles() {
+		if (getLatestVersion().isDraft()) {
+			return getLatestVersion().getFileMetadatas().stream()
+					.map(FileMetadata::getDataFile)
+					.anyMatch(DataFile::canBeUningested);
+		} else {
+			return false;
+		}
+	}
 }

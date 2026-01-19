@@ -69,7 +69,6 @@ import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.export.ExportException;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
-import edu.harvard.iq.dataverse.ingest.UningestInfoService;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
 import edu.harvard.iq.dataverse.persistence.datafile.MapLayerMetadata;
@@ -138,7 +137,6 @@ public class DatasetPage implements Serializable {
     private AuthenticationServiceBean authenticationService;
     private DatasetPageFacade datasetPageFacade;
     private CitationFactory citationFactory;
-    private UningestInfoService uningestInfoService;
     private PrivateUrlServiceBean privateUrlService;
     private SettingsWrapper settingsWrapper;
 
@@ -190,7 +188,7 @@ public class DatasetPage implements Serializable {
                        DatasetThumbnailService datasetThumbnailService, DatasetSummaryService datasetSummaryService,
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
                        AuthenticationServiceBean authenticationService, DatasetPageFacade datasetPageFacade,
-                       CitationFactory citationFactory, UningestInfoService uningestInfoService,
+                       CitationFactory citationFactory,
                        PrivateUrlServiceBean privateUrlService, SettingsWrapper settingsWrapper) {
         this.session = session;
         this.commandEngine = commandEngine;
@@ -212,7 +210,6 @@ public class DatasetPage implements Serializable {
         this.authenticationService = authenticationService;
         this.datasetPageFacade = datasetPageFacade;
         this.citationFactory = citationFactory;
-        this.uningestInfoService = uningestInfoService;
         this.privateUrlService = privateUrlService;
         this.settingsWrapper = settingsWrapper;
     }
@@ -369,18 +366,12 @@ public class DatasetPage implements Serializable {
                 && !workingVersion.isDeaccessioned() && dataset.isReleased();
     }
 
-    /*
-     * 4.2.1 optimization.
-     * HOWEVER, this doesn't appear to be saving us anything!
-     * i.e., it's just as cheap to use session.getUser().isAuthenticated()
-     * every time; it doesn't do any new db lookups.
-     */
     public boolean isSessionUserAuthenticated() {
         return session.isUserLoggedIn();
     }
 
     public boolean hasAnythingToUningest() {
-        return uningestInfoService.hasUningestableFiles(dataset);
+        return this.dataset.hasUningestableFiles();
     }
 
     private final Map<Long, MapLayerMetadata> mapLayerMetadataLookup = new HashMap<>();

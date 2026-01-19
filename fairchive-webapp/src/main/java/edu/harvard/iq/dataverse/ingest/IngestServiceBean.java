@@ -726,18 +726,6 @@ public class IngestServiceBean {
         }
     }
 
-    public boolean supportsPickingEncoding(DataFile file) {
-        return file.supportsPickingEncoding();
-    }
-
-    public boolean supportsInclusionOfLabelsFile(DataFile file) {
-        return file.supportsInclusionOfLabelsFile();
-    }
-
-    public boolean isSelectivelyIngestableFile(DataFile file) {
-        return file.isSelectivelyIngestableFile();
-    }
-
     public TabularDataFileReader getTabDataReaderByMimeType(String mimeType) {
         /*
          * Same as the comment above; since we don't have any ingest plugins loadable

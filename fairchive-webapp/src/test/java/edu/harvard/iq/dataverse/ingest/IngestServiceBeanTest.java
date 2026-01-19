@@ -5,8 +5,6 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -83,56 +81,7 @@ public class IngestServiceBeanTest {
         assertThat(ret).isFalse();
     }
 
-    @ParameterizedTest
-    @CsvSource({
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, false",
-            "text/csv, true",
-            "text/comma-separated-values, true",
-            "text/tsv, false",
-            "application/octet-strean, false",
-            "text/plain, false"
-    })
-    public void supportsPickingEncoding(String mimeType, boolean expectedSupportsPickingEncoding) {
-        // given
-        DataFile dataFile = new DataFile(mimeType);
-        // when
-        boolean ret = ingestServiceBean.supportsPickingEncoding(dataFile);
-        // then
-        assertThat(ret).isEqualTo(expectedSupportsPickingEncoding);
-    }
 
-    @ParameterizedTest
-    @CsvSource({
-            "application/x-spss-por, true",
-            "text/tsv, false",
-            "application/octet-strean, false",
-            "text/plain, false"
-    })
-    public void supportsInclusionOfLabelsFile(String mimeType, boolean expectedSupportsInclusionOfLabelsFile) {
-        // given
-        DataFile dataFile = new DataFile(mimeType);
-        // when
-        boolean ret = ingestServiceBean.supportsInclusionOfLabelsFile(dataFile);
-        // then
-        assertThat(ret).isEqualTo(expectedSupportsInclusionOfLabelsFile);
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, true",
-            "text/tsv, true",
-            "text/tab-separated-values, true",
-            "application/octet-strean, false",
-            "text/plain, false"
-    })
-    public void isSelectivelyIngestableFile(String mimeType, boolean expectedSelectivelyIngestable) {
-        // given
-        DataFile dataFile = new DataFile(mimeType);
-        // when
-        boolean ret = ingestServiceBean.isSelectivelyIngestableFile(dataFile);
-        // then
-        assertThat(ret).isEqualTo(expectedSelectivelyIngestable);
-    }
 
     @Test
     public void getTabDataReaderByMimeType() {
