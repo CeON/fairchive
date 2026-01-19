@@ -71,7 +71,6 @@ import com.google.api.client.util.Preconditions;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.dataaccess.StorageIOConstants;
@@ -655,7 +654,7 @@ public class IngestServiceBean {
 
         // and change the mime type to "Tabular Data" on the final datafile,
         // and replace (or add) the extension ".tab" to the filename:
-        dataFile.setContentType(TextMimeType.TSV_ALT.getMimeValue());
+        dataFile.setContentType(MimeTypes.TAB_SEPARATED_VALUES);
         IngestUtil.modifyExistingFilename(
                 dataFile.getOwner().getLatestVersion(), dataFile.getFileMetadata(), 
                 FileUtil.replaceExtension(fileName, "tab"));
@@ -766,9 +765,9 @@ public class IngestServiceBean {
                                                settingsService.getValueForKey(RserveUser),
                                                settingsService.getValueForKey(RservePassword),
                                                settingsService.getValueForKeyAsInt(RservePort));
-        } else if (mimeType.equals(TextMimeType.CSV.getMimeValue()) || mimeType.equals(TextMimeType.CSV_ALT.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.CSV) || mimeType.equals(MimeTypes.COMMA_SEPARATED_VALUES)) {
             ingestPlugin = new CSVFileReader(new CSVFileReaderSpi(), ',');
-        } else if (mimeType.equals(TextMimeType.TSV.getMimeValue()) || mimeType.equals(TextMimeType.TSV_ALT.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.TSV) || mimeType.equals(MimeTypes.TAB_SEPARATED_VALUES)) {
             ingestPlugin = new CSVFileReader(new CSVFileReaderSpi(), '\t');
         } else if (mimeType.equals(MimeTypes.XLSX)) {
             ingestPlugin = new XLSXFileReader(new XLSXFileReaderSpi());
@@ -1357,7 +1356,7 @@ public class IngestServiceBean {
             String originalFormat = dataFile.getDataTable().getOriginalFileFormat();
             Long datatableId = dataFile.getDataTable().getId();
             if (isEmpty(originalFormat) 
-                    || originalFormat.equals(TextMimeType.TSV_ALT.getMimeValue())) {
+                    || originalFormat.equals(MimeTypes.TAB_SEPARATED_VALUES)) {
 
                 // We need to determine the mime type of the saved original
                 // and save it in the database.
@@ -1406,7 +1405,7 @@ public class IngestServiceBean {
                 // so if the FileUtil is telling us it's a "plain text" file at this point,
                 // it really means it must be a CSV file.
                 if (fileTypeDetermined.startsWith("text/plain")) {
-                    fileTypeDetermined = TextMimeType.CSV.getMimeValue();
+                    fileTypeDetermined = MimeTypes.CSV;
                 }
                 // and, finally, if it is still "application/octet-stream", it must be Excel:
                 if (MimeTypes.UNDETERMINED_DEFAULT.equals(fileTypeDetermined)) {

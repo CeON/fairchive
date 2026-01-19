@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.datafile;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
 import edu.harvard.iq.dataverse.license.TermsOfUseFactory;
@@ -15,7 +14,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import edu.harvard.iq.dataverse.util.ShapefileHandler;
 import io.vavr.Tuple2;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -187,7 +185,7 @@ public class DataFileCreator {
                 errorKey = ie.getErrorKey();
             }
 
-        } else if (finalType.equals(ShapefileHandler.SHAPEFILE_FILE_TYPE)) {
+        } else if (finalType.equals(MimeTypes.SHAPEFILE)) {
             try {
                 return createDataFilesFromReshapedShapeFile(tempFile, fileSizeLimit, zipFileUnpackFilesLimit);
             } catch (FileExceedsMaxSizeException femsx) {
@@ -246,14 +244,14 @@ public class DataFileCreator {
 
     private boolean isIngestableButNotCsvOrXlsx(final String mimeType) {
         return MimeTypes.isIngestable(mimeType)
-                && !mimeType.equals(TextMimeType.CSV.getMimeValue())
-                && !mimeType.equals(TextMimeType.CSV_ALT.getMimeValue())
+                && !mimeType.equals(MimeTypes.CSV)
+                && !mimeType.equals(MimeTypes.COMMA_SEPARATED_VALUES)
                 && !mimeType.equals(MimeTypes.XLSX);
     }
     private boolean isTrustedDetectedMimeType(final String mimeType) {
         return MimeTypes.isIngestable(mimeType)
                 || mimeType.equals(MimeTypes.APPLICATION_FITS_GZIPPED)
-                || mimeType.equals(ShapefileHandler.SHAPEFILE_FILE_TYPE)
+                || mimeType.equals(MimeTypes.SHAPEFILE)
                 || mimeType.equals(MimeTypes.ZIP);
     }
 

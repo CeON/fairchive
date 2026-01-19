@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.datafile.page;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.CONFIGURE;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EXPLORE;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
@@ -37,6 +36,7 @@ import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.datafile.FileDownloadServiceBean;
@@ -282,7 +282,7 @@ public class FilePage implements java.io.Serializable {
         // isTabularData() works - true for tabular types where a .tab file has been
         // created and false for other mimetypes
         // For tabular data, indicate successful ingest by returning a contentType for the derived .tab file
-        final String contentType = file.isTabularData() ? TSV_ALT.getMimeValue() : file.getContentType();
+        final String contentType = file.isTabularData() ? MimeTypes.TAB_SEPARATED_VALUES : file.getContentType();
         configureTools = externalToolService.findExternalTools(CONFIGURE, contentType, file, version);
         exploreTools = externalToolService.findExternalTools(EXPLORE, contentType, file, version);
         previewTools = externalToolService.findExternalTools(PREVIEW, contentType, file, version);

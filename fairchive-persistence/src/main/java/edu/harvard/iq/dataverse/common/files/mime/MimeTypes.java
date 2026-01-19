@@ -17,6 +17,7 @@ public final class MimeTypes {
 	public final static String STATA_SYNTAX = "text/x-stata-syntax";
 	public final static String SPSS_CCARD = "text/x-spss-syntax";
 	public final static String SAS_SYNTAX = "text/x-sas-syntax";
+	// http://en.wikipedia.org/wiki/Shapefile
 	public final static String SHAPEFILE = "application/zipped-shapefile";
 
 	public final static String APPLICATION_FITS = "application/fits";

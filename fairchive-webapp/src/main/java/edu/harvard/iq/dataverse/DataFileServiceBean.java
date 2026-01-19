@@ -1,6 +1,39 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Authority;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataFilePIDFormat;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
+import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.RandomStringUtils;
+import org.slf4j.Logger;
+
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
@@ -17,37 +50,6 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
-import org.apache.commons.lang.RandomStringUtils;
-import org.slf4j.Logger;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TypedQuery;
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Authority;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataFilePIDFormat;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
-import static java.util.stream.Collectors.toList;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author Leonid Andreev
@@ -312,7 +314,7 @@ public class DataFileServiceBean implements Serializable {
         // If content type indicates it's tabular data, spend 2 extra queries
         // looking up the data table and tabular tags objects:
 
-        if (TextMimeType.TSV.getMimeValue().equalsIgnoreCase(contentType)) {
+        if (MimeTypes.TSV.equalsIgnoreCase(contentType)) {
             Object[] dtResult;
             try {
                 dtResult = (Object[]) em
@@ -492,7 +494,7 @@ public class DataFileServiceBean implements Serializable {
     @SuppressWarnings("unchecked")
     public List<Long> selectFilesWithMissingOriginalTypes() {
         return em.createNativeQuery("SELECT f.id FROM datafile f, datatable t where t.datafile_id = f.id " +
-                "AND (t.originalfileformat='" + TextMimeType.TSV.getMimeValue()
+                "AND (t.originalfileformat='" + MimeTypes.TSV
                 + "' OR t.originalfileformat IS NULL) ORDER BY f.id")
                 .getResultList(); 
     }

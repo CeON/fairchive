@@ -32,7 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
@@ -103,7 +103,7 @@ public class ExternalToolServiceBeanTest {
         dataFile.setDataTable(new DataTable());
 
         ExternalTool.Type type = EXPLORE;
-        ExternalTool externalTool = new ExternalTool("displayName", "description", type, "http://foo.com", "{}", TextMimeType.TSV_ALT.getMimeValue());
+        ExternalTool externalTool = new ExternalTool("displayName", "description", type, "http://foo.com", "{}", MimeTypes.TAB_SEPARATED_VALUES);
         List<ExternalTool> externalTools = new ArrayList<>();
         externalTools.add(externalTool);
 
@@ -215,7 +215,7 @@ public class ExternalToolServiceBeanTest {
                             .build())
                         .build())
                     .build())
-                .add(ExternalTool.CONTENT_TYPE, TextMimeType.TSV_ALT.getMimeValue());
+                .add(ExternalTool.CONTENT_TYPE, MimeTypes.TAB_SEPARATED_VALUES);
         String tool = json.build().toString();
 
         // when
@@ -227,7 +227,7 @@ public class ExternalToolServiceBeanTest {
         assertThat(externalTool.getType()).isEqualTo(ExternalTool.Type.EXPLORE);
         assertThat(externalTool.getToolUrl()).isEqualTo("http://awesometool.com");
         assertThat(externalTool.getToolParameters()).isEqualTo("{\"queryParameters\":[{\"fileid\":\"{fileId}\"},{\"key\":\"{apiToken}\"}]}");
-        assertThat(externalTool.getContentType()).isEqualTo(TextMimeType.TSV_ALT.getMimeValue());
+        assertThat(externalTool.getContentType()).isEqualTo(MimeTypes.TAB_SEPARATED_VALUES);
     }
 
     @Test
@@ -245,7 +245,7 @@ public class ExternalToolServiceBeanTest {
                             .build())
                         .build())
                     .build())
-                .add(ExternalTool.CONTENT_TYPE, TextMimeType.TSV_ALT.getMimeValue());
+                .add(ExternalTool.CONTENT_TYPE, MimeTypes.TAB_SEPARATED_VALUES);
         String tool = json.build().toString();
 
         // when & then
@@ -291,7 +291,7 @@ public class ExternalToolServiceBeanTest {
                          .build())
                     .build())
                 .build())
-                .add(ExternalTool.CONTENT_TYPE, TextMimeType.TSV_ALT.getMimeValue());
+                .add(ExternalTool.CONTENT_TYPE, MimeTypes.TAB_SEPARATED_VALUES);
         String tool = json.build().toString();
 
         // when & then
@@ -307,7 +307,7 @@ public class ExternalToolServiceBeanTest {
         json.add("description", "This tool is awesome.")
             .add("toolUrl", "http://awesometool.com")
             .add("toolParameters", Json.createObjectBuilder().build())
-            .add(ExternalTool.CONTENT_TYPE, TextMimeType.TSV_ALT.getMimeValue());
+            .add(ExternalTool.CONTENT_TYPE, MimeTypes.TAB_SEPARATED_VALUES);
         String tool = json.build().toString();
 
         // when & then
@@ -323,7 +323,7 @@ public class ExternalToolServiceBeanTest {
         json.add("displayName", "AwesomeTool")
             .add("toolUrl", "http://awesometool.com")
             .add("toolParameters", Json.createObjectBuilder().build())
-            .add(ExternalTool.CONTENT_TYPE, TextMimeType.TSV_ALT.getMimeValue());
+            .add(ExternalTool.CONTENT_TYPE, MimeTypes.TAB_SEPARATED_VALUES);
         String tool = json.build().toString();
 
         // when & then
@@ -340,7 +340,7 @@ public class ExternalToolServiceBeanTest {
             .add("description", "Ths tool is awesome.")
             .add("type", "explore")
             .add("toolParameters", Json.createObjectBuilder().build())
-            .add(ExternalTool.CONTENT_TYPE, TextMimeType.TSV_ALT.getMimeValue());
+            .add(ExternalTool.CONTENT_TYPE, MimeTypes.TAB_SEPARATED_VALUES);
         String tool = json.build().toString();
 
         // when & then
@@ -358,7 +358,7 @@ public class ExternalToolServiceBeanTest {
             .add("type", "noSuchType")
             .add("toolUrl", "http://awesometool.com")
             .add("toolParameters", Json.createObjectBuilder().build())
-            .add(ExternalTool.CONTENT_TYPE, TextMimeType.TSV_ALT.getMimeValue());
+            .add(ExternalTool.CONTENT_TYPE, MimeTypes.TAB_SEPARATED_VALUES);
         String tool = json.build().toString();
 
         // when & then
@@ -390,7 +390,7 @@ public class ExternalToolServiceBeanTest {
         ExternalTool externalTool = service.parseAddExternalToolManifest(tool);
 
         // then
-        assertThat(externalTool.getContentType()).isEqualTo(TextMimeType.TSV_ALT.getMimeValue());
+        assertThat(externalTool.getContentType()).isEqualTo(MimeTypes.TAB_SEPARATED_VALUES);
     }
     
     

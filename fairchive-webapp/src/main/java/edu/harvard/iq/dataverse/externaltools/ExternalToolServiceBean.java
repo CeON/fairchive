@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.externaltools;
 
-import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
@@ -16,7 +15,7 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.ReservedWord;
@@ -64,7 +63,7 @@ public class ExternalToolServiceBean {
     public static List<ExternalTool> findExternalToolsByFile(List<ExternalTool> allExternalTools, DataFile file) {
         // Map tabular data to it's mimetype (the isTabularData() check assures that this code works the same as before,
         // but it may need to change if tabular data is split into subtypes with differing mimetypes)
-        final String contentType = file.isTabularData() ? TextMimeType.TSV_ALT.getMimeValue() : file.getContentType();
+        final String contentType = file.isTabularData() ? MimeTypes.TAB_SEPARATED_VALUES : file.getContentType();
 
         return allExternalTools.stream()
                 .filter(t -> t.getContentType().equals(contentType))
@@ -88,7 +87,7 @@ public class ExternalToolServiceBean {
             // but it may need to change if tabular data is split into subtypes with
             // differing mimetypes)
             final String contentType = file.isTabularData()
-                    ? TSV_ALT.getMimeValue()
+                    ? MimeTypes.TAB_SEPARATED_VALUES
                     : file.getContentType();
 
             return allExternalTools.stream()
@@ -122,7 +121,7 @@ public class ExternalToolServiceBean {
         String contentType = getOptionalTopLevelField(jsonObject, ExternalTool.CONTENT_TYPE);
         // Legacy support - assume tool manifests without any mimetype are for tabular data
         if (contentType == null) {
-            contentType = TextMimeType.TSV_ALT.getMimeValue();
+            contentType = MimeTypes.TAB_SEPARATED_VALUES;
         }
 
         // Allow IllegalArgumentException to bubble up from ExternalTool.Type.fromString

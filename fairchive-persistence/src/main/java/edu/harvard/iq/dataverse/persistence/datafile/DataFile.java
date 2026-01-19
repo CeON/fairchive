@@ -40,7 +40,6 @@ import com.google.gson.annotations.Expose;
 
 import edu.harvard.iq.dataverse.common.FileSizeUtil;
 import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
-import edu.harvard.iq.dataverse.common.files.mime.MimeType;
 import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
@@ -572,15 +571,6 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         return false;
     }
 
-    public boolean hasMimeType(MimeType... mimeTypes) {
-        for (MimeType mimeType : mimeTypes) {
-            if (mimeType.getMimeValue().equalsIgnoreCase(getContentType())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public boolean isIngestScheduled() {
         return ingestStatus == INGEST_STATUS_SCHEDULED;
     }
@@ -685,7 +675,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     public boolean isSelectivelyIngestableFile() {
-        return MimeTypes.isSelectivelyIngestable(this.contentType);
+        return MimeTypes.isSelectivelyIngestable(this.contentType) || isImage();
     }
 
     // -------------------- PRIVATE --------------------

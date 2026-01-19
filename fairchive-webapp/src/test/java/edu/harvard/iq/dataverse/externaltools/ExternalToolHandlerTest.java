@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.externaltools;
 
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -47,7 +47,7 @@ public class ExternalToolHandlerTest {
 
         ExternalTool.Type type = ExternalTool.Type.EXPLORE;
         String toolUrl = "http://example.com";
-        externalTool = new ExternalTool("displayName", "description", type, toolUrl, "{}", TextMimeType.TSV_ALT.getMimeValue());
+        externalTool = new ExternalTool("displayName", "description", type, toolUrl, "{}", MimeTypes.TAB_SEPARATED_VALUES);
 
         dataFile = new DataFile();
         dataFile.setId(42l);

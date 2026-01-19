@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.datafile;
 
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.ingest.IngestableDataChecker;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.JhoveFileType;
@@ -121,7 +122,7 @@ public class FileTypeDetector {
 
                 ShapefileHandler shapefileHandler = new ShapefileHandler(f, fileSizeLimit, zipFileUnpackFilesLimit);
                 if (shapefileHandler.containsShapefile()) {
-                    fileType = ShapefileHandler.SHAPEFILE_FILE_TYPE;
+                    fileType = MimeTypes.SHAPEFILE;
                 }
             } catch (Exception ex) {
                 logger.warn("Shapefile inspection failed for file {}", fileName, ex);

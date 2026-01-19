@@ -100,6 +100,8 @@ class UningestInfoServiceTest {
         
         assertThat(this.service.hasUningestableFiles(set)).isTrue();
         List<DataFile> files = this.service.listUningestableFiles(set);
+        files.stream().map(DataFile::getContentType).forEach(System.out::println);
+        
         assertThat(files).hasSize(4);
         assertThat(files.stream().map(DataFile::getContentType))
             .containsExactly("text/csv", 
