@@ -18,7 +18,6 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import io.vavr.control.Option;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -38,6 +37,10 @@ import javax.persistence.TemporalType;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -123,18 +126,18 @@ public class Dataset extends DvObjectContainer {
         }
     }
 
-    @OneToMany(mappedBy = "owner", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "owner", cascade = {MERGE, PERSIST})
     @OrderBy("id")
     private List<DataFile> files = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dataset", orphanRemoval = true, cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataset", orphanRemoval = true, cascade = {REMOVE, MERGE, PERSIST})
     @OrderBy("versionNumber DESC, minorVersionNumber DESC")
     private List<DatasetVersion> versions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dataset", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "dataset", cascade = ALL, orphanRemoval = true)
     private Set<DatasetLock> datasetLocks;
 
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(cascade = {MERGE, PERSIST})
     @JoinColumn(name = "thumbnailfile_id")
     private DataFile thumbnailFile;
 
@@ -145,7 +148,7 @@ public class Dataset extends DvObjectContainer {
      */
     private boolean useGenericThumbnail;
 
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(cascade = {MERGE, PERSIST})
     @JoinColumn(name = "guestbook_id", unique = false, nullable = true, insertable = true, updatable = true)
     private Guestbook guestbook;
 
@@ -155,7 +158,7 @@ public class Dataset extends DvObjectContainer {
     @Temporal(TemporalType.TIMESTAMP)
     private Date embargoDate;
 
-    @OneToMany(mappedBy = "dataset", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataset", cascade = {REMOVE, MERGE, PERSIST})
     private List<DatasetLinkingDataverse> datasetLinkingDataverses;
 
     public List<DatasetLinkingDataverse> getDatasetLinkingDataverses() {
@@ -166,7 +169,7 @@ public class Dataset extends DvObjectContainer {
         this.datasetLinkingDataverses = datasetLinkingDataverses;
     }
 
-    @OneToMany(mappedBy = "dataset", orphanRemoval = true, cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "dataset", orphanRemoval = true, cascade = {REMOVE, MERGE, PERSIST})
     private List<DataFileCategory> dataFileCategories = null;
 
     @ManyToOne
@@ -495,8 +498,8 @@ public class Dataset extends DvObjectContainer {
         List<String> result = new ArrayList<>();
         if (getAlternativePersistentIndentifiers() != null && !getAlternativePersistentIndentifiers().isEmpty()) {
             for (AlternativePersistentIdentifier api : getAlternativePersistentIndentifiers()) {
-                result.add(api.getProtocol() + ":" +
-                        api.getAuthority() + "/" +
+                result.add(api.getProtocol() + ':' +
+                        api.getAuthority() + '/' +
                         api.getIdentifier());
             }
         }
