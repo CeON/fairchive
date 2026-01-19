@@ -26,6 +26,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -327,7 +328,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
     	assertThat(this.datasetVersion.hasPackageFile()).isFalse();
     	assertThat(this.datasetVersion.hasNonPackageFile()).isTrue();
     	
-    	this.fileMetadata.getDataFile().setContentType(DataFile.packageMIME());
+    	this.fileMetadata.getDataFile().setContentType(MimeTypes.DATAVERSE_PACKAGE);
     	
     	assertThat(this.datasetVersion.hasPackageFile()).isTrue();
     	assertThat(this.datasetVersion.hasNonPackageFile()).isFalse();

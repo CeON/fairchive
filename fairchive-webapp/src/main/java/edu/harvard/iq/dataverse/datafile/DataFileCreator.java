@@ -2,7 +2,7 @@ package edu.harvard.iq.dataverse.datafile;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
@@ -43,10 +43,8 @@ import java.util.zip.ZipEntry;
 import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport.createIngestFailureReport;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaxFileUploadSizeInBytes;
 import static edu.harvard.iq.dataverse.util.FileUtil.calculateChecksum;
-import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
 import static edu.harvard.iq.dataverse.util.FileUtil.getFilesTempDirectory;
 import static java.lang.System.currentTimeMillis;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Stateless
 @TransactionManagement(TransactionManagementType.BEAN)
@@ -241,27 +239,22 @@ public class DataFileCreator {
      *  ingestable types.
      */
     private boolean isDetectedContentTypeBetterThanSupplied(String suppliedContentType, String recognizedType) {
-        return isUndeterminedMimeType(suppliedContentType)
+        return MimeTypes.isUndetermined(suppliedContentType)
                 || isIngestableButNotCsvOrXlsx(suppliedContentType)
                 || isTrustedDetectedMimeType(recognizedType);
     }
 
-    private boolean isUndeterminedMimeType(final String mimeType) {
-        return isEmpty(mimeType)
-                || mimeType.equals(ApplicationMimeType.UNDETERMINED_DEFAULT.getMimeValue())
-                || mimeType.equals(ApplicationMimeType.UNDETERMINED_BINARY.getMimeValue());
-    }
     private boolean isIngestableButNotCsvOrXlsx(final String mimeType) {
-        return canIngestAsTabular(mimeType)
+        return MimeTypes.isIngestable(mimeType)
                 && !mimeType.equals(TextMimeType.CSV.getMimeValue())
                 && !mimeType.equals(TextMimeType.CSV_ALT.getMimeValue())
-                && !mimeType.equals(ApplicationMimeType.XLSX.getMimeValue());
+                && !mimeType.equals(MimeTypes.XLSX);
     }
     private boolean isTrustedDetectedMimeType(final String mimeType) {
-        return canIngestAsTabular(mimeType)
-                || mimeType.equals("application/fits-gzipped")
+        return MimeTypes.isIngestable(mimeType)
+                || mimeType.equals(MimeTypes.APPLICATION_FITS_GZIPPED)
                 || mimeType.equals(ShapefileHandler.SHAPEFILE_FILE_TYPE)
-                || mimeType.equals(ApplicationMimeType.ZIP.getMimeValue());
+                || mimeType.equals(MimeTypes.ZIP);
     }
 
     /**
@@ -279,8 +272,7 @@ public class DataFileCreator {
         try (InputStream uncompressedIn = new GZIPInputStream(Files.newInputStream(tempFile))) {
 
             Path unZippedTempFile = FileUtil.limitedInputStreamToTempFile(uncompressedIn, fileSizeLimit);
-            return createSingleDataFile(unZippedTempFile, finalFileName, ApplicationMimeType.FITS
-                    .getMimeValue(), 0L);
+            return createSingleDataFile(unZippedTempFile, finalFileName, MimeTypes.APPLICATION_FITS, 0L);
         }
     }
 

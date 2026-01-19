@@ -1,8 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType.SHAPEFILE_FILE_TYPE;
-import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
@@ -43,6 +41,7 @@ import com.google.gson.annotations.Expose;
 import edu.harvard.iq.dataverse.common.FileSizeUtil;
 import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
 import edu.harvard.iq.dataverse.common.files.mime.MimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
@@ -256,55 +255,33 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 	}
     
     private boolean isVideo() {
-    	return this.contentType.startsWith("video/");
+    	return MimeTypes.isVideo(this.contentType);
     }
     
     private boolean isAudio() {
-    	return this.contentType.startsWith("audio/");
+    	return MimeTypes.isAudio(this.contentType);
     }
     
     private boolean isCode() {
-    	return this.contentType.equals("application/x-r-syntax") ||
-    			this.contentType.equals("text/x-stata-syntax") ||
-    			this.contentType.equals("text/x-sas-syntax") ||
-    			this.contentType.equals("text/x-spss-syntax");
+    	return MimeTypes.isCode(this.contentType);
     			
     }
     
     private boolean isDocument() {
-    	return this.contentType.startsWith("text/plain") ||
-    			this.contentType.startsWith("application/pdf") ||
-    			this.contentType.startsWith("application/msword") ||
-    			this.contentType.startsWith("application/vnd.ms-excel") ||
-    			this.contentType.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    	return MimeTypes.isDocument(this.contentType);
     			
     }
     
     private boolean isAstro() {
-    	return this.contentType.equals("application/fits") ||
-    			this.contentType.equals("image/fits");
+    	return MimeTypes.isAstro(this.contentType);
     }
     
     private boolean isTabular() {
-    	return this.contentType.equals("application/x-sas-transport") ||
-    			this.contentType.equals("application/x-sas-system") ||
-    			this.contentType.equals("application/x-stata") ||
-    			this.contentType.equals("application/x-stata-13") ||
-    			this.contentType.equals("application/x-stata-14") ||
-    			this.contentType.equals("application/x-stata-15") ||
-    			this.contentType.equals("application/x-rlang-transport") ||
-    			this.contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ||
-    			this.contentType.equals("application/x-spss-sav") ||
-    			this.contentType.equals("application/x-spss-por") ||
-    			this.contentType.equals("text/x-fixed-field") ||
-    			this.contentType.equals("text/csv") ||
-    			this.contentType.equals("text/comma-separated-values") ||
-    			this.contentType.equals("text/tsv") ||
-    			this.contentType.equals("text/tab-separated-values");
+    	return MimeTypes.isTabular(this.contentType);
     }
     
     private boolean isNetwork() {
-    	return this.contentType.equals("text/xml-graphml");
+    	return MimeTypes.isNetwork(this.contentType);
     }
     
     public boolean isReplacementFile() {
@@ -454,8 +431,8 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
     public boolean isNonPublicOrNotIngestedTsvFile(final DatasetVersion datasetVersion) {
-        final boolean isTsvAltContentType = TSV_ALT.getMimeValue()
-                .equals(isTabularData() ? TSV_ALT.getMimeValue() : getContentType());
+        final boolean isTsvAltContentType = MimeTypes.TAB_SEPARATED_VALUES
+                .equals(isTabularData() ? MimeTypes.TAB_SEPARATED_VALUES : getContentType());
 
         return isTsvAltContentType && (!isPublicIn(datasetVersion) || !isTabularData());
     }
@@ -535,7 +512,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     // Does the contentType indicate a shapefile?
     public boolean isShapefileType() {
-        return SHAPEFILE_FILE_TYPE.getMimeValue().equalsIgnoreCase(this.contentType);
+        return MimeTypes.isGeoShape(this.contentType);
     }
     
     public boolean isShapeOrTabularWithGeospatialTag() {
@@ -543,27 +520,27 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
 
-    public boolean isImage() {
-        // Some browsers (Chrome?) seem to identify FITS files as mime
-        // type "image/fits" on upload; this is both incorrect (the official
-        // mime type for FITS is "application/fits", and problematic: then
-        // the file is identified as an image, and the page will attempt to
-        // generate a preview - which of course is going to fail...
-        if ("image/fits".equalsIgnoreCase(contentType)) {
-            return false;
-        }
-        // a pdf file is an "image" for practical purposes (we will attempt to
-        // generate thumbnails and previews for them)
-        return contentType != null
-                && (contentType.startsWith("image/") || isPdf());
-    }
+	public boolean isImage() {
+		if (isAstro()) {
+			// Some browsers (Chrome?) seem to identify FITS files as mime
+			// type "image/fits" on upload; this is both incorrect (the official
+			// mime type for FITS is "application/fits", and problematic: then
+			// the file is identified as an image, and the page will attempt to
+			// generate a preview - which of course is going to fail...
+			return false;
+		} else {
+			// a pdf file is an "image" for practical purposes (we will attempt to
+			// generate thumbnails and previews for them)
+			return MimeTypes.isImage(this.contentType) || isPdf();
+		}
+	}
     
     public boolean isPdf() {
-        return "application/pdf".equalsIgnoreCase(this.contentType);
+        return MimeTypes.isPDF(this.contentType);
     }
 
     public boolean isFilePackage() {
-        return packageMIME().equalsIgnoreCase(this.contentType);
+        return MimeTypes.isDataversePackage(this.contentType);
     }
     
     /**
@@ -698,6 +675,18 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     private static String format(final Timestamp ts) {
         return new SimpleDateFormat("yyyy-MM-dd").format(ts);
     }
+    
+    public boolean supportsPickingEncoding() {
+        return MimeTypes.supportsPickingEncoding(this.contentType);
+    }
+
+    public boolean supportsInclusionOfLabelsFile() {
+        return MimeTypes.supportsInclusionOfLabelsFile(this.contentType);
+    }
+
+    public boolean isSelectivelyIngestableFile() {
+        return MimeTypes.isSelectivelyIngestable(this.contentType);
+    }
 
     // -------------------- PRIVATE --------------------
 
@@ -778,10 +767,6 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     public void setGuestbookResponses(List<GuestbookResponse> guestbookResponses) {
         this.guestbookResponses = guestbookResponses;
-    }
-    
-    public static String packageMIME() {
-    	return "application/vnd.dataverse.file-package";
     }
 
     // -------------------- equals & hashCode --------------------

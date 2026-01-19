@@ -1,10 +1,7 @@
 package edu.harvard.iq.dataverse.ingest;
 
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.ingest.tabulardata.impl.plugins.rdata.RDATAFileReader;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.SystemConfig;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,9 +11,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
+import edu.harvard.iq.dataverse.ingest.tabulardata.impl.plugins.rdata.RDATAFileReader;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @ExtendWith(MockitoExtension.class)
 public class IngestServiceBeanTest {
@@ -144,7 +144,7 @@ public class IngestServiceBeanTest {
 
         // when
         RDATAFileReader rdataFileReader =
-                (RDATAFileReader) ingestServiceBean.getTabDataReaderByMimeType(ApplicationMimeType.RDATA.getMimeValue());
+                (RDATAFileReader) ingestServiceBean.getTabDataReaderByMimeType(MimeTypes.RDATA);
 
         // then
         assertThat(rdataFileReader)

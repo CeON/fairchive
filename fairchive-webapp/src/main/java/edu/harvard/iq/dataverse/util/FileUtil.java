@@ -21,21 +21,8 @@
 package edu.harvard.iq.dataverse.util;
 
 
-import com.google.common.base.Preconditions;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
-import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
+import static org.apache.commons.io.IOUtils.toByteArray;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -54,8 +41,20 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
-import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
-import static org.apache.commons.io.IOUtils.toByteArray;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 
 /**
@@ -179,11 +178,6 @@ public class FileUtil implements java.io.Serializable {
         }
 
         return "";
-    }
-
-    public static boolean canIngestAsTabular(String mimeType) {
-            return ApplicationMimeType.isIngestable(mimeType)
-                    || TextMimeType.isIngestable(mimeType);
     }
 
     public static String getFilesTempDirectory() {
