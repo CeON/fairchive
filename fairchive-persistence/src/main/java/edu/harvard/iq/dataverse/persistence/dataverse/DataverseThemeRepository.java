@@ -15,7 +15,7 @@ public class DataverseThemeRepository extends JpaRepository<Long, DataverseTheme
 
     public Optional<String> findLogoByDataverseId(final Long id) {
         try {
-            return Optional.of((String) this.em.createNativeQuery(
+            return Optional.ofNullable((String) this.em.createNativeQuery(
                     "SELECT logo FROM dataversetheme WHERE dataverse_id = " + id)
                     .getSingleResult());
         } catch (final NoResultException e) {
