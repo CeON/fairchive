@@ -71,6 +71,8 @@
         <link type="text/css" 
               rel="stylesheet" 
               href="#{resource['leaflet-markercluster/MarkerCluster.Default.css']}" />
+        <link rel="stylesheet"
+              href="#{resource['maptiler/maptiler-sdk.css']}"/>
         <ui:fragment rendered="#{!empty settingsWrapper.getSettingValue(':StyleCustomizationFile')}">
             <style>
                 /* Custom CSS */
@@ -84,8 +86,11 @@
         <script src="#{resource['leaflet-markercluster/leaflet.markercluster.js']}?version=#{systemConfig.getVersionWithBuild()}"/>
         <script src="#{resource['leaflet-editable/Leaflet.Editable.min.js']}?version=#{systemConfig.getVersionWithBuild()}"/>
         <script src="#{resource['jsts/jsts.2.11.0.min.js']}?version=#{systemConfig.getVersionWithBuild()}"/>
+        <script src="#{resource['maptiler/maptiler-sdk.umd.min.js']}?version=#{systemConfig.getVersionWithBuild()}"/>
+        <script src="#{resource['maptiler/leaflet-maptilersdk.umd.min.js']}?version=#{systemConfig.getVersionWithBuild()}"/>
         <script src="#{resource['js/dvjs.js']}?version=#{systemConfig.getVersionWithBuild()}"/>
         <script src="#{resource['js/extra_scripts.js']}?version=#{systemConfig.getVersionWithBuild()}"/>
+        
         <script>
             window.DvJS = window.DvJS || initDvJS()
         </script>

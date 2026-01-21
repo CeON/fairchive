@@ -26,6 +26,7 @@ function initDvJS() {
       maxBoundsViscosity: 1.0 // Prevents dragging outside
     };
 
+    const API_KEY = 'ZAkFJp24snObnYrn2Ox0';
     const TILE_LAYER_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const TILE_LAYER_COPYRIGHT = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
@@ -92,9 +93,14 @@ function initDvJS() {
       leafMap.invalidateSize();
 
       data.polygonLayer = L.layerGroup().addTo(leafMap);
-      updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES])
-      
-      L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(leafMap);
+      updateMapCoordinates(data, data.values[TEXT_AREA_COORDINATES]) 
+      if (document.getElementById(key).getAttribute('data-tile-type') == 'raster') {
+        L.tileLayer(TILE_LAYER_URL, 
+                    { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(leafMap);
+      } else {
+        L.maptiler.maptilerLayer({apiKey: API_KEY, style: 
+                                 L.maptiler.MapStyle.STREETS, }).addTo(leafMap);
+      }
     }
 
     let metadataMapsData = new Map();
@@ -153,8 +159,13 @@ function initDvJS() {
       setupMapEventsHandlers(map, data);
       createBaseEditControls();
       activateDrawingTools(map, data)
-
-      L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
+      if (document.getElementById(key).getAttribute('data-tile-type') == 'raster') {
+        L.tileLayer(TILE_LAYER_URL, 
+                    { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
+      } else {
+        L.maptiler.maptilerLayer({apiKey: API_KEY,
+                                 style: L.maptiler.MapStyle.STREETS}).addTo(map);
+      }
       this.updateMap(key);
     }
 
@@ -640,7 +651,13 @@ function initDvJS() {
       data.leafMap = L.map(key, mapOptions);
       let map = data.leafMap;
       data.polygonLayer = L.layerGroup().addTo(map);
-      L.tileLayer(TILE_LAYER_URL, { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
+      if (document.getElementById(key).getAttribute('data-tile-type') == 'raster') {
+        L.tileLayer(TILE_LAYER_URL, 
+                    { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
+      } else {
+        L.maptiler.maptilerLayer({apiKey: API_KEY,
+                                 style: L.maptiler.MapStyle.STREETS, }).addTo(map);
+      }
     }
 
     // call invalidateSize to re-render leaflet map
