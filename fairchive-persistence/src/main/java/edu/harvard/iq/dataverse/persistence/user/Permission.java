@@ -72,7 +72,7 @@ public enum Permission implements java.io.Serializable {
     /**
      * Which types of {@link DvObject}s this permission applies to.
      */
-    private final Set<Class<? extends DvObject>> appliesTo;
+    private final Class<? extends DvObject>[] appliesTo;
 
     /**
      * Can this permission be applied only to {@link AuthenticatedUser}s, or to any user?
@@ -87,9 +87,10 @@ public enum Permission implements java.io.Serializable {
     private final boolean requiresWrite;
     
     @SafeVarargs
-    Permission(final boolean authenticatedUserRequired, final boolean requiresWrite, final Class<? extends DvObject>... appliesToList) {
-        this.appliesTo = new HashSet<>(Arrays.asList(appliesToList));
-        this.requiresAuthenticatedUser = authenticatedUserRequired;
+    Permission(final boolean requiresAuthenticatedUser, final boolean requiresWrite, 
+    		final Class<? extends DvObject>... appliesTo) {
+        this.appliesTo = appliesTo;
+        this.requiresAuthenticatedUser = requiresAuthenticatedUser;
         this.requiresWrite = requiresWrite;
     }
 
@@ -102,7 +103,7 @@ public enum Permission implements java.io.Serializable {
     }
 
     public boolean appliesTo(Class<? extends DvObject> aClass) {
-        for (Class<? extends DvObject> c : this.appliesTo) {
+        for (final Class<? extends DvObject> c : this.appliesTo) {
             if (c.isAssignableFrom(aClass)) {
                 return true;
             }
