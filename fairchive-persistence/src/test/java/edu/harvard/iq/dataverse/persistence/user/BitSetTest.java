@@ -2,10 +2,12 @@
  *  (C) Michael Bar-Sinai
  */
 
-package edu.harvard.iq.dataverse.common;
+package edu.harvard.iq.dataverse.persistence.user;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import edu.harvard.iq.dataverse.persistence.user.BitSet;
 
 import java.util.Arrays;
 import java.util.EnumSet;

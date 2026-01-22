@@ -1,4 +1,4 @@
-package edu.harvard.iq.dataverse.common;
+package edu.harvard.iq.dataverse.persistence.user;
 
 import java.io.Serializable;
 import java.util.EnumSet;
@@ -9,7 +9,7 @@ import java.util.EnumSet;
  * @author michael
  */
 @SuppressWarnings("serial")
-public class BitSet implements Serializable {
+class BitSet implements Serializable {
 
     private long store = 0l;
 

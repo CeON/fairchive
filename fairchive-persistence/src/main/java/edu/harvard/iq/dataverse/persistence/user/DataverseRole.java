@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.common.BitSet;
 import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
