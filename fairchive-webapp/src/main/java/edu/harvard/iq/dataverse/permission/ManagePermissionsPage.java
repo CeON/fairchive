@@ -420,7 +420,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
                 roles.add(roleService.findBuiltinRoleByAlias(BuiltInRole.FILE_DOWNLOADER));
             }
 
-            sort(roles, DataverseRole.CMP_BY_NAME);
+            sort(roles, DataverseRole.compareByName);
         }
         return roles;
     }

@@ -68,8 +68,8 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
         }
         
         public static BuiltInRole fromAlias(final String alias) {
-            return stream(BuiltInRole.values())
-                .filter(builtInRole -> builtInRole.getAlias().equals(alias))
+            return stream(values())
+                .filter(role -> role.getAlias().equals(alias))
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
         }
@@ -78,21 +78,16 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     public static final String NONE = "none";
 
 
-    public static final Comparator<DataverseRole> CMP_BY_NAME = new Comparator<DataverseRole>() {
-
-        @Override
-        public int compare(DataverseRole o1, DataverseRole o2) {
-            int cmp = o1.getName().compareTo(o2.getName());
-            if (cmp != 0) {
-                return cmp;
-            }
-
-            Long o1OwnerId = o1.getOwner() == null ? 0l : o1.getOwner().getId();
-            Long o2OwnerId = o2.getOwner() == null ? 0l : o2.getOwner().getId();
-
-            return o1OwnerId.compareTo(o2OwnerId);
-        }
-    };
+	public static final Comparator<DataverseRole> compareByName = (role1, role2) -> {
+		final int result = role1.getName().compareTo(role2.getName());
+		if (result != 0) {
+			return result;
+		} else {
+			final Long id1 = role1.getOwner() == null ? 0 : role1.getOwner().getId();
+			final Long id2 = role2.getOwner() == null ? 0 : role2.getOwner().getId();
+			return id1.compareTo(id2);
+		}
+	};
 
     public static Set<Permission> permissionSet(final Iterable<DataverseRole> roles) {
         long miniset = 0l;
