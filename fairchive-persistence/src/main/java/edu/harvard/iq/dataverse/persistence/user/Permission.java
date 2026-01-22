@@ -111,7 +111,7 @@ public enum Permission implements java.io.Serializable {
         return this.requiresAuthenticatedUser;
     }
 
-    public boolean isRequiresWrite() {
+    public boolean requiresWrite() {
         return this.requiresWrite;
     }
     

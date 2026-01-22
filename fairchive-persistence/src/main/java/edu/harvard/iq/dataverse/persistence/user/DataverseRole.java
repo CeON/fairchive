@@ -160,7 +160,7 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     }
 
     public void addPermission(final Permission p) {
-        this.permissionBits = new BitSet(this.permissionBits).set(p.ordinal()).getBits();
+        this.permissionBits |= p.bitValue();
     }
 
     public void clearPermissions() {
@@ -195,6 +195,14 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
         }
         final DataverseRole other = (DataverseRole) obj;
         return Objects.equals(this.id, other.id);
+    }
+    
+    public boolean has(final Permission p) {
+    	return (this.permissionBits & p.bitValue()) > 0;
+    }
+    
+    public boolean hasAny(final Permission p1, final Permission p2) {
+    	return has(p1) | has(p2);
     }
 
     public boolean hasPermissionFor(final Class<? extends DvObject> dvObjectClass) {

@@ -68,7 +68,7 @@ public class PermissionServiceBean {
 
     private static final Set<Permission> WRITE_PERMISSIONS
             = EnumSet.copyOf(stream(Permission.values())
-                    .filter(Permission::isRequiresWrite)
+                    .filter(Permission::requiresWrite)
                     .collect(toList()));
 
     private DataverseRoleServiceBean roleService;
@@ -198,7 +198,7 @@ public class PermissionServiceBean {
         List<AuthenticatedUser> usersHasPermissionOn = new LinkedList<>();
         Set<RoleAssignment> roleAssignments = roleService.rolesAssignments(dvObject);
         for (RoleAssignment assignment : roleAssignments) {
-            if (assignment.getRole().permissions().contains(permission)) {
+            if (assignment.getRole().has(permission)) {
                 RoleAssignee assignee = roleAssigneeService.getRoleAssignee(assignment.getAssigneeIdentifier());
                 usersHasPermissionOn.addAll(roleAssigneeService.getExplicitUsers(assignee));
             }
@@ -341,7 +341,7 @@ public class PermissionServiceBean {
             Set<Permission> permissions = unconfirmedMailMode
                     ? assignment.getRole().permissions()
                     .stream()
-                    .filter(p -> !p.isRequiresWrite())
+                    .filter(p -> !p.requiresWrite())
                     .collect(toSet())
                     : assignment.getRole().permissions();
             required.removeAll(permissions);
@@ -381,7 +381,7 @@ public class PermissionServiceBean {
         return (roleMap.containsKey(child)
                 && roleMap.get(child).containsAll(permissionsApplicableToObject)
                 && unconfirmedMailMode)
-                ? permissionsApplicableToObject.stream().noneMatch(Permission::isRequiresWrite)
+                ? permissionsApplicableToObject.stream().noneMatch(Permission::requiresWrite)
                 : true;
     }
 

@@ -168,7 +168,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
             raList = new ArrayList<>(ras.size());
             for (RoleAssignment roleAssignment : ras) {
                 // for files, only show role assignments which can download
-                if (!(dvObject instanceof DataFile) || roleAssignment.getRole().permissions().contains(Permission.DownloadFile)) {
+                if (!(dvObject instanceof DataFile) || roleAssignment.getRole().has(Permission.DownloadFile)) {
                     RoleAssignee roleAssignee = roleAssigneeService.getRoleAssignee(roleAssignment.getAssigneeIdentifier());
                     if (roleAssignee != null) {
                         raList.add(new RoleAssignmentRow(roleAssignment, roleAssignee.getDisplayInfo()));

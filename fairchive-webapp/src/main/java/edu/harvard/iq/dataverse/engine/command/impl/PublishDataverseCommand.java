@@ -47,7 +47,7 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
         //Before setting dataverse to released send notifications to users with download file
         List<RoleAssignment> ras = ctxt.roles().directRoleAssignments(dataverse);
         for (RoleAssignment ra : ras) {
-            if (ra.getRole().permissions().contains(Permission.DownloadFile)) {
+            if (ra.getRole().has(Permission.DownloadFile)) {
                 for (AuthenticatedUser au : ctxt.roleAssignees().getExplicitUsers(ctxt.roleAssignees().getRoleAssignee(ra.getAssigneeIdentifier()))) {
                     ctxt.notifications().sendNotificationWithEmail(au, new Timestamp(new Date().getTime()), NotificationType.ASSIGNROLE,
                                                                    dataverse.getId(), NotificationObjectType.DATAVERSE);
