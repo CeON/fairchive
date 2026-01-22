@@ -1,14 +1,15 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 /**
  * All the permissions in the system are implemented as enum values in this
@@ -86,22 +87,22 @@ public enum Permission implements java.io.Serializable {
     private final boolean requiresWrite;
     
     @SafeVarargs
-    Permission(boolean authenticatedUserRequired, boolean requiresWrite, Class<? extends DvObject>... appliesToList) {
-        appliesTo = new HashSet<>(Arrays.asList(appliesToList));
-        requiresAuthenticatedUser = authenticatedUserRequired;
+    Permission(final boolean authenticatedUserRequired, final boolean requiresWrite, final Class<? extends DvObject>... appliesToList) {
+        this.appliesTo = new HashSet<>(Arrays.asList(appliesToList));
+        this.requiresAuthenticatedUser = authenticatedUserRequired;
         this.requiresWrite = requiresWrite;
     }
 
     public String getHumanName() {
-        return BundleUtil.getStringFromBundle("permission." + name() + ".desc");
+        return getStringFromBundle("permission." + name() + ".desc");
     }
 
     public String getDisplayName() {
-        return BundleUtil.getStringFromBundle("permission." + name() + ".label");
+        return getStringFromBundle("permission." + name() + ".label");
     }
 
     public boolean appliesTo(Class<? extends DvObject> aClass) {
-        for (Class<? extends DvObject> c : appliesTo) {
+        for (Class<? extends DvObject> c : this.appliesTo) {
             if (c.isAssignableFrom(aClass)) {
                 return true;
             }
@@ -110,10 +111,10 @@ public enum Permission implements java.io.Serializable {
     }
 
     public boolean requiresAuthenticatedUser() {
-        return requiresAuthenticatedUser;
+        return this.requiresAuthenticatedUser;
     }
 
     public boolean isRequiresWrite() {
-        return requiresWrite;
+        return this.requiresWrite;
     }
 }
