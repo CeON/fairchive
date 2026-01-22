@@ -37,36 +37,36 @@ public enum Permission implements java.io.Serializable {
 
     // Create
     //1
-    AddDataverse(BundleUtil.getStringFromBundle("permission.addDataverseDataverse"), true, true, Dataverse.class),
+    AddDataverse(true, true, Dataverse.class),
     //2
-    AddDataset(BundleUtil.getStringFromBundle("permission.addDatasetDataverse"), true, true, Dataverse.class),
+    AddDataset(true, true, Dataverse.class),
     // Read
     //4
-    ViewUnpublishedDataverse(BundleUtil.getStringFromBundle("permission.viewUnpublishedDataverse"), false, false, Dataverse.class),
+    ViewUnpublishedDataverse(false, false, Dataverse.class),
     //8
-    ViewUnpublishedDataset(BundleUtil.getStringFromBundle("permission.viewUnpublishedDataset"), false, false, Dataset.class),
+    ViewUnpublishedDataset(false, false, Dataset.class),
     //16
-    DownloadFile(BundleUtil.getStringFromBundle("permission.downloadFile"), false, false, DataFile.class),
+    DownloadFile(false, false, DataFile.class),
     // Update
     //32
-    EditDataverse(BundleUtil.getStringFromBundle("permission.editDataverse"), true, true, Dataverse.class),
+    EditDataverse(true, true, Dataverse.class),
     //64
-    EditDataset(BundleUtil.getStringFromBundle("permission.editDataset"), true, true, Dataset.class),
+    EditDataset(true, true, Dataset.class),
     //128
-    ManageDataversePermissions(BundleUtil.getStringFromBundle("permission.managePermissionsDataverse"), true, true, Dataverse.class),
+    ManageDataversePermissions(true, true, Dataverse.class),
     //256
-    ManageDatasetPermissions(BundleUtil.getStringFromBundle("permission.managePermissionsDataset"), true, true, Dataset.class),
+    ManageDatasetPermissions(true, true, Dataset.class),
     //512
-    PublishDataverse(BundleUtil.getStringFromBundle("permission.publishDataverse"), true, true, Dataverse.class),
+    PublishDataverse(true, true, Dataverse.class),
     //1024
-    PublishDataset(BundleUtil.getStringFromBundle("permission.publishDataset"), true, true, Dataset.class, Dataverse.class),
+    PublishDataset(true, true, Dataset.class, Dataverse.class),
     // Delete
     //2048
-    DeleteDataverse(BundleUtil.getStringFromBundle("permission.deleteDataverse"), true, true, Dataverse.class),
+    DeleteDataverse(true, true, Dataverse.class),
     //4096
-    DeleteDatasetDraft(BundleUtil.getStringFromBundle("permission.deleteDataset"), true, true, Dataset.class),
+    DeleteDatasetDraft(true, true, Dataset.class),
     //8192
-    ManageMinorDatasetPermissions(BundleUtil.getStringFromBundle("permission.manageMinorDatasetPermissions"), true, true, Dataset.class);
+    ManageMinorDatasetPermissions(true, true, Dataset.class);
 
     /**
      * Which types of {@link DvObject}s this permission applies to.
@@ -86,7 +86,7 @@ public enum Permission implements java.io.Serializable {
     private final boolean requiresWrite;
     
     @SafeVarargs
-    Permission(String aHumanName, boolean authenticatedUserRequired, boolean requiresWrite, Class<? extends DvObject>... appliesToList) {
+    Permission(boolean authenticatedUserRequired, boolean requiresWrite, Class<? extends DvObject>... appliesToList) {
         appliesTo = new HashSet<>(Arrays.asList(appliesToList));
         requiresAuthenticatedUser = authenticatedUserRequired;
         this.requiresWrite = requiresWrite;
