@@ -79,22 +79,10 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
 
 	public static final Comparator<DataverseRole> compareByName = (role1, role2) -> {
 		final int result = role1.getName().compareTo(role2.getName());
-		if (result != 0) {
-			return result;
-		} else {
-			final Long id1 = role1.getOwner() == null ? 0 : role1.getOwner().getId();
-			final Long id2 = role2.getOwner() == null ? 0 : role2.getOwner().getId();
-			return id1.compareTo(id2);
-		}
+		return result != 0 ? result : role1.getOwnerId().compareTo(role2.getOwnerId());
 	};
-
-    public static Set<Permission> permissionSet(final Iterable<DataverseRole> roles) {
-        long miniset = 0l;
-        for (final DataverseRole role : roles) {
-            miniset |= role.permissionBits;
-        }
-        return new BitSet(miniset).asSetOf(Permission.class);
-    }
+	
+	private final static Long zero = new Long(0);
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -155,6 +143,10 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
 
     public DvObject getOwner() {
         return this.owner;
+    }
+    
+    private Long getOwnerId() {
+    	return this.owner == null ? zero : this.owner.getId();
     }
 
     public void setOwner(final DvObject owner) {
