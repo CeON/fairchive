@@ -206,48 +206,7 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
         return Objects.equals(this.id, other.id);
     }
 
-    /**
-     * Given a DvObject object, see if this role contains a Permission
-     * applicable to that object
-     *
-     * @param dvObject
-     * @return
-     */
-    public boolean doesDvObjectHavePermissionForObject(final DvObject dvObject) {
-
-        if (dvObject == null) {
-            return false;
-        }
-
-        return this.doesDvObjectClassHavePermissionForObject(dvObject.getClass());
-
-    } // doesDvObjectHavePermissionForObject
-
-
-    /**
-     * Given a DvObject object class, see if this role contains a Permission
-     * applicable to that object
-     * <p>
-     * Initial user is for MyData page and displaying role tags
-     *
-     * @param dvObjectClass
-     * @return
-     */
-    public boolean doesDvObjectClassHavePermissionForObject(final Class<? extends DvObject> dvObjectClass) {
-
-        if (dvObjectClass == null) {
-            return false;
-        }
-
-        // Iterate through permissions.  If one applies to this class, return true
-        //
-        for (final Permission perm : this.permissions()) {
-            if (perm.appliesTo(dvObjectClass)) {
-                return true;
-            }
-        }
-
-        return false;
-
-    } // doesDvObjectClassHavePermissionForObject
+    public boolean hasPermissionFor(final Class<? extends DvObject> dvObjectClass) {
+    	return permissions().stream().anyMatch(p -> p.appliesTo(dvObjectClass));
+    } 
 }
