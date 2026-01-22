@@ -2,10 +2,6 @@ package edu.harvard.iq.dataverse.persistence.user;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -117,5 +113,9 @@ public enum Permission implements java.io.Serializable {
 
     public boolean isRequiresWrite() {
         return this.requiresWrite;
+    }
+    
+    public long bitValue() {
+    	return 1L << ordinal();
     }
 }
