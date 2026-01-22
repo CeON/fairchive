@@ -1,6 +1,9 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Arrays.stream;
+
+import java.util.stream.Stream;
 
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -64,6 +67,9 @@ public enum Permission implements java.io.Serializable {
     DeleteDatasetDraft(true, true, Dataset.class),
     //8192
     ManageMinorDatasetPermissions(true, true, Dataset.class);
+	
+    // lets's cache this for performance reasons
+    private final static Permission[] values = values();
 
     /**
      * Which types of {@link DvObject}s this permission applies to.
@@ -117,5 +123,13 @@ public enum Permission implements java.io.Serializable {
     
     public long bitValue() {
     	return 1L << ordinal();
+    }
+    
+    public boolean isIn(final long bits) {
+    	return (bits & bitValue()) > 0;
+    }
+    
+    public static Stream<Permission> streamOf(final long bits) {
+    	return stream(values).filter(p -> p.isIn(bits));
     }
 }

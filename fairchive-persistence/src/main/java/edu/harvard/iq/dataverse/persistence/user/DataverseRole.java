@@ -17,6 +17,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static javax.persistence.GenerationType.IDENTITY;
 
 import java.io.Serializable;
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A role is an annotated set of permissions. A role belongs
@@ -168,7 +170,7 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     }
 
     public Set<Permission> permissions() {
-        return new BitSet(this.permissionBits).asSetOf(Permission.class);
+        return Permission.streamOf(this.permissionBits).collect(toSet());
     }
 
     public long getPermissionsBits() {
@@ -198,7 +200,7 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     }
     
     public boolean has(final Permission p) {
-    	return (this.permissionBits & p.bitValue()) > 0;
+    	return p.isIn(this.permissionBits);
     }
     
     public boolean hasAny(final Permission p1, final Permission p2) {

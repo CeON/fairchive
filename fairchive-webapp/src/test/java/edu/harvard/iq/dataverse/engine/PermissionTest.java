@@ -8,7 +8,6 @@ import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 /**
@@ -47,5 +46,14 @@ public class PermissionTest {
     	assertThat(Permission.DeleteDataverse.bitValue()).isEqualTo(2048L);
     	assertThat(Permission.DeleteDatasetDraft.bitValue()).isEqualTo(4096L);
     	assertThat(Permission.ManageMinorDatasetPermissions.bitValue()).isEqualTo(8192L);
+    }
+    
+    @Test
+    void setOf() {
+    	
+    	assertThat(Permission.streamOf(0)).isEmpty();
+    	assertThat(Permission.streamOf(1)).containsExactly(Permission.AddDataverse);
+    	assertThat(Permission.streamOf(2)).containsExactly(Permission.AddDataset);
+    	assertThat(Permission.streamOf(3)).containsExactlyInAnyOrder(Permission.AddDataverse, Permission.AddDataset);
     }
 }

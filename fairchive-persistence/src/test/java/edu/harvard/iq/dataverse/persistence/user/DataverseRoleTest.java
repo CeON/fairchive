@@ -40,6 +40,7 @@ public class DataverseRoleTest {
     	assertThat(role.has(Permission.AddDataset)).isFalse();
     	assertThat(role.has(Permission.DeleteDatasetDraft)).isFalse();
     	assertThat(role.hasAny(Permission.AddDataset, Permission.DeleteDatasetDraft)).isFalse();
+    	assertThat(role.permissions()).isEmpty();
     	
     	role.addPermission(Permission.AddDataset);
     	
@@ -49,6 +50,7 @@ public class DataverseRoleTest {
     	assertThat(role.has(Permission.AddDataset)).isTrue();
     	assertThat(role.has(Permission.DeleteDatasetDraft)).isFalse();
     	assertThat(role.hasAny(Permission.AddDataset, Permission.DeleteDatasetDraft)).isTrue();
+    	assertThat(role.permissions()).containsExactly(Permission.AddDataset);
     	
     	role.addPermission(Permission.DeleteDatasetDraft);
     	
@@ -59,6 +61,7 @@ public class DataverseRoleTest {
     	assertThat(role.has(Permission.AddDataset)).isTrue();
     	assertThat(role.has(Permission.DeleteDatasetDraft)).isTrue();
     	assertThat(role.hasAny(Permission.AddDataset, Permission.DeleteDatasetDraft)).isTrue();
+    	assertThat(role.permissions()).containsExactlyInAnyOrder(Permission.AddDataset, Permission.DeleteDatasetDraft);
     	
     	role.clearPermissions();
     	
@@ -68,5 +71,6 @@ public class DataverseRoleTest {
     	assertThat(role.has(Permission.AddDataset)).isFalse();
     	assertThat(role.has(Permission.DeleteDatasetDraft)).isFalse();
     	assertThat(role.hasAny(Permission.AddDataset, Permission.DeleteDatasetDraft)).isFalse();
+    	assertThat(role.permissions()).isEmpty();
     }
 }
