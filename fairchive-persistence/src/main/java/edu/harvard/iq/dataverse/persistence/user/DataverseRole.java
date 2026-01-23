@@ -1,9 +1,15 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,16 +22,10 @@ import javax.persistence.Table;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toSet;
-import static javax.persistence.GenerationType.IDENTITY;
-
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 /**
  * A role is an annotated set of permissions. A role belongs
@@ -170,7 +170,11 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     }
 
     public Set<Permission> permissions() {
-        return Permission.streamOf(this.permissionBits).collect(toSet());
+        return permissionsStream().collect(toSet());
+    }
+    
+    public Stream<Permission> permissionsStream() {
+    	return Permission.streamFrom(this.permissionBits);
     }
 
     public long getPermissionsBits() {
@@ -208,6 +212,6 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     }
 
     public boolean hasPermissionFor(final Class<? extends DvObject> dvObjectClass) {
-    	return permissions().stream().anyMatch(p -> p.appliesTo(dvObjectClass));
+    	return permissionsStream().anyMatch(p -> p.appliesTo(dvObjectClass));
     } 
 }

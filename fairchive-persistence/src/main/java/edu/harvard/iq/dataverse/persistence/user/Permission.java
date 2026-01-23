@@ -129,7 +129,7 @@ public enum Permission implements java.io.Serializable {
     	return (bits & bitValue()) > 0;
     }
     
-    public static Stream<Permission> streamOf(final long bits) {
+    public static Stream<Permission> streamFrom(final long bits) {
     	return stream(values).filter(p -> p.isIn(bits));
     }
 }

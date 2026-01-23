@@ -339,8 +339,7 @@ public class PermissionServiceBean {
 
         for (RoleAssignment assignment : parentsAsignments) {
             Set<Permission> permissions = unconfirmedMailMode
-                    ? assignment.getRole().permissions()
-                    .stream()
+                    ? assignment.getRole().permissionsStream()
                     .filter(p -> !p.requiresWrite())
                     .collect(toSet())
                     : assignment.getRole().permissions();

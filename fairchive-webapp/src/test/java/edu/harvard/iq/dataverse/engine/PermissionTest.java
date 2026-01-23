@@ -51,9 +51,9 @@ public class PermissionTest {
     @Test
     void setOf() {
     	
-    	assertThat(Permission.streamOf(0)).isEmpty();
-    	assertThat(Permission.streamOf(1)).containsExactly(Permission.AddDataverse);
-    	assertThat(Permission.streamOf(2)).containsExactly(Permission.AddDataset);
-    	assertThat(Permission.streamOf(3)).containsExactlyInAnyOrder(Permission.AddDataverse, Permission.AddDataset);
+    	assertThat(Permission.streamFrom(0)).isEmpty();
+    	assertThat(Permission.streamFrom(1)).containsExactly(Permission.AddDataverse);
+    	assertThat(Permission.streamFrom(2)).containsExactly(Permission.AddDataset);
+    	assertThat(Permission.streamFrom(3)).containsExactlyInAnyOrder(Permission.AddDataverse, Permission.AddDataset);
     }
 }
