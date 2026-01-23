@@ -223,7 +223,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 		if (isTabularData() || isTabular()) {
 			return "tabular";
 		}
-		if(isDocument()) {
+		if (isDocument()) {
 			return "document";
 		}
 		if (isImage()) {
@@ -235,19 +235,19 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 		if (isAudio()) {
 			return "audio";
 		}
-		if(isCode()) {
+		if (isCode()) {
 			return "code";
 		}
-		if(isAstro()) {
+		if (isAstro()) {
 			return "astro";
 		}
-		if(isNetwork()) {
+		if (isNetwork()) {
 			return "network";
 		}
-		if(isFilePackage()) {
+		if (isFilePackage()) {
 			return "package";
 		}
-		if(isShapefileType()) {
+		if (isShapefileType()) {
 			return "geodata";
 		}
 		return "other";
