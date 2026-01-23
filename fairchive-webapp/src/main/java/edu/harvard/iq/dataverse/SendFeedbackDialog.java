@@ -258,10 +258,6 @@ public class SendFeedbackDialog implements java.io.Serializable {
         this.attachments.add(event.getFile());
     }
 
-    public boolean displayFileUpload() {
-        return this.session.isUserLoggedIn();
-    }
-
     public void validateUserSum(final FacesContext context,
             final UIComponent component,
             final Object value) throws ValidatorException {
