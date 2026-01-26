@@ -1,5 +1,9 @@
 package edu.harvard.iq.dataverse.dataset.embargo;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaximumEmbargoLength;
+
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -17,7 +21,6 @@ import javax.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
@@ -62,25 +65,29 @@ public class DatasetEmbargoDialog implements Serializable {
     * @return current embargo date set on dataset
     */
     public Date getCurrentEmbargoDate() {
-        return currentEmbargoDate;
+        return this.currentEmbargoDate;
+    }
+    
+    public boolean isMaximumEmbargoLengthSet() {
+        return getMaximumEmbargoLength() > 0;
     }
 
     public int getMaximumEmbargoLength() {
-        return settingsService.getValueForKeyAsInt(SettingsServiceBean.Key.MaximumEmbargoLength);
+        return this.settingsService.getValueForKeyAsInt(MaximumEmbargoLength, 0);
     }
     
     public Option<Date> getMaximumEmbargoDate() {
         if(isMaximumEmbargoLengthSet()) {
             return Option.of(Date.from(Instant
                     .now().atOffset(ZoneOffset.UTC)
-                    .plus(settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.MaximumEmbargoLength), ChronoUnit.MONTHS)
+                    .plus(this.settingsService.getValueForKeyAsLong(MaximumEmbargoLength), ChronoUnit.MONTHS)
                     .toInstant()));
         }
         return Option.none();
     }
 
     public String getMaximumEmbargoDateForDisplay() {
-        SimpleDateFormat format = new SimpleDateFormat(settingsService.getValueForKey(SettingsServiceBean.Key.DefaultDateFormat));
+        SimpleDateFormat format = new SimpleDateFormat(this.settingsService.getValueForKey(DefaultDateFormat, "yyyy-MM-dd"));
         return getMaximumEmbargoDate().isDefined() ? format.format(getMaximumEmbargoDate().get()) : "";
     }
 
@@ -90,7 +97,7 @@ public class DatasetEmbargoDialog implements Serializable {
 
     // -------------------- LOGIC --------------------
 
-    public void init(Dataset dataset) {
+    public void init(final Dataset dataset) {
         this.dataset = dataset;
     }
 
@@ -99,76 +106,75 @@ public class DatasetEmbargoDialog implements Serializable {
      */
     public void reloadAndRenderDialog() {
         initCurrentEmbargo();
-        renderEmbargoDialog = true;
+        this.renderEmbargoDialog = true;
     }
 
     public void initCurrentEmbargo() {
-        currentEmbargoDate = dataset.getEmbargoDate().getOrNull();
-    }
-
-    public boolean isMaximumEmbargoLengthSet() {
-        return getMaximumEmbargoLength() > 0;
+        this.currentEmbargoDate = this.dataset.getEmbargoDate().getOrNull();
     }
 
     public String getCurrentEmbargoDateForDisplay() {
-        SimpleDateFormat format = new SimpleDateFormat(settingsService.getValueForKey(SettingsServiceBean.Key.DefaultDateFormat));
-        return currentEmbargoDate != null ? format.format(currentEmbargoDate) : "";
+        final SimpleDateFormat format = new SimpleDateFormat(this.settingsService.getValueForKey(DefaultDateFormat));
+        return this.currentEmbargoDate != null ? format.format(this.currentEmbargoDate) : "";
     }
 
-    public void validateEmbargoDate(FacesContext context, UIComponent toValidate, Object embargoDate) {
+    public void validateEmbargoDate(final FacesContext context, 
+    		final UIComponent toValidate, final Object embargoDate) {
         validateVersusMinimumDate(context, toValidate, embargoDate);
         validateVersusMaximumDate(context, toValidate, embargoDate);
     }
 
     public String updateEmbargoDate() {
-        Try.of(() -> datasetService.setDatasetEmbargoDate(dataset, currentEmbargoDate))
-                .onSuccess(ds -> JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("dataset.embargo.save.successMessage")))
-                .onFailure(ds -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.embargo.save.failureMessage")));
+        Try.of(() -> this.datasetService.setDatasetEmbargoDate(dataset, currentEmbargoDate))
+                .onSuccess(ds -> JsfHelper.addSuccessMessage(getStringFromBundle("dataset.embargo.save.successMessage")))
+                .onFailure(ds -> JsfHelper.addErrorMessage(getStringFromBundle("dataset.embargo.save.failureMessage")));
         return returnToDataset();
 
     }
 
     public String liftEmbargo() {
-        Try.of(() -> datasetService.liftDatasetEmbargoDate(dataset))
-                .onSuccess(ds -> currentEmbargoDate = null)
-                .onSuccess(ds -> JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("dataset.embargo.lift.successMessage")))
-                .onFailure(ds -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataset.embargo.lift.failureMessage")));
+        Try.of(() -> this.datasetService.liftDatasetEmbargoDate(dataset))
+                .onSuccess(ds -> this.currentEmbargoDate = null)
+                .onSuccess(ds -> JsfHelper.addSuccessMessage(getStringFromBundle("dataset.embargo.lift.successMessage")))
+                .onFailure(ds -> JsfHelper.addErrorMessage(getStringFromBundle("dataset.embargo.lift.failureMessage")));
         return returnToDataset();
     }
     
     // -------------------- PRIVATE --------------------
 
-    private void validateVersusMaximumDate(FacesContext context, UIComponent toValidate, Object embargoDate) {
+    private void validateVersusMaximumDate(final FacesContext context, 
+    		final UIComponent toValidate, final Object embargoDate) {
         if(isMaximumEmbargoLengthSet() &&
                 !Objects.isNull(embargoDate) &&
                 ((Date) embargoDate).toInstant().isAfter(getMaximumEmbargoDate().get().toInstant())) {
             ((UIInput) toValidate).setValid(false);
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    BundleUtil.getStringFromBundle("dataset.embargo.validate.max.failureMessage", getMaximumEmbargoDateForDisplay()), null);
+                    getStringFromBundle("dataset.embargo.validate.max.failureMessage", getMaximumEmbargoDateForDisplay()), null);
             context.addMessage(toValidate.getClientId(context), message);
         }
     }
 
-    private void validateVersusMinimumDate(FacesContext context, UIComponent toValidate, Object embargoDate) {
+    private void validateVersusMinimumDate(final FacesContext context, 
+    		final UIComponent toValidate, final Object embargoDate) {
         if(!Objects.isNull(embargoDate) &&
                 ((Date) embargoDate).toInstant().isBefore(getTomorrowsDate().toInstant())) {
             ((UIInput) toValidate).setValid(false);
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("dataset.embargo.validate.min.failureMessage"), null);
+            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, getStringFromBundle("dataset.embargo.validate.min.failureMessage"), null);
             context.addMessage(toValidate.getClientId(context), message);
         }
     }
 
     private String returnToDataset() {
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId().asString() + "&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + this.dataset.getGlobalId().asString() + "&faces-redirect=true";
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setRenderEmbargoDialog(boolean renderEmbargoPopup) {
+    public void setRenderEmbargoDialog(final boolean renderEmbargoPopup) {
         this.renderEmbargoDialog = renderEmbargoPopup;
     }
 
-    public void setCurrentEmbargoDate(Date currentEmbargoDate) {
+    public void setCurrentEmbargoDate(final Date currentEmbargoDate) {
         this.currentEmbargoDate = currentEmbargoDate;
     }
 
