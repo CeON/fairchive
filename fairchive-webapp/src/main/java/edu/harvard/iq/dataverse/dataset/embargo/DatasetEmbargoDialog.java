@@ -1,14 +1,13 @@
 package edu.harvard.iq.dataverse.dataset.embargo;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.DateUtil.todayPlusDays;
+import static edu.harvard.iq.dataverse.common.DateUtil.todayPlusMonths;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaximumEmbargoLength;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
@@ -78,10 +77,7 @@ public class DatasetEmbargoDialog implements Serializable {
     
     public Optional<Date> getMaximumEmbargoDate() {
         if(isMaximumEmbargoLengthSet()) {
-            return Optional.of(Date.from(Instant
-                    .now().atOffset(ZoneOffset.UTC)
-                    .plus(getMaximumEmbargoLength(), ChronoUnit.MONTHS)
-                    .toInstant()));
+            return Optional.of(todayPlusMonths(getMaximumEmbargoLength()));
         }
         return Optional.empty();
     }
@@ -91,7 +87,7 @@ public class DatasetEmbargoDialog implements Serializable {
     }
 
     public Date getTomorrowsDate() {
-        return Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+        return todayPlusDays(1);
     }
     
     public String getDefaultDateFormat() {

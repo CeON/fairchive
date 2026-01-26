@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse.common;
 
-import org.apache.commons.lang3.StringUtils;
+import static java.time.ZoneOffset.UTC;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.MONTHS;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -13,6 +15,8 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author jchengan
@@ -118,5 +122,13 @@ public class DateUtil {
             return DateTimeFormatter.ISO_LOCAL_DATE.withZone(DataverseClock.zoneId).format(instant);
         }
         return null;
+    }
+    
+    public static Date todayPlusDays(final long number) {
+    	return Date.from(Instant.now().truncatedTo(DAYS).plus(1, DAYS));
+    }
+    
+    public static Date todayPlusMonths(final long number) {
+    	return Date.from(Instant.now().atOffset(UTC).plus(number, MONTHS).toInstant());
     }
 }
