@@ -11,6 +11,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
@@ -25,7 +26,6 @@ import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.JsfHelper;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 
 /**
@@ -76,19 +76,18 @@ public class DatasetEmbargoDialog implements Serializable {
         return this.settings.getValueForKeyAsInt(MaximumEmbargoLength, 0);
     }
     
-    public Option<Date> getMaximumEmbargoDate() {
+    public Optional<Date> getMaximumEmbargoDate() {
         if(isMaximumEmbargoLengthSet()) {
-            return Option.of(Date.from(Instant
+            return Optional.of(Date.from(Instant
                     .now().atOffset(ZoneOffset.UTC)
-                    .plus(this.settings.getValueForKeyAsLong(MaximumEmbargoLength), ChronoUnit.MONTHS)
+                    .plus(getMaximumEmbargoLength(), ChronoUnit.MONTHS)
                     .toInstant()));
         }
-        return Option.none();
+        return Optional.empty();
     }
 
     public String getMaximumEmbargoDateForDisplay() {
-        SimpleDateFormat format = new SimpleDateFormat(getDefaultDateFormat());
-        return getMaximumEmbargoDate().isDefined() ? format.format(getMaximumEmbargoDate().get()) : "";
+        return getMaximumEmbargoDate().isPresent() ? format(getMaximumEmbargoDate().get()) : "";
     }
 
     public Date getTomorrowsDate() {
@@ -118,8 +117,7 @@ public class DatasetEmbargoDialog implements Serializable {
     }
 
     public String getCurrentEmbargoDateForDisplay() {
-        final SimpleDateFormat format = new SimpleDateFormat(this.settings.getValueForKey(DefaultDateFormat));
-        return this.currentEmbargoDate != null ? format.format(this.currentEmbargoDate) : "";
+        return this.currentEmbargoDate != null ? format(this.currentEmbargoDate) : "";
     }
 
     public void validateEmbargoDate(final FacesContext context, 
@@ -145,6 +143,11 @@ public class DatasetEmbargoDialog implements Serializable {
     }
     
     // -------------------- PRIVATE --------------------
+    
+    private String format(final Date date) {
+    	return new SimpleDateFormat(getDefaultDateFormat()).format(date);
+    	
+    }
 
     private void validateVersusMaximumDate(final FacesContext context, 
     		final UIComponent toValidate, final Object embargoDate) {
