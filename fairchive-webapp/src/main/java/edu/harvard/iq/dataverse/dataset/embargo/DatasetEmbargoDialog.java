@@ -24,8 +24,7 @@ import org.omnifaces.cdi.ViewScoped;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import io.vavr.control.Try;
+import edu.harvard.iq.dataverse.util.UIMessages;
 
 /**
  * Backing bean responsible for handling dataset embargo
@@ -43,14 +42,17 @@ public class DatasetEmbargoDialog implements Serializable {
     private DatasetService datasetService;
     
     private SettingsServiceBean settings;
+    private UIMessages ui;
 
 
     // -------------------- CONSTRUCTORS --------------------
     @Inject
     public DatasetEmbargoDialog(final DatasetService datasetService,
-    		                    final SettingsServiceBean settings) {
+    		                    final SettingsServiceBean settings,
+    		                    final UIMessages ui) {
     	this.datasetService = datasetService;
     	this.settings = settings;
+    	this.ui = ui;
     }
 
     // -------------------- GETTERS --------------------
@@ -125,23 +127,36 @@ public class DatasetEmbargoDialog implements Serializable {
         validateVersusMaximumDate(context, toValidate, embargoDate);
     }
 
-    public String updateEmbargoDate() {
-        Try.of(() -> this.datasetService.setDatasetEmbargoDate(dataset, currentEmbargoDate))
-                .onSuccess(ds -> JsfHelper.addSuccessMessage(getStringFromBundle("dataset.embargo.save.successMessage")))
-                .onFailure(ds -> JsfHelper.addErrorMessage(getStringFromBundle("dataset.embargo.save.failureMessage")));
-        return returnToDataset();
+	public String updateEmbargoDate() {
+		try {
+			this.datasetService.setDatasetEmbargoDate(this.dataset, this.currentEmbargoDate);
+			showSuccess();
+		} catch (final Exception e) {
+			showError();
+		}
+		return returnToDataset();
+	}
 
-    }
-
-    public String liftEmbargo() {
-        Try.of(() -> this.datasetService.liftDatasetEmbargoDate(dataset))
-                .onSuccess(ds -> this.currentEmbargoDate = null)
-                .onSuccess(ds -> JsfHelper.addSuccessMessage(getStringFromBundle("dataset.embargo.lift.successMessage")))
-                .onFailure(ds -> JsfHelper.addErrorMessage(getStringFromBundle("dataset.embargo.lift.failureMessage")));
-        return returnToDataset();
-    }
+	public String liftEmbargo() {
+		try {
+			this.datasetService.liftDatasetEmbargoDate(dataset);
+			this.currentEmbargoDate = null;
+			showSuccess();
+		} catch (final Exception e) {
+			showError();
+		}
+		return returnToDataset();
+	}
     
     // -------------------- PRIVATE --------------------
+    
+    private void showSuccess() {
+    	this.ui.addSuccessMessage(getStringFromBundle("dataset.embargo.save.successMessage"));
+    }
+    
+    private void showError() {
+    	this.ui.addErrorMessage(getStringFromBundle("dataset.embargo.lift.failureMessage"));
+    }
     
     private String format(final Date date) {
     	return date != null 
@@ -173,6 +188,7 @@ public class DatasetEmbargoDialog implements Serializable {
     }
 
     private String returnToDataset() {
-        return "/dataset.xhtml?persistentId=" + this.dataset.getGlobalId().asString() + "&faces-redirect=true";
+        return "/dataset.xhtml?faces-redirect=true&persistentId="
+        		.concat(this.dataset.getGlobalId().asString());
     }
 }
