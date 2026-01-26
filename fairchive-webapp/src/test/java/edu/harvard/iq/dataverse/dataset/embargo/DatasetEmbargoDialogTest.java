@@ -40,6 +40,7 @@ public class DatasetEmbargoDialogTest {
 		when(this.settings.getValueForKeyAsInt(eq(MaximumEmbargoLength))).thenReturn(null);
 		when(this.settings.getValueForKeyAsInt(eq(MaximumEmbargoLength), anyInt())).thenReturn(0);
 		when(this.settings.getValueForKeyAsLong(eq(MaximumEmbargoLength))).thenReturn(null);
+		when(this.settings.getValueForKey(eq(DefaultDateFormat), anyString())).thenReturn("yyyy-MM-dd");
 		
 		assertThat(this.dialog.isMaximumEmbargoLengthSet()).isFalse();
 		assertThat(this.dialog.getMaximumEmbargoLength()).isZero();

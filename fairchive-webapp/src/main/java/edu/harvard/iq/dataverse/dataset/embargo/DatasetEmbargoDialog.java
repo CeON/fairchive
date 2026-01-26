@@ -43,21 +43,21 @@ public class DatasetEmbargoDialog implements Serializable {
 
     private DatasetService datasetService;
     
-    SettingsServiceBean settingsService;
+    private SettingsServiceBean settings;
 
 
     // -------------------- CONSTRUCTORS --------------------
     @Inject
-    public DatasetEmbargoDialog(DatasetService datasetService,
-    		                    SettingsServiceBean settingsService) {
+    public DatasetEmbargoDialog(final DatasetService datasetService,
+    		                    final SettingsServiceBean settings) {
     	this.datasetService = datasetService;
-    	this.settingsService = settingsService;
+    	this.settings = settings;
     }
 
     // -------------------- GETTERS --------------------
 
     public boolean isRenderEmbargoDialog() {
-        return renderEmbargoDialog;
+        return this.renderEmbargoDialog;
     }
 
     /**
@@ -73,26 +73,30 @@ public class DatasetEmbargoDialog implements Serializable {
     }
 
     public int getMaximumEmbargoLength() {
-        return this.settingsService.getValueForKeyAsInt(MaximumEmbargoLength, 0);
+        return this.settings.getValueForKeyAsInt(MaximumEmbargoLength, 0);
     }
     
     public Option<Date> getMaximumEmbargoDate() {
         if(isMaximumEmbargoLengthSet()) {
             return Option.of(Date.from(Instant
                     .now().atOffset(ZoneOffset.UTC)
-                    .plus(this.settingsService.getValueForKeyAsLong(MaximumEmbargoLength), ChronoUnit.MONTHS)
+                    .plus(this.settings.getValueForKeyAsLong(MaximumEmbargoLength), ChronoUnit.MONTHS)
                     .toInstant()));
         }
         return Option.none();
     }
 
     public String getMaximumEmbargoDateForDisplay() {
-        SimpleDateFormat format = new SimpleDateFormat(this.settingsService.getValueForKey(DefaultDateFormat, "yyyy-MM-dd"));
+        SimpleDateFormat format = new SimpleDateFormat(getDefaultDateFormat());
         return getMaximumEmbargoDate().isDefined() ? format.format(getMaximumEmbargoDate().get()) : "";
     }
 
     public Date getTomorrowsDate() {
         return Date.from(Instant.now().truncatedTo(ChronoUnit.DAYS).plus(1, ChronoUnit.DAYS));
+    }
+    
+    public String getDefaultDateFormat() {
+    	return this.settings.getValueForKey(DefaultDateFormat, "yyyy-MM-dd");
     }
 
     // -------------------- LOGIC --------------------
@@ -114,7 +118,7 @@ public class DatasetEmbargoDialog implements Serializable {
     }
 
     public String getCurrentEmbargoDateForDisplay() {
-        final SimpleDateFormat format = new SimpleDateFormat(this.settingsService.getValueForKey(DefaultDateFormat));
+        final SimpleDateFormat format = new SimpleDateFormat(this.settings.getValueForKey(DefaultDateFormat));
         return this.currentEmbargoDate != null ? format.format(this.currentEmbargoDate) : "";
     }
 
