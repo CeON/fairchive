@@ -12,7 +12,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
-import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 
 import java.io.IOException;
@@ -84,7 +83,7 @@ public class DeleteDataFileCommand extends AbstractVoidCommand {
             // as of now, they are not supported by StorageIO (they only work 
             // with local filesystem as the storage mechanism). 
 
-            if (FileUtil.isPackageFile(doomed)) {
+            if (doomed.isFilePackage()) {
                 try {
                     String datasetDirectory = doomed.getOwner().getFileSystemDirectory(ctxt.systemConfig().getFilesDirectory()).toString();
                     Path datasetDirectoryPath = Paths.get(datasetDirectory, doomed.getStorageIdentifier());

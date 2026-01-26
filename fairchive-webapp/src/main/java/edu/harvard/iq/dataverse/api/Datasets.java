@@ -137,7 +137,6 @@ import edu.harvard.iq.dataverse.engine.command.impl.UpdateDvObjectPIDMetadataCom
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.ExporterType;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
-import edu.harvard.iq.dataverse.ingest.UningestInfoService;
 import edu.harvard.iq.dataverse.ingest.UningestService;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
@@ -195,7 +194,6 @@ public class Datasets extends AbstractApiBean {
     private PermissionServiceBean permissionSvc;
     private FileLabelsService fileLabelsService;
     private DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter;
-    private UningestInfoService uningestInfoService;
     private UningestService uningestService;
     private SystemConfig config;
 
@@ -217,7 +215,6 @@ public class Datasets extends AbstractApiBean {
                     RoleAssigneeServiceBean roleAssigneeSvc, PermissionServiceBean permissionSvc,
                     FileLabelsService fileLabelsService,
                     DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter,
-                    UningestInfoService uningestInfoService,
                     UningestService uningestService,
                     SystemConfig config) {
         this.dataverseDao = dataverseDao;
@@ -242,7 +239,6 @@ public class Datasets extends AbstractApiBean {
         this.permissionSvc = permissionSvc;
         this.fileLabelsService = fileLabelsService;
         this.fileDownloadUrlCsvWriter = fileDownloadUrlCsvWriter;
-        this.uningestInfoService = uningestInfoService;
         this.uningestService = uningestService;
         this.config = config;
     }
@@ -497,7 +493,7 @@ public class Datasets extends AbstractApiBean {
                 return forbidden("You are not permitted to view unpublished dataset.");
             }
 
-            return ok(uningestInfoService.listUningestableFiles(dataset).stream()
+            return ok(dataset.listUningestableFiles().stream()
                     .map(UningestableItemDTO::fromDatafile)
                     .collect(Collectors.toList()));
         });
@@ -513,7 +509,7 @@ public class Datasets extends AbstractApiBean {
             UningestRequestDTO rq = jsonParser().parseUningestRequest(json);
             Dataset dataset = findDatasetOrDie(datasetId);
 
-            List<DataFile> dataFiles = uningestInfoService.listUningestableFiles(dataset).stream()
+            List<DataFile> dataFiles = dataset.listUningestableFiles().stream()
                     .filter(df -> rq.getDataFileIds().isEmpty() || rq.getDataFileIds().contains(df.getId()))
                     .collect(Collectors.toList());
 
@@ -1445,7 +1441,7 @@ public class Datasets extends AbstractApiBean {
 
         // (2a) Make sure dataset does not have package file
         for (DatasetVersion dv : dataset.getVersions()) {
-            if (dv.isHasPackageFile()) {
+            if (dv.hasPackageFile()) {
                 return error(Response.Status.FORBIDDEN,
                              ResourceBundle.getBundle("Bundle").getString("file.api.alreadyHasPackageFile")
                 );

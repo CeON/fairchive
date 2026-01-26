@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
+
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.CONTENT_TYPE;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.DESCRIPTION;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.DISPLAY_NAME;
@@ -18,6 +18,8 @@ import javax.json.stream.JsonParsingException;
 
 import org.junit.jupiter.api.Test;
 
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
+
 public class ExternalToolTest {
 
     private final String toolParameters = "{\"queryParameters\":[{\"fileid\":\"{fileId}\"},{\"siteUrl\":\"{siteUrl}\"},{\"datasetid\":\"{datasetId}\"},{\"datasetversion\":\"{datasetVersion}\"},{\"locale\":\"{localeCode}\"}]}";
@@ -27,7 +29,7 @@ public class ExternalToolTest {
                 "myDescription", EXPLORE,
                 "http://example.com",
                 toolParameters,
-                TSV_ALT.getMimeValue());
+                MimeTypes.TAB_SEPARATED_VALUES);
         tool.setId(42l);
 
         return tool;

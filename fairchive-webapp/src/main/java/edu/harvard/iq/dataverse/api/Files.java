@@ -25,7 +25,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
-import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -296,7 +295,7 @@ public class Files extends AbstractApiBean {
             return error(Response.Status.FORBIDDEN, "Dataset already locked with an Ingest lock");
         }
 
-        if (!FileUtil.canIngestAsTabular(dataFile)) {
+        if (!dataFile.isIngestableAsTabular()) {
             return error(Response.Status.BAD_REQUEST, "Tabular ingest is not supported for this file type (id: " + id + ", type: " + dataFile.getContentType() + ")");
         }
 

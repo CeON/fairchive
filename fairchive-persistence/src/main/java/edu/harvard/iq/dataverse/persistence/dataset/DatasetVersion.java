@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static edu.harvard.iq.dataverse.common.files.mime.PackageMimeType.DATAVERSE_PACKAGE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_NO_PRIMARY_SOURCE;
 import static edu.harvard.iq.dataverse.persistence.config.EntityCustomizer.Customizations.DATASET_FIELDS_WITH_PRIMARY_SOURCE;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.ARCHIVED;
@@ -498,21 +497,16 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
         return true;
     }
 
-    public boolean isHasPackageFile() {
-        if (fileMetadatas.size() != 1) {
-            return false;
-        }
-        return DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0)
-                .getDataFile().getContentType());
-    }
-
+	public boolean hasPackageFile() {
+		return this.fileMetadatas.size() == 1 
+				&& this.fileMetadatas.get(0).getDataFile().isFilePackage();
+	}
     // XHTML
-    public boolean isHasNonPackageFile() {
+    public boolean hasNonPackageFile() {
         // The presence of any non-package file means that HTTP Upload was used 
         // (no mixing allowed) so we just check the first file.
         return !fileMetadatas.isEmpty()
-                && !DATAVERSE_PACKAGE.getMimeValue().equals(fileMetadatas.get(0)
-                        .getDataFile().getContentType());
+                && !this.fileMetadatas.get(0).getDataFile().isFilePackage();
     }
     
     public boolean isNewerThan(final DatasetVersion other) {

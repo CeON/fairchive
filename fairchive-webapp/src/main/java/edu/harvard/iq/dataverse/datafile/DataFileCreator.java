@@ -2,8 +2,7 @@ package edu.harvard.iq.dataverse.datafile;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
 import edu.harvard.iq.dataverse.license.TermsOfUseFactory;
@@ -15,7 +14,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import edu.harvard.iq.dataverse.util.ShapefileHandler;
 import io.vavr.Tuple2;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -43,10 +41,8 @@ import java.util.zip.ZipEntry;
 import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport.createIngestFailureReport;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaxFileUploadSizeInBytes;
 import static edu.harvard.iq.dataverse.util.FileUtil.calculateChecksum;
-import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
 import static edu.harvard.iq.dataverse.util.FileUtil.getFilesTempDirectory;
 import static java.lang.System.currentTimeMillis;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Stateless
 @TransactionManagement(TransactionManagementType.BEAN)
@@ -189,7 +185,7 @@ public class DataFileCreator {
                 errorKey = ie.getErrorKey();
             }
 
-        } else if (finalType.equals(ShapefileHandler.SHAPEFILE_FILE_TYPE)) {
+        } else if (finalType.equals(MimeTypes.SHAPEFILE)) {
             try {
                 return createDataFilesFromReshapedShapeFile(tempFile, fileSizeLimit, zipFileUnpackFilesLimit);
             } catch (FileExceedsMaxSizeException femsx) {
@@ -241,27 +237,22 @@ public class DataFileCreator {
      *  ingestable types.
      */
     private boolean isDetectedContentTypeBetterThanSupplied(String suppliedContentType, String recognizedType) {
-        return isUndeterminedMimeType(suppliedContentType)
+        return MimeTypes.isUndetermined(suppliedContentType)
                 || isIngestableButNotCsvOrXlsx(suppliedContentType)
                 || isTrustedDetectedMimeType(recognizedType);
     }
 
-    private boolean isUndeterminedMimeType(final String mimeType) {
-        return isEmpty(mimeType)
-                || mimeType.equals(ApplicationMimeType.UNDETERMINED_DEFAULT.getMimeValue())
-                || mimeType.equals(ApplicationMimeType.UNDETERMINED_BINARY.getMimeValue());
-    }
     private boolean isIngestableButNotCsvOrXlsx(final String mimeType) {
-        return canIngestAsTabular(mimeType)
-                && !mimeType.equals(TextMimeType.CSV.getMimeValue())
-                && !mimeType.equals(TextMimeType.CSV_ALT.getMimeValue())
-                && !mimeType.equals(ApplicationMimeType.XLSX.getMimeValue());
+        return MimeTypes.isIngestable(mimeType)
+                && !mimeType.equals(MimeTypes.CSV)
+                && !mimeType.equals(MimeTypes.COMMA_SEPARATED_VALUES)
+                && !mimeType.equals(MimeTypes.XLSX);
     }
     private boolean isTrustedDetectedMimeType(final String mimeType) {
-        return canIngestAsTabular(mimeType)
-                || mimeType.equals("application/fits-gzipped")
-                || mimeType.equals(ShapefileHandler.SHAPEFILE_FILE_TYPE)
-                || mimeType.equals(ApplicationMimeType.ZIP.getMimeValue());
+        return MimeTypes.isIngestable(mimeType)
+                || mimeType.equals(MimeTypes.APPLICATION_FITS_GZIPPED)
+                || mimeType.equals(MimeTypes.SHAPEFILE)
+                || mimeType.equals(MimeTypes.ZIP);
     }
 
     /**
@@ -279,8 +270,7 @@ public class DataFileCreator {
         try (InputStream uncompressedIn = new GZIPInputStream(Files.newInputStream(tempFile))) {
 
             Path unZippedTempFile = FileUtil.limitedInputStreamToTempFile(uncompressedIn, fileSizeLimit);
-            return createSingleDataFile(unZippedTempFile, finalFileName, ApplicationMimeType.FITS
-                    .getMimeValue(), 0L);
+            return createSingleDataFile(unZippedTempFile, finalFileName, MimeTypes.APPLICATION_FITS, 0L);
         }
     }
 

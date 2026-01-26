@@ -256,7 +256,7 @@
                         <div id="file-preview-icon-block" class="col-sm-4">
                             <div id="border-block">
                                 <div id="preview-square">
-                                    <span class="icon-#{dataFileServiceBean.getFileClass(FilePage.fileMetadata.dataFile)} text-muted" 
+                                    <span class="icon-#{FilePage.fileMetadata.dataFile.fileClass} text-muted" 
                                           jsf:rendered="#{!FilePage.isThumbnailAvailable()}"/>
                                     <p:graphicImage styleClass="img-responsive"
                                                     value="/api/access/datafile/#{FilePage.fileId}?imageThumb=400"
@@ -618,9 +618,8 @@
                                         <span class="glyphicon glyphicon-pencil" 
                                               aria-hidden="true"/> #{bundle['file.dataFilesTab.metadata.addBtn']}
                                     </h:outputLink>
-                                    <div class="btn-group" jsf:rendered="#{isStandaloneView and (dataverseSession.user.authenticated
-                                                         and permissionsWrapper.canIssueUpdateDatasetCommand(FilePage.fileMetadata.datasetVersion.dataset)
-                                                         and (dataFileServiceBean.hasReplacement(FilePage.fileMetadata.dataFile) or dataFileServiceBean.hasBeenDeleted(FilePage.fileMetadata.dataFile)))}">
+                                    <div class="btn-group" 
+                                         jsf:rendered="#{isStandaloneView and FilePage.displayEditMetadataButton()}">
                                         <p:commandLink styleClass="btn btn-default btn-access" 
                                                        onclick="primeFacesShowModal('fileAlreadyReplacedPrevious', this)"
                                                        disabled="#{FilePage.lockedFromEdits}">
@@ -869,7 +868,8 @@
                               modal="true">
                         <p class="text-danger"><span class="glyphicon glyphicon-exclamation-sign"/> #{bundle['file.replaced.warning.draft.warningMessage']}</p>
                         <div class="button-block">
-                            <p:commandButton value="#{bundle.close}" onclick="PF('fileAlreadyReplacedDraft').hide();"/>
+                            <p:commandButton value="#{bundle.close}" 
+                                             onclick="PF('fileAlreadyReplacedDraft').hide();"/>
                         </div>
                     </p:dialog>
                     <p:dialog id="fileAlreadyReplacedPrevious" 

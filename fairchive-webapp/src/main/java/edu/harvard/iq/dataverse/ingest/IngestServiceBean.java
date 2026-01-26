@@ -20,10 +20,57 @@
 
 package edu.harvard.iq.dataverse.ingest;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError.UNKNOWN_ERROR;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IngestMethodChangeThreshold;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IngestedVariablesLimit;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OcrImageSizeLimit;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RserveHost;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RservePassword;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RservePort;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RserveUser;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Double.parseDouble;
+import static javax.ejb.TransactionAttributeType.NOT_SUPPORTED;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.ejb.Asynchronous;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.enterprise.event.Event;
+import javax.faces.bean.ManagedBean;
+import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
+import org.dataverse.unf.UnfException;
+import org.slf4j.Logger;
+
 import com.google.api.client.util.Preconditions;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.dataaccess.StorageIOConstants;
@@ -81,51 +128,6 @@ import edu.harvard.iq.dataverse.util.OptimizedSumStatCalculator;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
-import org.dataverse.unf.UnfException;
-import org.slf4j.Logger;
-
-import javax.ejb.Asynchronous;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.enterprise.event.Event;
-import javax.faces.bean.ManagedBean;
-import javax.inject.Inject;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError.UNKNOWN_ERROR;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IngestMethodChangeThreshold;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IngestedVariablesLimit;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OcrImageSizeLimit;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RserveHost;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RservePassword;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RservePort;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.RserveUser;
-import static java.lang.Boolean.FALSE;
-import static java.lang.Double.parseDouble;
-import static javax.ejb.TransactionAttributeType.NOT_SUPPORTED;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -307,7 +309,7 @@ public class IngestServiceBean {
             String fileName = fileMetadata.getLabel();
 
             boolean metadataExtracted = false;
-            if (FileUtil.canIngestAsTabular(dataFile) && !FALSE.equals(dataFile.getIncludedInIngest())) {
+            if (dataFile.isIngestableAsTabular() && !FALSE.equals(dataFile.getIncludedInIngest())) {
                 // Note that we don't try to ingest the file right away - instead we mark it
                 // as "scheduled for ingest", then at the end of the save process it will be
                 // queued for async. ingest in the background. In the meantime, the file will
@@ -652,7 +654,7 @@ public class IngestServiceBean {
 
         // and change the mime type to "Tabular Data" on the final datafile,
         // and replace (or add) the extension ".tab" to the filename:
-        dataFile.setContentType(TextMimeType.TSV_ALT.getMimeValue());
+        dataFile.setContentType(MimeTypes.TAB_SEPARATED_VALUES);
         IngestUtil.modifyExistingFilename(
                 dataFile.getOwner().getLatestVersion(), dataFile.getFileMetadata(), 
                 FileUtil.replaceExtension(fileName, "tab"));
@@ -724,20 +726,6 @@ public class IngestServiceBean {
         }
     }
 
-    public boolean supportsPickingEncoding(DataFile file) {
-        return file.hasMimeType(ApplicationMimeType.SPSS_POR, ApplicationMimeType.SPSS_SAV,
-                TextMimeType.CSV, TextMimeType.CSV_ALT);
-    }
-
-    public boolean supportsInclusionOfLabelsFile(DataFile file) {
-        return file.hasMimeType(ApplicationMimeType.SPSS_POR);
-    }
-
-    public boolean isSelectivelyIngestableFile(DataFile file) {
-        return file.hasMimeType(ApplicationMimeType.XLSX, TextMimeType.TSV, TextMimeType.TSV_ALT,
-                TextMimeType.CSV, TextMimeType.CSV_ALT) || file.isImage();
-    }
-
     public TabularDataFileReader getTabDataReaderByMimeType(String mimeType) {
         /*
          * Same as the comment above; since we don't have any ingest plugins loadable
@@ -751,29 +739,29 @@ public class IngestServiceBean {
 
         TabularDataFileReader ingestPlugin = null;
 
-        if (mimeType.equals(ApplicationMimeType.STATA.getMimeValue())) {
+        if (mimeType.equals(MimeTypes.STATA)) {
             ingestPlugin = new DTAFileReader(new DTAFileReaderSpi());
-        } else if (mimeType.equals(ApplicationMimeType.STATA13.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.STATA13)) {
             ingestPlugin = new NewDTAFileReader(new DTAFileReaderSpi(), 117);
-        } else if (mimeType.equals(ApplicationMimeType.STATA14.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.STATA14)) {
             ingestPlugin = new NewDTAFileReader(new DTAFileReaderSpi(), 118);
-        } else if (mimeType.equals(ApplicationMimeType.STATA15.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.STATA15)) {
             ingestPlugin = new NewDTAFileReader(new DTAFileReaderSpi(), 119);
-        } else if (mimeType.equals(ApplicationMimeType.RDATA.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.RDATA)) {
             ingestPlugin = new RDATAFileReader(new RDATAFileReaderSpi(),
                                                settingsService.getValueForKey(RserveHost),
                                                settingsService.getValueForKey(RserveUser),
                                                settingsService.getValueForKey(RservePassword),
                                                settingsService.getValueForKeyAsInt(RservePort));
-        } else if (mimeType.equals(TextMimeType.CSV.getMimeValue()) || mimeType.equals(TextMimeType.CSV_ALT.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.CSV) || mimeType.equals(MimeTypes.COMMA_SEPARATED_VALUES)) {
             ingestPlugin = new CSVFileReader(new CSVFileReaderSpi(), ',');
-        } else if (mimeType.equals(TextMimeType.TSV.getMimeValue()) || mimeType.equals(TextMimeType.TSV_ALT.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.TSV) || mimeType.equals(MimeTypes.TAB_SEPARATED_VALUES)) {
             ingestPlugin = new CSVFileReader(new CSVFileReaderSpi(), '\t');
-        } else if (mimeType.equals(ApplicationMimeType.XLSX.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.XLSX)) {
             ingestPlugin = new XLSXFileReader(new XLSXFileReaderSpi());
-        } else if (mimeType.equals(ApplicationMimeType.SPSS_SAV.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.SPSS_SAV)) {
             ingestPlugin = new SAVFileReader(new SAVFileReaderSpi());
-        } else if (mimeType.equals(ApplicationMimeType.SPSS_POR.getMimeValue())) {
+        } else if (mimeType.equals(MimeTypes.SPSS_POR)) {
             ingestPlugin = new PORFileReader(new PORFileReaderSpi());
         }
 
@@ -788,7 +776,7 @@ public class IngestServiceBean {
          *  -- L.A. 4.0 beta
          */
         return dataFile.getContentType() != null 
-                && dataFile.getContentType().equals(ApplicationMimeType.FITS.getMimeValue());
+                && dataFile.getContentType().equals(MimeTypes.APPLICATION_FITS);
     }
 
     /*
@@ -1356,7 +1344,7 @@ public class IngestServiceBean {
             String originalFormat = dataFile.getDataTable().getOriginalFileFormat();
             Long datatableId = dataFile.getDataTable().getId();
             if (isEmpty(originalFormat) 
-                    || originalFormat.equals(TextMimeType.TSV_ALT.getMimeValue())) {
+                    || originalFormat.equals(MimeTypes.TAB_SEPARATED_VALUES)) {
 
                 // We need to determine the mime type of the saved original
                 // and save it in the database.
@@ -1405,11 +1393,11 @@ public class IngestServiceBean {
                 // so if the FileUtil is telling us it's a "plain text" file at this point,
                 // it really means it must be a CSV file.
                 if (fileTypeDetermined.startsWith("text/plain")) {
-                    fileTypeDetermined = TextMimeType.CSV.getMimeValue();
+                    fileTypeDetermined = MimeTypes.CSV;
                 }
                 // and, finally, if it is still "application/octet-stream", it must be Excel:
-                if (ApplicationMimeType.UNDETERMINED_DEFAULT.getMimeValue().equals(fileTypeDetermined)) {
-                    fileTypeDetermined = ApplicationMimeType.XLSX.getMimeValue();
+                if (MimeTypes.UNDETERMINED_DEFAULT.equals(fileTypeDetermined)) {
+                    fileTypeDetermined = MimeTypes.XLSX;
                 }
                 logger.info("Original file type determined: " + fileTypeDetermined 
                         + " (file id=" + fileId + ", datatable id=" + datatableId + ")");

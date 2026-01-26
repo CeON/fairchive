@@ -1,10 +1,39 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.ImageMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.MimePrefix;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Authority;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataFilePIDFormat;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
+import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.StoredProcedureQuery;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.RandomStringUtils;
+import org.slf4j.Logger;
+
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
@@ -21,41 +50,6 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TypedQuery;
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.LICENSE_BASED;
-import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Authority;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataFilePIDFormat;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
-import static edu.harvard.iq.dataverse.util.FileUtil.canIngestAsTabular;
-import static java.util.stream.Collectors.toList;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author Leonid Andreev
@@ -320,7 +314,7 @@ public class DataFileServiceBean implements Serializable {
         // If content type indicates it's tabular data, spend 2 extra queries
         // looking up the data table and tabular tags objects:
 
-        if (TextMimeType.TSV.getMimeValue().equalsIgnoreCase(contentType)) {
+        if (MimeTypes.TSV.equalsIgnoreCase(contentType)) {
             Object[] dtResult;
             try {
                 dtResult = (Object[]) em
@@ -454,161 +448,6 @@ public class DataFileServiceBean implements Serializable {
         return false;
     }
 
-    public String getFileClass(DataFile file) {
-        if (isFileClassImage(file)) {
-            return MimePrefix.IMAGE.getPrefixValue();
-        } else if (isFileClassVideo(file)) {
-            return MimePrefix.VIDEO.getPrefixValue();
-        } else if (isFileClassAudio(file)) {
-            return MimePrefix.AUDIO.getPrefixValue();
-        } else if (isFileClassCode(file)) {
-            return MimePrefix.CODE.getPrefixValue();
-        } else if (isFileClassDocument(file)) {
-            return MimePrefix.DOCUMENT.getPrefixValue();
-        } else if (isFileClassAstro(file)) {
-            return MimePrefix.ASTRO.getPrefixValue();
-        } else if (isFileClassNetwork(file)) {
-            return MimePrefix.NETWORK.getPrefixValue();
-        } else if (isFileClassGeo(file)) {
-            return MimePrefix.GEO.getPrefixValue();
-        } else if (isFileClassTabularData(file)) {
-            return MimePrefix.TABULAR.getPrefixValue();
-        } else if (isFileClassPackage(file)) {
-            return MimePrefix.PACKAGE.getPrefixValue();
-        }
-        return MimePrefix.OTHER.getPrefixValue();
-    }
-
-    public boolean isFileClassImage(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // Some browsers (Chrome?) seem to identify FITS files as mime
-        // type "image/fits" on upload; this is both incorrect (the official
-        // mime type for FITS is "application/fits", and problematic: then
-        // the file is identified as an image, and the page will attempt to
-        // generate a preview - which of course is going to fail...
-        if (ImageMimeType.FITSIMAGE.getMimeValue().equalsIgnoreCase(contentType)) {
-            return false;
-        }
-        // besides most image/* types, we can generate thumbnails for pdf and "world map" files:
-        return (contentType != null && (contentType.toLowerCase().startsWith("image/")));
-    }
-
-    public boolean isFileClassAudio(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // TODO:
-        // verify that there are no audio types that don't start with "audio/" - some exotic mp[34]... ?
-        return (contentType != null && (contentType.toLowerCase().startsWith("audio/")));
-    }
-
-    public boolean isFileClassCode(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // The following are the "control card/syntax" formats that we recognize as "code":
-        return ApplicationMimeType.R_SYNTAX.getMimeValue().equalsIgnoreCase(contentType)
-                || TextMimeType.STATA_SYNTAX.getMimeValue().equalsIgnoreCase(contentType)
-                || TextMimeType.SAS_SYNTAX.getMimeValue().equalsIgnoreCase(contentType)
-                || TextMimeType.SPSS_CCARD.getMimeValue().equalsIgnoreCase(contentType);
-
-    }
-
-    public boolean isFileClassDocument(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        // "Documents": PDF, assorted MS docs, etc.
-        String contentType = file.getContentType();
-        int scIndex;
-        if (contentType != null && (scIndex = contentType.indexOf(';')) > 0) {
-            contentType = contentType.substring(0, scIndex);
-        }
-        return TextMimeType.PLAIN_TEXT.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.DOCUMENT_PDF.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.DOCUMENT_MSWORD.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.DOCUMENT_MSEXCEL.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.DOCUMENT_MSWORD_OPENXML.getMimeValue().equalsIgnoreCase(contentType);
-
-    }
-
-    public boolean isFileClassAstro(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // The only known/supported "Astro" file type is FITS, so far:
-        return (ApplicationMimeType.FITS.getMimeValue().equalsIgnoreCase(contentType) 
-                || ImageMimeType.FITSIMAGE.getMimeValue().equalsIgnoreCase(contentType));
-    }
-
-    public boolean isFileClassNetwork(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // The only known/supported Network Data type is GRAPHML, so far:
-        return TextMimeType.NETWORK_GRAPHML.getMimeValue().equalsIgnoreCase(contentType);
-    }
-
-    public boolean isFileClassGeo(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // The only known/supported Geo Data type is SHAPE, so far:
-        return ApplicationMimeType.GEO_SHAPE.getMimeValue().equalsIgnoreCase(contentType);
-    }
-
-    public boolean isFileClassTabularData(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        // "Tabular data" is EITHER an INGESTED tabular data file, i.e.
-        // a file with a DataTable and DataVariables; or a DataFile
-        // of one of the many known tabular data formats - SPSS, Stata, etc.
-        // that for one reason or another didn't get ingested:
-        if (file.isTabularData()) {
-            return true;
-        }
-        // The formats we know how to ingest:
-        if (canIngestAsTabular(file)) {
-            return true;
-        }
-        String contentType = file.getContentType();
-        // And these are the formats we DON'T know how to ingest,
-        // but nevertheless recognize as "tabular data":
-        return (TextMimeType.TSV.getMimeValue().equalsIgnoreCase(contentType)
-                || TextMimeType.FIXED_FIELD.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.SAS_TRANSPORT.getMimeValue().equalsIgnoreCase(contentType)
-                || ApplicationMimeType.SAS_SYSTEM.getMimeValue().equalsIgnoreCase(contentType));
-
-    }
-
-    public boolean isFileClassVideo(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        // TODO:
-        // check if there are video types that don't start with "audio/" -
-        // some exotic application/... formats ?
-        return contentType != null && contentType.toLowerCase().startsWith("video/");
-    }
-
-    public boolean isFileClassPackage(DataFile file) {
-        if (file == null) {
-            return false;
-        }
-        String contentType = file.getContentType();
-        return PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(contentType);
-    }
-
     /**
      * Does this file have a replacement.
      * Any file should have AT MOST 1 replacement
@@ -652,26 +491,10 @@ public class DataFileServiceBean implements Serializable {
         return findFileMetadataByDatasetVersionIdAndDataFileId(dsv.getId(), df.getId()) == null;
     }
 
-    /**
-     * Is this a replacement file??
-     * The indication of a previousDataFileId says that it is
-     */
-    public boolean isReplacementFile(DataFile df) {
-        if (df.getPreviousDataFileId() == null) {
-            return false;
-        } else if (df.getPreviousDataFileId() < 1) {
-            String errMSg = "Stop! previousDataFileId should either be null or a number greater than 0";
-            logger.error(errMSg);
-            return false;
-        } else {
-            return df.getPreviousDataFileId() > 0;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     public List<Long> selectFilesWithMissingOriginalTypes() {
         return em.createNativeQuery("SELECT f.id FROM datafile f, datatable t where t.datafile_id = f.id " +
-                "AND (t.originalfileformat='" + TextMimeType.TSV.getMimeValue()
+                "AND (t.originalfileformat='" + MimeTypes.TSV
                 + "' OR t.originalfileformat IS NULL) ORDER BY f.id")
                 .getResultList(); 
     }
@@ -834,18 +657,7 @@ public class DataFileServiceBean implements Serializable {
     }
 
     public boolean isSameTermsOfUse(FileTermsOfUse termsOfUse1, FileTermsOfUse termsOfUse2) {
-        if (termsOfUse1.getTermsOfUseType() != termsOfUse2.getTermsOfUseType()) {
-            return false;
-        }
-        if (termsOfUse1.getTermsOfUseType() == LICENSE_BASED) {
-            return termsOfUse1.getLicense().getId().equals(termsOfUse2.getLicense().getId());
-        }
-        if (termsOfUse1.getTermsOfUseType() == RESTRICTED) {
-            return termsOfUse1.getRestrictType() == termsOfUse2.getRestrictType() &&
-                    StringUtils.equals(termsOfUse1.getRestrictCustomText(), 
-                            termsOfUse2.getRestrictCustomText());
-        }
-        return true;
+        return termsOfUse1.isSameAs(termsOfUse2);
     }
 
     // -------------------- PRIVATE --------------------

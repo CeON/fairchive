@@ -1,8 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType.SHAPEFILE_FILE_TYPE;
-import static edu.harvard.iq.dataverse.common.files.mime.TextMimeType.TSV_ALT;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
@@ -42,8 +40,7 @@ import com.google.gson.annotations.Expose;
 
 import edu.harvard.iq.dataverse.common.FileSizeUtil;
 import edu.harvard.iq.dataverse.common.FriendlyFileTypeUtil;
-import edu.harvard.iq.dataverse.common.files.mime.MimeType;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestReport;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
@@ -84,7 +81,6 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     public static final char INGEST_STATUS_ERROR = 'D';
 
     public static final Long ROOT_DATAFILE_ID_DEFAULT = -1L;
-
 
     static final String FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE =
             "SELECT t0.ID, t0.CREATEDATE, " +
@@ -221,6 +217,76 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     public String getContentType() {
         return contentType;
     }
+    
+	public String getFileClass() {
+		// order of if's is important
+		if (isTabularData() || isTabular()) {
+			return "tabular";
+		}
+		if (isDocument()) {
+			return "document";
+		}
+		if (isImage()) {
+			return "image";
+		}
+		if (isVideo()) {
+			return "video";
+		}
+		if (isAudio()) {
+			return "audio";
+		}
+		if (isCode()) {
+			return "code";
+		}
+		if (isAstro()) {
+			return "astro";
+		}
+		if (isNetwork()) {
+			return "network";
+		}
+		if (isFilePackage()) {
+			return "package";
+		}
+		if (isShapefileType()) {
+			return "geodata";
+		}
+		return "other";
+	}
+    
+    private boolean isVideo() {
+    	return MimeTypes.isVideo(this.contentType);
+    }
+    
+    private boolean isAudio() {
+    	return MimeTypes.isAudio(this.contentType);
+    }
+    
+    private boolean isCode() {
+    	return MimeTypes.isCode(this.contentType);
+    			
+    }
+    
+    private boolean isDocument() {
+    	return MimeTypes.isDocument(this.contentType);
+    			
+    }
+    
+    private boolean isAstro() {
+    	return MimeTypes.isAstro(this.contentType);
+    }
+    
+    private boolean isTabular() {
+    	return MimeTypes.isTabular(this.contentType);
+    }
+    
+    private boolean isNetwork() {
+    	return MimeTypes.isNetwork(this.contentType);
+    }
+    
+    public boolean isReplacementFile() {
+        return this.previousDataFileId != null;
+    }
+    
 
     public ChecksumType getChecksumType() {
         return checksumType;
@@ -263,6 +329,10 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     public Boolean getIncludedInIngest() {
         return this.ingestType != IngestType.NON;
+    }
+    
+    public boolean isIngestableAsTabular() {
+    	return isTabular();
     }
 
     public Dataset getThumbnailForDataset() {
@@ -360,8 +430,8 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
     public boolean isNonPublicOrNotIngestedTsvFile(final DatasetVersion datasetVersion) {
-        final boolean isTsvAltContentType = TSV_ALT.getMimeValue()
-                .equals(isTabularData() ? TSV_ALT.getMimeValue() : getContentType());
+        final boolean isTsvAltContentType = MimeTypes.TAB_SEPARATED_VALUES
+                .equals(isTabularData() ? MimeTypes.TAB_SEPARATED_VALUES : getContentType());
 
         return isTsvAltContentType && (!isPublicIn(datasetVersion) || !isTabularData());
     }
@@ -441,7 +511,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     // Does the contentType indicate a shapefile?
     public boolean isShapefileType() {
-        return SHAPEFILE_FILE_TYPE.getMimeValue().equalsIgnoreCase(this.contentType);
+        return MimeTypes.isGeoShape(this.contentType);
     }
     
     public boolean isShapeOrTabularWithGeospatialTag() {
@@ -449,35 +519,55 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
     
 
-    public boolean isImage() {
-        // Some browsers (Chrome?) seem to identify FITS files as mime
-        // type "image/fits" on upload; this is both incorrect (the official
-        // mime type for FITS is "application/fits", and problematic: then
-        // the file is identified as an image, and the page will attempt to
-        // generate a preview - which of course is going to fail...
-        if ("image/fits".equalsIgnoreCase(contentType)) {
-            return false;
-        }
-        // a pdf file is an "image" for practical purposes (we will attempt to
-        // generate thumbnails and previews for them)
-        return contentType != null
-                && (contentType.startsWith("image/") || isPdf());
-    }
+	public boolean isImage() {
+		if (isAstro()) {
+			// Some browsers (Chrome?) seem to identify FITS files as mime
+			// type "image/fits" on upload; this is both incorrect (the official
+			// mime type for FITS is "application/fits", and problematic: then
+			// the file is identified as an image, and the page will attempt to
+			// generate a preview - which of course is going to fail...
+			return false;
+		} else {
+			// a pdf file is an "image" for practical purposes (we will attempt to
+			// generate thumbnails and previews for them)
+			return MimeTypes.isImage(this.contentType) || isPdf();
+		}
+	}
     
     public boolean isPdf() {
-        return "application/pdf".equalsIgnoreCase(this.contentType);
+        return MimeTypes.isPDF(this.contentType);
     }
 
     public boolean isFilePackage() {
-        return PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(contentType);
+        return MimeTypes.isDataversePackage(this.contentType);
     }
-
-    public boolean hasMimeType(MimeType... mimeTypes) {
-        for (MimeType mimeType : mimeTypes) {
-            if (mimeType.getMimeValue().equalsIgnoreCase(getContentType())) {
-                return true;
-            }
+    
+    /**
+     * This method tells you if thumbnail generation is *supported*
+     * on this type of file. i.e., if true, it does not guarantee that a thumbnail
+     * can/will be generated; but it means that we can try.
+     */
+    public boolean isThumbnailSupported() {
+    	
+        if (isHarvested()) {
+            return false;
         }
+        if (!isStored()) {
+            return false;
+        }
+        
+        if(this.contentType == null) {
+        	return false;
+        }
+        
+        if(isImage()) {
+        	return true;
+        }
+        
+        if(isShapeOrTabularWithGeospatialTag()) {
+        	return true;
+        }
+        
         return false;
     }
 
@@ -574,6 +664,38 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
 
     private static String format(final Timestamp ts) {
         return new SimpleDateFormat("yyyy-MM-dd").format(ts);
+    }
+    
+    public boolean supportsPickingEncoding() {
+        return MimeTypes.supportsPickingEncoding(this.contentType);
+    }
+
+    public boolean supportsInclusionOfLabels() {
+        return MimeTypes.supportsInclusionOfLabels(this.contentType);
+    }
+    
+    public boolean supportsAdvancedIngestOptions() {
+        return supportsPickingEncoding() || supportsInclusionOfLabels();
+    }
+
+    public boolean isSelectivelyIngestable() {
+        return MimeTypes.isSelectivelyIngestable(this.contentType) || isImage();
+    }
+    
+    public boolean canBeUningested() {
+        // File from draft version can be uningested if it:
+        // was not published yet (ie. it has only one metadata set, but we assume that
+        //     the file is from the latest, draft version – which is NOT checked here);
+        if(getFileMetadatas().size() != 1) {
+            return false;
+        }
+        // is of XLSX, CSV or TSV type or image;
+        if(! isSelectivelyIngestable()) {
+            return false;
+        }
+        // has been ingested (successfully or not).
+        
+        return hasBeenIngested();
     }
 
     // -------------------- PRIVATE --------------------
@@ -672,6 +794,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
         DataFile other = (DataFile) object;
         return Objects.equals(getId(), other.getId());
     }
+    
 
     // -------------------- INNER CLASSES --------------------
 

@@ -1,44 +1,42 @@
 package edu.harvard.iq.dataverse.common;
 
-import edu.harvard.iq.dataverse.common.files.mime.ShapefileMimeType;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import org.apache.commons.lang3.StringUtils;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundleWithLocale;
+import static edu.harvard.iq.dataverse.common.files.mime.MimeTypes.UNDETERMINED_DEFAULT;
 
 import java.util.Locale;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
+
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+
 public class FriendlyFileTypeUtil {
 
-    public static String getUserFriendlyFileType(DataFile dataFile) {
+    public static String getUserFriendlyFileType(final DataFile dataFile) {
         return getUserFriendlyFileTypeForDisplay(dataFile.getContentType());
     }
 
-    public static String getUserFriendlyFileTypeForDisplay(String dataFileContentType) {
-        if (dataFileContentType.equalsIgnoreCase(ShapefileMimeType.SHAPEFILE_FILE_TYPE.getMimeValue())) {
-            return ShapefileMimeType.SHAPEFILE_FILE_TYPE.getFriendlyName();
-        }
-        if (dataFileContentType.contains(";")) {
-            dataFileContentType = dataFileContentType.substring(0, dataFileContentType.indexOf(";"));
-        }
-
-        return Optional.ofNullable(BundleUtil.getStringFromNonDefaultBundle(dataFileContentType, "MimeTypeDisplay"))
-                .filter(bundleName -> !bundleName.isEmpty())
-                .orElse(BundleUtil.getStringFromNonDefaultBundle("application/octet-stream", "MimeTypeDisplay"));
+    public static String getUserFriendlyFileTypeForDisplay(final String contentType) {
+        return getUserFriendlyFileType(contentType, Locale.ENGLISH, "MimeTypeDisplay");
     }
 
-    public static String getUserFriendlyFileType(DataFile dataFile, Locale locale) {
-        String fileType = dataFile.getContentType();
-
-        if (fileType.equalsIgnoreCase(ShapefileMimeType.SHAPEFILE_FILE_TYPE.getMimeValue())) {
-            return ShapefileMimeType.SHAPEFILE_FILE_TYPE.getFriendlyName();
+    public static String getUserFriendlyFileType(final DataFile dataFile, 
+    		final Locale locale) {
+        return getUserFriendlyFileType(dataFile.getContentType(), locale, 
+        		"MimeTypeFacets");
+    }
+    
+    private static String getUserFriendlyFileType(String contentType, 
+    		final Locale locale, final String bundle) {
+        
+        if (contentType.contains(";")) {
+        	contentType = contentType.substring(0, contentType.indexOf(";"));
         }
-        if (fileType.contains(";")) {
-            fileType = fileType.substring(0, fileType.indexOf(";"));
-        }
 
-        return Optional.ofNullable(BundleUtil.getStringFromNonDefaultBundleWithLocale(fileType, "MimeTypeFacets", locale))
-                .filter(bundleName -> !bundleName.isEmpty())
-                .orElse(BundleUtil.getStringFromNonDefaultBundleWithLocale("application/octet-stream", "MimeTypeFacets", locale));
+        return Optional.ofNullable(getStringFromNonDefaultBundleWithLocale(contentType, bundle, locale))
+                .filter(name -> !name.isEmpty())
+                .orElse(getStringFromNonDefaultBundleWithLocale(UNDETERMINED_DEFAULT, bundle, locale));
     }
     
     
@@ -59,6 +57,6 @@ public class FriendlyFileTypeUtil {
                     .orElse(fileType);
         }
 
-        return BundleUtil.getStringFromNonDefaultBundle("application/octet-stream", "MimeTypeDisplay");
+        return BundleUtil.getStringFromNonDefaultBundle(MimeTypes.UNDETERMINED_DEFAULT, "MimeTypeDisplay");
     }
 }

@@ -22,7 +22,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
@@ -166,7 +166,7 @@ public class SolrSearchResultsService {
     public Map<Long, DataFile> findDatafiles(Collection<Long> ids) {
         Collection<Object[]> rawFilesData = callNamedNativeQueryWithIds(DATAFILES_QUERY_BASE_NAME, ids);
         Set<Integer> idsWithTags = rawFilesData.stream()
-                .filter(d -> TextMimeType.TSV.getMimeValue().equalsIgnoreCase((String) d[DATAFILES_QUERY_FILE_CONTENTTYPE]))
+                .filter(d -> MimeTypes.TSV.equalsIgnoreCase((String) d[DATAFILES_QUERY_FILE_CONTENTTYPE]))
                 .map(d -> (Integer) d[DATAFILES_QUERY_FILE_ID])
                 .collect(Collectors.toSet());
         Map<Long, List<Integer>> datafileTags = callNamedNativeQueryWithIds(DATAFILETAGS_QUERY_BASE_NAME, idsWithTags).stream()
@@ -310,8 +310,8 @@ public class SolrSearchResultsService {
     private void fillTabularDataIfNeeded(DataFile dataFile, Object[] fileData,
                                          Map<Long, List<Integer>> datafileTags, List<String> tagLabels) {
         if (dataFile.getContentType() == null
-                || (!TextMimeType.TSV.getMimeValue().equalsIgnoreCase(dataFile.getContentType())
-                && !TextMimeType.TSV_ALT.getMimeValue().equalsIgnoreCase(dataFile.getContentType()))) {
+                || (!MimeTypes.TSV.equalsIgnoreCase(dataFile.getContentType())
+                && !MimeTypes.TAB_SEPARATED_VALUES.equalsIgnoreCase(dataFile.getContentType()))) {
             return;
         }
         DataTable dataTable = new DataTable();

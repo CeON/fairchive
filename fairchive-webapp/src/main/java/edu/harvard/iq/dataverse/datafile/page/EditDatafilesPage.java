@@ -620,7 +620,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                     return;
                 }
                 for (final DatasetVersion version : lockTest.getVersions()) {
-                    if (version.isHasPackageFile()) {
+                    if (version.hasPackageFile()) {
                         logger.log(INFO, ResourceBundle.getBundle("Bundle")
                                 .getString("file.api.alreadyHasPackageFile"));
                         saveAndAddFilesProcess.setPreconditionErrors(true);
@@ -771,6 +771,14 @@ public class EditDatafilesPage implements java.io.Serializable {
     public boolean showFileUploadComponent() {
         return this.mode == FileEditMode.UPLOAD || this.mode == FileEditMode.CREATE;
     }
+    
+	public boolean displayFilesTable() {
+		return !this.fileMetadatas.isEmpty() || !showFileUploadFragment();
+	}
+	
+	public boolean displayFilesCount() {
+		return !this.fileMetadatas.isEmpty();
+	}
 
     /**
      * Using information from the DropBox choose, ingest the chosen files
@@ -1181,22 +1189,6 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     public boolean exceedsIngestSizeLimit(final DataFile dataFile) {
         return this.ingestService.exceedsIngestSizeLimit(dataFile);
-    }
-
-    public boolean supportsAdvancedIngestOptions(final DataFile file) {
-        return supportsPickingEncoding(file) || supportsInclusionOfLabelsFile(file);
-    }
-
-    public boolean supportsPickingEncoding(DataFile file) {
-        return this.ingestService.supportsPickingEncoding(file);
-    }
-
-    public boolean supportsInclusionOfLabelsFile(DataFile file) {
-        return this.ingestService.supportsInclusionOfLabelsFile(file);
-    }
-
-    public boolean isSelectivelyIngestableFile(DataFile file) {
-        return this.ingestService.isSelectivelyIngestableFile(file);
     }
 
     public void clearFileMetadataSelectedForIngestOptionsPopup() {

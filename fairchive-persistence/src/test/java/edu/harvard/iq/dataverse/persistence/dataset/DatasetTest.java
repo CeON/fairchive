@@ -2,6 +2,11 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticatedUser;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.nextId;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_ERROR;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_NONE;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.INGEST_STATUS_SCHEDULED;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType.NON;
+import static edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType.OCR;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Ingest;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
@@ -26,6 +31,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.google.common.collect.Lists;
 
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
@@ -149,6 +157,120 @@ public class DatasetTest {
         assertThat(grandChild.getOwner()).isSameAs(child);
         assertThat(grandChild.getRoot()).isSameAs(root);
         assertThat(grandChild.getDataverseContext()).isSameAs(child);
+    }
+    
+    @Test
+    void emptyDataset_hasNoUningestableFiles() {
+        Dataset set = createDataset();
+        
+        assertThat(set.hasUningestableFiles()).isFalse();
+        assertThat(set.listUningestableFiles()).isEmpty();
+    }
+    
+    @Test
+    void releasedDataset_hasNoUningestableFiles() {
+        Dataset set = createDataset();
+        addFile(set, "text/csv", INGEST_STATUS_SCHEDULED, null);
+        set.getLatestVersion().setVersionState(RELEASED);
+        
+        assertThat(set.hasUningestableFiles()).isFalse();
+        assertThat(set.listUningestableFiles()).isEmpty();
+    }
+    
+    @Test
+    void draftDataset_withoutIngestableFiles_hasNoUningestableFiles() {
+        Dataset set = createDataset();
+        addFile(set, "text/xml-graphml", INGEST_STATUS_SCHEDULED, null);
+        
+        assertThat(set.hasUningestableFiles()).isFalse();
+        assertThat(set.listUningestableFiles()).isEmpty();
+    }
+    
+    @Test
+    void draftDataset_withoutIngestedFiles_hasNoUningestableFiles() {
+        Dataset set = createDataset();
+        addFile(set, "text/csv", INGEST_STATUS_NONE, null);
+            
+        assertThat(set.hasUningestableFiles()).isFalse();
+        assertThat(set.listUningestableFiles()).isEmpty();
+    }
+    
+    @Test
+    void draftDataset_withUningestedFiles_hasNoUningestableFiles() {
+        Dataset set = createDataset();
+        addFile(set, "text/csv", INGEST_STATUS_NONE, null);
+        
+        DataFile image1 = addFile(set, "image/png", INGEST_STATUS_NONE, null);
+        image1.setIngestType(NON);
+        
+        DataFile image2 = addFile(set, "image/png", INGEST_STATUS_SCHEDULED, null);
+        image2.setIngestType(NON);
+        
+        assertThat(set.hasUningestableFiles()).isFalse();
+        assertThat(set.listUningestableFiles()).isEmpty();
+    }
+    
+    @Test
+    void draftDataset_withMultipleVersionsIngestedFiles_hasNoUningestableFiles() {
+        Dataset set = createDataset();
+        DataFile file = addFile(set, "text/csv", INGEST_STATUS_NONE, new DataTable());
+        final FileMetadata meta = new FileMetadata();
+        meta.setDataFile(file);
+        file.getFileMetadatas().add(meta);
+        meta.setDatasetVersion(set.getLatestVersion());
+        set.getLatestVersion().addFileMetadata(meta);
+        
+        assertThat(set.hasUningestableFiles()).isFalse();
+        assertThat(set.listUningestableFiles()).isEmpty();
+    }
+    
+    @Test
+    void draftDataset_withIngestedFiles_hasUningestableFiles() {
+        Dataset set = createDataset();
+        addFile(set, "text/csv", INGEST_STATUS_NONE, new DataTable());
+        addFile(set, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", INGEST_STATUS_ERROR, null);
+        addFile(set, "text/tsv", INGEST_STATUS_NONE, new DataTable());
+        DataFile image = addFile(set, "image/png", INGEST_STATUS_SCHEDULED, null);
+        image.setIngestType(OCR);
+        
+        assertThat(set.hasUningestableFiles()).isTrue();
+        List<DataFile> files = set.listUningestableFiles();
+        files.stream().map(DataFile::getContentType).forEach(System.out::println);
+        
+        assertThat(files).hasSize(4);
+        assertThat(files.stream().map(DataFile::getContentType))
+            .containsExactly("text/csv", 
+                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                             "text/tsv",
+                             "image/png");
+    }
+    
+    private Dataset createDataset() {
+        final Dataset dataset = new Dataset();
+        
+        final DatasetVersion version = new DatasetVersion(); 
+        version.setDataset(dataset);
+        version.setVersionState(DRAFT);
+        dataset.getVersions().add(version);
+        
+        return dataset;
+    }
+    
+    private DataFile addFile(final Dataset set, final String mimeType,
+            final char ingestStatus, final DataTable table) {
+        final DataFile file = new DataFile();
+
+        set.getFiles().add(file);
+        final FileMetadata meta = new FileMetadata();
+        file.getFileMetadatas().add(meta);
+        set.getLatestVersion().addFileMetadata(meta);
+        meta.setDatasetVersion(set.getLatestVersion());
+        meta.setDataFile(file);
+        file.setContentType(mimeType);
+        file.setIngestStatus(ingestStatus);
+        file.setDataTable(table);
+
+        return file;
     }
 
     // -------------------- PRIVATE --------------------

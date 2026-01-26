@@ -78,7 +78,7 @@
                                     <div id="panelCollapseHTTP" class="panel-collapse collapse in"
                                          aria-labelledby="headingHTTP" role="region">
                                         <div class="panel-body" jsf:id="httpUploadDisabledDueToExistingRsyncPackage"
-                                             jsf:rendered="#{ReplaceDatafilesPage.dataset.getEditVersion().hasPackageFile and
+                                             jsf:rendered="#{ReplaceDatafilesPage.dataset.getEditVersion().hasPackageFile() and
                                               !ReplaceDatafilesPage.dataset.released}">
                                             <p class="help-block">
                                                 <span class="glyphicon glyphicon-warning-sign text-warning"></span>
@@ -175,7 +175,7 @@
                                                   style="width:73px !important;padding:4px 10px;" ariaHeaderText="#{bundle['file.replace.column.icon.ariaHeader']}">
                                             <div class="thumbnail-block">
                                                 <!-- Default Icon -->
-                                                <span class="icon-#{dataFileServiceBean.getFileClass(fileMetadata.dataFile)} file-thumbnail-icon text-muted"
+                                                <span class="icon-#{fileMetadata.dataFile.fileClass} file-thumbnail-icon text-muted"
                                                       jsf:rendered="#{(!empty fileMetadata.dataFile.id and !dataFileServiceBean.isThumbnailAvailable(fileMetadata.dataFile)) or (empty fileMetadata.dataFile.id and !fileMetadata.dataFile.previewImageAvailable)}"/>
                                                 <ui:fragment
                                                         rendered="#{empty fileMetadata.dataFile.id and !empty fileMetadata.dataFile.storageIdentifier and fileMetadata.dataFile.previewImageAvailable}">

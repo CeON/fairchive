@@ -21,23 +21,8 @@
 package edu.harvard.iq.dataverse.util;
 
 
-import com.google.common.base.Preconditions;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.common.files.mime.ApplicationMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.ImageMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.PackageMimeType;
-import edu.harvard.iq.dataverse.common.files.mime.TextMimeType;
-import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
+import static org.apache.commons.io.IOUtils.toByteArray;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -56,8 +41,20 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
-import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
-import static org.apache.commons.io.IOUtils.toByteArray;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 
 /**
@@ -181,17 +178,6 @@ public class FileUtil implements java.io.Serializable {
         }
 
         return "";
-    }
-
-
-    public static boolean canIngestAsTabular(DataFile dataFile) {
-        String mimeType = dataFile.getContentType();
-        return canIngestAsTabular(mimeType);
-    }
-
-    public static boolean canIngestAsTabular(String mimeType) {
-            return ApplicationMimeType.isIngestable(mimeType)
-                    || TextMimeType.isIngestable(mimeType);
     }
 
     public static String getFilesTempDirectory() {
@@ -470,39 +456,6 @@ public class FileUtil implements java.io.Serializable {
         }
 
         return StringUtils.EMPTY;
-    }
-
-    /**
-     * This method tells you if thumbnail generation is *supported*
-     * on this type of file. i.e., if true, it does not guarantee that a thumbnail
-     * can/will be generated; but it means that we can try.
-     */
-    public static boolean isThumbnailSupported(DataFile file) {
-        if (file == null || file.isHarvested() || "".equals(file.getStorageIdentifier())) {
-            return false;
-        }
-        String contentType = file.getContentType();
-
-        // Some browsers (Chrome?) seem to identify FITS files as mime
-        // type "image/fits" on upload; this is both incorrect (the official
-        // mime type for FITS is "application/fits", and problematic: then
-        // the file is identified as an image, and the page will attempt to
-        // generate a preview - which of course is going to fail...
-        if (ImageMimeType.FITSIMAGE.getMimeValue().equalsIgnoreCase(contentType)) {
-            return false;
-        }
-        // besides most image/* types, we can generate thumbnails for
-        // pdf and "world map" files:
-
-        return contentType != null &&
-                (contentType.startsWith("image/")
-                        || contentType.equalsIgnoreCase("application/pdf")
-                        || (file.isTabularData() && file.hasGeospatialTag())
-                        || contentType.equalsIgnoreCase(ApplicationMimeType.GEO_SHAPE.getMimeValue()));
-    }
-
-    public static boolean isPackageFile(DataFile dataFile) {
-        return PackageMimeType.DATAVERSE_PACKAGE.getMimeValue().equalsIgnoreCase(dataFile.getContentType());
     }
 
     public static byte[] getFileFromResources(String path) {

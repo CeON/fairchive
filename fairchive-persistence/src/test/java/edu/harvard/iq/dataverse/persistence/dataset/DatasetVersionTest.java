@@ -1,19 +1,5 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.persistence.MocksFactory;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import javax.validation.ConstraintViolation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import static com.google.common.collect.Lists.newArrayList;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.author;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.description;
@@ -24,7 +10,26 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeFileMetadata;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
+import edu.harvard.iq.dataverse.persistence.MocksFactory;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 
 /**
  * @author michael
@@ -309,6 +314,25 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
         assertThat(this.datasetVersion.extractFieldValues(title))
                 .containsExactly("abc");
     }
+    
+    @Test 
+    void isPackage() {
+    	
+    	assertThat(this.datasetVersion.hasPackageFile()).isFalse();
+    	assertThat(this.datasetVersion.hasNonPackageFile()).isFalse();
+    	
+    	this.fileMetadata.setDataFile(new DataFile(""));
+    	this.datasetVersion.addFileMetadata(this.fileMetadata);
+    	
+    	
+    	assertThat(this.datasetVersion.hasPackageFile()).isFalse();
+    	assertThat(this.datasetVersion.hasNonPackageFile()).isTrue();
+    	
+    	this.fileMetadata.getDataFile().setContentType(MimeTypes.DATAVERSE_PACKAGE);
+    	
+    	assertThat(this.datasetVersion.hasPackageFile()).isTrue();
+    	assertThat(this.datasetVersion.hasNonPackageFile()).isFalse();
+    }
 
     // -------------------- PRIVATE --------------------
 
@@ -358,4 +382,5 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
         assertThat(violations.size()).isEqualTo(expectedViolationsNumber);
         return violations;
     }
+    
 }

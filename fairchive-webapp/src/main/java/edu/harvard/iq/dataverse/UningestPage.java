@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.ingest.UningestInfoService;
 import edu.harvard.iq.dataverse.ingest.UningestService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -41,7 +40,6 @@ public class UningestPage implements Serializable {
     private PermissionsWrapper permissionsWrapper;
     private PermissionServiceBean permissionService;
     private SystemConfig systemConfig;
-    private UningestInfoService uningestInfoService;
     private UIMessages messages;
 
     private List<UningestableItem> uningestableFiles = new ArrayList<>();
@@ -78,7 +76,6 @@ public class UningestPage implements Serializable {
                         final DataverseSession dataverseSession, 
                         final PermissionsWrapper permissionsWrapper,
                         final SystemConfig systemConfig, 
-                        final UningestInfoService uningestInfoService,
                         final PermissionServiceBean permissionServiceBean,
                         final DataverseRequestServiceBean dataverseRequestService,
                         final UIMessages messages) {
@@ -87,7 +84,6 @@ public class UningestPage implements Serializable {
         this.dataverseSession = dataverseSession;
         this.permissionsWrapper = permissionsWrapper;
         this.systemConfig = systemConfig;
-        this.uningestInfoService = uningestInfoService;
         this.permissionService = permissionServiceBean;
         this.dataverseRequestService = dataverseRequestService;
         this.messages = messages;
@@ -151,7 +147,7 @@ public class UningestPage implements Serializable {
     // -------------------- PRIVATE --------------------
 
     private List<UningestableItem> prepareItemList() {
-        return this.uningestInfoService.listUningestableFiles(this.dataset).stream()
+        return this.dataset.listUningestableFiles().stream()
                 .map(UningestableItem::fromDatafile)
                 .collect(toList());
     }
