@@ -139,7 +139,7 @@ public class DatasetEmbargoDialog implements Serializable {
 
 	public String liftEmbargo() {
 		try {
-			this.datasetService.liftDatasetEmbargoDate(dataset);
+			this.datasetService.liftDatasetEmbargoDate(this.dataset);
 			this.currentEmbargoDate = null;
 			showSuccess();
 		} catch (final Exception e) {

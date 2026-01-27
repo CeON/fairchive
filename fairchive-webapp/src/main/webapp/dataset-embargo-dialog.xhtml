@@ -81,8 +81,12 @@
                                     timeZone="UTC"
                                     mode="inline"
                                     widgetVar="embargoDatePickerMaxLimitedCalendar" />
-                        <p:message id="embargoMsg" for="embargoDatePicker" display="text" />
-                        <p:message id="embargoMsgMaxLimited" for="embargoDatePickerMaxLimited" display="text" />
+                        <p:message id="embargoMsg" 
+                                   for="embargoDatePicker" 
+                                   display="text" />
+                        <p:message id="embargoMsgMaxLimited" 
+                                   for="embargoDatePickerMaxLimited" 
+                                   display="text" />
                     </div>
                     <div class="button-block">
                         <p:commandButton value="#{bundle['dataset.embargo.set.button']}"
@@ -92,7 +96,8 @@
                                          oncomplete="if (args &amp;&amp; !args.validationFailed) { PF('setEmbargoConfirmation').hide(); } else { #{datasetEmbargoDialog.initCurrentEmbargo()}; }" />
                         <p:commandButton value="#{bundle['dataset.embargo.lift.button']}"
                                          onclick="PF('setEmbargoConfirmation').hide();PF('removeEmbargoConfirmation').show()"
-                                         rendered="#{DatasetPage.isUserAbleToLiftEmbargo()}" update="setEmbargoPanel"/>
+                                         rendered="#{DatasetPage.isUserAbleToLiftEmbargo()}" 
+                                         update="setEmbargoPanel"/>
                         <p:commandButton styleClass="btn btn-default"
                                          value="#{bundle.close}"
                                          onclick="PF('setEmbargoConfirmation').hide();"
