@@ -74,7 +74,7 @@ public class DataverseRoleDTO {
             DataverseRoleDTO converted = new DataverseRoleDTO();
             converted.setAlias(role.getAlias());
             converted.setName(role.getName());
-            converted.setPermissions(role.permissions().stream()
+            converted.setPermissions(role.permissionsStream()
                     .map(Enum::name)
                     .collect(Collectors.toList()));
             converted.setDescription(role.getDescription());

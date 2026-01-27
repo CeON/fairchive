@@ -50,19 +50,19 @@ public class DataverseRolePermissionHelper implements java.io.Serializable {
 
             // Does this role have Dataverse permissions?
             //
-            if (role.doesDvObjectClassHavePermissionForObject(Dataverse.class)) {
+            if (role.hasPermissionFor(Dataverse.class)) {
                 this.rolesWithDataversePermissions.put(role.getId(), true);
             }
 
             // Does this role have Dataset permissions?
             //
-            if (role.doesDvObjectClassHavePermissionForObject(Dataset.class)) {
+            if (role.hasPermissionFor(Dataset.class)) {
                 this.rolesWithDatasetPermissions.put(role.getId(), true);
             }
 
             // Does this role have File permissions?
             //
-            if (role.doesDvObjectClassHavePermissionForObject(DataFile.class)) {
+            if (role.hasPermissionFor(DataFile.class)) {
                 this.rolesWithFilePermissions.put(role.getId(), true);
             }
 

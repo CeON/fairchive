@@ -1,14 +1,14 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Arrays.stream;
+
+import java.util.stream.Stream;
+
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * All the permissions in the system are implemented as enum values in this
@@ -37,41 +37,44 @@ public enum Permission implements java.io.Serializable {
 
     // Create
     //1
-    AddDataverse(BundleUtil.getStringFromBundle("permission.addDataverseDataverse"), true, true, Dataverse.class),
+    AddDataverse(true, true, Dataverse.class),
     //2
-    AddDataset(BundleUtil.getStringFromBundle("permission.addDatasetDataverse"), true, true, Dataverse.class),
+    AddDataset(true, true, Dataverse.class),
     // Read
     //4
-    ViewUnpublishedDataverse(BundleUtil.getStringFromBundle("permission.viewUnpublishedDataverse"), false, false, Dataverse.class),
+    ViewUnpublishedDataverse(false, false, Dataverse.class),
     //8
-    ViewUnpublishedDataset(BundleUtil.getStringFromBundle("permission.viewUnpublishedDataset"), false, false, Dataset.class),
+    ViewUnpublishedDataset(false, false, Dataset.class),
     //16
-    DownloadFile(BundleUtil.getStringFromBundle("permission.downloadFile"), false, false, DataFile.class),
+    DownloadFile(false, false, DataFile.class),
     // Update
     //32
-    EditDataverse(BundleUtil.getStringFromBundle("permission.editDataverse"), true, true, Dataverse.class),
+    EditDataverse(true, true, Dataverse.class),
     //64
-    EditDataset(BundleUtil.getStringFromBundle("permission.editDataset"), true, true, Dataset.class),
+    EditDataset(true, true, Dataset.class),
     //128
-    ManageDataversePermissions(BundleUtil.getStringFromBundle("permission.managePermissionsDataverse"), true, true, Dataverse.class),
+    ManageDataversePermissions(true, true, Dataverse.class),
     //256
-    ManageDatasetPermissions(BundleUtil.getStringFromBundle("permission.managePermissionsDataset"), true, true, Dataset.class),
+    ManageDatasetPermissions(true, true, Dataset.class),
     //512
-    PublishDataverse(BundleUtil.getStringFromBundle("permission.publishDataverse"), true, true, Dataverse.class),
+    PublishDataverse(true, true, Dataverse.class),
     //1024
-    PublishDataset(BundleUtil.getStringFromBundle("permission.publishDataset"), true, true, Dataset.class, Dataverse.class),
+    PublishDataset(true, true, Dataset.class, Dataverse.class),
     // Delete
     //2048
-    DeleteDataverse(BundleUtil.getStringFromBundle("permission.deleteDataverse"), true, true, Dataverse.class),
+    DeleteDataverse(true, true, Dataverse.class),
     //4096
-    DeleteDatasetDraft(BundleUtil.getStringFromBundle("permission.deleteDataset"), true, true, Dataset.class),
+    DeleteDatasetDraft(true, true, Dataset.class),
     //8192
-    ManageMinorDatasetPermissions(BundleUtil.getStringFromBundle("permission.manageMinorDatasetPermissions"), true, true, Dataset.class);
+    ManageMinorDatasetPermissions(true, true, Dataset.class);
+	
+    // lets's cache this for performance reasons
+    private final static Permission[] values = values();
 
     /**
      * Which types of {@link DvObject}s this permission applies to.
      */
-    private final Set<Class<? extends DvObject>> appliesTo;
+    private final Class<? extends DvObject>[] appliesTo;
 
     /**
      * Can this permission be applied only to {@link AuthenticatedUser}s, or to any user?
@@ -86,22 +89,23 @@ public enum Permission implements java.io.Serializable {
     private final boolean requiresWrite;
     
     @SafeVarargs
-    Permission(String aHumanName, boolean authenticatedUserRequired, boolean requiresWrite, Class<? extends DvObject>... appliesToList) {
-        appliesTo = new HashSet<>(Arrays.asList(appliesToList));
-        requiresAuthenticatedUser = authenticatedUserRequired;
+    Permission(final boolean requiresAuthenticatedUser, final boolean requiresWrite, 
+    		final Class<? extends DvObject>... appliesTo) {
+        this.appliesTo = appliesTo;
+        this.requiresAuthenticatedUser = requiresAuthenticatedUser;
         this.requiresWrite = requiresWrite;
     }
 
     public String getHumanName() {
-        return BundleUtil.getStringFromBundle("permission." + name() + ".desc");
+        return getStringFromBundle("permission." + name() + ".desc");
     }
 
     public String getDisplayName() {
-        return BundleUtil.getStringFromBundle("permission." + name() + ".label");
+        return getStringFromBundle("permission." + name() + ".label");
     }
 
     public boolean appliesTo(Class<? extends DvObject> aClass) {
-        for (Class<? extends DvObject> c : appliesTo) {
+        for (final Class<? extends DvObject> c : this.appliesTo) {
             if (c.isAssignableFrom(aClass)) {
                 return true;
             }
@@ -110,10 +114,22 @@ public enum Permission implements java.io.Serializable {
     }
 
     public boolean requiresAuthenticatedUser() {
-        return requiresAuthenticatedUser;
+        return this.requiresAuthenticatedUser;
     }
 
-    public boolean isRequiresWrite() {
-        return requiresWrite;
+    public boolean requiresWrite() {
+        return this.requiresWrite;
+    }
+    
+    public long bitValue() {
+    	return 1L << ordinal();
+    }
+    
+    public boolean isIn(final long bits) {
+    	return (bits & bitValue()) > 0;
+    }
+    
+    public static Stream<Permission> streamFrom(final long bits) {
+    	return stream(values).filter(p -> p.isIn(bits));
     }
 }

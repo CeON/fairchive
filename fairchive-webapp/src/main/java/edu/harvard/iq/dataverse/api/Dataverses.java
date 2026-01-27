@@ -827,7 +827,7 @@ public class Dataverses extends AbstractApiBean {
                 return error(Status.NOT_FOUND, retStringError);
             }
 
-            if (!defaultRole.doesDvObjectClassHavePermissionForObject(Dataset.class)) {
+            if (!defaultRole.hasPermissionFor(Dataset.class)) {
                 String retStringError = BundleUtil.getStringFromBundle(
                         "dataverses.api.update.default.contributor.role.failure.role.does.not.have.dataset.permissions",
                         roleAlias);

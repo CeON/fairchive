@@ -1,15 +1,19 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.common.BitSet;
-import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -17,12 +21,11 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.Set;
+
+import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 /**
  * A role is an annotated set of permissions. A role belongs
@@ -55,19 +58,19 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
         MEMBER("member"),
         DEPOSITOR("depositor");
         
-        private String alias;
+        private final String alias;
         
-        BuiltInRole(String alias) {
+        BuiltInRole(final String alias) {
             this.alias = alias;
         }
         
         public String getAlias() {
-            return alias;
+            return this.alias;
         }
         
-        public static BuiltInRole fromAlias(String alias) {
-            return Arrays.asList(BuiltInRole.values()).stream()
-                .filter(builtInRole -> builtInRole.getAlias().equals(alias))
+        public static BuiltInRole fromAlias(final String alias) {
+            return stream(values())
+                .filter(role -> role.getAlias().equals(alias))
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
         }
@@ -76,32 +79,15 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     public static final String NONE = "none";
 
 
-    public static final Comparator<DataverseRole> CMP_BY_NAME = new Comparator<DataverseRole>() {
-
-        @Override
-        public int compare(DataverseRole o1, DataverseRole o2) {
-            int cmp = o1.getName().compareTo(o2.getName());
-            if (cmp != 0) {
-                return cmp;
-            }
-
-            Long o1OwnerId = o1.getOwner() == null ? 0l : o1.getOwner().getId();
-            Long o2OwnerId = o2.getOwner() == null ? 0l : o2.getOwner().getId();
-
-            return o1OwnerId.compareTo(o2OwnerId);
-        }
-    };
-
-    public static Set<Permission> permissionSet(Iterable<DataverseRole> roles) {
-        long miniset = 0l;
-        for (DataverseRole role : roles) {
-            miniset |= role.permissionBits;
-        }
-        return new BitSet(miniset).asSetOf(Permission.class);
-    }
+	public static final Comparator<DataverseRole> compareByName = (role1, role2) -> {
+		final int result = role1.getName().compareTo(role2.getName());
+		return result != 0 ? result : role1.getOwnerId().compareTo(role2.getOwnerId());
+	};
+	
+	private final static Long zero = Long.valueOf(0L);
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Pattern(regexp = ".+", message = "{role.name}")
@@ -126,81 +112,87 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     private DvObject owner;
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public String getName() {
-        return RoleTranslationUtil.getLocaleNameFromAlias(alias, name);
+        return RoleTranslationUtil.getLocaleNameFromAlias(this.alias, this.name);
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
     public String getDescription() {
-        return RoleTranslationUtil.getLocaleDescriptionFromAlias(alias, description);
+        return RoleTranslationUtil.getLocaleDescriptionFromAlias(this.alias, this.description);
     }
 
-    public void setDescription(String description) {
+    public void setDescription(final String description) {
         this.description = description;
     }
 
     public String getAlias() {
-        return alias;
+        return this.alias;
     }
 
-    public void setAlias(String alias) {
+    public void setAlias(final String alias) {
         this.alias = alias;
     }
 
     public DvObject getOwner() {
-        return owner;
+        return this.owner;
+    }
+    
+    private Long getOwnerId() {
+    	return this.owner == null ? zero : this.owner.getId();
     }
 
-    public void setOwner(DvObject owner) {
+    public void setOwner(final DvObject owner) {
         this.owner = owner;
     }
 
-    public void addPermissions(Collection<Permission> ps) {
-        for (Permission p : ps) {
+    public void addPermissions(final Collection<Permission> ps) {
+        for (final Permission p : ps) {
             addPermission(p);
         }
     }
 
-    public void addPermission(Permission p) {
-        permissionBits = new BitSet(permissionBits).set(p.ordinal()).getBits();
+    public void addPermission(final Permission p) {
+        this.permissionBits |= p.bitValue();
     }
 
     public void clearPermissions() {
-        permissionBits = 0l;
+        this.permissionBits = 0l;
     }
 
     public Set<Permission> permissions() {
-        return new BitSet(permissionBits).asSetOf(Permission.class);
+        return permissionsStream().collect(toSet());
+    }
+    
+    public Stream<Permission> permissionsStream() {
+    	return Permission.streamFrom(this.permissionBits);
     }
 
     public long getPermissionsBits() {
-        return permissionBits;
+        return this.permissionBits;
     }
 
     @Override
     public String toString() {
-        return "DataverseRole{" + "id=" + id + ", alias=" + alias + '}';
+        return "DataverseRole{" + "id=" + this.id + ", alias=" + this.alias + '}';
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.id);
-        return hash;
+        return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -210,49 +202,16 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
         final DataverseRole other = (DataverseRole) obj;
         return Objects.equals(this.id, other.id);
     }
+    
+    public boolean has(final Permission p) {
+    	return p.isIn(this.permissionBits);
+    }
+    
+    public boolean hasAny(final Permission p1, final Permission p2) {
+    	return has(p1) | has(p2);
+    }
 
-    /**
-     * Given a DvObject object, see if this role contains a Permission
-     * applicable to that object
-     *
-     * @param dvObject
-     * @return
-     */
-    public boolean doesDvObjectHavePermissionForObject(DvObject dvObject) {
-
-        if (dvObject == null) {
-            return false;
-        }
-
-        return this.doesDvObjectClassHavePermissionForObject(dvObject.getClass());
-
-    } // doesDvObjectHavePermissionForObject
-
-
-    /**
-     * Given a DvObject object class, see if this role contains a Permission
-     * applicable to that object
-     * <p>
-     * Initial user is for MyData page and displaying role tags
-     *
-     * @param dvObjectClass
-     * @return
-     */
-    public boolean doesDvObjectClassHavePermissionForObject(Class<? extends DvObject> dvObjectClass) {
-
-        if (dvObjectClass == null) {
-            return false;
-        }
-
-        // Iterate through permissions.  If one applies to this class, return true
-        //
-        for (Permission perm : this.permissions()) {
-            if (perm.appliesTo(dvObjectClass)) {
-                return true;
-            }
-        }
-
-        return false;
-
-    } // doesDvObjectClassHavePermissionForObject
+    public boolean hasPermissionFor(final Class<? extends DvObject> dvObjectClass) {
+    	return permissionsStream().anyMatch(p -> p.appliesTo(dvObjectClass));
+    } 
 }
