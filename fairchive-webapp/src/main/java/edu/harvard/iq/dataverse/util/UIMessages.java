@@ -8,6 +8,7 @@ import javax.ejb.Stateless;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
+import javax.faces.validator.ValidatorException;
 
 import org.primefaces.PrimeFaces;
 
@@ -84,5 +85,9 @@ public class UIMessages {
         final FacesContext context = FacesContext.getCurrentInstance();
         final String componentId = component.getClientId(context);
         addComponentErrorMessage(componentId, detail);
+    }
+    
+	public void throwValidationException(final String message) {
+		throw new  ValidatorException(new FacesMessage(SEVERITY_ERROR, message, null));
     }
 }

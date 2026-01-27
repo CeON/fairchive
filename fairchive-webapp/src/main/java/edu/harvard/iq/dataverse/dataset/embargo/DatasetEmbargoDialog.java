@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.dataset.embargo;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.DateUtil.isBefore;
 import static edu.harvard.iq.dataverse.common.DateUtil.todayPlusDays;
 import static edu.harvard.iq.dataverse.common.DateUtil.todayPlusMonths;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
@@ -10,11 +11,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
 
-import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -167,24 +165,21 @@ public class DatasetEmbargoDialog implements Serializable {
 
     private void validateVersusMaximumDate(final FacesContext context, 
     		final UIComponent toValidate, final Object embargoDate) {
-        if(isMaximumEmbargoLengthSet() &&
-                !Objects.isNull(embargoDate) &&
-                ((Date) embargoDate).toInstant().isAfter(getMaximumEmbargoDate().toInstant())) {
-            ((UIInput) toValidate).setValid(false);
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    getStringFromBundle("dataset.embargo.validate.max.failureMessage", getMaximumEmbargoDateForDisplay()), null);
-            context.addMessage(toValidate.getClientId(context), message);
+    	
+        if(embargoDate != null && isMaximumEmbargoLengthSet() &&
+        	 !isBefore((Date) embargoDate, getMaximumEmbargoDate())) {
+            this.ui.throwValidationException(getStringFromBundle(
+            		"dataset.embargo.validate.max.failureMessage", getMaximumEmbargoDateForDisplay()));
         }
     }
 
     private void validateVersusMinimumDate(final FacesContext context, 
     		final UIComponent toValidate, final Object embargoDate) {
-        if(!Objects.isNull(embargoDate) &&
-                ((Date) embargoDate).toInstant().isBefore(getTomorrowsDate().toInstant())) {
-            ((UIInput) toValidate).setValid(false);
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, getStringFromBundle("dataset.embargo.validate.min.failureMessage"), null);
-            context.addMessage(toValidate.getClientId(context), message);
-        }
+    	
+    	if(embargoDate != null && isBefore((Date) embargoDate, getTomorrowsDate())) {
+        	this.ui.throwValidationException(getStringFromBundle(
+        			"dataset.embargo.validate.min.failureMessage"));
+    	}
     }
 
     private String returnToDataset() {

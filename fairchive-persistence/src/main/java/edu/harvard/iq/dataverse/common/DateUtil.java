@@ -124,11 +124,23 @@ public class DateUtil {
         return null;
     }
     
+    public static Date today() {
+    	return Date.from(Instant.now().truncatedTo(DAYS));
+    }
+    
     public static Date todayPlusDays(final long number) {
-    	return Date.from(Instant.now().truncatedTo(DAYS).plus(1, DAYS));
+    	return Date.from(Instant.now().truncatedTo(DAYS).plus(number, DAYS));
+    }
+    
+    public static Date todayMinusDays(final long number) {
+    	return Date.from(Instant.now().truncatedTo(DAYS).minus(number, DAYS));
     }
     
     public static Date todayPlusMonths(final long number) {
     	return Date.from(Instant.now().atOffset(UTC).plus(number, MONTHS).toInstant());
     }
+    
+	public static boolean isBefore(final Date date1, final Date date2) {
+		return date1.toInstant().isBefore(date2.toInstant());
+	}
 }
