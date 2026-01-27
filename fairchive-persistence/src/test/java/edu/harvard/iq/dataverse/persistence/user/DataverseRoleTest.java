@@ -20,8 +20,6 @@ public class DataverseRoleTest {
 		assertThat(role1.equals("")).isFalse();
 		assertThat(role1.equals(role2)).isTrue();
 		
-		assertThat(role1.equals(role2)).isTrue();
-		
 		role1.setId(1L);
 		assertThat(role1.equals(role2)).isFalse();
 		

@@ -84,7 +84,7 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
 		return result != 0 ? result : role1.getOwnerId().compareTo(role2.getOwnerId());
 	};
 	
-	private final static Long zero = new Long(0);
+	private final static Long zero = Long.valueOf(0L);
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
