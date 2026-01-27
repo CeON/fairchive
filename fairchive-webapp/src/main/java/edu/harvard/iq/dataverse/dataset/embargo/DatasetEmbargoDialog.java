@@ -67,8 +67,16 @@ public class DatasetEmbargoDialog implements Serializable {
         return this.currentEmbargoDate;
     }
     
+    public String getCurrentEmbargoDateForDisplay() {
+        return format(this.currentEmbargoDate);
+    }
+    
     public void setCurrentEmbargoDate(final Date currentEmbargoDate) {
         this.currentEmbargoDate = currentEmbargoDate;
+    }
+    
+    public boolean isCurrentEmbargoDateSet() {
+    	return this.currentEmbargoDate != null;
     }
     
     public boolean isMaximumEmbargoLengthSet() {
@@ -114,10 +122,7 @@ public class DatasetEmbargoDialog implements Serializable {
     public void initCurrentEmbargo() {
         this.currentEmbargoDate = this.dataset.getEmbargoDate().getOrNull();
     }
-
-    public String getCurrentEmbargoDateForDisplay() {
-        return format(this.currentEmbargoDate);
-    }
+    
 
     public void validateEmbargoDate(final FacesContext context, 
     		final UIComponent toValidate, final Object embargoDate) {

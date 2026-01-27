@@ -40,7 +40,7 @@
                         </h:outputFormat>
                         <h:outputFormat value="#{bundle['dataset.embargo.message']}"
                                         escape="false"
-                                        rendered="#{not empty datasetEmbargoDialog.currentEmbargoDate}">
+                                        rendered="#{datasetEmbargoDialog.isCurrentEmbargoDateSet()}">
                             <f:param value="#{datasetEmbargoDialog.currentEmbargoDateForDisplay}"/>
                             <br />
                         </h:outputFormat>
