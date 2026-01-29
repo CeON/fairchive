@@ -560,6 +560,9 @@
                                     <h:outputText value="#{bundle['dataset.versionUI.draft']}"
                                                   styleClass="label label-primary"
                                                   rendered="#{DatasetPage.workingVersion.draft}"/>
+                                    <h:outputText value="#{bundle['dataset.versionUI.embargo']}" 
+                                                  styleClass="label label-primary" 
+                                                  rendered="#{DatasetPage.dataset.hasActiveEmbargo()}"/>
                                     <h:outputText value="#{bundle['dataset.versionUI.inReview']}"
                                                   styleClass="label label-success"
                                                   rendered="#{DatasetPage.workingVersion.inReview}"/>
