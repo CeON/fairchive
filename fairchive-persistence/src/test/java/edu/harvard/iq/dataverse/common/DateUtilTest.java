@@ -1,9 +1,10 @@
 package edu.harvard.iq.dataverse.common;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -13,9 +14,10 @@ import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 public class DateUtilTest {
 
@@ -138,4 +140,25 @@ public class DateUtilTest {
         //then
         assertNull(formatted);
     }
+    
+	@Test
+	void isBefore() {
+
+		Date yesterday = DateUtil.todayMinusDays(1);
+		System.out.println(yesterday);
+		
+		
+		Date today = DateUtil.today();
+		System.out.println(today);
+		Date tomorrow = DateUtil.todayPlusDays(1);
+		System.out.println(tomorrow);
+
+		assertFalse(DateUtil.isBefore(today, today));
+		assertFalse(DateUtil.isBefore(tomorrow, today));
+		assertFalse(DateUtil.isBefore(today, yesterday));
+
+		assertTrue(DateUtil.isBefore(today, tomorrow));
+		assertTrue(DateUtil.isBefore(yesterday, today));
+		assertTrue(DateUtil.isBefore(yesterday, tomorrow));
+	}
 }

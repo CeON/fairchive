@@ -40,7 +40,7 @@
                         </h:outputFormat>
                         <h:outputFormat value="#{bundle['dataset.embargo.message']}"
                                         escape="false"
-                                        rendered="#{not empty datasetEmbargoDialog.currentEmbargoDate}">
+                                        rendered="#{datasetEmbargoDialog.isCurrentEmbargoDateSet()}">
                             <f:param value="#{datasetEmbargoDialog.currentEmbargoDateForDisplay}"/>
                             <br />
                         </h:outputFormat>
@@ -61,7 +61,7 @@
                                     mindate="#{datasetEmbargoDialog.getTomorrowsDate()}"
                                     effect="drop"
                                     navigator="true"
-                                    pattern="#{settingsWrapper.getSettingValue(':DefaultDateFormat')}"
+                                    pattern="#{datasetEmbargoDialog.defaultDateFormat}"
                                     validator="#{datasetEmbargoDialog.validateEmbargoDate}"
                                     locale="#{dataverseSession.localeCode}"
                                     timeZone="UTC"
@@ -72,17 +72,21 @@
                                     value="#{datasetEmbargoDialog.currentEmbargoDate}"
                                     showButtonBar="true"
                                     mindate="#{datasetEmbargoDialog.getTomorrowsDate()}"
-                                    maxdate="#{datasetEmbargoDialog.getMaximumEmbargoDate().get()}"
+                                    maxdate="#{datasetEmbargoDialog.getMaximumEmbargoDate()}"
                                     effect="drop"
                                     navigator="true"
-                                    pattern="#{settingsWrapper.getSettingValue(':DefaultDateFormat')}"
+                                    pattern="#{datasetEmbargoDialog.defaultDateFormat}"
                                     validator="#{datasetEmbargoDialog.validateEmbargoDate}"
                                     locale="#{dataverseSession.localeCode}"
                                     timeZone="UTC"
                                     mode="inline"
                                     widgetVar="embargoDatePickerMaxLimitedCalendar" />
-                        <p:message id="embargoMsg" for="embargoDatePicker" display="text" />
-                        <p:message id="embargoMsgMaxLimited" for="embargoDatePickerMaxLimited" display="text" />
+                        <p:message id="embargoMsg" 
+                                   for="embargoDatePicker" 
+                                   display="text" />
+                        <p:message id="embargoMsgMaxLimited" 
+                                   for="embargoDatePickerMaxLimited" 
+                                   display="text" />
                     </div>
                     <div class="button-block">
                         <p:commandButton value="#{bundle['dataset.embargo.set.button']}"
@@ -92,7 +96,8 @@
                                          oncomplete="if (args &amp;&amp; !args.validationFailed) { PF('setEmbargoConfirmation').hide(); } else { #{datasetEmbargoDialog.initCurrentEmbargo()}; }" />
                         <p:commandButton value="#{bundle['dataset.embargo.lift.button']}"
                                          onclick="PF('setEmbargoConfirmation').hide();PF('removeEmbargoConfirmation').show()"
-                                         rendered="#{DatasetPage.isUserAbleToLiftEmbargo()}" update="setEmbargoPanel"/>
+                                         rendered="#{DatasetPage.isUserAbleToLiftEmbargo()}" 
+                                         update="setEmbargoPanel"/>
                         <p:commandButton styleClass="btn btn-default"
                                          value="#{bundle.close}"
                                          onclick="PF('setEmbargoConfirmation').hide();"
