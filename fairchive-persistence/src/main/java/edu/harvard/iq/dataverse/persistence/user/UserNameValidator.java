@@ -5,10 +5,10 @@
  */
 package edu.harvard.iq.dataverse.persistence.user;
 
+import static java.util.regex.Pattern.matches;
+
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author sarahferry
@@ -17,12 +17,12 @@ import java.util.regex.Pattern;
 
 public class UserNameValidator implements ConstraintValidator<ValidateUserName, String> {
     @Override
-    public void initialize(ValidateUserName constraintAnnotation) {
+    public void initialize(final ValidateUserName constraintAnnotation) {
 
     }
 
     @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
+    public boolean isValid(final String value, final ConstraintValidatorContext context) {
         return isUserNameValid(value, context);
     }
 
@@ -32,29 +32,12 @@ public class UserNameValidator implements ConstraintValidator<ValidateUserName, 
      * @param username
      * @return boolean
      */
-    public static boolean isUserNameValid(final String username, ConstraintValidatorContext context) {
-        if (username == null) {
-            return false;
-        }
-        //TODO: What other characters do we need to support?
-        String validCharacters = "[a-zA-Z0-9\\_\\-\\.";
-        /*
-         * if you would like to support accents or chinese characters, uncomment this
-         *
-        //support accents
-        validCharacters += "À-ÿ\\u00C0-\\u017F";
-        //support chinese characters
-        validCharacters += "\\x{4e00}-\\x{9fa5}";
-        *
-        */
-        //end
-        validCharacters += "]";
-        validCharacters += "{2,60}"; //must be between 2 and 60 characters for user name
-        Pattern p = Pattern.compile(validCharacters);
-        Matcher m = p.matcher(username);
-        return m.matches();
+    public static boolean isUserNameValid(final String username, 
+    		final ConstraintValidatorContext context) {
+        return username != null 
+        		? matches("[a-zA-Z0-9\\_\\-\\.]{2,60}", username) 
+        		: false;
     }
-
 }
 
 
