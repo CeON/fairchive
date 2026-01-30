@@ -23,19 +23,21 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
     /**
      * Results of this query are used to build Authenticated User records.
      */
-    public List<AuthenticatedUser> findSearchedAuthenticatedUsers(SortKey sortKey, int resultLimit, int offset, String searchTerm, boolean isSortAscending) {
+    public List<AuthenticatedUser> findSearchedAuthenticatedUsers(final SortKey sortKey, 
+    		final int resultLimit, final int offset, final String searchTerm, 
+    		final boolean isSortAscending) {
 
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-
-        CriteriaQuery<AuthenticatedUser> query = criteriaBuilder.createQuery(AuthenticatedUser.class);
-        Root<AuthenticatedUser> root = query.from(AuthenticatedUser.class);
+        final CriteriaBuilder builder = this.em.getCriteriaBuilder();
+        final CriteriaQuery<AuthenticatedUser> query = builder.createQuery(AuthenticatedUser.class);
+        final Root<AuthenticatedUser> root = query.from(AuthenticatedUser.class);
         root.fetch("authenticatedUserLookup");
-
         query.select(root)
-                .where(getSearchPredicates(searchTerm, root, criteriaBuilder))
-                .orderBy(isSortAscending ? criteriaBuilder.asc(root.get(sortKey.text)) : criteriaBuilder.desc(root.get(sortKey.text)));
-
-        return em.createQuery(query)
+                .where(getSearchPredicates(searchTerm, root, builder))
+                .orderBy(isSortAscending 
+                		? builder.asc(root.get(sortKey.text)) 
+                		: builder.desc(root.get(sortKey.text)));
+        
+        return this.em.createQuery(query)
                 .setFirstResult(offset)
                 .setMaxResults(resultLimit)
                 .getResultList();
@@ -47,34 +49,33 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
      *
      * @return number of results for given search term
      */
-    public Long countSearchedAuthenticatedUsers(String searchTerm) {
+    public Long countSearchedAuthenticatedUsers(final String searchTerm) {
 
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        final CriteriaBuilder builder = this.em.getCriteriaBuilder();
+        final CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        final Root<AuthenticatedUser> root = query.from(AuthenticatedUser.class);
+        query.select(builder.count(root))
+                .where(getSearchPredicates(searchTerm, root, builder));
 
-        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
-        Root<AuthenticatedUser> root = query.from(AuthenticatedUser.class);
-
-        query.select(criteriaBuilder.count(root))
-                .where(getSearchPredicates(searchTerm, root, criteriaBuilder));
-
-        return em.createQuery(query).getSingleResult();
+        return this.em.createQuery(query).getSingleResult();
     }
 
     // -------------------- PRIVATE --------------------
 
-    private Predicate getSearchPredicates(String searchTerm, Root<AuthenticatedUser> root, CriteriaBuilder criteriaBuilder) {
+    private Predicate getSearchPredicates(String searchTerm, 
+    		final Root<AuthenticatedUser> root, final CriteriaBuilder builder) {
         
-        final Predicate notErased = criteriaBuilder.notLike(criteriaBuilder.upper(root.get("userIdentifier")), "ERASED%");
+        final Predicate notErased = builder.notLike(builder.upper(root.get("userIdentifier")), "ERASED%");
         if (searchTerm.isEmpty()) {
             return notErased;
         } else {
             searchTerm = searchTerm.toLowerCase().concat("%");
-            return criteriaBuilder.and(
-                criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("userIdentifier")), searchTerm),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("affiliation")), searchTerm),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("lastName")), searchTerm),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), searchTerm)
+            return builder.and(
+                builder.or(
+                        builder.like(builder.lower(root.get("userIdentifier")), searchTerm),
+                        builder.like(builder.lower(root.get("affiliation")), searchTerm),
+                        builder.like(builder.lower(root.get("lastName")), searchTerm),
+                        builder.like(builder.lower(root.get("email")), searchTerm)
                         ),
                 notErased);
         }
