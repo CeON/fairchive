@@ -1,9 +1,18 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
+import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.util.UUID.randomUUID;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Date;
+import java.util.UUID;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -11,10 +20,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.UUID;
 
 /**
  * @author bsilverstein
@@ -35,7 +40,7 @@ import java.util.UUID;
 public class ConfirmEmailData implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(nullable = true)
@@ -51,43 +56,37 @@ public class ConfirmEmailData implements Serializable {
     @Column(nullable = false)
     private Timestamp expires;
 
-    public ConfirmEmailData(AuthenticatedUser anAuthenticatedUser, long minutesUntilConfirmEmailTokenExpires) {
-        authenticatedUser = anAuthenticatedUser;
-        token = UUID.randomUUID().toString();
-        long nowInMilliseconds = new Date().getTime();
-        created = new Timestamp(nowInMilliseconds);
-        long ONE_MINUTE_IN_MILLISECONDS = 60000;
-        long futureInMilliseconds = nowInMilliseconds + (minutesUntilConfirmEmailTokenExpires * ONE_MINUTE_IN_MILLISECONDS);
-        expires = new Timestamp(new Date(futureInMilliseconds).getTime());
+    public ConfirmEmailData(final AuthenticatedUser user, 
+    		final long minutesUntilConfirmEmailTokenExpires) {
+        this.authenticatedUser = user;
+        this.token = randomUUID().toString();
+        final Instant now = Instant.now();
+        this.created = Timestamp.from(now);
+        this.expires = Timestamp.from(now.plus(minutesUntilConfirmEmailTokenExpires, MINUTES));
     }
 
     public boolean isExpired() {
-        if (this.expires == null) {
-            return true;
-        }
-        long expiresInMilliseconds = this.expires.getTime();
-        long nowInMilliseconds = new Date().getTime();
-        return nowInMilliseconds > expiresInMilliseconds;
+        return this.expires !=  null ? this.expires.before(new Date()) : true;
     }
 
     public String getToken() {
-        return token;
+        return this.token;
     }
 
     public AuthenticatedUser getAuthenticatedUser() {
-        return authenticatedUser;
+        return this.authenticatedUser;
     }
 
     public Timestamp getCreated() {
-        return created;
+        return this.created;
     }
 
     public Timestamp getExpires() {
-        return expires;
+        return this.expires;
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(Long id) {
@@ -103,8 +102,8 @@ public class ConfirmEmailData implements Serializable {
     public ConfirmEmailData() {
     }
 
-    public void setAuthenticatedUser(AuthenticatedUser authenticatedUser) {
-        this.authenticatedUser = authenticatedUser;
+    public void setAuthenticatedUser(final AuthenticatedUser user) {
+        this.authenticatedUser = user;
     }
 
 }
