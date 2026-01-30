@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
