@@ -7,6 +7,7 @@ import static edu.harvard.iq.dataverse.common.DateUtil.todayPlusMonths;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaximumEmbargoLength;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -18,6 +19,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
+import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -31,6 +33,8 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 @ViewScoped
 @Named("datasetEmbargoDialog")
 public class DatasetEmbargoDialog implements Serializable {
+	
+	private final static Logger log = getLogger(DatasetEmbargoDialog.class);
 
     private Dataset dataset;
 
@@ -135,6 +139,7 @@ public class DatasetEmbargoDialog implements Serializable {
 			this.datasetService.setDatasetEmbargoDate(this.dataset, this.currentEmbargoDate);
 			showSuccess();
 		} catch (final Exception e) {
+			log.error("Failed to set embargo.", e);
 			showError();
 		}
 		return returnToDataset();
@@ -146,6 +151,7 @@ public class DatasetEmbargoDialog implements Serializable {
 			this.currentEmbargoDate = null;
 			showSuccess();
 		} catch (final Exception e) {
+			log.error("Failed to lift embargo.", e);
 			showError();
 		}
 		return returnToDataset();
