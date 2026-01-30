@@ -98,7 +98,7 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(leafMap);
       } else {
-        L.maptiler.maptilerLayer({apiKey: API_KEY, style: 
+        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, apiKey: API_KEY, style: 
                                  L.maptiler.MapStyle.STREETS, }).addTo(leafMap);
       }
     }
@@ -163,7 +163,7 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       } else {
-        L.maptiler.maptilerLayer({apiKey: API_KEY,
+        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, apiKey: API_KEY,
                                  style: L.maptiler.MapStyle.STREETS}).addTo(map);
       }
       this.updateMap(key);
@@ -655,7 +655,7 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       } else {
-        L.maptiler.maptilerLayer({apiKey: API_KEY,
+        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, apiKey: API_KEY,
                                  style: L.maptiler.MapStyle.STREETS, }).addTo(map);
       }
     }
