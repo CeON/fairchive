@@ -65,7 +65,7 @@ public class ConfirmEmailData implements Serializable {
     }
 
     public boolean isExpired() {
-        return this.expires !=  null ? this.expires.before(new Date()) : true;
+        return this.expires.before(new Date());
     }
 
     public String getToken() {
