@@ -65,7 +65,7 @@ public class UserNotificationRepository extends JpaRepository<Long, UserNotifica
         countQuery.select(builder.count(root))
                 .where(predicates.toArray(new Predicate[]{}));
 
-        final Long totalCount = em.createQuery(countQuery).getSingleResult();
+        final Long totalCount = this.em.createQuery(countQuery).getSingleResult();
 
         return new UserNotificationQueryResult(resultList, totalCount);
     }
@@ -79,10 +79,7 @@ public class UserNotificationRepository extends JpaRepository<Long, UserNotifica
                 .getResultList();
     }
 
-    public int updateRequestor(Long oldId, Long newId) {
-        if (oldId == null || newId == null) {
-            throw new IllegalArgumentException("Null encountered: [oldId]:" + oldId + ", [newId]:" + newId);
-        }
+    public int updateRequestor(final Long oldId, final Long newId) {
         return this.em.createNativeQuery(format("update usernotification " +
                 "set parameters = jsonb_set(parameters::jsonb, '{requestorId}', '\"%s\"')::json " +
                 "where parameters ->> 'requestorId' = '%s'", newId.toString(), oldId.toString()))
