@@ -128,7 +128,15 @@
                                                          rendered="#{item.searchFieldType == fieldTypeEnums.TEXT}"/>
                                             <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.GEOBOX_COORD}">
 
-                                                <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker margin-top"
+                                                <div id="infoBox" tabindex="0">
+                                                    <p:staticMessage styleClass="margin-top margin-bottom" 
+                                                                     escape="false" 
+                                                                     severity="info" 
+                                                                     detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
+                                                </div>
+
+                                                <p:inputTextarea id="geoboxSearchValue" 
+                                                                 styleClass="form-control coord-marker margin-top margin-bottom"
                                                                  value="#{item.fieldValue}"
                                                                  onchange="
                                                                 this.value = this.value.replace(/,/g, '.');
@@ -140,10 +148,6 @@
                                                 <c:set var="mapId" value="#{item.parent.isDefined()
                                                     ? (mdb.blockName).concat('_').concat(item.getParent().get().getDisplayId()) : ''}"/>
                                                 <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
-
-                                                <div id="infoBox" tabindex="0">
-                                                    <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
-                                                </div>
 
                                                 <div id="#{mapId}" class="form-col-container geo-map">
                                                 </div>
