@@ -20,8 +20,10 @@
         <ui:param name="dataverse" value="#{AdvancedSearchPage.dataverse}"/>
         <ui:define name="body">
             <f:metadata>
-                <o:importConstants type="edu.harvard.iq.dataverse.search.advanced.SearchFieldType" var="fieldTypeEnums"/>
-                <f:viewParam name="dataverseIdentifier" value="#{AdvancedSearchPage.dataverseIdentifier}"/>
+                <o:importConstants type="edu.harvard.iq.dataverse.search.advanced.SearchFieldType"
+                                   var="fieldTypeEnums"/>
+                <f:viewParam name="dataverseIdentifier" 
+                             value="#{AdvancedSearchPage.dataverseIdentifier}"/>
                 <f:viewAction
                         action="#{dataverseHeaderFragment.initBreadcrumbs(AdvancedSearchPage.dataverse, bundle['dataverse.search.advancedSearch'])}"/>
             </f:metadata>
@@ -31,23 +33,28 @@
                     <p:focus/>
                     <p:autoUpdate />
                     <div class="button-block margin-bottom">
-                        <p:commandButton value="#{bundle.find}" action="#{AdvancedSearchPage.find()}"/>
+                        <p:commandButton value="#{bundle.find}" 
+                                         action="#{AdvancedSearchPage.find()}"/>
                     </div>
                     <!-- Dataverses Block -->
                     <div class="panel panel-default">
-                        <a data-toggle="collapse" href="#panelCollapseDataversesFieldList"
-                             class="panel-heading">
+                        <a data-toggle="collapse" 
+                           href="#panelCollapseDataversesFieldList"
+                           class="panel-heading">
                             <h:outputText
                                     value="#{AdvancedSearchPage.dataversesSearchBlock.blockDisplayName}"/> &#160;<span
                                 class="glyphicon glyphicon-chevron-up"/>
                         </a>
-                        <div id="panelCollapseDataversesFieldList" class="panel-body form-horizontal collapse in">
+                        <div id="panelCollapseDataversesFieldList" 
+                             class="panel-body form-horizontal collapse in">
                             <ui:repeat value="#{AdvancedSearchPage.dataversesSearchBlock.searchFields}"
                                        var="searchField">
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">
-                                        <h:outputText value="#{searchField.displayName}" escape="false"/>
-                                        <span data-toggle="tooltip" data-placement="top"
+                                        <h:outputText value="#{searchField.displayName}" 
+                                                      escape="false"/>
+                                        <span data-toggle="tooltip" 
+                                              data-placement="top"
                                               jsf:rendered="#{not empty searchField.description}"
                                               class="glyphicon glyphicon-question-sign text-primary"
                                               tabindex="0" role="button"
@@ -55,17 +62,21 @@
                                         </span>
                                     </label>
                                     <div class="col-sm-6">
-                                        <p:inputText id="dvFieldName" styleClass="form-control"
+                                        <p:inputText id="dvFieldName" 
+                                                     styleClass="form-control"
                                                      rendered="#{searchField.searchFieldType == fieldTypeEnums.TEXT or
                                                      searchField.searchFieldType == fieldTypeEnums.DATE}"
                                                      value="#{searchField.fieldValue}"/>
 
                                         <p:selectCheckboxMenu value="#{searchField.checkedFieldValues}"
                                                               rendered="#{searchField.searchFieldType == fieldTypeEnums.CHECKBOX}"
-                                                              style="width: 100%" panelStyleClass="without-select-all"
-                                                              multiple="true" label="#{bundle.select}"
+                                                              style="width: 100%" 
+                                                              panelStyleClass="without-select-all"
+                                                              multiple="true" 
+                                                              label="#{bundle.select}"
                                                               updateLabel="true"
-                                                              filter="true" filterMatchMode="contains">
+                                                              filter="true" 
+                                                              filterMatchMode="contains">
                                             <f:selectItems value="#{searchField.checkboxLabelAndValue}"
                                                            var="cvs"
                                                            itemLabel="#{cvs._1()}"
@@ -93,7 +104,9 @@
                         </div>
                     </div>
 
-                    <ui:repeat value="#{AdvancedSearchPage.metadataSearchBlocks}" var="mdb" varStatus="status">
+                    <ui:repeat value="#{AdvancedSearchPage.metadataSearchBlocks}" 
+                               var="mdb" 
+                               varStatus="status">
                         <div class="panel panel-default"
                              jsf:rendered="#{not empty mdb}">
                             <a data-toggle="collapse"
@@ -113,8 +126,10 @@
 
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">
-                                            <h:outputText value="#{item.displayName}" escape="false"/>
-                                            <span data-toggle="tooltip" data-placement="top"
+                                            <h:outputText value="#{item.displayName}" 
+                                                          escape="false"/>
+                                            <span data-toggle="tooltip" 
+                                                  data-placement="top"
                                                   jsf:rendered="#{not empty item.description}"
                                                   class="glyphicon glyphicon-question-sign text-primary"
                                                   tabindex="0" role="button"
@@ -123,7 +138,8 @@
                                         </label>
 
                                         <div class="col-sm-6">
-                                            <p:inputText id="stringSearchValue" styleClass="form-control"
+                                            <p:inputText id="stringSearchValue" 
+                                                         styleClass="form-control"
                                                          value="#{item.fieldValue}"
                                                          rendered="#{item.searchFieldType == fieldTypeEnums.TEXT}"/>
                                             <div jsf:rendered="#{item.searchFieldType == fieldTypeEnums.GEOBOX_COORD}">
@@ -163,10 +179,11 @@
                                                                    value="#{bundle['advanced.search.metadata.from']} "
                                                                    style="white-space: pre"
                                                                    rendered="#{item.searchFieldType == fieldTypeEnums.DATE}"/>
-                                                    <p:inputText id="daterangeSearchMinimum" style="padding-right: 5px"
-                                                                   value="#{item.lowerLimit}"
-                                                                   binding="#{dateFrom}"
-                                                                   rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">
+                                                    <p:inputText id="daterangeSearchMinimum" 
+                                                                 style="padding-right: 5px"
+                                                                 value="#{item.lowerLimit}"
+                                                                 binding="#{dateFrom}"
+                                                                 rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">
                                                     </p:inputText>
                                                 </div>
                                                 <div style="display: inline-block;" >
@@ -174,29 +191,34 @@
                                                                    value=" #{bundle['advanced.search.metadata.to']} "
                                                                    style="white-space: pre"
                                                                    rendered="#{item.searchFieldType == fieldTypeEnums.DATE}"/>
-                                                    <p:inputText id="daterangeSearchMaximum" style="padding-left: 5px"
-                                                                   value="#{item.upperLimit}"
-                                                                   binding="#{dateTo}"
-                                                                   rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">
+                                                    <p:inputText id="daterangeSearchMaximum" 
+                                                                 style="padding-left: 5px"
+                                                                 value="#{item.upperLimit}"
+                                                                 binding="#{dateTo}"
+                                                                 rendered="#{item.searchFieldType == fieldTypeEnums.DATE}">
                                                     </p:inputText>
                                                 </div>
                                             </div>
                                             <div>
-                                                <div style="display: inline-block;" jsf:rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}">
+                                                <div style="display: inline-block;" 
+                                                     jsf:rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}">
                                                     <p:outputLabel for="rangeSearchMinimum"
                                                                    value="#{bundle['advanced.search.metadata.from']} "
                                                                    style="white-space: pre"
                                                                    rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}"/>
-                                                    <p:inputNumber id="rangeSearchMinimum" class="input-number-right"
+                                                    <p:inputNumber id="rangeSearchMinimum" 
+                                                                   class="input-number-right"
                                                                    value="#{item.minimum}"
                                                                    rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}"/>
                                                 </div>
-                                                <div style="display: inline-block;" jsf:rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}">
+                                                <div style="display: inline-block;" 
+                                                     jsf:rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}">
                                                     <p:outputLabel for="rangeSearchMaximum"
                                                                    value=" #{bundle['advanced.search.metadata.to']} "
                                                                    style="white-space: pre"
                                                                    rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}"/>
-                                                    <p:inputNumber id="rangeSearchMaximum" class="input-number-left"
+                                                    <p:inputNumber id="rangeSearchMaximum" 
+                                                                   class="input-number-left"
                                                                    value="#{item.maximum}"
                                                                    rendered="#{item.searchFieldType == fieldTypeEnums.NUMBER}"/>
                                                 </div>
@@ -263,10 +285,7 @@
                                                      style="display: flex">
                                                 <p:outputLabel for="periodLocation"
                                                                value="#{bundle['periodo.location']}"
-                                                               style="white-space: pre; margin-right: 4px"/>
-                                             <!--    <p:inputText id="periodLocation" 
-                                                             style="flex: 1;"
-                                                             value="#{item.locations}"/> -->           
+                                                               style="white-space: pre; margin-right: 4px"/>       
                                                 <p:selectCheckboxMenu 
                                                               id="periodLocation"
                                                               value="#{item.locations}"
@@ -278,9 +297,9 @@
                                                               filter="true" 
                                                               filterMatchMode="contains">
 	                                                <f:selectItems value="#{item.allLocations}"
-	                                                            var="l"
-	                                                           itemLabel="#{l}"
-	                                                           itemValue="#{l}"/>
+	                                                               var="l"
+	                                                               itemLabel="#{l}"
+	                                                               itemValue="#{l}"/>
                                                 </p:selectCheckboxMenu>            
                                                 </div>
                                                 <div class="form-group"
@@ -343,10 +362,12 @@
                                                              value="#{item.label}"/>
                                                 </div>
                                             </div>
-                                            <div class="ui-message ui-message-error ui-widget ui-corner-all" aria-live="polite"
+                                            <div class="ui-message ui-message-error ui-widget ui-corner-all" 
+                                                 aria-live="polite"
                                                  jsf:rendered="#{not empty item.getValidationMessage()}">
                                                 <span class="ui-message-error-detail">
-                                                    <h:outputText value="#{item.getValidationMessage()}" escape="false"/>
+                                                    <h:outputText value="#{item.getValidationMessage()}"
+                                                                  escape="false"/>
                                                 </span>
                                             </div>
                                         </div>
@@ -372,32 +393,42 @@
                         });
                     </script>
                     <div class="panel panel-default">
-                        <a data-toggle="collapse" href="#panelCollapseFilesFieldList" class="panel-heading">
+                        <a data-toggle="collapse" 
+                           href="#panelCollapseFilesFieldList" 
+                           class="panel-heading">
                             <h:outputText value="#{AdvancedSearchPage.filesSearchBlock.blockDisplayName}"/> &#160;<span
                                 class="glyphicon glyphicon-chevron-up"/>
                         </a>
-                        <div id="panelCollapseFilesFieldList" class="panel-body form-horizontal collapse in">
+                        <div id="panelCollapseFilesFieldList" 
+                             class="panel-body form-horizontal collapse in">
                             <ui:repeat value="#{AdvancedSearchPage.filesSearchBlock.searchFields}"
                                        var="fileSearchFields">
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">
-                                        <h:outputText value="#{fileSearchFields.displayName}" escape="false"/>
+                                        <h:outputText value="#{fileSearchFields.displayName}" 
+                                                      escape="false"/>
                                         <span class="glyphicon glyphicon-question-sign text-primary"
                                               jsf:rendered="#{not empty fileSearchFields.description}"
-                                              tabindex="0" role="button"
-                                              data-toggle="tooltip" data-placement="top"
+                                              tabindex="0" 
+                                              role="button"
+                                              data-toggle="tooltip" 
+                                              data-placement="top"
                                               data-original-title="#{fileSearchFields.description}"/>
                                     </label>
                                     <div class="col-sm-6">
-                                        <p:inputText id="fileFieldName" styleClass="form-control"
+                                        <p:inputText id="fileFieldName" 
+                                                     styleClass="form-control"
                                                      value="#{fileSearchFields.fieldValue}"
                                                      rendered="#{fileSearchFields.searchFieldType == fieldTypeEnums.TEXT}"/>
                                         <p:selectCheckboxMenu value="#{fileSearchFields.checkedFieldValues}"
                                                               rendered="#{fileSearchFields.searchFieldType == fieldTypeEnums.CHECKBOX}"
-                                                              style="width: 100%" panelStyleClass="without-select-all"
-                                                              multiple="true" label="#{bundle.select}"
+                                                              style="width: 100%" 
+                                                              panelStyleClass="without-select-all"
+                                                              multiple="true" 
+                                                              label="#{bundle.select}"
                                                               updateLabel="true"
-                                                              filter="true" filterMatchMode="contains">
+                                                              filter="true" 
+                                                              filterMatchMode="contains">
                                             <f:selectItems value="#{fileSearchFields.checkboxLabelAndValue}"
                                                            var="cvs"
                                                            itemLabel="#{cvs._1()}"
@@ -410,7 +441,9 @@
                         </div>
                     </div>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.find}" onclick="DvJS.Geo.SearchView.removeAll()" action="#{AdvancedSearchPage.find()}"/>
+                        <p:commandButton value="#{bundle.find}" 
+                                         onclick="DvJS.Geo.SearchView.removeAll()" 
+                                         action="#{AdvancedSearchPage.find()}"/>
                     </div>
                 </h:form>
             </div>

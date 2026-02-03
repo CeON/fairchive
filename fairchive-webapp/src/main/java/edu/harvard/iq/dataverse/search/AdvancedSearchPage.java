@@ -20,6 +20,14 @@ import org.omnifaces.cdi.ViewScoped;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.String.format;
+import static java.util.logging.Level.WARNING;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -65,10 +73,11 @@ public class AdvancedSearchPage implements Serializable {
     public AdvancedSearchPage() { }
 
     @Inject
-    public AdvancedSearchPage(DataverseDao dataverseDao,
-                              WidgetWrapper widgetWrapper, QueryWrapperCreator queryWrapperCreator,
-                              SearchFormValidationService validationService,
-                              AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder) {
+    public AdvancedSearchPage(final DataverseDao dataverseDao,
+                              final WidgetWrapper widgetWrapper, 
+                              final QueryWrapperCreator queryWrapperCreator,
+                              final SearchFormValidationService validationService,
+                              final AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder) {
         this.dataverseDao = dataverseDao;
         this.widgetWrapper = widgetWrapper;
         this.queryWrapperCreator = queryWrapperCreator;
@@ -96,28 +105,27 @@ public class AdvancedSearchPage implements Serializable {
 
     /** Composes query and redirects to the page with results. */
     public String find() throws IOException {
-        List<FieldValidationResult> fieldValidationResults
+        final List<FieldValidationResult> fieldValidationResults
                 = validationService.validateSearchForm(searchFieldIndex, nonSearchFieldIndex);
         if (!fieldValidationResults.isEmpty()) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("advanced.search.validation"), StringUtils.EMPTY);
-            return StringUtils.EMPTY;
+            JsfHelper.addErrorMessage(getStringFromBundle("advanced.search.validation"), EMPTY);
+            return EMPTY;
+        } else {
+	        final List<SearchBlock> allSearchBlocks = new ArrayList<>(metadataSearchBlocks);
+	        allSearchBlocks.add(filesSearchBlock);
+	        allSearchBlocks.add(dataversesSearchBlock);
+	
+	        return buildSearchUrl(queryWrapperCreator.constructQueryWrapper(allSearchBlocks));
         }
-
-        List<SearchBlock> allSearchBlocks = new ArrayList<>(metadataSearchBlocks);
-        allSearchBlocks.add(filesSearchBlock);
-        allSearchBlocks.add(dataversesSearchBlock);
-
-        String returnString = buildSearchUrl(queryWrapperCreator.constructQueryWrapper(allSearchBlocks));
-        logger.fine(returnString);
-        return returnString;
     }
 
     // -------------------- PRIVATE --------------------
 
-    private Map<String, SearchField> buildSearchFieldIndex(List<SearchBlock> searchBlocks) {
+    private Map<String, SearchField> buildSearchFieldIndex(
+    		final List<SearchBlock> searchBlocks) {
         return searchBlocks.stream()
             .flatMap(block -> block.getSearchFields().stream())
-            .collect(Collectors.toMap(SearchField::getName, f -> f, (prev, next) -> next));
+            .collect(toMap(SearchField::getName, f -> f, (prev, next) -> next));
     }
 
     /**
@@ -126,39 +134,41 @@ public class AdvancedSearchPage implements Serializable {
      * accessing {@link DatasetFieldType} and creating new or retrieving
      * existing parent fields in order to connect them with search fields.
      */
-    private Map<String, SearchField> createParentFieldsForSearchFields(Map<String, SearchField> searchFieldIndex) {
-        Map<String, SearchField> nonSearchFieldIndex = new HashMap<>();
+    private Map<String, SearchField> createParentFieldsForSearchFields(
+    		final Map<String, SearchField> searchFieldIndex) {
+        final Map<String, SearchField> result = new HashMap<>();
         int i = 0;
-        for (SearchField field : searchFieldIndex.values()) {
-            DatasetFieldType fieldType = field.getDatasetFieldType();
+        for (final SearchField field : searchFieldIndex.values()) {
+            final DatasetFieldType fieldType = field.getDatasetFieldType();
             if (fieldType == null || fieldType.getParentDatasetFieldType() == null) {
                 continue;
             }
-            DatasetFieldType parentType = fieldType.getParentDatasetFieldType();
-            String parentKey = parentType.getName();
+            final DatasetFieldType parentType = fieldType.getParentDatasetFieldType();
+            final String parentKey = parentType.getName();
             SearchField parentField = searchFieldIndex.get(parentKey);
-            parentField = parentField == null ? nonSearchFieldIndex.get(parentKey) : parentField;
+            parentField = parentField == null ? result.get(parentKey) : parentField;
             if (parentField == null) {
-                parentField = new GroupingSearchField(parentKey, parentType.getDisplayName(), parentType.getDescription(),
+                parentField = new GroupingSearchField(parentKey, 
+                		parentType.getDisplayName(), parentType.getDescription(),
                         null, parentType);
-                parentField.setDisplayId(parentKey + "_" + (i++));
-                nonSearchFieldIndex.put(parentKey, parentField);
+                parentField.setDisplayId(parentKey + '_' + (i++));
+                result.put(parentKey, parentField);
             }
             parentField.getChildren().add(field);
             field.setParent(parentField);
         }
-        return nonSearchFieldIndex;
+        return result;
     }
 
-    private String buildSearchUrl(QueryWrapper queryWrapper) {
-        List<String> filters = queryWrapper.getFilters();
-        String filtersPart = IntStream.range(0, filters.size())
-                .mapToObj(i -> "&fq" + i + "=" + safeEncode(filters.get(i)))
+    private String buildSearchUrl(final QueryWrapper queryWrapper) {
+        final List<String> filters = queryWrapper.getFilters();
+        final String filtersPart = IntStream.range(0, filters.size())
+                .mapToObj(i -> "&fq" + i + '=' + safeEncode(filters.get(i)))
                 .collect(Collectors.joining());
 
-        return widgetWrapper.wrapURL(String.format("/dataverse.xhtml?q=%s&alias=%s",
+        return widgetWrapper.wrapURL(format("/dataverse.xhtml?q=%s&alias=%s",
                 safeEncode(queryWrapper.getQuery()), dataverse.getAlias())
-                + (StringUtils.isNotBlank(filtersPart) ? filtersPart : StringUtils.EMPTY)
+                + (isNotBlank(filtersPart) ? filtersPart : EMPTY)
                 + "&faces-redirect=true");
     }
 
@@ -166,7 +176,7 @@ public class AdvancedSearchPage implements Serializable {
         try {
             return URLEncoder.encode(toEncode, "UTF-8");
         } catch (UnsupportedEncodingException uee) {
-            logger.log(Level.WARNING, "Encoding problem: ", uee);
+            logger.log(WARNING, "Encoding problem: ", uee);
             throw new RuntimeException(uee);
         }
     }
