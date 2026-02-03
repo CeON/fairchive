@@ -16,6 +16,7 @@ function initDvJS() {
     const READ_ONLY_INIT_MAP_OPTS = {
       center: [52.1145028, 19.4235611],
       zoom: 4,
+      maxZoom: MAX_ZOOM,
       minZoom: 2,
     }
     const INIT_MAP_OPTS = {
@@ -645,6 +646,7 @@ function initDvJS() {
 
     function initializeMapSearchResults(key, data) {
       const mapOptions = Object.assign({}, INIT_MAP_OPTS, {
+        maxZoom: MAX_ZOOM,
         zoom: 1,
         minZoom: 1
       });
