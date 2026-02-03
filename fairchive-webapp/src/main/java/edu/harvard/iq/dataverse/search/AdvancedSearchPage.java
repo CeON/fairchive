@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.search;
 import edu.harvard.iq.dataverse.AdvancedSearchBlocksBuilder;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.WidgetWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.search.advanced.QueryWrapperCreator;
@@ -14,7 +13,6 @@ import edu.harvard.iq.dataverse.search.advanced.query.QueryWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.validation.SearchFormValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
-import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
 import javax.annotation.PostConstruct;
@@ -24,6 +22,7 @@ import javax.inject.Named;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.lang.String.format;
 import static java.util.logging.Level.WARNING;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -36,9 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -164,7 +161,7 @@ public class AdvancedSearchPage implements Serializable {
         final List<String> filters = queryWrapper.getFilters();
         final String filtersPart = IntStream.range(0, filters.size())
                 .mapToObj(i -> "&fq" + i + '=' + safeEncode(filters.get(i)))
-                .collect(Collectors.joining());
+                .collect(joining());
 
         return widgetWrapper.wrapURL(format("/dataverse.xhtml?q=%s&alias=%s",
                 safeEncode(queryWrapper.getQuery()), dataverse.getAlias())
