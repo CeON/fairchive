@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.search;
 import edu.harvard.iq.dataverse.AdvancedSearchBlocksBuilder;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.WidgetWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.search.advanced.QueryWrapperCreator;
@@ -11,8 +10,6 @@ import edu.harvard.iq.dataverse.search.advanced.SearchBlock;
 import edu.harvard.iq.dataverse.search.advanced.field.GroupingSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryWrapper;
-import edu.harvard.iq.dataverse.search.periodo.PeriodoDataFinder;
-import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.validation.SearchFormValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -22,6 +19,11 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.lang.String.format;
+import static java.util.logging.Level.WARNING;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -33,9 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -54,8 +54,6 @@ public class AdvancedSearchPage implements Serializable {
     private QueryWrapperCreator queryWrapperCreator;
     private SearchFormValidationService validationService;
     private AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder;
-    private PeriodoDataFinder periods;
-    private SettingsWrapper settingsWrapper;
 
     private Dataverse dataverse;
     private String dataverseIdentifier;
@@ -72,19 +70,16 @@ public class AdvancedSearchPage implements Serializable {
     public AdvancedSearchPage() { }
 
     @Inject
-    public AdvancedSearchPage(DataverseDao dataverseDao,
-                              WidgetWrapper widgetWrapper, QueryWrapperCreator queryWrapperCreator,
-                              SearchFormValidationService validationService,
-                              AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder,
-                              PeriodoDataFinder periods,
-                              SettingsWrapper settingsWrapper) {
+    public AdvancedSearchPage(final DataverseDao dataverseDao,
+                              final WidgetWrapper widgetWrapper, 
+                              final QueryWrapperCreator queryWrapperCreator,
+                              final SearchFormValidationService validationService,
+                              final AdvancedSearchBlocksBuilder advancedSearchBlocksBuilder) {
         this.dataverseDao = dataverseDao;
         this.widgetWrapper = widgetWrapper;
         this.queryWrapperCreator = queryWrapperCreator;
         this.validationService = validationService;
         this.advancedSearchBlocksBuilder = advancedSearchBlocksBuilder;
-        this.periods = periods;
-        this.settingsWrapper = settingsWrapper;
     }
 
     // -------------------- LOGIC --------------------
@@ -104,35 +99,30 @@ public class AdvancedSearchPage implements Serializable {
         searchFieldIndex = buildSearchFieldIndex(metadataSearchBlocks);
         nonSearchFieldIndex = createParentFieldsForSearchFields(searchFieldIndex);
     }
-    
-    public List<String> getPeriodLocations() throws Exception {
-        return this.periods.getAllLocations();
-    }
 
     /** Composes query and redirects to the page with results. */
     public String find() throws IOException {
-        List<FieldValidationResult> fieldValidationResults
+        final List<FieldValidationResult> fieldValidationResults
                 = validationService.validateSearchForm(searchFieldIndex, nonSearchFieldIndex);
         if (!fieldValidationResults.isEmpty()) {
-            JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("advanced.search.validation"), EMPTY);
+            JsfHelper.addErrorMessage(getStringFromBundle("advanced.search.validation"), EMPTY);
             return EMPTY;
+        } else {
+	        final List<SearchBlock> allSearchBlocks = new ArrayList<>(metadataSearchBlocks);
+	        allSearchBlocks.add(filesSearchBlock);
+	        allSearchBlocks.add(dataversesSearchBlock);
+	
+	        return buildSearchUrl(queryWrapperCreator.constructQueryWrapper(allSearchBlocks));
         }
-
-        List<SearchBlock> allSearchBlocks = new ArrayList<>(metadataSearchBlocks);
-        allSearchBlocks.add(filesSearchBlock);
-        allSearchBlocks.add(dataversesSearchBlock);
-
-        String returnString = buildSearchUrl(queryWrapperCreator.constructQueryWrapper(allSearchBlocks));
-        logger.fine(returnString);
-        return returnString;
     }
 
     // -------------------- PRIVATE --------------------
 
-    private Map<String, SearchField> buildSearchFieldIndex(List<SearchBlock> searchBlocks) {
+    private Map<String, SearchField> buildSearchFieldIndex(
+    		final List<SearchBlock> searchBlocks) {
         return searchBlocks.stream()
             .flatMap(block -> block.getSearchFields().stream())
-            .collect(Collectors.toMap(SearchField::getName, f -> f, (prev, next) -> next));
+            .collect(toMap(SearchField::getName, f -> f, (prev, next) -> next));
     }
 
     /**
@@ -141,47 +131,49 @@ public class AdvancedSearchPage implements Serializable {
      * accessing {@link DatasetFieldType} and creating new or retrieving
      * existing parent fields in order to connect them with search fields.
      */
-    private Map<String, SearchField> createParentFieldsForSearchFields(Map<String, SearchField> searchFieldIndex) {
-        Map<String, SearchField> nonSearchFieldIndex = new HashMap<>();
+    private Map<String, SearchField> createParentFieldsForSearchFields(
+    		final Map<String, SearchField> searchFieldIndex) {
+        final Map<String, SearchField> result = new HashMap<>();
         int i = 0;
-        for (SearchField field : searchFieldIndex.values()) {
-            DatasetFieldType fieldType = field.getDatasetFieldType();
+        for (final SearchField field : searchFieldIndex.values()) {
+            final DatasetFieldType fieldType = field.getDatasetFieldType();
             if (fieldType == null || fieldType.getParentDatasetFieldType() == null) {
                 continue;
             }
-            DatasetFieldType parentType = fieldType.getParentDatasetFieldType();
-            String parentKey = parentType.getName();
+            final DatasetFieldType parentType = fieldType.getParentDatasetFieldType();
+            final String parentKey = parentType.getName();
             SearchField parentField = searchFieldIndex.get(parentKey);
-            parentField = parentField == null ? nonSearchFieldIndex.get(parentKey) : parentField;
+            parentField = parentField == null ? result.get(parentKey) : parentField;
             if (parentField == null) {
-                parentField = new GroupingSearchField(parentKey, parentType.getDisplayName(), parentType.getDescription(),
+                parentField = new GroupingSearchField(parentKey, 
+                		parentType.getDisplayName(), parentType.getDescription(),
                         null, parentType);
                 parentField.setDisplayId(parentKey + '_' + (i++));
-                nonSearchFieldIndex.put(parentKey, parentField);
+                result.put(parentKey, parentField);
             }
             parentField.getChildren().add(field);
             field.setParent(parentField);
         }
-        return nonSearchFieldIndex;
+        return result;
     }
 
-    private String buildSearchUrl(QueryWrapper queryWrapper) {
-        List<String> filters = queryWrapper.getFilters();
-        String filtersPart = IntStream.range(0, filters.size())
+    private String buildSearchUrl(final QueryWrapper queryWrapper) {
+        final List<String> filters = queryWrapper.getFilters();
+        final String filtersPart = IntStream.range(0, filters.size())
                 .mapToObj(i -> "&fq" + i + '=' + safeEncode(filters.get(i)))
-                .collect(Collectors.joining());
+                .collect(joining());
 
-        return widgetWrapper.wrapURL(String.format("/dataverse.xhtml?q=%s&alias=%s",
+        return widgetWrapper.wrapURL(format("/dataverse.xhtml?q=%s&alias=%s",
                 safeEncode(queryWrapper.getQuery()), dataverse.getAlias())
                 + (isNotBlank(filtersPart) ? filtersPart : EMPTY)
                 + "&faces-redirect=true");
     }
 
-    private String safeEncode(String toEncode) {
+    private String safeEncode(final String toEncode) {
         try {
             return URLEncoder.encode(toEncode, "UTF-8");
-        } catch (UnsupportedEncodingException uee) {
-            logger.log(Level.WARNING, "Encoding problem: ", uee);
+        } catch (final UnsupportedEncodingException uee) {
+            logger.log(WARNING, "Encoding problem: ", uee);
             throw new RuntimeException(uee);
         }
     }
@@ -206,10 +198,6 @@ public class AdvancedSearchPage implements Serializable {
 
     public SearchBlock getFilesSearchBlock() {
         return filesSearchBlock;
-    }
-
-    public boolean isExpandAllAdvancedSearchBlocksEnabled() {
-        return settingsWrapper.isExpandAllAdvancedSearchBlocksEnabled();
     }
 
     // -------------------- SETTERS --------------------
