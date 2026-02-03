@@ -169,10 +169,10 @@ public class AdvancedSearchPage implements Serializable {
                 + "&faces-redirect=true");
     }
 
-    private String safeEncode(String toEncode) {
+    private String safeEncode(final String toEncode) {
         try {
             return URLEncoder.encode(toEncode, "UTF-8");
-        } catch (UnsupportedEncodingException uee) {
+        } catch (final UnsupportedEncodingException uee) {
             logger.log(WARNING, "Encoding problem: ", uee);
             throw new RuntimeException(uee);
         }
