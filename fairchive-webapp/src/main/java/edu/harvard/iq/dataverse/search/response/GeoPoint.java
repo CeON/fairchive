@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.search.response;
 
+import static java.lang.String.format;
+import static java.util.Locale.ENGLISH;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +37,7 @@ public class GeoPoint {
     // -------------------- LOGIC --------------------
 
     public String formatLngLat() {
-        return String.format("%.6f %.6f", longitude, latitude);
+        return  format(ENGLISH, "%.6f %.6f", longitude, latitude);
     }
 
     @Override
