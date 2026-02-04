@@ -21,6 +21,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExpandAl
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.FooterAdditionalUrl;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Languages;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MapTileType;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MapTileApiKey;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MetricsUrl;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.NavbarAboutUrl;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ProvCollectionEnabled;
@@ -81,6 +82,10 @@ public class SettingsWrapper implements java.io.Serializable {
     public String getMapTileType() {
     	final String type = this.settingService.getValueForKey(MapTileType);
     	return isEmpty(type) ? "raster" : type;
+    }
+    
+    public String getMapTileApiKey() {
+    	return this.settingService.getValueForKey(MapTileApiKey);
     }
 
     public boolean isRsyncUpload() {

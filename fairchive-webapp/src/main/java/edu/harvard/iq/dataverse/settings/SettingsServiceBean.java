@@ -852,7 +852,11 @@ public class SettingsServiceBean {
         /**
          * Specifies whether maps use 'raster' tiles (default) or 'vector'
          */
-    	MapTileType;
+    	MapTileType,
+    	/**
+    	 * Needs to be set for MapTileType == "raster"
+    	 */
+    	MapTileApiKey;
 
         @Override
         public String toString() {

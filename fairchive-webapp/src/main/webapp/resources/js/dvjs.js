@@ -27,7 +27,6 @@ function initDvJS() {
       maxBoundsViscosity: 1.0 // Prevents dragging outside
     };
 
-    const API_KEY = 'ZAkFJp24snObnYrn2Ox0';
     const TILE_LAYER_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const TILE_LAYER_COPYRIGHT = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
@@ -99,8 +98,9 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(leafMap);
       } else {
-        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, apiKey: API_KEY, style: 
-                                 L.maptiler.MapStyle.STREETS, }).addTo(leafMap);
+        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, 
+                                  apiKey: document.getElementById(key).getAttribute('data-tile-api-key'), 
+                                  style: L.maptiler.MapStyle.STREETS, }).addTo(leafMap);
       }
     }
 
@@ -164,8 +164,9 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       } else {
-        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, apiKey: API_KEY,
-                                 style: L.maptiler.MapStyle.STREETS}).addTo(map);
+        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, 
+                                  apiKey: document.getElementById(key).getAttribute('data-tile-api-key'),
+                                  style: L.maptiler.MapStyle.STREETS}).addTo(map);
       }
       this.updateMap(key);
     }
@@ -657,8 +658,9 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       } else {
-        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, apiKey: API_KEY,
-                                 style: L.maptiler.MapStyle.STREETS, }).addTo(map);
+        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, apiKey: 
+                                  document.getElementById(key).getAttribute('data-tile-api-key'),
+                                  style: L.maptiler.MapStyle.STREETS, }).addTo(map);
       }
     }
 
