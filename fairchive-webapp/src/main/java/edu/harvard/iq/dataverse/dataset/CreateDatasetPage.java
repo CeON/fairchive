@@ -390,6 +390,20 @@ public class CreateDatasetPage implements Serializable {
         return "/dataset.xhtml?faces-redirect=true&version=DRAFT&persistentId=" 
                 + dataset.getGlobalId();
     }
+    
+    public List<DatasetField> findCopySources(String sourceId) {
+        List<DatasetField> sourceFields = new ArrayList<>();
+        for (List<DatasetFieldsByType> datasetFieldsByTypeList : metadataBlocksForEdit.values()) {
+            for (DatasetFieldsByType datasetFieldsByType : datasetFieldsByTypeList) {
+                for (DatasetField datasetField : datasetFieldsByType.getDatasetFields()) {
+                    if (sourceId.equals(datasetField.getTypeName())) {
+                        sourceFields.add(datasetField);
+                    }
+                }
+            }
+        }
+        return sourceFields;
+    }
 
     // -------------------- SETTERS --------------------
 
