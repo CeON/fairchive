@@ -56,11 +56,13 @@ public class AuthenticatedUserLookup implements Serializable {
     @JoinColumn(unique = true, nullable = false)
     private AuthenticatedUser authenticatedUser;
 
-    public AuthenticatedUserLookup(String persistentUserIdFromIdp, String idp) {
+    public AuthenticatedUserLookup(final String persistentUserIdFromIdp, 
+    		final String idp) {
         this(persistentUserIdFromIdp, idp, null);
     }
 
-    public AuthenticatedUserLookup(String persistentUserIdFromIdp, String authPrvId, AuthenticatedUser authenticatedUser) {
+    public AuthenticatedUserLookup(final String persistentUserIdFromIdp, 
+    		final String authPrvId, final AuthenticatedUser authenticatedUser) {
         this.persistentUserId = persistentUserIdFromIdp;
         this.authenticationProviderId = authPrvId;
         this.authenticatedUser = authenticatedUser;
@@ -73,31 +75,31 @@ public class AuthenticatedUserLookup implements Serializable {
     }
 
     public long getId() {
-        return id;
+        return this.id;
     }
 
     public AuthenticatedUser getAuthenticatedUser() {
-        return authenticatedUser;
+        return this.authenticatedUser;
     }
 
-    public void setAuthenticatedUser(AuthenticatedUser authenticatedUser) {
-        this.authenticatedUser = authenticatedUser;
+    public void setAuthenticatedUser(final AuthenticatedUser user) {
+        this.authenticatedUser = user;
     }
 
     public String getAuthenticationProviderId() {
-        return authenticationProviderId;
+        return this.authenticationProviderId;
     }
 
-    public void setAuthenticationProviderId(String authenticationProviderId) {
-        this.authenticationProviderId = authenticationProviderId;
+    public void setAuthenticationProviderId(final String id) {
+        this.authenticationProviderId = id;
     }
 
     public String getPersistentUserId() {
-        return persistentUserId;
+        return this.persistentUserId;
     }
 
-    public void setPersistentUserId(String persistentUserId) {
-        this.persistentUserId = persistentUserId;
+    public void setPersistentUserId(final String id) {
+        this.persistentUserId = id;
     }
 
 
