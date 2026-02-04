@@ -20,10 +20,8 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,11 +84,8 @@ public class PasswordResetServiceBean {
         }
 
         // create a fresh token for the user
-        PasswordResetData passwordResetData = new PasswordResetData(aUser);
-        passwordResetData.setExpires(new Timestamp(
-                passwordResetData.getCreated().getTime() +
-                        TimeUnit.MINUTES.toMillis(systemConfig.getMinutesUntilPasswordResetTokenExpires())));
-        passwordResetData.setReason(reason);
+        PasswordResetData passwordResetData = new PasswordResetData(aUser, reason,
+        		systemConfig.getMinutesUntilPasswordResetTokenExpires());
         try {
             em.persist(passwordResetData);
             PasswordResetInitResponse passwordResetInitResponse =
