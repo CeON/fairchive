@@ -847,7 +847,16 @@ public class SettingsServiceBean {
         ExpandAllAdvancedSearchBlocks,
         
         /** Set this to {@code true} to display guest books */
-        DiplayGuestbooks;
+        DiplayGuestbooks,
+    	
+        /**
+         * Specifies whether maps use 'raster' tiles (default) or 'vector'
+         */
+    	MapTileType,
+    	/**
+    	 * Needs to be set for MapTileType == "raster"
+    	 */
+    	MapTileApiKey;
 
         @Override
         public String toString() {

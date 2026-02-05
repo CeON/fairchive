@@ -20,6 +20,8 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DropboxK
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExpandAllAdvancedSearchBlocks;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.FooterAdditionalUrl;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Languages;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MapTileType;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MapTileApiKey;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MetricsUrl;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.NavbarAboutUrl;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ProvCollectionEnabled;
@@ -31,6 +33,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowSear
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * @author gdurand
@@ -74,6 +77,15 @@ public class SettingsWrapper implements java.io.Serializable {
 
     public boolean isSearchResultOnMap() {
         return settingService.isTrueForKey(ShowSearchResultOnMap);
+    }
+    
+    public String getMapTileType() {
+    	final String type = this.settingService.getValueForKey(MapTileType);
+    	return isEmpty(type) ? "raster" : type;
+    }
+    
+    public String getMapTileApiKey() {
+    	return this.settingService.getValueForKey(MapTileApiKey);
     }
 
     public boolean isRsyncUpload() {
