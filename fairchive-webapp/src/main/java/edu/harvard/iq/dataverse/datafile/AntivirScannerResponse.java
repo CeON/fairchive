@@ -2,17 +2,17 @@ package edu.harvard.iq.dataverse.datafile;
 
 public class AntivirScannerResponse {
 
-    private boolean fileInfected;
-    private String message;
+    private final boolean fileInfected;
+    private final String message;
     
-    public AntivirScannerResponse(boolean fileInfected, String message) {
+    public AntivirScannerResponse(final boolean fileInfected, final String message) {
         this.fileInfected = fileInfected;
         this.message = message;
     }
     public boolean isFileInfected() {
-        return fileInfected;
+        return this.fileInfected;
     }
     public String getMessage() {
-        return message;
+        return this.message;
     }
 }
