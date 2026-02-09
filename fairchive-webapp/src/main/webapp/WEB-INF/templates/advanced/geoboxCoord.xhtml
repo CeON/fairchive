@@ -9,23 +9,27 @@
     <c:set var="widgetVar" value="#{mapId}_#{item.datasetFieldType.name}"/>
 
     <div id="infoBox" tabindex="0">
-        <p:staticMessage styleClass="margin-top margin-bottom" escape="false" severity="info" detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
+        <p:staticMessage styleClass="margin-top margin-bottom" 
+                         escape="false" 
+                         severity="info" 
+                         detail="#{bundle['advanced.search.geospatial.coordinates.info']}" />
     </div>
+    
+    <p:inputTextarea id="geoboxSearchValue" 
+             styleClass="form-control coord-marker margin-top margin-bottom"
+             value="#{item.fieldValue}"
+             onchange="
+                this.value = this.value.replace(/,/g, '.');
+                DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
+                DvJS.Geo.SearchView.updateMap('#{mapId}');"
+             rows="5"
+             widgetVar="#{widgetVar}"
+             pt:data-handler="#{widgetVar}"/>
 
     <div id="#{mapId}" 
          class="form-col-container geo-map"
          data-tile-type="#{settingsWrapper.mapTileType}"
          data-tile-api-key="#{settingsWrapper.mapTileApiKey}"/>
-
-    <p:inputTextarea id="geoboxSearchValue" styleClass="form-control coord-marker margin-top"
-                 value="#{item.fieldValue}"
-                 onchange="
-                    this.value = this.value.replace(/,/g, '.');
-                    DvJS.Geo.SearchView.storeCoordinates('#{mapId}', $(this).val());
-                    DvJS.Geo.SearchView.updateMap('#{mapId}');"
-                 rows="5"
-                 widgetVar="#{widgetVar}"
-                 pt:data-handler="#{widgetVar}"/>
 
     <script>
         DvJS.Geo.SearchView.prepare('#{mapId}');
