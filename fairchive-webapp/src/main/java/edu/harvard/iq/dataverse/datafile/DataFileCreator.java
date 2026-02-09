@@ -132,7 +132,7 @@ public class DataFileCreator {
         String finalType = isDetectedContentTypeBetterThanSupplied(suppliedContentType, recognizedType) ?
                 recognizedType : suppliedContentType;
 
-        if (settingsService.isTrueForKey(SettingsServiceBean.Key.AntivirusScannerEnabled)
+        if (antivirFileScanner.isEnabled()
                 && !antivirFileScanner.isFileOverSizeLimit(tempFile, recognizedType)) {
             Stopwatch watch = new Stopwatch();
             watch.start();

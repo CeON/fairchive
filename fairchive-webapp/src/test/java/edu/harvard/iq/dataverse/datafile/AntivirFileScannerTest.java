@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.datafile;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerMaxFileSize;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerMaxFileSizeForExecutables;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerSocketAddress;
@@ -45,6 +46,7 @@ public class AntivirFileScannerTest {
 
 	@BeforeEach
 	void setUp() {
+		when(settings.isTrueForKey(eq(AntivirusScannerEnabled))).thenReturn(true);
 		when(settings.getValueForKey(eq(AntivirusScannerSocketAddress))).thenReturn("localhost");
 		when(settings.getValueForKeyAsInt(eq(AntivirusScannerSocketPort))).thenReturn(3310);
 		when(settings.getValueForKeyAsInt(eq(AntivirusScannerSocketTimeout))).thenReturn(10000);

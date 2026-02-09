@@ -156,9 +156,8 @@
 							listener="#{sendFeedbackDialog.handleFileUpload}"
 							auto="true" 
 							fileLimit="5"
-							update="attachmentsList"/>
-						 <p:dataList
-						             id="attachmentsList"
+							update="attachmentsList attachmentsListMsg"/>
+						 <p:dataList id="attachmentsList"
 						             value="#{sendFeedbackDialog.attachments}"
 						             var="attachment">
 						      <h:panelGrid columns="2" 
@@ -173,7 +172,10 @@
 							      </p:commandButton>
 						      </h:panelGrid>
 						 </p:dataList>
-							
+						<p:message id="attachmentsListMsg"
+						       for="attachmentsList" 
+                               styleClass="bg-danger text-danger"
+                               display="text" />
 				</div>
 			</div>
 

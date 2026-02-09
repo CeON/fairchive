@@ -48,7 +48,7 @@ public class MailServiceTest {
     private Mailer mailer;
 
     @BeforeEach
-    public void prepare() {
+    public void prepare() throws Exception {
         Mockito.when(settingsService.getValueForKey(SettingsServiceBean.Key.SystemEmail)).thenReturn("test@email.com");
         Mockito.when(mailMessageCreator.getMessageAndSubject(any(EmailNotificationDto.class),
                                                              any(String.class)))

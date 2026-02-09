@@ -64,7 +64,9 @@ public class MailService implements java.io.Serializable {
     public MailService() { }
 
     @Inject
-    public MailService(DataverseDao dataverseDao, SettingsServiceBean settingsService, MailMessageCreator mailMessageCreator) {
+    public MailService(final DataverseDao dataverseDao, 
+    		final SettingsServiceBean settingsService, 
+    		final MailMessageCreator mailMessageCreator) {
         this.dataverseDao = dataverseDao;
         this.settingsService = settingsService;
         this.mailMessageCreator = mailMessageCreator;
@@ -113,6 +115,7 @@ public class MailService implements java.io.Serializable {
     public CompletableFuture<Boolean> sendMailAsync(final String replyEmail,
             final String recipientsEmails, final String subject,
             final String messageText, final Stream<DataSource> attachments) {
+ 	
         return CompletableFuture.supplyAsync(
                 () -> sendMail(replyEmail, recipientsEmails, subject, messageText,
                         attachments), this.executorService);
@@ -153,7 +156,7 @@ public class MailService implements java.io.Serializable {
                 .withSubject(subject)
                 .withReplyTo(replyEmail)
                 .appendText(messageText);
-        attachments.forEach(attachment -> builder.withAttachment(null, attachment));
+			attachments.forEach(a -> builder.withAttachment(null, a));
         
         return Try.run(() -> mailSender.sendMail(builder.buildEmail()))
                 .map(emailSent -> true)

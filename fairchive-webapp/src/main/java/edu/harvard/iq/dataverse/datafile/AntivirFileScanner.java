@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.datafile;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerMaxFileSize;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerMaxFileSizeForExecutables;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerSocketAddress;
@@ -49,20 +50,28 @@ public class AntivirFileScanner {
 
 	// -------------------- LOGIC --------------------
 
-	public boolean isFileOverSizeLimit(final Path file, final String contentType) 
-			throws IOException {
-		final SettingsServiceBean.Key key = isExecutable(contentType) 
-				? AntivirusScannerMaxFileSizeForExecutables
+	public boolean isEnabled() {
+		return this.settings.isTrueForKey(AntivirusScannerEnabled);
+	}
+
+	public boolean isFileOverSizeLimit(final Path file, final String contentType) throws IOException {
+		final SettingsServiceBean.Key key = isExecutable(contentType) ? AntivirusScannerMaxFileSizeForExecutables
 				: AntivirusScannerMaxFileSize;
 		return size(file) > this.settings.getValueForKeyAsLong(key);
 	}
 
 	public AntivirScannerResponse scan(final Path file) throws IOException {
-		try (final Socket socket = openSocket()) {
-			try (final InputStream fileInput = newInputStream(file)) {
+		try (final InputStream fileInput = newInputStream(file)) {
+			return scan(fileInput);
+		}
+	}
+
+	public AntivirScannerResponse scan(final InputStream fileInput) throws IOException {
+		if (isEnabled()) {
+			try (final Socket socket = openSocket()) {
 				int bytesRead = CHUNK_SIZE;
 				final byte[] buffer = new byte[CHUNK_SIZE];
-				
+
 				final DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 				out.write(INSTREAM);
 				while (bytesRead == CHUNK_SIZE) {
@@ -79,8 +88,9 @@ public class AntivirFileScanner {
 				final String message = new String(buffer, 0, bytesRead);
 				final boolean infected = message.contains("FOUND");
 				return new AntivirScannerResponse(infected, message);
-
 			}
+		} else {
+			return new AntivirScannerResponse(false, "DISABLED");
 		}
 	}
 

@@ -37,6 +37,8 @@ import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
 
+import edu.harvard.iq.dataverse.datafile.AntivirFileScanner;
+import edu.harvard.iq.dataverse.datafile.AntivirScannerResponse;
 import edu.harvard.iq.dataverse.feedback.Feedback;
 import edu.harvard.iq.dataverse.feedback.FeedbackInfo;
 import edu.harvard.iq.dataverse.feedback.FeedbackRecipient;
@@ -64,6 +66,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
     private SystemConfig config;
     private DataverseSession session;
     private UIMessages uiMessages;
+    private AntivirFileScanner scanner;
 
     private String userEmail = "";
     private String userMessage = "";
@@ -86,16 +89,17 @@ public class SendFeedbackDialog implements java.io.Serializable {
     private String rootDataverseName;
     private List<UploadedFile> attachments = new ArrayList<>();
 
-    public SendFeedbackDialog() {
-        // TODO Auto-generated constructor stub
-    }
+    public SendFeedbackDialog() {}
     
     @Inject
     public SendFeedbackDialog(final FeedbackService feedbackService,
             final MailService mailService,
             final SettingsServiceBean settings,
-            final DataverseDao dataverseDao, SystemConfig config,
-            final DataverseSession session, final UIMessages uiMessages) {
+            final DataverseDao dataverseDao, 
+            final SystemConfig config,
+            final DataverseSession session, 
+            final UIMessages uiMessages,
+            final AntivirFileScanner scanner) {
         this.feedbackService = feedbackService;
         this.mailService = mailService;
         this.sessings = settings;
@@ -103,6 +107,7 @@ public class SendFeedbackDialog implements java.io.Serializable {
         this.config = config;
         this.session = session;
         this.uiMessages = uiMessages;
+        this.scanner = scanner;
     }
 
     @PostConstruct
@@ -254,9 +259,19 @@ public class SendFeedbackDialog implements java.io.Serializable {
         return this.attachments.stream().map(UploadedFileDataSource::new);
     }
 
-    public void handleFileUpload(final FileUploadEvent event) {
-        this.attachments.add(event.getFile());
-    }
+	public void handleFileUpload(final FileUploadEvent event) {
+		try (final InputStream in = event.getFile().getInputStream()) {
+			if (this.scanner.scan(in).isFileInfected()) {
+				this.uiMessages.addComponentErrorMessage("emailForm:attachmentsList", 
+						getStringFromBundle("contact.attachments.virusFound", 
+								event.getFile().getFileName()));
+			} else {
+				this.attachments.add(event.getFile());
+			}
+		} catch (final IOException e) {
+			this.uiMessages.addComponentErrorMessage("userMessage", e.getMessage());
+		}
+	}
 
     public void validateUserSum(final FacesContext context,
             final UIComponent component,
