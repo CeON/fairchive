@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
+import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.UUID.randomUUID;
 import static javax.persistence.GenerationType.IDENTITY;
@@ -7,7 +8,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -70,11 +70,6 @@ public class PasswordResetData implements Serializable {
     @Enumerated(EnumType.STRING)
     private Reason reason;
 
-    /**
-     * This is only here because it has to be: "The class should have a no-arg,
-     * public or protected constructor." Please use the constructor that takes
-     * arguments.
-     */
     @Deprecated
     public PasswordResetData() {
     }
@@ -84,13 +79,13 @@ public class PasswordResetData implements Serializable {
         this.builtinUser = user;
         this.reason = reason;
         this.token = randomUUID().toString();
-        final Instant now = Instant.now();
+        final Instant now = now();
         this.created = Timestamp.from(now);
         this.expires = Timestamp.from(now.plus(minutesUntilPasswordResetDataExpires, MINUTES));
     }
 
     public boolean isExpired() {
-    	return this.expires.before(new Date());
+    	return this.expires.before(Timestamp.from(now()));
     }
 
     public String getToken() {
