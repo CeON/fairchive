@@ -38,7 +38,6 @@ import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
 
 import edu.harvard.iq.dataverse.datafile.AntivirFileScanner;
-import edu.harvard.iq.dataverse.datafile.AntivirScannerResponse;
 import edu.harvard.iq.dataverse.feedback.Feedback;
 import edu.harvard.iq.dataverse.feedback.FeedbackInfo;
 import edu.harvard.iq.dataverse.feedback.FeedbackRecipient;
