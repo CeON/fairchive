@@ -14,7 +14,6 @@ import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_STOP;
 import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -48,20 +47,12 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.tika.io.IOUtils;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.sax.BodyContentHandler;
-import org.xml.sax.ContentHandler;
 
 import edu.harvard.iq.dataverse.DatasetLinkingServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.dataaccess.DataAccess;
-import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
 import edu.harvard.iq.dataverse.persistence.DvObject;
@@ -90,7 +81,6 @@ import edu.harvard.iq.dataverse.search.index.geobox.GeoboxIndexUtil;
 import edu.harvard.iq.dataverse.search.periodo.PeriodoDataFinder;
 import edu.harvard.iq.dataverse.search.query.SearchObjectType;
 import edu.harvard.iq.dataverse.search.query.SearchPublicationStatus;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -117,11 +107,9 @@ public class IndexServiceBean {
     private SolrIndexServiceBean solrIndexService;
     private DatasetLinkingServiceBean dsLinkingService;
     private DataverseLinkingService dvLinkingService;
-    private SettingsServiceBean settingsService;
     private SolrClient solrServer;
     private CitationFactory citationFactory;
 
-    private DataAccess dataAccess = DataAccess.dataAccess();
     private GeoboxIndexUtil geoboxIndexUtil = new GeoboxIndexUtil();
     private GeoNameDataFinder geonames;
     private PeriodoDataFinder periods;
@@ -138,7 +126,6 @@ public class IndexServiceBean {
                             SolrIndexServiceBean solrIndexService, 
                             DatasetLinkingServiceBean dsLinkingService,
                             DataverseLinkingService dvLinkingService, 
-                            SettingsServiceBean settingsService,
                             SolrClient solrServer, 
                             CitationFactory citationFactory, 
                             GeoNameDataFinder geonames,
@@ -150,7 +137,6 @@ public class IndexServiceBean {
         this.solrIndexService = solrIndexService;
         this.dsLinkingService = dsLinkingService;
         this.dvLinkingService = dvLinkingService;
-        this.settingsService = settingsService;
         this.solrServer = solrServer;
         this.citationFactory = citationFactory;
         this.geonames = geonames;
@@ -850,8 +836,6 @@ public class IndexServiceBean {
                         && dsf.getValues().get(0) != null && solrFieldSearchable != null) {
 
                     logger.fine("indexing " + dsf.getTypeName() + ':' + dsf.getValues() + " into " + solrFieldSearchable + " and maybe " + solrFieldFacetable);
-                    // if (dsfType.getSolrField().getSolrType().equals(SolrField.SolrType.INTEGER))
-                    // {
                     if (SolrField.SolrType.EMAIL.equals(dsfSolrField.getSolrType())) {
                         // no-op. we want to keep email address out of Solr per
                         // https://github.com/IQSS/dataverse/issues/759
@@ -870,12 +854,8 @@ public class IndexServiceBean {
                                 SimpleDateFormat yearOnly = new SimpleDateFormat("yyyy");
                                 String datasetFieldFlaggedAsDate = yearOnly.format(dateAsDate);
                                 logger.fine("YYYY only: " + datasetFieldFlaggedAsDate);
-                                // solrInputDocument.addField(solrFieldSearchable,
-                                // Integer.parseInt(datasetFieldFlaggedAsDate));
                                 solrInputDocument.addField(solrFieldSearchable, dateAsString);
                                 if (dsfSolrField.isFacetable()) {
-                                    // solrInputDocument.addField(solrFieldFacetable,
-                                    // Integer.parseInt(datasetFieldFlaggedAsDate));
                                     solrInputDocument.addField(solrFieldFacetable, datasetFieldFlaggedAsDate);
                                 }
                             } catch (Exception ex) {
@@ -981,10 +961,6 @@ public class IndexServiceBean {
         /*
           File Indexing
          */
-        boolean doFullTextIndexing = settingsService.isTrueForKey(SettingsServiceBean.Key.SolrFullTextIndexing);
-        Long maxFTIndexingSize = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.SolrMaxFileSizeForFullTextIndexing);
-        long maxSize = (maxFTIndexingSize == 0) ? maxFTIndexingSize : Long.MAX_VALUE;
-
         List<String> filesIndexed = new ArrayList<>();
         if (datasetVersion != null) {
             List<FileMetadata> fileMetadatas = datasetVersion.getFileMetadatas();
@@ -1050,55 +1026,6 @@ public class IndexServiceBean {
                         }
                     } else {
                         datafileSolrInputDocument.addField(SearchFields.EMBARGO_UNTIL, dataset.getEmbargoDate().get());
-                    }
-
-                    /* Full-text indexing using Apache Tika */
-                    if (doFullTextIndexing) {
-                        if (!dataset.isHarvested() && !fileMetadata.isFileUseRestricted()
-                                && !fileMetadata.getDataFile().isFilePackage()) {
-                            StorageIO<DataFile> accessObject;
-                            InputStream instream = null;
-                            ContentHandler textHandler;
-                            try {
-                                accessObject = dataAccess.getStorageIO(fileMetadata.getDataFile());
-                                if (accessObject != null) {
-                                    accessObject.open();
-                                    // If the size is >max, we don't use the stream. However, for S3, the stream is
-                                    // currently opened in the call above (see
-                                    // https://github.com/IQSS/dataverse/issues/5165), so we want to get a handle so
-                                    // we can close it below.
-                                    instream = accessObject.getInputStream();
-                                    if (accessObject.getSize() <= maxSize) {
-                                        AutoDetectParser autoParser = new AutoDetectParser();
-                                        textHandler = new BodyContentHandler(-1);
-                                        Metadata metadata = new Metadata();
-                                        ParseContext context = new ParseContext();
-                                        /*
-                                         * Try parsing the file. Note that, other than by limiting size, there's been no
-                                         * check see whether this file is a good candidate for text extraction (e.g.
-                                         * based on type).
-                                         */
-                                        autoParser.parse(instream, textHandler, metadata, context);
-                                        datafileSolrInputDocument.addField(SearchFields.FULL_TEXT,
-                                                                           textHandler.toString());
-                                    }
-                                }
-                            } catch (Exception e) {
-                                // Needs better logging of what went wrong in order to
-                                // track down "bad" documents.
-                                logger.warning(String.format("Full-text indexing for %s failed",
-                                                             fileMetadata.getDataFile().getDisplayName()));
-                                e.printStackTrace();
-                                continue;
-                            } catch (OutOfMemoryError e) {
-                                textHandler = null;
-                                logger.warning(String.format("Full-text indexing for %s failed due to OutOfMemoryError",
-                                                             fileMetadata.getDataFile().getDisplayName()));
-                                continue;
-                            } finally {
-                                IOUtils.closeQuietly(instream);
-                            }
-                        }
                     }
 
                     String filenameCompleteFinal = "";
@@ -1186,7 +1113,6 @@ public class IndexServiceBean {
                     if (indexableDataset.getDatasetState().equals(IndexableDataset.DatasetState.PUBLISHED)) {
                         fileSolrDocId = solrDocIdentifierFile + fileEntityId;
                         datafileSolrInputDocument.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.PUBLISHED.getSolrValue());
-                        // datafileSolrInputDocument.addField(SearchFields.PERMS, publicGroupString);
                         addDatasetReleaseDateToSolrDoc(datafileSolrInputDocument, dataset);
                     } else if (indexableDataset.getDatasetState().equals(IndexableDataset.DatasetState.WORKING_COPY)) {
                         fileSolrDocId = solrDocIdentifierFile + fileEntityId + indexableDataset.getDatasetState().getSuffix();
@@ -1203,11 +1129,6 @@ public class IndexServiceBean {
                     datafileSolrInputDocument.addField(SearchFields.FILE_TYPE_SEARCHABLE, FileUtil.getFacetFileTypeForIndex(fileMetadata.getDataFile(), Locale.ENGLISH));
                     datafileSolrInputDocument.addField(SearchFields.FILE_SIZE_IN_BYTES, fileMetadata.getDataFile().getFilesize());
                     if (DataFile.ChecksumType.MD5.equals(fileMetadata.getDataFile().getChecksumType())) {
-                        /*
-                          @todo Someday we should probably deprecate this
-                         * FILE_MD5 in favor of a combination of
-                         * FILE_CHECKSUM_TYPE and FILE_CHECKSUM_VALUE.
-                         */
                         datafileSolrInputDocument.addField(SearchFields.FILE_MD5, fileMetadata.getDataFile().getChecksumValue());
                     }
                     datafileSolrInputDocument.addField(SearchFields.FILE_CHECKSUM_TYPE, fileMetadata.getDataFile().getChecksumType().toString());
@@ -1217,10 +1138,6 @@ public class IndexServiceBean {
                     datafileSolrInputDocument.addField(SearchFields.FILE_PERSISTENT_ID, fileMetadata.getDataFile().getGlobalId().toString());
                     datafileSolrInputDocument.addField(SearchFields.UNF, fileMetadata.getDataFile().getUnf());
                     datafileSolrInputDocument.addField(SearchFields.SUBTREE, dataversePaths);
-                    // datafileSolrInputDocument.addField(SearchFields.HOST_DATAVERSE,
-                    // dataFile.getOwner().getOwner().getName());
-                    // datafileSolrInputDocument.addField(SearchFields.PARENT_NAME,
-                    // dataFile.getDataset().getTitle());
                     datafileSolrInputDocument.addField(SearchFields.PARENT_ID, fileMetadata.getDataFile().getOwner().getId());
                     datafileSolrInputDocument.addField(SearchFields.PARENT_IDENTIFIER, fileMetadata.getDataFile().getOwner().getGlobalId().toString());
                     for (Locale locale : configuredLocales) {
@@ -1494,7 +1411,6 @@ public class IndexServiceBean {
         solrQuery.setFields(SearchFields.ID);
         solrQuery.setRows(Integer.MAX_VALUE);
         solrQuery.addFilterQuery(SearchFields.PARENT_ID + ':' + parentDatasetId);
-        //  todo "files" should be a constant
         solrQuery.addFilterQuery(SearchFields.TYPE + ':' + SearchObjectType.FILES.getSolrValue());
         List<String> dvObjectInSolrOnly = new ArrayList<>();
         QueryResponse queryResponse;

@@ -1,16 +1,16 @@
 package edu.harvard.iq.dataverse.datafile;
 
-import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
-import edu.harvard.iq.dataverse.ingest.IngestableDataChecker;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.JhoveFileType;
-import edu.harvard.iq.dataverse.util.ShapefileHandler;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.tika.Tika;
-import org.apache.tika.mime.MediaType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.Collections.emptyMap;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.zip.GZIPInputStream;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.ejb.EJBException;
@@ -21,14 +21,20 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.zip.GZIPInputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.tika.detect.Detector;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.parser.AutoDetectParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
+import edu.harvard.iq.dataverse.ingest.IngestableDataChecker;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.JhoveFileType;
+import edu.harvard.iq.dataverse.util.ShapefileHandler;
 
 /**
  * our check is fairly weak (it appears to be hard to really
@@ -83,7 +89,7 @@ public class FileTypeDetector {
 
         // step 3: check the mime type of this file with Tika
         if (!isContentTypeSpecificEnough(fileType)) {
-            fileType = new Tika().detect(f);
+        	fileType = detectWithTika(f);
         }
 
 
@@ -154,6 +160,17 @@ public class FileTypeDetector {
     }
     
     // -------------------- PRIVATE --------------------
+    
+    private String detectWithTika(final File file) throws IOException {
+    	final AutoDetectParser parser = new AutoDetectParser();
+    	parser.setParsers(emptyMap()); // disable all parsing
+        final Detector detector = parser.getDetector();
+        final Metadata metadata = new Metadata();
+
+        try (final InputStream is = new BufferedInputStream(new FileInputStream(file))) {
+            return detector.detect(is, metadata).toString();
+        }
+    }
 
     private boolean isContentTypeSpecificEnough(String contentType) {
         return !"text/plain".equals(contentType) && !"application/octet-stream".equals(contentType);
