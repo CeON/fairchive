@@ -15,8 +15,8 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.group.ExplicitGroup;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
-import edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
+import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import io.vavr.control.Try;
@@ -69,14 +69,20 @@ public class ManagePermissionsService implements Serializable {
     }
 
     /***
-     * For FILE_DOWNLOADER role we don't notify user if dataset is unpublished since with FILE_DOWNLOADER role
-     * user is not able to access dataset.
-     * @param role - role to be assigned
-     * @param object - object to which we assign role
-     * @return false if role is FILE_DOWNLOADER and dataverse is unpublished
+     * For unpublished dataverses and datasets we do not send a notification
+     * if the assigned role do not allow to go to the dataverse or dataset page.
+     * If we would send such notification then the user would obtain a notification
+     * with a link that he cannot access.
+     * Sending this notification will be postponed when objects will be published.
      */
     private boolean shouldUserBeNotified(DataverseRole role, DvObject object) {
-        return !(role.getAlias().equals(BuiltInRole.FILE_DOWNLOADER.getAlias()) && !object.isReleased());
+        if (object.isReleased()) {
+            return true;
+        }
+        if (object.isInstanceofDataverse()) {
+            return role.has(Permission.ViewUnpublishedDataverse);
+        }
+        return role.has(Permission.ViewUnpublishedDataset);
     }
 
 
