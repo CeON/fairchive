@@ -70,10 +70,10 @@ public class ManagePermissionsService implements Serializable {
 
     /***
      * For unpublished dataverses and datasets we do not send a notification
-     * if the assigned role do not allow to go to the dataverse or dataset page.
+     * if the assigned role does not allow to go to the dataverse or dataset page.
      * If we would send such notification then the user would obtain a notification
      * with a link that he cannot access.
-     * Sending this notification will be postponed when objects will be published.
+     * Sending this notification will be postponed until the object is published.
      */
     private boolean shouldUserBeNotified(DataverseRole role, DvObject object) {
         if (object.isReleased()) {
