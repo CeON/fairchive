@@ -45,15 +45,7 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
         }
 
         //Before setting dataverse to released send notifications to users with download file
-        List<RoleAssignment> ras = ctxt.roles().directRoleAssignments(dataverse);
-        for (RoleAssignment ra : ras) {
-            if (ra.getRole().has(Permission.DownloadFile)) {
-                for (AuthenticatedUser au : ctxt.roleAssignees().getExplicitUsers(ctxt.roleAssignees().getRoleAssignee(ra.getAssigneeIdentifier()))) {
-                    ctxt.notifications().sendNotificationWithEmail(au, new Timestamp(new Date().getTime()), NotificationType.ASSIGNROLE,
-                                                                   dataverse.getId(), NotificationObjectType.DATAVERSE);
-                }
-            }
-        }
+        sendAssignRoleNotifications(ctxt);
 
         dataverse.setPublicationDate(new Timestamp(new Date().getTime()));
         dataverse.setReleaseUser((AuthenticatedUser) getUser());
@@ -66,4 +58,20 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
         return savedDataverse;
     }
 
+    /**
+     * Sends notifications about assigned roles in a dataverse, but only
+     * when role did not allow to view unpublished dataverse.
+     * Since for this cases we postponed sending the notification
+     * until the dataverse can be accessed and now when dataverse is
+     * published it can be accessed by anyone
+     */
+    private void sendAssignRoleNotifications(CommandContext ctxt) {
+        ctxt.roles().directRoleAssignments(dataverse).stream()
+            .filter(ra -> !ra.getRole().has(Permission.ViewUnpublishedDataverse))
+            .flatMap(ra -> ctxt.roleAssignees().getExplicitUsers(ctxt.roleAssignees().getRoleAssignee(ra.getAssigneeIdentifier())).stream())
+            .distinct()
+            .forEach(au -> ctxt.notifications().sendNotificationWithEmail(
+                                au, new Timestamp(new Date().getTime()), NotificationType.ASSIGNROLE,
+                                dataverse.getId(), NotificationObjectType.DATAVERSE));
+    }
 }

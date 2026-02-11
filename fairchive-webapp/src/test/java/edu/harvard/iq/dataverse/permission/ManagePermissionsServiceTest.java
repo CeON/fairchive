@@ -12,6 +12,8 @@ import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
+import edu.harvard.iq.dataverse.persistence.user.NotificationType;
+import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,9 +28,11 @@ import java.sql.Timestamp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,11 +71,27 @@ public class ManagePermissionsServiceTest {
 
     @Test
     public void assignRoleWithNotification() {
+        // given
+        role.addPermission(Permission.ViewUnpublishedDataverse);
+
+        // when
+        RoleAssignment resultAssignment = managePermissionsService.assignRoleWithNotification(role, roleAssignee, dvObject);
+
+        // then
+        verify(commandEngine, times(1)).submit(any(AssignRoleCommand.class));
+        verify(userNotificationService).sendNotificationWithEmail(eq(roleAssignee), any(), eq(NotificationType.ASSIGNROLE),
+                eq(dvObject.getId()), eq(NotificationObjectType.DATAVERSE));
+        assertEquals("testRole", resultAssignment.getRole().getName());
+    }
+
+    @Test
+    public void assignRoleWithNotification__no_notification_for_unpublished_dataverse_and_no_view_unpublished_permission() {
         // given & when
         RoleAssignment resultAssignment = managePermissionsService.assignRoleWithNotification(role, roleAssignee, dvObject);
 
         // then
         verify(commandEngine, times(1)).submit(any(AssignRoleCommand.class));
+        verifyNoInteractions(userNotificationService);
         assertEquals("testRole", resultAssignment.getRole().getName());
     }
 
