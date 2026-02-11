@@ -60,7 +60,7 @@ public class ManagePermissionsServiceIT extends WebappArquillianDeployment {
         dataverseSession.logIn(authenticationService.findByID(1L));
         String userEmail = dataverseSession.getUser().getDisplayInfo().getEmailAddress();
         Dataverse dataverse = dataverseDao.find(1L);
-        DataverseRole roleToBeAssigned = roleService.findBuiltinRoleByAlias(BuiltInRole.EDITOR);
+        DataverseRole roleToBeAssigned = roleService.findBuiltinRoleByAlias(BuiltInRole.CURATOR);
 
         // when
         managePermissionsService.assignRoleWithNotification(roleToBeAssigned, dataverseSession.getUser(), dataverse);
