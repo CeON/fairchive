@@ -12,6 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
@@ -602,12 +603,12 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            throw new UnsupportedOperationException();
+            return new ByteArrayInputStream(getContent());
         }
 
         @Override
         public byte[] getContent() {
-            throw new UnsupportedOperationException();
+            return new byte[(int)this.size];
         }
 
         @Override
