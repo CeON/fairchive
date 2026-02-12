@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -108,9 +109,9 @@ public class DataFileCreatorTest {
         byte[] zipBytes = UnitTestUtils.readFileToByteArray("images/coffeeshop_thumbnail_64.png");
 
         when(settingsService.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes)).thenReturn(1024L*1024L);
-        when(settingsService.isTrueForKey(Key.AntivirusScannerEnabled)).thenReturn(true);
         when(antivirFileScanner.isFileOverSizeLimit(any(), any())).thenReturn(false);
-        when(antivirFileScanner.scan(any())).thenReturn(new AntivirScannerResponse(true, "Infected file"));
+        when(antivirFileScanner.scan(any(Path.class))).thenReturn(new AntivirScannerResponse(true, "Infected file"));
+        when(antivirFileScanner.isEnabled()).thenReturn(true);
         when(fileTypeDetector.determineFileType(any(), any())).thenReturn("image/png");
         
 

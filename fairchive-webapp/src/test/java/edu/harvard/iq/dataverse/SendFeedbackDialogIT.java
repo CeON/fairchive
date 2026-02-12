@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +33,8 @@ import org.simplejavamail.email.Email;
 import org.simplejavamail.mailer.Mailer;
 
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.datafile.AntivirFileScanner;
+import edu.harvard.iq.dataverse.datafile.AntivirScannerResponse;
 import edu.harvard.iq.dataverse.feedback.FeedbackService;
 import edu.harvard.iq.dataverse.mail.EmailContent;
 import edu.harvard.iq.dataverse.mail.MailMessageCreator;
@@ -63,6 +66,9 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
     private Mailer mailSender = Mockito.mock(Mailer.class);
 
     private UIMessages messages = Mockito.mock(UIMessages.class);
+    
+    private AntivirFileScanner scanner = Mockito.mock(AntivirFileScanner.class);
+    
 
     private MailService mailService;
 
@@ -78,7 +84,7 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
     private DataFileRepository dataFileRepository;
     @Inject
     private AuthenticatedUserRepository userRepository;
-
+    
 
     private final static String SYSTEM_EMAIL = "dataverseAdmin@mailinator.com";
     private final static String GUEST_USER_EMAIL = "guest@dv.com";
@@ -91,22 +97,24 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
             "file3.txt", 8000000);
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         setUpMailService();
         setUpSendFeedbackDialog();
     }
 
-    private void setUpMailService() {
+    private void setUpMailService() throws Exception {  	
         this.mailService = new TestMailService(this.dataverseDao,
                 this.settingsService,
                 this.mailMessageCreator, this.mailSender);
     }
 
-    private void setUpSendFeedbackDialog() {
+    private void setUpSendFeedbackDialog() throws Exception {
+    	when(this.scanner.scan(any(InputStream.class))).
+    		thenReturn(new AntivirScannerResponse(false, "OK"));
 
         this.dialog = new SendFeedbackDialog(this.feedbackService, this.mailService,
                 this.settingsService, this.dataverseDao, this.systemConfig,
-                this.dataverseSession, this.messages);
+                this.dataverseSession, this.messages, this.scanner);
 
         this.dialog.init();
     }
@@ -554,7 +562,8 @@ public class SendFeedbackDialogIT extends WebappArquillianDeployment {
 
         public TestMailService(DataverseDao dataverseDao,
                 SettingsServiceBean settingsService,
-                MailMessageCreator mailMessageCreator, Mailer mailSender) {
+                MailMessageCreator mailMessageCreator, 
+                Mailer mailSender) {
             super(dataverseDao, settingsService, mailMessageCreator);
             setMailSender(mailSender);
         }

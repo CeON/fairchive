@@ -1,106 +1,114 @@
 package edu.harvard.iq.dataverse.datafile;
 
-import com.google.common.collect.ImmutableSet;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.mime.MediaTypeRegistry;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerEnabled;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerMaxFileSize;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerMaxFileSizeForExecutables;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerSocketAddress;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerSocketPort;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AntivirusScannerSocketTimeout;
+import static java.nio.file.Files.newInputStream;
+import static java.nio.file.Files.size;
+import static java.util.Arrays.asList;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
+import java.nio.file.Path;
+import java.util.Collection;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
+
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.mime.MediaTypeRegistry;
+
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 @Stateless
 public class AntivirFileScanner {
 
-    private static final Set<String> EXECUTABLE_CONTENT_TYPE_SUBTYPES = ImmutableSet.of("x-msdownload", "x-ms-installer", "java-archive");
+	private static final Collection<String> EXECUTABLE_SUBTYPES = asList("x-msdownload", "x-ms-installer",
+			"java-archive");
 
-    private static final int CHUNK_SIZE = 2048;
-    private static final byte[] INSTREAM = "zINSTREAM\0".getBytes(StandardCharsets.UTF_8);
+	private static final int CHUNK_SIZE = 2048;
 
-    private SettingsServiceBean settingsService;
+	private static final byte[] INSTREAM = new byte[] { 'z', 'I', 'N', 'S', 'T', 'R', 'E', 'A', 'M', 0 };
 
+	private SettingsServiceBean settings;
 
-    // -------------------- CONSTRUCTORS --------------------
+	// -------------------- CONSTRUCTORS --------------------
 
-    @Deprecated
-    public AntivirFileScanner() {
-    }
+	@Deprecated
+	public AntivirFileScanner() {
+	}
 
-    @Inject
-    public AntivirFileScanner(SettingsServiceBean settingsService) {
-        this.settingsService = settingsService;
-    }
-    
-    // -------------------- LOGIC --------------------
-    
-    public boolean isFileOverSizeLimit(File file, String contentType) {
-        if (isExecutable(contentType)) {
-            return file.length() > settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.AntivirusScannerMaxFileSizeForExecutables);
-        }
-        
-        return file.length() > settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.AntivirusScannerMaxFileSize);
-    }
-    
-    public AntivirScannerResponse scan(Path file) throws IOException {
-        Socket socket = new Socket();
+	@Inject
+	public AntivirFileScanner(final SettingsServiceBean settings) {
+		this.settings = settings;
+	}
 
-        socket.connect(new InetSocketAddress(settingsService.getValueForKey(SettingsServiceBean.Key.AntivirusScannerSocketAddress),
-                                             settingsService.getValueForKeyAsInt(SettingsServiceBean.Key.AntivirusScannerSocketPort)));
+	// -------------------- LOGIC --------------------
 
-        socket.setSoTimeout(settingsService.getValueForKeyAsInt(SettingsServiceBean.Key.AntivirusScannerSocketTimeout));
+	public boolean isEnabled() {
+		return this.settings.isTrueForKey(AntivirusScannerEnabled);
+	}
 
-        DataOutputStream dos = null;
-        try (InputStream fileInput = Files.newInputStream(file)) {
+	public boolean isFileOverSizeLimit(final Path file, final String contentType) throws IOException {
+		final SettingsServiceBean.Key key = isExecutable(contentType) ? AntivirusScannerMaxFileSizeForExecutables
+				: AntivirusScannerMaxFileSize;
+		return size(file) > this.settings.getValueForKeyAsLong(key);
+	}
 
-            dos = new DataOutputStream(socket.getOutputStream());
-            dos.write(INSTREAM);
- 
-            int read = CHUNK_SIZE;
-            byte[] buffer = new byte[CHUNK_SIZE];
-            while (read == CHUNK_SIZE) {
-                    read = fileInput.read(buffer);
- 
-                if (read > 0) {
-                        dos.writeInt(read);
-                        dos.write(buffer, 0, read);
-                }
-            }
+	public AntivirScannerResponse scan(final Path file) throws IOException {
+		try (final InputStream fileInput = newInputStream(file)) {
+			return scan(fileInput);
+		}
+	}
 
-            dos.writeInt(0);
-            dos.flush();
- 
-            read = socket.getInputStream().read(buffer);
-            String scannerMessage = new String(buffer, 0, read);
-            boolean infected = scannerMessage.contains("FOUND");
-            return new AntivirScannerResponse(infected, scannerMessage);
+	public AntivirScannerResponse scan(final InputStream fileInput) throws IOException {
+		if (isEnabled()) {
+			try (final Socket socket = openSocket()) {
+				int bytesRead = CHUNK_SIZE;
+				final byte[] buffer = new byte[CHUNK_SIZE];
 
-        } finally {
-            if (dos != null) {
-                dos.close();
-            }
-            socket.close();
-        }
+				final DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+				out.write(INSTREAM);
+				while (bytesRead == CHUNK_SIZE) {
+					bytesRead = fileInput.read(buffer);
+					if (bytesRead > 0) {
+						out.writeInt(bytesRead);
+						out.write(buffer, 0, bytesRead);
+					}
+				}
+				out.writeInt(0);
+				out.flush();
 
-    }
-    
-    private boolean isExecutable(String contentType) {
-        MediaType mediaType = MediaType.parse(contentType);
-        while (mediaType != null && !mediaType.equals(MediaType.OCTET_STREAM)) {
-            if (EXECUTABLE_CONTENT_TYPE_SUBTYPES.contains(mediaType.getSubtype())) {
-                return true;
-            }
-            mediaType = MediaTypeRegistry.getDefaultRegistry().getSupertype(mediaType);
-        }
-        return false;
-    }
-    
+				bytesRead = socket.getInputStream().read(buffer);
+				final String message = new String(buffer, 0, bytesRead);
+				final boolean infected = message.contains("FOUND");
+				return new AntivirScannerResponse(infected, message);
+			}
+		} else {
+			return new AntivirScannerResponse(false, "DISABLED");
+		}
+	}
+
+	private Socket openSocket() throws IOException {
+		Socket socket = new Socket(this.settings.getValueForKey(AntivirusScannerSocketAddress),
+				this.settings.getValueForKeyAsInt(AntivirusScannerSocketPort));
+		socket.setSoTimeout(this.settings.getValueForKeyAsInt(AntivirusScannerSocketTimeout));
+		return socket;
+	}
+
+	private static boolean isExecutable(final String contentType) {
+		MediaType mediaType = MediaType.parse(contentType);
+		while (mediaType != null && !mediaType.equals(MediaType.OCTET_STREAM)) {
+			if (EXECUTABLE_SUBTYPES.contains(mediaType.getSubtype())) {
+				return true;
+			}
+			mediaType = MediaTypeRegistry.getDefaultRegistry().getSupertype(mediaType);
+		}
+		return false;
+	}
 }
