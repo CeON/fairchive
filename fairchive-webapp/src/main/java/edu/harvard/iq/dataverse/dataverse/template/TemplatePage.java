@@ -26,6 +26,9 @@ import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -205,6 +208,10 @@ public class TemplatePage implements java.io.Serializable {
     private Try<Template> tryToSave(BiFunction<Dataverse, Template, Try<Template>> saveHandler, String successMessage) {
         return saveHandler.apply(dataverse, template)
                 .onSuccess(op -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle(successMessage)));
+    }
+    
+    public List<DatasetField> findCopySources(String sourceId) {
+        return Collections.emptyList();
     }
 
     // -------------------- SETTERS --------------------

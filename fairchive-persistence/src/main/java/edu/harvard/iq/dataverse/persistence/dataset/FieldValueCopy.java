@@ -56,7 +56,9 @@ public class FieldValueCopy {
                 DatasetField targetMapping = getChildrenField(target, copyMapping.get("to"));
 
                 targetMapping.setValue(sourceMapping.getValue());
-                setControlledVocabulary(targetMapping);
+                if(targetMapping.getValue() != null) {
+                	setControlledVocabulary(targetMapping);
+                }
 
             }
             if (!type.equals("copy")) {

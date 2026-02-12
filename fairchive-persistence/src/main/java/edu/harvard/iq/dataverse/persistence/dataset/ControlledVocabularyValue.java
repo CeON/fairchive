@@ -13,6 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundleWithLocale;
+import static java.util.Comparator.comparingInt;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
@@ -35,7 +36,7 @@ import java.util.Objects;
 public class ControlledVocabularyValue implements Serializable {
 
     public static final Comparator<ControlledVocabularyValue> DisplayOrder
-            = Comparator.comparingInt(ControlledVocabularyValue::getDisplayOrder);
+            = comparingInt(ControlledVocabularyValue::getDisplayOrder);
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -192,6 +193,6 @@ public class ControlledVocabularyValue implements Serializable {
 
     @Override
     public String toString() {
-        return "ControlledVocabularyValue[ id=" + id + " ]";
+        return this.strValue;
     }
 }

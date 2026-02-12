@@ -752,6 +752,6 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     @Override
     public String toString() {
-        return "[DatasetFieldType name:" + getName() + " id:" + getId() + ']';
+        return getName();
     }
 }

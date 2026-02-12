@@ -1,5 +1,15 @@
 package edu.harvard.iq.dataverse.search.advanced;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.Test;
+
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
@@ -11,48 +21,34 @@ import edu.harvard.iq.dataverse.search.advanced.field.NumberSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.SelectOneSearchField;
 import edu.harvard.iq.dataverse.search.advanced.field.TextSearchField;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class SearchFieldFactoryTest {
 
     private SearchFieldFactory factory = new SearchFieldFactory();
-
-    static Stream<Arguments> create() {
-        return Stream.of(
-                Arguments.of(createGeobox(), GeoboxCoordSearchField.class),
-                Arguments.of(createTextBoxInsideGeoboxParent(), TextSearchField.class),
-                Arguments.of(createType(FieldType.TEXT), TextSearchField.class),
-                Arguments.of(createType(FieldType.TEXTBOX), TextSearchField.class),
-                Arguments.of(createType(FieldType.URL), TextSearchField.class),
-                Arguments.of(createType(FieldType.EMAIL), TextSearchField.class),
-                Arguments.of(createType(FieldType.INT), NumberSearchField.class),
-                Arguments.of(createType(FieldType.FLOAT), NumberSearchField.class),
-                Arguments.of(createVocabularyType(true), CheckboxSearchField.class),
-                Arguments.of(createVocabularyType(false), SelectOneSearchField.class),
-                Arguments.of(createEnhancedSelectVocabularyType(false), LazySelectSearchField.class),
-                Arguments.of(createEnhancedSelectVocabularyType(true), LazySelectSearchField.class));
+    
+    @Test
+    void create() {
+    	testType(createGeobox(), GeoboxCoordSearchField.class);
+    	testType(createTextBoxInsideGeoboxParent(), TextSearchField.class);
+    	testType(createType(FieldType.TEXT), TextSearchField.class);
+    	testType(createType(FieldType.TEXTBOX), TextSearchField.class);
+    	testType(createType(FieldType.URL), TextSearchField.class);
+    	testType(createType(FieldType.EMAIL), TextSearchField.class);
+    	testType(createType(FieldType.INT), NumberSearchField.class);
+    	testType(createType(FieldType.FLOAT), NumberSearchField.class);
+    	testType(createVocabularyType(true), CheckboxSearchField.class);
+    	testType(createVocabularyType(false), SelectOneSearchField.class);
+    	testType(createEnhancedSelectVocabularyType(false), LazySelectSearchField.class);
+    	testType(createEnhancedSelectVocabularyType(true), LazySelectSearchField.class);
     }
-
-    @ParameterizedTest
-    @MethodSource
-    void create(DatasetFieldType fieldTypeSupplier, Class<? extends SearchField> expectedType) {
-        // given & when
-        SearchField field = factory.create(fieldTypeSupplier);
-
-        // then
-        assertThat(field).isInstanceOf(expectedType);
-    }
+    
+	private void testType(DatasetFieldType fieldTypeSupplier, 
+			Class<? extends SearchField> expectedType) {
+		// given & when
+		SearchField field = factory.create(fieldTypeSupplier);
+		// then
+		assertThat(field).isInstanceOf(expectedType);
+	}
 
     // -------------------- PRIVATE --------------------
 

@@ -627,6 +627,6 @@ public class DatasetField implements Serializable, ValidatableField {
 
     @Override
     public String toString() {
-        return "DatasetField[ id=" + id + " ]";
+        return this.datasetFieldType.toString() + '=' + getFieldValue().getOrElse("");
     }
 }
