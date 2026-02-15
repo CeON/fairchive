@@ -17,7 +17,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntryRequest;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.parallel.InputStreamSupplier;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.apache.http.client.ClientProtocolException;
@@ -340,7 +339,6 @@ public final class BagGenerator {
 
     public boolean generateBag(String bagName, boolean temp) {
         usetemp = temp;
-        FileOutputStream bagFileOS = null;
         try {
             File origBagFile = getBagFile(bagName);
             File bagFile = origBagFile;
@@ -349,34 +347,29 @@ public final class BagGenerator {
                 logger.fine("Writing to: " + bagFile.getAbsolutePath());
             }
             // Create an output stream backed by the file
-            bagFileOS = new FileOutputStream(bagFile);
-            if (generateBag(bagFileOS)) {
-                validateBagFile(bagFile);
-                if (usetemp) {
-                    logger.fine("Moving tmp zip");
-                    origBagFile.delete();
-                    bagFile.renameTo(origBagFile);
-                }
-                return true;
-            } else {
-                return false;
+            try(FileOutputStream bagFileOS = new FileOutputStream(bagFile)) {
+	            if (generateBag(bagFileOS)) {
+	                validateBagFile(bagFile);
+	                if (usetemp) {
+	                    logger.fine("Moving tmp zip");
+	                    origBagFile.delete();
+	                    bagFile.renameTo(origBagFile);
+	                }
+	                return true;
+	            } else {
+	                return false;
+	            }
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Bag Exception: ", e);
-            e.printStackTrace();
             logger.warning("Failure: Processing failure during Bagit file creation");
             return false;
-        } finally {
-            IOUtils.closeQuietly(bagFileOS);
-        }
+        } 
     }
 
     public void validateBag(String bagId) {
         logger.info("Validating Bag");
-        ZipFile zf = null;
-        InputStream is = null;
-        try {
-            zf =  ZipFile.builder().setFile(getBagFile(bagId)).get();
+        try (ZipFile zf =  ZipFile.builder().setFile(getBagFile(bagId)).get()) {
             ZipArchiveEntry entry = zf.getEntry(getValidName(bagId) + "/manifest-sha1.txt");
             if (entry != null) {
                 logger.info("SHA1 hashes used");
@@ -403,27 +396,24 @@ public final class BagGenerator {
             if (entry == null) {
                 throw new IOException("No manifest file found");
             }
-            is = zf.getInputStream(entry);
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            String line = br.readLine();
-            while (line != null) {
-                logger.fine("Hash entry: " + line);
-                int breakIndex = line.indexOf(' ');
-                String hash = line.substring(0, breakIndex);
-                String path = line.substring(breakIndex + 1);
-                logger.fine("Adding: " + path + " with hash: " + hash);
-                checksumMap.put(path, hash);
-                line = br.readLine();
+            try(BufferedReader br = new BufferedReader(new InputStreamReader(zf.getInputStream(entry)))) {
+	            String line = br.readLine();
+	            while (line != null) {
+	                logger.fine("Hash entry: " + line);
+	                int breakIndex = line.indexOf(' ');
+	                String hash = line.substring(0, breakIndex);
+	                String path = line.substring(breakIndex + 1);
+	                logger.fine("Adding: " + path + " with hash: " + hash);
+	                checksumMap.put(path, hash);
+	                line = br.readLine();
+	            }
             }
-            IOUtils.closeQuietly(is);
             logger.info("HashMap Map contains: " + checksumMap.size() + " entries");
             checkFiles(checksumMap, zf);
         } catch (IOException io) {
             logger.log(Level.SEVERE, "Could not validate Hashes", io);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not validate Hashes", e);
-        } finally {
-            IOUtils.closeQuietly(zf);
         }
         return;
     }
@@ -548,28 +538,24 @@ public final class BagGenerator {
                 try {
                     if ((childHash == null) | ignorehashes) {
                         // Generate missing hashInputStream inputStream = null;
-                        InputStream inputStream = null;
-                        try {
-                            inputStream = getInputStreamSupplier(dataUrl).get();
+                        try (InputStream in = getInputStreamSupplier(dataUrl).get()) {
 
                             if (hashtype != null) {
                                 if (hashtype.equals(DataFile.ChecksumType.SHA1)) {
-                                    childHash = DigestUtils.sha1Hex(inputStream);
+                                    childHash = DigestUtils.sha1Hex(in);
                                 } else if (hashtype.equals(DataFile.ChecksumType.SHA256)) {
-                                    childHash = DigestUtils.sha256Hex(inputStream);
+                                    childHash = DigestUtils.sha256Hex(in);
                                 } else if (hashtype.equals(DataFile.ChecksumType.SHA512)) {
-                                    childHash = DigestUtils.sha512Hex(inputStream);
+                                    childHash = DigestUtils.sha512Hex(in);
                                 } else if (hashtype.equals(DataFile.ChecksumType.MD5)) {
-                                    childHash = DigestUtils.md5Hex(inputStream);
+                                    childHash = DigestUtils.md5Hex(in);
                                 }
                             }
 
                         } catch (IOException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
-                        } finally {
-                            IOUtils.closeQuietly(inputStream);
-                        }
+                        } 
                         if (childHash != null) {
                             JsonObject childHashObject = new JsonObject();
                             childHashObject.addProperty("@type", hashtype.toString());

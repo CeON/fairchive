@@ -27,7 +27,6 @@ import javax.faces.convert.FacesConverter;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

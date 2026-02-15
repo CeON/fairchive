@@ -30,7 +30,6 @@ import edu.harvard.iq.dataverse.authorization.providers.builtin.BuiltinUserServi
 import edu.harvard.iq.dataverse.authorization.providers.shib.ShibAuthenticationProvider;
 import edu.harvard.iq.dataverse.authorization.providers.shib.ShibServiceBean;
 import edu.harvard.iq.dataverse.authorization.providers.shib.ShibUtil;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.common.Util;
 import edu.harvard.iq.dataverse.consent.api.ConsentApiDto;
 import edu.harvard.iq.dataverse.consent.api.ConsentApiService;
@@ -39,7 +38,6 @@ import edu.harvard.iq.dataverse.dataaccess.DataAccessOption;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.dataaccess.StorageIOConstants;
 import edu.harvard.iq.dataverse.datafile.FileIntegrityChecker;
-import edu.harvard.iq.dataverse.datafile.pojo.FilesIntegrityReport;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnail;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
@@ -102,6 +100,16 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+
 import java.io.InputStream;
 import java.io.StringReader;
 import java.time.Clock;
@@ -111,8 +119,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.NullSafeJsonBuilder.jsonObjectBuilder;
 
 /**
@@ -234,7 +242,7 @@ public class Admin extends AbstractApiBean {
                     dto.put("info", f.getInfo());
                     return dto;
                 })
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @Path("authenticationProviders")
@@ -244,7 +252,7 @@ public class Admin extends AbstractApiBean {
         return ok(em.createNamedQuery("AuthenticationProviderRow.findAll", AuthenticationProviderRow.class)
                 .getResultList().stream()
                 .map(converter::convert)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @POST
@@ -267,7 +275,7 @@ public class Admin extends AbstractApiBean {
             return created("/api/admin/authenticationProviders/" + managed.getId(),
                     new AuthenticationProviderRowDTO.Converter().convert(managed));
         } catch (AuthorizationSetupException e) {
-            return error(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
+            return error(INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -277,7 +285,7 @@ public class Admin extends AbstractApiBean {
         AuthenticationProviderRow row = em.find(AuthenticationProviderRow.class, id);
         return row != null
                 ? ok(new AuthenticationProviderRowDTO.Converter().convert(row))
-                : error(Status.NOT_FOUND, "Can't find authetication provider with id '" + id + '\'');
+                : error(NOT_FOUND, "Can't find authetication provider with id '" + id + '\'');
     }
 
     @POST
@@ -294,7 +302,7 @@ public class Admin extends AbstractApiBean {
     public Response enableAuthenticationProvider(@PathParam("id") String id, String body) {
         body = body.trim();
         if (!Util.isBoolean(body)) {
-            return error(Response.Status.BAD_REQUEST, "Illegal value '" + body + "'. Use 'true' or 'false'");
+            return error(BAD_REQUEST, "Illegal value '" + body + "'. Use 'true' or 'false'");
         }
         boolean enable = Util.isTrue(body);
 
@@ -309,19 +317,19 @@ public class Admin extends AbstractApiBean {
         if (enable) {
             // enable a provider
             if (authSvc.getAuthenticationProvider(id) != null) {
-                return ok(String.format("Authentication provider '%s' already enabled", id));
+                return ok(format("Authentication provider '%s' already enabled", id));
             }
             try {
                 authSvc.registerProvider(authSvc.loadProvider(row));
-                return ok(String.format("Authentication Provider %s enabled", row.getId()));
+                return ok(format("Authentication Provider %s enabled", row.getId()));
 
             } catch (AuthenticationProviderFactoryNotFoundException ex) {
-                return notFound(String.format("Can't instantiate provider, as there's no factory with alias %s",
+                return notFound(format("Can't instantiate provider, as there's no factory with alias %s",
                                               row.getFactoryAlias()));
             } catch (AuthorizationSetupException ex) {
                 logger.log(Level.WARNING, "Error instantiating authentication provider: " + ex.getMessage(), ex);
-                return error(Status.INTERNAL_SERVER_ERROR,
-                             String.format("Can't instantiate provider: %s", ex.getMessage()));
+                return error(INTERNAL_SERVER_ERROR,
+                             format("Can't instantiate provider: %s", ex.getMessage()));
             }
 
         } else {
@@ -370,7 +378,7 @@ public class Admin extends AbstractApiBean {
         if (authenticatedUser != null) {
             return ok(new AuthenticatedUserDTO.Converter().convert(authenticatedUser));
         }
-        return error(Response.Status.BAD_REQUEST, "User " + identifier + " not found.");
+        return error(BAD_REQUEST, "User " + identifier + " not found.");
     }
 
     @DELETE
@@ -382,7 +390,7 @@ public class Admin extends AbstractApiBean {
             authSvc.deleteAuthenticatedUser(user.getId());
             return ok("AuthenticatedUser " + identifier + " deleted. ");
         }
-        return error(Response.Status.BAD_REQUEST, "User " + identifier + " not found.");
+        return error(BAD_REQUEST, "User " + identifier + " not found.");
     }
 
     @POST
@@ -410,35 +418,36 @@ public class Admin extends AbstractApiBean {
         try {
             AuthenticatedUser user = findAuthenticatedUserOrDie();
             if (!user.isSuperuser()) {
-                return error(Response.Status.FORBIDDEN, "Superusers only.");
+                return error(FORBIDDEN, "Superusers only.");
             }
         } catch (WrappedResponse ex) {
-            return error(Response.Status.FORBIDDEN, "Superusers only.");
+            return error(FORBIDDEN, "Superusers only.");
         }
 
         AuthenticatedUserDTO.Converter converter = new AuthenticatedUserDTO.Converter();
         return ok(authSvc.findAllAuthenticatedUsers().stream()
                 .map(converter::convert)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     }
 
     @GET
     @Path(listUsersPartialAPIPath)
     @Produces({"application/json"})
     public Response filterAuthenticatedUsers(@QueryParam("searchTerm") String searchTerm,
-                                             @QueryParam("selectedPage") Integer selectedPage, @QueryParam("itemsPerPage") Integer itemsPerPage) {
+                                             @QueryParam("selectedPage") Integer selectedPage, 
+                                             @QueryParam("itemsPerPage") Integer itemsPerPage) {
 
         User authUser;
         try {
             authUser = this.findUserOrDie();
         } catch (AbstractApiBean.WrappedResponse ex) {
-            return error(Response.Status.FORBIDDEN,
-                         BundleUtil.getStringFromBundle("dashboard.list_users.api.auth.invalid_apikey"));
+            return error(FORBIDDEN,
+                         getStringFromBundle("dashboard.list_users.api.auth.invalid_apikey"));
         }
 
         if (!authUser.isSuperuser()) {
-            return error(Response.Status.FORBIDDEN,
-                         BundleUtil.getStringFromBundle("dashboard.list_users.api.auth.not_superuser"));
+            return error(FORBIDDEN,
+                         getStringFromBundle("dashboard.list_users.api.auth.not_superuser"));
         }
 
         UserListMaker userListMaker = new UserListMaker(userService);
@@ -494,15 +503,15 @@ public class Admin extends AbstractApiBean {
         try {
             AuthenticatedUser user = findAuthenticatedUserOrDie();
             if (!user.isSuperuser()) {
-                return error(Response.Status.FORBIDDEN, "Superusers only.");
+                return error(FORBIDDEN, "Superusers only.");
             }
         } catch (WrappedResponse ex) {
-            return error(Response.Status.FORBIDDEN, "Superusers only.");
+            return error(FORBIDDEN, "Superusers only.");
         }
         try {
             BuiltinUser builtinUser = authSvc.convertRemoteToBuiltIn(id, newEmailAddress);
             if (builtinUser == null) {
-                return error(Response.Status.BAD_REQUEST, "User id " + id
+                return error(BAD_REQUEST, "User id " + id
                         + " could not be converted from Shibboleth to BuiltIn. An Exception was not thrown.");
             }
             AuthenticatedUser authUser = authSvc.getAuthenticatedUser(builtinUser.getUserName());
@@ -511,16 +520,17 @@ public class Admin extends AbstractApiBean {
             output.add("username", builtinUser.getUserName());
             return ok(output);
         } catch (Throwable ex) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(ex).append(' ');
+            StringBuilder sb = new StringBuilder(200);
+            sb.append("User id ").append(id)
+            	.append(" could not be converted from Shibboleth to BuiltIn. Details from Exception: ")
+            	.append(ex).append(' ');
             while (ex.getCause() != null) {
                 ex = ex.getCause();
                 sb.append(ex).append(' ');
             }
-            String msg = "User id " + id
-                    + " could not be converted from Shibboleth to BuiltIn. Details from Exception: " + sb;
+            String msg = sb.toString();
             logger.info(msg);
-            return error(Response.Status.BAD_REQUEST, msg);
+            return error(BAD_REQUEST, msg);
         }
     }
 
@@ -531,15 +541,15 @@ public class Admin extends AbstractApiBean {
         try {
             AuthenticatedUser user = findAuthenticatedUserOrDie();
             if (!user.isSuperuser()) {
-                return error(Response.Status.FORBIDDEN, "Superusers only.");
+                return error(FORBIDDEN, "Superusers only.");
             }
         } catch (WrappedResponse ex) {
-            return error(Response.Status.FORBIDDEN, "Superusers only.");
+            return error(FORBIDDEN, "Superusers only.");
         }
         try {
             BuiltinUser builtinUser = authSvc.convertRemoteToBuiltIn(id, newEmailAddress);
             if (builtinUser == null) {
-                return error(Response.Status.BAD_REQUEST, "User id " + id
+                return error(BAD_REQUEST, "User id " + id
                         + " could not be converted from remote to BuiltIn. An Exception was not thrown.");
             }
             AuthenticatedUser authUser = authSvc.getAuthenticatedUser(builtinUser.getUserName());
@@ -548,16 +558,17 @@ public class Admin extends AbstractApiBean {
             output.add("username", builtinUser.getUserName());
             return ok(output);
         } catch (Throwable ex) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(ex).append(' ');
+            StringBuilder sb = new StringBuilder(200);
+            sb.append("User id ").append(id)
+            	.append(" could not be converted from remote to BuiltIn. Details from Exception: ")
+            	.append(ex).append(' ');
             while (ex.getCause() != null) {
                 ex = ex.getCause();
                 sb.append(ex).append(' ');
             }
-            String msg = "User id " + id + " could not be converted from remote to BuiltIn. Details from Exception: "
-                    + sb;
+            String msg = sb.toString();
             logger.info(msg);
-            return error(Response.Status.BAD_REQUEST, msg);
+            return error(BAD_REQUEST, msg);
         }
     }
 
@@ -573,14 +584,14 @@ public class Admin extends AbstractApiBean {
         try {
             AuthenticatedUser userToRunThisMethod = findAuthenticatedUserOrDie();
             if (!userToRunThisMethod.isSuperuser()) {
-                return error(Response.Status.FORBIDDEN, "Superusers only.");
+                return error(FORBIDDEN, "Superusers only.");
             }
         } catch (WrappedResponse ex) {
-            return error(Response.Status.FORBIDDEN, "Superusers only.");
+            return error(FORBIDDEN, "Superusers only.");
         }
         boolean disabled = false;
         if (disabled) {
-            return error(Response.Status.BAD_REQUEST, "API endpoint disabled.");
+            return error(BAD_REQUEST, "API endpoint disabled.");
         }
         AuthenticatedUser builtInUserToConvert = null;
         String emailToFind;
@@ -594,7 +605,7 @@ public class Admin extends AbstractApiBean {
             password = args[1];
             newEmailAddressToUse = args[2];
         } catch (ArrayIndexOutOfBoundsException ex) {
-            return error(Response.Status.BAD_REQUEST, "Problem with content <<<" + content + ">>>: " + ex.toString());
+            return error(BAD_REQUEST, "Problem with content <<<" + content + ">>>: " + ex.toString());
         }
         AuthenticatedUser existingAuthUserFoundByEmail = shibService.findAuthUserByEmail(emailToFind);
         String existing = "NOT FOUND";
@@ -607,7 +618,7 @@ public class Admin extends AbstractApiBean {
             if (specifiedUserToConvert != null) {
                 builtInUserToConvert = specifiedUserToConvert;
             } else {
-                return error(Response.Status.BAD_REQUEST,
+                return error(BAD_REQUEST,
                              "No user to convert. We couldn't find a *single* existing user account based on " + emailToFind
                                      + " and no user was found using specified id " + longToLookup);
             }
@@ -626,7 +637,7 @@ public class Admin extends AbstractApiBean {
         boolean validEmail = EMailValidator.isEmailValid(overwriteEmail, null);
         if (!validEmail) {
             // See https://github.com/IQSS/dataverse/issues/2998
-            return error(Response.Status.BAD_REQUEST, "invalid email: " + overwriteEmail);
+            return error(BAD_REQUEST, "invalid email: " + overwriteEmail);
         }
         /**
          * @todo If affiliation is not null, put it in RoleAssigneeDisplayInfo
@@ -687,9 +698,8 @@ public class Admin extends AbstractApiBean {
                  * @todo Someday we should make a errorResponse method that takes JSON arrays
                  *       and objects.
                  */
-                return error(Status.BAD_REQUEST, problems.build().toString());
+                return error(BAD_REQUEST, problems.build().toString());
             }
-            // response.add("knows existing password", knowsExistingPassword);
         }
 
         response.add("user to convert", builtInUserToConvert.getIdentifier());
@@ -717,14 +727,14 @@ public class Admin extends AbstractApiBean {
         try {
             AuthenticatedUser userToRunThisMethod = findAuthenticatedUserOrDie();
             if (!userToRunThisMethod.isSuperuser()) {
-                return error(Response.Status.FORBIDDEN, "Superusers only.");
+                return error(FORBIDDEN, "Superusers only.");
             }
         } catch (WrappedResponse ex) {
             return error(Response.Status.FORBIDDEN, "Superusers only.");
         }
         boolean disabled = false;
         if (disabled) {
-            return error(Response.Status.BAD_REQUEST, "API endpoint disabled.");
+            return error(BAD_REQUEST, "API endpoint disabled.");
         }
         AuthenticatedUser builtInUserToConvert = null;
         String emailToFind;
@@ -744,7 +754,7 @@ public class Admin extends AbstractApiBean {
             newPersistentUserIdInLookupTable = args[4];
             // authuserId = args[666];
         } catch (ArrayIndexOutOfBoundsException ex) {
-            return error(Response.Status.BAD_REQUEST, "Problem with content <<<" + content + ">>>: " + ex.toString());
+            return error(BAD_REQUEST, "Problem with content <<<" + content + ">>>: " + ex.toString());
         }
         AuthenticatedUser existingAuthUserFoundByEmail = shibService.findAuthUserByEmail(emailToFind);
         String existing = "NOT FOUND";
@@ -757,7 +767,7 @@ public class Admin extends AbstractApiBean {
             if (specifiedUserToConvert != null) {
                 builtInUserToConvert = specifiedUserToConvert;
             } else {
-                return error(Response.Status.BAD_REQUEST,
+                return error(BAD_REQUEST,
                              "No user to convert. We couldn't find a *single* existing user account based on " + emailToFind
                                      + " and no user was found using specified id " + longToLookup);
             }
@@ -772,7 +782,7 @@ public class Admin extends AbstractApiBean {
         boolean validEmail = EMailValidator.isEmailValid(overwriteEmail, null);
         if (!validEmail) {
             // See https://github.com/IQSS/dataverse/issues/2998
-            return error(Response.Status.BAD_REQUEST, "invalid email: " + overwriteEmail);
+            return error(BAD_REQUEST, "invalid email: " + overwriteEmail);
         }
         String overwritePosition = "staff;student";
         AuthenticatedUserDisplayInfo displayInfo = new AuthenticatedUserDisplayInfo(overwriteFirstName,
@@ -816,7 +826,7 @@ public class Admin extends AbstractApiBean {
                  * @todo Someday we should make a errorResponse method that takes JSON arrays
                  *       and objects.
                  */
-                return error(Status.BAD_REQUEST, problems.build().toString());
+                return error(BAD_REQUEST, problems.build().toString());
             }
         }
 
@@ -839,7 +849,7 @@ public class Admin extends AbstractApiBean {
             authSvc.deleteAuthenticatedUser(user.getId());
             return ok("AuthenticatedUser " + id + " deleted. ");
         }
-        return error(Response.Status.BAD_REQUEST, "User " + id + " not found.");
+        return error(BAD_REQUEST, "User " + id + " not found.");
     }
 
     @POST
@@ -847,13 +857,13 @@ public class Admin extends AbstractApiBean {
     @Path("roles")
     public Response createNewBuiltinRole(RoleDTO roleDto) {
         ActionLogRecord alr = new ActionLogRecord(ActionLogRecord.ActionType.Admin, "createBuiltInRole")
-                .setInfo(roleDto.getAlias() + ":" + roleDto.getDescription());
+                .setInfo(roleDto.getAlias() + ':' + roleDto.getDescription());
         try {
             return ok(new DataverseRoleDTO.Converter().convert(rolesSvc.save(roleDto.asRole())));
         } catch (Exception e) {
             alr.setActionResult(ActionLogRecord.Result.InternalError);
             alr.setInfo(alr.getInfo() + "// " + e.getMessage());
-            return error(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
+            return error(INTERNAL_SERVER_ERROR, e.getMessage());
         } finally {
             actionLogSvc.log(alr);
         }
@@ -866,9 +876,9 @@ public class Admin extends AbstractApiBean {
             DataverseRoleDTO.Converter converter = new DataverseRoleDTO.Converter();
             return ok(rolesSvc.findBuiltinRoles().stream()
                     .map(converter::convert)
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
         } catch (Exception e) {
-            return error(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
+            return error(INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -888,7 +898,7 @@ public class Admin extends AbstractApiBean {
         } catch (Exception e) {
             alr.setActionResult(ActionLogRecord.Result.InternalError);
             alr.setInfo(alr.getInfo() + "// " + e.getMessage());
-            return error(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage());
+            return error(INTERNAL_SERVER_ERROR, e.getMessage());
         } finally {
             actionLogSvc.log(alr);
         }
@@ -930,7 +940,7 @@ public class Admin extends AbstractApiBean {
         RoleAssignmentDTO.Converter converter = new RoleAssignmentDTO.Converter();
         List<RoleAssignmentDTO> assignments = roleAssigneeSvc.getAssignmentsFor(raIdtf).stream()
                 .map(converter::convert)
-                .collect(Collectors.toList());
+                .collect(toList());
         return ok(assignments);
     }
 
@@ -950,7 +960,7 @@ public class Admin extends AbstractApiBean {
                 return ok(Json.createObjectBuilder().add("token", confirmEmailData.getToken()));
             }
         }
-        return error(Status.BAD_REQUEST, "Could not find confirm email token for user " + userId);
+        return error(BAD_REQUEST, "Could not find confirm email token for user " + userId);
     }
 
     /**
@@ -970,11 +980,11 @@ public class Admin extends AbstractApiBean {
                 return ok(Json.createObjectBuilder().add("tokenCreated", confirmEmailData.getCreated().toString())
                                   .add("identifier", user.getUserIdentifier()));
             } catch (ConfirmEmailException ex) {
-                return error(Status.BAD_REQUEST,
+                return error(BAD_REQUEST,
                              "Could not start confirm email process for user " + userId + ": " + ex.getLocalizedMessage());
             }
         }
-        return error(Status.BAD_REQUEST, "Could not find user based on " + userId);
+        return error(BAD_REQUEST, "Could not find user based on " + userId);
     }
 
     /**
@@ -1007,7 +1017,7 @@ public class Admin extends AbstractApiBean {
         Map<String, Object> dto = new HashMap<>();
         List<String> permissions = permissionSvc.permissionsFor(createDataverseRequest(aUser), dvObj).stream()
                 .map(Enum::name)
-                .collect(Collectors.toList());
+                .collect(toList());
         dto.put("user", aUser.getIdentifier());
         dto.put("permissions", permissions);
         return ok(dto);
@@ -1088,13 +1098,11 @@ public class Admin extends AbstractApiBean {
         try {
             AuthenticatedUser authenticatedUser = findAuthenticatedUserOrDie();
             if (!authenticatedUser.isSuperuser()) {
-                return error(Response.Status.FORBIDDEN, "Only superusers can check integrity");
+                return error(FORBIDDEN, "Only superusers can check integrity");
             }
 
             JsonObjectBuilder info = Json.createObjectBuilder();
-
-            FilesIntegrityReport report = fileIntegrityChecker.checkFilesIntegrity();
-            info.add("message", report.getSummaryInfo());
+            info.add("message", fileIntegrityChecker.checkFilesIntegrity().getSummaryInfo());
 
             return ok(info);
         } catch (WrappedResponse ex) {
@@ -1110,7 +1118,7 @@ public class Admin extends AbstractApiBean {
     public Response getDatasetThumbnailMetadata(@PathParam("id") Long idSupplied) {
         Dataset dataset = datasetSvc.find(idSupplied);
         if (dataset == null) {
-            return error(Response.Status.NOT_FOUND, "Could not find dataset based on id supplied: " + idSupplied + '.');
+            return error(NOT_FOUND, "Could not find dataset based on id supplied: " + idSupplied + '.');
         }
         JsonObjectBuilder data = Json.createObjectBuilder();
         DatasetThumbnail datasetThumbnail = datasetThumbnailService.getThumbnail(dataset);
@@ -1162,13 +1170,13 @@ public class Admin extends AbstractApiBean {
         try {
             if (settingsSvc.getValueForKey(SettingsServiceBean.Key.Protocol).equals(GlobalId.HDL_PROTOCOL)) {
                 logger.info("Bad Request protocol set to handle  ");
-                return error(Status.BAD_REQUEST, BundleUtil.getStringFromBundle("admin.api.migrateHDL.failure.must.be.set.for.doi"));
+                return error(BAD_REQUEST, getStringFromBundle("admin.api.migrateHDL.failure.must.be.set.for.doi"));
             }
 
             User u = findUserOrDie();
             if (!u.isSuperuser()) {
                 logger.info("Bad Request Unauthor ");
-                return error(Status.UNAUTHORIZED, BundleUtil.getStringFromBundle("admin.api.auth.mustBeSuperUser"));
+                return error(UNAUTHORIZED, getStringFromBundle("admin.api.auth.mustBeSuperUser"));
             }
 
             DataverseRequest r = createDataverseRequest(u);
@@ -1176,18 +1184,18 @@ public class Admin extends AbstractApiBean {
             if (ds.getIdentifier() != null && !ds.getIdentifier().isEmpty() && ds.getProtocol().equals(GlobalId.HDL_PROTOCOL)) {
                 execCommand(new RegisterDvObjectCommand(r, ds, true));
             } else {
-                return error(Status.BAD_REQUEST, BundleUtil.getStringFromBundle("admin.api.migrateHDL.failure.must.be.hdl.dataset"));
+                return error(BAD_REQUEST, getStringFromBundle("admin.api.migrateHDL.failure.must.be.hdl.dataset"));
             }
 
         } catch (WrappedResponse r) {
             logger.info("Failed to migrate Dataset Handle id: " + id);
-            return badRequest(BundleUtil.getStringFromBundle("admin.api.migrateHDL.failure", id));
+            return badRequest(getStringFromBundle("admin.api.migrateHDL.failure", id));
         } catch (Exception e) {
             logger.info("Failed to migrate Dataset Handle id: " + id + " Unexpected Exception " + e.getMessage());
-            return badRequest(BundleUtil.getStringFromBundle("admin.api.migrateHDL.failureWithException", id, e.getMessage()));
+            return badRequest(getStringFromBundle("admin.api.migrateHDL.failureWithException", id, e.getMessage()));
         }
         System.out.print("before the return ok...");
-        return ok(BundleUtil.getStringFromBundle("admin.api.migrateHDL.success"));
+        return ok(getStringFromBundle("admin.api.migrateHDL.success"));
     }
 
     @GET
@@ -1278,7 +1286,7 @@ public class Admin extends AbstractApiBean {
         try {
             cType = DataFile.ChecksumType.fromString(alg);
         } catch (IllegalArgumentException iae) {
-            return error(Status.BAD_REQUEST, "Unknown algorithm");
+            return error(BAD_REQUEST, "Unknown algorithm");
         }
         logger.info("Starting to rehash: analyzing " + count + " files. " + new Date());
         logger.info("Hashes not created with " + alg + " will be verified, and, if valid, replaced with a hash using "
@@ -1286,10 +1294,10 @@ public class Admin extends AbstractApiBean {
         try {
             User u = findAuthenticatedUserOrDie();
             if (!u.isSuperuser()) {
-                return error(Status.UNAUTHORIZED, "must be superuser");
+                return error(UNAUTHORIZED, "must be superuser");
             }
         } catch (WrappedResponse e1) {
-            return error(Status.UNAUTHORIZED, "api key required");
+            return error(UNAUTHORIZED, "api key required");
         }
 
         for (DataFile df : fileService.findAll()) {
@@ -1408,13 +1416,13 @@ public class Admin extends AbstractApiBean {
                     return ok("Archive submission using " + cmd.getClass().getCanonicalName() + " started. Processing can take significant time for large datasets. View log and/or check archive for results.");
                 } else {
                     logger.log(Level.SEVERE, "Could not find Archiver class: " + className);
-                    return error(Status.INTERNAL_SERVER_ERROR, "Could not find Archiver class: " + className);
+                    return error(INTERNAL_SERVER_ERROR, "Could not find Archiver class: " + className);
                 }
             } else {
-                return error(Status.BAD_REQUEST, "Version already archived at: " + dv.getArchivalCopyLocation());
+                return error(BAD_REQUEST, "Version already archived at: " + dv.getArchivalCopyLocation());
             }
         } catch (WrappedResponse e1) {
-            return error(Status.UNAUTHORIZED, "api key required");
+            return error(UNAUTHORIZED, "api key required");
         }
     }
 
@@ -1441,12 +1449,12 @@ public class Admin extends AbstractApiBean {
     public Response addRoleAssignementsToChildren(@PathParam("alias") String alias) {
         Dataverse owner = dataverseSvc.findByAlias(alias);
         if (owner == null) {
-            return error(Response.Status.NOT_FOUND, "Could not find dataverse based on alias supplied: " + alias + ".");
+            return error(NOT_FOUND, "Could not find dataverse based on alias supplied: " + alias + ".");
         }
         try {
             AuthenticatedUser user = findAuthenticatedUserOrDie();
             if (!user.isSuperuser()) {
-                return error(Response.Status.FORBIDDEN, "Superusers only.");
+                return error(FORBIDDEN, "Superusers only.");
             }
         } catch (WrappedResponse wr) {
             return wr.getResponse();
@@ -1459,7 +1467,7 @@ public class Admin extends AbstractApiBean {
             }
             return ok(dataverseSvc.addRoleAssignmentsToChildren(owner, rolesToInherit, inheritAllRoles));
         }
-        return error(Response.Status.BAD_REQUEST,
+        return error(BAD_REQUEST,
                      "InheritParentRoleAssignments does not list any roles on this instance");
     }
 
@@ -1469,7 +1477,7 @@ public class Admin extends AbstractApiBean {
         List<ConsentApiDto> consentApiDtos = consentApiService.listAvailableConsents();
 
         return consentApiDtos.isEmpty() ?
-                error(Status.NOT_FOUND, BundleUtil.getStringFromBundle("consent.api.consents.failure.noConsents"))
+                error(NOT_FOUND, getStringFromBundle("consent.api.consents.failure.noConsents"))
                 : ok(consentApiDtos);
     }
 
@@ -1480,7 +1488,7 @@ public class Admin extends AbstractApiBean {
 
         return consent
                 .map(this::ok)
-                .getOrElse(() -> error(Status.NOT_FOUND, BundleUtil.getStringFromBundle("consent.api.consentsAlias.failure.noConsents", alias)));
+                .getOrElse(() -> error(NOT_FOUND, getStringFromBundle("consent.api.consentsAlias.failure.noConsents", alias)));
     }
 
     @PUT
@@ -1490,13 +1498,13 @@ public class Admin extends AbstractApiBean {
         Option<Consent> consent = consentApiService.fetchConsent(alias);
 
         if (consent.isEmpty()){
-            return error(Status.NOT_FOUND, BundleUtil.getStringFromBundle("consent.api.consentsAlias.failure.noConsents", alias));
+            return error(NOT_FOUND, getStringFromBundle("consent.api.consentsAlias.failure.noConsents", alias));
         }
 
         Try<ConsentApiDto> editedConsent = Try.of(() -> new ObjectMapper().readValue(json, ConsentApiDto.class));
 
         if (editedConsent.isFailure()){
-            return error(Status.CONFLICT, BundleUtil.getStringFromBundle("consent.api.consentsAlias.failure.mappingFail"));
+            return error(CONFLICT, getStringFromBundle("consent.api.consentsAlias.failure.mappingFail"));
         }
 
         List<String> errors = consentApiService.validateUpdatedConsent(editedConsent.get(), consent.get());
@@ -1504,12 +1512,12 @@ public class Admin extends AbstractApiBean {
         if (!errors.isEmpty()){
             String combinedErrors = String.join(", ", errors);
 
-            return error(Status.CONFLICT, BundleUtil.getStringFromBundle("consent.api.consents.failure.validationFail") + combinedErrors);
+            return error(CONFLICT, getStringFromBundle("consent.api.consents.failure.validationFail") + combinedErrors);
         }
 
         consentApiService.saveEditedConsent(editedConsent.get(), consent.get());
 
-        return ok(BundleUtil.getStringFromBundle("consent.api.consentsAlias.success.consentEdited"));
+        return ok(getStringFromBundle("consent.api.consentsAlias.success.consentEdited"));
     }
 
     @POST
@@ -1519,7 +1527,7 @@ public class Admin extends AbstractApiBean {
         Try<ConsentApiDto> createdConsent = Try.of(() -> new ObjectMapper().readValue(json, ConsentApiDto.class));
 
         if (createdConsent.isFailure()){
-            return error(Status.CONFLICT, BundleUtil.getStringFromBundle("consent.api.consentsAlias.failure.mappingFail"));
+            return error(CONFLICT, getStringFromBundle("consent.api.consentsAlias.failure.mappingFail"));
         }
 
         List<String> errors = consentApiService.validateCreatedConsent(createdConsent.get());
@@ -1527,12 +1535,12 @@ public class Admin extends AbstractApiBean {
         if (!errors.isEmpty()){
             String combinedErrors = String.join(", ", errors);
 
-            return error(Status.CONFLICT, BundleUtil.getStringFromBundle("consent.api.consents.failure.validationFail") + combinedErrors);
+            return error(CONFLICT, getStringFromBundle("consent.api.consents.failure.validationFail") + combinedErrors);
         }
 
         consentApiService.saveNewConsent(createdConsent.get());
 
-        return ok(BundleUtil.getStringFromBundle("consent.api.consents.success.consentCreated"));
+        return ok(getStringFromBundle("consent.api.consents.success.consentCreated"));
 
     }
 

@@ -19,7 +19,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,31 +72,26 @@ public class BagValidationJob implements Runnable {
         // Error check - add file sizes to compare against supplied stats
 
         long start = System.currentTimeMillis();
-        InputStream inputStream = null;
         String realHash = null;
-        try {
-            inputStream = zf.getInputStream(archiveEntry1);
+        try (InputStream in = zf.getInputStream(archiveEntry1)) {
             if (hashtype.equals(DataFile.ChecksumType.SHA1)) {
-                realHash = DigestUtils.sha1Hex(inputStream);
+                realHash = DigestUtils.sha1Hex(in);
             } else if (hashtype.equals(DataFile.ChecksumType.SHA256)) {
-                realHash = DigestUtils.sha256Hex(inputStream);
+                realHash = DigestUtils.sha256Hex(in);
             } else if (hashtype.equals(DataFile.ChecksumType.SHA512)) {
-                realHash = DigestUtils.sha512Hex(inputStream);
+                realHash = DigestUtils.sha512Hex(in);
             } else if (hashtype.equals(DataFile.ChecksumType.MD5)) {
-                realHash = DigestUtils.md5Hex(inputStream);
+                realHash = DigestUtils.md5Hex(in);
             } else {
                 log.warning("Unknown hash type: " + hashtype);
             }
-
         } catch (ZipException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } finally {
-            IOUtils.closeQuietly(inputStream);
-        }
+        } 
         log.fine("Retrieve/compute time = " + (System.currentTimeMillis() - start) + " ms");
         // Error check - add file sizes to compare against supplied stats
         bagGenerator.incrementTotalDataSize(archiveEntry1.getSize());

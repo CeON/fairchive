@@ -85,18 +85,14 @@ public class ImportGenericServiceBean {
 
     public void importXML(String xmlToParse, String foreignFormat, DatasetVersion datasetVersion) throws JsonParseException {
 
-        StringReader reader;
-        XMLStreamReader xmlr = null;
-
         ForeignMetadataFormatMapping mappingSupported = findFormatMappingByName(foreignFormat);
         if (mappingSupported == null) {
             throw new EJBException("Unknown/unsupported foreign metadata format " + foreignFormat);
         }
 
-        try {
-            reader = new StringReader(xmlToParse);
+        try (StringReader reader = new StringReader(xmlToParse)){
             XMLInputFactory xmlFactory = javax.xml.stream.XMLInputFactory.newInstance();
-            xmlr = xmlFactory.createXMLStreamReader(reader);
+            XMLStreamReader xmlr = xmlFactory.createXMLStreamReader(reader);
             DatasetDTO datasetDTO = processXML(xmlr, mappingSupported);
 
             Gson gson = new Gson();
@@ -110,14 +106,6 @@ public class ImportGenericServiceBean {
         } catch (JsonParseException ex) {
             Logger.getLogger(ImportGenericServiceBean.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
-        } finally {
-            try {
-                if (xmlr != null) {
-                    xmlr.close();
-                }
-            } catch (XMLStreamException ex) {
-                logger.log(Level.WARNING, "", ex);
-            }
         }
     }
 
@@ -134,13 +122,10 @@ public class ImportGenericServiceBean {
         }
 
         DatasetDTO datasetDTO = this.initializeDataset();
-        StringReader reader;
-        XMLStreamReader xmlr;
-
-        try {
-            reader = new StringReader(DcXmlToParse);
+        
+        try (final StringReader reader = new StringReader(DcXmlToParse);){
             XMLInputFactory xmlFactory = javax.xml.stream.XMLInputFactory.newInstance();
-            xmlr = xmlFactory.createXMLStreamReader(reader);
+            XMLStreamReader xmlr = xmlFactory.createXMLStreamReader(reader);
 
             xmlr.nextTag();
 
