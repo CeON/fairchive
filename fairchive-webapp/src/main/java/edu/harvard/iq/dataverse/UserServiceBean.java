@@ -1,15 +1,7 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
-import org.apache.commons.lang3.StringUtils;
+import static java.time.Instant.now;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,15 +12,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository.SortKey;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.apache.commons.lang3.StringUtils;
+
+import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository.SortKey;
 
 @Stateless
 public class UserServiceBean {
-
-    private static final Logger logger = Logger.getLogger(UserServiceBean.class.getCanonicalName());
 
     @PersistenceContext
     private EntityManager em;
@@ -42,20 +42,14 @@ public class UserServiceBean {
         return this.repo.getById(id);
     }
 
-    private AuthenticatedUser save(AuthenticatedUser user) {
-        if (user.getId() == null) {
-            em.persist(this);
-        } else {
-            if (user.getCreatedTime() == null) {
-                user.setCreatedTime(new Timestamp(new Date().getTime())); // default new creation time
-                user.setLastLoginTime(user.getCreatedTime()); // sets initial lastLoginTime to creation time
-                logger.info("Creation time null! Setting user creation time to now");
-            }
-            user = em.merge(user);
+    public AuthenticatedUser save(final AuthenticatedUser user) {
+        if (user.getCreatedTime() == null) {
+            user.setCreatedTime(Timestamp.from(now()));
+        } 
+        if(user.getLastLoginTime() == null) {
+        	 user.setLastLoginTime(user.getCreatedTime());
         }
-        em.flush();
-
-        return user;
+        return this.repo.save(user);
     }
 
     /**
@@ -93,15 +87,15 @@ public class UserServiceBean {
         return this.repo.countUsers(searchTerm);
     }
 
-    public AuthenticatedUser updateLastLogin(AuthenticatedUser user) {
+    public AuthenticatedUser updateLastLogin(final AuthenticatedUser user) {
         //assumes that AuthenticatedUser user already exists
-        user.setLastLoginTime(new Timestamp(new Date().getTime()));
+        user.setLastLoginTime(Timestamp.from(now()));
         return save(user);
     }
 
-    public AuthenticatedUser updateLastApiUseTime(AuthenticatedUser user) {
+    public AuthenticatedUser updateLastApiUseTime(final AuthenticatedUser user) {
         //assumes that AuthenticatedUser user already exists
-        user.setLastApiUseTime(new Timestamp(new Date().getTime()));
+        user.setLastApiUseTime(Timestamp.from(now()));
         return save(user);
     }
 
