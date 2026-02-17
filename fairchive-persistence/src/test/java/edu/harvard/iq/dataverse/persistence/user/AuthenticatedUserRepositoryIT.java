@@ -25,8 +25,8 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     @Test
     public void find() {
     	
-        List<AuthenticatedUser> users = this.repo.find(
-        		SortKey.ID, resultLimit10, offset0, EMPTY, sortAscending);
+        List<AuthenticatedUser> users = this.repo.find(EMPTY,
+        		SortKey.ID, sortAscending, resultLimit10, offset0);
 
         assertThat(users.size()).isEqualTo(4);
         assertThat(users).extracting(AuthenticatedUser::getId).containsSequence(1L, 2L, 3L, 4L);
@@ -35,8 +35,8 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     @Test
     public void find_sortedByUserIdentifier_descending() {
 
-        List<AuthenticatedUser> users = this.repo.find(
-        		SortKey.USER_IDENTIFIER, resultLimit10, offset0, EMPTY, sortDescenting);
+        List<AuthenticatedUser> users = this.repo.find(EMPTY,
+        		SortKey.USER_IDENTIFIER, sortDescenting, resultLimit10, offset0);
 
         assertThat(users.size()).isEqualTo(4);
         assertThat(users).extracting(AuthenticatedUser::getUserIdentifier)
@@ -49,8 +49,8 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
         int resultLimit = 2;
         int offset = 1;
 
-        List<AuthenticatedUser> users = this.repo.find(
-        		SortKey.ID, resultLimit, offset, EMPTY, sortAscending);
+        List<AuthenticatedUser> users = this.repo.find(EMPTY,
+        		SortKey.ID, sortAscending, resultLimit, offset);
 
         assertThat(users.size()).isEqualTo(2);
         assertThat(users).extracting(AuthenticatedUser::getId).containsSequence(2L, 3L);
@@ -59,8 +59,8 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     @Test
     public void find_filtered() {
 
-        List<AuthenticatedUser> users = this.repo.find(
-        		SortKey.ID, resultLimit10, offset0, "some", sortAscending);
+        List<AuthenticatedUser> users = this.repo.find("some",
+        		SortKey.ID, sortAscending, resultLimit10, offset0);
 
         assertThat(users.size()).isEqualTo(2);
         assertThat(users).extracting(AuthenticatedUser::getId).containsSequence(3L, 4L);
@@ -71,8 +71,8 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     @Test
     public void find_filtered_noResults() {
 
-        List<AuthenticatedUser> users = this.repo.find(
-        		SortKey.ID, resultLimit10, offset0, "Non-existent", sortAscending);
+        List<AuthenticatedUser> users = this.repo.find("Non-existent", 
+        		SortKey.ID, sortAscending, resultLimit10, offset0);
 
         assertThat(users).isEmpty();
     }

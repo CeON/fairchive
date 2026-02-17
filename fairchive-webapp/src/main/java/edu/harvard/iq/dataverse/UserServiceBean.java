@@ -6,7 +6,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,8 +55,9 @@ public class UserServiceBean {
      * Return the user information as a List of AuthenticatedUser objects -- easier to work with in the UI
      * - With Role added as a transient field
      */
-    public List<AuthenticatedUser> getAuthenticatedUserList(String searchTerm, String sortKey,
-                                                            boolean isSortAscending, Integer resultLimit, Integer offset) {
+    public List<AuthenticatedUser> find(final String searchTerm, 
+    			final String sortKey, final  boolean isSortAscending,
+    			final Integer resultLimit, Integer offset) {
         offset = offset == null || offset < 0 ? Integer.valueOf(0) : offset;
 
         List<AuthenticatedUser> userResults = getUserListCore(searchTerm, sortKey, isSortAscending, resultLimit, offset);
@@ -252,8 +252,8 @@ public class UserServiceBean {
         offset = offset == null || offset < 0 ? Integer.valueOf(0) : offset;
         searchTerm = StringUtils.isEmpty(searchTerm) ? "" : searchTerm.trim();
 
-        return repo.find(dashboardUserSortKey,
-                resultLimit, offset, searchTerm, isSortAscending);
+        return repo.find(searchTerm, dashboardUserSortKey, isSortAscending,
+                resultLimit, offset);
     }
 
     private SortKey parseSortColumn(String sortKey) {

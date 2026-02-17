@@ -5,11 +5,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.sql.Timestamp;
-import java.time.temporal.TemporalUnit;
 
-import javax.ejb.EJBException;
 import javax.inject.Inject;
-import javax.validation.ConstraintViolationException;
 
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +42,7 @@ public class UserServiceBeanIT extends WebappArquillianDeployment {
     }
     
     @Test
-    void save() throws Exception {
+    void save() {
     	
     	AuthenticatedUser user = new AuthenticatedUser();
     	user.setUserIdentifier("user1");

@@ -23,9 +23,8 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
     /**
      * Results of this query are used to build Authenticated User records.
      */
-    public List<AuthenticatedUser> find(final SortKey sortKey, 
-    		final int resultLimit, final int offset, final String searchTerm, 
-    		final boolean isSortAscending) {
+    public List<AuthenticatedUser> find(final String searchTerm, final SortKey sortKey, 
+    		final boolean isSortAscending, final int resultLimit, final int offset) {
 
         final CriteriaBuilder builder = this.em.getCriteriaBuilder();
         final CriteriaQuery<AuthenticatedUser> query = builder.createQuery(AuthenticatedUser.class);

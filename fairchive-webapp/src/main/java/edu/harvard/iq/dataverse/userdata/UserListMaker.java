@@ -59,7 +59,7 @@ public class UserListMaker {
         // -------------------------------------------------
         // (3) Retrieve the users
         // -------------------------------------------------
-        List<AuthenticatedUser> userList = userService.getAuthenticatedUserList(searchTerm, sortKey, isSortAscending, itemsPerPage, offset);
+        List<AuthenticatedUser> userList = userService.find(searchTerm, sortKey, isSortAscending, itemsPerPage, offset);
 
         pager = new Pager(userCount.intValue(), itemsPerPage, selectedPage);
 
