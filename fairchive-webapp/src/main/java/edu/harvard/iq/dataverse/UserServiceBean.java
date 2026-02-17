@@ -84,7 +84,7 @@ public class UserServiceBean {
      * Return the number of superusers -- for the dashboard
      */
     public Long getSuperUserCount() {
-        return this.authenticatedUserRepository.getSuperUserCount();
+        return this.authenticatedUserRepository.countSuperUsers();
     }
 
     public Long getTotalUserCount() {
@@ -95,7 +95,7 @@ public class UserServiceBean {
         if (StringUtils.isEmpty(searchTerm)) {
             searchTerm = "";
         }
-        return authenticatedUserRepository.countSearchedAuthenticatedUsers(searchTerm.trim());
+        return authenticatedUserRepository.countUsers(searchTerm.trim());
     }
 
     public AuthenticatedUser updateLastLogin(AuthenticatedUser user) {
@@ -263,7 +263,7 @@ public class UserServiceBean {
         offset = offset == null || offset < 0 ? Integer.valueOf(0) : offset;
         searchTerm = StringUtils.isEmpty(searchTerm) ? "" : searchTerm.trim();
 
-        return authenticatedUserRepository.findSearchedAuthenticatedUsers(dashboardUserSortKey,
+        return authenticatedUserRepository.find(dashboardUserSortKey,
                 resultLimit, offset, searchTerm, isSortAscending);
     }
 

@@ -23,9 +23,9 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     //-------------------- TESTS --------------------
 
     @Test
-    public void findSearchedAuthenticatedUsers() {
+    public void find() {
     	
-        List<AuthenticatedUser> users = this.repo.findSearchedAuthenticatedUsers(
+        List<AuthenticatedUser> users = this.repo.find(
         		SortKey.ID, resultLimit10, offset0, EMPTY, sortAscending);
 
         assertThat(users.size()).isEqualTo(4);
@@ -33,9 +33,9 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     }
 
     @Test
-    public void findSearchedAuthenticatedUsers_sortedByUserIdentifier_descending() {
+    public void find_sortedByUserIdentifier_descending() {
 
-        List<AuthenticatedUser> users = this.repo.findSearchedAuthenticatedUsers(
+        List<AuthenticatedUser> users = this.repo.find(
         		SortKey.USER_IDENTIFIER, resultLimit10, offset0, EMPTY, sortDescenting);
 
         assertThat(users.size()).isEqualTo(4);
@@ -44,12 +44,12 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     }
 
     @Test
-    public void findSearchedAuthenticatedUsers_limitedTo_2_offset_1() {
+    public void find_withLimitAndOffset() {
     	
         int resultLimit = 2;
         int offset = 1;
 
-        List<AuthenticatedUser> users = this.repo.findSearchedAuthenticatedUsers(
+        List<AuthenticatedUser> users = this.repo.find(
         		SortKey.ID, resultLimit, offset, EMPTY, sortAscending);
 
         assertThat(users.size()).isEqualTo(2);
@@ -57,9 +57,9 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     }
 
     @Test
-    public void findSearchedAuthenticatedUsers_filtered() {
+    public void find_filtered() {
 
-        List<AuthenticatedUser> users = this.repo.findSearchedAuthenticatedUsers(
+        List<AuthenticatedUser> users = this.repo.find(
         		SortKey.ID, resultLimit10, offset0, "some", sortAscending);
 
         assertThat(users.size()).isEqualTo(2);
@@ -69,35 +69,25 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
     }
 
     @Test
-    public void findSearchedAuthenticatedUsers_filtered_noResults() {
+    public void find_filtered_noResults() {
 
-        List<AuthenticatedUser> users = this.repo.findSearchedAuthenticatedUsers(
+        List<AuthenticatedUser> users = this.repo.find(
         		SortKey.ID, resultLimit10, offset0, "Non-existent", sortAscending);
 
         assertThat(users).isEmpty();
     }
 
     @Test
-    public void countSearchedAuthenticatedUsers() {
+    public void countUsers() {
 
-        assertThat(this.repo.countSearchedAuthenticatedUsers(EMPTY)).isEqualTo(4);
-    }
-
-    @Test
-    public void countSearchedAuthenticatedUsers_filtered() {
-    	
-        assertThat(this.repo.countSearchedAuthenticatedUsers("lastname")).isEqualTo(3);
-    }
-
-    @Test
-    public void countSearchedAuthenticatedUsers_filtered_noResults() {
-
-        assertThat(this.repo.countSearchedAuthenticatedUsers("Non-existent")).isZero();
+        assertThat(this.repo.countUsers(EMPTY)).isEqualTo(4);
+        assertThat(this.repo.countUsers("lastname")).isEqualTo(3);
+        assertThat(this.repo.countUsers("Non-existent")).isZero();
     }
     
     @Test
     public void getSuperUserCount() {
     	
-    	assertThat(this.repo.getSuperUserCount()).isEqualTo(2);
+    	assertThat(this.repo.countSuperUsers()).isEqualTo(2);
     }
 }

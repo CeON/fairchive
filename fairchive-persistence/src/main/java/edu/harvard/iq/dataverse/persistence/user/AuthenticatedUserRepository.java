@@ -23,7 +23,7 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
     /**
      * Results of this query are used to build Authenticated User records.
      */
-    public List<AuthenticatedUser> findSearchedAuthenticatedUsers(final SortKey sortKey, 
+    public List<AuthenticatedUser> find(final SortKey sortKey, 
     		final int resultLimit, final int offset, final String searchTerm, 
     		final boolean isSortAscending) {
 
@@ -32,7 +32,7 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
         final Root<AuthenticatedUser> root = query.from(AuthenticatedUser.class);
         root.fetch("authenticatedUserLookup");
         query.select(root)
-                .where(getSearchPredicates(searchTerm, root, builder))
+                .where(prepareSearchPredicates(searchTerm, root, builder))
                 .orderBy(isSortAscending 
                 		? builder.asc(root.get(sortKey.text)) 
                 		: builder.desc(root.get(sortKey.text)));
@@ -49,20 +49,20 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
      *
      * @return number of results for given search term
      */
-    public Long countSearchedAuthenticatedUsers(final String searchTerm) {
+    public Long countUsers(final String searchTerm) {
 
         final CriteriaBuilder builder = this.em.getCriteriaBuilder();
         final CriteriaQuery<Long> query = builder.createQuery(Long.class);
         final Root<AuthenticatedUser> root = query.from(AuthenticatedUser.class);
         query.select(builder.count(root))
-                .where(getSearchPredicates(searchTerm, root, builder));
+                .where(prepareSearchPredicates(searchTerm, root, builder));
 
         return this.em.createQuery(query).getSingleResult();
     }
 
     // -------------------- PRIVATE --------------------
 
-    private Predicate getSearchPredicates(String searchTerm, 
+    private Predicate prepareSearchPredicates(String searchTerm, 
     		final Root<AuthenticatedUser> root, final CriteriaBuilder builder) {
         
         final Predicate notErased = builder.notLike(builder.upper(root.get("userIdentifier")), "ERASED%");
@@ -81,7 +81,7 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
         }
     }
     
-    public Long getSuperUserCount() {
+    public Long countSuperUsers() {
         return this.em.createQuery(
                 "SELECT count(au) FROM AuthenticatedUser au WHERE au.superuser = true",
                 Long.class).getSingleResult();
