@@ -46,7 +46,7 @@ public class UserListMaker {
         // -------------------------------------------------
         // (1) What is the user count for this search?
         // -------------------------------------------------
-        Long userCount = userService.getUserCount(searchTerm);
+        Long userCount = userService.countUsers(searchTerm);
 
         // -------------------------------------------------
         // (2) Do some calculations here regarding the selected page, offset, etc.

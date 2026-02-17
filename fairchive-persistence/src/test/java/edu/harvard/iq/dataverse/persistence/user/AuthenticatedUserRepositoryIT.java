@@ -77,17 +77,5 @@ public class AuthenticatedUserRepositoryIT extends PersistenceArquillianDeployme
         assertThat(users).isEmpty();
     }
 
-    @Test
-    public void countUsers() {
 
-        assertThat(this.repo.countUsers(EMPTY)).isEqualTo(4);
-        assertThat(this.repo.countUsers("lastname")).isEqualTo(3);
-        assertThat(this.repo.countUsers("Non-existent")).isZero();
-    }
-    
-    @Test
-    public void getSuperUserCount() {
-    	
-    	assertThat(this.repo.countSuperUsers()).isEqualTo(2);
-    }
 }

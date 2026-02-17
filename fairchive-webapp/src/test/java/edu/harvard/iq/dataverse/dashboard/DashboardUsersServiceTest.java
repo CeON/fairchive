@@ -42,7 +42,7 @@ public class DashboardUsersServiceTest {
         when(engineService.submit(any(GrantSuperuserStatusCommand.class))).thenReturn(new AuthenticatedUser());
         when(engineService.submit(any(RevokeSuperuserStatusCommand.class))).thenReturn(new AuthenticatedUser());
         when(engineService.submit(any(RevokeAllRolesCommand.class))).thenReturn(new AuthenticatedUser());
-        when(userServiceBean.find(any())).thenReturn(testUser);
+        when(userServiceBean.getById(any())).thenReturn(testUser);
     }
 
     @Test

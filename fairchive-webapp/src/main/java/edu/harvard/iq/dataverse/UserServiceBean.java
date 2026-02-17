@@ -34,15 +34,15 @@ public class UserServiceBean {
     private EntityManager em;
 
     @Inject
-    private AuthenticatedUserRepository authenticatedUserRepository;
+    private AuthenticatedUserRepository repo;
 
     // -------------------- LOGIC --------------------
 
-    public AuthenticatedUser find(Object pk) {
-        return em.find(AuthenticatedUser.class, pk);
+    public AuthenticatedUser getById(long id) {
+        return this.repo.getById(id);
     }
 
-    public AuthenticatedUser save(AuthenticatedUser user) {
+    private AuthenticatedUser save(AuthenticatedUser user) {
         if (user.getId() == null) {
             em.persist(this);
         } else {
@@ -80,22 +80,17 @@ public class UserServiceBean {
         return viewObjects;
     }
 
-    /**
-     * Return the number of superusers -- for the dashboard
-     */
-    public Long getSuperUserCount() {
-        return this.authenticatedUserRepository.countSuperUsers();
+
+    public Long countSuperUsers() {
+        return this.repo.countSuperUsers();
     }
 
-    public Long getTotalUserCount() {
-        return getUserCount("");
+    public Long countUsers() {
+        return countUsers("");
     }
 
-    public Long getUserCount(String searchTerm) {
-        if (StringUtils.isEmpty(searchTerm)) {
-            searchTerm = "";
-        }
-        return authenticatedUserRepository.countUsers(searchTerm.trim());
+    public Long countUsers(final String searchTerm) {
+        return this.repo.countUsers(searchTerm);
     }
 
     public AuthenticatedUser updateLastLogin(AuthenticatedUser user) {
@@ -263,7 +258,7 @@ public class UserServiceBean {
         offset = offset == null || offset < 0 ? Integer.valueOf(0) : offset;
         searchTerm = StringUtils.isEmpty(searchTerm) ? "" : searchTerm.trim();
 
-        return authenticatedUserRepository.find(dashboardUserSortKey,
+        return repo.find(dashboardUserSortKey,
                 resultLimit, offset, searchTerm, isSortAscending);
     }
 

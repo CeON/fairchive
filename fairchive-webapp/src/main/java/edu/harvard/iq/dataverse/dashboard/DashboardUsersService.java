@@ -37,7 +37,7 @@ public class DashboardUsersService {
     // -------------------- LOGIC --------------------
 
     public AuthenticatedUser changeSuperuserStatus(Long userId) {
-        AuthenticatedUser dbUser = userServiceBean.find(userId);
+        AuthenticatedUser dbUser = userServiceBean.getById(userId);
 
         logger.fine("Toggling superuser status for user with id: " + userId + " superuser status; (current status: " + dbUser.isSuperuser() + ")");
 
@@ -49,7 +49,7 @@ public class DashboardUsersService {
     }
 
     public AuthenticatedUser revokeAllRolesForUser(Long userId) {
-        AuthenticatedUser dbUser = userServiceBean.find(userId);
+        AuthenticatedUser dbUser = userServiceBean.getById(userId);
 
         logger.fine("Revoking all roles for user: " + dbUser.getIdentifier());
 
