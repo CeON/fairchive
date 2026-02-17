@@ -93,14 +93,18 @@ public class ImportGenericServiceBean {
         try (StringReader reader = new StringReader(xmlToParse)){
             XMLInputFactory xmlFactory = javax.xml.stream.XMLInputFactory.newInstance();
             XMLStreamReader xmlr = xmlFactory.createXMLStreamReader(reader);
-            DatasetDTO datasetDTO = processXML(xmlr, mappingSupported);
-
-            Gson gson = new Gson();
-            String json = gson.toJson(datasetDTO.getDatasetVersion());
-            logger.fine(json);
-            JsonReader jsonReader = Json.createReader(new StringReader(json));
-            JsonObject obj = jsonReader.readObject();
-            new JsonParser(datasetFieldSvc, metadataBlockRepo, settingsService).parseDatasetVersion(obj, datasetVersion);
+            try {
+	            DatasetDTO datasetDTO = processXML(xmlr, mappingSupported);
+	
+	            Gson gson = new Gson();
+	            String json = gson.toJson(datasetDTO.getDatasetVersion());
+	            logger.fine(json);
+	            JsonReader jsonReader = Json.createReader(new StringReader(json));
+	            JsonObject obj = jsonReader.readObject();
+	            new JsonParser(datasetFieldSvc, metadataBlockRepo, settingsService).parseDatasetVersion(obj, datasetVersion);
+            } finally {
+            	xmlr.close();
+            }
         } catch (XMLStreamException ex) {
             throw new EJBException("ERROR occurred while parsing XML fragment  (" + xmlToParse.substring(0, 64) + "...); ", ex);
         } catch (JsonParseException ex) {
@@ -126,12 +130,15 @@ public class ImportGenericServiceBean {
         try (final StringReader reader = new StringReader(DcXmlToParse);){
             XMLInputFactory xmlFactory = javax.xml.stream.XMLInputFactory.newInstance();
             XMLStreamReader xmlr = xmlFactory.createXMLStreamReader(reader);
-
-            xmlr.nextTag();
-
-            xmlr.require(XMLStreamConstants.START_ELEMENT, null, OAI_DC_OPENING_TAG);
-
-            processXMLElement(xmlr, ":", OAI_DC_OPENING_TAG, dublinCoreMapping, datasetDTO);
+            try {
+	            xmlr.nextTag();
+	
+	            xmlr.require(XMLStreamConstants.START_ELEMENT, null, OAI_DC_OPENING_TAG);
+	
+	            processXMLElement(xmlr, ":", OAI_DC_OPENING_TAG, dublinCoreMapping, datasetDTO);
+            } finally {
+            	xmlr.close();
+            }
         } catch (XMLStreamException ex) {
             throw new EJBException("ERROR occurred while parsing XML fragment  (" + DcXmlToParse.substring(0, 64) + "...); ", ex);
         }
