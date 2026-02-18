@@ -10,11 +10,9 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.List;
 
 @SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataverse)

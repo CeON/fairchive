@@ -85,39 +85,31 @@ public class ImportGenericServiceBean {
 
     public void importXML(String xmlToParse, String foreignFormat, DatasetVersion datasetVersion) throws JsonParseException {
 
-        StringReader reader;
-        XMLStreamReader xmlr = null;
-
         ForeignMetadataFormatMapping mappingSupported = findFormatMappingByName(foreignFormat);
         if (mappingSupported == null) {
             throw new EJBException("Unknown/unsupported foreign metadata format " + foreignFormat);
         }
 
-        try {
-            reader = new StringReader(xmlToParse);
+        try (StringReader reader = new StringReader(xmlToParse)){
             XMLInputFactory xmlFactory = javax.xml.stream.XMLInputFactory.newInstance();
-            xmlr = xmlFactory.createXMLStreamReader(reader);
-            DatasetDTO datasetDTO = processXML(xmlr, mappingSupported);
-
-            Gson gson = new Gson();
-            String json = gson.toJson(datasetDTO.getDatasetVersion());
-            logger.fine(json);
-            JsonReader jsonReader = Json.createReader(new StringReader(json));
-            JsonObject obj = jsonReader.readObject();
-            new JsonParser(datasetFieldSvc, metadataBlockRepo, settingsService).parseDatasetVersion(obj, datasetVersion);
+            XMLStreamReader xmlr = xmlFactory.createXMLStreamReader(reader);
+            try {
+	            DatasetDTO datasetDTO = processXML(xmlr, mappingSupported);
+	
+	            Gson gson = new Gson();
+	            String json = gson.toJson(datasetDTO.getDatasetVersion());
+	            logger.fine(json);
+	            JsonReader jsonReader = Json.createReader(new StringReader(json));
+	            JsonObject obj = jsonReader.readObject();
+	            new JsonParser(datasetFieldSvc, metadataBlockRepo, settingsService).parseDatasetVersion(obj, datasetVersion);
+            } finally {
+            	xmlr.close();
+            }
         } catch (XMLStreamException ex) {
             throw new EJBException("ERROR occurred while parsing XML fragment  (" + xmlToParse.substring(0, 64) + "...); ", ex);
         } catch (JsonParseException ex) {
             Logger.getLogger(ImportGenericServiceBean.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
-        } finally {
-            try {
-                if (xmlr != null) {
-                    xmlr.close();
-                }
-            } catch (XMLStreamException ex) {
-                logger.log(Level.WARNING, "", ex);
-            }
         }
     }
 
@@ -134,19 +126,19 @@ public class ImportGenericServiceBean {
         }
 
         DatasetDTO datasetDTO = this.initializeDataset();
-        StringReader reader;
-        XMLStreamReader xmlr;
-
-        try {
-            reader = new StringReader(DcXmlToParse);
+        
+        try (final StringReader reader = new StringReader(DcXmlToParse);){
             XMLInputFactory xmlFactory = javax.xml.stream.XMLInputFactory.newInstance();
-            xmlr = xmlFactory.createXMLStreamReader(reader);
-
-            xmlr.nextTag();
-
-            xmlr.require(XMLStreamConstants.START_ELEMENT, null, OAI_DC_OPENING_TAG);
-
-            processXMLElement(xmlr, ":", OAI_DC_OPENING_TAG, dublinCoreMapping, datasetDTO);
+            XMLStreamReader xmlr = xmlFactory.createXMLStreamReader(reader);
+            try {
+	            xmlr.nextTag();
+	
+	            xmlr.require(XMLStreamConstants.START_ELEMENT, null, OAI_DC_OPENING_TAG);
+	
+	            processXMLElement(xmlr, ":", OAI_DC_OPENING_TAG, dublinCoreMapping, datasetDTO);
+            } finally {
+            	xmlr.close();
+            }
         } catch (XMLStreamException ex) {
             throw new EJBException("ERROR occurred while parsing XML fragment  (" + DcXmlToParse.substring(0, 64) + "...); ", ex);
         }

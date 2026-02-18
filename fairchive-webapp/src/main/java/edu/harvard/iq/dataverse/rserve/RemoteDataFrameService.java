@@ -45,7 +45,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -677,49 +676,20 @@ public class RemoteDataFrameService {
 
         // set up a local temp file: 
 
-        File tmpResultFile = null;
         String resultFile = tmpFilePrefix + pid + "." + tmpFileExt;
+        File tmpResultFile = new File(LOCAL_TEMP_DIR, resultFile);
 
-        RFileInputStream rInStream = null;
-        OutputStream outbr = null;
-        try {
-            tmpResultFile = new File(LOCAL_TEMP_DIR, resultFile);
-            outbr = new BufferedOutputStream(new FileOutputStream(tmpResultFile));
-            // open the input stream
-            rInStream = connection.openFile(targetFilename);
+        try (OutputStream outbr = new BufferedOutputStream(new FileOutputStream(tmpResultFile));
+        		RFileInputStream rInStream = connection.openFile(targetFilename)) {
             if (fileSize < 1024 * 1024 * 500) {
                 byte[] obuf = new byte[fileSize];
                 rInStream.read(obuf);
                 outbr.write(obuf, 0, fileSize);
             }
-            rInStream.close();
-            outbr.close();
             return tmpResultFile;
-        } catch (FileNotFoundException fe) {
-            fe.printStackTrace();
-            logger.fine("FileNotFound exception occurred");
-            return tmpResultFile;
-        } catch (IOException ie) {
-            ie.printStackTrace();
-            logger.fine("IO exception occurred");
-        } finally {
-            if (rInStream != null) {
-                try {
-                    rInStream.close();
-                } catch (IOException e) {
-
-                }
-            }
-
-            if (outbr != null) {
-                try {
-                    outbr.close();
-                } catch (IOException e) {
-
-                }
-            }
-
-        }
+        } catch (IOException e) {
+            logger.fine(e.toString());
+        } 
 
         // delete remote file: 
 

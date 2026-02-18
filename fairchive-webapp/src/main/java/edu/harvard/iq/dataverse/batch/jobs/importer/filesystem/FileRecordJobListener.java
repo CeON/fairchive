@@ -41,7 +41,6 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.io.IOUtils;
 
 import javax.batch.api.BatchProperty;
 import javax.batch.api.chunk.listener.ItemReadListener;
@@ -144,14 +143,13 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
 
     @Override
     public void beforeJob() throws Exception {
-        Logger jobLogger;
 
         // initialize logger
         // (the beforeJob() method gets executed before anything else; so we 
         // initialize the logger here. everywhere else will be retrieving 
         // it with Logger.getLogger(byname) - that should be giving us the 
         // same instance, created here - and not creating a new logger)
-        jobLogger = LoggingUtil.getJobLogger(Long.toString(jobContext.getInstanceId()));
+        Logger jobLogger = LoggingUtil.getJobLogger(Long.toString(jobContext.getInstanceId()));
 
         // update job properties to be used elsewhere to determine dataset, user and mode
         JobOperator jobOperator = BatchRuntime.getJobOperator();
@@ -260,11 +258,6 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
             return false;
         }
 
-//        if (!permissionServiceBean.userOn(user, dataset.getOwner()).has(Permission.EditDataset)) {
-//            getJobLogger().log(Level.SEVERE, "User doesn't have permission to import files into this dataset.");
-//            return false;
-//        }
-
         if (dataset.getVersions().size() != 1) {
             getJobLogger().log(Level.SEVERE, "File system import is currently only supported for datasets with one version.");
             return false;
@@ -283,8 +276,6 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
     private void doReport() {
 
         try {
-
-            String jobJson;
             String jobId = Long.toString(jobContext.getInstanceId());
             JobOperator jobOperator = BatchRuntime.getJobOperator();
 
@@ -309,7 +300,7 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
                 jobExecutionEntity.setExitStatus("COMPLETED");
                 jobExecutionEntity.setStatus(BatchStatus.COMPLETED);
                 jobExecutionEntity.setEndTime(date);
-                jobJson = new ObjectMapper().writeValueAsString(jobExecutionEntity);
+                String jobJson = new ObjectMapper().writeValueAsString(jobExecutionEntity);
 
                 String logDir = System.getProperty("com.sun.aas.instanceRoot") + SEP + "logs" + SEP + "batch-jobs" + SEP;
 
@@ -440,9 +431,7 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
                 + SEP + uploadFolder
                 + SEP + manifest;
         getJobLogger().log(Level.INFO, "Reading checksum manifest: " + manifestAbsolutePath);
-        Scanner scanner = null;
-        try {
-            scanner = new Scanner(new FileReader(manifestAbsolutePath));
+        try (final Scanner scanner = new Scanner(new FileReader(manifestAbsolutePath))){
             HashMap<String, String> map = new HashMap<>();
             while (scanner.hasNextLine()) {
                 String[] parts = scanner.nextLine().split("\\s+"); // split on any empty space between path and checksum
@@ -455,10 +444,7 @@ public class FileRecordJobListener implements ItemReadListener, StepListener, Jo
         } catch (IOException ioe) {
             getJobLogger().log(Level.SEVERE, "Unable to load checksum manifest file: " + ioe.getMessage());
             jobContext.setExitStatus("FAILED");
-        } finally {
-            IOUtils.closeQuietly(scanner);
         }
-
     }
 
     private Logger getJobLogger() {

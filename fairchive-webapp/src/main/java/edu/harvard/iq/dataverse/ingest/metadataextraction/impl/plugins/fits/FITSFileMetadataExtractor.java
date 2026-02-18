@@ -658,7 +658,6 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
         if (domainRoot != null && !(domainRoot.equals(""))) {
             String configFileName = domainRoot + "/config/fits.conf_DONOTREAD";
             File configFile = new File(configFileName);
-            BufferedReader configFileReader = null;
 
             dbgLog.fine("FITS plugin: checking for the config file: " + configFileName);
 
@@ -669,10 +668,8 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
 
 
                 String line;
-
-                try {
-                    dbgLog.fine("FITS plugin: attempting to read the config file: " + configFileName);
-                    configFileReader = new BufferedReader(new InputStreamReader(new FileInputStream(configFile)));
+                dbgLog.fine("FITS plugin: attempting to read the config file: " + configFileName);
+                try (BufferedReader configFileReader = new BufferedReader(new InputStreamReader(new FileInputStream(configFile)))) {
 
                     while ((line = configFileReader.readLine()) != null) {
 
@@ -743,12 +740,7 @@ public class FITSFileMetadataExtractor extends FileMetadataExtractor {
                     // need to clear the configuration maps now:
 
                     nConfiguredKeys = 0;
-                } finally {
-                    try {
-                        configFileReader.close();
-                    } catch (Exception e) {
-                    }
-                }
+                } 
             } else {
                 dbgLog.fine("FITS plugin: no config file; will proceed with "
                                     + "the default configurtion.");
