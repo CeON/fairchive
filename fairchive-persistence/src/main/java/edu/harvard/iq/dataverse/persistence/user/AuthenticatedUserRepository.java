@@ -1,13 +1,17 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import static java.util.stream.Collectors.joining;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 import javax.ejb.Stateless;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Stateless
 public class AuthenticatedUserRepository extends JpaRepository<Long, AuthenticatedUser> {
@@ -85,7 +89,61 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
                 "SELECT count(au) FROM AuthenticatedUser au WHERE au.superuser = true",
                 Long.class).getSingleResult();
     }
+    
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getDirectRolesOf(final Stream<String> userIdentifiers) {
+		final String identifiers = userIdentifiers
+                .map(i -> "'@" + i + '\'')
+                .collect(joining(","));
 
+        return this.em.createNativeQuery(
+        		"SELECT distinct a.assigneeidentifier, d.alias, d.name" +
+                " FROM roleassignment a, dataverserole d" +
+                " WHERE d.id = a.role_id" +
+                " AND a.assigneeidentifier IN (" +
+                identifiers +
+                ") ORDER by a.assigneeidentifier, d.alias;")
+        		.getResultList();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getGroupsOf(final Stream<Long> userIds) {
+		final String identifiers = userIds.
+				map(String::valueOf).
+				collect(joining(","));
+
+        // A *RECURSIVE* native query, that finds all the groups that the specified
+        // users are part of, BOTH by direct inclusion, AND via parent groups:
+        return this.em.createNativeQuery("WITH RECURSIVE group_user AS ((" +
+                " SELECT distinct g.groupalias, g.id, u.useridentifier" +
+                "  FROM explicitgroup g, explicitgroup_authenticateduser e, authenticateduser u" +
+                "  WHERE e.explicitgroup_id = g.id " +
+                "   AND u.id IN (" + 
+                identifiers + 
+                "  ) AND u.id = e.containedauthenticatedusers_id)" +
+                "  UNION\n" +
+                "   SELECT p.groupalias, p.id, c.useridentifier" +
+                "    FROM group_user c, explicitgroup p, explicitgroup_explicitgroup e" +
+                "    WHERE e.explicitgroup_id = p.id" +
+                "     AND e.containedexplicitgroups_id = c.id)" +
+                "SELECT distinct groupalias, useridentifier FROM group_user;").
+        		getResultList();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getRolesOf(final Stream<String> groupIdentifiers) {
+		final String identifiers = groupIdentifiers.collect(joining(","));
+	
+        return this.em.createNativeQuery(
+        		"SELECT distinct a.assigneeidentifier, d.alias, d.name" +
+	             " FROM roleassignment a, dataverserole d" +
+	             " WHERE d.id = a.role_id" +
+	             " AND a.assigneeidentifier IN (" +
+	             identifiers +
+	             " ) ORDER by a.assigneeidentifier, d.alias;").
+        		getResultList();
+	}
+	
     // -------------------- INNER CLASSES --------------------
 
     public enum SortKey {
