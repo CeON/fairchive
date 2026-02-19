@@ -65,7 +65,7 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
     		final Root<AuthenticatedUser> root, final CriteriaBuilder builder) {
         
         final Predicate notErased = builder.notLike(builder.upper(root.get("userIdentifier")), "ERASED%");
-        if (searchTerm == null || searchTerm.isEmpty()) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return notErased;
         } else {
             searchTerm = searchTerm.toLowerCase().concat("%");

@@ -1,10 +1,10 @@
 package edu.harvard.iq.dataverse;
 
 import static java.time.Instant.now;
+import static java.util.Collections.emptyList;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,18 +57,19 @@ public class UserServiceBean {
      */
     public List<AuthenticatedUser> find(final String searchTerm, 
     			final String sortKey, final  boolean isSortAscending,
-    			final Integer resultLimit, Integer offset) {
-        offset = offset == null || offset < 0 ? Integer.valueOf(0) : offset;
+    			final Integer resultLimit, final Integer offset) {
 
-        List<AuthenticatedUser> userResults = getUserListCore(searchTerm, sortKey, isSortAscending, resultLimit, offset);
+        final List<AuthenticatedUser> users = this.repo.find(searchTerm, 
+        		SortKey.fromString(sortKey), isSortAscending,
+        		sanitize(resultLimit, 1), sanitize(offset, 0));
 
-        Map<String, List<String>> roleLookup = retrieveRolesForUsers(userResults);
+        Map<String, List<String>> roleLookup = retrieveRolesForUsers(users);
 
         List<AuthenticatedUser> viewObjects = new ArrayList<>();
-        for (AuthenticatedUser userInfo : userResults) {
-            List<String> roleList = roleLookup.getOrDefault("@" + userInfo.getUserIdentifier(), Collections.emptyList());
-            AuthenticatedUser singleUser = addAuthenticatedUserRoles(userInfo, String.join(", ", roleList));
-            viewObjects.add(singleUser);
+        for (AuthenticatedUser user : users) {
+            List<String> roleList = roleLookup.getOrDefault("@" + user.getUserIdentifier(), emptyList());
+            user.setRoles(String.join(", ", roleList));
+            viewObjects.add(user);
         }
 
         return viewObjects;
@@ -98,13 +99,15 @@ public class UserServiceBean {
         user.setLastApiUseTime(Timestamp.from(now()));
         return save(user);
     }
+    
+    private static Integer sanitize(final Integer value, final int minimum) {
+    	return value == null || value < minimum
+    			? Integer.valueOf(minimum) 
+    			: value;
+    }
+    
 
     // -------------------- PRIVATE --------------------
-
-    private AuthenticatedUser addAuthenticatedUserRoles(AuthenticatedUser authenticatedUser, String roles) {
-        authenticatedUser.setRoles(roles);
-        return authenticatedUser;
-    }
 
     /**
      * Attempt to retrieve all the user roles in 1 query
@@ -240,30 +243,5 @@ public class UserServiceBean {
         return userRoleLookup;
     }
 
-    /**
-     * Run a native query, returning a List<Object[]> containing
-     * AuthenticatedUser information as well as information about the
-     * Authenticated Provider (e.g. builtin user, etc)
-     */
-    private List<AuthenticatedUser> getUserListCore(String searchTerm, String sortKey, boolean isSortAscending, Integer resultLimit, Integer offset) {
 
-        SortKey dashboardUserSortKey = parseSortColumn(sortKey);
-        resultLimit = resultLimit == null || resultLimit < 1 ? Integer.valueOf(1) : resultLimit;
-        offset = offset == null || offset < 0 ? Integer.valueOf(0) : offset;
-        searchTerm = StringUtils.isEmpty(searchTerm) ? "" : searchTerm.trim();
-
-        return repo.find(searchTerm, dashboardUserSortKey, isSortAscending,
-                resultLimit, offset);
-    }
-
-    private SortKey parseSortColumn(String sortKey) {
-        return StringUtils.isEmpty(sortKey) ? SortKey.ID : validateSortColumn(sortKey);
-    }
-
-    private SortKey validateSortColumn(String sortKey) {
-        return Arrays.stream(SortKey.values())
-                .filter(dashboardUserSortKey -> dashboardUserSortKey.equals(SortKey.fromString(sortKey)))
-                .findAny()
-                .orElse(SortKey.ID);
-    }
 }
