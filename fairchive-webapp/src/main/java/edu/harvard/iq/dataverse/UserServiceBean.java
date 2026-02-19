@@ -16,8 +16,6 @@ import java.util.Set;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,13 +26,8 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository.Sor
 @Stateless
 public class UserServiceBean {
 
-    @PersistenceContext
-    private EntityManager em;
-
     @Inject
     private AuthenticatedUserRepository repo;
-
-    // -------------------- LOGIC --------------------
 
     public AuthenticatedUser getById(long id) {
         return this.repo.getById(id);
