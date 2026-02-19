@@ -76,6 +76,11 @@ public class UserServiceBeanIT extends WebappArquillianDeployment {
 
         assertThat(users.size()).isEqualTo(4);
         assertThat(users).extracting(AuthenticatedUser::getId).containsSequence(1L, 2L, 3L, 4L);
+        
+        assertThat(users.get(0).getRoles()).isEqualTo("Admin");
+        assertThat(users.get(1).getRoles()).isEqualTo("Contributor, Curator");
+        assertThat(users.get(2).getRoles()).isEqualTo("File Downloader, Curator");
+        assertThat(users.get(3).getRoles()).isEmpty();
     }
     
     @Test
