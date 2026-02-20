@@ -50,18 +50,20 @@ public class WorkflowExecutionScheduler {
 
     static final String JMS_QUEUE_RESOURCE_NAME = "jms/queue/dataverseWorkflow";
 
+    @Resource(lookup = "jms/activemqConnection")
     private QueueConnectionFactory factory;
 
+    @Resource(lookup = "jms/queue/dataverseWorkflow")
     private Queue queue;
 
     // -------------------- CONSTRUCTORS --------------------
 
-    @Resource(mappedName = JMS_CONNECTION_FACTORY_RESOURCE_NAME)
+  //  @Resource(mappedName = JMS_CONNECTION_FACTORY_RESOURCE_NAME)
     public void setFactory(QueueConnectionFactory factory) {
         this.factory = factory;
     }
 
-    @Resource(mappedName = JMS_QUEUE_RESOURCE_NAME)
+  //  @Resource(mappedName = JMS_QUEUE_RESOURCE_NAME)
     public void setQueue(Queue queue) {
         this.queue = queue;
     }
