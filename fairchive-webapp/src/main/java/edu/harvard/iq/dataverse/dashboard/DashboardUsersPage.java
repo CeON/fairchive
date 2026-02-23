@@ -125,7 +125,7 @@ public class DashboardUsersPage implements java.io.Serializable {
      * @return
      */
     public String getUserCount() {
-        return NumberFormat.getInstance().format(userService.getTotalUserCount());
+        return NumberFormat.getInstance().format(userService.countUsers());
     }
 
     /**
@@ -134,7 +134,7 @@ public class DashboardUsersPage implements java.io.Serializable {
      * @return
      */
     public Long getSuperUserCount() {
-        return userService.getSuperUserCount();
+        return userService.countSuperUsers();
     }
 
     // -------------------- SETTERS --------------------

@@ -1,280 +1,189 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.common.RoleTranslationUtil;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
-import org.apache.commons.lang3.StringUtils;
+import static edu.harvard.iq.dataverse.common.RoleTranslationUtil.getLocaleNameFromAlias;
+import static java.lang.String.join;
+import static java.time.Instant.now;
+import static java.util.Collections.emptyList;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-import static edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository.SortKey;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
+
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository.SortKey;
 
 @Stateless
 public class UserServiceBean {
 
-    private static final Logger logger = Logger.getLogger(UserServiceBean.class.getCanonicalName());
-
-    @PersistenceContext
-    private EntityManager em;
-
     @Inject
-    private AuthenticatedUserRepository authenticatedUserRepository;
+    private AuthenticatedUserRepository repo;
 
-    // -------------------- LOGIC --------------------
-
-    public AuthenticatedUser find(Object pk) {
-        return em.find(AuthenticatedUser.class, pk);
+    public AuthenticatedUser getById(long id) {
+        return this.repo.getById(id);
     }
 
-    public AuthenticatedUser save(AuthenticatedUser user) {
-        if (user.getId() == null) {
-            em.persist(this);
-        } else {
-            if (user.getCreatedTime() == null) {
-                user.setCreatedTime(new Timestamp(new Date().getTime())); // default new creation time
-                user.setLastLoginTime(user.getCreatedTime()); // sets initial lastLoginTime to creation time
-                logger.info("Creation time null! Setting user creation time to now");
-            }
-            user = em.merge(user);
+    public AuthenticatedUser save(final AuthenticatedUser user) {
+        if (user.getCreatedTime() == null) {
+            user.setCreatedTime(Timestamp.from(now()));
+        } 
+        if(user.getLastLoginTime() == null) {
+        	 user.setLastLoginTime(user.getCreatedTime());
         }
-        em.flush();
-
-        return user;
+        return this.repo.save(user);
     }
 
     /**
      * Return the user information as a List of AuthenticatedUser objects -- easier to work with in the UI
      * - With Role added as a transient field
      */
-    public List<AuthenticatedUser> getAuthenticatedUserList(String searchTerm, String sortKey,
-                                                            boolean isSortAscending, Integer resultLimit, Integer offset) {
-        offset = offset == null || offset < 0 ? Integer.valueOf(0) : offset;
+    public List<AuthenticatedUser> find(final String searchTerm, 
+    			final String sortKey, final  boolean isSortAscending,
+    			final Integer resultLimit, final Integer offset) {
 
-        List<AuthenticatedUser> userResults = getUserListCore(searchTerm, sortKey, isSortAscending, resultLimit, offset);
-
-        Map<String, List<String>> roleLookup = retrieveRolesForUsers(userResults);
-
-        List<AuthenticatedUser> viewObjects = new ArrayList<>();
-        for (AuthenticatedUser userInfo : userResults) {
-            List<String> roleList = roleLookup.getOrDefault("@" + userInfo.getUserIdentifier(), Collections.emptyList());
-            AuthenticatedUser singleUser = addAuthenticatedUserRoles(userInfo, String.join(", ", roleList));
-            viewObjects.add(singleUser);
-        }
-
-        return viewObjects;
+        final List<AuthenticatedUser> users = this.repo.find(searchTerm, 
+        		SortKey.fromString(sortKey), isSortAscending,
+        		sanitize(resultLimit, 1), sanitize(offset, 0));
+        setRoles(users);
+        return users;
     }
 
-    /**
-     * Return the number of superusers -- for the dashboard
-     */
-    public Long getSuperUserCount() {
-        return this.authenticatedUserRepository.getSuperUserCount();
+
+    public Long countSuperUsers() {
+        return this.repo.countSuperUsers();
     }
 
-    public Long getTotalUserCount() {
-        return getUserCount("");
+    public Long countUsers() {
+        return countUsers("");
     }
 
-    public Long getUserCount(String searchTerm) {
-        if (StringUtils.isEmpty(searchTerm)) {
-            searchTerm = "";
-        }
-        return authenticatedUserRepository.countSearchedAuthenticatedUsers(searchTerm.trim());
+    public Long countUsers(final String searchTerm) {
+        return this.repo.countUsers(searchTerm);
     }
 
-    public AuthenticatedUser updateLastLogin(AuthenticatedUser user) {
+    public AuthenticatedUser updateLastLogin(final AuthenticatedUser user) {
         //assumes that AuthenticatedUser user already exists
-        user.setLastLoginTime(new Timestamp(new Date().getTime()));
+        user.setLastLoginTime(Timestamp.from(now()));
         return save(user);
     }
 
-    public AuthenticatedUser updateLastApiUseTime(AuthenticatedUser user) {
+    public AuthenticatedUser updateLastApiUseTime(final AuthenticatedUser user) {
         //assumes that AuthenticatedUser user already exists
-        user.setLastApiUseTime(new Timestamp(new Date().getTime()));
+        user.setLastApiUseTime(Timestamp.from(now()));
         return save(user);
     }
+    
+    private static int sanitize(final Integer value, final int minimum) {
+    	return value == null || value < minimum
+    			? minimum
+    			: value;
+    }
 
-    // -------------------- PRIVATE --------------------
-
-    private AuthenticatedUser addAuthenticatedUserRoles(AuthenticatedUser authenticatedUser, String roles) {
-        authenticatedUser.setRoles(roles);
-        return authenticatedUser;
+    private List<Object[]> getDirectRolesOf(final Collection<AuthenticatedUser> users) {
+    	return this.repo.getDirectRolesOf(
+    			users.stream().
+                map(AuthenticatedUser::getUserIdentifier).
+                filter(StringUtils::isNotEmpty));
+    }
+    
+    private void setRoles(final Collection<AuthenticatedUser> users) {
+    	
+    	final RoleNames roleLookup = retrieveRolesForUsers(users);
+        for (final AuthenticatedUser user : users) {
+            user.setRoles(roleLookup.get(user.getUserIdentifier()));
+        }
+    }
+    
+    private List<Object[]> getGroupsOf(final Collection<AuthenticatedUser> users) {
+    	return this.repo.getGroupsOf(
+    			users.stream().
+                map(AuthenticatedUser::getId));
+    }
+    
+    private List<Object[]> getRolesOf(final Collection<String> groupIdentifiers) {
+    	return this.repo.getRolesOf(groupIdentifiers.stream());
     }
 
     /**
      * Attempt to retrieve all the user roles in 1 query
      * Consider putting limits on this -- e.g. no more than 1,000 user identifiers or something similar
      */
-    @SuppressWarnings("unchecked")
-    private Map<String, List<String>> retrieveRolesForUsers(List<AuthenticatedUser> userObjectList) {
-        // Iterate through results, retrieving only the assignee identifiers
-        // Note: userInfo[1], the assigneeIdentifier, cannot be null in the database
-        List<String> userIdentifierList = userObjectList.stream()
-                .map(AuthenticatedUser::getUserIdentifier)
-                .collect(Collectors.toList());
-
-        if (userIdentifierList.isEmpty()) {
-            return Collections.emptyMap();
+    private RoleNames retrieveRolesForUsers(Collection<AuthenticatedUser> users) {
+        final RoleNames result = new RoleNames();
+    	
+        if (!users.isEmpty()) {
+        	
+	        for (final Object[] row : getDirectRolesOf(users)) {
+	            final String userIdentifier = (String) row[0];
+	            final String userRole = getLocaleNameFromAlias((String) row[1], (String) row[2]);
+	            
+	            result.add(userIdentifier, userRole);
+	        }
+	
+	        // And now the roles assigned via groups:
+	        // 1. One query for selecting all the groups to which these users may belong:
+	
+	        final Map<String, List<String>> groupsLookup = new HashMap<>();
+	        final Set<String> groupIdentifiers = new HashSet<>();
+	
+	        for (final Object[] group : getGroupsOf(users)) {
+	            String alias = (String) group[0];
+	            final String user = (String) group[1];
+	            if (alias != null) {
+		            alias = "&explicit/".concat(alias);
+		            groupIdentifiers.add("'" + alias + "'");
+		
+		            final List<String> groupUserList = groupsLookup.
+		            		getOrDefault(alias, new ArrayList<>());
+		            if (!groupUserList.contains(user)) {
+		                groupUserList.add(user);
+		                groupsLookup.put(alias, groupUserList);
+		            }
+	            }
+	        }
+	
+	        // 2. And now we can make another lookup on the roleassignment table, using the list
+	        // of the explicit group aliases we have just generated:
+	
+	        if (!groupIdentifiers.isEmpty()) {
+		        for (final Object[] row : getRolesOf(groupIdentifiers)) {
+		            final String groupIdentifier = (String) row[0];
+		            final String groupRole = getLocaleNameFromAlias((String) row[1], (String) row[2]);
+		            
+		            for (final String groupUserIdentifier : groupsLookup.
+		            		getOrDefault(groupIdentifier, emptyList())) {
+		                result.add("@".concat(groupUserIdentifier), groupRole);
+		            }
+		        }
+	        }
         }
-
-        List<Long> databaseIds = userObjectList.stream()
-                .map(AuthenticatedUser::getId)
-                .collect(Collectors.toList());
-
-        // -------------------------------------------------
-        // Note: This is not ideal but in this case SQL
-        // injection isn't possible b/c the list of assigneeidentifier
-        // strings comes from a previous query
-        // -------------------------------------------------
-        String identifierListString = userIdentifierList.stream()
-                .filter(StringUtils::isNotEmpty)
-                .map(i -> "'@" + i + "'")
-                .collect(Collectors.joining(", "));
-
-        // Create/Run the query to find directly assigned roles
-        String qstr = "SELECT distinct a.assigneeidentifier, d.alias, d.name"
-              + " FROM roleassignment a, dataverserole d"
-              + " WHERE d.id = a.role_id"
-              + " AND a.assigneeidentifier IN (" + identifierListString + ")"
-              + " ORDER by a.assigneeidentifier, d.alias;";
-
-        Query nativeQuery = em.createNativeQuery(qstr);
-
-        List<Object[]> dbRoleResults = nativeQuery.getResultList();
-
-        Map<String, List<String>> userRoleLookup = new HashMap<>();
-
-        String userIdentifier;
-        String userRole;
-        for (Object[] dbResultRow : dbRoleResults) {
-            userIdentifier = (String) dbResultRow[0];
-            userRole = RoleTranslationUtil.getLocaleNameFromAlias((String) dbResultRow[1], (String) dbResultRow[2]);
-            List<String> userRoleList = userRoleLookup.getOrDefault(userIdentifier, new ArrayList<>());
-            if (!userRoleList.contains(userRole)) {
-                userRoleList.add(userRole);
-                userRoleLookup.put(userIdentifier, userRoleList);
-            }
-        }
-
-        // And now the roles assigned via groups:
-        // 1. One query for selecting all the groups to which these users may belong:
-
-        Map<String, List<String>> groupsLookup = new HashMap<>();
-        String idListString = StringUtils.join(databaseIds, ",");
-
-        // A *RECURSIVE* native query, that finds all the groups that the specified
-        // users are part of, BOTH by direct inclusion, AND via parent groups:
-
-        qstr = "WITH RECURSIVE group_user AS ((" +
-                " SELECT distinct g.groupalias, g.id, u.useridentifier" +
-                "  FROM explicitgroup g, explicitgroup_authenticateduser e, authenticateduser u" +
-                "  WHERE e.explicitgroup_id = g.id " +
-                "   AND u.id IN (" + idListString + ")" +
-                "   AND u.id = e.containedauthenticatedusers_id)" +
-                "  UNION\n" +
-                "   SELECT p.groupalias, p.id, c.useridentifier" +
-                "    FROM group_user c, explicitgroup p, explicitgroup_explicitgroup e" +
-                "    WHERE e.explicitgroup_id = p.id" +
-                "     AND e.containedexplicitgroups_id = c.id)" +
-                "SELECT distinct groupalias, useridentifier FROM group_user;";
-
-        nativeQuery = em.createNativeQuery(qstr);
-        List<Object[]> groupResults = nativeQuery.getResultList();
-
-        Set<String> groupIdentifiers = new HashSet<>();
-
-        for (Object[] group : groupResults) {
-            String alias = (String) group[0];
-            String user = (String) group[1];
-            if (alias == null) {
-                continue;
-            }
-
-            alias = "&explicit/" + alias;
-            groupIdentifiers.add("'" + alias + "'");
-
-            List<String> groupUserList = groupsLookup.getOrDefault(alias, new ArrayList<>());
-            if (!groupUserList.contains(user)) {
-                groupUserList.add(user);
-                groupsLookup.put(alias, groupUserList);
-            }
-        }
-
-        // 2. And now we can make another lookup on the roleassignment table, using the list
-        // of the explicit group aliases we have just generated:
-
-        if (groupIdentifiers.isEmpty()) {
-            return userRoleLookup;
-        }
-
-        qstr = "SELECT distinct a.assigneeidentifier, d.alias, d.name"
-             + " FROM roleassignment a, dataverserole d"
-             + " WHERE d.id = a.role_id"
-             + " AND a.assigneeidentifier IN (" + String.join(", ", groupIdentifiers) + ")"
-             + " ORDER by a.assigneeidentifier, d.alias;";
-
-        nativeQuery = em.createNativeQuery(qstr);
-        dbRoleResults = nativeQuery.getResultList();
-        if (dbRoleResults == null) {
-            return userRoleLookup;
-        }
-
-        for (Object[] dbResultRow : dbRoleResults) {
-            String groupIdentifier = (String) dbResultRow[0];
-            String groupRole = RoleTranslationUtil.getLocaleNameFromAlias((String) dbResultRow[1], (String) dbResultRow[2]);
-            List<String> groupUserList = groupsLookup.getOrDefault(groupIdentifier, Collections.emptyList());
-            for (String groupUserIdentifier : groupUserList) {
-                groupUserIdentifier = "@" + groupUserIdentifier;
-                List<String> userRoleList = userRoleLookup.getOrDefault(groupUserIdentifier, new ArrayList<>());
-                if (!userRoleList.contains(groupRole)) {
-                    userRoleList.add(groupRole);
-                    userRoleLookup.put(groupUserIdentifier, userRoleList);
-                }
-            }
-        }
-        return userRoleLookup;
+        return result;
     }
-
-    /**
-     * Run a native query, returning a List<Object[]> containing
-     * AuthenticatedUser information as well as information about the
-     * Authenticated Provider (e.g. builtin user, etc)
-     */
-    private List<AuthenticatedUser> getUserListCore(String searchTerm, String sortKey, boolean isSortAscending, Integer resultLimit, Integer offset) {
-
-        SortKey dashboardUserSortKey = parseSortColumn(sortKey);
-        resultLimit = resultLimit == null || resultLimit < 1 ? Integer.valueOf(1) : resultLimit;
-        offset = offset == null || offset < 0 ? Integer.valueOf(0) : offset;
-        searchTerm = StringUtils.isEmpty(searchTerm) ? "" : searchTerm.trim();
-
-        return authenticatedUserRepository.findSearchedAuthenticatedUsers(dashboardUserSortKey,
-                resultLimit, offset, searchTerm, isSortAscending);
-    }
-
-    private SortKey parseSortColumn(String sortKey) {
-        return StringUtils.isEmpty(sortKey) ? SortKey.ID : validateSortColumn(sortKey);
-    }
-
-    private SortKey validateSortColumn(String sortKey) {
-        return Arrays.stream(SortKey.values())
-                .filter(dashboardUserSortKey -> dashboardUserSortKey.equals(SortKey.fromString(sortKey)))
-                .findAny()
-                .orElse(SortKey.ID);
+    
+    @SuppressWarnings("serial")
+	private final static class RoleNames extends HashMap<String, List<String>> {
+    	
+    	void add(final String userIdentifier, final String roleName) {
+    		final List<String> userRoleList = getOrDefault(userIdentifier, new ArrayList<>());
+            if (!userRoleList.contains(roleName)) {
+                userRoleList.add(roleName);
+                put(userIdentifier, userRoleList);
+            }
+    	}
+    	
+    	String get(final String userIdentifier) {
+    		final List<String> roleList = getOrDefault("@".concat(userIdentifier), emptyList());
+            return join(", ", roleList);
+    	}
     }
 }

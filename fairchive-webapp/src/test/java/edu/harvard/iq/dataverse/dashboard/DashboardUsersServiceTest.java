@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,7 +43,7 @@ public class DashboardUsersServiceTest {
         when(engineService.submit(any(GrantSuperuserStatusCommand.class))).thenReturn(new AuthenticatedUser());
         when(engineService.submit(any(RevokeSuperuserStatusCommand.class))).thenReturn(new AuthenticatedUser());
         when(engineService.submit(any(RevokeAllRolesCommand.class))).thenReturn(new AuthenticatedUser());
-        when(userServiceBean.find(any())).thenReturn(testUser);
+        when(userServiceBean.getById(anyLong())).thenReturn(testUser);
     }
 
     @Test
@@ -89,6 +90,7 @@ public class DashboardUsersServiceTest {
 
     private AuthenticatedUser createTestUser() {
         AuthenticatedUser user = new AuthenticatedUser();
+        user.setId(1L);
         user.setFirstName("test");
         user.setLastName("user");
         user.setRoles("testRole");

@@ -71,7 +71,7 @@ public class DataverseLinkingServiceIT extends WebappArquillianDeployment {
     // -------------------- PRIVATE --------------------
 
     private long loginSessionWithSuperUser() {
-        AuthenticatedUser user = userService.find(2L);
+        AuthenticatedUser user = userService.getById(2L);
         dataverseSession.logIn(user);
         return user.getId();
     }

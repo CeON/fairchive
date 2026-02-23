@@ -58,12 +58,11 @@ public class WorkflowExecutionScheduler {
 
     // -------------------- CONSTRUCTORS --------------------
 
-  //  @Resource(mappedName = JMS_CONNECTION_FACTORY_RESOURCE_NAME)
+
     public void setFactory(QueueConnectionFactory factory) {
         this.factory = factory;
     }
 
-  //  @Resource(mappedName = JMS_QUEUE_RESOURCE_NAME)
     public void setQueue(Queue queue) {
         this.queue = queue;
     }
