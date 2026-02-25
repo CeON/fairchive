@@ -8,7 +8,7 @@ import edu.harvard.iq.dataverse.persistence.user.UserNotificationQuery;
 import edu.harvard.iq.dataverse.persistence.user.UserNotificationQueryResult;
 import edu.harvard.iq.dataverse.persistence.user.UserNotificationRepository;
 import edu.harvard.iq.dataverse.util.PrimefacesUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.primefaces.model.FilterMeta;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;

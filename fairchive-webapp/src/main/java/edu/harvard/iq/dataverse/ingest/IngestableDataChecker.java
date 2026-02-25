@@ -21,7 +21,7 @@ package edu.harvard.iq.dataverse.ingest;
 
 
 import static java.lang.Math.min;
-import static org.apache.commons.lang.builder.ToStringStyle.MULTI_LINE_STYLE;
+import static org.apache.commons.lang3. builder.ToStringStyle.MULTI_LINE_STYLE;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -40,7 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3. builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

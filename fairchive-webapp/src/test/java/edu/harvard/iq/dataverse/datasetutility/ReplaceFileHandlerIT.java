@@ -86,21 +86,17 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
     public void shouldCreateDataFile() {
         
         //given
-        Dataset dataset = new Dataset();
-
-        fillDatasetWithRequiredData(dataset);
-        em.persist(dataset);
-
+        Dataset dataset = this.datasetService.find(66L);
         String fileName = "testFile";
         String fileContentType = "json";
 
         //when
-        DataFile savedFile = replaceFileHandler.createDataFile(dataset, new ByteArrayInputStream(new byte[0]), fileName, fileContentType);
+        DataFile savedFile = replaceFileHandler.createDataFile(dataset, 
+        		new ByteArrayInputStream(new byte[0]), fileName, fileContentType);
 
         //then
         assertEquals(fileName, savedFile.getFileMetadata().getLabel());
         assertEquals(fileContentType, savedFile.getContentType());
-
     }
 
     @Test
@@ -231,19 +227,4 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
 
         return dataset;
     }
-
-    private Dataset fillDatasetWithRequiredData(Dataset dataset) {
-        dataset.setCreateDate(Timestamp.valueOf(LocalDateTime.of
-                (LocalDate.of(2019, 12, 12), LocalTime.of(13, 15))));
-
-        dataset.setModificationTime(Timestamp.valueOf(LocalDateTime.of
-                (LocalDate.of(2019,12,12), LocalTime.of(13,15))));
-
-        DatasetVersion editVersion = dataset.getEditVersion();
-        editVersion.setCreateTime(Date.from(Instant.ofEpochMilli(1567763690000L)));
-        editVersion.setLastUpdateTime(Date.from(Instant.ofEpochMilli(1567763690000L)));
-
-        return dataset;
-    }
-
 }

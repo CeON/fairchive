@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -22,7 +23,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -156,7 +156,7 @@ public class FileTypeDetector {
 
     public String detectTabularFileType(File file, String fallbackContentType) {
         IngestableDataChecker tabChecker = new IngestableDataChecker();
-        return StringUtils.defaultString(tabChecker.detectTabularDataFormat(file), fallbackContentType);
+        return Objects.toString(tabChecker.detectTabularDataFormat(file), fallbackContentType);
     }
     
     // -------------------- PRIVATE --------------------

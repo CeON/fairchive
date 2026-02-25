@@ -4,7 +4,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseBanner;
 import edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseLocalizedBanner;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;

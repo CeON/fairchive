@@ -5,7 +5,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder
 import static java.time.Clock.systemDefaultZone;
 import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
+import static org.apache.commons.lang3. RandomStringUtils.randomAlphanumeric;
 
 import java.io.InputStream;
 import java.util.Date;

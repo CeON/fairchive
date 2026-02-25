@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.mydata;
 
 import edu.harvard.iq.dataverse.search.SearchFields;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.search.advanced;
 
 import edu.harvard.iq.dataverse.search.advanced.field.SearchField;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;

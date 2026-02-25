@@ -23,7 +23,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;

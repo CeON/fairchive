@@ -31,8 +31,8 @@ import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
 import io.vavr.Tuple2;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3. ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static java.lang.Long.parseLong;
 import static java.nio.charset.StandardCharsets.UTF_8;

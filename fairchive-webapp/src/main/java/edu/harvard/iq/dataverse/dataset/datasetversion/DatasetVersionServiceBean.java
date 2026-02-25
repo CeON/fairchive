@@ -7,7 +7,7 @@ import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.sort;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.Serializable;
@@ -35,7 +35,7 @@ import javax.persistence.Query;
 import javax.validation.ConstraintViolation;
 import javax.validation.ValidationException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;

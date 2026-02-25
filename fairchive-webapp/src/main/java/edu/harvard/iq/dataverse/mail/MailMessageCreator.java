@@ -26,7 +26,7 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Lazy;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.simplejavamail.email.Recipient;
 
 import javax.ejb.Stateless;

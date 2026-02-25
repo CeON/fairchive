@@ -25,8 +25,8 @@ import javax.persistence.PersistenceContext;
 
 import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.join;
 
 import java.util.ArrayList;
 import java.util.List;

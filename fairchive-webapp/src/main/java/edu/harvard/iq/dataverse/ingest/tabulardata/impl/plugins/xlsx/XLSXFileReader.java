@@ -28,7 +28,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestException;
 import io.vavr.Tuple2;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.SharedStringsTable;

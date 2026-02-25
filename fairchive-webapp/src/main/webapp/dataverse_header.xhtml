@@ -511,7 +511,7 @@
         <div id="dataverseHeader" class="container"
                 style="background:#{!empty dataverse.dataverseTheme.backgroundColor ? dataverse.dataverseTheme.backgroundColor : 'inherit'};"
                 jsf:rendered="#{showDataverseHeader and !widgetWrapper.widgetView and !dataverseHeaderFragment.isRootDataverseThemeDisabled(dataverse)}">
-             <o:importFunctions type="org.apache.commons.lang.StringEscapeUtils"/>
+             <o:importFunctions type="org.apache.commons.lang3.StringEscapeUtils"/>
             <!-- FIXME: Rather than hard-coding "inherit", get it from the backend (ThemeWidgetFragment.DEFAULT_LOGO_BACKGROUND_COLOR). -->
             <div class="dataverseHeaderLogo" 
                  style="text-align:#{!empty dataverse.dataverseTheme.logoAlignment ? dataverse.dataverseTheme.logoAlignment : 'center'};background:##{!empty dataverse.dataverseTheme.logoBackgroundColor ? dataverse.dataverseTheme.logoBackgroundColor : 'inherit'};"
@@ -558,19 +558,19 @@
                      jsf:rendered="#{!empty dataverse.dataverseTheme.tagline and empty dataverse.dataverseTheme.linkUrl}">
                     <h:outputText escape="false" 
                                   style="color:##{!empty dataverse.dataverseTheme.textColor ? dataverse.dataverseTheme.textColor : 'inherit'};" 
-                                  value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" />
+                                  value="#{StringEscapeUtils:escapeHtml4(dataverse.dataverseTheme.tagline)}" />
                 </div>
                 <div class="dataverseHeaderCell dataverseHeaderLink" 
                      jsf:rendered="#{!empty dataverse.dataverseTheme.tagline and !empty dataverse.dataverseTheme.linkUrl}">
                     <h:outputLink rendered="#{empty dataverse.dataverseTheme.linkColor}" 
                                   value="#{dataverse.dataverseTheme.linkUrl}" target="_blank">
-                        <h:outputText value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" 
+                        <h:outputText value="#{StringEscapeUtils:escapeHtml4(dataverse.dataverseTheme.tagline)}" 
                                       escape="false"/>
                     </h:outputLink>
                     <h:outputLink rendered="#{!empty dataverse.dataverseTheme.linkColor}" 
                                   value="#{dataverse.dataverseTheme.linkUrl}" style="color:##{dataverse.dataverseTheme.linkColor};" 
                                   target="_blank">
-                        <h:outputText value="#{StringEscapeUtils:escapeHtml(dataverse.dataverseTheme.tagline)}" 
+                        <h:outputText value="#{StringEscapeUtils:escapeHtml4(dataverse.dataverseTheme.tagline)}" 
                                       escape="false"/>
                     </h:outputLink>
                 </div>

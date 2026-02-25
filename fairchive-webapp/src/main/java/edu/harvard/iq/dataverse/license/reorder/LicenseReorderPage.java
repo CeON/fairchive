@@ -10,7 +10,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.ReorderEvent;
 

@@ -6,7 +6,6 @@
 
 package edu.harvard.iq.dataverse.featured;
 
-import com.beust.jcommander.internal.Lists;
 import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting;
@@ -20,6 +19,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static java.util.function.Function.identity;
@@ -49,7 +49,7 @@ public class FeaturedDataverseServiceBean {
     @Inject
     private DataverseDatasetCountService datasetCountService;
 
-    private final List<FeaturedDataversesSorting> automaticSorting = Lists.newArrayList(
+    private final List<FeaturedDataversesSorting> automaticSorting = asList(
             FeaturedDataversesSorting.BY_NAME_ASC,
             FeaturedDataversesSorting.BY_NAME_DESC,
             FeaturedDataversesSorting.BY_DATASET_COUNT

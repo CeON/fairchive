@@ -3,7 +3,7 @@ package edu.harvard.iq.dataverse.harvest.server.web.servlet;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OAIServerEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SystemEmail;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.dspace.xoai.dataprovider.model.MetadataFormat.metadataFormat;
 import static org.dspace.xoai.model.oaipmh.OAIPMH.NAMESPACE_URI;
 import static org.dspace.xoai.model.oaipmh.OAIPMH.SCHEMA_LOCATION;

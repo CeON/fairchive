@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
 import edu.harvard.iq.dataverse.persistence.dataset.suggestion.GrantSuggestion;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.BeforeEach;

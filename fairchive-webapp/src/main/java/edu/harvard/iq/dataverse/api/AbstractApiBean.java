@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.api;
 
-import static org.apache.commons.lang.StringUtils.isNumeric;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 import java.io.StringReader;
 import java.net.URI;
@@ -26,7 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang.SerializationException;
+import org.apache.commons.lang3. SerializationException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

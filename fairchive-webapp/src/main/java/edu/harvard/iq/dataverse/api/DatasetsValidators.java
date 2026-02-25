@@ -7,7 +7,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;

@@ -4,7 +4,7 @@ import edu.harvard.iq.dataverse.UserServiceBean;
 import edu.harvard.iq.dataverse.userdata.UserListMaker;
 import edu.harvard.iq.dataverse.userdata.UserListResult;
 import edu.harvard.iq.dataverse.util.PrimefacesUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.primefaces.model.FilterMeta;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;

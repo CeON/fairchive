@@ -30,7 +30,7 @@ import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.TypedQuery;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3. RandomStringUtils;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;

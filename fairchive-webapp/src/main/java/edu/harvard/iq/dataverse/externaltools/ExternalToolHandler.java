@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.externaltools;
 
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.Base64;
 

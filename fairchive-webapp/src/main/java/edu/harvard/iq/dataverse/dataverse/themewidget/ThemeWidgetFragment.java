@@ -10,7 +10,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import io.vavr.control.Try;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;

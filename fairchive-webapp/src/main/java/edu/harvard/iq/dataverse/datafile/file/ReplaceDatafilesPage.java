@@ -23,7 +23,7 @@ import javax.json.JsonReader;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;

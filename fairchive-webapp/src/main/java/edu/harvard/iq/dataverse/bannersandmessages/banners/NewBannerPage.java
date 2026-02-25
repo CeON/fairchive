@@ -3,7 +3,7 @@ package edu.harvard.iq.dataverse.bannersandmessages.banners;
 import static edu.harvard.iq.dataverse.bannersandmessages.validation.ImageValidator.imageExceedes;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.persistence.dataverse.bannersandmessages.DataverseLocalizedBanner.isOfAllowableType;
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.IOException;
 import java.io.Serializable;

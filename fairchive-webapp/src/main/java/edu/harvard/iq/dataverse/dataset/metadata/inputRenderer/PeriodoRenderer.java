@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
 import static edu.harvard.iq.dataverse.persistence.dataset.InputRendererType.PERIODO;
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.List;
 

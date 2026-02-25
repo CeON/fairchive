@@ -20,7 +20,7 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import io.vavr.control.Try;
 import jersey.repackaged.com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
 import javax.faces.event.ActionEvent;

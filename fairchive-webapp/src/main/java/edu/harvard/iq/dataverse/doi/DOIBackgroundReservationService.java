@@ -15,7 +15,7 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3. math.NumberUtils;
 
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
@@ -82,7 +82,7 @@ public class DOIBackgroundReservationService {
 
             Option<Long> intervalInMs = Option
                     .of(settingsServiceBean.getValueForKey(SettingsServiceBean.Key.DoiBackgroundReservationInterval))
-                    .filter(NumberUtils::isNumber)
+                    .filter(NumberUtils::isCreatable)
                     .map(Long::parseLong);
 
             if (intervalInMs.isEmpty() || intervalInMs.get() < 0) {

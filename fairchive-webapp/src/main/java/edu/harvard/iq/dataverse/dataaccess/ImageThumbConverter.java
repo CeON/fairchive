@@ -29,7 +29,7 @@ import static java.nio.file.Files.size;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.awt.Graphics2D;

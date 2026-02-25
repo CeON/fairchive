@@ -31,7 +31,9 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import static java.util.Arrays.fill;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -148,7 +150,9 @@ public class CSVFileReader extends TabularDataFileReader {
         return ingesteddata;
     }
 
-    private int readFile(File file, DataTable dataTable, PrintWriter finalOut, File firstPassTempFile, CSVFormat csvFormat) throws IOException {
+    private int readFile(File file, DataTable dataTable, PrintWriter finalOut, 
+    		File firstPassTempFile, CSVFormat csvFormat) 
+    				throws IOException {
 
         if (file == null) {
             throw new IngestException(IngestError.UNKNOWN_ERROR);
@@ -178,19 +182,12 @@ public class CSVFileReader extends TabularDataFileReader {
         dataTable.setVarQuantity((long) variableList.size());
         dataTable.setDataVariables(variableList);
 
-        boolean[] isNumericVariable = new boolean[headers.size()];
-        boolean[] isIntegerVariable = new boolean[headers.size()];
-        boolean[] isTimeVariable = new boolean[headers.size()];
-        boolean[] isDateVariable = new boolean[headers.size()];
-
-        for (i = 0; i < headers.size(); i++) {
-            // OK, let's assume that every variable is numeric; but we'll go through the file and examine every value;
-            // the moment we find a value that's not a legit numeric one, we'll assume that it is in fact a String.
-            isNumericVariable[i] = true;
-            isIntegerVariable[i] = true;
-            isDateVariable[i] = true;
-            isTimeVariable[i] = true;
-        }
+        // OK, let's assume that every variable is numeric; but we'll go through the file and examine every value;
+        // the moment we find a value that's not a legit numeric one, we'll assume that it is in fact a String.
+        final boolean[] isNumericVariable = newArrayOfTrue(headers.size());
+        final boolean[] isIntegerVariable = newArrayOfTrue(headers.size());
+        final boolean[] isTimeVariable = newArrayOfTrue(headers.size());
+        final boolean[] isDateVariable = newArrayOfTrue(headers.size());
 
         // First, "learning" pass. (we'll save the incoming stream in another temp file:)
         SimpleDateFormat[] selectedDateTimeFormat = new SimpleDateFormat[headers.size()];
@@ -212,12 +209,12 @@ public class CSVFileReader extends TabularDataFileReader {
 
                 for (i = 0; i < headers.size(); i++) {
                     String varString = record.get(i);
-                    isIntegerVariable[i] = isIntegerVariable[i]
-                            && varString != null
-                            && (varString.isEmpty()
-                            || varString.equals("null")
-                            || (firstNumCharSet.contains(varString.charAt(0))
-                            && StringUtils.isNumeric(varString.substring(1))));
+                    if(isIntegerVariable[i]) {
+	                    isIntegerVariable[i] = varString != null
+	                            && (varString.isEmpty()
+	                            || varString.equals("null")
+	                            || isInteger(varString));
+                    }
                     if (isNumericVariable[i]) {
                         // If variable might be "numeric" test to see if this value is a parsable number:
                         if (varString != null && !varString.isEmpty()) {
@@ -424,5 +421,20 @@ public class CSVFileReader extends TabularDataFileReader {
                 .findFirst()
                 .map(l -> l.split(";").length > l.split(",").length)
                 .orElse(false);
+    }
+    
+    private static boolean[] newArrayOfTrue(final int size) {
+    	final boolean[] result = new boolean[size];
+    	fill(result, true);
+    	return result;
+    }
+    
+    private static boolean isInteger(final String value) {
+    	try {
+    		Long.parseLong(value);
+    		return true;
+    	} catch(final NumberFormatException e) {
+    		return false;
+    	}
     }
 }
