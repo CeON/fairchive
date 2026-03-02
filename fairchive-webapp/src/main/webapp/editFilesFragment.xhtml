@@ -395,7 +395,7 @@
                     <p:commandButton id="updateDatatable" action="#{EditDatafilesPage.duplicatesDeletionFinished()}"
                                      style="display:none"/>
                     <p:commandButton id="allDeletesFinished" action="#{EditDatafilesPage.deleteFilesCompleted()}"
-                                     update="datasetForm:fileUpload,datasetForm:dropBoxUserButton,datasetForm:uploadMessage,datasetForm:rsyncPanel,datasetForm:filesCounts,datasetForm:filesTable"
+                                     update="datasetForm:fileUpload,datasetForm:dropBoxUserButton,datasetForm:uploadMessage,datasetForm:rsyncPanel,datasetForm:filesCounts,datasetForm:filesTable,replacements-info"
                                      oncomplete="javascript:uploadWidgetDropMsg();" style="display:none"/>
                     <!-- ????? TODO: How scalable are all these hidden update buttons ????? -->
                     <!-- ?????
@@ -622,6 +622,13 @@
                                     </ui:repeat>
                                 </ui:fragment>
                             </div>
+                            <div jsf:id="replacementLabel" class="margin-top-half"
+                                 jsf:rendered="#{EditDatafilesPage.fileReplacementEnabled and EditDatafilesPage.hasReplacementSelected(fileMetadata)}">
+                                <h:outputFormat value="#{bundle['file.replacements.label']}">
+                                    <f:param value="#{fileMetadata.label}"/>
+                                    <f:param value="#{EditDatafilesPage.getExistingFileSize(fileMetadata)}"/>
+                                </h:outputFormat>
+                            </div>
                         </p:column>
                         <p:column class="col-file-action text-right">
                             <f:facet name="header" class="col-file-action text-right">
@@ -804,9 +811,7 @@
                     <p:dataTable id="replacementsTable" var="group" value="#{EditDatafilesPage.replacementsList}"
                                  rowIndexVar="rowNumber" class="no-min-width">
                         <p:column width="25">
-                            <ul class="list-unstyled">
-                                <li>#{rowNumber + 1}.</li>
-                            </ul>
+                            #{rowNumber + 1}.
                         </p:column>
                         <p:column headerText="#{bundle['file.replacements.dialog.column.existing']}">
                             <p:selectBooleanCheckbox value="#{group.existingFile.selected}"
@@ -821,9 +826,10 @@
                 </div>
                 <div class="button-block row">
                     <p:commandButton id="deleteReplacementsButton" value="#{bundle['file.replacements.dialog.delete.button']}"
-                                     disabled="#{!EditDatafilesPage.hasReplacementsSelected()}"
+                                     disabled="#{!EditDatafilesPage.isReplacementsModified()}"
                                      onclick="primeFacesShowModal('deleteReplacementsWidget', this)"/>
                     <p:commandButton value="#{bundle.cancel}" onclick="PF('replacementsDialogWidget').hide();"
+                                     action="#{EditDatafilesPage.cancelReplacements()}"
                                      oncomplete="window.scrollTo(0, 0);"
                                      update=":#{p:resolveClientId('datasetForm:filesTable', view)},:messagePanel,
                                  :#{p:resolveClientId('datasetForm:fileUpload', view)} filesCounts,:messagePanel,uploadMessage,replacements-info"/>

@@ -380,6 +380,42 @@ public class EditDatafilesPage implements java.io.Serializable {
         return this.replacementsList;
     }
 
+    public boolean hasReplacementSelected(FileMetadata fileMetadata) {
+        if (fileMetadata == null
+                || fileMetadata.getDataFile() == null
+                || replacementsList == null) {
+            return false;
+        }
+        return replacementsList.stream()
+                .anyMatch(group -> fileMetadata.getDataFile().equals(group.getNewFile())
+                        && group.getExistingFile().isSelected()
+                        && this.filesToBeDeleted.contains(group.getExistingFile().getDataFile()));
+    }
+
+    public void cancelReplacements() {
+        if (this.replacementsList != null) {
+            for (ReplacementService.ReplacementGroup group : this.replacementsList) {
+                group.getExistingFile().setSelected(this.filesToBeDeleted.contains(group.getExistingFile().getDataFile()));
+            }
+        }
+    }
+
+    public String getExistingFileSize(FileMetadata fileMetadata) {
+        if (fileMetadata == null
+                || fileMetadata.getDataFile() == null
+                || replacementsList == null) {
+            return null;
+        }
+        for (ReplacementService.ReplacementGroup group : replacementsList) {
+            if (fileMetadata.getDataFile().equals(group.getNewFile())
+                    && group.getExistingFile().isSelected()
+                    && this.filesToBeDeleted.contains(group.getExistingFile().getDataFile())) {
+                return group.getExistingFile().getDataFile().getFriendlySize();
+            }
+        }
+        return null;
+    }
+
     public void setReplacementsList(List<ReplacementService.ReplacementGroup> replacementsList) {
         this.replacementsList = replacementsList;
     }
@@ -546,7 +582,43 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     // This deleteFilesCompleted method is used in editFilesFragment.xhtml
-    public void deleteFilesCompleted() { }
+    public void deleteFilesCompleted() {
+        if (!isFileReplacementEnabled()) {
+            return;
+        }
+
+        // If the replacement list had some replacements selected, and we're
+        // refreshing it due to files being deleted, then all previously
+        // selected replacements should still be selected after the refresh if
+        // they're still available.
+        final Set<String> selectedReplacementIds = this.replacementsList.stream()
+                .filter(g -> g.getExistingFile().isSelected())
+                .map(g -> g.getNewFile().getStorageIdentifier())
+                .collect(toSet());
+
+        this.replacementsList = listReplacements();
+
+        if (!selectedReplacementIds.isEmpty()) {
+            this.replacementsList.stream()
+                    .filter(g -> selectedReplacementIds.contains(g.getNewFile().getStorageIdentifier()))
+                    .forEach(g -> g.getExistingFile().setSelected(true));
+        }
+
+        this.hasReplacements = !this.replacementsList.isEmpty();
+
+        // If an existing file has already been scheduled for deletion due to
+        // a replacement, and the replacement gets deleted, the existing file
+        // should be removed from files planned for deletion unless it has also
+        // been manually deleted (in which case it would not be in the
+        // fileMetadatas list).
+        final Set<DataFile> remainingReplacementTargets = this.replacementsList.stream()
+                .map(ReplacementService.ReplacementGroup::getExistingFile)
+                .map(ReplacementService.CandidateForReplacement::getDataFile)
+                .collect(toSet());
+
+        this.filesToBeDeleted.removeIf(file -> !remainingReplacementTargets.contains(file)
+                && this.fileMetadatas.stream().anyMatch(fm -> fm.getDataFile().equals(file)));
+    }
 
     public void deleteFiles() {
         logger.fine("entering bulk file delete (EditDataFilesPage)");
@@ -1309,7 +1381,22 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     public void initReplacementsDialog() {
-        this.replacementsList = listReplacements();
+        List<ReplacementService.ReplacementGroup> newList = listReplacements();
+        for (ReplacementService.ReplacementGroup newGroup : newList) {
+            DataFile existingFile = newGroup.getExistingFile().getDataFile();
+            boolean selected = this.filesToBeDeleted.contains(existingFile);
+            if (this.replacementsList != null) {
+                for (ReplacementService.ReplacementGroup oldGroup : this.replacementsList) {
+                    if (oldGroup.getNewFile().equals(newGroup.getNewFile())
+                            && oldGroup.getExistingFile().getDataFile().equals(existingFile)) {
+                        selected = oldGroup.getExistingFile().isSelected();
+                        break;
+                    }
+                }
+            }
+            newGroup.getExistingFile().setSelected(selected);
+        }
+        this.replacementsList = newList;
     }
 
     public boolean hasDuplicatesSelected() {
@@ -1319,10 +1406,13 @@ public class EditDatafilesPage implements java.io.Serializable {
                 .anyMatch(DuplicatesService.DuplicateItem::isSelected);
     }
 
-    public boolean hasReplacementsSelected() {
+    public boolean isReplacementsModified() {
+        if (this.replacementsList == null) {
+            return false;
+        }
         return this.replacementsList.stream()
-                .map(ReplacementService.ReplacementGroup::getExistingFile)
-                .anyMatch(ReplacementService.CandidateForReplacement::isSelected);
+                .anyMatch(group -> group.getExistingFile().isSelected()
+                        != this.filesToBeDeleted.contains(group.getExistingFile().getDataFile()));
     }
 
     public boolean hasDuplicatesWithWorkingVersion() {
@@ -1353,13 +1443,24 @@ public class EditDatafilesPage implements java.io.Serializable {
         if (!isFileReplacementEnabled()) {
             return;
         }
-        if (!replacementsList.isEmpty()) {
-            replacementsList.stream()
-                    .map(ReplacementService.ReplacementGroup::getExistingFile)
-                    .filter(ReplacementService.CandidateForReplacement::isSelected)
-                    .map(ReplacementService.CandidateForReplacement::getDataFile)
-                    .forEach(dataFile -> this.filesToBeDeleted.add(dataFile));
-            this.replacementsMade = true;
+        if (replacementsList != null && !replacementsList.isEmpty()) {
+            boolean modified = false;
+            for (ReplacementService.ReplacementGroup group : replacementsList) {
+                DataFile existingFile = group.getExistingFile().getDataFile();
+                boolean selected = group.getExistingFile().isSelected();
+                boolean inDeletionList = this.filesToBeDeleted.contains(existingFile);
+
+                if (selected && !inDeletionList) {
+                    this.filesToBeDeleted.add(existingFile);
+                    modified = true;
+                } else if (!selected && inDeletionList) {
+                    this.filesToBeDeleted.remove(existingFile);
+                    modified = true;
+                }
+            }
+            if (modified) {
+                this.replacementsMade = true;
+            }
         }
     }
 
