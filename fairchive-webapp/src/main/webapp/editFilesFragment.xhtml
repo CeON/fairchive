@@ -362,6 +362,20 @@
                             </p:panel>
                         </div>
                     </p:fragment>
+                    <p:fragment id="replacements-info">
+                        <div jsf:rendered="#{EditDatafilesPage.fileReplacementEnabled and EditDatafilesPage.hasReplacements}">
+                            <p:panel styleClass="bg-warning alert alert-warning">
+                                <p class="text-block">
+                                    <span class="glyphicon glyphicon-warning-sign"/>&#160;
+                                    <h:outputText value="#{bundle['file.replacements.info']}" escape="false"/>&#160;
+                                    <p:commandButton styleClass="end" value="#{bundle['file.replacements.dialog.button']}"
+                                                     action="#{EditDatafilesPage.initReplacementsDialog()}"
+                                                     update="replacementsDialog"
+                                                     oncomplete="primeFacesShowModal('replacementsDialogWidget', this)"/>
+                                </p>
+                            </p:panel>
+                        </div>
+                    </p:fragment>
                     <p:message for="fileUpload" id="uploadMessage" display="text"/>
 
                     <p:commandButton id="updateEditDataFilesButtonsForUpload"
@@ -778,6 +792,64 @@
             <p:commandButton value="#{bundle.close}" onclick="PF('deleteDuplicatesWidget').hide()"/>
         </div>
     </p:dialog>
+
+    <ui:fragment rendered="#{EditDatafilesPage.fileReplacementEnabled}">
+        <p:dialog id="replacementsDialog" header="#{bundle['file.replacements.dialog.header']}"
+                  widgetVar="replacementsDialogWidget" modal="true">
+            <div class="container">
+                <div class="form-group row">
+                    <h:outputText value="#{bundle['file.replacements.dialog.info']}"/>
+                </div>
+                <div class="form-group row">
+                    <p:dataTable id="replacementsTable" var="group" value="#{EditDatafilesPage.replacementsList}"
+                                 rowIndexVar="rowNumber" class="no-min-width">
+                        <p:column width="25">
+                            <ul class="list-unstyled">
+                                <li>#{rowNumber + 1}.</li>
+                            </ul>
+                        </p:column>
+                        <p:column headerText="#{bundle['file.replacements.dialog.column.existing']}">
+                            <p:selectBooleanCheckbox value="#{group.existingFile.selected}"
+                                                     itemLabel="#{group.existingFile.label} (#{group.existingFile.dataFile.friendlySize})">
+                                <p:ajax update="datasetForm:deleteReplacementsButton"/>
+                            </p:selectBooleanCheckbox>
+                        </p:column>
+                        <p:column headerText="#{bundle['file.replacements.dialog.column.new']}">
+                            <h:outputText value="#{group.newFile.fileMetadata.label} (#{group.newFile.friendlySize})"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <div class="button-block row">
+                    <p:commandButton id="deleteReplacementsButton" value="#{bundle['file.replacements.dialog.delete.button']}"
+                                     disabled="#{!EditDatafilesPage.hasReplacementsSelected()}"
+                                     onclick="primeFacesShowModal('deleteReplacementsWidget', this)"/>
+                    <p:commandButton value="#{bundle.cancel}" onclick="PF('replacementsDialogWidget').hide();"
+                                     oncomplete="window.scrollTo(0, 0);"
+                                     update=":#{p:resolveClientId('datasetForm:filesTable', view)},:messagePanel,
+                                 :#{p:resolveClientId('datasetForm:fileUpload', view)} filesCounts,:messagePanel,uploadMessage,replacements-info"/>
+                </div>
+            </div>
+        </p:dialog>
+
+        <p:dialog id="deleteReplacements" widgetVar="deleteReplacementsWidget"
+                  header="#{bundle['file.replacements.dialog.confirm.header']}"
+                  styleClass="smallPopUp" modal="true">
+            <div class="row">
+                <p class="text-danger">
+                    <span class="glyphicon glyphicon-exclamation-sign"/>
+                    #{bundle['file.replacements.dialog.confirm.text']}
+                </p>
+            </div>
+            <div class="button-block row">
+                <p:commandButton value="#{bundle.continue}"
+                                 action="#{EditDatafilesPage.scheduleOldFilesForDeletion()}"
+                                 oncomplete="PF('deleteReplacementsWidget').hide();PF('replacementsDialogWidget').hide();window.scrollTo(0, 0);"
+                                 update="replacementsTable,deleteReplacementsButton,:#{p:resolveClientId('datasetForm:filesTable', view)},:messagePanel,
+                             :#{p:resolveClientId('datasetForm:fileUpload', view)} filesCounts,:messagePanel,uploadMessage,replacements-info"/>
+                <p:commandButton value="#{bundle.close}" onclick="PF('deleteReplacementsWidget').hide()"/>
+            </div>
+        </p:dialog>
+    </ui:fragment>
 
     <p:dialog id="selectFilesForDeleteFragment" styleClass="smallPopUp"
               header="#{bundle['dataset.noSelectedFiles.header']}" widgetVar="selectFilesForDeleteFragment"

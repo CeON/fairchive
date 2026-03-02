@@ -146,6 +146,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private DatasetThumbnailService datasetThumbnailService;
     private ImageThumbConverter imageThumbConverter;
     private DuplicatesService duplicatesService;
+    private ReplacementService replacementService;
 
     private Dataset dataset = new Dataset();
 
@@ -177,6 +178,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private List<SelectItem> termsOfUseSelectItems;
     private List<FileMetadata> selectedFiles;
     private List<DataFile> filesToBeDeleted = new ArrayList<>();
+    private boolean replacementsMade = false;
 
     private Boolean hasRsyncScript = false;
 
@@ -205,6 +207,8 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private boolean hasDuplicates;
     private List<DuplicatesService.DuplicateGroup> duplicatesList = new ArrayList<>();
+    private boolean hasReplacements;
+    private List<ReplacementService.ReplacementGroup> replacementsList = new ArrayList<>();
     private List<FileMetadata> filesTableBackup = new ArrayList<>();
     private TextRecognitionDialog textRecognitionDialog = new TextRecognitionDialog();
     private AsyncExecutionService asyncExecutionService;
@@ -234,6 +238,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final DatasetThumbnailService datasetThumbnailService, 
                              final ImageThumbConverter imageThumbConverter,
                              final DuplicatesService duplicatesService,
+                             final ReplacementService replacementService,
                              final AsyncExecutionService asyncExecutionService) {
         this.datafileDao = datafileDao;
         this.dataFileCreator = dataFileCreator;
@@ -254,6 +259,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.datasetThumbnailService = datasetThumbnailService;
         this.imageThumbConverter = imageThumbConverter;
         this.duplicatesService = duplicatesService;
+        this.replacementService = replacementService;
         this.asyncExecutionService = asyncExecutionService;
     }
 
@@ -366,6 +372,22 @@ public class EditDatafilesPage implements java.io.Serializable {
         return this.duplicatesList;
     }
 
+    public boolean getHasReplacements() {
+        return this.hasReplacements;
+    }
+
+    public List<ReplacementService.ReplacementGroup> getReplacementsList() {
+        return this.replacementsList;
+    }
+
+    public void setReplacementsList(List<ReplacementService.ReplacementGroup> replacementsList) {
+        this.replacementsList = replacementsList;
+    }
+
+    public boolean isFileReplacementEnabled() {
+        return this.settings.isTrueForKey(Key.AllowFileReplacement);
+    }
+
     // -------------------- LOGIC --------------------
 
     public List<FileMetadata> getFileMetadatas() {
@@ -450,6 +472,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
 
     public String init() {
+        this.replacementsMade = false;
         this.fileMetadatas = new ArrayList<>();
         this.newFiles = new ArrayList<>();
         this.uploadedFiles = new ArrayList<>();
@@ -714,7 +737,11 @@ public class EditDatafilesPage implements java.io.Serializable {
         if (saveAndAddFilesProcess.getNewFilesNumber() == 0 || filesTotal == saveAndAddFilesProcess.getExpectedFilesTotal()) {
             JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.filesSuccess"));
         } else if (filesTotal == saveAndAddFilesProcess.getOldFilesNumber()) {
-            JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.message.addFiles.Failure"));
+            if (replacementsMade) {
+                JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.filesSuccess"));
+            } else if (!isFileReplacementEnabled() || !replacementsMade) {
+                JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.message.addFiles.Failure"));
+            }
         } else {
             JsfHelper.addFlashWarningMessage(getStringFromBundle(
                     "dataset.message.addFiles.partialSuccess",
@@ -940,6 +967,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.uploadSuccessMessage = null;
 
         this.hasDuplicates = hasDuplicatesInUploadedFiles(this.newFiles);
+        this.hasReplacements = !listReplacements().isEmpty();
     }
 
     public Long getMaxBatchSize() {
@@ -1280,11 +1308,21 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.duplicatesList = listDuplicates();
     }
 
+    public void initReplacementsDialog() {
+        this.replacementsList = listReplacements();
+    }
+
     public boolean hasDuplicatesSelected() {
         return this.duplicatesList.stream()
                 .map(DuplicatesService.DuplicateGroup::getDuplicates)
                 .flatMap(Collection::stream)
                 .anyMatch(DuplicatesService.DuplicateItem::isSelected);
+    }
+
+    public boolean hasReplacementsSelected() {
+        return this.replacementsList.stream()
+                .map(ReplacementService.ReplacementGroup::getExistingFile)
+                .anyMatch(ReplacementService.CandidateForReplacement::isSelected);
     }
 
     public boolean hasDuplicatesWithWorkingVersion() {
@@ -1311,8 +1349,27 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.fileMetadatas.clear();
     }
 
+    public void scheduleOldFilesForDeletion() {
+        if (!isFileReplacementEnabled()) {
+            return;
+        }
+        if (!replacementsList.isEmpty()) {
+            replacementsList.stream()
+                    .map(ReplacementService.ReplacementGroup::getExistingFile)
+                    .filter(ReplacementService.CandidateForReplacement::isSelected)
+                    .map(ReplacementService.CandidateForReplacement::getDataFile)
+                    .forEach(dataFile -> this.filesToBeDeleted.add(dataFile));
+            this.replacementsMade = true;
+        }
+    }
+
     public void duplicatesDeletionFinished() {
         // We reconstruct the contents of files table.
+        this.fileMetadatas.addAll(this.filesTableBackup);
+        this.filesTableBackup.clear();
+    }
+
+    public void replacementsDeletionFinished() {
         this.fileMetadatas.addAll(this.filesTableBackup);
         this.filesTableBackup.clear();
     }
@@ -1321,6 +1378,12 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private List<DuplicatesService.DuplicateGroup> listDuplicates() {
         return this.duplicatesService.listDuplicates(listExistingFiles(), this.newFiles);
+    }
+
+    private List<ReplacementService.ReplacementGroup> listReplacements() {
+        return isFileReplacementEnabled()
+                ? this.replacementService.listReplacements(listExistingFiles(), this.newFiles)
+                : Collections.emptyList();
     }
 
     private boolean hasDuplicatesInUploadedFiles(final List<DataFile> files) {
