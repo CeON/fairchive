@@ -601,11 +601,35 @@ a[id$=advsearchlink] {
     margin-top: .5em;
 }
 
+.leaflet-control-container .map-description-container {
+    
+    .map-description {
+        background: white;
+        font-family: $font-main;
+        font-size: 2em;
+        padding: 5px;
+        border: 2px solid rgba(0, 0, 0, 0.2);
+        background-clip: padding-box;
+        
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .leaflet-bar {
+        margin: 0;
+    }
+}
+
 @media screen and (max-width: $screen-xs-max) {
 	.geo-map {
 		max-width: calc((100vw - 90px) * 0.75);
 		height: calc((100vw - 90px) * 0.75);
 	}
+
+    .leaflet-control-container .map-description-container .map-description {
+        max-width: calc((100vw - 90px) * 0.75 - 100px);
+    }
 }
 
 @media screen and (min-width: $screen-sm-min) {
@@ -613,6 +637,10 @@ a[id$=advsearchlink] {
 		max-width: 364px;
 		height: 364px;
 	}
+
+    .leaflet-control-container .map-description-container .map-description {
+        max-width: 264px;
+    }
 }
 
 @media screen and (min-width: $screen-md-min) {
@@ -620,6 +648,10 @@ a[id$=advsearchlink] {
 		max-width: 487px;
 		height: 487px;
 	}
+
+    .leaflet-control-container .map-description-container .map-description {
+        max-width: 387px;
+    }
 }
 
 @media screen and (min-width: $screen-lg-min) {
@@ -627,6 +659,10 @@ a[id$=advsearchlink] {
 		max-width: 600px;
 		height: 600px;
 	}
+
+    .leaflet-control-container .map-description-container .map-description {
+        max-width: 500px;
+    }
 }
 
 .leaflet-control-container {

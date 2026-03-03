@@ -242,6 +242,10 @@ function initDvJS() {
       }
 
       createTrashBinControl(map, data);
+
+      if (data.drawTools.allowPolygon) {
+        createMapEditInfoControl(map, data);
+      }
     }
 
     function createBaseEditControls() {
@@ -352,6 +356,44 @@ function initDvJS() {
 
        map.addControl(new L.TrashBinControl());
      }
+
+    function createMapEditInfoControl(map, data) {
+      L.MapEditInfoControl = L.EditControl.extend({
+        options: {
+          position: 'topright',
+          callback: function () {
+            var isVisible = map.description.style.display === 'block';
+            map.description.style.display = isVisible ? 'none' : 'block';
+          },
+          title: 'Show/Hide info',
+          html: `
+            <svg width="45" height="45" viewBox="0 0 100 100" style="margin-left:1px">
+              <circle cx="32" cy="32" r="25" fill="none" stroke="black" stroke-width="4"/>
+              <path d="M 26.282 24.445 C 26.282 16.445 39.992 14.308 39.992 24.308 C 39.992 32.308 31.624 31.881 31.624 39.881" fill="none" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="32" cy="48" r="2.5" fill="black"/>
+            </svg>
+`
+        },
+        onAdd: function (map) {
+          var container = L.DomUtil.create('div', 'map-description-container');
+          var button = L.EditControl.prototype.onAdd.call(this, map);
+          var description = L.DomUtil.create('div', 'map-description', container);
+          container.appendChild(button);
+
+          description.innerHTML = `
+              <div><strong>Instructions</strong></div>
+              <p>To finish creating a polygon, you need to close it. You can do this by placing the final point on the same location as the first point of the polygon.</p>
+              <p>If the polygon turns red while you are drawing it, the new segment would cause the shape to self-intersect. Self-intersecting polygons are not allowed. Move the point to a different location so that the polygon does not cross itself.</p>
+        ` ;
+          description.style.display = 'none';
+          map.description = description;
+
+          return container;
+        }
+      });
+
+      map.addControl(new L.MapEditInfoControl());
+    }
 
     function createdShape(e, data) {
         let layer = e.layer;
