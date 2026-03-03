@@ -29,7 +29,6 @@ import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -848,15 +847,26 @@ public class SettingsServiceBean {
         
         /** Set this to {@code true} to display guest books */
         DiplayGuestbooks,
-    	
+
         /**
          * Specifies whether maps use 'raster' tiles (default) or 'vector'
          */
-    	MapTileType,
-    	/**
-    	 * Needs to be set for MapTileType == "raster"
-    	 */
-    	MapTileApiKey;
+        MapTileType,
+
+        /**
+         * Needs to be set for MapTileType == "raster"
+         */
+        MapTileApiKey,
+
+        /**
+         * Whether to allow replacing files with the same name but different
+         * content. If set to {@code true}, uploading a file with the same name
+         * and different content will trigger a message on the file edit view,
+         * similar to the one for files with duplicate content. The user will be
+         * able to select the files that should be replaced. If any files are
+         * selected for replacement, the old files will be removed.
+         */
+        AllowFileReplacement;
 
         @Override
         public String toString() {
