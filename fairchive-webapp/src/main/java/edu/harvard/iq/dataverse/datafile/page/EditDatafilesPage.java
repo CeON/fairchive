@@ -146,6 +146,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private DatasetThumbnailService datasetThumbnailService;
     private ImageThumbConverter imageThumbConverter;
     private DuplicatesService duplicatesService;
+    private ReplacementService replacementService;
 
     private Dataset dataset = new Dataset();
 
@@ -177,6 +178,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private List<SelectItem> termsOfUseSelectItems;
     private List<FileMetadata> selectedFiles;
     private List<DataFile> filesToBeDeleted = new ArrayList<>();
+    private boolean replacementsMade = false;
 
     private Boolean hasRsyncScript = false;
 
@@ -205,6 +207,8 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private boolean hasDuplicates;
     private List<DuplicatesService.DuplicateGroup> duplicatesList = new ArrayList<>();
+    private boolean hasReplacements;
+    private List<ReplacementService.ReplacementGroup> replacementsList = new ArrayList<>();
     private List<FileMetadata> filesTableBackup = new ArrayList<>();
     private TextRecognitionDialog textRecognitionDialog = new TextRecognitionDialog();
     private AsyncExecutionService asyncExecutionService;
@@ -234,6 +238,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final DatasetThumbnailService datasetThumbnailService, 
                              final ImageThumbConverter imageThumbConverter,
                              final DuplicatesService duplicatesService,
+                             final ReplacementService replacementService,
                              final AsyncExecutionService asyncExecutionService) {
         this.datafileDao = datafileDao;
         this.dataFileCreator = dataFileCreator;
@@ -254,6 +259,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.datasetThumbnailService = datasetThumbnailService;
         this.imageThumbConverter = imageThumbConverter;
         this.duplicatesService = duplicatesService;
+        this.replacementService = replacementService;
         this.asyncExecutionService = asyncExecutionService;
     }
 
@@ -366,6 +372,58 @@ public class EditDatafilesPage implements java.io.Serializable {
         return this.duplicatesList;
     }
 
+    public boolean getHasReplacements() {
+        return this.hasReplacements;
+    }
+
+    public List<ReplacementService.ReplacementGroup> getReplacementsList() {
+        return this.replacementsList;
+    }
+
+    public boolean hasReplacementSelected(FileMetadata fileMetadata) {
+        if (fileMetadata == null
+                || fileMetadata.getDataFile() == null
+                || replacementsList == null) {
+            return false;
+        }
+        return replacementsList.stream()
+                .anyMatch(group -> fileMetadata.getDataFile().equals(group.getNewFile())
+                        && group.getExistingFile().isSelected()
+                        && this.filesToBeDeleted.contains(group.getExistingFile().getDataFile()));
+    }
+
+    public void cancelReplacements() {
+        if (this.replacementsList != null) {
+            for (ReplacementService.ReplacementGroup group : this.replacementsList) {
+                group.getExistingFile().setSelected(this.filesToBeDeleted.contains(group.getExistingFile().getDataFile()));
+            }
+        }
+    }
+
+    public String getExistingFileSize(FileMetadata fileMetadata) {
+        if (fileMetadata == null
+                || fileMetadata.getDataFile() == null
+                || replacementsList == null) {
+            return null;
+        }
+        for (ReplacementService.ReplacementGroup group : replacementsList) {
+            if (fileMetadata.getDataFile().equals(group.getNewFile())
+                    && group.getExistingFile().isSelected()
+                    && this.filesToBeDeleted.contains(group.getExistingFile().getDataFile())) {
+                return group.getExistingFile().getDataFile().getFriendlySize();
+            }
+        }
+        return null;
+    }
+
+    public void setReplacementsList(List<ReplacementService.ReplacementGroup> replacementsList) {
+        this.replacementsList = replacementsList;
+    }
+
+    public boolean isFileReplacementEnabled() {
+        return this.settings.isTrueForKey(Key.AllowFileReplacement);
+    }
+
     // -------------------- LOGIC --------------------
 
     public List<FileMetadata> getFileMetadatas() {
@@ -450,6 +508,7 @@ public class EditDatafilesPage implements java.io.Serializable {
 
 
     public String init() {
+        this.replacementsMade = false;
         this.fileMetadatas = new ArrayList<>();
         this.newFiles = new ArrayList<>();
         this.uploadedFiles = new ArrayList<>();
@@ -523,7 +582,43 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     // This deleteFilesCompleted method is used in editFilesFragment.xhtml
-    public void deleteFilesCompleted() { }
+    public void deleteFilesCompleted() {
+        if (!isFileReplacementEnabled()) {
+            return;
+        }
+
+        // If the replacement list had some replacements selected, and we're
+        // refreshing it due to files being deleted, then all previously
+        // selected replacements should still be selected after the refresh if
+        // they're still available.
+        final Set<String> selectedReplacementIds = this.replacementsList.stream()
+                .filter(g -> g.getExistingFile().isSelected())
+                .map(g -> g.getNewFile().getStorageIdentifier())
+                .collect(toSet());
+
+        this.replacementsList = listReplacements();
+
+        if (!selectedReplacementIds.isEmpty()) {
+            this.replacementsList.stream()
+                    .filter(g -> selectedReplacementIds.contains(g.getNewFile().getStorageIdentifier()))
+                    .forEach(g -> g.getExistingFile().setSelected(true));
+        }
+
+        this.hasReplacements = !this.replacementsList.isEmpty();
+
+        // If an existing file has already been scheduled for deletion due to
+        // a replacement, and the replacement gets deleted, the existing file
+        // should be removed from files planned for deletion unless it has also
+        // been manually deleted (in which case it would not be in the
+        // fileMetadatas list).
+        final Set<DataFile> remainingReplacementTargets = this.replacementsList.stream()
+                .map(ReplacementService.ReplacementGroup::getExistingFile)
+                .map(ReplacementService.CandidateForReplacement::getDataFile)
+                .collect(toSet());
+
+        this.filesToBeDeleted.removeIf(file -> !remainingReplacementTargets.contains(file)
+                && this.fileMetadatas.stream().anyMatch(fm -> fm.getDataFile().equals(file)));
+    }
 
     public void deleteFiles() {
         logger.fine("entering bulk file delete (EditDataFilesPage)");
@@ -714,7 +809,11 @@ public class EditDatafilesPage implements java.io.Serializable {
         if (saveAndAddFilesProcess.getNewFilesNumber() == 0 || filesTotal == saveAndAddFilesProcess.getExpectedFilesTotal()) {
             JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.filesSuccess"));
         } else if (filesTotal == saveAndAddFilesProcess.getOldFilesNumber()) {
-            JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.message.addFiles.Failure"));
+            if (replacementsMade) {
+                JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.filesSuccess"));
+            } else if (!isFileReplacementEnabled() || !replacementsMade) {
+                JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.message.addFiles.Failure"));
+            }
         } else {
             JsfHelper.addFlashWarningMessage(getStringFromBundle(
                     "dataset.message.addFiles.partialSuccess",
@@ -940,6 +1039,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.uploadSuccessMessage = null;
 
         this.hasDuplicates = hasDuplicatesInUploadedFiles(this.newFiles);
+        this.hasReplacements = !listReplacements().isEmpty();
     }
 
     public Long getMaxBatchSize() {
@@ -1280,11 +1380,39 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.duplicatesList = listDuplicates();
     }
 
+    public void initReplacementsDialog() {
+        List<ReplacementService.ReplacementGroup> newList = listReplacements();
+        for (ReplacementService.ReplacementGroup newGroup : newList) {
+            DataFile existingFile = newGroup.getExistingFile().getDataFile();
+            boolean selected = this.filesToBeDeleted.contains(existingFile);
+            if (this.replacementsList != null) {
+                for (ReplacementService.ReplacementGroup oldGroup : this.replacementsList) {
+                    if (oldGroup.getNewFile().equals(newGroup.getNewFile())
+                            && oldGroup.getExistingFile().getDataFile().equals(existingFile)) {
+                        selected = oldGroup.getExistingFile().isSelected();
+                        break;
+                    }
+                }
+            }
+            newGroup.getExistingFile().setSelected(selected);
+        }
+        this.replacementsList = newList;
+    }
+
     public boolean hasDuplicatesSelected() {
         return this.duplicatesList.stream()
                 .map(DuplicatesService.DuplicateGroup::getDuplicates)
                 .flatMap(Collection::stream)
                 .anyMatch(DuplicatesService.DuplicateItem::isSelected);
+    }
+
+    public boolean isReplacementsModified() {
+        if (this.replacementsList == null) {
+            return false;
+        }
+        return this.replacementsList.stream()
+                .anyMatch(group -> group.getExistingFile().isSelected()
+                        != this.filesToBeDeleted.contains(group.getExistingFile().getDataFile()));
     }
 
     public boolean hasDuplicatesWithWorkingVersion() {
@@ -1311,8 +1439,38 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.fileMetadatas.clear();
     }
 
+    public void scheduleOldFilesForDeletion() {
+        if (!isFileReplacementEnabled()) {
+            return;
+        }
+        if (replacementsList != null && !replacementsList.isEmpty()) {
+            boolean modified = false;
+            for (ReplacementService.ReplacementGroup group : replacementsList) {
+                DataFile existingFile = group.getExistingFile().getDataFile();
+                boolean selected = group.getExistingFile().isSelected();
+                boolean inDeletionList = this.filesToBeDeleted.contains(existingFile);
+
+                if (selected && !inDeletionList) {
+                    this.filesToBeDeleted.add(existingFile);
+                    modified = true;
+                } else if (!selected && inDeletionList) {
+                    this.filesToBeDeleted.remove(existingFile);
+                    modified = true;
+                }
+            }
+            if (modified) {
+                this.replacementsMade = true;
+            }
+        }
+    }
+
     public void duplicatesDeletionFinished() {
         // We reconstruct the contents of files table.
+        this.fileMetadatas.addAll(this.filesTableBackup);
+        this.filesTableBackup.clear();
+    }
+
+    public void replacementsDeletionFinished() {
         this.fileMetadatas.addAll(this.filesTableBackup);
         this.filesTableBackup.clear();
     }
@@ -1321,6 +1479,12 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private List<DuplicatesService.DuplicateGroup> listDuplicates() {
         return this.duplicatesService.listDuplicates(listExistingFiles(), this.newFiles);
+    }
+
+    private List<ReplacementService.ReplacementGroup> listReplacements() {
+        return isFileReplacementEnabled()
+                ? this.replacementService.listReplacements(listExistingFiles(), this.newFiles)
+                : Collections.emptyList();
     }
 
     private boolean hasDuplicatesInUploadedFiles(final List<DataFile> files) {
