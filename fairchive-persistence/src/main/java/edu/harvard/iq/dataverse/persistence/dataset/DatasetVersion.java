@@ -686,7 +686,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
                 .filter(field -> field.isNamed(name));
     }
     
-    public void vistiFieldsByTypeName(final String name, final Consumer<DatasetField> visitor) {
+    public void visitFieldsByTypeName(final String name, final Consumer<DatasetField> visitor) {
     	for(final DatasetField field : this.datasetFields) {
     		field.visitByTypeName(name, visitor);
     	}
