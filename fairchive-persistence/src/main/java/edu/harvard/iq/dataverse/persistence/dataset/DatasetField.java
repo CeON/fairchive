@@ -12,7 +12,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -30,13 +32,16 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import edu.harvard.iq.dataverse.persistence.dataset.formatter.*;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
 
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.common.MarkupChecker;
+import edu.harvard.iq.dataverse.persistence.dataset.formatter.AuthorAffiliationLinkDecorator;
+import edu.harvard.iq.dataverse.persistence.dataset.formatter.AuthorIdentifierUrlProvider;
+import edu.harvard.iq.dataverse.persistence.dataset.formatter.DatasetFieldFormattedValueDecorator;
+import edu.harvard.iq.dataverse.persistence.dataset.formatter.LinkFormattedValueDecorator;
 import io.vavr.control.Option;
 
 /**
@@ -461,6 +466,17 @@ public class DatasetField implements Serializable, ValidatableField {
         } else {
             this.fieldValue = null;
         }
+    }
+    
+    public void visitByTypeName(final String name, final Consumer<DatasetField> visitor) {
+    	if(this.isNamed(name)) {
+    		visitor.accept(this);
+    	}
+    	if(this.datasetFieldsChildren != null) {
+    		for(final DatasetField child : this.datasetFieldsChildren) {
+    			child.visitByTypeName(name, visitor);
+    		}
+    	}
     }
 
     // -------------------- PRIVATE --------------------

@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -683,6 +684,12 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
         return getFlatDatasetFields().
                 stream()
                 .filter(field -> field.isNamed(name));
+    }
+    
+    public void vistiFieldsByTypeName(final String name, final Consumer<DatasetField> visitor) {
+    	for(final DatasetField field : this.datasetFields) {
+    		field.visitByTypeName(name, visitor);
+    	}
     }
 
     public String getDistributionDate() {      
