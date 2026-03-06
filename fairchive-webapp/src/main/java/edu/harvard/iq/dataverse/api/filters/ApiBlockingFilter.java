@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.api.filters;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.BlockedApiEndpoints;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.BlockedApiKey;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.BlockedApiPolicy;
+import static java.util.logging.Level.WARNING;
 import static java.util.logging.Logger.getLogger;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -33,7 +34,7 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
  * @author michael
  */
 public class ApiBlockingFilter implements javax.servlet.Filter {
-    private static final String UNBLOCK_KEY_QUERYPARAM = "unblock-key";
+	
     private static final Logger logger = getLogger(ApiBlockingFilter.class.getName());
 
     @Inject
@@ -65,10 +66,7 @@ public class ApiBlockingFilter implements javax.servlet.Filter {
     		final ServletResponse response, final FilterChain chain) 
     		throws IOException, ServletException {
     	
-        final HttpServletResponse httpResponse = (HttpServletResponse) response;
-        httpResponse.getWriter().println("{ status:\"error\", message:\"Endpoint blocked. Please contact administrator\"}");
-        httpResponse.setStatus(SC_SERVICE_UNAVAILABLE);
-        httpResponse.setContentType("application/json");
+        block(response, "{ status:\"error\", message:\"Endpoint blocked. Please contact administrator\"}");
     }
 
     /**
@@ -81,10 +79,7 @@ public class ApiBlockingFilter implements javax.servlet.Filter {
         if (isFromLocalhost(request)) {
             chain.doFilter(request, response);
         } else {
-            final HttpServletResponse httpResponse = (HttpServletResponse) response;
-            httpResponse.getWriter().println("{ status:\"error\", message:\"Endpoint available from localhost only. Please contact administrator\"}");
-            httpResponse.setStatus(SC_SERVICE_UNAVAILABLE);
-            httpResponse.setContentType("application/json");
+            block(response, "{ status:\"error\", message:\"Endpoint available from localhost only. Please contact administrator\"}");
         }
     }
     
@@ -101,32 +96,24 @@ public class ApiBlockingFilter implements javax.servlet.Filter {
     		final ServletResponse response, final FilterChain chain) 
     		throws IOException, ServletException {
     	
-        boolean block = true;
-
-        final String masterKey = this.settings.getValueForKey(BlockedApiKey);
-        if (isNotEmpty(masterKey)) {
-            final String queryString = ((HttpServletRequest) request).getQueryString();
-            if (queryString != null) {
-                for (final String paramPair : queryString.split("&")) {
-                    final String[] curPair = paramPair.split("=", -1);
-                    if ((curPair.length >= 2)
-                            && UNBLOCK_KEY_QUERYPARAM.equals(curPair[0])
-                            && masterKey.equals(curPair[1])) {
-                        block = false;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (block) {
-            final HttpServletResponse httpResponse = (HttpServletResponse) response;
-            httpResponse.getWriter().println("{ status:\"error\", message:\"Endpoint available using API key only. Please contact the dataverse administrator\"}");
-            httpResponse.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            httpResponse.setContentType("application/json");
-        } else {
+        if (validKeyProvidedIn(request)) {
             chain.doFilter(request, response);
+        } else {        
+            block(response, "{ status:\"error\", message:\"Endpoint available using API key only. Please contact administrator\"}");
         }
+    }
+    
+    private boolean validKeyProvidedIn(final ServletRequest request) {
+    	 final String key = this.settings.getValueForKey(BlockedApiKey);
+         return isNotEmpty(key) && key.equals(request.getParameter("unblock-key"));
+    }
+    
+    private static void block(final ServletResponse response, final String message) 
+    		throws IOException {
+    	final HttpServletResponse httpResponse = (HttpServletResponse) response;
+        httpResponse.getWriter().println(message);
+        httpResponse.setStatus(SC_SERVICE_UNAVAILABLE);
+        httpResponse.setContentType("application/json");
     }
 
     @Override
@@ -165,21 +152,13 @@ public class ApiBlockingFilter implements javax.servlet.Filter {
         final HttpServletRequest hsr = (HttpServletRequest) request;
         final String requestURI = hsr.getRequestURI();
         final String apiEndpoint = canonize(requestURI.substring(hsr.getServletPath().length()));
-        for (final String prefix : blockedApiEndpoints) {
+        for (final String prefix : this.blockedApiEndpoints) {
             if (apiEndpoint.startsWith(prefix)) {
                 getBlockPolicy().doBlock(request, response, chain);
                 return;
             }
         }
-        try {
-            chain.doFilter(request, response);
-        } catch (ServletException se) {
-            logger.log(Level.WARNING, "Error processing " + requestURI + ": " + se.getMessage(), se);
-            final HttpServletResponse resp = (HttpServletResponse) response;
-            resp.setStatus(500);
-            resp.setHeader("PROCUDER", "ApiBlockingFilter");
-            resp.getWriter().append("Error: ").append(se.getMessage());
-        }
+        chain.doFilter(request, response);
     }
 
     @Override
@@ -188,11 +167,11 @@ public class ApiBlockingFilter implements javax.servlet.Filter {
 
     private BlockPolicy getBlockPolicy() {
         final String blockPolicyName = this.settings.getValueForKey(BlockedApiPolicy);
-        final BlockPolicy p = this.policies.get(blockPolicyName.trim());
-        if (p != null) {
-            return p;
+        final BlockPolicy policy = this.policies.get(blockPolicyName.trim());
+        if (policy != null) {
+            return policy;
         } else {
-            logger.log(Level.WARNING, "Undefined block policy {0}. Available policies are {1}",
+            logger.log(WARNING, "Undefined block policy '{0}'. Available policies are {1}",
                        new Object[]{blockPolicyName, this.policies.keySet()});
             return ApiBlockingFilter::allow;
         }
