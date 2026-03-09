@@ -64,6 +64,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MinutesUntilConfirmEmailTokenExpires;
 import static java.lang.String.format;
 import static java.util.logging.Level.FINE;
@@ -319,7 +320,7 @@ public class DataverseUserPage extends BaseUserPage {
         if (!emailValid) {
             ((UIInput) toValidate).setValid(false);
             FacesMessage message = new FacesMessage(
-                    FacesMessage.SEVERITY_ERROR, getStringFromBundle("oauth2.newAccount.emailInvalid"), null);
+                    FacesMessage.SEVERITY_ERROR, getStringFromNonDefaultBundle("user.invalidEmail", "ValidationMessages"), null);
             context.addMessage(toValidate.getClientId(context), message);
             logger.info("Email is not valid: " + userEmail);
             return;
