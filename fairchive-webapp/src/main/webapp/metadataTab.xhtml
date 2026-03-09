@@ -10,6 +10,7 @@
         <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"
                        rendered="#{DatasetMetadataTab.showMachineTranslation()}"
                        title="translate"
+                       actionListener="#{DatasetMetadataTab.translationDialog.reset()}"
                        oncomplete="primeFacesShowModal('translateDialog', this);">
             <span class="glyphicon glyphicon-share" 
                   aria-hidden="true"/>  #{bundle['dataset.translation.language.button']}
