@@ -1,8 +1,11 @@
 package edu.harvard.iq.dataverse.datasetutility;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
+
+import com.google.gson.JsonSyntaxException;
 
 import edu.harvard.iq.dataverse.api.dto.FileTermsOfUseDTO;
 
@@ -67,12 +70,8 @@ public class OptionalFileParamsParserTest {
 
         String jsonParams = "{\"description\": 250 ";
 
-        OptionalFileParams instance = parser.parseFileParams(jsonParams);
-
-        assertThat(instance.getCategories()).isNull();
-
-        assertThat(instance.hasCategories()).isFalse();
-
+        assertThatThrownBy(() -> parser.parseFileParams(jsonParams))
+            .isInstanceOf(JsonSyntaxException.class);
     }
 
     @Test
@@ -97,12 +96,8 @@ public class OptionalFileParamsParserTest {
 
         String jsonParams = "{\"categories\": \"dog, cat, mouse\"}";
 
-        OptionalFileParams instance = parser.parseFileParams(jsonParams);
-
-        assertThat(instance.getCategories()).containsExactly("dog", "cat", "mouse");
-
-        assertThat(instance.hasCategories()).isTrue();
-        assertThat(instance.hasDescription()).isTrue();
+        assertThatThrownBy(() -> parser.parseFileParams(jsonParams))
+            .isInstanceOf(JsonSyntaxException.class);
 
     }
 
