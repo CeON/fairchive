@@ -5,6 +5,7 @@ import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
+import edu.harvard.iq.dataverse.datafile.InitialUIFileParamsCreator;
 import edu.harvard.iq.dataverse.datafile.file.ReplaceFileHandler;
 import edu.harvard.iq.dataverse.datafile.file.exception.FileReplaceException;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -56,6 +57,9 @@ public class ReplaceFileHandlerTest {
 
     @Mock
     private DataverseRequestServiceBean dataverseRequestServiceBean;
+
+    @Mock
+    private InitialUIFileParamsCreator initialUIFileParamsCreator;
 
     @BeforeEach
     public void setUp() {
