@@ -1,24 +1,6 @@
 package edu.harvard.iq.dataverse.api.filters;
 
 
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.UserServiceBean;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.GuestUser;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -27,6 +9,25 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.UserServiceBean;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @ExtendWith(MockitoExtension.class)
 public class ApiAuthorizationFilterTest {
@@ -64,7 +65,7 @@ public class ApiAuthorizationFilterTest {
     @Test
     public void shouldDoNothingIfUserIsAlreadyLogged() throws IOException, ServletException {
         // given
-        when(dataverseSession.getUser()).thenReturn(AUTHENTICATED_USER);
+        when(dataverseSession.isUserLoggedIn()).thenReturn(true);
 
         // when
         filter.doFilter(request, null, filterChain);
@@ -80,7 +81,7 @@ public class ApiAuthorizationFilterTest {
     public void shouldLogAndLogoutUserWhenKeyIsPassedAndUserIsNotAlreadyLoggedIn()
             throws IOException, ServletException {
         // given
-        when(dataverseSession.getUser()).thenReturn(GuestUser.get());
+        when(dataverseSession.isUserLoggedIn()).thenReturn(false);
         when(request.getParameter("key")).thenReturn(TOKEN);
         when(authenticationService.lookupUser(TOKEN)).thenReturn(AUTHENTICATED_USER);
         when(userService.updateLastApiUseTime(AUTHENTICATED_USER)).thenReturn(AUTHENTICATED_USER);
@@ -99,7 +100,7 @@ public class ApiAuthorizationFilterTest {
     public void shouldNotUpdateLastApiUseTimeWhenLogIsByApiInReadonlyMode()
             throws IOException, ServletException {
         // given
-        when(dataverseSession.getUser()).thenReturn(GuestUser.get());
+        when(dataverseSession.isUserLoggedIn()).thenReturn(false);
         when(request.getParameter("key")).thenReturn(TOKEN);
         when(authenticationService.lookupUser(TOKEN)).thenReturn(AUTHENTICATED_USER);
         when(systemConfig.isReadonlyMode()).thenReturn(true);
@@ -116,7 +117,7 @@ public class ApiAuthorizationFilterTest {
     public void shouldDoNothingWhenNoKeyPassedAndUserIsNotAlreadyLoggedIn()
             throws IOException, ServletException {
         // given
-        when(dataverseSession.getUser()).thenReturn(GuestUser.get());
+        when(dataverseSession.isUserLoggedIn()).thenReturn(false);
         when(request.getParameter("key")).thenReturn(null);
 
         // when
