@@ -221,16 +221,24 @@ public class ImportServiceBean {
             if (fieldValidationResults.isEmpty()) {
                 break;
             }
-
             for (FieldValidationResult fieldValidationResult : fieldValidationResults) {
                 DatasetField invalidField = (DatasetField)fieldValidationResult.getField();
-                datasetVersion.getDatasetFields().remove(invalidField);
+                removeInvalidField(datasetVersion.getDatasetFields(), invalidField);
             }
 
             validationAttemptNumber++;
         }
     }
 
+    private void removeInvalidField(List<DatasetField> fields, DatasetField invalidField) {
+    	fields.removeIf(df -> df == invalidField);
+        for (DatasetField datasetField : fields) {
+        	if (datasetField.getChildren() != null) {
+        		removeInvalidField(datasetField.getChildren(), invalidField);
+        	}
+        }
+    }
+    
     public JsonObject ddiToJson(String xmlToParse) throws ImportException {
         DatasetDTO dsDTO;
 
