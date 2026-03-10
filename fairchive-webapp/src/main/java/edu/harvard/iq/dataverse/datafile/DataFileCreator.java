@@ -62,7 +62,7 @@ public class DataFileCreator {
     private TermsOfUseFactory termsOfUseFactory;
     @Inject
     private TermsOfUseFormMapper termsOfUseFormMapper;
-    
+
     public DataFileCreator() {
         
     }
@@ -81,48 +81,91 @@ public class DataFileCreator {
         this.termsOfUseFormMapper = termsOfUseFormMapper;
     }
 
+    /**
+     * Creates {@link DataFile}s. Same as as
+     * {@link #createDataFiles(InputStream, String, String, boolean, FileParams)}
+     * with ignoreSizeLimit set to false.
+     */
     public List<DataFile> createDataFiles(InputStream inputStream, String fileName, 
-            String suppliedContentType) throws IOException {
-        Path tempFile = null;
-        try {
-            Long fileSizeLimit = settingsService.getValueForKeyAsLong(MaxFileUploadSizeInBytes);
-            // save the file, in the temporary location for now:
-            tempFile = FileUtil.limitedInputStreamToTempFile(inputStream, fileSizeLimit);
-            return createDataFiles(tempFile, fileName, suppliedContentType, fileSizeLimit);
-        } finally {
-            if (tempFile != null) {
-                Files.deleteIfExists(tempFile);
-            }
-        }
+            String suppliedContentType, FileParams fileParams) throws IOException {
+
+        return createDataFiles(inputStream, fileName, suppliedContentType, false, fileParams);
     }
-    
+
+    /**
+     * Creates {@link DataFile}s
+     * <p>
+     * Note that in most cases method will return single data file. However
+     * in some cases it can return multiple data files. That is if the
+     * provided file is:
+     * <ul>
+     * <li>Zip file - method will unpack zip file and create data file
+     *   for each of unpacked file (if installation is configured to to do so)
+     * <li>Shapefile - method will repackage provided shapefile and as a result
+     *   it can produce one or more datafiles (see:
+     *   {@link IngestServiceShapefileHelper})
+     * </ul>
+     * 
+     * To create {@link DataFile}s the method will do the following steps:
+     * <ul>
+     * <li>copy file under input stream to temporary location
+     * <li>detect file type
+     * <li>run antivirus scan (optionally)
+     * <li>if file is gzipped fits file it will unpack it
+     * <li>if file is zip file it will unpack it (optionally)
+     * <li>if file is shapefile it will repackage it
+     * <li>calculate uncompressed size of the file(s)
+     * <li>create data file(s)
+     * <li>move file(s) to temporary destination
+     * <li>calculate file(s) checksum
+     * </ul>
+     * 
+     * @param inputStream - stream with the content of a file
+     * @param fileName - name of the file provided by the browser (or HTTP
+     *   client tool (e.g. curl) if API is used). Value will be used to set
+     *   label of the data file.
+     * @param suppliedContentType - content type of the file provided by the
+     *   browser (or HTTP client tool (e.g. curl) if API is used). Value may
+     *   be used to set content type of data file if it is better than
+     *   auto detected content type. See 
+     *   {@link #isDetectedContentTypeBetterThanSupplied(String, String)} for
+     *   details.
+     * @param ignoreSizeLimit - if true then no limits on the size of the
+     *   provided file in input stream will be enforced. If false then
+     *   method will throw {@link FileExceedsMaxSizeException} if the
+     *   provided input stream contains file exceeding max allowed file
+     *   size.
+     * @param fileParams - metadata to be set on created data file (like
+     *   description or terms of use).
+     * @return
+     * @throws IOException
+     */
     public List<DataFile> createDataFiles(InputStream inputStream, String fileName, 
-            String suppliedContentType, boolean ignoreSizeLimit) throws IOException {
-        if(ignoreSizeLimit) {
-            return createUnlimitedDataFiles(inputStream, fileName, suppliedContentType);
-        } else {
-            return createDataFiles(inputStream, fileName, suppliedContentType);
-        }
-    }
-    
-    private List<DataFile> createUnlimitedDataFiles(InputStream inputStream, 
-            String fileName, String suppliedContentType) throws IOException {
-        Path tempFile = null;
-        try {
-            // save the file, in the temporary location for now:
-            tempFile = FileUtil.limitedInputStreamToTempFile(inputStream, Long.MAX_VALUE);
-            return createDataFiles(tempFile, fileName, suppliedContentType, Long.MAX_VALUE);
-        } finally {
-            if (tempFile != null) {
-                Files.deleteIfExists(tempFile);
-            }
-        }
+            String suppliedContentType, boolean ignoreSizeLimit, FileParams fileParams) throws IOException {
+
+        Long fileSizeLimit = ignoreSizeLimit ? null : settingsService.getValueForKeyAsLong(MaxFileUploadSizeInBytes);
+
+        return createdDataFiles(inputStream, fileName, suppliedContentType, fileParams, fileSizeLimit);
     }
 
     // -------------------- PRIVATE --------------------
 
+    private List<DataFile> createdDataFiles(InputStream inputStream, 
+            String fileName, String suppliedContentType, FileParams fileParams, Long fileSizeLimit) throws IOException {
+        Path tempFile = null;
+        try {
+            // save the file, in the temporary location for now:
+            tempFile = FileUtil.limitedInputStreamToTempFile(inputStream, fileSizeLimit);
+            return createDataFiles(tempFile, fileName, suppliedContentType, fileSizeLimit, fileParams);
+        } finally {
+            if (tempFile != null) {
+                Files.deleteIfExists(tempFile);
+            }
+        }
+    }
+
     private List<DataFile> createDataFiles(Path tempFile, String fileName, 
-            String suppliedContentType, Long fileSizeLimit) throws IOException {
+            String suppliedContentType, Long fileSizeLimit, FileParams fileParams) throws IOException {
 
         logger.info("mime type supplied: " + suppliedContentType);
 
@@ -149,19 +192,19 @@ public class DataFileCreator {
         IngestError errorKey = null;
         Long zipFileUnpackFilesLimit = settingsService.getValueForKeyAsLong(SettingsServiceBean.Key.ZipUploadFilesLimit);
 
-        if (finalType.equals("application/fits-gzipped")) {
+        if (finalType.equals(MimeTypes.APPLICATION_FITS_GZIPPED)) {
             // if this is a gzipped FITS file, we'll uncompress it, and ingest it as
             // a regular FITS file:
             try {
-                return Lists.newArrayList(unpackFitsGzippedAndCreateDataFile(tempFile, fileName, fileSizeLimit));
+                return Lists.newArrayList(unpackFitsGzippedAndCreateDataFile(tempFile, fileName, fileSizeLimit, fileParams));
             } catch (IOException | FileExceedsMaxSizeException ioex) {
                 logger.warn("Failed to unpack fits-gzipped file. Saving the file as is.", ioex);
             }
-        } else if (finalType.equals("application/zip") && zipFileUnpackFilesLimit > 0) {
+        } else if (finalType.equals(MimeTypes.ZIP) && zipFileUnpackFilesLimit > 0) {
             // If it's a ZIP file, we are going to unpack it and create multiple
             // DataFile objects from its contents:
             try {
-                List<DataFile> datafiles = unpackZipAndCreateDataFiles(tempFile, fileSizeLimit, zipFileUnpackFilesLimit);
+                List<DataFile> datafiles = unpackZipAndCreateDataFiles(tempFile, fileSizeLimit, zipFileUnpackFilesLimit, fileParams);
                 if (!datafiles.isEmpty()) {
                     return datafiles;
                 }
@@ -187,7 +230,7 @@ public class DataFileCreator {
 
         } else if (finalType.equals(MimeTypes.SHAPEFILE)) {
             try {
-                return createDataFilesFromReshapedShapeFile(tempFile, fileSizeLimit, zipFileUnpackFilesLimit);
+                return createDataFilesFromReshapedShapeFile(tempFile, fileSizeLimit, zipFileUnpackFilesLimit, fileParams);
             } catch (FileExceedsMaxSizeException femsx) {
                 logger.error("One of the unzipped shape files exceeded the size limit; giving up. " + femsx.getMessage());
                 throw new IOException("One of the unzipped shape files exceeded the size limit", femsx);
@@ -200,7 +243,7 @@ public class DataFileCreator {
         // if we were unable to unpack an uploaded file, etc.), we'll just
         // create and return a single DataFile:
 
-        DataFile datafile = createSingleDataFile(tempFile, fileName, finalType, uncompressedSize);
+        DataFile datafile = createSingleDataFile(tempFile, fileName, finalType, uncompressedSize, fileParams);
 
         if (errorKey != null) {
 
@@ -259,7 +302,7 @@ public class DataFileCreator {
      * Creates {@link DataFile} from uncompressed gzip file that is passed
      * a an argument
      */
-    private DataFile unpackFitsGzippedAndCreateDataFile(Path tempFile, String fileName, Long fileSizeLimit) throws IOException {
+    private DataFile unpackFitsGzippedAndCreateDataFile(Path tempFile, String fileName, Long fileSizeLimit, FileParams fileParams) throws IOException {
         String finalFileName = fileName;
         // if the file name had the ".gz" extension, remove it,
         // since we are going to uncompress it:
@@ -270,11 +313,11 @@ public class DataFileCreator {
         try (InputStream uncompressedIn = new GZIPInputStream(Files.newInputStream(tempFile))) {
 
             Path unZippedTempFile = FileUtil.limitedInputStreamToTempFile(uncompressedIn, fileSizeLimit);
-            return createSingleDataFile(unZippedTempFile, finalFileName, MimeTypes.APPLICATION_FITS, 0L);
+            return createSingleDataFile(unZippedTempFile, finalFileName, MimeTypes.APPLICATION_FITS, 0L, fileParams);
         }
     }
 
-    private List<DataFile> unpackZipAndCreateDataFiles(Path tempFile, Long fileSizeLimit, Long zipFileUnpackFilesLimit) throws IOException {
+    private List<DataFile> unpackZipAndCreateDataFiles(Path tempFile, Long fileSizeLimit, Long zipFileUnpackFilesLimit, FileParams fileParams) throws IOException {
         List<DataFile> datafiles = new ArrayList<>();
 
         try (ZipArchiveInputStream unZippedIn = new ZipArchiveInputStream(Files.newInputStream(tempFile))) {
@@ -308,7 +351,7 @@ public class DataFileCreator {
                         Path unZippedTempFile = FileUtil.limitedInputStreamToTempFile(unZippedIn, fileSizeLimit);
                         String recognizedType = fileTypeDetector.determineFileType(unZippedTempFile.toFile(), shortName);
                         logger.info("File utility recognized unzipped file as " + recognizedType);
-                        DataFile datafile = createSingleDataFile(unZippedTempFile, shortName, recognizedType, 0L);
+                        DataFile datafile = createSingleDataFile(unZippedTempFile, shortName, recognizedType, 0L, fileParams);
 
                         logger.info("setting the directory label to " + directoryName);
                         datafile.getFileMetadata().setDirectoryLabel(directoryName);
@@ -342,7 +385,7 @@ public class DataFileCreator {
      * Shape files may have to be split into multiple files,
      * one zip archive per each complete set of shape files.
      */
-    private List<DataFile> createDataFilesFromReshapedShapeFile(Path tempFile, Long fileSizeLimit, Long zipFileUnpackFilesLimit) throws IOException {
+    private List<DataFile> createDataFilesFromReshapedShapeFile(Path tempFile, Long fileSizeLimit, Long zipFileUnpackFilesLimit, FileParams fileParams) throws IOException {
         try (IngestServiceShapefileHelper shpHelper = new IngestServiceShapefileHelper(tempFile.toFile(), Paths.get(getFilesTempDirectory()).toFile(),
                 fileSizeLimit, zipFileUnpackFilesLimit)) {
             List<DataFile> datafiles = new ArrayList<>();
@@ -352,7 +395,7 @@ public class DataFileCreator {
 
                 try (FileInputStream finalFileInputStream = new FileInputStream(finalFile)) {
                     Path unZippedShapeTempFile = FileUtil.limitedInputStreamToTempFile(finalFileInputStream, fileSizeLimit);
-                    DataFile newDatafile = createSingleDataFile(unZippedShapeTempFile, finalFile.getName(), finalType, 0L);
+                    DataFile newDatafile = createSingleDataFile(unZippedShapeTempFile, finalFile.getName(), finalType, 0L, fileParams);
                     datafiles.add(newDatafile);
 
                 }
@@ -371,7 +414,7 @@ public class DataFileCreator {
      * been figured out.
      */
     private DataFile createSingleDataFile(Path filePath, String fileName, 
-            String contentType, Long uncompressedSize) throws IOException {
+            String contentType, Long uncompressedSize, FileParams fileParams) throws IOException {
 
         final Timestamp now = new Timestamp(currentTimeMillis());
         DataFile datafile = new DataFile(contentType);
@@ -391,9 +434,12 @@ public class DataFileCreator {
         // TODO: add directoryLabel?
         fmd.setLabel(fileName);
 
-        FileTermsOfUse termsOfUse = termsOfUseFactory.createTermsOfUse();
-        fmd.setTermsOfUse(termsOfUse);
+        fmd.setDescription(fileParams.getDescription());
+        addCategoriesToDataFile(fmd, fileParams);
 
+        FileTermsOfUse termsOfUse = fileParams.getTermsOfUse() == null ?
+                termsOfUseFactory.createTermsOfUse() : termsOfUseFactory.cloneTermsOfUse(fileParams.getTermsOfUse());
+        fmd.setTermsOfUse(termsOfUse);
         fmd.setTermsOfUseForm(termsOfUseFormMapper.mapToForm(termsOfUse));
 
         fmd.setDataFile(datafile);
@@ -412,4 +458,9 @@ public class DataFileCreator {
         return datafile;
     }
 
+    private void addCategoriesToDataFile(FileMetadata fileMetadata, FileParams fileParams) {
+        fileParams.getCategories().stream().forEach((catText) -> {
+            fileMetadata.addCategoryByName(catText);  // fyi: "addCategoryByName" checks for dupes
+        });
+    }
 }

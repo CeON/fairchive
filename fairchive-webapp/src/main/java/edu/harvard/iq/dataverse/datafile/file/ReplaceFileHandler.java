@@ -5,6 +5,7 @@ import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
+import edu.harvard.iq.dataverse.datafile.InitialUIFileParamsCreator;
 import edu.harvard.iq.dataverse.datafile.file.exception.FileReplaceException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -21,6 +22,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +38,7 @@ public class ReplaceFileHandler implements Serializable {
     private DataFileCreator dataFileCreator;
     private EjbDataverseEngine commandEngine;
     private DataverseRequestServiceBean dvRequestService;
+    private InitialUIFileParamsCreator initialUIFileParamsCreator;
 
     @Deprecated
     public ReplaceFileHandler() {
@@ -44,12 +47,14 @@ public class ReplaceFileHandler implements Serializable {
     @Inject
     public ReplaceFileHandler(IngestServiceBean ingestService, DataFileServiceBean datafileService,
                               DataFileCreator dataFileCreator,
-                              EjbDataverseEngine commandEngine, DataverseRequestServiceBean dvRequestService) {
+                              EjbDataverseEngine commandEngine, DataverseRequestServiceBean dvRequestService,
+                              InitialUIFileParamsCreator initialUIFileParamsCreator) {
         this.ingestService = ingestService;
         this.datafileService = datafileService;
         this.dataFileCreator = dataFileCreator;
         this.commandEngine = commandEngine;
         this.dvRequestService = dvRequestService;
+        this.initialUIFileParamsCreator = initialUIFileParamsCreator;
     }
 
     // -------------------- LOGIC --------------------
@@ -157,9 +162,11 @@ public class ReplaceFileHandler implements Serializable {
      * there is no method for creating single file.
      */
     private DataFile createDataFile(Dataset dataset, InputStream newFileContent, String newFileName, String newFileContentType, DatasetVersion datasetDraft) {
-        List<DataFile> dataFile = Try.of(() -> dataFileCreator.createDataFiles(newFileContent,
-                                                                               newFileName,
-                                                                               newFileContentType))
+        List<DataFile> dataFile = Try.of(() -> dataFileCreator.createDataFiles(
+                    newFileContent,
+                    newFileName,
+                    newFileContentType,
+                    initialUIFileParamsCreator.createInitialFileParams(dataset, Collections.emptyList())))
                 .onFailure(throwable -> cleanupTemporaryDatasetFiles(datasetDraft, dataset))
                 .getOrElseThrow(this::mapCreateDataFilesException);
         return dataFile.get(0);

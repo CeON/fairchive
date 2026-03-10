@@ -4,6 +4,7 @@ import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.api.dto.UningestRequestDTO;
 import edu.harvard.iq.dataverse.common.Util;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
+import edu.harvard.iq.dataverse.datasetutility.OptionalFileParamsParser;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -722,7 +723,7 @@ public class JsonParser {
     }
 
     private List<DataFileCategory> getCategories(JsonObject filemetadataJson, Dataset dataset) {
-        JsonArray categories = filemetadataJson.getJsonArray(OptionalFileParams.CATEGORIES_ATTR_NAME);
+        JsonArray categories = filemetadataJson.getJsonArray(OptionalFileParamsParser.CATEGORIES_ATTR_NAME);
         if (categories == null || categories.isEmpty() || dataset == null) {
             return new ArrayList<>();
         }

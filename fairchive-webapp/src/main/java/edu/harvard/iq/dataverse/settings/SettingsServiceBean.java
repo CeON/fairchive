@@ -866,7 +866,15 @@ public class SettingsServiceBean {
          * able to select the files that should be replaced. If any files are
          * selected for replacement, the old files will be removed.
          */
-        AllowFileReplacement;
+        AllowFileReplacement,
+
+        /**
+         * If {@code true} then while adding new files to dataset the terms
+         * of use of newly created file will be prefilled with terms of use
+         * used in other files in the dataset and files in the current upload
+         * batch (but only if terms of use is the same for all of the files).
+         */
+        FillDefaultTermsOfUseUsingExistingFiles;
 
         @Override
         public String toString() {

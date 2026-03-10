@@ -96,9 +96,10 @@ import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.FileLabelInfo;
 import edu.harvard.iq.dataverse.dataset.FileLabelsService;
 import edu.harvard.iq.dataverse.datasetutility.AddReplaceFileHelper;
-import edu.harvard.iq.dataverse.datasetutility.DataFileTagException;
 import edu.harvard.iq.dataverse.datasetutility.NoFilesException;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
+import edu.harvard.iq.dataverse.datasetutility.OptionalFileParamsConverter;
+import edu.harvard.iq.dataverse.datasetutility.OptionalFileParamsParser;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -185,7 +186,8 @@ public class Datasets extends AbstractApiBean {
     private ExportService exportService;
     private DatasetService datasetSvc;
     private DatasetsValidators datasetsValidators;
-    private OptionalFileParams optionalFileParamsSvc;
+    private OptionalFileParamsParser optionalFileParamsParser;
+    private OptionalFileParamsConverter optionalFileParamsConverter;
     private DataFileCreator dataFileCreator;
     private DatasetThumbnailService datasetThumbnailService;
     private FileDownloadAPIHandler fileDownloadAPIHandler;
@@ -209,7 +211,9 @@ public class Datasets extends AbstractApiBean {
                     EjbDataverseEngine commandEngine, IndexServiceBean indexService,
                     S3PackageImporter s3PackageImporter, SettingsServiceBean settingsService,
                     ExportService exportService, DatasetService datasetSvc,
-                    DatasetsValidators datasetsValidators, OptionalFileParams optionalFileParamsSvc,
+                    DatasetsValidators datasetsValidators,
+                    OptionalFileParamsParser optionalFileParamsParser,
+                    OptionalFileParamsConverter optionalFileParamsConverter,
                     DataFileCreator dataFileCreator, DatasetThumbnailService datasetThumbnailService,
                     FileDownloadAPIHandler fileDownloadAPIHandler, DataverseRoleServiceBean rolesSvc,
                     RoleAssigneeServiceBean roleAssigneeSvc, PermissionServiceBean permissionSvc,
@@ -230,7 +234,8 @@ public class Datasets extends AbstractApiBean {
         this.exportService = exportService;
         this.datasetSvc = datasetSvc;
         this.datasetsValidators = datasetsValidators;
-        this.optionalFileParamsSvc = optionalFileParamsSvc;
+        this.optionalFileParamsParser = optionalFileParamsParser;
+        this.optionalFileParamsConverter = optionalFileParamsConverter;
         this.dataFileCreator = dataFileCreator;
         this.datasetThumbnailService = datasetThumbnailService;
         this.fileDownloadAPIHandler = fileDownloadAPIHandler;
@@ -1456,11 +1461,7 @@ public class Datasets extends AbstractApiBean {
         OptionalFileParams optionalFileParams;
         logger.fine("Loading (api) jsonData: " + jsonData);
 
-        try {
-            optionalFileParams = optionalFileParamsSvc.create(jsonData);
-        } catch (DataFileTagException ex) {
-            return error(Response.Status.BAD_REQUEST, ex.getMessage());
-        }
+        optionalFileParams = optionalFileParamsParser.parseFileParams(jsonData);
 
         try {
             datasetsValidators.validateFileTermsOfUseDTO(optionalFileParams.getFileTermsOfUseDTO());
@@ -1473,7 +1474,7 @@ public class Datasets extends AbstractApiBean {
         // (3) Create the AddReplaceFileHelper object
         DataverseRequest dvRequest2 = createDataverseRequest(authUser);
         AddReplaceFileHelper addFileHelper =
-                new AddReplaceFileHelper(dvRequest2, ingestService, fileService, dataFileCreator, permissionSvc, commandEngine, optionalFileParamsSvc);
+                new AddReplaceFileHelper(dvRequest2, ingestService, fileService, dataFileCreator, permissionSvc, commandEngine, optionalFileParamsConverter);
 
         // (4) Run "runAddFileByDatasetId"
         try {

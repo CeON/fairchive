@@ -95,7 +95,7 @@ public class ReplaceFileHandlerTest {
         Dataset dataset = new Dataset();
         String fileName = "testFile.png";
         String fileContentType = "image/png";
-        when(dataFileCreator.createDataFiles(any(), any(), any())).thenThrow(VirusFoundException.class);
+        when(dataFileCreator.createDataFiles(any(), any(), any(), any())).thenThrow(VirusFoundException.class);
 
         //then
         FileReplaceException thrown;

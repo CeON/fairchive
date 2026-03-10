@@ -122,4 +122,17 @@ public class TermsOfUseFactory {
 
         return termsOfUse;
     }
+
+    /**
+     * Returns {@link FileTermsOfUse} with same parameters as the given
+     * {@link FileTermsOfUse}.
+     */
+    public FileTermsOfUse cloneTermsOfUse(FileTermsOfUse termsOfUse) {
+        FileTermsOfUse clonedTerms = new FileTermsOfUse();
+        clonedTerms.setLicense(termsOfUse.getLicense());
+        clonedTerms.setAllRightsReserved(termsOfUse.isAllRightsReserved());
+        clonedTerms.setRestrictType(termsOfUse.getRestrictType());
+        clonedTerms.setRestrictCustomText(termsOfUse.getRestrictCustomText());
+        return clonedTerms;
+    }
 }
