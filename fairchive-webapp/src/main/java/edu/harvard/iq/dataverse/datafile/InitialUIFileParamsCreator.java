@@ -14,6 +14,22 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 
+/**
+ * Creates initial {@link FileParams} values for files being added to a dataset.
+ *
+ * <p>This helper is used by file upload/replacement workflows to prepopulate
+ * UI-level file metadata before the files are finally saved.</p>
+ *
+ * <p>Currently, it initializes the file terms of use. When configured to do so,
+ * it attempts to reuse terms already present on dataset files and/or files
+ * already uploaded in the current operation, but only if all examined files
+ * have matching terms. If no common terms can be determined, it falls back to
+ * terms created from the first active license.</p>
+ *
+ * <p>The class is responsible only for choosing initial default values; it does
+ * not take part in persisting files or enforcing final validation/business 
+ * rules for file metadata.</p>
+ */
 @Stateless
 public class InitialUIFileParamsCreator {
 

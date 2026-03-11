@@ -13,14 +13,14 @@ import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
 @Stateless
 public class OptionalFileParamsConverter {
 
-    private LicenseRepository licenseRespository;
+    private LicenseRepository licenseRepository;
     private TermsOfUseFactory termsOfUseFactory;
 
     OptionalFileParamsConverter() {}
 
     @Inject
-    public OptionalFileParamsConverter(LicenseRepository licenseRespository, TermsOfUseFactory termsOfUseFactory) {
-        this.licenseRespository = licenseRespository;
+    public OptionalFileParamsConverter(LicenseRepository licenseRepository, TermsOfUseFactory termsOfUseFactory) {
+        this.licenseRepository = licenseRepository;
         this.termsOfUseFactory = termsOfUseFactory;
     }
 
@@ -40,7 +40,7 @@ public class OptionalFileParamsConverter {
 
     private FileTermsOfUse convertTerms(FileTermsOfUseDTO termsDTO) {
         if(termsDTO.getTermsType().equals(FileTermsOfUse.TermsOfUseType.LICENSE_BASED.toString())) {
-            License license = licenseRespository.findActiveOrderedByPosition()
+            License license = licenseRepository.findActiveOrderedByPosition()
                     .stream()
                     .filter(l -> l.getName().equals(termsDTO.getLicense()))
                     .findFirst()

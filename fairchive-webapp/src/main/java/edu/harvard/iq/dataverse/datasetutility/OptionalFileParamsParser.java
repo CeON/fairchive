@@ -18,7 +18,7 @@ public class OptionalFileParamsParser implements Serializable {
     public static final String CATEGORIES_ATTR_NAME = "categories";
     public static final String FILE_TERMS_OF_USE = "termsOfUseAndAccess";
 
-    private static final Logger logger = Logger.getLogger(OptionalFileParams.class.getName());
+    private static final Logger logger = Logger.getLogger(OptionalFileParamsParser.class.getName());
 
 
     public OptionalFileParams parseFileParams(String jsonData) {

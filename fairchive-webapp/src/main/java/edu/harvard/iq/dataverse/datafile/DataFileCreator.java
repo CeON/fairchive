@@ -95,12 +95,12 @@ public class DataFileCreator {
     /**
      * Creates {@link DataFile}s
      * <p>
-     * Note that in most cases method will return single data file. However
+     * Note that in most cases method will return a single data file. However
      * in some cases it can return multiple data files. That is if the
      * provided file is:
      * <ul>
      * <li>Zip file - method will unpack zip file and create data file
-     *   for each of unpacked file (if installation is configured to to do so)
+     *   for each unpacked file (if the installation is configured to do so)
      * <li>Shapefile - method will repackage provided shapefile and as a result
      *   it can produce one or more datafiles (see:
      *   {@link IngestServiceShapefileHelper})
@@ -108,16 +108,16 @@ public class DataFileCreator {
      * 
      * To create {@link DataFile}s the method will do the following steps:
      * <ul>
-     * <li>copy file under input stream to temporary location
-     * <li>detect file type
-     * <li>run antivirus scan (optionally)
-     * <li>if file is gzipped fits file it will unpack it
-     * <li>if file is zip file it will unpack it (optionally)
-     * <li>if file is shapefile it will repackage it
-     * <li>calculate uncompressed size of the file(s)
-     * <li>create data file(s)
-     * <li>move file(s) to temporary destination
-     * <li>calculate file(s) checksum
+     * <li>copy the file under input stream to a temporary location
+     * <li>detect the file type
+     * <li>run an antivirus scan (optionally)
+     * <li>if the file is a gzipped FITS file it will unpack it
+     * <li>if the file is a zip file it will unpack it (optionally)
+     * <li>if the file is a shapefile it will repackage it
+     * <li>calculate the uncompressed size of the file(s)
+     * <li>create the data file(s)
+     * <li>move the file(s) to a temporary destination
+     * <li>calculate the file(s) checksum
      * </ul>
      * 
      * @param inputStream - stream with the content of a file
@@ -127,7 +127,7 @@ public class DataFileCreator {
      * @param suppliedContentType - content type of the file provided by the
      *   browser (or HTTP client tool (e.g. curl) if API is used). Value may
      *   be used to set content type of data file if it is better than
-     *   auto detected content type. See 
+     *   auto-detected content type. See 
      *   {@link #isDetectedContentTypeBetterThanSupplied(String, String)} for
      *   details.
      * @param ignoreSizeLimit - if true then no limits on the size of the
@@ -459,7 +459,7 @@ public class DataFileCreator {
     }
 
     private void addCategoriesToDataFile(FileMetadata fileMetadata, FileParams fileParams) {
-        fileParams.getCategories().stream().forEach((catText) -> {
+        fileParams.getCategories().forEach((catText) -> {
             fileMetadata.addCategoryByName(catText);  // fyi: "addCategoryByName" checks for dupes
         });
     }
