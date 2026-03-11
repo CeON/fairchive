@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.search.geonames;
 
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 import static org.apache.commons.lang3.StringUtils.split;
 
 import java.io.IOException;
@@ -14,6 +15,7 @@ import javax.inject.Inject;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 
 import edu.harvard.iq.dataverse.search.GeoNameSolrClient;
 import edu.harvard.iq.dataverse.search.query.SolrQuerySanitizer;
@@ -38,28 +40,22 @@ public class GeoNameDataFinder {
         this.solr = solr;
         this.sanitizer = sanitizer;
     }
-
-    public List<GeoName> find(final String phrase, final int maxResultsCount) {
+    
+    public List<GeoName> find(String phrase, final int maxResultsCount) {
         try {
             if (isNotBlank(phrase)) {
-                final StringBuilder builder = buildQueryString(phrase);
-                final SolrQuery query = new SolrQuery(builder.toString())
-                        .setRows(maxResultsCount);
-                final List<GeoName> result = this.solr.query(query)
-                        .getBeans(GeoName.class);
-                if (result.isEmpty()) {
-                    try {
-                        // It may fail if there is more than one word in the phrase.
-                        findById(phrase.trim()).ifPresent(result::add);
-                    } catch (final Exception e) {
-                        return emptyList(); // It's ok to return nothing in this case.
-                    }
-                }
-                return result;
+            	phrase = phrase.trim();
+				if (isNumeric(phrase)) {
+					return findByIdPefix(phrase);
+				} else {
+	                final StringBuilder builder = buildQueryString(phrase);
+					final SolrQuery query = new SolrQuery(builder.toString())
+							.setRows(maxResultsCount);
+					return this.solr.query(query).getBeans(GeoName.class);
+				}
             } else {
                 return emptyList();
             }
-
         } catch (final SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -102,6 +98,20 @@ public class GeoNameDataFinder {
                         .findAny();
             } else {
                 return Optional.empty();
+            }
+        } catch (final SolrServerException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    private List<GeoName> findByIdPefix(final String id) {
+        try {
+            if (isNotBlank(id)) {
+                return this.solr.query(new SolrQuery("id:" + id + '*')
+                		.addSort("id", ORDER.asc))
+                        .getBeans(GeoName.class);
+            } else {
+                return emptyList();
             }
         } catch (final SolrServerException | IOException e) {
             throw new RuntimeException(e);
