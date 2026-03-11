@@ -610,6 +610,7 @@ a[id$=advsearchlink] {
         padding: 5px;
         border: 2px solid rgba(0, 0, 0, 0.2);
         background-clip: padding-box;
+        margin-right: 35px;
         
         p:last-child {
             margin-bottom: 0;
@@ -628,7 +629,7 @@ a[id$=advsearchlink] {
 	}
 
     .leaflet-control-container .map-description-container .map-description {
-        max-width: calc((100vw - 90px) * 0.75 - 100px);
+        max-width: calc((100vw - 90px) * 0.75 - 135px);
     }
 }
 
@@ -639,7 +640,7 @@ a[id$=advsearchlink] {
 	}
 
     .leaflet-control-container .map-description-container .map-description {
-        max-width: 264px;
+        max-width: 229px;
     }
 }
 
@@ -650,7 +651,7 @@ a[id$=advsearchlink] {
 	}
 
     .leaflet-control-container .map-description-container .map-description {
-        max-width: 387px;
+        max-width: 352px;
     }
 }
 
@@ -661,7 +662,7 @@ a[id$=advsearchlink] {
 	}
 
     .leaflet-control-container .map-description-container .map-description {
-        max-width: 500px;
+        max-width: 465px;
     }
 }
 
