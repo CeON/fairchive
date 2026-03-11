@@ -377,8 +377,8 @@ function initDvJS() {
         onAdd: function (map) {
           var container = L.DomUtil.create('div', 'map-description-container');
           var button = L.EditControl.prototype.onAdd.call(this, map);
-          var description = L.DomUtil.create('div', 'map-description', container);
           container.appendChild(button);
+          var description = L.DomUtil.create('div', 'map-description', container);
 
           description.innerHTML = `
               <div><strong>Instructions</strong></div>
