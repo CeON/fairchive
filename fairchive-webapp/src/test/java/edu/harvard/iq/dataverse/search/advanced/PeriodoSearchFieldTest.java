@@ -26,7 +26,7 @@ public class PeriodoSearchFieldTest {
     void getQueryPart_idOnly() {
         this.searchField.setId("123");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\"");
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:*123*");
     }
     
     @Test
@@ -113,7 +113,7 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopLatest("2120");
         this.searchField.setAuthorityTitle("title1");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\" AND " +
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:*123* AND " +
                 "periodo_label_txt:\"label1\" AND " + 
                 "periodo_coverage_name_txt:\"name1\" AND " + 
                 "periodo_locations_ss:\"location1\" AND " + 
@@ -133,7 +133,7 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopLatest("2120");
         this.searchField.setAuthorityTitle("title1");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\" AND " +
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:*123* AND " +
                 "periodo_label_txt:\"label1\" AND " + 
                 "periodo_coverage_name_txt:\"name1\" AND " + 
                 "periodo_start_ls:[2000 TO 2020] AND " +
@@ -152,7 +152,7 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopLatest("2120");
         this.searchField.setAuthorityTitle("title1");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\" AND " +
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:*123* AND " +
                 "periodo_label_txt:\"label1\" AND " + 
                 "periodo_coverage_name_txt:\"name1\" AND " + 
                 "periodo_locations_ss:\"location1\" OR " + 
@@ -172,7 +172,7 @@ public class PeriodoSearchFieldTest {
         this.searchField.setStopEarliest("2100");
         this.searchField.setAuthorityTitle("title1");
         
-        assertThatQueryFragment().isEqualTo("periodo_id_ss:\"123\" AND " +
+        assertThatQueryFragment().isEqualTo("periodo_id_ss:*123* AND " +
                 "periodo_label_txt:\"label1\" AND " + 
                 "periodo_coverage_name_txt:\"name1\" AND " + 
                 "periodo_locations_ss:\"location1\" AND " + 
