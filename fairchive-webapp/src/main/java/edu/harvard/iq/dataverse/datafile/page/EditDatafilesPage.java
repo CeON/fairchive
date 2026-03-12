@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -74,6 +75,7 @@ import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.FileService;
+import edu.harvard.iq.dataverse.datafile.InitialUIFileParamsCreator;
 import edu.harvard.iq.dataverse.datafile.pojo.RsyncInfo;
 import edu.harvard.iq.dataverse.dataset.AsyncExecutionService;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
@@ -86,6 +88,7 @@ import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestUtil;
+import edu.harvard.iq.dataverse.license.TermsOfUseFactory;
 import edu.harvard.iq.dataverse.license.TermsOfUseFormMapper;
 import edu.harvard.iq.dataverse.license.TermsOfUseSelectItemsFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -93,6 +96,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestRequest;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.license.TermsOfUseForm;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
@@ -147,6 +151,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private ImageThumbConverter imageThumbConverter;
     private DuplicatesService duplicatesService;
     private ReplacementService replacementService;
+    private InitialUIFileParamsCreator initialFileParamsCreator;
 
     private Dataset dataset = new Dataset();
 
@@ -239,6 +244,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                              final ImageThumbConverter imageThumbConverter,
                              final DuplicatesService duplicatesService,
                              final ReplacementService replacementService,
+                             final InitialUIFileParamsCreator initialFileParamsCreator,
                              final AsyncExecutionService asyncExecutionService) {
         this.datafileDao = datafileDao;
         this.dataFileCreator = dataFileCreator;
@@ -260,6 +266,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.imageThumbConverter = imageThumbConverter;
         this.duplicatesService = duplicatesService;
         this.replacementService = replacementService;
+        this.initialFileParamsCreator = initialFileParamsCreator;
         this.asyncExecutionService = asyncExecutionService;
     }
 
@@ -928,7 +935,8 @@ public class EditDatafilesPage implements java.io.Serializable {
                 // for example, multiple files can be extracted from an uncompressed
                 // zip file.
                 datafiles = this.dataFileCreator.createDataFiles(dropBoxStream, 
-                        fileName, "application/octet-stream");
+                        fileName, "application/octet-stream",
+                        initialFileParamsCreator.createInitialFileParams(dataset, newFiles));
             } catch (final IOException | FileExceedsMaxSizeException ex) {
                 logger.log(SEVERE, "Error during ingest of DropBox file {0} from link {1}", 
                         new Object[]{fileName, fileLink});
@@ -1087,7 +1095,8 @@ public class EditDatafilesPage implements java.io.Serializable {
                 // zip file.
                 final List<DataFile> files = this.dataFileCreator.createDataFiles(
                         inputStream, uploadedFile.getFileName(), 
-                        uploadedFile.getContentType(), this.ignoringMaxUploadLimit);
+                        uploadedFile.getContentType(), this.ignoringMaxUploadLimit,
+                        initialFileParamsCreator.createInitialFileParams(dataset, newFiles));
                 this.dataFileUploadInfo.addSizeAndDataFiles(fileSize, files);
 
                 // These raw datafiles are then post-processed, in order to drop any
@@ -1287,6 +1296,13 @@ public class EditDatafilesPage implements java.io.Serializable {
         setTagsForTabularData(selectedDataFileTags, selectedFile);
     }
 
+    public void updateTermsOfUse(final FileMetadata fileMetadata) {
+        final TermsOfUseForm termsOfUseForm = fileMetadata.getTermsOfUseForm();
+        final FileTermsOfUse termsOfUse = termsOfUseFormMapper
+                .mapToFileTermsOfUse(termsOfUseForm);
+        fileMetadata.setTermsOfUse(termsOfUse);
+    }
+
     public boolean exceedsIngestSizeLimit(final DataFile dataFile) {
         return this.ingestService.exceedsIngestSizeLimit(dataFile);
     }
@@ -1362,6 +1378,7 @@ public class EditDatafilesPage implements java.io.Serializable {
             termsOfUseCopy.setRestrictType(termsOfUseForm.getRestrictType());
             termsOfUseCopy.setCustomRestrictText(termsOfUseForm.getCustomRestrictText());
             selectedFile.setTermsOfUseForm(termsOfUseCopy);
+            selectedFile.setTermsOfUse(termsOfUseFormMapper.mapToFileTermsOfUse(termsOfUseCopy));
         }
     }
     

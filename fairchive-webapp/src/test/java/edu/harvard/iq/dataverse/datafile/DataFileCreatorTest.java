@@ -55,6 +55,8 @@ public class DataFileCreatorTest {
     
     @TempDir
     Path tempDir;
+
+    private FileParams emptyFileParams = new FileParams();
     
     @BeforeEach
     void before() throws IOException {
@@ -76,7 +78,7 @@ public class DataFileCreatorTest {
         when(settingsService.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes)).thenReturn(1024L);
 
         // when & then
-        assertThatThrownBy(() -> dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "filename.png", "image/png"))
+        assertThatThrownBy(() -> dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "filename.png", "image/png", emptyFileParams))
             .isInstanceOf(FileExceedsMaxSizeException.class);
         assertThat(Files.walk(tempDir).filter(Files::isRegularFile)).isEmpty();
     }
@@ -96,7 +98,7 @@ public class DataFileCreatorTest {
         when(settingsService.getValueForKey(Key.FileFixityChecksumAlgorithm)).thenReturn("MD5");
         when(fileTypeDetector.determineFileType(any(), any())).thenReturn(detectedContentType);
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(new byte[0]), "filename", suppliedContentType);
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(new byte[0]), "filename", suppliedContentType, emptyFileParams);
         // then
         assertThat(datafiles).hasSize(1);
         assertThat(datafiles).element(0).extracting(DataFile::getContentType).isEqualTo(expectedContentType);
@@ -115,7 +117,7 @@ public class DataFileCreatorTest {
         
 
         // when & then
-        assertThatThrownBy(() -> dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "filename.png", "image/png"))
+        assertThatThrownBy(() -> dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "filename.png", "image/png", emptyFileParams))
             .isInstanceOf(VirusFoundException.class);
         assertThat(Files.walk(tempDir).filter(Files::isRegularFile)).isEmpty();
     }
@@ -130,7 +132,7 @@ public class DataFileCreatorTest {
         when(fileTypeDetector.determineFileType(any(), any())).thenReturn("application/fits-gzipped");
 
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "sample.fits.gz", "application/fits-gzipped");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "sample.fits.gz", "application/fits-gzipped", emptyFileParams);
         
         // then
         assertThat(datafiles).hasSize(1)
@@ -157,7 +159,7 @@ public class DataFileCreatorTest {
         when(fileTypeDetector.determineFileType(any(), any())).thenReturn("application/fits-gzipped");
 
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "sample.fits.gz", "application/fits-gzipped");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "sample.fits.gz", "application/fits-gzipped", emptyFileParams);
         
         // then
         assertThat(datafiles).hasSize(1)
@@ -188,7 +190,7 @@ public class DataFileCreatorTest {
         when(fileTypeDetector.determineFileType(any(), eq("plaintext_utf8.txt"))).thenReturn("text/plain");
 
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip", emptyFileParams);
         
         // then
         assertThat(datafiles).hasSize(2)
@@ -229,7 +231,7 @@ public class DataFileCreatorTest {
         when(fileTypeDetector.determineFileType(any(), eq("plaintext_utf8.txt"))).thenReturn("text/plain");
 
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip", emptyFileParams);
         
         // then
         assertThat(datafiles).hasSize(2)
@@ -272,7 +274,7 @@ public class DataFileCreatorTest {
         lenient().when(fileTypeDetector.determineFileType(any(), eq("plaintext_ascii.txt"))).thenReturn("text/plain");
 
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip", emptyFileParams);
         
         // then
         assertThat(datafiles).hasSize(2)
@@ -315,7 +317,7 @@ public class DataFileCreatorTest {
         lenient().when(fileTypeDetector.determineFileType(any(), eq("plaintext_ascii.txt"))).thenReturn("text/plain");
 
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip", emptyFileParams);
         
         // then
         assertThat(datafiles).hasSize(1)
@@ -345,7 +347,7 @@ public class DataFileCreatorTest {
         when(fileTypeDetector.determineFileType(any(), any())).thenReturn("application/zip");
 
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "archive.zip", "application/zip", emptyFileParams);
         
         // then
         assertThat(datafiles).hasSize(1)
@@ -375,7 +377,7 @@ public class DataFileCreatorTest {
         lenient().when(fileTypeDetector.determineFileType(any(), any())).thenReturn("application/zipped-shapefile");
         
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "fake_shapefile.zip", "application/zipped-shapefile");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(zipBytes), "fake_shapefile.zip", "application/zipped-shapefile", emptyFileParams);
         // then
         assertThat(datafiles).hasSize(5).extracting(df -> df.getLatestFileMetadata().getLabel())
             .containsExactlyInAnyOrder("shape1.zip", "shape2.zip", "shape2", "shape2.txt", "README.txt");
@@ -390,7 +392,7 @@ public class DataFileCreatorTest {
         when(uncompressedCalculator.calculateUncompressedSize(any(), any(), any())).thenReturn(101L);
         
         // when
-        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(new byte[0]), "name", "application/something");
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(new byte[0]), "name", "application/something", emptyFileParams);
         // then
         assertThat(datafiles).hasSize(1);
         assertThat(datafiles.get(0).getUncompressedSize()).isEqualTo(101L);

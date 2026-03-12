@@ -5,6 +5,7 @@ import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
+import edu.harvard.iq.dataverse.datafile.InitialUIFileParamsCreator;
 import edu.harvard.iq.dataverse.datafile.file.ReplaceFileHandler;
 import edu.harvard.iq.dataverse.datafile.file.exception.FileReplaceException;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -57,6 +58,9 @@ public class ReplaceFileHandlerTest {
     @Mock
     private DataverseRequestServiceBean dataverseRequestServiceBean;
 
+    @Mock
+    private InitialUIFileParamsCreator initialUIFileParamsCreator;
+
     @BeforeEach
     public void setUp() {
 
@@ -95,7 +99,7 @@ public class ReplaceFileHandlerTest {
         Dataset dataset = new Dataset();
         String fileName = "testFile.png";
         String fileContentType = "image/png";
-        when(dataFileCreator.createDataFiles(any(), any(), any())).thenThrow(VirusFoundException.class);
+        when(dataFileCreator.createDataFiles(any(), any(), any(), any())).thenThrow(VirusFoundException.class);
 
         //then
         FileReplaceException thrown;

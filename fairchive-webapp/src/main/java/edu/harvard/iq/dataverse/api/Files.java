@@ -9,9 +9,10 @@ import edu.harvard.iq.dataverse.api.dto.ReingestOptionDTO;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datasetutility.AddReplaceFileHelper;
-import edu.harvard.iq.dataverse.datasetutility.DataFileTagException;
 import edu.harvard.iq.dataverse.datasetutility.NoFilesException;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
+import edu.harvard.iq.dataverse.datasetutility.OptionalFileParamsConverter;
+import edu.harvard.iq.dataverse.datasetutility.OptionalFileParamsParser;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.DeleteMapLayerMetadataCommand;
@@ -60,7 +61,9 @@ public class Files extends AbstractApiBean {
     @Inject
     SystemConfig systemConfig;
     @Inject
-    private OptionalFileParams optionalFileParams;
+    private OptionalFileParamsParser optionalFileParamsParser;
+    @Inject
+    private OptionalFileParamsConverter optionalFileParamsConverter;
     @Inject
     private PermissionServiceBean permissionSvc;
     @Inject
@@ -112,14 +115,10 @@ public class Files extends AbstractApiBean {
                 if ((jsonObj.has("forceReplace")) && (!jsonObj.get("forceReplace").isJsonNull())) {
                     forceReplace = jsonObj.get("forceReplace").getAsBoolean();
                 }
-                try {
-                    // (2b) Load up optional params via JSON
-                    //  - Will skip extra attributes which includes fileToReplaceId and forceReplace
-                    //---------------------------------------
-                    optionalFileParams = this.optionalFileParams.create(jsonData);
-                } catch (DataFileTagException ex) {
-                    return error(Response.Status.BAD_REQUEST, ex.getMessage());
-                }
+                // (2b) Load up optional params via JSON
+                //  - Will skip extra attributes which includes fileToReplaceId and forceReplace
+                //---------------------------------------
+                optionalFileParams = this.optionalFileParamsParser.parseFileParams(jsonData);
             } catch (ClassCastException ex) {
                 logger.info("Exception parsing string '" + jsonData + "': " + ex);
             }
@@ -142,7 +141,7 @@ public class Files extends AbstractApiBean {
                                                                       fileService,
                                                                       dataFileCreator,
                                                                       permissionSvc,
-                commandEngine, this.optionalFileParams);
+                commandEngine, this.optionalFileParamsConverter);
 
         //-------------------
         // (5) Run "runReplaceFileByDatasetId"

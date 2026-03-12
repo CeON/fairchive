@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
+import edu.harvard.iq.dataverse.datafile.FileParams;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.datasetutility.VirusFoundException;
@@ -308,7 +309,8 @@ final class MediaResourceManagerImpl implements MediaResourceManager {
             String guessContentTypeForMe = null;
             List<DataFile> dataFiles;
             try (InputStream inputStream = deposit.getInputStream()) {
-                dataFiles = dataFileCreator.createDataFiles(inputStream, uploadedZipFilename, guessContentTypeForMe);
+                dataFiles = dataFileCreator.createDataFiles(inputStream, uploadedZipFilename, guessContentTypeForMe,
+                        new FileParams());
             } catch (FileExceedsMaxSizeException ex) {
                 throw new SwordError(UriRegistry.ERROR_BAD_REQUEST, "Unable to add file(s) to dataset: File is over max size limit");
             } catch (VirusFoundException ex) {

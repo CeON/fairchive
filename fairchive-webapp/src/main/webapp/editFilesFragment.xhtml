@@ -571,7 +571,7 @@
                                                      value="#{fileMetadata.termsOfUseForm.typeWithLicenseId}"
                                                      autoWidth="false">
                                         <f:selectItems value="#{EditDatafilesPage.termsOfUseSelectItems}"/>
-                                        <p:ajax update="licenseSelection"/>
+                                        <p:ajax update="licenseSelection" listener="#{EditDatafilesPage.updateTermsOfUse(fileMetadata)}"/>
                                     </p:selectOneMenu>
 
                                     <div jsf:rendered="#{fileMetadata.termsOfUseForm.typeWithLicenseId eq 'RESTRICTED'}">
@@ -592,7 +592,7 @@
                                                     itemValue="ACADEMIC_PURPOSE_AND_NOT_FOR_REDISTRIBUTION"/>
                                             <f:selectItem itemLabel="#{bundle['file.termsOfAccess.restricted.CUSTOM']}"
                                                           itemValue="CUSTOM"/>
-                                            <p:ajax update="licenseSelection"/>
+                                            <p:ajax update="licenseSelection" listener="#{EditDatafilesPage.updateTermsOfUse(fileMetadata)}"/>
                                         </p:selectOneMenu>
                                     </div>
 
@@ -604,7 +604,9 @@
                                                          value="#{fileMetadata.termsOfUseForm.customRestrictText}"
                                                          required="true"
                                                          requiredMessage="#{bundle['file.editTermsOfUseDialog.accessConditions.custom.required']}"
-                                                         style="width: 100%;"/>
+                                                         style="width: 100%;">
+                                            <p:ajax update="licenseSelection" listener="#{EditDatafilesPage.updateTermsOfUse(fileMetadata)}"/>
+                                        </p:inputTextarea>
                                         <p:message for="fileCustomRestrictText" display="text"/>
                                     </div>
 

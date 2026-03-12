@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.api.dto.DataFileListDTO;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
+import edu.harvard.iq.dataverse.datafile.FileParams;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -106,12 +107,14 @@ public class AddReplaceFileHelper {
     private final DataFileCreator dataFileCreator;
     private final PermissionServiceBean permissionService;
     private final EjbDataverseEngine commandEngine;
+    private final OptionalFileParamsConverter optionalFileParamsConverter;
 
     // -----------------------------------
     // Instance variables directly added
     // -----------------------------------
     private Dataset dataset;                    // constructor (for add, not replace)
     private final DataverseRequest dvRequest;         // constructor
+    private FileParams fileParams;              // step 15
     private InputStream newFileInputStream;     // step 20
     private String newFileName;                 // step 20
     private String newFileContentType;          // step 20
@@ -140,10 +143,6 @@ public class AddReplaceFileHelper {
     private List<String> errorMessages;
     private Response.Status httpErrorCode; // optional
 
-    // For Force Replace, this becomes a warning rather than an error
-    //
-    private boolean contentTypeWarningFound;
-
     /**
      * MAIN CONSTRUCTOR -- minimal requirements
      *
@@ -154,7 +153,7 @@ public class AddReplaceFileHelper {
                                 final DataFileCreator dataFileCreator,
                                 final PermissionServiceBean permissionService,
                                 final EjbDataverseEngine commandEngine,
-                                final OptionalFileParams optionalFileParams) {
+                                final OptionalFileParamsConverter optionalFileParamsConverter) {
 
         // ---------------------------------
         // make sure DataverseRequest isn't null and has a user
@@ -170,6 +169,7 @@ public class AddReplaceFileHelper {
         this.dataFileCreator = requireNonNull(dataFileCreator, "dataFileCreator cannot be null");
         this.permissionService = requireNonNull(permissionService, "permissionService cannot be null");
         this.commandEngine = requireNonNull(commandEngine, "commandEngine cannot be null");
+        this.optionalFileParamsConverter = requireNonNull(optionalFileParamsConverter, "optionalFileParamsConverter cannot be null");
 
         // ---------------------------------
 
@@ -334,6 +334,11 @@ public class AddReplaceFileHelper {
 
         }
 
+        msg("step_015_loadFileParams");
+        if (this.step_015_loadOptionalFileParams(optionalFileParams)) {
+            return false;
+        }
+
         msg("step_020_loadNewFile");
         if (!this.step_020_loadNewFile(newFileName, newFileContentType, newFileInputStream)) {
             return false;
@@ -351,9 +356,7 @@ public class AddReplaceFileHelper {
             return false;
         }
 
-        msg("step_055_loadOptionalFileParams");
-        return this.step_055_loadOptionalFileParams(optionalFileParams);
-
+        return true;
     }
 
     /**
@@ -401,7 +404,7 @@ public class AddReplaceFileHelper {
      * <p>
      * Only overrides warnings of content type change
      */
-    public boolean isForceFileOperation() {
+    private boolean isForceFileOperation() {
 
         return this.currentOperation.equals(FILE_REPLACE_FORCE_OPERATION);
     }
@@ -409,7 +412,7 @@ public class AddReplaceFileHelper {
     /**
      * Is this a file replace operation?
      */
-    public boolean isFileReplaceOperation() {
+    private boolean isFileReplaceOperation() {
 
         if (this.currentOperation.equals(FILE_REPLACE_OPERATION)) {
             return true;
@@ -426,9 +429,6 @@ public class AddReplaceFileHelper {
         this.errorFound = false;
         this.errorMessages = new ArrayList<>();
         this.httpErrorCode = null;
-
-
-        contentTypeWarningFound = false;
     }
 
 
@@ -739,7 +739,8 @@ public class AddReplaceFileHelper {
             initialFileList = dataFileCreator.createDataFiles(
                                                           this.newFileInputStream,
                                                           this.newFileName,
-                                                          this.newFileContentType);
+                                                          this.newFileContentType,
+                                                          this.fileParams);
 
         } catch (IOException | FileExceedsMaxSizeException ex) {
             if (!Strings.isNullOrEmpty(ex.getMessage())) {
@@ -894,7 +895,9 @@ public class AddReplaceFileHelper {
 
                 if (isForceFileOperation()) {
                     // for force replace, just give a warning
-                    this.setContentTypeWarning(contentTypeErr);
+                    logger.warning(String.format("The original file (%s) and replacement file (%s) has different file types."
+                            + " Will continue since force flag is turned on.",
+                            fileToReplace.getFriendlyType(), finalFileList.get(0).getFriendlyType()));
                 } else {
                     // not a force replace? it's an error
                     this.addError(contentTypeErr);
@@ -954,35 +957,14 @@ public class AddReplaceFileHelper {
     /**
      * Load optional file params such as description, tags, fileDataTags, etc..
      */
-    private boolean step_055_loadOptionalFileParams(OptionalFileParams optionalFileParams) {
+    private boolean step_015_loadOptionalFileParams(OptionalFileParams optionalFileParams) {
 
         if (hasError()) {
             return false;
         }
 
-        // --------------------------------------------
-        // OK, the object may be null
-        // --------------------------------------------
-        if (optionalFileParams == null) {
-            return true;
-        }
 
-
-        // --------------------------------------------
-        // Iterate through files (should only be 1 for now)
-        // Add tags, description, etc
-        // --------------------------------------------
-        for (DataFile df : finalFileList) {
-            try {
-                optionalFileParams.addOptionalParams(df);
-
-            } catch (DataFileTagException ex) {
-                Logger.getLogger(AddReplaceFileHelper.class.getName()).log(Level.SEVERE, null, ex);
-                addError(ex.getMessage());
-                return false;
-            }
-        }
-
+        this.fileParams = optionalFileParamsConverter.toFileParams(optionalFileParams);
 
         return true;
     }
@@ -1322,19 +1304,6 @@ public class AddReplaceFileHelper {
 
     private void msg(String m) {
         logger.fine(m);
-    }
-
-    public void setContentTypeWarning(String warningString) {
-
-        if ((warningString == null) || (warningString.isEmpty())) {
-            throw new NullPointerException("warningString cannot be null");
-        }
-
-        contentTypeWarningFound = true;
-    }
-
-    public boolean hasContentTypeWarning() {
-        return this.contentTypeWarningFound;
     }
 
 } // end class
