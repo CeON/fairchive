@@ -38,7 +38,7 @@ public class InitialUIFileParamsCreator {
     private SettingsServiceBean settingsService;
     
 
-    InitialUIFileParamsCreator() {}
+    public InitialUIFileParamsCreator() {}
     
     @Inject
     public InitialUIFileParamsCreator(LicenseRepository licenseRepository, TermsOfUseFactory termsOfUseFactory,
