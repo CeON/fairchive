@@ -1038,7 +1038,7 @@
         <url>https://github.com/CeON/fairchive.git</url>
         <connection>scm:git:git@github.com:CeON/fairchive.git</connection>
         <developerConnection>scm:git:git@github.com:CeON/fairchive.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>release/v1.2.x</tag>
     </scm>
 
     <distributionManagement>
