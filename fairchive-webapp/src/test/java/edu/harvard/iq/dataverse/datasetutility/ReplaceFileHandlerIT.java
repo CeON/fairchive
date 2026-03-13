@@ -90,6 +90,7 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
 
         fillDatasetWithRequiredData(dataset);
         em.persist(dataset);
+        em.flush();
 
         String fileName = "testFile";
         String fileContentType = "json";
@@ -233,6 +234,7 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
     }
 
     private Dataset fillDatasetWithRequiredData(Dataset dataset) {
+        dataset.setOwner(dataverseDao.findRootDataverse());
         dataset.setCreateDate(Timestamp.valueOf(LocalDateTime.of
                 (LocalDate.of(2019, 12, 12), LocalTime.of(13, 15))));
 
