@@ -151,7 +151,11 @@ public class DatasetMetadataTab implements Serializable {
 	// --------------------------------------------------------------------------
 	public final class TranslationDialog implements Serializable {
 
-		private String selectedLanguageCode;
+		private String selectedLanguageCode = null;
+		
+		public void reset() {
+			this.selectedLanguageCode = null;
+		}
 
 		public List<Language> getLanguages() {
 			return Language.values;
@@ -219,13 +223,18 @@ public class DatasetMetadataTab implements Serializable {
 
 		private List<DatasetField> translate(List<DatasetField> fields) {
 			final ArrayList<DatasetField> result = new ArrayList<>(fields.size());
-
+			final List<String> flatValues = flatten(fields);
+			
+			final List<String> translated = DatasetMetadataTab.this.translator.
+					translate(flatValues, this.selectedLanguageCode);
+			
+			int index = 0;
 			for (final DatasetField field : fields) {
 				final DatasetField newField = field.copy();
-				newField.setValue(translate(field.getValue()));
+				newField.setValue(translated.get(index++));
 				for(final DatasetField child : field.getChildren()) {
 					final DatasetField newChild = child.copy();
-					newChild.setValue(translate(child.getValue()));
+					newChild.setValue(translated.get(index++));
 					newField.getChildren().add(newChild);
 				}
 				
@@ -234,13 +243,29 @@ public class DatasetMetadataTab implements Serializable {
 
 			return result;
 		}
+		
+		private List<String> flatten(final List<DatasetField> fields) {
+			final ArrayList<String> flattened = new ArrayList<>(fields.size());
 
-		private String translate(final String text) {
-			final String sanitized = text != null 
+			for (final DatasetField field : fields) {
+				flattened.add(sanitize(getValue(field)));
+				for (final DatasetField child : field.getChildren()) {
+					flattened.add(sanitize(getValue(child)));
+				}
+			}
+			return flattened;
+		}
+		
+		private String getValue(final DatasetField field) {
+			final List<String> values = field.getValues();
+			return values.isEmpty() ? "" : values.get(0);
+		}
+		
+		private String sanitize(final String text) {
+			return text != null
 					? text.replace("<p>", " ").replace("</p>", " ").
 							replace("<br>", " ").replace("<br/>", " ")
 					: text;
-			return DatasetMetadataTab.this.translator.translate(sanitized, this.selectedLanguageCode);
 		}
 	}
 
