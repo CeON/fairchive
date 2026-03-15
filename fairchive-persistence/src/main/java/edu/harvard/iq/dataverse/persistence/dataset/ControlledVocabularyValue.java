@@ -1,7 +1,20 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import org.apache.commons.lang3.StringUtils;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getCurrentLocale;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundleWithLocale;
+import static java.util.Comparator.comparingInt;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.stripAccents;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,21 +24,6 @@ import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundleWithLocale;
-import static java.util.Comparator.comparingInt;
-import static javax.persistence.CascadeType.MERGE;
-import static javax.persistence.CascadeType.PERSIST;
-import static javax.persistence.CascadeType.REMOVE;
-import static javax.persistence.GenerationType.IDENTITY;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Locale;
-import java.util.Objects;
 
 /**
  * @author skraffmiller
@@ -61,7 +59,6 @@ public class ControlledVocabularyValue implements Serializable {
     private String suggestionDetails;
 
     @ManyToOne
-    // @JoinColumn( nullable = false ) TODO this breaks for the N/A value. need to create an N/A type for that value.
     private DatasetFieldType datasetFieldType;
 
     @OneToMany(mappedBy = "controlledVocabularyValue", cascade = {REMOVE, MERGE, PERSIST})
@@ -74,21 +71,21 @@ public class ControlledVocabularyValue implements Serializable {
 
     public ControlledVocabularyValue() { }
 
-    public ControlledVocabularyValue(Long id, String strValue, 
-            DatasetFieldType datasetFieldType) {
+    public ControlledVocabularyValue(final Long id, final String strValue, 
+            final DatasetFieldType fieldType) {
         this.id = id;
         this.strValue = strValue;
-        this.datasetFieldType = datasetFieldType;
+        this.datasetFieldType = fieldType;
     }
 
     // -------------------- GETTERS --------------------
 
     public String getStrValue() {
-        return strValue;
+        return this.strValue;
     }
 
     public String getIdentifier() {
-        return identifier;
+        return this.identifier;
     }
 
     public int getDisplayOrder() {
@@ -105,89 +102,92 @@ public class ControlledVocabularyValue implements Serializable {
     }
 
     public DatasetFieldType getDatasetFieldType() {
-        return datasetFieldType;
+        return this.datasetFieldType;
     }
 
     public Collection<ControlledVocabAlternate> getControlledVocabAlternates() {
-        return controlledVocabAlternates;
+        return this.controlledVocabAlternates;
     }
 
     public String getDisplayGroup() {
-        return displayGroup;
+        return this.displayGroup;
     }
 
     public String getSuggestionDetails() {
-        return suggestionDetails;
+        return this.suggestionDetails;
     }
 
     // -------------------- LOGIC --------------------
 
     public String getLocaleStrValue() {
-        return getLocaleStrValue(BundleUtil.getCurrentLocale());
+        return getLocaleStrValue(getCurrentLocale());
     }
 
-    public String getLocaleStrValue(Locale locale) {
-        String key = strValue.toLowerCase().replace(' ', '_');
-        key = StringUtils.stripAccents(key);
-        String value;
-        try {
-            value = getStringFromNonDefaultBundleWithLocale(
-                    "controlledvocabulary." + this.datasetFieldType.getName() + '.' + key,
-                    getDatasetFieldType().getMetadataBlock().getName(), locale);
-        } catch (NullPointerException npe) {
-            value = EMPTY;
-        }
-        return value.isEmpty() ? getStrValue() : value;
+    public String getLocaleStrValue(final Locale locale) {
+    	if("N/A".equals(this.strValue) || this.datasetFieldType == null || 
+    			this.datasetFieldType.getMetadataBlock() == null) {
+    		return this.strValue;
+    	} else {
+            final String value = getStringFromNonDefaultBundleWithLocale(getKey(),
+                    getBundleName(), locale);
+            return value.isEmpty() ? this.strValue : value;
+    	}
+    }
+    
+    private String getKey() {
+    	return "controlledvocabulary." + this.datasetFieldType.getName() + '.' + 
+    			stripAccents(this.strValue.toLowerCase().replace(' ', '_'));
+    }
+    
+    private String getBundleName() {
+    	return getDatasetFieldType().getMetadataBlock().getName();
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setStrValue(String strValue) {
-        this.strValue = strValue;
+    public void setStrValue(final String value) {
+        this.strValue = value;
 
     }
 
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public void setIdentifier(final String value) {
+        this.identifier = value;
     }
 
-    public void setDisplayOrder(int displayOrder) {
-        this.displayOrder = displayOrder;
+    public void setDisplayOrder(final int order) {
+        this.displayOrder = order;
     }
 
-    public void setDatasetFieldType(DatasetFieldType datasetFieldType) {
-        this.datasetFieldType = datasetFieldType;
+    public void setDatasetFieldType(final DatasetFieldType type) {
+        this.datasetFieldType = type;
     }
 
-    public void setControlledVocabAlternates(Collection<ControlledVocabAlternate> controlledVocabAlternates) {
-        this.controlledVocabAlternates = controlledVocabAlternates;
+    public void setControlledVocabAlternates(
+    		final Collection<ControlledVocabAlternate> alternates) {
+        this.controlledVocabAlternates = alternates;
     }
 
-    public void setDisplayGroup(String displayGroup) {
-        this.displayGroup = displayGroup;
+    public void setDisplayGroup(final String group) {
+        this.displayGroup = group;
     }
 
-    public void setSuggestionDetails(String suggestionDetails) {
-        this.suggestionDetails = suggestionDetails;
+    public void setSuggestionDetails(final String details) {
+        this.suggestionDetails = details;
     }
 
     // -------------------- hashCode & equals --------------------
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof ControlledVocabularyValue)) {
-            return false;
-        }
-        ControlledVocabularyValue other = (ControlledVocabularyValue) object;
-        return Objects.equals(getId(), other.getId());
-    }
+	@Override
+	public boolean equals(final Object object) {
+		return object instanceof ControlledVocabularyValue
+				? Objects.equals(this.id, ((ControlledVocabularyValue) object).id)
+				: false;
+	}
 
     // -------------------- toString --------------------
 
