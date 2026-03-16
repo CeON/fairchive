@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.datafile;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;

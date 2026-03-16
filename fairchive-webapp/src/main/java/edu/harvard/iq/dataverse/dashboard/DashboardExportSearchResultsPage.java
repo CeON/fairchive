@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.dashboard;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.Serializable;
 import java.util.List;

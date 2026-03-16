@@ -6,7 +6,7 @@
 package edu.harvard.iq.dataverse.mail;
 
 import static edu.harvard.iq.dataverse.persistence.user.NotificationType.RETURNEDDS;
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -23,7 +23,7 @@ import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.simplejavamail.email.Email;
 import org.simplejavamail.email.EmailBuilder;
 import org.simplejavamail.email.EmailPopulatingBuilder;

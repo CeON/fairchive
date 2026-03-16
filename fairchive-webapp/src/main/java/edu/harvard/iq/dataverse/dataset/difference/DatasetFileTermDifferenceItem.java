@@ -2,7 +2,8 @@ package edu.harvard.iq.dataverse.dataset.difference;
 
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import org.apache.commons.lang.StringUtils;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
  * Difference in terms of use of file between two
@@ -24,7 +25,7 @@ public class DatasetFileTermDifferenceItem {
         this.fileSummary = fileSummary;
         this.oldTerms = oldTerms;
         this.newTerms = newTerms;
-        this.fileName = StringUtils.EMPTY;
+        this.fileName = EMPTY;
     }
 
     public DatasetFileTermDifferenceItem(FileSummary fileSummary, String fileName, FileTermsOfUse oldTerms, FileTermsOfUse newTerms) {

@@ -20,7 +20,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.List;
 import java.util.logging.Logger;

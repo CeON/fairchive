@@ -116,7 +116,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static edu.harvard.iq.dataverse.util.StringUtil.nonEmpty;
-import static org.apache.commons.lang.StringUtils.isNumeric;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 /**
  * A REST API for dataverses.

@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse;
 
-import static org.apache.commons.lang.StringUtils.isNumeric;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;

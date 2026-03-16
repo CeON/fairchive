@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse;
 
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.HashMap;
 import java.util.Map;

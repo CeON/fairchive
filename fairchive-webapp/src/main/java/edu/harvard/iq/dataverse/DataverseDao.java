@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.File;
 import java.sql.Timestamp;

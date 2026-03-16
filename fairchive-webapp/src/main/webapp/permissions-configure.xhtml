@@ -27,7 +27,7 @@
                 #{bundle['dataverse.permissions.Q2']}
             </legend>
             <div class="col-sm-offset-1">
-                <o:importFunctions type="org.apache.commons.lang.StringEscapeUtils"/>
+                <o:importFunctions type="org.apache.commons.lang3.StringEscapeUtils"/>
                 
                 <p:selectOneRadio id="defaultContributorRoleRadio" value="#{managePermissionsPage.defaultContributorRoleAlias}" layout="grid" columns="1" styleClass="inline-labels">
                     <f:selectItem itemLabel="#{bundle.editor} &lt;span class='text-muted'&gt; #{bundle['dataverse.permissions.Q2.answer.editor.description']} &lt;/span&gt;" 
@@ -37,9 +37,9 @@
                     <f:selectItem itemLabel="#{bundle.depositor} &lt;span class='text-muted'&gt; #{bundle['dataverse.permissions.Q2.answer.depositor.description']} &lt;/span&gt;"
                                   itemValue="depositor" itemEscaped="false"/>
                     <c:if test="#{managePermissionsPage.isCustomDefaultContributorRole()}">
-                        <f:selectItem itemLabel="#{StringEscapeUtils:escapeHtml(managePermissionsPage.customDefaultContributorRoleName)} 
+                        <f:selectItem itemLabel="#{StringEscapeUtils:escapeHtml4(managePermissionsPage.customDefaultContributorRoleName)} 
                                                  &lt;span class='text-muted'&gt;
-                                                 - #{StringEscapeUtils:escapeHtml(managePermissionsPage.customDefaultContributorRoleDescription)} &lt;/span&gt;"
+                                                 - #{StringEscapeUtils:escapeHtml4(managePermissionsPage.customDefaultContributorRoleDescription)} &lt;/span&gt;"
                                       itemValue="#{managePermissionsPage.customDefaultContributorRoleAlias}"
                                       itemEscaped="false"/>
                     </c:if>

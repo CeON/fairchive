@@ -30,7 +30,7 @@ import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.omnifaces.cdi.ViewScoped;
@@ -994,8 +994,8 @@ public class DatasetPage implements Serializable {
     private Object[] getSuccessMessageArguments() {
         List<String> arguments = new ArrayList<>();
         String dataverseString = "";
-        arguments.add(StringEscapeUtils.escapeHtml(dataset.getDisplayName()));
-        dataverseString += " <a href=\"/dataverse/" + selectedDataverseForLinking.getAlias() + "\">" + StringEscapeUtils.escapeHtml(selectedDataverseForLinking.getDisplayName()) + "</a>";
+        arguments.add(StringEscapeUtils.escapeHtml4(dataset.getDisplayName()));
+        dataverseString += " <a href=\"/dataverse/" + selectedDataverseForLinking.getAlias() + "\">" + StringEscapeUtils.escapeHtml4(selectedDataverseForLinking.getDisplayName()) + "</a>";
         arguments.add(dataverseString);
         return arguments.toArray();
     }

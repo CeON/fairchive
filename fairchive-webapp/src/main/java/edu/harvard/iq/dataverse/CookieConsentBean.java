@@ -1,11 +1,13 @@
 package edu.harvard.iq.dataverse;
 
-import org.apache.commons.lang.StringUtils;
 
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.RequestScoped;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +24,6 @@ public class CookieConsentBean {
 
         FacesContext.getCurrentInstance()
                 .getExternalContext()
-                .addResponseCookie("ConsentCookie", StringUtils.EMPTY, properties);
+                .addResponseCookie("ConsentCookie", EMPTY, properties);
     }
 }

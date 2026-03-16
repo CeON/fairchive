@@ -19,7 +19,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;

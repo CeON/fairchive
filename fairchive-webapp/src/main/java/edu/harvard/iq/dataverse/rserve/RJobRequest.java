@@ -20,7 +20,7 @@
 package edu.harvard.iq.dataverse.rserve;
 
 import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

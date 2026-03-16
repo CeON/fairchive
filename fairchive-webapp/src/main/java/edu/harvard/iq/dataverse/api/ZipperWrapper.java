@@ -1,13 +1,14 @@
 package edu.harvard.iq.dataverse.api;
 
-import edu.harvard.iq.dataverse.dataaccess.DataFileZipper;
-import org.apache.commons.lang.StringUtils;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.OutputStream;
 
+import edu.harvard.iq.dataverse.dataaccess.DataFileZipper;
+
 public class ZipperWrapper {
     private DataFileZipper zipper;
-    private String manifest = StringUtils.EMPTY;
+    private String manifest = EMPTY;
 
     public ZipperWrapper init(OutputStream outputStream) {
         if (this.isEmpty()) {

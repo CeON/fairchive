@@ -2,7 +2,7 @@ package edu.harvard.iq.dataverse.util;
 
 import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class FileSortFieldAndOrder {
 

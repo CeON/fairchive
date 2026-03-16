@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.swordapp.server.SwordError;
 import org.swordapp.server.UriRegistry;
 

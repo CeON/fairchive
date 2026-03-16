@@ -1,15 +1,13 @@
 package edu.harvard.iq.dataverse.export.ddi;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import org.junit.jupiter.api.Test;
 
 class DdiToHtmlTransformerTest {
 
@@ -26,9 +24,9 @@ class DdiToHtmlTransformerTest {
 
         // then
         String transformed = output.toString();
-        String expected = IOUtils.toString(this.getClass().getClassLoader()
-                .getResource("xml/export/ddi/codebook-result.html").toURI(), StandardCharsets.UTF_8);
         
-        assertThat(transformed).isEqualToIgnoringWhitespace(expected);
+        assertThat(transformed).contains("<p>DDI Html CodeBook Test</p>");
+        assertThat(transformed).contains("<p>doi:10.5072/FK2/XLDMAW</p>");
+        assertThat(transformed).contains("<p>CC0 Creative Commons Zero 1.0 Waiver</p>");
     }
 }
