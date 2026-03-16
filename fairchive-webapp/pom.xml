@@ -256,17 +256,6 @@
             <artifactId>jsoup</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.searchbox</groupId>
-            <artifactId>jest</artifactId>
-            <version>0.1.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
         </dependency>
