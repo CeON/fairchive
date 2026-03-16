@@ -223,11 +223,6 @@
             <artifactId>poi-ooxml</artifactId>
             <version>4.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-examples</artifactId>
-            <version>4.0.0</version>
-        </dependency>
         <!-- JAI (Java Advanced Imaging) jars: -->
         <dependency>
             <groupId>com.github.jai-imageio</groupId>
