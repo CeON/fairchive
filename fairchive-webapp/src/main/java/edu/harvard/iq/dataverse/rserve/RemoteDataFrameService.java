@@ -24,7 +24,7 @@ import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3. RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPInteger;
