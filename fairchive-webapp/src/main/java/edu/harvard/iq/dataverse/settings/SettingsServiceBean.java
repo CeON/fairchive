@@ -435,27 +435,6 @@ public class SettingsServiceBean {
         IndependentHandleService,
 
         /**
-         * Archiving can be configured by providing an Archiver class name (class must extend AstractSubmitToArchiverCommand)
-         * and a list of settings that should be passed to the Archiver.
-         * Note:
-         * Configuration may also require adding Archiver-specific jvm-options (i.e. for username and password) in glassfish.
-         * <p>
-         * To automate the submission of an archival copy step as part of publication, a post-publication workflow must also be configured.
-         * <p>
-         * For example:
-         * ArchiverClassName - "edu.harvard.iq.dataverse.engine.command.impl.DPNSubmitToArchiveCommand"
-         * ArchiverSettings - "DuraCloudHost, DuraCloudPort, DuraCloudContext"
-         * <p>
-         * Note: Dataverse must be configured with values for these dynamically defined settings as well, e.g.
-         * <p>
-         * DuraCloudHost , eg. "qdr.duracloud.org", a non-null value enables submission
-         * DuraCloudPort, default is 443
-         * DuraCloudContext, default is "durastore"
-         */
-
-        ArchiverClassName,
-        ArchiverSettings,
-        /**
          * A comma-separated list of roles for which new dataverses should inherit the
          * corresponding role assignments from the parent dataverse. Also affects
          * /api/admin/dataverse/{alias}/addRolesToChildren. Default is "", no

@@ -12,7 +12,6 @@ import java.security.InvalidParameterException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -105,7 +104,6 @@ import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.NoDatasetFilesException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
-import edu.harvard.iq.dataverse.engine.command.impl.AbstractSubmitToArchiveCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.AddLockCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.AssignRoleCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateDatasetVersionCommand;
@@ -162,7 +160,6 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.EjbUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
@@ -882,32 +879,7 @@ public class Datasets extends AbstractApiBean {
                     CuratePublishedDatasetVersionCommand cmd =
                             new CuratePublishedDatasetVersionCommand(ds, createDataverseRequest(user));
                     ds = commandEngine.submit(cmd);
-                    successMsg = BundleUtil.getStringFromBundle("datasetversion.update.success");
-
-                    // If configured, update archive copy as well
-                    String className = settingsService.getValueForKey(SettingsServiceBean.Key.ArchiverClassName);
-                    DatasetVersion updateVersion = ds.getLatestVersion();
-                    AbstractSubmitToArchiveCommand archiveCommand = ArchiverUtil.createSubmitToArchiveCommand(
-                            className, createDataverseRequest(user), updateVersion, authenticationServiceBean, Clock.systemUTC());
-                    if (archiveCommand != null) {
-                        // Delete the record of any existing copy since it is now out of date/incorrect
-                        updateVersion.setArchivalCopyLocation(null);
-
-                        // Then try to generate and submit an archival copy. Note that running this command within the
-                        // CuratePublishedDatasetVersionCommand was causing an error:
-                        // "The attribute [id] of class [edu.harvard.iq.dataverse.DatasetFieldCompoundValue] is mapped
-                        // to a primary key column in the database. Updates are not allowed."
-                        // To avoid that, and to simplify reporting back to the GUI whether this optional step
-                        // succeeded, I've pulled this out as a separate submit().
-                        try {
-                            updateVersion = commandEngine.submit(archiveCommand);
-                            successMsg = BundleUtil.getStringFromBundle(updateVersion.getArchivalCopyLocation() != null
-                                    ? "datasetversion.update.archive.success" : "datasetversion.update.archive.failure");
-                        } catch (CommandException ex) {
-                            successMsg = BundleUtil.getStringFromBundle("datasetversion.update.archive.failure") + " - " + ex.toString();
-                            logger.severe(ex.getMessage());
-                        }
-                    }
+                    successMsg = BundleUtil.getStringFromBundle("datasetversion.update.success");                  
                 } catch (CommandException ex) {
                     errorMsg = BundleUtil.getStringFromBundle("datasetversion.update.failure") + " - " + ex.toString();
                     logger.severe(ex.getMessage());
