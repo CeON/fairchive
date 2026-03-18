@@ -72,7 +72,7 @@ public class PeriodoSearchField extends SearchField {
     }
 
 	private void appendAuthorityTitle(final StringBuilder result) {
-		if (! this.authorityTitle.isEmpty()) {
+		if (!this.authorityTitle.isEmpty()) {
             appendAndTo(result);
             result.append(PERIODO_AUTHORITY_TITLE)
             	.append(":\"")
@@ -82,7 +82,7 @@ public class PeriodoSearchField extends SearchField {
 	}
 
 	private void appendId(final StringBuilder result) {
-		if (! this.id.isEmpty()) {
+		if (!this.id.isEmpty()) {
             result.append(PERIODO_ID)
             	.append(':')
             	.append('*')
@@ -92,7 +92,7 @@ public class PeriodoSearchField extends SearchField {
 	}
 
 	private void appendLabel(final StringBuilder result) {
-		if (! this.label.isEmpty()) {
+		if (!this.label.isEmpty()) {
             appendAndTo(result);
             result.append(PERIODO_LABEL)
             	.append(":\"")
@@ -102,7 +102,7 @@ public class PeriodoSearchField extends SearchField {
 	}
 
 	private void appendCoverageName(final StringBuilder result) {
-		if (! this.coverageName.isEmpty()) {
+		if (!this.coverageName.isEmpty()) {
             appendAndTo(result);
             result.append(PERIODO_COVERAGE_NAME)
             	.append(":\"")
@@ -112,7 +112,7 @@ public class PeriodoSearchField extends SearchField {
 	}
 
 	private void appendLocations(final StringBuilder result) {
-		if(! this.locations.isEmpty()) {
+		if(!this.locations.isEmpty()) {
             final Iterator<String> iterator = this.locations.iterator();
             if(iterator.hasNext()) {
                 appendAndTo(result);
