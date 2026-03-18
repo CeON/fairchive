@@ -4,9 +4,14 @@ import static edu.harvard.iq.dataverse.search.SearchFields.GEONAME_ID;
 import static edu.harvard.iq.dataverse.search.SearchFields.GEONAME_NAME;
 import static edu.harvard.iq.dataverse.search.advanced.SearchFieldType.GEONAME;
 import static edu.harvard.iq.dataverse.search.advanced.query.QueryPartType.QUERY;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.solr.client.solrj.util.ClientUtils.escapeQueryChars;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
@@ -14,8 +19,8 @@ import edu.harvard.iq.dataverse.search.advanced.query.QueryPart;
 @SuppressWarnings("serial")
 public class GeoNameSearchField extends SearchField {
 
-    private String id;
-    private String label;
+    private String id = StringUtils.EMPTY;
+    private String label = StringUtils.EMPTY ;
 
     public GeoNameSearchField(final String name, final String displayName,
             final String description) {
@@ -30,14 +35,7 @@ public class GeoNameSearchField extends SearchField {
 
     @Override
     public List<String> getValidatableValues() {
-        final ArrayList<String> result = new ArrayList<>();
-        if (this.id != null) {
-            result.add(this.id);
-        }
-        if (this.label != null) {
-            result.add(this.label);
-        }
-        return result;
+        return this.id.isEmpty() ? emptyList() : singletonList(this.id);
     }
 
     @Override
@@ -50,14 +48,19 @@ public class GeoNameSearchField extends SearchField {
     
     private String createQueryFragment() {
         final StringBuilder result = new StringBuilder(40);
-        if (this.id != null) {
-            result.append(GEONAME_ID).append(":\"").append(this.id.trim())
-                    .append('"');
+        if (! this.id.isEmpty()) {
+            result.append(GEONAME_ID)
+            	.append(':')
+            	.append(escapeQueryChars(this.id))
+            	.append('*');
         }
-        if (this.label != null) {
+        if (! this.label.isEmpty()) {
             appendAndTo(result);
-            result.append(GEONAME_NAME).append(":\"")
-                    .append(this.label.trim()).append('"');
+            result.append(GEONAME_NAME)
+            	.append(':')
+            	.append('"')
+                .append(escapeQueryChars(this.label))
+                .append('"');
         }
         return result.toString();
     }
@@ -73,7 +76,7 @@ public class GeoNameSearchField extends SearchField {
     }
 
     public void setId(final String id) {
-        this.id = id;
+    	this.id = trimToEmpty(id);
     }
 
     public String getLabel() {
@@ -81,6 +84,6 @@ public class GeoNameSearchField extends SearchField {
     }
 
     public void setLabel(final String label) {
-        this.label = label;
+        this.label = trimToEmpty(label);
     }
 }
