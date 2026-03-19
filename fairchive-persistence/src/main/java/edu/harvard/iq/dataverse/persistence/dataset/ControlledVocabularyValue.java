@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getCurrentLocale;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundleWithLocale;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetField.NA_VALUE;
 import static java.util.Comparator.comparingInt;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
@@ -124,7 +125,7 @@ public class ControlledVocabularyValue implements Serializable {
     }
 
     public String getLocaleStrValue(final Locale locale) {
-    	if("N/A".equals(this.strValue) || this.datasetFieldType == null || 
+    	if(NA_VALUE.equals(this.strValue) || this.datasetFieldType == null || 
     			this.datasetFieldType.getMetadataBlock() == null) {
     		return this.strValue;
     	} else {
