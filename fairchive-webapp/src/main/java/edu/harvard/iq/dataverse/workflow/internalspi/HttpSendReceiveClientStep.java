@@ -1,5 +1,26 @@
 package edu.harvard.iq.dataverse.workflow.internalspi;
 
+import static edu.harvard.iq.dataverse.workflow.execution.WorkflowContext.TriggerType.PostPublishDataset;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.workflow.execution.WorkflowExecutionStepContext;
@@ -9,25 +30,6 @@ import edu.harvard.iq.dataverse.workflow.step.Success;
 import edu.harvard.iq.dataverse.workflow.step.WorkflowStep;
 import edu.harvard.iq.dataverse.workflow.step.WorkflowStepParams;
 import edu.harvard.iq.dataverse.workflow.step.WorkflowStepResult;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.URI;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
-import static edu.harvard.iq.dataverse.workflow.execution.WorkflowContext.TriggerType.PostPublishDataset;
 
 /**
  * A workflow step that sends a HTTP request, and then pauses, waiting for a response.
@@ -42,7 +44,8 @@ public class HttpSendReceiveClientStep implements WorkflowStep {
     private final DatasetVersionServiceBean versionsService;
     private final CitationFactory citationFactory;
 
-    public HttpSendReceiveClientStep(WorkflowStepParams params, DatasetVersionServiceBean versionsService,
+    public HttpSendReceiveClientStep(WorkflowStepParams params, 
+    		                         DatasetVersionServiceBean versionsService,
                                      CitationFactory citationFactory) {
         this.params = params;
         this.versionsService = versionsService;
@@ -51,29 +54,35 @@ public class HttpSendReceiveClientStep implements WorkflowStep {
 
     @Override
     public WorkflowStepResult run(WorkflowExecutionStepContext context) {
-        HttpClient client = new HttpClient();
-
-        try {
+    	try (CloseableHttpClient client = HttpClients.createDefault()) {
             // build method
-            HttpMethodBase mtd = buildMethod(false, context);
+        	HttpUriRequest request = buildRequest(false, context);
             // execute
-            int responseStatus = client.executeMethod(mtd);
-            if (responseStatus >= 200 && responseStatus < 300) {
-                // HTTP OK range
-                return new Pending();
-            } else {
-                String responseBody = mtd.getResponseBodyAsString();
-                return new Failure("Error communicating with server. Server response: " + responseBody + " (" + responseStatus + ").");
-            }
+        	try (CloseableHttpResponse response = client.execute(request)) {
+	        	int responseStatus = response.getStatusLine().getStatusCode();
+	            if (responseStatus >= 200 && responseStatus < 300) {
+	                // HTTP OK range
+	                return new Pending();
+	            } else {
+	            	String responseBody = response.getEntity() != null
+	            	        ? EntityUtils.toString(response.getEntity())
+	            	        : "";
+	                return new Failure("Error communicating with server. Server response: " + 
+	            	        responseBody + " (" + responseStatus + ").");
+	            }
+        	}
 
         } catch (Exception ex) {
-            logger.log(Level.SEVERE, "Error communicating with remote server: " + ex.getMessage(), ex);
-            return new Failure("Error executing request: " + ex.getLocalizedMessage(), "Cannot communicate with remote server.");
+            logger.log(Level.SEVERE, "Error communicating with remote server: " + 
+            		ex.getMessage(), ex);
+            return new Failure("Error executing request: " + ex.getLocalizedMessage(), 
+            		"Cannot communicate with remote server.");
         }
     }
 
     @Override
-    public WorkflowStepResult resume(WorkflowExecutionStepContext context, Map<String, String> internalData, String externalData) {
+    public WorkflowStepResult resume(WorkflowExecutionStepContext context, 
+    		Map<String, String> internalData, String externalData) {
         Pattern pat = Pattern.compile(params.get("expectedResponse"));
         String response = externalData.trim();
         if (pat.matcher(response).matches()) {
@@ -86,50 +95,70 @@ public class HttpSendReceiveClientStep implements WorkflowStep {
 
     @Override
     public void rollback(WorkflowExecutionStepContext context, Failure reason) {
-        HttpClient client = new HttpClient();
-
-        try {
+    	try(CloseableHttpClient client = HttpClients.createDefault()) {
             // build method
-            HttpMethodBase mtd = buildMethod(true, context);
+        	HttpUriRequest request = buildRequest(true, context);
 
             // execute
-            int responseStatus = client.executeMethod(mtd);
-            if (responseStatus < 200 || responseStatus >= 300) {
-                // out of HTTP OK range
-                String responseBody = mtd.getResponseBodyAsString();
-                Logger.getLogger(HttpSendReceiveClientStep.class.getName()).log(Level.WARNING,
-                                                                                "Bad response from remote server while rolling back step: {0}", responseBody);
-            }
-
+        	try(CloseableHttpResponse response = client.execute(request)) {
+	        	int responseStatus = response.getStatusLine().getStatusCode();
+	            if (responseStatus < 200 || responseStatus >= 300) {
+	                // out of HTTP OK range
+	            	String responseBody = response.getEntity() != null
+	            	        ? EntityUtils.toString(response.getEntity())
+	            	        : "";
+	                logger.log(Level.WARNING, 
+	                		"Bad response from remote server while rolling back step: {0}", 
+	                		responseBody);
+	            }
+        	}
         } catch (Exception ex) {
-            Logger.getLogger(HttpSendReceiveClientStep.class.getName()).log(Level.WARNING, "IO error rolling back step: " + ex.getMessage(), ex);
+            logger.log(Level.WARNING, "IO error rolling back step: " + ex.getMessage(), ex);
         }
     }
 
-    HttpMethodBase buildMethod(boolean rollback, WorkflowExecutionStepContext ctxt) throws Exception {
-        String methodName = params.getOrDefault("method" + (rollback ? "-rollback" : ""), "GET").trim().toUpperCase();
-        HttpMethodBase m = null;
+    HttpUriRequest buildRequest(boolean rollback, WorkflowExecutionStepContext ctxt) 
+    		throws Exception {
+        String methodName = params.getOrDefault("method" + (rollback ? "-rollback" : ""), "GET").
+        		trim().toUpperCase();
+        
+        Map<String, String> templateParams = buildTemplateParams(ctxt);
+        
+        String urlKey = rollback ? "rollbackUrl" : "url";
+        String url = process(params.get(urlKey), templateParams);
+        
+        HttpUriRequest request = null;
         switch (methodName) {
             case "GET":
-                m = new GetMethod();
-                m.setFollowRedirects(true);
+                request = new HttpGet(url);
                 break;
             case "POST":
-                m = new PostMethod();
+                request = new HttpPost(url);
                 break;
             case "PUT":
-                m = new PutMethod();
+                request = new HttpPut(url);
                 break;
             case "DELETE":
-                m = new DeleteMethod();
-                m.setFollowRedirects(true);
+                request = new HttpDelete();
                 break;
             default:
                 throw new IllegalStateException("Unsupported HTTP method: '" + methodName + "'");
         }
 
+        request.setHeader("Content-Type", params.getOrDefault("contentType", "text/plain"));
 
-        Map<String, String> templateParams = new HashMap<>();
+        String bodyKey = (rollback ? "rollbackBody" : "body");
+        if (params.containsKey(bodyKey) && request instanceof HttpEntityEnclosingRequestBase) {
+        	String body = process(params.get(bodyKey), buildTemplateParams(ctxt));
+            StringEntity entity = new StringEntity(body, "UTF-8");
+            ((HttpEntityEnclosingRequestBase) request).setEntity(entity);
+        }
+
+        return request;
+    }
+
+	private Map<String, String> buildTemplateParams(WorkflowExecutionStepContext ctxt) {
+		Map<String, String> templateParams = new HashMap<>();
         templateParams.put("invocationId", ctxt.getInvocationId());
         templateParams.putAll(versionsService.withDatasetVersion(ctxt,
                 datasetVersion -> {
@@ -148,25 +177,9 @@ public class HttpSendReceiveClientStep implements WorkflowStep {
         templateParams.put("minorVersion", Long.toString(ctxt.getMinorVersionNumber()));
         templateParams.put("majorVersion", Long.toString(ctxt.getVersionNumber()));
         templateParams.put("releaseStatus", (ctxt.getType() == PostPublishDataset) ? "done" : "in-progress");
-
-        m.addRequestHeader("Content-Type", params.getOrDefault("contentType", "text/plain"));
-
-        String urlKey = rollback ? "rollbackUrl" : "url";
-        String url = params.get(urlKey);
-        try {
-            m.setURI(new URI(process(url, templateParams), true));
-        } catch (URIException ex) {
-            throw new IllegalStateException("Illegal URL: '" + url + "'");
-        }
-
-        String bodyKey = (rollback ? "rollbackBody" : "body");
-        if (params.containsKey(bodyKey) && m instanceof EntityEnclosingMethod) {
-            String body = params.get(bodyKey);
-            ((EntityEnclosingMethod) m).setRequestEntity(new StringRequestEntity(process(body, templateParams), null, null));
-        }
-
-        return m;
-    }
+		return templateParams;
+	}
+    
 
     String process(String template, Map<String, String> values) {
         String curValue = template;
