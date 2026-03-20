@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +36,7 @@ public class HarvestImporterTypeResolver {
     /**
      * Resolve the first matching {@link HarvestImporterType} from the provided metadataFormat or empty if none match.
      */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public Optional<HarvestImporterType> resolveImporterType(MetadataFormat metadataFormat) {
         return matchers.entrySet().stream()
                 .filter(entry -> entry.getValue().apply(metadataFormat))
