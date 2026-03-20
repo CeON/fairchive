@@ -22,7 +22,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 @Entity
 @Table(name = "workflow_execution")
@@ -180,7 +179,7 @@ public class WorkflowExecution implements JpaEntity<Long>, WorkflowContextSource
     }
 
     public boolean isPaused() {
-        if (isEmpty(steps)) {
+        if (this.steps.isEmpty()) {
             return false;
         }
         WorkflowExecutionStep lastStep = getLastStep();
@@ -188,7 +187,7 @@ public class WorkflowExecution implements JpaEntity<Long>, WorkflowContextSource
     }
 
     public boolean hasMoreStepsToExecute(List<WorkflowStepData> definedSteps) {
-        if (isEmpty(steps)) {
+        if (this.steps.isEmpty()) {
             return hasElementAt(definedSteps, 0);
         } else {
             WorkflowExecutionStep lastStep = getLastStep();
@@ -235,7 +234,7 @@ public class WorkflowExecution implements JpaEntity<Long>, WorkflowContextSource
     }
 
     public boolean hasMoreStepsToRollback() {
-        if (isEmpty(steps)) {
+        if (this.steps.isEmpty()) {
             return false;
         } else {
             return reverseStepsStream()
