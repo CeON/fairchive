@@ -84,15 +84,24 @@ class ImportServiceBeanTest {
         Dataset dataset = createDatasetWithInvalidFields();
         DatasetVersion datasetVersion = dataset.getLatestVersion();
 
-        DatasetField invalidField = createDatasetField(1L, "invalidField");
-        DatasetField validField = createDatasetField(2L,"fieldName");
+        DatasetField invalidField = createDatasetField("invalidField");
+        DatasetField validField = createDatasetField("validField");
+        DatasetField parentField = createDatasetField("parentField");
+        DatasetField childValidField = createDatasetField("childValidField");
+        DatasetField childInvalidField = createDatasetField("childInvalidField");
 
-        List<DatasetField> datasetFields = new ArrayList<>(asList(validField, invalidField));
+        List<DatasetField> childFields = new ArrayList<>(asList(childValidField, childInvalidField));
+
+        parentField.getChildren().addAll(childFields);
+        
+        List<DatasetField> datasetFields = new ArrayList<>(asList(validField, invalidField, parentField));
         datasetVersion.setDatasetFields(datasetFields);
 
-        FieldValidationResult invalidFieldResult = mock(FieldValidationResult.class);
-        when(invalidFieldResult.getField()).thenReturn(invalidField);
-        List<FieldValidationResult> validationResults = asList(invalidFieldResult);
+        FieldValidationResult invalidFieldResult1 = mock(FieldValidationResult.class);
+        when(invalidFieldResult1.getField()).thenReturn(invalidField);
+        FieldValidationResult invalidFieldResult2 = mock(FieldValidationResult.class);
+        when(invalidFieldResult2.getField()).thenReturn(childInvalidField);
+        List<FieldValidationResult> validationResults = asList(invalidFieldResult1, invalidFieldResult2);
 
         when(harvestedJsonParser.parseDataset(jsonMetadata)).thenReturn(dataset);
         when(datasetDao.findByGlobalId(anyString())).thenReturn(null);
@@ -112,11 +121,20 @@ class ImportServiceBeanTest {
         // Then
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(datasetVersion.getDatasetFields())
-                .hasSize(1);
-        Assertions.assertThat(datasetVersion.getDatasetFields())
-                .contains(validField);
-        Assertions.assertThat(datasetVersion.getDatasetFields())
-                .doesNotContain(invalidField);
+                .hasSize(2);
+        Assertions.assertThat(checkIfContainsNotPersistedDataField(datasetVersion.getDatasetFields(), validField))
+                .isTrue();
+        Assertions.assertThat(checkIfContainsNotPersistedDataField(datasetVersion.getDatasetFields(), parentField))
+                .isTrue();
+        Assertions.assertThat(checkIfContainsNotPersistedDataField(datasetVersion.getDatasetFields(), invalidField))
+                .isFalse();
+
+        Assertions.assertThat(parentField.getDatasetFieldsChildren()).hasSize(1);
+        Assertions.assertThat(checkIfContainsNotPersistedDataField(parentField.getDatasetFieldsChildren(), childValidField))
+                 .isTrue();
+        Assertions.assertThat(checkIfContainsNotPersistedDataField(parentField.getDatasetFieldsChildren(), childInvalidField))
+                 .isFalse();
+        
     }
 
     private Dataset createDatasetWithInvalidFields() {
@@ -133,13 +151,20 @@ class ImportServiceBeanTest {
         return dataset;
     }
 
-    private DatasetField createDatasetField(Long id, String fieldName) {
+    private DatasetField createDatasetField(String fieldName) {
         DatasetField field = new DatasetField();
-        field.setId(id);
         DatasetFieldType fieldType = new DatasetFieldType();
-        fieldType.setId(id);
         fieldType.setName(fieldName);
         field.setDatasetFieldType(fieldType);
         return field;
+    }
+    
+    private boolean checkIfContainsNotPersistedDataField(List<DatasetField> fields, DatasetField field) {
+    	for (DatasetField datasetField:fields) {
+    		if (datasetField == field) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
 }
