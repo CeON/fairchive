@@ -866,7 +866,7 @@
                                                     match="retypePassword" 
                                                     value="#{DataverseUserPage.inputPassword}" 
                                                     validator="#{DataverseUserPage.validateNewPassword}" 
-                                                    autocomplete="off"/><!-- browsers will in general not respect autocomplete="foo", but scanners will still flag it as a potential problem -->
+                                                    autocomplete="new-password"/>
                                         <p:message for="inputPassword" 
                                                    display="text" />
                                     </div>
@@ -889,7 +889,7 @@
                                                     label="#{bundle['user.rePasswd']}" 
                                                     styleClass="form-control" 
                                                     value="#{DataverseUserPage.inputPassword}" 
-                                                    autocomplete="off"/><!-- browsers will in general not respect autocomplete="foo", but scanners will still flag it as a potential problem -->
+                                                    autocomplete="new-password"/>
                                         <p:message for="retypePassword" 
                                                    display="text" />
                                     </div>
