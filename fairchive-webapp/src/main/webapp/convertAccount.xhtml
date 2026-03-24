@@ -47,9 +47,7 @@
                     </label>
                     <div class="col-sm-3">
                         <p:password id="builtinPassword" styleClass="form-control"
-                                    value="#{SamlConvertAccount.builtinPassword}" autocomplete="off"/>
-                        <!-- browsers will in general not respect autocomplete="foo", but scanners will
-                        still flag it as a potential problem -->
+                                    value="#{SamlConvertAccount.builtinPassword}" autocomplete="current-password"/>
                         <p class="help-block">
                             <a href="passwordreset.xhtml">#{bundle['login.forgot.text']}</a>
                         </p>
