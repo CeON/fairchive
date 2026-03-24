@@ -23,10 +23,11 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONException;
-import com.github.openjson.JSONObject;
-import com.github.openjson.JSONTokener;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 
 final class PeriodoImporter {
 
@@ -122,9 +123,9 @@ final class PeriodoImporter {
     
     private static List<Period> readJson(final InputStream in) throws Exception {
         try {
-            final JSONObject json = new JSONObject(new JSONTokener(reader(in)));
-            return parseAuthorities(json.getJSONObject("authorities"));
-        } catch(final JSONException e) {
+        	final JsonObject json = new JsonParser().parse(reader(in)).getAsJsonObject();
+            return parseAuthorities(json.getAsJsonObject("authorities"));
+        } catch(final JsonParseException  e) {
             if(e.getMessage().startsWith("End of input at character 0")) {
                 return emptyList();
             } else {
@@ -133,88 +134,92 @@ final class PeriodoImporter {
         }
     }
     
-    private static ArrayList<Period> parseAuthorities(final JSONObject json) {
+    private static ArrayList<Period> parseAuthorities(final JsonObject json) {
         final ArrayList<Period> result = new ArrayList<Period>(10000);
         
-        for (final String autorityName : json.keySet()) {
-            final JSONObject authority = json.getJSONObject(autorityName);
+        for (final Map.Entry<String, JsonElement> entry : json.entrySet()) {
+        	final JsonObject authority = entry.getValue().getAsJsonObject();
             final String title = getAutorityTitle(authority);
-            parsePeriods(authority.getJSONObject("periods"), title, result);
+            parsePeriods(authority.getAsJsonObject("periods"), title, result);
         }
         return result;
     }
     
-    private static String getAutorityTitle(final JSONObject authority) {
-        final String title = authority.getJSONObject("source").optString("title",
-                null);
-        if (title != null) {
-            return title;
-        } else {
-            final JSONObject partOf = authority.getJSONObject("source")
-                    .optJSONObject("partOf");
-            if (partOf != null) {
-                return partOf.optString("title", "Unknown");
-            } else {
-                return authority.getJSONObject("source").optString("url", "Unknown");
-            }
-        }
-    }
+	private static String getAutorityTitle(final JsonObject authority) {
+		final JsonObject source = authority.getAsJsonObject("source");
+		if (source.has("title") && !source.get("title").isJsonNull()) {
+			return source.get("title").getAsString();
+		} else {
+			if (source.has("partOf") && source.get("partOf").isJsonObject()) {
+				final JsonObject partOf = source.getAsJsonObject("partOf");
+				return partOf.has("title") ? partOf.get("title").getAsString() : "Unknown";
+			} else {
+				return source.has("url") ? source.get("url").getAsString() : "Unknown";
+			}
+		}
+	}
     
-    private static void parsePeriods(final JSONObject json,
-            final String autorityTile, final List<Period> result) {
-        for (final String periodName : json.keySet()) {
-            final JSONObject period = json.getJSONObject(periodName);
-            final String id = period.getString("id");
-            final String label = period.getString("label");
-            final long start = getStartYear(period);
-            final long stop = getStopYear(period);
-            final Collection<String> locations = parseLocations(
-                    period.optJSONArray("spatialCoverage"));
-            final String coverageDescription = period
-                    .optString("spatialCoverageDescription", "");
-            result.add(new Period(id, label, start, stop, autorityTile,
-                    coverageDescription, locations));
-        }
-    }
-    
-    private static long getStartYear(final JSONObject period) {
-        final JSONObject in = period.getJSONObject("start").optJSONObject("in");
-        return parseLong(in.optString("year", in.optString("earliestYear")));
-    }
+	private static void parsePeriods(final JsonObject json, 
+			final String authorityTitle, final List<Period> result) {
+		for (final Map.Entry<String, JsonElement> entry : json.entrySet()) {
+			final JsonObject period = entry.getValue().getAsJsonObject();
 
-    private static long getStopYear(final JSONObject period) {
-        final JSONObject stop = period.getJSONObject("stop");
-        final JSONObject in = stop.optJSONObject("in");
-        if (in != null) {
-            final String year = in.optString("year", in.optString("latestYear"));
-            // sometimes year is in the form of range (eg. "0040-0050") then take
-            // last
+			final String id = period.get("id").getAsString();
+			final String label = period.get("label").getAsString();
+			final long start = getStartYear(period);
+			final long stop = getStopYear(period);
+			final Collection<String> locations = parseLocations(
+					period.has("spatialCoverage") ? period.getAsJsonArray("spatialCoverage") : null);
+			final String coverageDescription = period.has("spatialCoverageDescription")
+					? period.get("spatialCoverageDescription").getAsString()
+					: "";
+
+			result.add(new Period(id, label, start, stop, authorityTitle, 
+					coverageDescription, locations));
+		}
+	}
+    
+    private static long getStartYear(final JsonObject period) {
+        final JsonObject in = period.getAsJsonObject("start").getAsJsonObject("in");
+        return parseLong(
+                in.has("year") ? in.get("year").getAsString()
+                        : in.get("earliestYear").getAsString()
+        );
+    }
+    
+    private static long getStopYear(final JsonObject period) {
+        final JsonObject stop = period.getAsJsonObject("stop");
+
+        if (stop.has("in") && stop.get("in").isJsonObject()) {
+            final JsonObject in = stop.getAsJsonObject("in");
+            final String year = in.has("year")
+                    ? in.get("year").getAsString()
+                    : in.get("latestYear").getAsString();
+
             final int index = year.lastIndexOf('-');
             return parseLong(index > 0 ? year.substring(index + 1) : year);
         } else {
-            if (stop.getString("label").equals("present")) {
+            final String label = stop.get("label").getAsString();
+            if ("present".equals(label)) {
                 return MAX_VALUE;
             } else {
-                throw new RuntimeException("Unknown label value '"
-                        + stop.getString("label")
-                        + ", for period '"
-                        + period.getString("id") + "'.");
+                throw new RuntimeException("Unknown label value '" + label +
+                        "', for period '" + period.get("id").getAsString() + "'.");
             }
         }
     }
     
-    private static Collection<String> parseLocations(final JSONArray json) {
-        // most locations contain 0 or 1 elemetns
+    private static Collection<String> parseLocations(final JsonArray json) {
         if (json == null) {
             return emptyList();
-        } else if (json.length() == 0) {
+        } else if(json.size() == 0) {
             return emptyList();
-        } else if (json.length() == 1) {
-            return singletonList(json.getJSONObject(0).getString("label"));
+        } else if (json.size() == 1) {
+            return singletonList(json.get(0).getAsJsonObject().get("label").getAsString());
         } else {
-            final ArrayList<String> result = new ArrayList<>(json.length());
-            for (int i = 0; i < json.length(); ++i) {
-                result.add(json.getJSONObject(i).getString("label"));
+            final ArrayList<String> result = new ArrayList<>(json.size());
+            for (final JsonElement el : json) {
+                result.add(el.getAsJsonObject().get("label").getAsString());
             }
             return result;
         }
