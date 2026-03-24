@@ -1,28 +1,31 @@
 package edu.harvard.iq.dataverse.workflow.artifacts;
 
-import com.google.common.io.InputSupplier;
-import edu.harvard.iq.dataverse.persistence.StubJpaPersistence;
-import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifact;
-import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactRepository;
-import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactSource;
-import edu.harvard.iq.dataverse.test.WithTestClock;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import com.google.common.io.InputSupplier;
+
+import edu.harvard.iq.dataverse.persistence.StubJpaPersistence;
+import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifact;
+import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactRepository;
+import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactSource;
+import edu.harvard.iq.dataverse.test.WithTestClock;
+
 public class WorkflowArtifactServiceBeanTest implements WithTestClock {
 
     static final String ENCODING = "BINARY";
     static final String NAME = "TEST";
-    static final InputSupplier<InputStream> DATA_SUPPLIER = () -> mock(InputStream.class);
+    static final Supplier<InputStream> DATA_SUPPLIER = () -> mock(InputStream.class);
 
     StubJpaPersistence persistence = new StubJpaPersistence();
     WorkflowArtifactRepository repository = persistence.stub(WorkflowArtifactRepository.class);
@@ -38,7 +41,7 @@ public class WorkflowArtifactServiceBeanTest implements WithTestClock {
     public void shouldSaveDataAndMetadata() throws IOException {
         // given
         doReturn("testLocation")
-                .when(storage).write(any(InputSupplier.class));
+                .when(storage).write(any(Supplier.class));
 
         // when
         WorkflowArtifact artifact =
@@ -62,7 +65,7 @@ public class WorkflowArtifactServiceBeanTest implements WithTestClock {
                 .when(storage).read("testLocation");
 
         // when
-        Optional<InputSupplier<InputStream>> streamSupplier = serviceBean.readAsStream(artifact.getStorageLocation());
+        Optional<Supplier<InputStream>> streamSupplier = serviceBean.readAsStream(artifact.getStorageLocation());
 
         // then
         assertThat(streamSupplier.isPresent()).isTrue();

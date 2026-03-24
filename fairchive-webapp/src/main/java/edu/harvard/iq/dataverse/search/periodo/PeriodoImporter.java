@@ -123,8 +123,10 @@ final class PeriodoImporter {
     
     private static List<Period> readJson(final InputStream in) throws Exception {
         try {
-        	final JsonObject json = new JsonParser().parse(reader(in)).getAsJsonObject();
-            return parseAuthorities(json.getAsJsonObject("authorities"));
+        	final JsonElement json = new JsonParser().parse(reader(in));
+        	return json.isJsonObject()
+        			? parseAuthorities(json.getAsJsonObject().get("authorities").getAsJsonObject())
+        			: emptyList();
         } catch(final JsonParseException  e) {
             if(e.getMessage().startsWith("End of input at character 0")) {
                 return emptyList();

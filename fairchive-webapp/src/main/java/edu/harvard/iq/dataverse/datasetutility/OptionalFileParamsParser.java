@@ -12,6 +12,7 @@ import com.google.gson.reflect.TypeToken;
 import edu.harvard.iq.dataverse.api.dto.FileTermsOfUseDTO;
 
 
+@SuppressWarnings("serial")
 public class OptionalFileParamsParser implements Serializable {
 
     public static final String DESCRIPTION_ATTR_NAME = "description";

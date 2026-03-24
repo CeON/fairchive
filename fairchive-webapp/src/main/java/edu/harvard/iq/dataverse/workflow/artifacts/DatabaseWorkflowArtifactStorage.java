@@ -1,14 +1,5 @@
 package edu.harvard.iq.dataverse.workflow.artifacts;
 
-import com.google.common.io.InputSupplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Singleton;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -17,6 +8,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
+
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Singleton;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Allows storing binary data in form of records in <code>db_storage</code> table.
@@ -40,9 +42,9 @@ public class DatabaseWorkflowArtifactStorage implements WorkflowArtifactStorage 
     }
 
     @Override
-    public String write(InputSupplier<InputStream> data) throws IOException {
+    public String write(Supplier<InputStream> data) throws IOException {
         UUID id = UUID.randomUUID();
-        try (InputStream input = data.getInput()) {
+        try (InputStream input = data.get()) {
             PreparedStatement insert = prepareStatement("INSERT INTO db_storage VALUES (?, ?)");
             insert.setObject(1, id);
             insert.setBinaryStream(2, input);
@@ -55,7 +57,7 @@ public class DatabaseWorkflowArtifactStorage implements WorkflowArtifactStorage 
     }
 
     @Override
-    public Optional<InputSupplier<InputStream>> read(String location) {
+    public Optional<Supplier<InputStream>> read(String location) {
         UUID id = UUID.fromString(location);
         try {
             PreparedStatement query = prepareStatement("SELECT stored_data FROM db_storage WHERE id = ?");
@@ -72,13 +74,13 @@ public class DatabaseWorkflowArtifactStorage implements WorkflowArtifactStorage 
 
     // -------------------- PRIVATE --------------------
 
-    private InputSupplier<InputStream> supplyDataStream(ResultSet result) {
+    private Supplier<InputStream> supplyDataStream(ResultSet result) {
         return () -> {
             try {
                 return result.getBinaryStream(1);
             } catch (SQLException se) {
                 log.error("Exception while accessing data stream: {}", se.getMessage());
-                throw new IOException(se);
+                throw new RuntimeException(se);
             }
         };
     }
