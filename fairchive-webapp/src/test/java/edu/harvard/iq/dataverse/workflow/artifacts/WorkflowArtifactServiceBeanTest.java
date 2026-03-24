@@ -13,8 +13,6 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.io.InputSupplier;
-
 import edu.harvard.iq.dataverse.persistence.StubJpaPersistence;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifact;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactRepository;
