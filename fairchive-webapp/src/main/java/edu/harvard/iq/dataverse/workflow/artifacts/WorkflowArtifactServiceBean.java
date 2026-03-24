@@ -1,23 +1,25 @@
 package edu.harvard.iq.dataverse.workflow.artifacts;
 
-import com.google.common.io.InputSupplier;
-import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifact;
-import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactRepository;
-import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.stream.Collectors.toList;
 
-import javax.ejb.Singleton;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
-import static java.util.stream.Collectors.toList;
+import javax.ejb.Singleton;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifact;
+import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactRepository;
+import edu.harvard.iq.dataverse.persistence.workflow.WorkflowArtifactSource;
 
 @Singleton
 public class WorkflowArtifactServiceBean {
@@ -81,7 +83,7 @@ public class WorkflowArtifactServiceBean {
      * Returns {@link Optional} containing {@link InputStream} of stored data for the given
      * {@link WorkflowArtifact} or empty {@link Optional} if value was not found.
      */
-    public Optional<InputSupplier<InputStream>> readAsStream(String storageLocation) {
+    public Optional<Supplier<InputStream>> readAsStream(String storageLocation) {
         return storage.read(storageLocation);
     }
 }
