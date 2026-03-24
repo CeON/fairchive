@@ -20,7 +20,7 @@
 
 package edu.harvard.iq.dataverse.util;
 
-import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.StatUtils;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
