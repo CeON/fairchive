@@ -56,7 +56,7 @@ public class ParametrizedGlassfishConfCreator {
 		try {
 			deleteIfExists(this.newResourcePath);
 		} catch (final IOException e) {
-			new RuntimeException("Unable to delete temporary glassfish resource", e);
+			throw new RuntimeException("Unable to delete temporary glassfish resource", e);
 		}
 	}
 
