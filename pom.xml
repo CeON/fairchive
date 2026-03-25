@@ -72,7 +72,7 @@
         </repository>
         <repository>
             <id>dataone.org</id>
-            <url>https://maven.dataone.org</url>
+            <url>http://dev-testing.dataone.org/maven</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
