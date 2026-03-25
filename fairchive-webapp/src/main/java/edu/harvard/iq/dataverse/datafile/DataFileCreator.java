@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.datafile;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
@@ -177,11 +176,8 @@ public class DataFileCreator {
 
         if (antivirFileScanner.isEnabled()
                 && !antivirFileScanner.isFileOverSizeLimit(tempFile, recognizedType)) {
-            Stopwatch watch = new Stopwatch();
-            watch.start();
             AntivirScannerResponse scannerResponse = antivirFileScanner.scan(tempFile);
-            watch.stop();
-            logger.info("Antivirus scanning took: " + watch.elapsedMillis());
+            logger.info("Antivirus scanning completed: " + tempFile.getFileName());
             if (scannerResponse.isFileInfected()) {
                 logger.warn("There was an attempt to upload file infected with virus. Scanner message: {}", scannerResponse.getMessage());
                 throw new VirusFoundException(scannerResponse.getMessage());

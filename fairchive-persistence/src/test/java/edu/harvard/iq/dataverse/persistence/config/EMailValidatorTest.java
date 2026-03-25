@@ -21,11 +21,9 @@ public class EMailValidatorTest {
         return Stream.of(
                 Arguments.of(true, "pete@mailinator.com"),
 
-                // @todo How can this be a valid email address?
-                Arguments.of(true, " leadingWhitespace@mailinator.com"),
+                Arguments.of(false, " leadingWhitespace@mailinator.com"),
 
-                // @todo How can this be a valid email address?
-                Arguments.of(true, "trailingWhitespace@mailinator.com "),
+                Arguments.of(false, "trailingWhitespace@mailinator.com "),
 
                 Arguments.of(false, "elisah.da mota@example.com"),
                 Arguments.of(false, "pete1@mailinator.com;pete2@mailinator.com"),

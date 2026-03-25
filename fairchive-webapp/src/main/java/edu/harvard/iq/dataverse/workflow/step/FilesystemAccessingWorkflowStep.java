@@ -111,7 +111,13 @@ public abstract class FilesystemAccessingWorkflowStep implements WorkflowStep {
     protected Optional<WorkflowArtifactSource> workDirArtifactOf(String name, String fileName, Charset encoding) {
         return Optional.of(workDir.resolve(fileName))
                 .filter(Files::exists)
-                .map(path -> new WorkflowArtifactSource(name, encoding.name(), () -> newInputStream(path)));
+                .map(path -> new WorkflowArtifactSource(name, encoding.name(), () -> {
+					try {
+						return newInputStream(path);
+					} catch (final IOException e) {
+						throw new RuntimeException(e);
+					}
+				}));
     }
 
     protected Path resolveWorkDir(WorkflowExecutionContext context) {

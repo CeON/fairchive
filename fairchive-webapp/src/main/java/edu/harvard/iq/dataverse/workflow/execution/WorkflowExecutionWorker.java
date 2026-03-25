@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.workflow.execution;
 
-import com.google.common.base.Stopwatch;
 import edu.harvard.iq.dataverse.workflow.WorkflowStepRegistry;
 import edu.harvard.iq.dataverse.workflow.step.Failure;
 import edu.harvard.iq.dataverse.workflow.step.Pending;
@@ -17,7 +16,6 @@ import javax.inject.Inject;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
-import java.time.Duration;
 
 import static edu.harvard.iq.dataverse.workflow.execution.WorkflowExecutionScheduler.JMS_QUEUE_RESOURCE_NAME;
 
@@ -63,7 +61,6 @@ public class WorkflowExecutionWorker implements MessageListener {
     @Override
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void onMessage(Message message) {
-        Stopwatch watch = new Stopwatch().start();
         try {
             WorkflowExecutionMessage messageBody = (WorkflowExecutionMessage) ((ObjectMessage) message).getObject();
             WorkflowExecutionContext executionContext = executions.loadExecutionContext(messageBody);
@@ -72,25 +69,19 @@ public class WorkflowExecutionWorker implements MessageListener {
             } else {
                 executeStep(executionContext, messageBody.getLastStepSuccess(), messageBody.getExternalData());
             }
-            log.trace("Spent {} to handle message {}", Duration.ofMillis(watch.elapsedMillis()), messageBody);
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error processing message " + message, e);
-        } finally {
-            watch.stop();
         }
     }
 
     // -------------------- PRIVATE --------------------
 
     private void executeStep(WorkflowExecutionContext ctx, Success lastStepResult, String externalData) {
-        log.trace("{} to be executed", ctx);
         if (ctx.hasMoreStepsToExecute()) {
             WorkflowExecutionStepContext step = ctx.nextStepToExecute();
             log.trace("{} next to execute", step);
-            Stopwatch watch = new Stopwatch().start();
             try {
                 WorkflowStepResult stepResult = executeStep(step, lastStepResult, externalData);
-                log.trace("Spent {} executing {}", Duration.ofMillis(watch.elapsedMillis()), step);
 
                 if (stepResult instanceof Success) {
                     stepCompleted(step, (Success) stepResult);
@@ -102,9 +93,7 @@ public class WorkflowExecutionWorker implements MessageListener {
             } catch (Exception e) {
                 log.warn(String.format("%s - execution error", step), e);
                 stepFailed(step, new Failure("exception while executing step: " + e.getMessage()));
-            } finally {
-                watch.stop();
-            }
+            } 
         } else {
             executions.workflowCompleted(ctx);
         }
@@ -131,21 +120,16 @@ public class WorkflowExecutionWorker implements MessageListener {
     }
 
     private void rollbackStep(WorkflowExecutionContext ctx, Failure failure) {
-        log.trace("{} to be rolled back", ctx);
         if (ctx.hasMoreStepsToRollback()) {
             WorkflowExecutionStepContext step = ctx.nextStepToRollback();
             log.trace("{} next to roll back", step);
-            Stopwatch watch = new Stopwatch().start();
             try {
                 rollbackStep(step, failure);
-                log.trace("Spent {} rolling back {}", Duration.ofMillis(watch.elapsedMillis()), step);
                 stepRolledBack(step, failure);
             } catch (Exception e) {
                 log.warn(String.format("%s - rollback error", step), e);
                 stepRolledBack(step, new Failure("exception while rolling back step: " + e.getMessage()));
-            } finally {
-                watch.stop();
-            }
+            } 
         } else {
             executions.workflowRolledBack(ctx, failure);
         }

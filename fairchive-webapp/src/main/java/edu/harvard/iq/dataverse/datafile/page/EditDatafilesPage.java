@@ -20,6 +20,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -57,9 +58,11 @@ import javax.json.JsonReader;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
@@ -923,7 +926,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                 continue;
             }
 
-            final GetMethod dropBoxMethod = new GetMethod(fileLink);
+            final HttpGet dropBoxMethod = new HttpGet(fileLink);
             List<DataFile> datafiles = new ArrayList<>();
 
             // Send it through the ingest service
@@ -1603,20 +1606,28 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     /** Download a file from drop box */
-    private InputStream getDropBoxContent(final GetMethod dropBoxMethod) 
+    private InputStream getDropBoxContent(final HttpGet dropBoxMethod) 
             throws IOException {
-        try {
-            final HttpClient httpclient = new HttpClient();
-            final int status = httpclient.executeMethod(dropBoxMethod);
+    	try (CloseableHttpClient client = HttpClients.createDefault()){
+        	CloseableHttpResponse response = client.execute(dropBoxMethod);
+        		int status = response.getStatusLine().getStatusCode();
             if (status != 200) {
                 logger.log(Level.WARNING, "Failed to get DropBox InputStream for file: {0}, status code: {1}",
-                        new Object[] {dropBoxMethod.getPath(), status});
+                        new Object[] {dropBoxMethod.getRequestLine(), status});
                 throw new IOException("Non 200 status code returned from dropbox");
             }
-            return dropBoxMethod.getResponseBodyAsStream();
+            
+            return new FilterInputStream(response.getEntity().getContent()) {
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    response.close();
+                    client.close();
+                }
+            };
         } catch (final IOException ex) {
             logger.log(Level.WARNING, "Failed to access DropBox url: {0}!", 
-                    dropBoxMethod.getPath());
+                    dropBoxMethod.getRequestLine());
             throw ex;
         }
     }

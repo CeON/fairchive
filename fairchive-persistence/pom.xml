@@ -55,12 +55,6 @@
             <artifactId>vavr</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.openjson</groupId>
-            <artifactId>openjson</artifactId>
-            <version>1.0.10</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>pl.edu.icm.fairchive</groupId>
             <artifactId>fairchive-test-common</artifactId>
             <version>${project.version}</version>
