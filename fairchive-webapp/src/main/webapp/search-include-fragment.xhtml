@@ -359,12 +359,18 @@
 
             <!-- Search Results on tab view: list and map -->
             <ui:fragment rendered="#{settingsWrapper.searchResultOnMap}">
-                <p:tabView id="tabView" dynamic="true" cache="true" activeIndex="#{lastSearchValue.activeTabIndex}" widgetVar="tabViewWidget" onTabShow="handleTabChange(index)">
+                <p:tabView id="tabView" 
+                           dynamic="true" 
+                           cache="true" 
+                           activeIndex="#{lastSearchValue.activeTabIndex}" 
+                           widgetVar="tabViewWidget" 
+                           onTabShow="handleTabChange(index)">
                     <p:tab title="#{bundle['dataverse.search.tab.listView']}">
-                        <ui:include src="search-results-list.xhtml"></ui:include>
+                        <ui:include src="search-results-list.xhtml"/>
                     </p:tab>
-                    <p:tab id="mapSearchResult" title="#{bundle['dataverse.search.tab.mapView']}">
-                        <ui:include src="pluggable/map-marker-dialog-template.xhtml"></ui:include>
+                    <p:tab id="mapSearchResult" 
+                           title="#{bundle['dataverse.search.tab.mapView']}">
+                        <ui:include src="pluggable/map-marker-dialog-template.xhtml"/>
                         <div id="searchResultMap" 
                              data-tile-type="#{settingsWrapper.mapTileType}" 
                              data-tile-api-key="#{settingsWrapper.mapTileApiKey}"
@@ -376,7 +382,8 @@
                             DvJS.Geo.SearchResults.addClusteredMarkers('searchResultMap', 'geo', datasetGeoMarkers);
                         </h:outputScript>
                     </p:tab>
-                    <p:ajax event="tabChange" listener="#{SearchIncludeFragment.onTabChange}" />
+                    <p:ajax event="tabChange" 
+                            listener="#{SearchIncludeFragment.onTabChange}" />
                 </p:tabView>
             </ui:fragment>
         </div>
