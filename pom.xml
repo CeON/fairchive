@@ -71,16 +71,6 @@
             <layout>default</layout>
         </repository>
         <repository>
-            <id>dataone.org</id>
-            <url>http://dev-testing.dataone.org/maven</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
             <id>dvn.private</id>
             <name>Local repository for hosting jars not available from network repositories.</name>
             <url>file://${project.basedir}/local_lib</url>
