@@ -135,14 +135,17 @@ public class ImageThumbConverter {
         InputStream in = null;
         try (final StorageIO<DataFile> storageIO = getStorage(datafile)) {
             in = getThumbnailStream(datafile, size);
-            requireNonNull(in, "Null input stream.");
-            final int fileSize = (int) storageIO.getAuxObjectSize(suffix(size));
-
-            String fileName = storageIO.getFileName();
-            if (fileName != null) {
-                fileName = fileName.replaceAll("\\.[^\\.]*$", ".png");
+            if(in != null) {
+	            final int fileSize = (int) storageIO.getAuxObjectSize(suffix(size));
+	
+	            String fileName = storageIO.getFileName();
+	            if (fileName != null) {
+	                fileName = fileName.replaceAll("\\.[^\\.]*$", ".png");
+	            }
+	            return new InputStreamIO(in, fileSize, fileName, THUMBNAIL_MIME_TYPE);
+            } else {
+            	return null;
             }
-            return new InputStreamIO(in, fileSize, fileName, THUMBNAIL_MIME_TYPE);
         } catch (Exception e) {
             logger.warn("Thumbnail retrieval failed.", e);
             closeQuietly(in);
