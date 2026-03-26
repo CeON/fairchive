@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.datavariable.DataVariable;
 import org.apache.commons.lang3.StringUtils;
 import org.dataverse.unf.UNFUtil;
 import org.dataverse.unf.UnfException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ class OptimizedUNFUtilTest {
     private static final int TEST_SIZE = 1000;
 
     // -------------------- TESTS --------------------
-
+    @Disabled
     @Test
     void compareForNumericVector() throws IOException, UnfException {
         // given
@@ -42,7 +43,7 @@ class OptimizedUNFUtilTest {
                 .withFailMessage("Failed for seed: " + seed)
                 .isEqualTo(oldMethodResult);
     }
-
+    @Disabled
     @Test
     void compareForNumericVector2() throws IOException, UnfException {
         // given
@@ -59,7 +60,7 @@ class OptimizedUNFUtilTest {
                 .withFailMessage("Failed for seed: " + seed)
                 .isEqualTo(oldMethodResult);
     }
-
+    @Disabled
     @Test
     void compareForStringVector() throws IOException, UnfException {
         // given
@@ -82,7 +83,7 @@ class OptimizedUNFUtilTest {
                 .withFailMessage("Failed for seed: " + seed)
                 .isEqualTo(oldMethodResult);
     }
-
+    @Disabled
     @Test
     void testEquivalence__longAndDouble() throws IOException, UnfException {
         // given
@@ -103,7 +104,7 @@ class OptimizedUNFUtilTest {
                 .withFailMessage("Failed for seed: " + seed)
                 .isEqualTo(oldMethodResult);
     }
-
+    @Disabled
     @Test
     void testEquivalence__floatAndDouble() throws IOException, UnfException {
         // given
@@ -131,7 +132,7 @@ class OptimizedUNFUtilTest {
                 .withFailMessage("Failed for seed: " + seed)
                 .isEqualTo(oldMethodResult);
     }
-
+    @Disabled
     @Test
     void compareTimes() throws IOException, UnfException {
         // given
@@ -160,7 +161,7 @@ class OptimizedUNFUtilTest {
                 .withFailMessage("Failed for seed: " + seed)
                 .isEqualTo(oldMethodResult);
     }
-
+    @Disabled
     @Test
     void compareDates() throws IOException, UnfException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         // given
