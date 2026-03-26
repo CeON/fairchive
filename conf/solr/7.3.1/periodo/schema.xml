@@ -8,7 +8,7 @@
     <field name="stop"  type="plong" indexed="false" required="true"/>
     <field name="authorityTitle" type="case_insensitive_text" required="true"/>
     <field name="coverageName"   type="case_insensitive_text" required="true"/>
-    <field name="locations"      type="case_insensitive_text" indexed="true" multiValued="true"/>
+    <field name="locations"      type="string" indexed="true" multiValued="true"/>
     <field name="textEn"         type="case_insensitive_text"/>
     <field name="textPl"         type="case_insensitive_text"/>
     <!-- fields required by Solr -->
