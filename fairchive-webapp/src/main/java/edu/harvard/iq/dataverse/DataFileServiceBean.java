@@ -354,15 +354,15 @@ public class DataFileServiceBean implements Serializable {
     }
 
     public List<DataFile> findAll() {
-        return em.createQuery("select object(o) from DataFile as o order by o.id", 
-                DataFile.class).getResultList();
+        return this.fileRepo.findAll();
     }
 
     public DataFile save(final DataFile file) {
         if (file.isMergeable()) {
             return this.fileRepo.save(file);
         } else {
-            throw new IllegalArgumentException("This DataFile object has been set to NOT MERGEABLE; please ensure " +
+            throw new IllegalArgumentException(
+            		"This DataFile object has been set to NOT MERGEABLE; please ensure " +
                     "a MERGEABLE object is passed to the save method.");
         }
     }
@@ -433,40 +433,10 @@ public class DataFileServiceBean implements Serializable {
         return false;
     }
 
-    /**
-     * Does this file have a replacement.
-     * Any file should have AT MOST 1 replacement
-     *
-     * @throws java.lang.Exception if a DataFile has more than 1 replacement
-     *                             or is unpublished and has a replacement.
-     */
-    public boolean hasReplacement(DataFile df) throws Exception {
-        if (df.getId() == null) {
-            // An unsaved file cannot have a replacment
-            return false;
-        }
-        List<DataFile> dataFiles = em.createQuery("select o from DataFile o WHERE o.previousDataFileId = :dataFileId", 
-                DataFile.class)
-                .setParameter("dataFileId", df.getId())
-                .getResultList();
-
-        if (dataFiles.isEmpty()) {
-            return false;
-        }
-        if (!df.isReleased()) {
-            // An unpublished SHOULD NOT have a replacment
-            String errMsg = "DataFile with id: [" + df.getId() 
-                + "] is UNPUBLISHED with a REPLACEMENT.  This should NOT happen.";
-            logger.error(errMsg);
-            throw new Exception(errMsg);
-        } else if (dataFiles.size() == 1) {
-            return true;
-        } else {
-            String errMsg = "DataFile with id: [" + df.getId() 
-                + "] has more than one replacment!";
-            logger.error(errMsg);
-            throw new Exception(errMsg);
-        }
+    public boolean hasReplacement(final DataFile file) {
+        return file.isNew() 
+        		? false 
+        		: this.fileRepo.findReplacementFile(file.getId()).isPresent();
 
     }
 

@@ -45,4 +45,23 @@ public class DataFileServiceBeanIT extends WebappArquillianDeployment {
 		assertThat(list.size()).isOne();
 		assertThat(list.get(0).getId()).isEqualTo(55L);
 	}
+	
+	@Test
+	void hasReplacement() throws Exception {
+		
+		DataFile replacedFile = new DataFile();
+
+		assertThat(this.srvice.hasReplacement(replacedFile)).isFalse();
+		
+		replacedFile.setId(53L);
+		
+		assertThat(this.srvice.hasReplacement(replacedFile)).isFalse();
+
+		DataFile newFile = this.srvice.find(55L).get();
+		newFile.setPreviousDataFileId(53L);
+		this.srvice.save(newFile);
+
+		assertThat(this.srvice.hasReplacement(replacedFile)).isTrue();
+	}
+	
 }
