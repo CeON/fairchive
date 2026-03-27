@@ -485,7 +485,7 @@ public class Access extends AbstractApiBean {
                 }
 
                 logger.fine("attempting to look up file id " + fileId);
-                DataFile file = dataFileService.find(fileId);
+                DataFile file = dataFileService.find(fileId).orElse(null);
                 if (file == null) {
                     continue;
                 }
@@ -607,14 +607,15 @@ public class Access extends AbstractApiBean {
     @Produces({"image/png"})
     public InputStream fileCardImage(@PathParam("fileId") Long fileId) {
 
+        Optional<DataFile> dfOp = dataFileService.find(fileId);
 
-        DataFile df = dataFileService.find(fileId);
-
-        if (df == null) {
+        if (!dfOp.isPresent()) {
             logger.warning("Preview: datafile service could not locate a DataFile object for id " + fileId + "!");
             return null;
         }
 
+        DataFile df = dfOp.get();
+        
         if(embargoAccessService.isRestrictedByEmbargo(df.getOwner())) {
             logger.warning("Preview: datafile id[" + fileId + "] is restricted by embargo");
             return null;

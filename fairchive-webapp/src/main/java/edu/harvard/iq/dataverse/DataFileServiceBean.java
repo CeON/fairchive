@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -40,6 +41,7 @@ import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFileRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -69,6 +71,9 @@ public class DataFileServiceBean implements Serializable {
     private SettingsServiceBean settingsService;
     @Inject
     private ImageThumbConverter imageThumbConverter;
+    
+    @Inject
+    private DataFileRepository fileRepo;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -77,22 +82,17 @@ public class DataFileServiceBean implements Serializable {
 
     // -------------------- LOGIC --------------------
 
-    public DataFile find(Object pk) {
-        return em.find(DataFile.class, pk);
+    public Optional<DataFile> find(final Long id) {
+        return this.fileRepo.findById(id);
     }
 
-    public DataFile findByGlobalId(String globalId) {
-        return (DataFile) dvObjectService.findByGlobalId(globalId, DataFile.DATAFILE_DTYPE_STRING);
+    public DataFile findByGlobalId(final String globalId) {
+        return (DataFile) this.dvObjectService.findByGlobalId(globalId, 
+        		DataFile.DATAFILE_DTYPE_STRING);
     }
 
-    public DataFile findReplacementFile(Long previousFileId) {
-        Query query = em.createQuery("select object(o) from DataFile as o where o.previousDataFileId = :previousFileId");
-        query.setParameter("previousFileId", previousFileId);
-        try {
-            return (DataFile) query.getSingleResult();
-        } catch (Exception ex) {
-            return null;
-        }
+    public Optional<DataFile> findReplacementFile(final Long previousFileId) {
+        return this.fileRepo.findReplacementFile(previousFileId);
     }
 
     public DataFile findPreviousFile(DataFile df) {
@@ -373,9 +373,9 @@ public class DataFileServiceBean implements Serializable {
                 DataFile.class).getResultList();
     }
 
-    public DataFile save(DataFile dataFile) {
-        if (dataFile.isMergeable()) {
-            return em.merge(dataFile);
+    public DataFile save(final DataFile file) {
+        if (file.isMergeable()) {
+            return this.fileRepo.save(file);
         } else {
             throw new IllegalArgumentException("This DataFile object has been set to NOT MERGEABLE; please ensure " +
                     "a MERGEABLE object is passed to the save method.");
@@ -439,7 +439,7 @@ public class DataFileServiceBean implements Serializable {
         // checking if the thumbnail is available may cost cpu time, if it has to be generated on the fly
         //  - so you have to figure out which is more important...
         if (imageThumbConverter.isThumbnailAvailable(file)) {
-            file = find(file.getId());
+            file = find(file.getId()).get();
             file.setPreviewImageAvailable(true);
             save(file);
             return true;

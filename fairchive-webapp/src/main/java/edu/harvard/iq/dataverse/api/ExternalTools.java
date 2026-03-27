@@ -1,13 +1,7 @@
 package edu.harvard.iq.dataverse.api;
 
-import edu.harvard.iq.dataverse.DataFileServiceBean;
-import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
-import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
-import edu.harvard.iq.dataverse.externaltools.ExternalToolServiceBean;
-import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
-import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type;
+import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.json.Json;
@@ -18,7 +12,15 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.DataFileServiceBean;
+import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
+import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
+import edu.harvard.iq.dataverse.externaltools.ExternalToolServiceBean;
+import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
+import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type;
 
 @Path("admin/externalTools")
 public class ExternalTools extends AbstractApiBean {
@@ -80,14 +82,14 @@ public class ExternalTools extends AbstractApiBean {
     @GET
     @Path("file/{id}")
     public Response getExternalToolsByFile(@PathParam("id") Long fileIdFromUser) {
-        DataFile dataFile = fileSvc.find(fileIdFromUser);
-        if (dataFile == null) {
+        Optional<DataFile> dataFile = fileSvc.find(fileIdFromUser);
+        if (! dataFile.isPresent()) {
             return badRequest("Could not find datafile with id " + fileIdFromUser);
         }
         JsonArrayBuilder tools = Json.createArrayBuilder();
 
         List<ExternalTool> allExternalTools = externalToolService.findAll();
-        List<ExternalTool> toolsByFile = ExternalToolServiceBean.findExternalToolsByFile(allExternalTools, dataFile);
+        List<ExternalTool> toolsByFile = ExternalToolServiceBean.findExternalToolsByFile(allExternalTools, dataFile.get());
         for (ExternalTool tool : toolsByFile) {
             tools.add(tool.toJson());
         }

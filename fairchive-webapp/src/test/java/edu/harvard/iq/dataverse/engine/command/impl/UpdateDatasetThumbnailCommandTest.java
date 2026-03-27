@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +47,7 @@ public class UpdateDatasetThumbnailCommandTest {
     @BeforeEach
     public void setUp() {
         
-        when(dataFileService.find(thumbnailUnexpectedlyAbsent)).thenReturn(new DataFile());
+        when(dataFileService.find(thumbnailUnexpectedlyAbsent)).thenReturn(Optional.of(new DataFile()));
         when(datasetService.setDatasetFileAsThumbnail(any(), any())).thenAnswer((invocation) -> invocation.getArgument(0));
         
         testEngine = new TestDataverseEngine(new TestCommandContext() {

@@ -64,7 +64,7 @@ public class ConfigureFragmentBean implements java.io.Serializable {
             return null;
         }
 
-        DataFile dataFile = datafileService.find(fileId);
+        DataFile dataFile = datafileService.find(fileId).get();
 
         ApiToken apiToken = new ApiToken();
         User user = session.getUser();

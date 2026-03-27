@@ -214,7 +214,7 @@ public class FilePage implements java.io.Serializable {
 
         // Set the file and datasetVersion
         if (fileId != null) {
-            file = datafileService.find(fileId);
+            file = datafileService.find(fileId).orElse(null);
         } else {
             file = datafileService.findByGlobalId(persistentId);
             if (file != null) {
@@ -624,9 +624,9 @@ public class FilePage implements java.io.Serializable {
         List<DataFile> dataFiles = new ArrayList<>();
         dataFiles.add(dataFileToTest);
 
-        while (datafileService.findReplacementFile(dataFileToTest.getId()) != null) {
-            dataFiles.add(datafileService.findReplacementFile(dataFileToTest.getId()));
-            dataFileToTest = datafileService.findReplacementFile(dataFileToTest.getId());
+        while (datafileService.findReplacementFile(dataFileToTest.getId()).isPresent()) {
+            dataFiles.add(datafileService.findReplacementFile(dataFileToTest.getId()).get());
+            dataFileToTest = datafileService.findReplacementFile(dataFileToTest.getId()).get();
         }
 
         if (dataFiles.size() < 2) {
