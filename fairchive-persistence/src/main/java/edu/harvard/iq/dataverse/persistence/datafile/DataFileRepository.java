@@ -17,7 +17,7 @@ public class DataFileRepository extends JpaRepository<Long, DataFile> {
     
 	public Optional<DataFile> findReplacementFile(final Long previousFileId) {
 		return getSingleResult(this.em
-				.createQuery("select o from DataFile as o where o.previousDataFileId = :id", 
+				.createQuery("select f from DataFile as f where f.previousDataFileId = :id", 
 						DataFile.class)
 				.setParameter("id", previousFileId));
 	}

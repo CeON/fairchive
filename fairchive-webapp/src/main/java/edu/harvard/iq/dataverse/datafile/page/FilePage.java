@@ -809,7 +809,7 @@ public class FilePage implements java.io.Serializable {
     }
 
     private FileMetadata getPreviousFileMetadata(final FileMetadata fmdIn) {
-        final DataFile dfPrevious = datafileService.findPreviousFile(fmdIn.getDataFile());
+        final DataFile dfPrevious = datafileService.find(fmdIn.getDataFile().getPreviousDataFileId()).orElse(null);
         DatasetVersion dvPrevious = null;
         boolean gotCurrent = false;
         for (final DatasetVersion dvloop : fileMetadata.getDatasetVersion().getDataset().getVersions()) {

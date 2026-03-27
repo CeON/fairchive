@@ -95,16 +95,6 @@ public class DataFileServiceBean implements Serializable {
         return this.fileRepo.findReplacementFile(previousFileId);
     }
 
-    public DataFile findPreviousFile(DataFile df) {
-        TypedQuery<DataFile> query = em.createQuery("select o from DataFile o" + " WHERE o.id = :dataFileId", DataFile.class);
-        query.setParameter("dataFileId", df.getPreviousDataFileId());
-        try {
-            return query.getSingleResult();
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
     public List<DataFile> findAllRelatedByRootDatafileId(Long datafileId) {
         // Get all files with the same root datafile id
         // the first file has its own id as root so only one query needed.
