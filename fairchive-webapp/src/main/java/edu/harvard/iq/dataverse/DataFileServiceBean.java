@@ -29,7 +29,6 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TypedQuery;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -95,12 +94,8 @@ public class DataFileServiceBean implements Serializable {
         return this.fileRepo.findReplacementFile(previousFileId);
     }
 
-    public List<DataFile> findAllRelatedByRootDatafileId(Long datafileId) {
-        // Get all files with the same root datafile id
-        // the first file has its own id as root so only one query needed.
-        String qr = "select o from DataFile o where o.rootDataFileId = :datafileId order by o.id";
-        return em.createQuery(qr, DataFile.class)
-                 .setParameter("datafileId", datafileId).getResultList();
+    public List<DataFile> findAllRelatedByRootDatafileId(final Long id) {
+    	return this.fileRepo.findAllRelatedByRootDatafileId(id);
     }
 
     public List<DataFile> findDataFilesByFileMetadataIds(Collection<Long> fileMetadataIds) {

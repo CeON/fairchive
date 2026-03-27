@@ -2,6 +2,8 @@ package edu.harvard.iq.dataverse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
@@ -15,18 +17,32 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 public class DataFileServiceBeanIT extends WebappArquillianDeployment {
 
 	@Inject
-	private DataFileServiceBean fileService;
+	private DataFileServiceBean srvice;
 	
 	@Test
 	void findReplacementFile() {
 
-		assertThat(this.fileService.findReplacementFile(53L)).isEmpty();
+		assertThat(this.srvice.findReplacementFile(53L)).isEmpty();
 
-		DataFile file = this.fileService.find(55L).get();
+		DataFile file = this.srvice.find(55L).get();
 		file.setPreviousDataFileId(53L);
-		this.fileService.save(file);
+		this.srvice.save(file);
 
-		assertThat(this.fileService.findReplacementFile(53L).get().getId()).
+		assertThat(this.srvice.findReplacementFile(53L).get().getId()).
 			isEqualTo(55L);
+	}
+	
+	@Test
+	void findAllRelatedByRootDatafileId() {
+		
+		assertThat(this.srvice.findAllRelatedByRootDatafileId(53L)).isEmpty();
+		
+		DataFile file = this.srvice.find(55L).get();
+		file.setRootDataFileId(53L);
+		this.srvice.save(file);
+		
+		List<DataFile> list = this.srvice.findAllRelatedByRootDatafileId(53L);
+		assertThat(list.size()).isOne();
+		assertThat(list.get(0).getId()).isEqualTo(55L);
 	}
 }
