@@ -437,7 +437,6 @@ public class DataFileServiceBean implements Serializable {
         return file.isNew() 
         		? false 
         		: this.fileRepo.findReplacementFile(file.getId()).isPresent();
-
     }
 
     public boolean hasBeenDeleted(DataFile df) {

@@ -345,13 +345,10 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof FileMetadata)) {
-            return false;
-        }
-        FileMetadata other = (FileMetadata) object;
-
-        return !((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id)));
+    public boolean equals(final Object other) {
+    	return other instanceof FileMetadata
+    			? Objects.equals(this.id, ((FileMetadata) other).id)
+    			: false;
     }
 
     /*
