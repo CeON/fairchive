@@ -416,9 +416,9 @@ public class DataFileServiceBean implements Serializable {
         		: this.fileRepo.findReplacementFile(file.getId()).isPresent();
     }
 
-    public boolean hasBeenDeleted(DataFile df) {
-        Dataset dataset = df.getOwner();
-        DatasetVersion dsv = dataset.getLatestVersion();
+    public boolean hasBeenDeleted(final DataFile df) {
+        final Dataset dataset = df.getOwner();
+        final DatasetVersion dsv = dataset.getLatestVersion();
         return ! findFileMetadataByDatasetVersionIdAndDataFileId(dsv.getId(), df.getId()).isPresent();
     }
 
