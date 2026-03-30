@@ -371,14 +371,6 @@ public class DataFileServiceBean implements Serializable {
         return merged;
     }
 
-    public List<DataFile> findHarvestedFilesByClient(HarvestingClient harvestingClient) {
-        String qr = "SELECT d FROM DataFile d, DvObject o, Dataset s WHERE o.id = d.id AND o.owner.id = s.id " +
-                "AND s.harvestedFrom.id = :harvestingClientId";
-        return em.createQuery(qr, DataFile.class)
-                 .setParameter("harvestingClientId", harvestingClient.getId())
-                 .getResultList();
-    }
-
     /**
      * This method will return true if the thumbnail is *actually available* and
      * ready to be downloaded. (it will try to generate a thumbnail for supported

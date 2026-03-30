@@ -84,4 +84,5 @@ public class DataFileServiceBeanIT extends WebappArquillianDeployment {
 		assertThat(this.service.findFileMetadataByDatasetVersionIdAndDataFileId(36L, 55L)
 				.get().getId()).isEqualTo(112L);
 	}
+	
 }
