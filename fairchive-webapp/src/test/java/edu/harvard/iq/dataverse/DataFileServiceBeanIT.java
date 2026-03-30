@@ -63,5 +63,4 @@ public class DataFileServiceBeanIT extends WebappArquillianDeployment {
 
 		assertThat(this.srvice.hasReplacement(replacedFile)).isTrue();
 	}
-	
 }

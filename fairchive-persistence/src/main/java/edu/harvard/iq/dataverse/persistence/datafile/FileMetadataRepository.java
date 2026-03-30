@@ -21,10 +21,9 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
      */
     public List<FileMetadata> findFileMetadataByDatasetVersionId(final long versionId, 
     		final int pageNumber, final int maxResults) {
-        return this.em.createQuery(
+        return createQuery(
         		 	"SELECT f FROM FileMetadata f JOIN f.datasetVersion v " +
-        		 	"WHERE v.id = :dsvId ORDER BY f.displayOrder", 
-                    FileMetadata.class)
+        		 	"WHERE v.id = :dsvId ORDER BY f.displayOrder")
                  .setParameter("dsvId", versionId)
                  .setFirstResult(pageNumber * maxResults)
                  .setMaxResults(maxResults)
@@ -40,13 +39,12 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
     public List<FileMetadata> findSearchedFileMetadataByDatasetVersionId(
     		final long versionId, final int pageNumber, final int maxResults, 
     		final String searchTerm) {
-        return this.em.createQuery(
+        return createQuery(
         			"SELECT f FROM FileMetadata f JOIN f.datasetVersion v " +
                     "WHERE v.id = :dsvId AND (lower(f.label) LIKE :searchTerm OR lower(f.description) LIKE :searchTerm) " +
-                    "ORDER BY f.displayOrder asc", 
-                    FileMetadata.class)
+                    "ORDER BY f.displayOrder asc")
                  .setParameter("dsvId", versionId)
-                 .setParameter("searchTerm", "%" + searchTerm + "%")
+                 .setParameter("searchTerm", "%" + searchTerm.toLowerCase() + "%")
                  .setFirstResult(pageNumber * maxResults)
                  .setMaxResults(maxResults)
                  .getResultList();
@@ -67,9 +65,8 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
      * Finds files with provided id's along with cache enabled.
      */
     public List<FileMetadata> findFileMetadata(final Collection<Long> ids) {
-        return this.em.createQuery(
-        			"SELECT f FROM FileMetadata f WHERE f.id IN :fileMetadatas", 
-        			FileMetadata.class)
+        return createQuery(
+        			"SELECT f FROM FileMetadata f WHERE f.id IN :fileMetadatas")
                  .setParameter("fileMetadatas", ids)
                  .setHint("eclipselink.QUERY_RESULTS_CACHE", "TRUE")
                  .getResultList();
@@ -79,10 +76,9 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
      * Finds files which are restricted by license.
      */
     public List<FileMetadata> findRestrictedFileMetadata(final Collection<Long> ids) {
-        return this.em.createQuery(
+        return createQuery(
         			"SELECT f FROM FileMetadata f JOIN f.termsOfUse t " +
-                    "WHERE f.id IN :fileIds AND  t.restrictType != null", 
-                    FileMetadata.class)
+                    "WHERE f.id IN :fileIds AND  t.restrictType != null")
                  .setParameter("fileIds", ids)
                  .getResultList();
     }

@@ -122,4 +122,9 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
             return Optional.empty();
         }
     }
+    
+    protected TypedQuery<T> createQuery(final String s) {
+    	return this.em.createQuery(s, this.entityClass);
+    }
+    
 }

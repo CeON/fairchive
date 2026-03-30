@@ -95,7 +95,7 @@ public class DataFileServiceBean implements Serializable {
     }
 
     public List<DataFile> findAllRelatedByRootDatafileId(final Long id) {
-    	return this.fileRepo.findAllRelatedByRootDatafileId(id);
+    	return this.fileRepo.findAllRelatedByRootDataFileId(id);
     }
 
     public List<DataFile> findDataFilesByFileMetadataIds(Collection<Long> fileMetadataIds) {
