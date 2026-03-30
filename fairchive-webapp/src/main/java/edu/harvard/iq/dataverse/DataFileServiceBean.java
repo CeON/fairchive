@@ -26,9 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -300,16 +298,6 @@ public class DataFileServiceBean implements Serializable {
             }
         }
         return dataFile;
-    }
-
-    public DataTable findDataTableByFileId(Long fileId) {
-        Query query = em.createQuery("select object(o) from DataTable as o where o.dataFile.id =:fileId order by o.id");
-        query.setParameter("fileId", fileId);
-        try {
-            return (DataTable) query.getSingleResult();
-        } catch (NoResultException ex) {
-            return null;
-        }
     }
 
     public List<DataFile> findAll() {
