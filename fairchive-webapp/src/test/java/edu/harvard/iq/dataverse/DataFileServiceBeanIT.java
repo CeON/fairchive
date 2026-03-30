@@ -19,31 +19,31 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 public class DataFileServiceBeanIT extends WebappArquillianDeployment {
 
 	@Inject
-	private DataFileServiceBean srvice;
+	private DataFileServiceBean service;
 	
 	@Test
 	void findReplacementFile() {
 
-		assertThat(this.srvice.findReplacementFile(53L)).isEmpty();
+		assertThat(this.service.findReplacementFile(53L)).isEmpty();
 
-		DataFile file = this.srvice.find(55L).get();
+		DataFile file = this.service.find(55L).get();
 		file.setPreviousDataFileId(53L);
-		this.srvice.save(file);
+		this.service.save(file);
 
-		assertThat(this.srvice.findReplacementFile(53L).get().getId()).
+		assertThat(this.service.findReplacementFile(53L).get().getId()).
 			isEqualTo(55L);
 	}
 	
 	@Test
 	void findAllRelatedByRootDatafileId() {
 		
-		assertThat(this.srvice.findAllRelatedByRootDatafileId(53L)).isEmpty();
+		assertThat(this.service.findAllRelatedByRootDatafileId(53L)).isEmpty();
 		
-		DataFile file = this.srvice.find(55L).get();
+		DataFile file = this.service.find(55L).get();
 		file.setRootDataFileId(53L);
-		this.srvice.save(file);
+		this.service.save(file);
 		
-		List<DataFile> list = this.srvice.findAllRelatedByRootDatafileId(53L);
+		List<DataFile> list = this.service.findAllRelatedByRootDatafileId(53L);
 		assertThat(list.size()).isOne();
 		assertThat(list.get(0).getId()).isEqualTo(55L);
 	}
@@ -53,28 +53,35 @@ public class DataFileServiceBeanIT extends WebappArquillianDeployment {
 		
 		DataFile replacedFile = new DataFile();
 
-		assertThat(this.srvice.hasReplacement(replacedFile)).isFalse();
+		assertThat(this.service.hasReplacement(replacedFile)).isFalse();
 		
 		replacedFile.setId(53L);
 		
-		assertThat(this.srvice.hasReplacement(replacedFile)).isFalse();
+		assertThat(this.service.hasReplacement(replacedFile)).isFalse();
 
-		DataFile newFile = this.srvice.find(55L).get();
+		DataFile newFile = this.service.find(55L).get();
 		newFile.setPreviousDataFileId(53L);
-		this.srvice.save(newFile);
+		this.service.save(newFile);
 
-		assertThat(this.srvice.hasReplacement(replacedFile)).isTrue();
+		assertThat(this.service.hasReplacement(replacedFile)).isTrue();
 	}
 	
 	@Test
 	void findDataFilesByFileMetadataIds() {
 		
-		List<Long>  ids = this.srvice.find(55L).get().getFileMetadatas().
+		List<Long>  ids = this.service.find(55L).get().getFileMetadatas().
 				stream().map(FileMetadata::getId).collect(toList());
 		
-		List<DataFile> list = this.srvice.findDataFilesByFileMetadataIds(ids);
+		List<DataFile> list = this.service.findDataFilesByFileMetadataIds(ids);
 		
 		assertThat(list.size()).isOne();
 		assertThat(list.get(0).getId()).isEqualTo(55L);
+	}
+	
+	@Test
+	void findFileMetadataByDatasetVersionIdAndDataFileId() {
+			
+		assertThat(this.service.findFileMetadataByDatasetVersionIdAndDataFileId(36L, 55L)
+				.get().getId()).isEqualTo(112L);
 	}
 }

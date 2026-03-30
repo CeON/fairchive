@@ -124,7 +124,7 @@ public class DataverseHeaderFragment implements Serializable {
         Dataset dataset = datafile.getOwner();
         Long getDatasetVersionID = dataset.getLatestVersion().getId();
         FileMetadata fmd = datafileService.
-                findFileMetadataByDatasetVersionIdAndDataFileId(getDatasetVersionID, datafile.getId());
+                findFileMetadataByDatasetVersionIdAndDataFileId(getDatasetVersionID, datafile.getId()).orElse(null);
 
         initBreadcrumbsForFileMetadata(fmd, subPage);
     }

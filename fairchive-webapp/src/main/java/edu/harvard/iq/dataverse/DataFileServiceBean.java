@@ -5,6 +5,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataFile
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
+import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -44,6 +45,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.DataFileRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadataRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
@@ -70,9 +72,10 @@ public class DataFileServiceBean implements Serializable {
     private SettingsServiceBean settingsService;
     @Inject
     private ImageThumbConverter imageThumbConverter;
-    
     @Inject
     private DataFileRepository fileRepo;
+    @Inject
+    private FileMetadataRepository fileMetadataRepo;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -99,7 +102,7 @@ public class DataFileServiceBean implements Serializable {
     }
 
     public List<DataFile> findDataFilesByFileMetadataIds(final Collection<Long> ids) {
-        return this.fileRepo.findDataFilesByFileMetadataIds(ids);
+        return this.fileRepo.findByFileMetadataIds(ids);
     }
 
     public DataFile findByStorageIdAndDatasetVersion(String storageId, DatasetVersion dv) {
@@ -121,10 +124,7 @@ public class DataFileServiceBean implements Serializable {
 
     public List<FileMetadata> findFileMetadataByDatasetVersionId(Long datasetVersionId, 
             int maxResults, FileSortFieldAndOrder sortFieldAndOrder) {
-        if (maxResults < 0) {
-            // return all results if user asks for negative number of results
-            maxResults = 0;
-        }
+        maxResults = max(maxResults, 0);
         String sortFieldString = sortFieldAndOrder.getSortField();
         String sortOrderString = sortFieldAndOrder.getSortOrder() == SortOrder.desc ? "desc" : "asc";
         String qr = "select o from FileMetadata o where o.datasetVersion.id = :datasetVersionId order by o." +
@@ -155,20 +155,9 @@ public class DataFileServiceBean implements Serializable {
                 .getResultList();
     }
 
-    public FileMetadata findFileMetadata(Long fileMetadataId) {
-        return em.find(FileMetadata.class, fileMetadataId);
-    }
-
-    public FileMetadata findFileMetadataByDatasetVersionIdAndDataFileId(Long datasetVersionId, Long dataFileId) {
-
-        Query query = em.createQuery("select o from FileMetadata o where o.datasetVersion.id = :datasetVersionId  and o.dataFile.id = :dataFileId");
-        query.setParameter("datasetVersionId", datasetVersionId);
-        query.setParameter("dataFileId", dataFileId);
-        try {
-            return (FileMetadata) query.getSingleResult();
-        } catch (Exception ex) {
-            return null;
-        }
+    public Optional<FileMetadata> findFileMetadataByDatasetVersionIdAndDataFileId(
+    		final Long datasetVersionId, final Long dataFileId) {
+    	return this.fileMetadataRepo.findByDatasetVersionIdAndDataFileId(datasetVersionId, dataFileId);
     }
 
     public FileMetadata findMostRecentVersionFileIsIn(DataFile file) {
@@ -439,7 +428,7 @@ public class DataFileServiceBean implements Serializable {
     public boolean hasBeenDeleted(DataFile df) {
         Dataset dataset = df.getOwner();
         DatasetVersion dsv = dataset.getLatestVersion();
-        return findFileMetadataByDatasetVersionIdAndDataFileId(dsv.getId(), df.getId()) == null;
+        return ! findFileMetadataByDatasetVersionIdAndDataFileId(dsv.getId(), df.getId()).isPresent();
     }
 
     @SuppressWarnings("unchecked")

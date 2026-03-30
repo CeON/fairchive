@@ -1,10 +1,12 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
-
-import javax.ejb.Stateless;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+
+import javax.ejb.Stateless;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Stateless
 public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
@@ -82,4 +84,16 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
                  .setParameter("fileIds", ids)
                  .getResultList();
     }
+    
+	public Optional<FileMetadata> findByDatasetVersionIdAndDataFileId(
+			final Long datasetVersionId, final Long dataFileId) {
+		return createQuery(
+				"select o from FileMetadata o  " + 
+		        "where o.datasetVersion.id = :datasetVersionId  and o.dataFile.id = :dataFileId")
+				.setParameter("datasetVersionId", datasetVersionId)
+				.setParameter("dataFileId", dataFileId)
+				.getResultList()
+				.stream()
+				.findFirst();
+	}
 }

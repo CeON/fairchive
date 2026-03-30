@@ -33,7 +33,7 @@ public class DataFileRepository extends JpaRepository<Long, DataFile> {
                 .getResultList();
     }
     
-    public List<DataFile> findDataFilesByFileMetadataIds(final Collection<Long> ids) {
+    public List<DataFile> findByFileMetadataIds(final Collection<Long> ids) {
         return createQuery(
         		"SELECT d FROM FileMetadata f JOIN f.dataFile d WHERE f.id IN :ids")
                 .setParameter("ids", ids)

@@ -252,7 +252,7 @@ public class FilePage implements java.io.Serializable {
         final RetrieveDatasetVersionResponse retrieveDatasetVersionResponse
                 = datasetVersionService.selectRequestedVersion(file.getOwner().getVersions(), version);
         final DatasetVersion version = retrieveDatasetVersionResponse.getDatasetVersion();
-        fileMetadata = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(version.getId(), fileId);
+        fileMetadata = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(version.getId(), fileId).orElse(null);
 
         if (fileMetadata == null) {
             logger.fine("fileMetadata is null! Checking finding most recent version file was in.");
@@ -759,7 +759,7 @@ public class FilePage implements java.io.Serializable {
             if (versionLoop.isReleased() || versionLoop.isDeaccessioned()
                     || permissionsWrapper.canViewUnpublishedDataset(fileMetadata.getDatasetVersion().getDataset())) {
                 for (final DataFile df : allfiles) {
-                    FileMetadata fmd = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionLoop.getId(), df.getId());
+                    FileMetadata fmd = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionLoop.getId(), df.getId()).orElse(null);
                     if (fmd != null) {
                         fmd.setContributorNames(datasetVersionService.getContributorsNames(versionLoop));
                         FileVersionDifference fvd = new FileVersionDifference(fmd, getPreviousFileMetadata(fmd));
@@ -837,7 +837,7 @@ public class FilePage implements java.io.Serializable {
         final Long dfId = dfPrevious != null ? dfPrevious.getId() : fmdIn.getDataFile().getId();
         final Long versionId = dvPrevious != null ? dvPrevious.getId() : null;
 
-        return datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionId, dfId);
+        return datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionId, dfId).orElse(null);
     }
 
     private String returnToDatasetOnly(Dataset draftDataset) {
