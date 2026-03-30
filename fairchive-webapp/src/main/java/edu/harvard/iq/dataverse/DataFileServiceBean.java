@@ -49,7 +49,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadataRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
@@ -103,23 +102,6 @@ public class DataFileServiceBean implements Serializable {
 
     public List<DataFile> findDataFilesByFileMetadataIds(final Collection<Long> ids) {
         return this.fileRepo.findByFileMetadataIds(ids);
-    }
-
-    public DataFile findByStorageIdAndDatasetVersion(String storageId, DatasetVersion dv) {
-        try {
-            Query query = em.createNativeQuery("select o.id from dvobject o, filemetadata m " +
-                    "where o.storageidentifier = '" + storageId +
-                    "' and o.id = m.datafile_id and m.datasetversion_id = " + dv.getId() + "");
-            query.setMaxResults(1);
-            if (query.getResultList().isEmpty()) {
-                return null;
-            } else {
-                return findCheapAndEasy((Long) query.getSingleResult());
-            }
-        } catch (Exception e) {
-            logger.error("Error finding datafile by storageID and DataSetVersion: " + e.getMessage(), e);
-            return null;
-        }
     }
 
     public List<FileMetadata> findFileMetadataByDatasetVersionId(Long datasetVersionId, 
