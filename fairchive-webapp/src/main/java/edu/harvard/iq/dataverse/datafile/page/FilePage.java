@@ -255,11 +255,7 @@ public class FilePage implements java.io.Serializable {
         fileMetadata = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(version.getId(), fileId).orElse(null);
 
         if (fileMetadata == null) {
-            logger.fine("fileMetadata is null! Checking finding most recent version file was in.");
-            fileMetadata = datafileService.findMostRecentVersionFileIsIn(file);
-            if (fileMetadata == null) {
-                return permissionsWrapper.notFound();
-            }
+        	return permissionsWrapper.notFound();
         }
 
         // If this DatasetVersion is unpublished and permission is doesn't have permissions:

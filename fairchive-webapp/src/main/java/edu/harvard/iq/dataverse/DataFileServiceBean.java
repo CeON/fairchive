@@ -160,15 +160,6 @@ public class DataFileServiceBean implements Serializable {
     	return this.fileMetadataRepo.findByDatasetVersionIdAndDataFileId(datasetVersionId, dataFileId);
     }
 
-    public FileMetadata findMostRecentVersionFileIsIn(DataFile file) {
-        if (file == null) {
-            return null;
-        }
-        List<FileMetadata> fileMetadatas = file.getFileMetadatas();
-        return fileMetadatas != null && !fileMetadatas.isEmpty()
-                ? fileMetadatas.get(0) : null;
-    }
-
     public DataFile findCheapAndEasy(Long id) {
         DataFile dataFile;
         Object[] result;
