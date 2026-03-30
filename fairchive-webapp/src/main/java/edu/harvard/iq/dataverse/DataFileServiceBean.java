@@ -98,11 +98,8 @@ public class DataFileServiceBean implements Serializable {
     	return this.fileRepo.findAllRelatedByRootDataFileId(id);
     }
 
-    public List<DataFile> findDataFilesByFileMetadataIds(Collection<Long> fileMetadataIds) {
-        return em.createQuery("SELECT d FROM FileMetadata f JOIN f.dataFile d WHERE f.id IN :fileMetadataIds", DataFile.class)
-                .setParameter("fileMetadataIds", fileMetadataIds)
-                .setHint("eclipselink.QUERY_RESULTS_CACHE", "TRUE")
-                .getResultList();
+    public List<DataFile> findDataFilesByFileMetadataIds(final Collection<Long> ids) {
+        return this.fileRepo.findDataFilesByFileMetadataIds(ids);
     }
 
     public DataFile findByStorageIdAndDatasetVersion(String storageId, DatasetVersion dv) {

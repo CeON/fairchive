@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 
 @Transactional(TransactionMode.ROLLBACK)
 public class DataFileServiceBeanIT extends WebappArquillianDeployment {
@@ -62,5 +64,17 @@ public class DataFileServiceBeanIT extends WebappArquillianDeployment {
 		this.srvice.save(newFile);
 
 		assertThat(this.srvice.hasReplacement(replacedFile)).isTrue();
+	}
+	
+	@Test
+	void findDataFilesByFileMetadataIds() {
+		
+		List<Long>  ids = this.srvice.find(55L).get().getFileMetadatas().
+				stream().map(FileMetadata::getId).collect(toList());
+		
+		List<DataFile> list = this.srvice.findDataFilesByFileMetadataIds(ids);
+		
+		assertThat(list.size()).isOne();
+		assertThat(list.get(0).getId()).isEqualTo(55L);
 	}
 }
