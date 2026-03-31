@@ -24,7 +24,10 @@ public class StartupFlywayMigrator {
                 .baselineOnMigrate(true)
                 .load();
 
+        long begin = System.currentTimeMillis();
         flyway.migrate();
+        long end = System.currentTimeMillis();
+        System.out.println("!================ DB migration done in: " + (end - begin) + " ms.");
     }
 }
 

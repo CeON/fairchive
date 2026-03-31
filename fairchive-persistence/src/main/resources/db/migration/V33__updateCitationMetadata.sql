@@ -23,7 +23,7 @@ VALUES ('publicationRelationType', 'Relation Type', 'Type of relation between th
 
 UPDATE datasetfieldtype SET displayorder=31 WHERE name='publicationIDType';
 UPDATE datasetfieldtype SET displayorder=32 WHERE name='publicationIDNumber';
-UPDATE datasetfieldtype SET displayorder=33, displayOnCreate=TRUE, watermark='http://... or https://...'  WHERE name='publicationUrl';
+UPDATE datasetfieldtype SET displayorder=33, displayOnCreate=TRUE, watermark='http://... or https://...'  WHERE name='publicationURL';
 UPDATE datasetfieldtype SET displayorder=34 WHERE name='notesText';
 
 UPDATE datasetfieldtype SET displayorder=35, displayoncreate = true, inputRendererOptions='{"sortByLocalisedStringsOrder" : "true"}' WHERE name='language';
