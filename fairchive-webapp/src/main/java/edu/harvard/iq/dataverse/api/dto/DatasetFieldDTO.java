@@ -1,8 +1,27 @@
 package edu.harvard.iq.dataverse.api.dto;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
@@ -10,22 +29,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import io.vavr.control.Option;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 @JsonInclude(NON_EMPTY)
 @JsonAutoDetect(fieldVisibility = ANY,  getterVisibility = NONE, isGetterVisibility = NONE)
@@ -140,11 +143,19 @@ public class DatasetFieldDTO {
         if (value == null) {
             return emptyList();
         }
-        @SuppressWarnings("unchecked")
-        List<Map<String, DatasetFieldDTO>> fieldList = (List<Map<String, DatasetFieldDTO>>) value;
-        return fieldList.stream()
-                .map(v -> new LinkedHashSet<>(v.values()))
-                .collect(toList());
+        if(value instanceof List) {
+            @SuppressWarnings("unchecked")
+	        List<Map<String, DatasetFieldDTO>> fieldList = (List<Map<String, DatasetFieldDTO>>) value;
+	        return fieldList.stream()
+	                .map(v -> new LinkedHashSet<>(v.values()))
+	                .collect(toList());
+        } else if(value instanceof Map) {
+        	@SuppressWarnings("unchecked")
+	        Map<String, DatasetFieldDTO> map = (Map<String, DatasetFieldDTO>) value;
+	        return asList(new HashSet<>(map.values()));
+        } else {
+        	return emptyList();
+        }
     }
 
     // -------------------- PRIVATE --------------------
