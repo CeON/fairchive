@@ -480,6 +480,11 @@ function initDvJS() {
 
         return cords
     }
+    
+    function isSinglePoint(coordinates) {
+        return Math.abs(coordinates[0][0] - coordinates[1][0]) < 0.000001 &&
+                Math.abs(coordinates[0][1] - coordinates[1][1]) < 0.000001
+    }
 
     // Draw on map: marker, line, polygon using list of coordinates
     // coordinates - excepted format, each line represent pair of longitude, latitude
@@ -505,7 +510,11 @@ function initDvJS() {
       if (cords.length == 1) {
           shape = L.marker(cords[0]).addTo(data.polygonLayer)
       } else if (cords.length == 2) {
-          shape = L.polyline(cords).addTo(data.polygonLayer)
+          if(isSinglePoint(cords)) {
+              shape = L.marker(cords[0]).addTo(data.polygonLayer)
+          } else {
+              shape = L.polyline(cords).addTo(data.polygonLayer)
+          }
       } else if (cords.length >= 3) {
           if (isRectangleAxisAligned(cords)) {
             shape = L.rectangle(cords).addTo(data.polygonLayer);
