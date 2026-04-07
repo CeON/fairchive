@@ -1,49 +1,61 @@
 package edu.harvard.iq.dataverse.persistence.harvest;
 
+import static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.TemporalType.TIMESTAMP;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import java.io.Serializable;
-import java.util.Date;
 
-/**
- * @author Leonid Andreev
- * <p>
- * This is a record of an attempted harvesting client run. (Should it be named
- * HarvestingClientRunResult instead?)
- */
 @Entity
 public class ClientHarvestRun implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public enum RunResultType {SUCCESS, FAILURE, INPROGRESS}
+    
+    public enum RunResultType { SUCCESS, FAILURE, INPROGRESS }
 
     private static String RESULT_LABEL_SUCCESS = "SUCCESS";
     private static String RESULT_LABEL_FAILURE = "FAILED";
     private static String RESULT_LABEL_INPROGRESS = "INPROGRESS";
     private static String RESULT_DELETE_IN_PROGRESS = "DELETE IN PROGRESS";
 
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    private Long id;
+    
+    // Tese are the Dataset counts from that last harvest:
+    // (TODO: do we need to differentiate between *created* (new), and *updated* 
+    // harvested datasets? -- L.A. 4.4
+    private Long harvestedDatasetCount = 0L;
+    private Long failedDatasetCount = 0L;
+    private Long deletedDatasetCount = 0L;
+
     @ManyToOne
     @JoinColumn(nullable = false)
     private HarvestingClient harvestingClient;
+    
+    private RunResultType harvestResult;
+    
+    @Temporal(value = TIMESTAMP)
+    private Date startTime;
+    
+    @Temporal(value = TIMESTAMP)
+    private Date finishTime;
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(final Long id) {
+        this.id = id;
+    }
 
     public HarvestingClient getHarvestingClient() {
         return harvestingClient;
@@ -53,52 +65,42 @@ public class ClientHarvestRun implements Serializable {
         this.harvestingClient = harvestingClient;
     }
 
-    private RunResultType harvestResult;
 
     public RunResultType getResult() {
         return harvestResult;
     }
 
-    public String getResultLabel() {
-        if (harvestingClient != null && harvestingClient.isDeleteInProgress()) {
-            return RESULT_DELETE_IN_PROGRESS;
-        }
-
-        if (isSuccess()) {
-            return RESULT_LABEL_SUCCESS;
-        } else if (isFailed()) {
-            return RESULT_LABEL_FAILURE;
-        } else if (isInProgress()) {
-            return RESULT_LABEL_INPROGRESS;
-        }
-        return null;
-    }
+	public String getResultLabel() {
+		if (this.harvestingClient != null && this.harvestingClient.isDeleteInProgress()) {
+			return RESULT_DELETE_IN_PROGRESS;
+		} else if (isSuccess()) {
+			return RESULT_LABEL_SUCCESS;
+		} else if (isFailed()) {
+			return RESULT_LABEL_FAILURE;
+		} else if (isInProgress()) {
+			return RESULT_LABEL_INPROGRESS;
+		} else {
+			return null;
+		}
+	}
 
     public String getDetailedResultLabel() {
-        if (harvestingClient != null && harvestingClient.isDeleteInProgress()) {
-            return RESULT_DELETE_IN_PROGRESS;
-        }
         if (isSuccess()) {
-            String resultLabel = RESULT_LABEL_SUCCESS;
-
-            resultLabel = resultLabel.concat("; " + harvestedDatasetCount + " harvested, ");
-            resultLabel = resultLabel.concat(deletedDatasetCount + " deleted, ");
-            resultLabel = resultLabel.concat(failedDatasetCount + " failed.");
-            return resultLabel;
-        } else if (isFailed()) {
-            return RESULT_LABEL_FAILURE;
-        } else if (isInProgress()) {
-            return RESULT_LABEL_INPROGRESS;
+        	return new StringBuilder(RESULT_LABEL_SUCCESS).append("; ").
+        			append(this.harvestedDatasetCount).append(" harvested, ").
+        			append(this.deletedDatasetCount).append(" deleted, ").
+        			append(this.failedDatasetCount).append(" failed.").toString();
+        } else {
+        	return getResultLabel();
         }
-        return null;
     }
 
-    public void setResult(RunResultType harvestResult) {
-        this.harvestResult = harvestResult;
+    public void setResult(final RunResultType result) {
+        this.harvestResult = result;
     }
 
     public boolean isSuccess() {
-        return RunResultType.SUCCESS == harvestResult;
+        return RunResultType.SUCCESS == this.harvestResult;
     }
 
     public void setSuccess() {
@@ -106,96 +108,83 @@ public class ClientHarvestRun implements Serializable {
     }
 
     public boolean isFailed() {
-        return RunResultType.FAILURE == harvestResult;
+        return RunResultType.FAILURE == this.harvestResult;
     }
 
     public void setFailed() {
-        harvestResult = RunResultType.FAILURE;
+        this.harvestResult = RunResultType.FAILURE;
     }
 
     public boolean isInProgress() {
-        return RunResultType.INPROGRESS == harvestResult ||
-                (harvestResult == null && startTime != null && finishTime == null);
+        return RunResultType.INPROGRESS == this.harvestResult ||
+                (this.harvestResult == null && 
+                	this.startTime != null && 
+                	this.finishTime == null);
     }
 
     public void setInProgress() {
-        harvestResult = RunResultType.INPROGRESS;
+        this.harvestResult = RunResultType.INPROGRESS;
     }
-
-    // Time of this harvest attempt:
-    @Temporal(value = TemporalType.TIMESTAMP)
-    private Date startTime;
 
     public Date getStartTime() {
-        return startTime;
+        return this.startTime;
     }
 
-    public void setStartTime(Date startTime) {
-        this.startTime = startTime;
+    public void setStartTime(final Date time) {
+        this.startTime = time;
     }
-
-    @Temporal(value = TemporalType.TIMESTAMP)
-    private Date finishTime;
 
     public Date getFinishTime() {
-        return finishTime;
+        return this.finishTime;
     }
 
-    public void setFinishTime(Date finishTime) {
-        this.finishTime = finishTime;
+    public void setFinishTime(final Date time) {
+        this.finishTime = time;
     }
-
-    // Tese are the Dataset counts from that last harvest:
-    // (TODO: do we need to differentiate between *created* (new), and *updated* 
-    // harvested datasets? -- L.A. 4.4
-    private Long harvestedDatasetCount = 0L;
-    private Long failedDatasetCount = 0L;
-    private Long deletedDatasetCount = 0L;
 
     public Long getHarvestedDatasetCount() {
-        return harvestedDatasetCount;
+        return this.harvestedDatasetCount;
     }
 
-    public void setHarvestedDatasetCount(Long harvestedDatasetCount) {
-        this.harvestedDatasetCount = harvestedDatasetCount;
+    public void setHarvestedDatasetCount(final Long count) {
+        this.harvestedDatasetCount = count;
     }
 
     public Long getFailedDatasetCount() {
-        return failedDatasetCount;
+        return this.failedDatasetCount;
     }
 
-    public void setFailedDatasetCount(Long failedDatasetCount) {
-        this.failedDatasetCount = failedDatasetCount;
+    public void setFailedDatasetCount(Long count) {
+        this.failedDatasetCount = count;
     }
 
     public Long getDeletedDatasetCount() {
-        return deletedDatasetCount;
+        return this.deletedDatasetCount;
     }
 
-    public void setDeletedDatasetCount(Long deletedDatasetCount) {
-        this.deletedDatasetCount = deletedDatasetCount;
+    public void setDeletedDatasetCount(final Long count) {
+        this.deletedDatasetCount = count;
     }
+    
+	boolean isNonEmpty() {
+		return isSuccess() && 
+				(this.harvestedDatasetCount > 0L || this.deletedDatasetCount > 0L);
+	}
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ClientHarvestRun)) {
-            return false;
-        }
-        ClientHarvestRun other = (ClientHarvestRun) object;
-        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
+    public boolean equals(final Object other) {
+    	return other instanceof ClientHarvestRun
+    			? Objects.equals(this.id, ((ClientHarvestRun)other).id)
+    			: false;
     }
 
     @Override
     public String toString() {
         return "HarvestingClientRun[ id=" + id + " ]";
     }
-
 }

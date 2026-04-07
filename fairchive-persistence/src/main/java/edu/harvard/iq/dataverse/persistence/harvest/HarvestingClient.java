@@ -1,18 +1,34 @@
 package edu.harvard.iq.dataverse.persistence.harvest;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import io.vavr.control.Option;
-import org.hibernate.validator.constraints.NotBlank;
+import static edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle.DATAVERSE;
+import static edu.harvard.iq.dataverse.persistence.harvest.HarvestType.OAI;
+import static java.util.Calendar.DAY_OF_WEEK;
+import static java.util.Calendar.HOUR_OF_DAY;
+import static java.util.function.Function.identity;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.isNoneEmpty;
+import static org.apache.commons.lang3.StringUtils.trim;
 
-import javax.persistence.CascadeType;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -24,16 +40,12 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
 
-/**
- * @author Leonid Andreev
- */
+import org.hibernate.validator.constraints.NotBlank;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 @Table(indexes = {@Index(columnList = "dataverse_id")
         , @Index(columnList = "harvesttype")
@@ -41,402 +53,244 @@ import java.util.List;
         , @Index(columnList = "harvestingurl")})
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "HarvestingClient.findByNickname", query = "SELECT hc FROM HarvestingClient hc WHERE LOWER(hc.name)=:nickName")
+        @NamedQuery(name = "HarvestingClient.findByNickname", 
+        		   query = "SELECT hc FROM HarvestingClient hc WHERE LOWER(hc.name)=:nickName")
 })
 public class HarvestingClient implements Serializable, JpaEntity<Long> {
     private static final long serialVersionUID = 1L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+    
     public static final String SCHEDULE_PERIOD_DAILY = "daily";
     public static final String SCHEDULE_PERIOD_WEEKLY = "weekly";
 
-    public HarvestingClient() {
-        this.harvestType = HarvestType.OAI; // default harvestType
-        this.harvestStyle = HarvestStyle.DATAVERSE; // default harvestStyle
-    }
-
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    private Long id;
+    
     @ManyToOne
     @JoinColumn(name = "dataverse_id")
     private Dataverse dataverse;
+    
+    @OneToMany(mappedBy = "harvestedFrom", cascade = {MERGE, REMOVE}, orphanRemoval = true)
+    private List<Dataset> harvestedDatasets;
+    
+    @NotBlank(message = "{user.enterNickname}")
+    @Column(nullable = false, unique = true)
+    @Size(max = 30, message = "{user.nicknameLength}")
+    @Pattern.List({@Pattern(regexp = "[a-zA-Z0-9\\_\\-]*", 
+                            message = "{dataverse.nameIllegalCharacters}"),
+    			   @Pattern(regexp = ".*\\D.*", 
+    			            message = "{user.nicknameNotnumber}")})
+    private String name;
+    
+    @Enumerated(EnumType.STRING)
+    private HarvestType harvestType = OAI;
+    
+    @Enumerated(EnumType.STRING)
+    private HarvestStyle harvestStyle = DATAVERSE; 
+    
+    // TODO: do we need "orphanRemoval=true"? -- L.A. 4.4
+    // TODO: should it be @OrderBy("startTime")? -- L.A. 4.4
+    @OneToMany(mappedBy = "harvestingClient", cascade = {REMOVE, MERGE, PERSIST})
+    @OrderBy("id")
+    private List<ClientHarvestRun> harvestHistory = new ArrayList<>();
+    
+    private String harvestingUrl;
+    private String archiveUrl;
+    private String harvestingSet;
+    private String metadataPrefix;
+    private boolean scheduled;
+    private String schedulePeriod;
+    private Integer scheduleHourOfDay;
+    private Integer scheduleDayOfWeek;
+    private boolean harvestingNow;
+    private boolean deleted;
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(final Long id) {
+        this.id = id;
+    }
 
     public Dataverse getDataverse() {
         return this.dataverse;
     }
 
-    public void setDataverse(Dataverse dataverse) {
+    public void setDataverse(final Dataverse dataverse) {
         this.dataverse = dataverse;
     }
-
-    @OneToMany(mappedBy = "harvestedFrom", cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    private List<Dataset> harvestedDatasets;
 
     public List<Dataset> getHarvestedDatasets() {
         return this.harvestedDatasets;
     }
 
-    public void setHarvestedDatasets(List<Dataset> harvestedDatasets) {
-        this.harvestedDatasets = harvestedDatasets;
+    public void setHarvestedDatasets(final List<Dataset> datasets) {
+        this.harvestedDatasets = datasets;
     }
-
-    @NotBlank(message = "{user.enterNickname}")
-    @Column(nullable = false, unique = true)
-    @Size(max = 30, message = "{user.nicknameLength}")
-    @Pattern.List({@Pattern(regexp = "[a-zA-Z0-9\\_\\-]*", message = "{dataverse.nameIllegalCharacters}"),
-            @Pattern(regexp = ".*\\D.*", message = "{user.nicknameNotnumber}")})
-    private String name;
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
-
-    @Enumerated(EnumType.STRING)
-    private HarvestType harvestType;
 
     public HarvestType getHarvestType() {
         return harvestType;
     }
 
-    public void setHarvestType(HarvestType harvestType) {
-        this.harvestType = harvestType;
+    public void setHarvestType(final HarvestType type) {
+        this.harvestType = type;
     }
-
-    @Enumerated(EnumType.STRING)
-    private HarvestStyle harvestStyle;
 
     public HarvestStyle getHarvestStyle() {
-        return harvestStyle;
+        return this.harvestStyle;
     }
 
-    public void setHarvestStyle(HarvestStyle harvestStyle) {
-        this.harvestStyle = harvestStyle;
+    public void setHarvestStyle(final HarvestStyle style) {
+        this.harvestStyle = style;
     }
-
-    private String harvestingUrl;
 
     public String getHarvestingUrl() {
         return this.harvestingUrl;
     }
 
-    public void setHarvestingUrl(String harvestingUrl) {
-        this.harvestingUrl = Option.of(harvestingUrl).map(String::trim).getOrNull();
+    public void setHarvestingUrl(final String url) {
+    	this.harvestingUrl = trim(url);
     }
-
-    private String archiveUrl;
 
     public String getArchiveUrl() {
         return this.archiveUrl;
     }
 
-    public void setArchiveUrl(String archiveUrl) {
-        this.archiveUrl = archiveUrl;
+    public void setArchiveUrl(final String url) {
+        this.archiveUrl = url;
     }
-
-    private String harvestingSet;
 
     public String getHarvestingSet() {
         return this.harvestingSet;
     }
 
-    public void setHarvestingSet(String harvestingSet) {
-        this.harvestingSet = harvestingSet;
+    public void setHarvestingSet(final String set) {
+        this.harvestingSet = set;
     }
-
-    private String metadataPrefix;
 
     public String getMetadataPrefix() {
-        return metadataPrefix;
+        return this.metadataPrefix;
     }
 
-    public void setMetadataPrefix(String metadataPrefix) {
-        this.metadataPrefix = metadataPrefix;
+    public void setMetadataPrefix(final String prefix) {
+        this.metadataPrefix = prefix;
     }
-
-    // TODO: do we need "orphanRemoval=true"? -- L.A. 4.4
-    // TODO: should it be @OrderBy("startTime")? -- L.A. 4.4
-    @OneToMany(mappedBy = "harvestingClient", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
-    @OrderBy("id")
-    private List<ClientHarvestRun> harvestHistory;
 
     public List<ClientHarvestRun> getRunHistory() {
-        return harvestHistory;
+        return this.harvestHistory;
     }
 
-    public void setRunHistory(List<ClientHarvestRun> harvestHistory) {
-        this.harvestHistory = harvestHistory;
+    public void setRunHistory(final List<ClientHarvestRun> history) {
+        this.harvestHistory = history != null ? history : new ArrayList<>();
+    }
+    
+    public void addRun(final ClientHarvestRun run) {
+    	this.harvestHistory.add(run);
     }
 
-    public String getLastResult() {
-        if (harvestHistory == null || harvestHistory.size() == 0) {
-            return null;
-        }
-        return harvestHistory.get(harvestHistory.size() - 1).getResultLabel();
-    }
+	public String getLastResult() {
+		return getLastRun(run -> true, ClientHarvestRun::getResultLabel);
+	}
 
     public ClientHarvestRun getLastRun() {
-        if (harvestHistory == null || harvestHistory.size() == 0) {
-            return null;
-        }
-
-        return harvestHistory.get(harvestHistory.size() - 1);
+    	return getLastRun(run -> true, identity());
     }
 
-    public ClientHarvestRun getLastSuccessfulRun() {
-        if (harvestHistory == null || harvestHistory.size() == 0) {
-            return null;
-        }
+	public ClientHarvestRun getLastSuccessfulRun() {
+		return getLastRun(ClientHarvestRun::isSuccess, identity());
+	}
 
-        int i = harvestHistory.size() - 1;
-
-        while (i > -1) {
-            if (harvestHistory.get(i).isSuccess()) {
-                return harvestHistory.get(i);
-            }
-            i--;
-        }
-
-        return null;
-    }
-
-    ClientHarvestRun getLastNonEmptyRun() {
-        if (harvestHistory == null || harvestHistory.size() == 0) {
-            return null;
-        }
-
-        int i = harvestHistory.size() - 1;
-
-        while (i > -1) {
-            if (harvestHistory.get(i).isSuccess()) {
-                if (harvestHistory.get(i).getHarvestedDatasetCount().longValue() > 0 ||
-                        harvestHistory.get(i).getDeletedDatasetCount().longValue() > 0) {
-                    return harvestHistory.get(i);
-                }
-            }
-            i--;
-        }
-        return null;
+    ClientHarvestRun getLastNonEmptyRun() {      
+        return getLastRun(ClientHarvestRun::isNonEmpty, identity());
     }
 
     public Date getLastHarvestTime() {
-        ClientHarvestRun lastHarvest = getLastRun();
-        if (lastHarvest != null) {
-            return lastHarvest.getStartTime();
-        }
-        return null;
+    	return getLastRun(run -> true, ClientHarvestRun::getStartTime);
     }
 
     public Date getLastSuccessfulHarvestTime() {
-        ClientHarvestRun lastSuccessfulHarvest = getLastSuccessfulRun();
-        if (lastSuccessfulHarvest != null) {
-            return lastSuccessfulHarvest.getStartTime();
-        }
-        return null;
+    	return getLastRun(ClientHarvestRun::isSuccess, ClientHarvestRun::getStartTime);
     }
 
     public Date getLastNonEmptyHarvestTime() {
-        ClientHarvestRun lastNonEmptyHarvest = getLastNonEmptyRun();
-        if (lastNonEmptyHarvest != null) {
-            return lastNonEmptyHarvest.getStartTime();
-        }
-        return null;
+    	return getLastRun(ClientHarvestRun::isNonEmpty, ClientHarvestRun::getStartTime);
     }
 
     public Long getLastHarvestedDatasetCount() {
-        ClientHarvestRun lastNonEmptyHarvest = getLastNonEmptyRun();
-        if (lastNonEmptyHarvest != null) {
-            return lastNonEmptyHarvest.getHarvestedDatasetCount();
-        }
-        return null;
+    	return getLastRun(ClientHarvestRun::isNonEmpty, ClientHarvestRun::getHarvestedDatasetCount);
     }
 
     public Long getLastFailedDatasetCount() {
-        ClientHarvestRun lastNonEmptyHarvest = getLastNonEmptyRun();
-        if (lastNonEmptyHarvest != null) {
-            return lastNonEmptyHarvest.getFailedDatasetCount();
-        }
-        return null;
+    	return getLastRun(ClientHarvestRun::isNonEmpty, ClientHarvestRun::getFailedDatasetCount);
     }
 
     public Long getLastDeletedDatasetCount() {
-        ClientHarvestRun lastNonEmptyHarvest = getLastNonEmptyRun();
-        if (lastNonEmptyHarvest != null) {
-            return lastNonEmptyHarvest.getDeletedDatasetCount();
-        }
-        return null;
+    	return getLastRun(ClientHarvestRun::isNonEmpty, ClientHarvestRun::getDeletedDatasetCount);
     }
-    
-    /* move the fields below to the new HarvestingClientRun class: 
-    private String harvestResult;
-    
-    public String getResult() {
-        return harvestResult;
-    }
-
-    public void setResult(String harvestResult) {
-        this.harvestResult = harvestResult;
-    }
-    
-    // "Last Harvest Time" is the last time we *attempted* to harvest 
-    // from this remote resource. 
-    // It wasn't necessarily a successful attempt!
-    
-    @Temporal(value = TemporalType.TIMESTAMP)
-    private Date lastHarvestTime;
-
-    public Date getLastHarvestTime() {
-        return lastHarvestTime;
-    }
-
-    public void setLastHarvestTime(Date lastHarvestTime) {
-        this.lastHarvestTime = lastHarvestTime;
-    }
-    
-    // This is the last "successful harvest" - i.e., the last time we 
-    // tried to harvest, and got a response from the remote server. 
-    // We may not have necessarily harvested any useful content though; 
-    // the result may have been a "no content" or "no changes since the last harvest"
-    // response. 
-    
-    @Temporal(value = TemporalType.TIMESTAMP)
-    private Date lastSuccessfulHarvestTime; 
-    
-    public Date getLastSuccessfulHarvestTime() {
-        return lastSuccessfulHarvestTime;
-    }
-
-    public void setLastSuccessfulHarvestTime(Date lastSuccessfulHarvestTime) {
-        this.lastSuccessfulHarvestTime = lastSuccessfulHarvestTime;
-    }
-    
-    // Finally, this is the time stamp from the last "non-empty" harvest. 
-    // I.e. the last time we ran a harvest that actually resulted in 
-    // some Datasets created, updated or deleted:
-    
-    @Temporal(value = TemporalType.TIMESTAMP)
-    private Date lastNonEmptyHarvestTime;
-    
-    public Date getLastNonEmptyHarvestTime() {
-        return lastNonEmptyHarvestTime;
-    }
-
-    public void setLastNonEmptyHarvestTime(Date lastNonEmptyHarvestTime) {
-        this.lastNonEmptyHarvestTime = lastNonEmptyHarvestTime;
-    }
-    
-    // And these are the Dataset counts from that last "non-empty" harvest:
-    private Long harvestedDatasetCount;
-    private Long failedDatasetCount;
-    private Long deletedDatasetCount;
-    
-    public Long getLastHarvestedDatasetCount() {
-        return harvestedDatasetCount;
-    }
-
-    public void setHarvestedDatasetCount(Long harvestedDatasetCount) {
-        this.harvestedDatasetCount = harvestedDatasetCount;
-    }
-    
-    public Long getLastFailedDatasetCount() {
-        return failedDatasetCount;
-    }
-
-    public void setFailedDatasetCount(Long failedDatasetCount) {
-        this.failedDatasetCount = failedDatasetCount;
-    }
-    
-    public Long getLastDeletedDatasetCount() {
-        return deletedDatasetCount;
-    }
-
-    public void setDeletedDatasetCount(Long deletedDatasetCount) {
-        this.deletedDatasetCount = deletedDatasetCount;
-    }
-    */
-
-    private boolean scheduled;
 
     public boolean isScheduled() {
         return this.scheduled;
     }
 
-    public void setScheduled(boolean scheduled) {
+    public void setScheduled(final boolean scheduled) {
         this.scheduled = scheduled;
     }
 
-    private String schedulePeriod;
-
     public String getSchedulePeriod() {
-        return schedulePeriod;
+        return this.schedulePeriod;
     }
 
-    public void setSchedulePeriod(String schedulePeriod) {
-        this.schedulePeriod = schedulePeriod;
+    public void setSchedulePeriod(final String period) {
+        this.schedulePeriod = period;
     }
-
-    private Integer scheduleHourOfDay;
 
     public Integer getScheduleHourOfDay() {
-        return scheduleHourOfDay;
+        return this.scheduleHourOfDay;
     }
 
-    public void setScheduleHourOfDay(Integer scheduleHourOfDay) {
+    public void setScheduleHourOfDay(final Integer scheduleHourOfDay) {
         this.scheduleHourOfDay = scheduleHourOfDay;
     }
 
-    private Integer scheduleDayOfWeek;
-
     public Integer getScheduleDayOfWeek() {
-        return scheduleDayOfWeek;
+        return this.scheduleDayOfWeek;
     }
 
-    public void setScheduleDayOfWeek(Integer scheduleDayOfWeek) {
+    public void setScheduleDayOfWeek(final Integer scheduleDayOfWeek) {
         this.scheduleDayOfWeek = scheduleDayOfWeek;
     }
 
     public String getScheduleDescription() {
-        Date date = new Date();
-        Calendar cal = new GregorianCalendar();
-        cal.setTime(date);
-        SimpleDateFormat weeklyFormat = new SimpleDateFormat(" E h a ");
-        SimpleDateFormat dailyFormat = new SimpleDateFormat(" h a ");
-        String desc = "Not Scheduled";
-        if (schedulePeriod != null && schedulePeriod != "") {
-            cal.set(Calendar.HOUR_OF_DAY, scheduleHourOfDay);
-            if (schedulePeriod.equals(SCHEDULE_PERIOD_WEEKLY)) {
-                cal.set(Calendar.DAY_OF_WEEK, scheduleDayOfWeek);
-                desc = "Weekly, " + weeklyFormat.format(cal.getTime());
+        if (isNoneEmpty(this.schedulePeriod)) {
+            final Calendar cal = new GregorianCalendar();
+            cal.set(HOUR_OF_DAY, this.scheduleHourOfDay);
+            if (this.schedulePeriod.equals(SCHEDULE_PERIOD_WEEKLY)) {
+                cal.set(DAY_OF_WEEK, this.scheduleDayOfWeek);
+                return format("Weekly, ", " E h a ", cal.getTime());
             } else {
-                desc = "Daily, " + dailyFormat.format(cal.getTime());
+                return format("Daily, ", " h a ", cal.getTime());
             }
+        } else {
+        	return "Not Scheduled";
         }
-        return desc;
     }
-
-    private boolean harvestingNow;
 
     public boolean isHarvestingNow() {
         return this.harvestingNow;
     }
 
-    public void setHarvestingNow(boolean harvestingNow) {
+    public void setHarvestingNow(final boolean harvestingNow) {
         this.harvestingNow = harvestingNow;
     }
-
-    private boolean deleted;
 
 
     public boolean isDeleteInProgress() {
@@ -449,24 +303,37 @@ public class HarvestingClient implements Serializable, JpaEntity<Long> {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof HarvestingClient)) {
-            return false;
-        }
-        HarvestingClient other = (HarvestingClient) object;
-        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
+    public boolean equals(final Object other) {
+    	return other instanceof HarvestingClient
+    			? Objects.equals(this.id, ((HarvestingClient)other).id)
+    			: false;
     }
 
     @Override
     public String toString() {
-        return "HarvestingClient[ id=" + id + " ]";
+        return "HarvestingClient[name=" + this.name + " id=" + this.id + "]";
     }
+    
+	private <R> R getLastRun(final Predicate<ClientHarvestRun> condition, 
+			final Function<ClientHarvestRun, R> mapper) {
+		final ListIterator<ClientHarvestRun> it = this.harvestHistory.
+				listIterator(this.harvestHistory.size());
 
+		while (it.hasPrevious()) {
+			final ClientHarvestRun run = it.previous();
+			if (condition.test(run)) {
+				return mapper.apply(run);
+			}
+		}
+		return null;
+	}
+	
+	private static String format(final String prefix, final String formatStr, 
+			final Date date) {
+		return prefix.concat(new SimpleDateFormat(formatStr).format(date));
+	}
 }
