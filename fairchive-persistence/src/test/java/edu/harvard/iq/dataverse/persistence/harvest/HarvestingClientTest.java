@@ -6,7 +6,7 @@ import java.util.Date;
 
 import org.junit.jupiter.api.Test;
 
-public class HervestingClientTest {
+public class HarvestingClientTest {
 
 	@Test
 	void equals_and_hashCOde() {
@@ -87,7 +87,7 @@ public class HervestingClientTest {
 		
 		ClientHarvestRun run2 = new ClientHarvestRun();
 		run2.setResult(ClientHarvestRun.RunResultType.SUCCESS);
-		run1.setStartTime(new Date());
+		run2.setStartTime(new Date());
 		run2.setDeletedDatasetCount(1L);
 		run2.setHarvestedDatasetCount(2L);
 		client.addRun(run2);
