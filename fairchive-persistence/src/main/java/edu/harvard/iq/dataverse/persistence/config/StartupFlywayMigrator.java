@@ -1,12 +1,15 @@
 package edu.harvard.iq.dataverse.persistence.config;
 
-import org.flywaydb.core.Flyway;
+import static java.lang.System.currentTimeMillis;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.sql.DataSource;
+
+import org.flywaydb.core.Flyway;
 
 @Startup
 @Singleton
@@ -24,10 +27,15 @@ public class StartupFlywayMigrator {
                 .baselineOnMigrate(true)
                 .load();
 
-        long begin = System.currentTimeMillis();
+        final long begin = currentTimeMillis();
         flyway.migrate();
-        long end = System.currentTimeMillis();
-        System.out.println("!================ DB migration done in: " + (end - begin) + " ms.");
+        final long end = currentTimeMillis();
+        logDuration(end - begin);
+    }
+    
+	private static void logDuration(final long duration) {
+    	getLogger(StartupFlywayMigrator.class).
+    		info("DB version migration done in " + duration + " ms.");
     }
 }
 
