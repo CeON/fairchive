@@ -21,7 +21,7 @@ public class StartupFlywayMigrator {
     @PostConstruct
     public void migrateDatabase() {
 
-        Flyway flyway = Flyway.configure()
+        final Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
                 .validateOnMigrate(false)
                 .baselineOnMigrate(true)
