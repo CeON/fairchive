@@ -87,6 +87,16 @@
             <snapshots><enabled>true</enabled></snapshots>
             <releases><enabled>false</enabled></releases>
         </repository>
+		<repository>
+            <id>dataone.org</id>
+            <url>https://maven.dataone.org</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <modules>
