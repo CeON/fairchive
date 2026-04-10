@@ -1,36 +1,39 @@
 package edu.harvard.iq.dataverse.doi;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
-import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
-import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import org.assertj.core.api.Assertions;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DoiBackgroundReservationInterval;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DoiProvider;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.quality.Strictness.LENIENT;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
+@MockitoSettings(strictness = LENIENT)
 class DOIBackgroundReservationServiceTest {
 
     @Mock
-    private SettingsServiceBean settingsServiceBean;
+    private SettingsServiceBean settings;
 
     @Mock
     private Timer timer;
@@ -39,63 +42,60 @@ class DOIBackgroundReservationServiceTest {
     private DatasetRepository datasetRepository;
 
     @Mock
-    private DOIDataCiteServiceBean doiDataCiteServiceBean;
+    private DOIDataCiteServiceBean doiDataCiteService;
 
     @Mock
     private IndexServiceBean indexServiceBean;
 
     @InjectMocks
-    private DOIBackgroundReservationService doiBackgroundReservationService;
+    private DOIBackgroundReservationService reservationService;
 
     @Test
     void registerDoiPeriodically_WithDifferentProvider() {
-        //when
-        when(settingsServiceBean.getValueForKey(SettingsServiceBean.Key.DoiProvider)).thenReturn("FAKE");
-        doiBackgroundReservationService.reserveDoiPeriodically(timer);
+    	
+        when(this.settings.getValueForKey(DoiProvider)).thenReturn("FAKE");
+        
+        this.reservationService.reserveDoiPeriodically(this.timer);
 
-        //then
-        verify(timer, times(0)).schedule(any(TimerTask.class), any(Long.class), any(Long.class));
+        verify(this.timer, times(0)).schedule(any(TimerTask.class), anyLong(), anyLong());
     }
 
     @Test
     void registerDoiPeriodically_WithMissingInterval() {
-        //when
-        doReturn("DataCite").when(settingsServiceBean).getValueForKey(SettingsServiceBean.Key.DoiProvider);
-        doReturn("").when(settingsServiceBean).getValueForKey(SettingsServiceBean.Key.DoiBackgroundReservationInterval);
-        doiBackgroundReservationService.reserveDoiPeriodically(timer);
+ 
+        when(this.settings.getValueForKey(DoiProvider)).thenReturn("DataCite");
+        when(this.settings.getValueForKey(DoiBackgroundReservationInterval)).thenReturn("");
+        
+        this.reservationService.reserveDoiPeriodically(this.timer);
 
-        //then
-        verify(timer, times(0)).schedule(any(TimerTask.class), any(Long.class), any(Long.class));
+        verify(this.timer, times(0)).schedule(any(TimerTask.class), anyLong(), anyLong());
     }
 
     @Test
     void registerDoiPeriodically() {
-        //when
-        doReturn("DataCite").when(settingsServiceBean).getValueForKey(SettingsServiceBean.Key.DoiProvider);
-        doReturn("20").when(settingsServiceBean).getValueForKey(SettingsServiceBean.Key.DoiBackgroundReservationInterval);
+    	
+    	when(this.settings.getValueForKey(DoiProvider)).thenReturn("DataCite");
+        when(this.settings.getValueForKey(DoiBackgroundReservationInterval)).thenReturn("20");
 
-        doiBackgroundReservationService.reserveDoiPeriodically(timer);
+        this.reservationService.reserveDoiPeriodically(this.timer);
 
-        //then
-        verify(timer, times(1)).schedule(any(TimerTask.class), any(Long.class), any(Long.class));
+        verify(this.timer, times(1)).schedule(any(TimerTask.class), anyLong(), anyLong());
     }
 
     @Test
     void registerDataCiteIdentifier() {
-        //when
+    	
         final Dataset dataset = prepareDataset();
-        when(datasetRepository.findByNonRegisteredIdentifier()).thenReturn(Lists.newArrayList(dataset));
-        when(doiDataCiteServiceBean.alreadyExists(any(GlobalId.class))).thenReturn(false);
-        when(datasetRepository.save(any(Dataset.class))).thenReturn(dataset);
+        when(this.datasetRepository.findByNonRegisteredIdentifier()).thenReturn(singletonList(dataset));
+        when(this.doiDataCiteService.alreadyExists(any(GlobalId.class))).thenReturn(false);
+        when(this.datasetRepository.save(any(Dataset.class))).thenReturn(dataset);
 
-        doiBackgroundReservationService.registerDataCiteIdentifier();
+        this.reservationService.registerDataCiteIdentifier();
 
-        //then
-        Assertions.assertThat(dataset.isIdentifierRegistered()).isTrue();
-
+        assertThat(dataset.isIdentifierRegistered()).isTrue();
     }
 
-    private Dataset prepareDataset(){
+    private static Dataset prepareDataset(){
         Dataset dataset = new Dataset();
 
         dataset.setIdentifier("TestID");
