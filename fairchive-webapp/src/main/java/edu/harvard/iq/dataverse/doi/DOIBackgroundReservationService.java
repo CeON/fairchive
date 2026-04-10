@@ -1,12 +1,13 @@
 package edu.harvard.iq.dataverse.doi;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DoiBackgroundReservationInterval;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DoiProvider;
+import static java.time.Instant.now;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -15,7 +16,7 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 
-import org.apache.commons.lang3. math.NumberUtils;
+import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
@@ -24,8 +25,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
 
 /**
  * Class designed to reserve doi's in the background.
@@ -35,9 +34,9 @@ import io.vavr.control.Try;
 @DependsOn("StartupFlywayMigrator")
 public class DOIBackgroundReservationService {
 
-    private static final Logger logger = Logger.getLogger(DOIBackgroundReservationService.class.getCanonicalName());
+    private static final Logger log = getLogger(DOIBackgroundReservationService.class);
 
-    private SettingsServiceBean settingsServiceBean;
+    private SettingsServiceBean settings;
     private DatasetRepository datasetRepository;
     private DatasetService datasetService;
     private DOIDataCiteServiceBean doiDataCiteService;
@@ -45,16 +44,15 @@ public class DOIBackgroundReservationService {
 
     private final Timer timer = new Timer();
 
-    public DOIBackgroundReservationService() {
-    }
+    public DOIBackgroundReservationService() {}
 
     @Inject
-    public DOIBackgroundReservationService(SettingsServiceBean settingsServiceBean, 
-                                           DatasetRepository datasetRepository,
-                                           DatasetService datasetService, 
-                                           DOIDataCiteServiceBean doiDataCiteService,
-                                           IndexServiceBean indexServiceBean) {
-        this.settingsServiceBean = settingsServiceBean;
+    public DOIBackgroundReservationService(final SettingsServiceBean settings, 
+                                           final DatasetRepository datasetRepository,
+                                           final DatasetService datasetService, 
+                                           final DOIDataCiteServiceBean doiDataCiteService,
+                                           final IndexServiceBean indexServiceBean) {
+        this.settings = settings;
         this.datasetRepository = datasetRepository;
         this.datasetService = datasetService;
         this.doiDataCiteService = doiDataCiteService;
@@ -63,70 +61,74 @@ public class DOIBackgroundReservationService {
 
     @PostConstruct
     void startReservation() {
-        reserveDoiPeriodically(timer);
+        reserveDoiPeriodically(this.timer);
     }
 
     @PreDestroy
     void preDestroy() {
-        timer.cancel();
+        this.timer.cancel();
     }
 
     /**
-     * Creates a timer which will reserve doi's in interval provided by 'DoiBackgroundReservationInterval'.
-     * Run method has to be wrapped in Try otherwise Transaction rollback could destroy timer setup.
+     * Creates a timer which will reserve doi's in interval provided by 
+     * 'DoiBackgroundReservationInterval'.
      */
-    void reserveDoiPeriodically(Timer timer) {
-        String provider = settingsServiceBean.getValueForKey(SettingsServiceBean.Key.DoiProvider);
-
+    void reserveDoiPeriodically(final Timer timer) {
+        final String provider = this.settings.getValueForKey(DoiProvider);
         if (provider.equals("DataCite")) {
-
-            Option<Long> intervalInMs = Option
-                    .of(settingsServiceBean.getValueForKey(SettingsServiceBean.Key.DoiBackgroundReservationInterval))
-                    .filter(NumberUtils::isCreatable)
-                    .map(Long::parseLong);
-
-            if (intervalInMs.isEmpty() || intervalInMs.get() < 0) {
-                return;
-            }
-
-                timer.schedule(new TimerTask() {
-                                   @Override
-                                   public void run() {
-                                       Try.run(() -> registerDataCiteIdentifier());
-                                   }
-                               }
-                        , 0, intervalInMs.get());
-
+        	final Long interval =  this.settings.getValueForKeyAsLong(DoiBackgroundReservationInterval);
+        	if(interval != null) {
+                timer.schedule(new ReservationTimerTask(), 0, interval);
+                log.info("Activated DOI background reservation service..");
+        	} else {
+        		log.error("Could not read configuration value of 'DoiBackgroundReservationInterval' for 'DoiProvider' = 'DataCite'. DOI background reservation service inactive.");
+        	}
+        } else {
+        	log.info("DOI background reservation service inactive.");
         }
-
     }
 
     void registerDataCiteIdentifier() {
-        List<Dataset> nonReservedDatasets = datasetRepository.findByNonRegisteredIdentifier();
-
-        for (Dataset nonReservedDataset : nonReservedDatasets) {
-            int attempts = 0;
-
-            GlobalId globalId = nonReservedDataset.getGlobalId();
-
-            while (doiDataCiteService.alreadyExists(globalId) && attempts < 10) {
-                globalId = new GlobalId(nonReservedDataset.getProtocol(),
-                                        nonReservedDataset.getAuthority(),
-                                        datasetService.generateDatasetIdentifier(nonReservedDataset));
-                attempts++;
-            }
-
-            Dataset refreshedDataset = datasetRepository.save(nonReservedDataset);
-            refreshedDataset.setIdentifier(globalId.getIdentifier());
-
-            Try.of(() -> doiDataCiteService.createIdentifier(refreshedDataset))
-               .onFailure(throwable -> logger.log(Level.INFO, "Identifier could not be reserved", throwable))
-               .onSuccess(s -> {
-                   refreshedDataset.setGlobalIdCreateTime(new Timestamp(new Date().getTime()));
-                   refreshedDataset.setIdentifierRegistered(true);
-                   datasetRepository.save(refreshedDataset);
-                   indexServiceBean.asyncIndexDataset(refreshedDataset, false);
-               });
+    	// method has to be wrapped in try block, otherwise transaction rollback 
+    	// could destroy timer setup.
+    	try {
+	        for (final Dataset nonReservedDataset : this.datasetRepository.
+	        		findByNonRegisteredIdentifier()) {
+	            final GlobalId globalId = generateGlobalIdFor(nonReservedDataset);
+	            final Dataset refreshedDataset = this.datasetRepository.save(nonReservedDataset);
+	            refreshedDataset.setIdentifier(globalId.getIdentifier());
+	            try {
+	            	this.doiDataCiteService.createIdentifier(refreshedDataset);
+	            	refreshedDataset.setGlobalIdCreateTime(Timestamp.from(now()));
+	                refreshedDataset.setIdentifierRegistered(true);
+	                this.datasetRepository.save(refreshedDataset);
+	                this.indexServiceBean.asyncIndexDataset(refreshedDataset, false);
+	            } catch (final Exception e) {
+	            	 log.info("Identifier could not be reserved.", e);
+	            }
+	        }
+    	} catch (final Throwable e) {
+    		log.error(e.getMessage(), e);
+    	}
+    }
+    
+    private GlobalId generateGlobalIdFor(final Dataset dataset) {
+        GlobalId globalId = dataset.getGlobalId();
+        int attempts = 0;
+        
+        while (this.doiDataCiteService.alreadyExists(globalId) && attempts < 10) {
+            globalId = new GlobalId(dataset.getProtocol(), dataset.getAuthority(), 
+            		this.datasetService.generateDatasetIdentifier(dataset));
+            attempts++;
+        }
+        
+        return globalId;
+    }
+    //--------------------------------------------------------------------------
+    private class ReservationTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            registerDataCiteIdentifier();
         }
     }
 }

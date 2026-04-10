@@ -51,7 +51,7 @@ class DOIBackgroundReservationServiceTest {
     private DOIBackgroundReservationService reservationService;
 
     @Test
-    void registerDoiPeriodically_WithDifferentProvider() {
+    void registerDoiPeriodically_WithFakeProvider() {
     	
         when(this.settings.getValueForKey(DoiProvider)).thenReturn("FAKE");
         
@@ -64,7 +64,7 @@ class DOIBackgroundReservationServiceTest {
     void registerDoiPeriodically_WithMissingInterval() {
  
         when(this.settings.getValueForKey(DoiProvider)).thenReturn("DataCite");
-        when(this.settings.getValueForKey(DoiBackgroundReservationInterval)).thenReturn("");
+        when(this.settings.getValueForKeyAsLong(DoiBackgroundReservationInterval)).thenReturn(null);
         
         this.reservationService.reserveDoiPeriodically(this.timer);
 
