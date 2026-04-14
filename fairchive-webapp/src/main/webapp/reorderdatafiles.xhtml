@@ -29,7 +29,7 @@
                 <!-- Last reorder undo -->
                 <p:panel id="undoLastReorder" 
                          class="undo-last-reorder-panel"
-                         rendered="#{page.lastReorderFromAndTo != null}">
+                         rendered="#{page.displayUndoLastReorder()}">
                     <h:outputFormat value="#{bundle['file.reorder.lastReorder']}" 
                                     escape="false">
                                     <f:param value="#{page.lastReorderFileMetadata.label}"/>

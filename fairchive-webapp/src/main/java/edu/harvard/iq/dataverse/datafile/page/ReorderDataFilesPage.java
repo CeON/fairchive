@@ -55,8 +55,10 @@ public class ReorderDataFilesPage implements java.io.Serializable {
         if (!fetchedVersion.isPresent() || fetchedVersion.get().getDataset().isHarvested()) {
             return this.permissionsWrapper.notFound();
         }
+        
+        this.datasetVersion = fetchedVersion.get();
 
-        this.fileMetadatas = fetchedVersion.get().getAllFilesMetadataSorted();
+        this.fileMetadatas = this.datasetVersion.getAllFilesMetadataSorted();
 
         if (!this.permissionsWrapper.canCurrentUserUpdateDataset(this.datasetVersion.getDataset())) {
             return this.permissionsWrapper.notAuthorized();
@@ -115,7 +117,7 @@ public class ReorderDataFilesPage implements java.io.Serializable {
      */
     private Optional<DatasetVersion> fetchDatasetVersion(final Long id) {
         return Optional.ofNullable(id)
-                .map(datasetId -> this.datasetVersion = this.datasetVersionService.getById(datasetId));
+                .map(datasetId -> this.datasetVersionService.getById(datasetId));
     }
 
     /**
@@ -125,16 +127,16 @@ public class ReorderDataFilesPage implements java.io.Serializable {
      */
     public String returnToPreviousPage() {
         if (this.datasetVersion.isDraft()) {
-            return "/dataset.xhtml?persistentId=" 
-            		+ this.datasetVersion.getDataset().getGlobalId().asString() 
-            		+ "&version=DRAFT&faces-redirect=true";
-        }
-        return "/dataset.xhtml?persistentId="
+            return "/dataset.xhtml?version=DRAFT&faces-redirect=true&persistentId=".
+            		concat(this.datasetVersion.getDataset().getGlobalId().asString());
+        } else {
+        	return "/dataset.xhtml?faces-redirect=true&persistentId="
                     + this.datasetVersion.getDataset().getGlobalId().asString()
-                    + "&faces-redirect=true&version="
+                    + "&version="
                     + this.datasetVersion.getVersionNumber() 
                     + '.'
                     + this.datasetVersion.getMinorVersionNumber();
+        }
     }
 
     public String getTitle() {
@@ -166,5 +168,7 @@ public class ReorderDataFilesPage implements java.io.Serializable {
         this.fileMetadatas = fileMetadatas;
     }
     
-    
+    public boolean displayUndoLastReorder() {
+    	return this.lastReorderFromAndTo != null;
+    }
 }
