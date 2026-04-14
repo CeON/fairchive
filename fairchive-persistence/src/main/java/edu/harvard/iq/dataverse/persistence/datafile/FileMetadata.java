@@ -383,5 +383,25 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     public void decreaseDisplayOrder() {
         this.displayOrder--;
     }
+    
+    /**
+     * Sets display order same as index in the list.
+     *
+     * @param filesToReorder
+     * @return filemetadas with changed display order.
+     */
+    public static List<FileMetadata> reorderDisplayOrder(final List<FileMetadata> filesToReorder) {
+        final List<FileMetadata> result = new ArrayList<>(filesToReorder.size());
+
+        for (int i = 0; i < filesToReorder.size(); i++) {
+            final FileMetadata fileMetadata = filesToReorder.get(i);
+            if (fileMetadata.getDisplayOrder() != i) {
+                fileMetadata.setDisplayOrder(i);
+                result.add(fileMetadata);
+            }
+        }
+
+        return result;
+    }
 
 }

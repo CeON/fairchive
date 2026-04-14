@@ -28,7 +28,7 @@ public class FileMetadataOrderTest {
         order = newArrayList();
 
         // when
-        List<FileMetadata> changes = FileMetadataOrder.reorderDisplayOrder(order);
+        List<FileMetadata> changes = FileMetadata.reorderDisplayOrder(order);
 
         // then
         verifyNoChanges(changes);
@@ -43,7 +43,7 @@ public class FileMetadataOrderTest {
                 makeFileMetadata("file3.png", 5));
 
         // when
-        List<FileMetadata> changes = FileMetadataOrder.reorderDisplayOrder(order);
+        List<FileMetadata> changes = FileMetadata.reorderDisplayOrder(order);
 
         // then
         verifyDisplayOrder(changes, "file1.png", 0);

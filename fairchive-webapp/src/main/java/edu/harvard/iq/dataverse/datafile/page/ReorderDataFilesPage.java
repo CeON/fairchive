@@ -102,7 +102,7 @@ public class ReorderDataFilesPage implements java.io.Serializable {
      */
     public String saveFileOrder() {
 
-        this.datasetVersionService.saveFileMetadata(FileMetadataOrder.reorderDisplayOrder(this.fileMetadatas));
+        this.datasetVersionService.saveFileMetadata(FileMetadata.reorderDisplayOrder(this.fileMetadatas));
 
         return returnToPreviousPage();
     }
