@@ -5,22 +5,22 @@
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
       xmlns:jsf="http://xmlns.jcp.org/jsf"
-      xmlns:dv="http://dataverse.org/facelets"
->
+      xmlns:dv="http://dataverse.org/facelets">
 
 <f:view locale="#{dataverseSession.localeCode}" />
 
-<h:head>
-</h:head>
-
 <h:body>
     <ui:composition template="/dataverse_template.xhtml">
-        <ui:param name="pageTitle" value="#{ReorderDataFilesPage.pageTitle}"/>
-        <ui:param name="fileMetadatas" value="#{ReorderDataFilesPage.fileMetadatas}"/>
+        <ui:param name="pageTitle" 
+                  value="#{ReorderDataFilesPage.pageTitle}"/>
+        <ui:param name="fileMetadatas" 
+                  value="#{ReorderDataFilesPage.fileMetadatas}"/>
         <ui:define name="body">
             <f:metadata>
-                <f:viewParam name="datasetVersionId" value="#{ReorderDataFilesPage.datasetVersion.id}"/>
-                <f:viewAction action="#{ReorderDataFilesPage.init}" rendered="true"/>
+                <f:viewParam name="datasetVersionId" 
+                             value="#{ReorderDataFilesPage.datasetVersion.id}"/>
+                <f:viewAction action="#{ReorderDataFilesPage.init}" 
+                              rendered="true"/>
                 <f:viewAction
                         action="#{dataverseHeaderFragment.initBreadcrumbs(ReorderDataFilesPage.datasetVersion.dataset)}"/>
                 <f:viewAction action="#{dataverseHeaderFragment.addBreadcrumb(bundle['file.reorderFiles'])}"/>
@@ -28,9 +28,11 @@
             <h:form id="form">
                 
                 <!-- Last reorder undo -->
-                <p:panel id="undoLastReorder" class="undo-last-reorder-panel"
-                            rendered="#{ReorderDataFilesPage.lastReorderFromAndTo != null}">
-                    <h:outputFormat value="#{bundle['file.reorder.lastReorder']}" escape="false">
+                <p:panel id="undoLastReorder" 
+                         class="undo-last-reorder-panel"
+                         rendered="#{ReorderDataFilesPage.lastReorderFromAndTo != null}">
+                    <h:outputFormat value="#{bundle['file.reorder.lastReorder']}" 
+                                    escape="false">
                                     <f:param value="#{ReorderDataFilesPage.lastReorderFileMetadata.label}"/>
                                     <f:param value="#{ReorderDataFilesPage.lastReorderFromAndTo._1() + 1}"/>
                                     <f:param value="#{ReorderDataFilesPage.lastReorderFromAndTo._2() + 1}"/>
@@ -47,14 +49,16 @@
                              style="margin-right:1px;"
                              value="#{ReorderDataFilesPage.fileMetadatas}"
                              sortOrder="ascending"
-                             var="fileMetadata" widgetVar="filesTable"
+                             var="fileMetadata" 
+                             widgetVar="filesTable"
                              rowIndexVar="rowIndex"
                              draggableRows="true"
                              emptyMessage="#{bundle['file.notFound.tip']}"
                              styleClass="filesTable no-min-width"
                 >
                 
-                    <p:ajax event="rowReorder" listener="#{ReorderDataFilesPage.onRowReorder}"
+                    <p:ajax event="rowReorder" 
+                            listener="#{ReorderDataFilesPage.onRowReorder}"
                             update="@form" />
                 
                     <p:column headerText="#{bundle.file}">
@@ -72,45 +76,58 @@
 
                         <!-- TYPE + SIZE + DATE -->
                         <div class="text-muted small">
-                            <h:outputText id="fileTypeOutputRegular" value="#{fileMetadata.dataFile.friendlyType}"
+                            <h:outputText id="fileTypeOutputRegular" 
+                                          value="#{fileMetadata.dataFile.friendlyType}"
                                           rendered="#{!(fileMetadata.dataFile.tabularData)}"/>
-                            <h:outputText id="fileTypeOutputTabular" value="#{bundle['file.type.tabularData']}"
+                            <h:outputText id="fileTypeOutputTabular" 
+                                          value="#{bundle['file.type.tabularData']}"
                                           rendered="#{fileMetadata.dataFile.tabularData}"/>
-                            <h:outputText id="fileSize" value=" - #{fileMetadata.dataFile.friendlySize}"/>
+                            <h:outputText id="fileSize" 
+                                          value=" - #{fileMetadata.dataFile.friendlySize}"/>
 
-                            <h:outputText id="fileCreatePublishDate" value=" - #{dv:formatDate(fileMetadata.getFileDateToDisplay())}"
+                            <h:outputText id="fileCreatePublishDate" 
+                                          value=" - #{dv:formatDate(fileMetadata.getFileDateToDisplay())}"
                                           rendered="#{!(empty fileMetadata.id)}"/>
                         </div>
                         <!-- UNF + Variables, Obsersvations -->
-                        <div class="text-muted small" jsf:rendered="#{fileMetadata.dataFile.tabularData}">
+                        <div class="text-muted small" 
+                             jsf:rendered="#{fileMetadata.dataFile.tabularData}">
                             <h:outputText id="fileNumVars"
                                           value="#{fileMetadata.dataFile.dataTable.varQuantity} #{bundle['file.metaData.dataFile.dataTab.variables']}, "
                                           rendered="#{fileMetadata.dataFile.tabularData}"/>
                             <h:outputText id="fileNumObs"
                                           value="#{fileMetadata.dataFile.dataTable.caseQuantity} #{bundle['file.metaData.dataFile.dataTab.observations']} #{!empty fileMetadata.dataFile.unf ? ' - ' : ''}"
                                           rendered="#{fileMetadata.dataFile.tabularData}"/>
-                            <h:outputText id="fileUNF" value="#{fileMetadata.dataFile.unf}"
+                            <h:outputText id="fileUNF" 
+                                          value="#{fileMetadata.dataFile.unf}"
                                           rendered="#{!empty fileMetadata.dataFile.unf}"/>
                         </div>
 
-                        <div class="fileDescription small" jsf:rendered="#{!(empty fileMetadata.description)}">
-                            <h:commandLink id="detailstoggle" value="#{bundle['file.metaData.showDetails']}"
+                        <div class="fileDescription small" 
+                             jsf:rendered="#{!(empty fileMetadata.description)}">
+                            <h:commandLink id="detailstoggle" 
+                                           value="#{bundle['file.metaData.showDetails']}"
                                            onclick="return hideOrShowDetails(this.id)"
                                            style="width:60px; height: 20px;"/>
-                            <h:outputText style="display: none" id="fileDescNonEmpty"
+                            <h:outputText style="display: none" 
+                                          id="fileDescNonEmpty"
                                           value="#{fileMetadata.description}"/>
                         </div>
 
                         <div class="file-tags-block margin-top-half"
                              jsf:rendered="#{!(empty fileMetadata.categories) or !(empty fileMetadata.dataFile.tags)}">
                             <ui:fragment rendered="#{!(empty fileMetadata.categories)}">
-                                <ui:repeat value="#{fileMetadata.categories}" var="cat">
-                                    <h:outputText value="#{cat.name}" styleClass="label label-default"/>
+                                <ui:repeat value="#{fileMetadata.categories}" 
+                                           var="cat">
+                                    <h:outputText value="#{cat.name}" 
+                                                  styleClass="label label-default"/>
                                 </ui:repeat>
                             </ui:fragment>
                             <ui:fragment>
-                                <ui:repeat value="#{fileMetadata.dataFile.tags}" var="tag">
-                                    <h:outputText value="#{tag.typeLabel}" styleClass="label label-info"/>
+                                <ui:repeat value="#{fileMetadata.dataFile.tags}" 
+                                           var="tag">
+                                    <h:outputText value="#{tag.typeLabel}" 
+                                                  styleClass="label label-info"/>
                                 </ui:repeat>
                             </ui:fragment>
                         </div>
@@ -122,16 +139,14 @@
                                        styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
                                        actionListener="#{ReorderDataFilesPage.moveUp(rowIndex)}"
                                        rendered="#{(rowIndex gt 0)}"
-                                       update="filesTable @form"
-                                       >
+                                       update="filesTable @form">
                             <span class="glyphicon glyphicon-chevron-up no-text"/>
                         </p:commandLink>
                         <p:commandLink title="#{bundle['file.reorder.moveDown']}"
                                        styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
                                        actionListener="#{ReorderDataFilesPage.moveDown(rowIndex)}"
                                        rendered="#{rowIndex lt ReorderDataFilesPage.fileMetadatas.size()-1}"
-                                       update="filesTable @form"
-                                       >
+                                       update="filesTable @form">
                             <span class="glyphicon glyphicon-chevron-down no-text"/>
                         </p:commandLink>
                     </p:column>
@@ -141,11 +156,14 @@
                     <div class="button-block">
                         <p:outputPanel id="filesButtons">
                             <div>
-                                <p:commandButton id="save" value="#{bundle.saveChanges}"
+                                <p:commandButton id="save" 
+                                                 value="#{bundle.saveChanges}"
                                                  action="#{ReorderDataFilesPage.saveFileOrder}"/>
-                                <p:commandButton id="cancel" value="#{bundle.cancel}"
+                                <p:commandButton id="cancel" 
+                                                 value="#{bundle.cancel}"
                                                  styleClass="button-cancel"
-                                                 action="#{ReorderDataFilesPage.returnToPreviousPage}" process="@this"
+                                                 action="#{ReorderDataFilesPage.returnToPreviousPage}" 
+                                                 process="@this"
                                                  update="@form"
                                                  oncomplete="javascript:post_cancel_edit_files_or_metadata()">
                                 </p:commandButton>
