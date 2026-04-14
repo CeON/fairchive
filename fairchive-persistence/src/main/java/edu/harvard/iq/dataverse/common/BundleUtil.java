@@ -220,7 +220,7 @@ public class BundleUtil {
 
 	private static boolean shouldCheckForExternalBundle(final String bundleName) {
 		return isNotMetadataBundle(bundleName)
-				&& isNotInternal(bundleName)
+				&& ! isInternal(bundleName)
 				&& loaderPath != null;
 	}
 
@@ -255,14 +255,14 @@ public class BundleUtil {
 		return bundle != EMPTY_BUNDLE;
 	}
 	
-	private static boolean isNotInternal(final String bundleName) {
+	private static boolean isInternal(final String bundleName) {
 		switch(bundleName) {
 		case DEFAULT_BUNDLE_FILE:
 		case "BuiltInRoles":
 		case "MimeTypeDisplay":
 		case "MimeTypeFacets":
-		case "ValidationMessages": return true;
-		default: return false;
+		case "ValidationMessages": return false;
+		default: return true;
 		}
 	}
 	
