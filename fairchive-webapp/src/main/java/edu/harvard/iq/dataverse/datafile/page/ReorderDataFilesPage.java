@@ -57,7 +57,6 @@ public class ReorderDataFilesPage implements java.io.Serializable {
         }
         
         this.datasetVersion = fetchedVersion.get();
-
         this.fileMetadatas = this.datasetVersion.getAllFilesMetadataSorted();
 
         if (!this.permissionsWrapper.canCurrentUserUpdateDataset(this.datasetVersion.getDataset())) {

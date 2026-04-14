@@ -25,7 +25,6 @@
                 <f:viewAction action="#{dataverseHeaderFragment.addBreadcrumb(bundle['file.reorderFiles'])}"/>
             </f:metadata>
             <h:form id="form">
-                
                 <!-- Last reorder undo -->
                 <p:panel id="undoLastReorder" 
                          class="undo-last-reorder-panel"
@@ -42,7 +41,6 @@
                             actionListener="#{page.undoLastReorder()}"
                             update="filesTable @form" />
                 </p:panel>
-            
                 <!-- Files Table -->
                 <p:dataTable id="filesTable"
                              style="margin-right:1px;"
@@ -58,12 +56,12 @@
                     <p:ajax event="rowReorder" 
                             listener="#{page.onRowReorder}"
                             update="@form" />
-                
+                    <!-- 'File' column -->
                     <p:column headerText="#{bundle.file}">
+                        <!-- file name link -->
                          <a href="#{widgetWrapper.wrapURL(page.urlFor(fileMetadata))}">
                             #{fileMetadata.label}
                         </a>
-
                         <!-- TYPE + SIZE + DATE -->
                         <div class="text-muted small">
                             <h:outputText id="fileTypeOutputRegular" 
@@ -92,7 +90,7 @@
                                           value="#{fileMetadata.dataFile.unf}"
                                           rendered="#{!empty fileMetadata.dataFile.unf}"/>
                         </div>
-
+                        <!--  description -->
                         <div class="fileDescription small" 
                              jsf:rendered="#{fileMetadata.hasDescription()}">
                             <h:commandLink id="detailstoggle" 
@@ -103,7 +101,7 @@
                                           id="fileDescNonEmpty"
                                           value="#{fileMetadata.description}"/>
                         </div>
-
+                        <!-- badges -->
                         <div class="file-tags-block margin-top-half"
                              jsf:rendered="#{fileMetadata.hasCategoriesOrTags()}">
                             <ui:repeat value="#{fileMetadata.categories}"  var="cat">
@@ -116,7 +114,7 @@
                             </ui:repeat>
                         </div>
                     </p:column>
-                    
+                    <!--'Actions' column -->
                     <p:column headerText="#{bundle['file.reorder.action.header']}"
                               styleClass="text-center change-order-buttons-cell">
                         <p:commandLink title="#{bundle['file.reorder.moveUp']}"
@@ -134,7 +132,6 @@
                             <span class="glyphicon glyphicon-chevron-down no-text"/>
                         </p:commandLink>
                     </p:column>
-                    
                 </p:dataTable>
                 <div class="button-block">
                     <p:commandButton id="save" 
