@@ -1,10 +1,9 @@
 package edu.harvard.iq.dataverse.datafile.page;
 
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 
 class FileMetadataOrder {
 
@@ -14,11 +13,11 @@ class FileMetadataOrder {
      * @param filesToReorder
      * @return filemetadas with changed display order.
      */
-    static List<FileMetadata> reorderDisplayOrder(List<FileMetadata> filesToReorder) {
-        List<FileMetadata> changes = newArrayList();
+    static List<FileMetadata> reorderDisplayOrder(final List<FileMetadata> filesToReorder) {
+        final List<FileMetadata> changes = new ArrayList<>(filesToReorder.size());
 
         for (int i = 0; i < filesToReorder.size(); i++) {
-            FileMetadata fileMetadata = filesToReorder.get(i);
+            final FileMetadata fileMetadata = filesToReorder.get(i);
             if (fileMetadata.getDisplayOrder() != i) {
                 fileMetadata.setDisplayOrder(i);
                 changes.add(fileMetadata);
