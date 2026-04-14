@@ -220,7 +220,7 @@ public class BundleUtil {
 
 	private static boolean shouldCheckForExternalBundle(final String bundleName) {
 		return isNotMetadataBundle(bundleName)
-				&& ! isInternal(bundleName)
+				&& isNotInternal(bundleName)
 				&& loaderPath != null;
 	}
 
@@ -255,7 +255,7 @@ public class BundleUtil {
 		return bundle != EMPTY_BUNDLE;
 	}
 	
-	private static boolean isInternal(final String bundleName) {
+	private static boolean isNotInternal(final String bundleName) {
 		switch(bundleName) {
 		case DEFAULT_BUNDLE_FILE:
 		case "BuiltInRoles":
