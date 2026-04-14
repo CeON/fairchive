@@ -14,6 +14,7 @@ import org.primefaces.event.ReorderEvent;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -26,6 +27,7 @@ public class ReorderDataFilesPage implements java.io.Serializable {
     private DatasetVersionServiceBean datasetVersionService;
     private PermissionsWrapper permissionsWrapper;
 
+    private Long datasetVersionId;
     private DatasetVersion datasetVersion = new DatasetVersion();
     private List<FileMetadata> fileMetadatas;
     private Tuple2<Integer, Integer> lastReorderFromAndTo;
@@ -50,7 +52,7 @@ public class ReorderDataFilesPage implements java.io.Serializable {
      */
     public String init() {
 
-        final Optional<DatasetVersion> fetchedVersion = fetchDatasetVersion(this.datasetVersion.getId());
+        final Optional<DatasetVersion> fetchedVersion = fetchDatasetVersion(this.datasetVersionId);
 
         if (!fetchedVersion.isPresent() || fetchedVersion.get().getDataset().isHarvested()) {
             return this.permissionsWrapper.notFound();
@@ -153,9 +155,17 @@ public class ReorderDataFilesPage implements java.io.Serializable {
         return getStringFromBundle("file.reorderFiles") + 
         		" - " + this.datasetVersion.getParsedTitle();
     }
+    
+    public Long getDatasetVersionId() {
+        return this.datasetVersionId;
+    }
+    
+    public void setDatasetVersionId(final Long id) {
+        this.datasetVersionId = id;
+    }
 
-    public DatasetVersion getDatasetVersion() {
-        return this.datasetVersion;
+    public Dataset getDataset() {
+        return this.datasetVersion.getDataset();
     }
 
     public List<FileMetadata> getFileMetadatas() {
@@ -168,14 +178,6 @@ public class ReorderDataFilesPage implements java.io.Serializable {
 
     public FileMetadata getLastReorderFileMetadata() {
         return this.lastReorderFileMetadata;
-    }
-
-    public void setDatasetVersion(final DatasetVersion datasetVersion) {
-        this.datasetVersion = datasetVersion;
-    }
-
-    public void setFileMetadatas(final List<FileMetadata> fileMetadatas) {
-        this.fileMetadatas = fileMetadatas;
     }
     
     public boolean displayUndoLastReorder() {
