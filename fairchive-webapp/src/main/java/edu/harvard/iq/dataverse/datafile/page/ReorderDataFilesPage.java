@@ -137,7 +137,7 @@ public class ReorderDataFilesPage implements java.io.Serializable {
                     + this.datasetVersion.getMinorVersionNumber();
     }
 
-    public String getPageTitle() {
+    public String getTitle() {
         return getStringFromBundle("file.reorderFiles") + 
         		" - " + this.datasetVersion.getParsedTitle();
     }
@@ -165,4 +165,6 @@ public class ReorderDataFilesPage implements java.io.Serializable {
     public void setFileMetadatas(final List<FileMetadata> fileMetadatas) {
         this.fileMetadatas = fileMetadatas;
     }
+    
+    
 }

@@ -8,13 +8,12 @@
       xmlns:dv="http://dataverse.org/facelets">
 
 <f:view locale="#{dataverseSession.localeCode}" />
-
+    
 <h:body>
     <ui:composition template="/dataverse_template.xhtml">
-        <ui:param name="pageTitle" 
-                  value="#{ReorderDataFilesPage.pageTitle}"/>
-        <ui:param name="fileMetadatas" 
-                  value="#{ReorderDataFilesPage.fileMetadatas}"/>
+        <ui:param name="page" value="#{ReorderDataFilesPage}" />
+        <ui:param name="pageTitle" value="#{page.title}"/>
+        <ui:param name="fileMetadatas" value="#{page.fileMetadatas}"/>
         <ui:define name="body">
             <f:metadata>
                 <f:viewParam name="datasetVersionId" 
@@ -22,7 +21,7 @@
                 <f:viewAction action="#{ReorderDataFilesPage.init}" 
                               rendered="true"/>
                 <f:viewAction
-                        action="#{dataverseHeaderFragment.initBreadcrumbs(ReorderDataFilesPage.datasetVersion.dataset)}"/>
+                        action="#{dataverseHeaderFragment.initBreadcrumbs(page.datasetVersion.dataset)}"/>
                 <f:viewAction action="#{dataverseHeaderFragment.addBreadcrumb(bundle['file.reorderFiles'])}"/>
             </f:metadata>
             <h:form id="form">
@@ -30,35 +29,34 @@
                 <!-- Last reorder undo -->
                 <p:panel id="undoLastReorder" 
                          class="undo-last-reorder-panel"
-                         rendered="#{ReorderDataFilesPage.lastReorderFromAndTo != null}">
+                         rendered="#{page.lastReorderFromAndTo != null}">
                     <h:outputFormat value="#{bundle['file.reorder.lastReorder']}" 
                                     escape="false">
-                                    <f:param value="#{ReorderDataFilesPage.lastReorderFileMetadata.label}"/>
-                                    <f:param value="#{ReorderDataFilesPage.lastReorderFromAndTo._1() + 1}"/>
-                                    <f:param value="#{ReorderDataFilesPage.lastReorderFromAndTo._2() + 1}"/>
+                                    <f:param value="#{page.lastReorderFileMetadata.label}"/>
+                                    <f:param value="#{page.lastReorderFromAndTo._1() + 1}"/>
+                                    <f:param value="#{page.lastReorderFromAndTo._2() + 1}"/>
                     </h:outputFormat>
                     
                     <p:commandButton styleClass="btn btn-default"
                             value="#{bundle.undo}"
-                            actionListener="#{ReorderDataFilesPage.undoLastReorder()}"
+                            actionListener="#{page.undoLastReorder()}"
                             update="filesTable @form" />
                 </p:panel>
             
                 <!-- Files Table -->
                 <p:dataTable id="filesTable"
                              style="margin-right:1px;"
-                             value="#{ReorderDataFilesPage.fileMetadatas}"
+                             value="#{page.fileMetadatas}"
                              sortOrder="ascending"
                              var="fileMetadata" 
                              widgetVar="filesTable"
                              rowIndexVar="rowIndex"
                              draggableRows="true"
                              emptyMessage="#{bundle['file.notFound.tip']}"
-                             styleClass="filesTable no-min-width"
-                >
+                             styleClass="filesTable no-min-width">
                 
                     <p:ajax event="rowReorder" 
-                            listener="#{ReorderDataFilesPage.onRowReorder}"
+                            listener="#{page.onRowReorder}"
                             update="@form" />
                 
                     <p:column headerText="#{bundle.file}">
@@ -137,15 +135,15 @@
                               styleClass="text-center change-order-buttons-cell">
                         <p:commandLink title="#{bundle['file.reorder.moveUp']}"
                                        styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
-                                       actionListener="#{ReorderDataFilesPage.moveUp(rowIndex)}"
+                                       actionListener="#{page.moveUp(rowIndex)}"
                                        rendered="#{(rowIndex gt 0)}"
                                        update="filesTable @form">
                             <span class="glyphicon glyphicon-chevron-up no-text"/>
                         </p:commandLink>
                         <p:commandLink title="#{bundle['file.reorder.moveDown']}"
                                        styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
-                                       actionListener="#{ReorderDataFilesPage.moveDown(rowIndex)}"
-                                       rendered="#{rowIndex lt ReorderDataFilesPage.fileMetadatas.size()-1}"
+                                       actionListener="#{page.moveDown(rowIndex)}"
+                                       rendered="#{rowIndex lt page.fileMetadatas.size()-1}"
                                        update="filesTable @form">
                             <span class="glyphicon glyphicon-chevron-down no-text"/>
                         </p:commandLink>
@@ -158,15 +156,14 @@
                             <div>
                                 <p:commandButton id="save" 
                                                  value="#{bundle.saveChanges}"
-                                                 action="#{ReorderDataFilesPage.saveFileOrder}"/>
+                                                 action="#{page.saveFileOrder}"/>
                                 <p:commandButton id="cancel" 
                                                  value="#{bundle.cancel}"
                                                  styleClass="button-cancel"
-                                                 action="#{ReorderDataFilesPage.returnToPreviousPage}" 
+                                                 action="#{page.returnToPreviousPage}" 
                                                  process="@this"
                                                  update="@form"
-                                                 oncomplete="javascript:post_cancel_edit_files_or_metadata()">
-                                </p:commandButton>
+                                                 oncomplete="javascript:post_cancel_edit_files_or_metadata()"/>
                             </div>
                         </p:outputPanel>
                     </div>
