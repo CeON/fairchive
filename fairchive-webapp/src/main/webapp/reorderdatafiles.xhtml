@@ -31,9 +31,9 @@
                          rendered="#{page.displayUndoLastReorder()}">
                     <h:outputFormat value="#{bundle['file.reorder.lastReorder']}" 
                                     escape="false">
-                                    <f:param value="#{page.lastReorderFileMetadata.label}"/>
-                                    <f:param value="#{page.lastReorderFromAndTo._1() + 1}"/>
-                                    <f:param value="#{page.lastReorderFromAndTo._2() + 1}"/>
+                                    <f:param value="#{page.lastChange.fileMetadata.label}"/>
+                                    <f:param value="#{page.lastChange.fromIndex + 1}"/>
+                                    <f:param value="#{page.lastChange.toIndex+ 1}"/>
                     </h:outputFormat>
                     
                     <p:commandButton styleClass="btn btn-default"

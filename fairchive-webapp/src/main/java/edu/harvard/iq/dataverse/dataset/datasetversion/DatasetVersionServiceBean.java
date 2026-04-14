@@ -193,6 +193,10 @@ public class DatasetVersionServiceBean implements Serializable {
     public DatasetVersion getById(Long id) {
         return versionRepository.findById(id).orElse(null);
     }
+    
+    public Optional<DatasetVersion> findById(final Long id) {
+    	return this.versionRepository.findById(id);
+    }
 
     public DatasetVersion findByFriendlyVersionNumber(Long datasetId, String friendlyVersionNumber) {
         Long majorVersionNumber = null;
