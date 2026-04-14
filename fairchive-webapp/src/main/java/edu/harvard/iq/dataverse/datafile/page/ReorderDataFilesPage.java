@@ -138,6 +138,17 @@ public class ReorderDataFilesPage implements java.io.Serializable {
                     + this.datasetVersion.getMinorVersionNumber();
         }
     }
+    
+    public String urlFor(final FileMetadata fileMetadata) {
+    	final String gid = fileMetadata.getDataFile().getGlobalId().toString();
+    	if(gid.isEmpty()) {
+    		return "/file.xhtml?fileId=" + fileMetadata.getDataFile().getId() + 
+    				"&version=" + fileMetadata.getDatasetVersion().getFriendlyVersionNumber();
+    	} else {
+    		return "/file.xhtml?persistentId=" + gid + 
+    				"&version=" + fileMetadata.getDatasetVersion().getFriendlyVersionNumber();
+    	}
+    }
 
     public String getTitle() {
         return getStringFromBundle("file.reorderFiles") + 

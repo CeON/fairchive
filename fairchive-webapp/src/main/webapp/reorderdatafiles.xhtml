@@ -60,17 +60,9 @@
                             update="@form" />
                 
                     <p:column headerText="#{bundle.file}">
-
-                        <ui:fragment rendered="#{!empty fileMetadata.dataFile.globalIdString}">
-                            <a href="#{widgetWrapper.wrapURL('/file.xhtml?persistentId='.concat(fileMetadata.dataFile.globalIdString).concat('&amp;version=').concat(fileMetadata.datasetVersion.friendlyVersionNumber))}">
-                                #{fileMetadata.label}
-                            </a>
-                        </ui:fragment>
-                        <ui:fragment rendered="#{empty fileMetadata.dataFile.globalIdString}">
-                            <a href="#{widgetWrapper.wrapURL('/file.xhtml?fileId='.concat(fileMetadata.dataFile.id).concat('&amp;version=').concat(fileMetadata.datasetVersion.friendlyVersionNumber))}">
-                                #{fileMetadata.label}
-                            </a>
-                        </ui:fragment>
+                         <a href="#{widgetWrapper.wrapURL(page.urlFor(fileMetadata))}">
+                            #{fileMetadata.label}
+                        </a>
 
                         <!-- TYPE + SIZE + DATE -->
                         <div class="text-muted small">
@@ -85,7 +77,7 @@
 
                             <h:outputText id="fileCreatePublishDate" 
                                           value=" - #{dv:formatDate(fileMetadata.getFileDateToDisplay())}"
-                                          rendered="#{!(empty fileMetadata.id)}"/>
+                                          rendered="#{fileMetadata.isNew()}"/>
                         </div>
                         <!-- UNF + Variables, Obsersvations -->
                         <div class="text-muted small" 
@@ -102,7 +94,7 @@
                         </div>
 
                         <div class="fileDescription small" 
-                             jsf:rendered="#{!(empty fileMetadata.description)}">
+                             jsf:rendered="#{fileMetadata.hasDescription()}">
                             <h:commandLink id="detailstoggle" 
                                            value="#{bundle['file.metaData.showDetails']}"
                                            onclick="return hideOrShowDetails(this.id)"
@@ -113,21 +105,15 @@
                         </div>
 
                         <div class="file-tags-block margin-top-half"
-                             jsf:rendered="#{!(empty fileMetadata.categories) or !(empty fileMetadata.dataFile.tags)}">
-                            <ui:fragment rendered="#{!(empty fileMetadata.categories)}">
-                                <ui:repeat value="#{fileMetadata.categories}" 
-                                           var="cat">
-                                    <h:outputText value="#{cat.name}" 
-                                                  styleClass="label label-default"/>
-                                </ui:repeat>
-                            </ui:fragment>
-                            <ui:fragment>
-                                <ui:repeat value="#{fileMetadata.dataFile.tags}" 
-                                           var="tag">
-                                    <h:outputText value="#{tag.typeLabel}" 
-                                                  styleClass="label label-info"/>
-                                </ui:repeat>
-                            </ui:fragment>
+                             jsf:rendered="#{fileMetadata.hasCategoriesOrTags()}">
+                            <ui:repeat value="#{fileMetadata.categories}"  var="cat">
+                                <h:outputText value="#{cat.name}" 
+                                              styleClass="label label-default"/>
+                            </ui:repeat>
+                            <ui:repeat value="#{fileMetadata.dataFile.tags}" var="tag">
+                                <h:outputText value="#{tag.typeLabel}" 
+                                              styleClass="label label-info"/>
+                            </ui:repeat>
                         </div>
                     </p:column>
                     
@@ -150,24 +136,18 @@
                     </p:column>
                     
                 </p:dataTable>
-                <p:fragment id="editDataFilesButtons">
-                    <div class="button-block">
-                        <p:outputPanel id="filesButtons">
-                            <div>
-                                <p:commandButton id="save" 
-                                                 value="#{bundle.saveChanges}"
-                                                 action="#{page.saveFileOrder}"/>
-                                <p:commandButton id="cancel" 
-                                                 value="#{bundle.cancel}"
-                                                 styleClass="button-cancel"
-                                                 action="#{page.returnToPreviousPage}" 
-                                                 process="@this"
-                                                 update="@form"
-                                                 oncomplete="javascript:post_cancel_edit_files_or_metadata()"/>
-                            </div>
-                        </p:outputPanel>
-                    </div>
-                </p:fragment>
+                <div class="button-block">
+                    <p:commandButton id="save" 
+                                     value="#{bundle.saveChanges}"
+                                     action="#{page.saveFileOrder}"/>
+                    <p:commandButton id="cancel" 
+                                     value="#{bundle.cancel}"
+                                     styleClass="button-cancel"
+                                     action="#{page.returnToPreviousPage}" 
+                                     process="@this"
+                                     update="@form"
+                                     oncomplete="javascript:post_cancel_edit_files_or_metadata()"/>
+                </div>
                 
                 <p:blockUI block="form" trigger="save" />
                 

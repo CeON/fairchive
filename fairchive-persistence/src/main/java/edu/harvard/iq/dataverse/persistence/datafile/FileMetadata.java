@@ -139,6 +139,10 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     public String getDescription() {
         return description;
     }
+    
+    public boolean hasDescription() {
+        return isNotEmpty(this.description);
+    }
 
     public void setDescription(String description) {
         this.description = description;
@@ -160,6 +164,11 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
         this.termsOfUse = termsOfUse;
     }
 
+    public boolean displayTagsFor(final FileMetadata fileMetadata) {	
+    	return fileMetadata.getCategories().size() > 0 || 
+    			fileMetadata.getDataFile().getTags().size() > 0;
+    }
+    
     /*
      * File Categories to which this version of the DataFile belongs:
      */
@@ -337,6 +346,10 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     
     public boolean containsDataFileWithId(final Long id) {
         return getDataFile().getId().equals(id);
+    }
+    
+    public boolean hasCategoriesOrTags() {
+    	return this.fileCategories.size() > 0 || this.dataFile.getTags().size() > 0;
     }
     
     @Override
