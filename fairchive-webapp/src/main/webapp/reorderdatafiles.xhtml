@@ -116,7 +116,15 @@
                     </p:column>
                     <!--'Actions' column -->
                     <p:column headerText="#{bundle['file.reorder.action.header']}"
-                              styleClass="text-center change-order-buttons-cell">
+                              styleClass="text-center"
+                              style="width: calc(6em + 60px);">
+                        <p:commandLink title="#{bundle['file.reorder.moveToTop']}"
+                                       styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
+                                       actionListener="#{page.moveToTop(rowIndex)}"
+                                       rendered="#{(rowIndex gt 0)}"
+                                       update="filesTable @form">
+                            <span class="glyphicon glyphicon-arrow-up no-text"/>
+                        </p:commandLink>
                         <p:commandLink title="#{bundle['file.reorder.moveUp']}"
                                        styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
                                        actionListener="#{page.moveUp(rowIndex)}"
@@ -130,6 +138,13 @@
                                        rendered="#{rowIndex lt page.fileMetadatas.size()-1}"
                                        update="filesTable @form">
                             <span class="glyphicon glyphicon-chevron-down no-text"/>
+                        </p:commandLink>
+                        <p:commandLink title="#{bundle['file.reorder.moveToBottom']}"
+                                       styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
+                                       actionListener="#{page.moveToBottom(rowIndex)}"
+                                       rendered="#{rowIndex lt page.fileMetadatas.size()-1}"
+                                       update="filesTable @form">
+                            <span class="glyphicon glyphicon-arrow-down no-text"/>
                         </p:commandLink>
                     </p:column>
                 </p:dataTable>

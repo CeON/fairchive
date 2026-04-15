@@ -36,19 +36,11 @@ public class ReorderDataFilesPage implements java.io.Serializable {
     @Inject
     public ReorderDataFilesPage(final DatasetVersionServiceBean datasetVersionService,
     		final PermissionsWrapper permissionsWrapper) {
-    	
     	this.datasetVersionService = datasetVersionService;
     	this.permissionsWrapper = permissionsWrapper;
     }
 
-    /**
-     * Initializes all properties requested by frontend.
-     * Like files for dataset with specific id.
-     *
-     * @return error if something goes wrong or null if success.
-     */
     public String init() {
-
     	if(this.datasetVersionId == null) {
     		return this.permissionsWrapper.notFound();
     	}
@@ -80,12 +72,26 @@ public class ReorderDataFilesPage implements java.io.Serializable {
 
         this.lastChange = new Change(fileIndex, fileIndex - 1, fileToMove);
     }
+    
+    public void moveToTop(final int fileIndex) {
+        final FileMetadata fileToMove = this.fileMetadatas.remove(fileIndex);
+        this.fileMetadatas.add(0, fileToMove);
+
+        this.lastChange = new Change(fileIndex, 0, fileToMove);
+    }
 
     public void moveDown(final int fileIndex) {
         final FileMetadata fileToMove = this.fileMetadatas.remove(fileIndex);
         this.fileMetadatas.add(fileIndex + 1, fileToMove);
 
         this.lastChange = new Change(fileIndex, fileIndex + 1, fileToMove);
+    }
+    
+    public void moveToBottom(final int fileIndex) {
+        final FileMetadata fileToMove = this.fileMetadatas.remove(fileIndex);
+        this.fileMetadatas.add(fileToMove);
+
+        this.lastChange = new Change(fileIndex, this.fileMetadatas.size() -1, fileToMove);
     }
 
     public void onRowReorder(final ReorderEvent event) { 
@@ -100,24 +106,11 @@ public class ReorderDataFilesPage implements java.io.Serializable {
         this.lastChange = null;
     }
 
-    /**
-     * Reorders files display order if any were reordered, saves the changes to the database
-     * and returns to the previous page.
-     *
-     * @return uri to previous page
-     */
     public String saveFileOrder() {
-
-        this.datasetVersionService.saveFileMetadata(FileMetadata.reorderDisplayOrder(this.fileMetadatas));
-
+        this.datasetVersionService.saveInOrder(this.fileMetadatas);
         return returnToPreviousPage();
     }
 
-    /**
-     * returns you to the dataset page.
-     *
-     * @return uri
-     */
     public String returnToPreviousPage() {
         if (this.datasetVersion.isDraft()) {
             return "/dataset.xhtml?version=DRAFT&faces-redirect=true&persistentId=".
