@@ -269,7 +269,6 @@ public class DDIExportServiceBean {
         if (checkField("invalrng", excludedFieldSet, includedFieldSet)) {
             boolean invalrngAdded = false;
             for (VariableRange range : dv.getInvalidRanges()) {
-                //if (range.getBeginValueType() != null && range.getBeginValueType().getName().equals(DB_VAR_RANGE_TYPE_POINT)) {
                 if (range.getBeginValueType() != null && range.isBeginValueTypePoint()) {
                     if (range.getBeginValue() != null) {
                         invalrngAdded = checkParentElement(xmlw, "invalrng", invalrngAdded);
@@ -379,7 +378,6 @@ public class DDIExportServiceBean {
                 throw new XMLStreamException("Illegal Variable Format Type!");
             }
             writeAttribute(xmlw, "formatname", dv.getFormat());
-            //experiment writeAttribute(xmlw, "schema", dv.getFormatSchema());
             writeAttribute(xmlw, "category", dv.getFormatCategory());
         }
 
@@ -417,17 +415,15 @@ public class DDIExportServiceBean {
 
         createStdyDscr(xmlw, excludedFieldSet, includedFieldSet, df.getOwner().getLatestVersion());
 
-        DataTable dt = fileService.findDataTableByFileId(df.getId());
-
         if (checkField("fileDscr", excludedFieldSet, includedFieldSet)) {
-            createFileDscr(xmlw, excludedFieldSet, null, df, dt);
+            createFileDscr(xmlw, excludedFieldSet, null, df, df.getDataTable());
         }
 
         // And now, the variables:
         xmlw.writeStartElement("dataDscr");
 
         if (checkField("var", excludedFieldSet, includedFieldSet)) {
-            List<DataVariable> vars = variableService.findByDataTableId(dt.getId());
+            List<DataVariable> vars = df.getDataTable().getDataVariables();
             if (checkField("catgry", excludedFieldSet, includedFieldSet)) {
                 if (checkIsWithoutFrequencies(vars)) {
                     calculateFrequencies(df, vars);
@@ -506,16 +502,14 @@ public class DDIExportServiceBean {
 
         if (checkField("fileDscr", excludedFieldSet, includedFieldSet)) {
             for (FileMetadata fileMetadata : tabularDataFiles) {
-                DataTable dt = fileService.findDataTableByFileId(fileMetadata.getDataFile().getId());
-                createFileDscr(xmlw, excludedFieldSet, includedFieldSet, fileMetadata.getDataFile(), dt);
+                createFileDscr(xmlw, excludedFieldSet, includedFieldSet, fileMetadata.getDataFile(), fileMetadata.getDataFile().getDataTable());
             }
 
             // 2nd pass, to create data (variable) description sections:
             xmlw.writeStartElement("dataDscr");
 
             for (FileMetadata fileMetadata : tabularDataFiles) {
-                DataTable dt = fileService.findDataTableByFileId(fileMetadata.getDataFile().getId());
-                List<DataVariable> vars = variableService.findByDataTableId(dt.getId());
+                List<DataVariable> vars = fileMetadata.getDataFile().getDataTable().getDataVariables();
 
                 for (DataVariable var : vars) {
                     createVarDDI(xmlw, excludedFieldSet, null, var);
@@ -595,7 +589,6 @@ public class DDIExportServiceBean {
 
         xmlw.writeStartElement("fileDscr");
         writeAttribute(xmlw, "ID", "f" + df.getId().toString());
-        //writeAttribute( xmlw, "URI", determineFileURI(fm) );
 
         // fileTxt
         if (checkField("fileTxt", excludedFieldSet, includedFieldSet)) {
@@ -607,11 +600,6 @@ public class DDIExportServiceBean {
                 xmlw.writeEndElement(); // fileName
             }
 
-            /*
-             xmlw.writeStartElement("fileCont");
-             xmlw.writeCharacters( df.getContentType() );
-             xmlw.writeEndElement(); // fileCont
-             */
             // dimensions
             if (checkField("dimensns", excludedFieldSet, includedFieldSet)) {
                 if (dt.getCaseQuantity() != null || dt.getVarQuantity() != null || dt.getRecordsPerCase() != null) {
@@ -666,26 +654,6 @@ public class DDIExportServiceBean {
             xmlw.writeEndElement(); // notes
         }
 
-        /*
-         xmlw.writeStartElement("notes");
-         writeAttribute( xmlw, "type", "vdc:category" );
-         xmlw.writeCharacters( fm.getCategory() );
-         xmlw.writeEndElement(); // notes
-         */
-        // A special note for LOCKSS crawlers indicating the restricted
-        // status of the file:
-
-        /*
-         if (tdf != null && isRestrictedFile(tdf)) {
-         xmlw.writeStartElement("notes");
-         writeAttribute( xmlw, "type", NOTE_TYPE_LOCKSS_CRAWL );
-         writeAttribute( xmlw, "level", LEVEL_FILE );
-         writeAttribute( xmlw, "subject", NOTE_SUBJECT_LOCKSS_PERM );
-         xmlw.writeCharacters( "restricted" );
-         xmlw.writeEndElement(); // notes
-
-         }
-         */
         if (checkField("tags", excludedFieldSet, includedFieldSet) && df.getTags() != null) {
             for (int i = 0; i < df.getTags().size(); i++) {
                 xmlw.writeStartElement("notes");

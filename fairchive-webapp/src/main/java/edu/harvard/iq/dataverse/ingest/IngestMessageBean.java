@@ -87,7 +87,7 @@ public class IngestMessageBean implements MessageListener {
 
                 logger.fine("Start ingest job;");
                 try {
-                    DataFile dataFile = this.datafileService.find(datafile_id);
+                    DataFile dataFile = this.datafileService.find(datafile_id).get();
                     boolean success;
                     switch (dataFile.getIngestType()) {
                         case OCR:
@@ -115,7 +115,7 @@ public class IngestMessageBean implements MessageListener {
                     logger.info("Unknown exception occurred  during ingest (supressed stack trace); re-setting ingest status.");
                     if (datafile_id != null) {
                         logger.fine("looking up datafile for id " + datafile_id);
-                        DataFile datafile = datafileService.find(datafile_id);
+                        DataFile datafile = datafileService.find(datafile_id).orElse(null);
                         if (datafile != null) {
                             datafile.setIngestProblem();
                             IngestReport errorReport = new IngestReport();
@@ -136,7 +136,7 @@ public class IngestMessageBean implements MessageListener {
             // (note that the assumption here is that all of the datafiles
             // packed into this IngestMessage belong to the same dataset)
             if (datafile_id != null) {
-                DataFile datafile = datafileService.find(datafile_id);
+                DataFile datafile = datafileService.find(datafile_id).orElse(null);
                 if (datafile != null) {
                     Dataset dataset = datafile.getOwner();
                     if (dataset != null && dataset.getId() != null) {

@@ -682,9 +682,9 @@ public class DatasetVersionServiceBean implements Serializable {
 
             if (thumbnailFileId != null) {
                 log.trace("obtained file id: {}", thumbnailFileId);
-                DataFile thumbnailFile = datafileService.find(thumbnailFileId);
-                if (thumbnailFile != null) {
-                    if (datafileService.isThumbnailAvailable(thumbnailFile)) {
+                Optional<DataFile> thumbnailFile = datafileService.find(thumbnailFileId);
+                if (thumbnailFile.isPresent()) {
+                    if (datafileService.isThumbnailAvailable(thumbnailFile.get())) {
                         assignDatasetThumbnailByNativeQuery(versionId, thumbnailFileId);
                         return thumbnailFileId;
                     }
@@ -712,9 +712,9 @@ public class DatasetVersionServiceBean implements Serializable {
             }
 
             if (thumbnailFileId != null) {
-                DataFile thumbnailFile = datafileService.find(thumbnailFileId);
-                if (thumbnailFile != null) {
-                    if (datafileService.isThumbnailAvailable(thumbnailFile)) {
+                Optional<DataFile> thumbnailFile = datafileService.find(thumbnailFileId);
+                if (thumbnailFile.isPresent()) {
+                    if (datafileService.isThumbnailAvailable(thumbnailFile.get())) {
                         assignDatasetThumbnailByNativeQuery(versionId, thumbnailFileId);
                         return thumbnailFileId;
                     }

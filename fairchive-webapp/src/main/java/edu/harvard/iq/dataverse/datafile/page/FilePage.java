@@ -214,7 +214,7 @@ public class FilePage implements java.io.Serializable {
 
         // Set the file and datasetVersion
         if (fileId != null) {
-            file = datafileService.find(fileId);
+            file = datafileService.find(fileId).orElse(null);
         } else {
             file = datafileService.findByGlobalId(persistentId);
             if (file != null) {
@@ -252,14 +252,10 @@ public class FilePage implements java.io.Serializable {
         final RetrieveDatasetVersionResponse retrieveDatasetVersionResponse
                 = datasetVersionService.selectRequestedVersion(file.getOwner().getVersions(), version);
         final DatasetVersion version = retrieveDatasetVersionResponse.getDatasetVersion();
-        fileMetadata = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(version.getId(), fileId);
+        fileMetadata = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(version.getId(), fileId).orElse(null);
 
         if (fileMetadata == null) {
-            logger.fine("fileMetadata is null! Checking finding most recent version file was in.");
-            fileMetadata = datafileService.findMostRecentVersionFileIsIn(file);
-            if (fileMetadata == null) {
-                return permissionsWrapper.notFound();
-            }
+        	return permissionsWrapper.notFound();
         }
 
         // If this DatasetVersion is unpublished and permission is doesn't have permissions:
@@ -624,9 +620,9 @@ public class FilePage implements java.io.Serializable {
         List<DataFile> dataFiles = new ArrayList<>();
         dataFiles.add(dataFileToTest);
 
-        while (datafileService.findReplacementFile(dataFileToTest.getId()) != null) {
-            dataFiles.add(datafileService.findReplacementFile(dataFileToTest.getId()));
-            dataFileToTest = datafileService.findReplacementFile(dataFileToTest.getId());
+        while (datafileService.findReplacementFile(dataFileToTest.getId()).isPresent()) {
+            dataFiles.add(datafileService.findReplacementFile(dataFileToTest.getId()).get());
+            dataFileToTest = datafileService.findReplacementFile(dataFileToTest.getId()).get();
         }
 
         if (dataFiles.size() < 2) {
@@ -759,7 +755,7 @@ public class FilePage implements java.io.Serializable {
             if (versionLoop.isReleased() || versionLoop.isDeaccessioned()
                     || permissionsWrapper.canViewUnpublishedDataset(fileMetadata.getDatasetVersion().getDataset())) {
                 for (final DataFile df : allfiles) {
-                    FileMetadata fmd = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionLoop.getId(), df.getId());
+                    FileMetadata fmd = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionLoop.getId(), df.getId()).orElse(null);
                     if (fmd != null) {
                         fmd.setContributorNames(datasetVersionService.getContributorsNames(versionLoop));
                         FileVersionDifference fvd = new FileVersionDifference(fmd, getPreviousFileMetadata(fmd));
@@ -809,7 +805,7 @@ public class FilePage implements java.io.Serializable {
     }
 
     private FileMetadata getPreviousFileMetadata(final FileMetadata fmdIn) {
-        final DataFile dfPrevious = datafileService.findPreviousFile(fmdIn.getDataFile());
+        final DataFile dfPrevious = datafileService.find(fmdIn.getDataFile().getPreviousDataFileId()).orElse(null);
         DatasetVersion dvPrevious = null;
         boolean gotCurrent = false;
         for (final DatasetVersion dvloop : fileMetadata.getDatasetVersion().getDataset().getVersions()) {
@@ -837,7 +833,7 @@ public class FilePage implements java.io.Serializable {
         final Long dfId = dfPrevious != null ? dfPrevious.getId() : fmdIn.getDataFile().getId();
         final Long versionId = dvPrevious != null ? dvPrevious.getId() : null;
 
-        return datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionId, dfId);
+        return datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(versionId, dfId).orElse(null);
     }
 
     private String returnToDatasetOnly(Dataset draftDataset) {

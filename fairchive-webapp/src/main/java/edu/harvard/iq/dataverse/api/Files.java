@@ -216,7 +216,7 @@ public class Files extends AbstractApiBean {
         } catch (WrappedResponse wr) {
             return error(BAD_REQUEST, "Couldn't find user to execute command: " + wr.getLocalizedMessage());
         }
-        DataFile dataFile = fileService.find(idSupplied);
+        DataFile dataFile = fileService.find(idSupplied).get();
         try {
             boolean deleted = engineSvc.submit(new DeleteMapLayerMetadataCommand(dataverseRequest, dataFile));
             if (deleted) {

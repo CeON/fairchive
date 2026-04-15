@@ -143,7 +143,7 @@ public class ReplaceDatafilesPage implements Serializable {
 
     public String init() {
         dataset = datasetService.find(datasetId);
-        fileToBeReplaced = datafileService.find(fileId);
+        fileToBeReplaced = datafileService.find(fileId).get();
 
         String permissionError = checkPermissions(dataset, fileToBeReplaced);
 

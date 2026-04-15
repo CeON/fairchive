@@ -23,7 +23,7 @@ public class FileMetadataRepositoryIT extends PersistenceArquillianDeployment {
         int datasetVersionId = 36;
 
         //when
-        List<FileMetadata> foundFiles = fileMetadataRepository.findFileMetadataByDatasetVersionIdWithPagination(datasetVersionId, 0, 10);
+        List<FileMetadata> foundFiles = fileMetadataRepository.findFileMetadataByDatasetVersionId(datasetVersionId, 0, 10);
 
         //then
         assertEquals(foundFiles.size(), 3);
@@ -39,7 +39,7 @@ public class FileMetadataRepositoryIT extends PersistenceArquillianDeployment {
         int datasetVersionId = 36;
 
         //when
-        List<FileMetadata> foundFiles = fileMetadataRepository.findSearchedFileMetadataByDatasetVersionIdWithPagination(datasetVersionId, 0, 10, searchTerm);
+        List<FileMetadata> foundFiles = fileMetadataRepository.findSearchedFileMetadataByDatasetVersionId(datasetVersionId, 0, 10, searchTerm);
 
         //then
         assertEquals(foundFiles.size(), 1);
@@ -53,7 +53,7 @@ public class FileMetadataRepositoryIT extends PersistenceArquillianDeployment {
         int datasetVersionId = 36;
 
         //when
-        List<FileMetadata> foundFiles = fileMetadataRepository.findSearchedFileMetadataByDatasetVersionIdWithPagination(datasetVersionId, 0, 10, searchTerm);
+        List<FileMetadata> foundFiles = fileMetadataRepository.findSearchedFileMetadataByDatasetVersionId(datasetVersionId, 0, 10, searchTerm);
 
         //then
         assertEquals(foundFiles.size(), 2);

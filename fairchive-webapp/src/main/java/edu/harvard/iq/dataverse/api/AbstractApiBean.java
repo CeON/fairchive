@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.api;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 import java.io.StringReader;
@@ -443,11 +444,8 @@ public abstract class AbstractApiBean {
             return datafile;
         } else {
             try {
-                datafile = fileService.find(Long.parseLong(id));
-                if (datafile == null) {
-                    throw new WrappedResponse(notFound(BundleUtil.getStringFromBundle("find.datafile.error.datafile.not.found.id", id)));
-                }
-                return datafile;
+                return fileService.find(Long.parseLong(id)).orElseThrow(
+                   () -> new WrappedResponse(notFound(getStringFromBundle("find.datafile.error.datafile.not.found.id", id))));
             } catch (NumberFormatException nfe) {
                 throw new WrappedResponse(
                         badRequest(BundleUtil.getStringFromBundle("find.datafile.error.datafile.not.found.bad.id", id)));

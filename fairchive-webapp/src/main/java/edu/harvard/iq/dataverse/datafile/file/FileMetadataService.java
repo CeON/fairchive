@@ -79,11 +79,11 @@ public class FileMetadataService {
     }
 
     public List<FileMetadata> findAccessibleFileMetadataSorted(long dsvId, int pageNumber, int amountToFetch) {
-        return fileMetadataRepository.findFileMetadataByDatasetVersionIdWithPagination(dsvId, pageNumber, amountToFetch);
+        return fileMetadataRepository.findFileMetadataByDatasetVersionId(dsvId, pageNumber, amountToFetch);
     }
 
     public List<FileMetadata> findSearchedAccessibleFileMetadataSorted(long dsvId, int pageNumber, int amountToFetch, String searchTerms) {
-        return fileMetadataRepository.findSearchedFileMetadataByDatasetVersionIdWithPagination(dsvId, pageNumber, amountToFetch, searchTerms);
+        return fileMetadataRepository.findSearchedFileMetadataByDatasetVersionId(dsvId, pageNumber, amountToFetch, searchTerms);
     }
 
     public List<Long> findFileMetadataIds(long dsvId) {

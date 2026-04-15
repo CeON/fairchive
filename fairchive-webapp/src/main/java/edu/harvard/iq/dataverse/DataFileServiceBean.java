@@ -5,6 +5,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DataFile
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.IdentifierGenerationStyle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Protocol;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.Shoulder;
+import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -24,11 +26,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import javax.persistence.StoredProcedureQuery;
-import javax.persistence.TypedQuery;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -40,13 +39,14 @@ import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFileRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileTag;
 import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadataRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
@@ -69,6 +69,10 @@ public class DataFileServiceBean implements Serializable {
     private SettingsServiceBean settingsService;
     @Inject
     private ImageThumbConverter imageThumbConverter;
+    @Inject
+    private DataFileRepository fileRepo;
+    @Inject
+    private FileMetadataRepository fileMetadataRepo;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -77,72 +81,30 @@ public class DataFileServiceBean implements Serializable {
 
     // -------------------- LOGIC --------------------
 
-    public DataFile find(Object pk) {
-        return em.find(DataFile.class, pk);
+    public Optional<DataFile> find(final Long id) {
+        return this.fileRepo.findById(id);
     }
 
-    public DataFile findByGlobalId(String globalId) {
-        return (DataFile) dvObjectService.findByGlobalId(globalId, DataFile.DATAFILE_DTYPE_STRING);
+    public DataFile findByGlobalId(final String globalId) {
+        return (DataFile) this.dvObjectService.findByGlobalId(globalId, 
+        		DataFile.DATAFILE_DTYPE_STRING);
     }
 
-    public DataFile findReplacementFile(Long previousFileId) {
-        Query query = em.createQuery("select object(o) from DataFile as o where o.previousDataFileId = :previousFileId");
-        query.setParameter("previousFileId", previousFileId);
-        try {
-            return (DataFile) query.getSingleResult();
-        } catch (Exception ex) {
-            return null;
-        }
+    public Optional<DataFile> findReplacementFile(final Long previousFileId) {
+        return this.fileRepo.findReplacementFile(previousFileId);
     }
 
-    public DataFile findPreviousFile(DataFile df) {
-        TypedQuery<DataFile> query = em.createQuery("select o from DataFile o" + " WHERE o.id = :dataFileId", DataFile.class);
-        query.setParameter("dataFileId", df.getPreviousDataFileId());
-        try {
-            return query.getSingleResult();
-        } catch (Exception ex) {
-            return null;
-        }
+    public List<DataFile> findAllRelatedByRootDatafileId(final Long id) {
+    	return this.fileRepo.findAllRelatedByRootDataFileId(id);
     }
 
-    public List<DataFile> findAllRelatedByRootDatafileId(Long datafileId) {
-        // Get all files with the same root datafile id
-        // the first file has its own id as root so only one query needed.
-        String qr = "select o from DataFile o where o.rootDataFileId = :datafileId order by o.id";
-        return em.createQuery(qr, DataFile.class)
-                 .setParameter("datafileId", datafileId).getResultList();
-    }
-
-    public List<DataFile> findDataFilesByFileMetadataIds(Collection<Long> fileMetadataIds) {
-        return em.createQuery("SELECT d FROM FileMetadata f JOIN f.dataFile d WHERE f.id IN :fileMetadataIds", DataFile.class)
-                .setParameter("fileMetadataIds", fileMetadataIds)
-                .setHint("eclipselink.QUERY_RESULTS_CACHE", "TRUE")
-                .getResultList();
-    }
-
-    public DataFile findByStorageIdAndDatasetVersion(String storageId, DatasetVersion dv) {
-        try {
-            Query query = em.createNativeQuery("select o.id from dvobject o, filemetadata m " +
-                    "where o.storageidentifier = '" + storageId +
-                    "' and o.id = m.datafile_id and m.datasetversion_id = " + dv.getId() + "");
-            query.setMaxResults(1);
-            if (query.getResultList().isEmpty()) {
-                return null;
-            } else {
-                return findCheapAndEasy((Long) query.getSingleResult());
-            }
-        } catch (Exception e) {
-            logger.error("Error finding datafile by storageID and DataSetVersion: " + e.getMessage(), e);
-            return null;
-        }
+    public List<DataFile> findDataFilesByFileMetadataIds(final Collection<Long> ids) {
+        return this.fileRepo.findByFileMetadataIds(ids);
     }
 
     public List<FileMetadata> findFileMetadataByDatasetVersionId(Long datasetVersionId, 
             int maxResults, FileSortFieldAndOrder sortFieldAndOrder) {
-        if (maxResults < 0) {
-            // return all results if user asks for negative number of results
-            maxResults = 0;
-        }
+        maxResults = max(maxResults, 0);
         String sortFieldString = sortFieldAndOrder.getSortField();
         String sortOrderString = sortFieldAndOrder.getSortOrder() == SortOrder.desc ? "desc" : "asc";
         String qr = "select o from FileMetadata o where o.datasetVersion.id = :datasetVersionId order by o." +
@@ -173,29 +135,9 @@ public class DataFileServiceBean implements Serializable {
                 .getResultList();
     }
 
-    public FileMetadata findFileMetadata(Long fileMetadataId) {
-        return em.find(FileMetadata.class, fileMetadataId);
-    }
-
-    public FileMetadata findFileMetadataByDatasetVersionIdAndDataFileId(Long datasetVersionId, Long dataFileId) {
-
-        Query query = em.createQuery("select o from FileMetadata o where o.datasetVersion.id = :datasetVersionId  and o.dataFile.id = :dataFileId");
-        query.setParameter("datasetVersionId", datasetVersionId);
-        query.setParameter("dataFileId", dataFileId);
-        try {
-            return (FileMetadata) query.getSingleResult();
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public FileMetadata findMostRecentVersionFileIsIn(DataFile file) {
-        if (file == null) {
-            return null;
-        }
-        List<FileMetadata> fileMetadatas = file.getFileMetadatas();
-        return fileMetadatas != null && !fileMetadatas.isEmpty()
-                ? fileMetadatas.get(0) : null;
+    public Optional<FileMetadata> findFileMetadataByDatasetVersionIdAndDataFileId(
+    		final Long datasetVersionId, final Long dataFileId) {
+    	return this.fileMetadataRepo.findByDatasetVersionIdAndDataFileId(datasetVersionId, dataFileId);
     }
 
     public DataFile findCheapAndEasy(Long id) {
@@ -358,26 +300,16 @@ public class DataFileServiceBean implements Serializable {
         return dataFile;
     }
 
-    public DataTable findDataTableByFileId(Long fileId) {
-        Query query = em.createQuery("select object(o) from DataTable as o where o.dataFile.id =:fileId order by o.id");
-        query.setParameter("fileId", fileId);
-        try {
-            return (DataTable) query.getSingleResult();
-        } catch (NoResultException ex) {
-            return null;
-        }
-    }
-
     public List<DataFile> findAll() {
-        return em.createQuery("select object(o) from DataFile as o order by o.id", 
-                DataFile.class).getResultList();
+        return this.fileRepo.findAll();
     }
 
-    public DataFile save(DataFile dataFile) {
-        if (dataFile.isMergeable()) {
-            return em.merge(dataFile);
+    public DataFile save(final DataFile file) {
+        if (file.isMergeable()) {
+            return this.fileRepo.save(file);
         } else {
-            throw new IllegalArgumentException("This DataFile object has been set to NOT MERGEABLE; please ensure " +
+            throw new IllegalArgumentException(
+            		"This DataFile object has been set to NOT MERGEABLE; please ensure " +
                     "a MERGEABLE object is passed to the save method.");
         }
     }
@@ -409,14 +341,6 @@ public class DataFileServiceBean implements Serializable {
         return merged;
     }
 
-    public List<DataFile> findHarvestedFilesByClient(HarvestingClient harvestingClient) {
-        String qr = "SELECT d FROM DataFile d, DvObject o, Dataset s WHERE o.id = d.id AND o.owner.id = s.id " +
-                "AND s.harvestedFrom.id = :harvestingClientId";
-        return em.createQuery(qr, DataFile.class)
-                 .setParameter("harvestingClientId", harvestingClient.getId())
-                 .getResultList();
-    }
-
     /**
      * This method will return true if the thumbnail is *actually available* and
      * ready to be downloaded. (it will try to generate a thumbnail for supported
@@ -439,7 +363,7 @@ public class DataFileServiceBean implements Serializable {
         // checking if the thumbnail is available may cost cpu time, if it has to be generated on the fly
         //  - so you have to figure out which is more important...
         if (imageThumbConverter.isThumbnailAvailable(file)) {
-            file = find(file.getId());
+            file = find(file.getId()).get();
             file.setPreviewImageAvailable(true);
             save(file);
             return true;
@@ -448,47 +372,16 @@ public class DataFileServiceBean implements Serializable {
         return false;
     }
 
-    /**
-     * Does this file have a replacement.
-     * Any file should have AT MOST 1 replacement
-     *
-     * @throws java.lang.Exception if a DataFile has more than 1 replacement
-     *                             or is unpublished and has a replacement.
-     */
-    public boolean hasReplacement(DataFile df) throws Exception {
-        if (df.getId() == null) {
-            // An unsaved file cannot have a replacment
-            return false;
-        }
-        List<DataFile> dataFiles = em.createQuery("select o from DataFile o WHERE o.previousDataFileId = :dataFileId", 
-                DataFile.class)
-                .setParameter("dataFileId", df.getId())
-                .getResultList();
-
-        if (dataFiles.isEmpty()) {
-            return false;
-        }
-        if (!df.isReleased()) {
-            // An unpublished SHOULD NOT have a replacment
-            String errMsg = "DataFile with id: [" + df.getId() 
-                + "] is UNPUBLISHED with a REPLACEMENT.  This should NOT happen.";
-            logger.error(errMsg);
-            throw new Exception(errMsg);
-        } else if (dataFiles.size() == 1) {
-            return true;
-        } else {
-            String errMsg = "DataFile with id: [" + df.getId() 
-                + "] has more than one replacment!";
-            logger.error(errMsg);
-            throw new Exception(errMsg);
-        }
-
+    public boolean hasReplacement(final DataFile file) {
+        return file.isNew() 
+        		? false 
+        		: this.fileRepo.findReplacementFile(file.getId()).isPresent();
     }
 
-    public boolean hasBeenDeleted(DataFile df) {
-        Dataset dataset = df.getOwner();
-        DatasetVersion dsv = dataset.getLatestVersion();
-        return findFileMetadataByDatasetVersionIdAndDataFileId(dsv.getId(), df.getId()) == null;
+    public boolean hasBeenDeleted(final DataFile df) {
+        final Dataset dataset = df.getOwner();
+        final DatasetVersion dsv = dataset.getLatestVersion();
+        return ! findFileMetadataByDatasetVersionIdAndDataFileId(dsv.getId(), df.getId()).isPresent();
     }
 
     @SuppressWarnings("unchecked")

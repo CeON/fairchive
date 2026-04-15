@@ -140,7 +140,7 @@ class FileMetadataServiceTest {
         fileMetadata.setId(1L);
 
         //when
-        Mockito.when(fileMetadataRepository.findFileMetadataByDatasetVersionIdWithPagination(Mockito.any(Long.class),
+        Mockito.when(fileMetadataRepository.findFileMetadataByDatasetVersionId(Mockito.any(Long.class),
                                                                                              Mockito.any(Integer.class),
                                                                                              Mockito.any(Integer.class)))
                .thenReturn(Lists.newArrayList(fileMetadata));
@@ -159,7 +159,7 @@ class FileMetadataServiceTest {
         fileMetadata.setId(1L);
 
         //when
-        Mockito.when(fileMetadataRepository.findSearchedFileMetadataByDatasetVersionIdWithPagination(Mockito.any(Long.class),
+        Mockito.when(fileMetadataRepository.findSearchedFileMetadataByDatasetVersionId(Mockito.any(Long.class),
                                                                                                       Mockito.any(Integer.class),
                                                                                                       Mockito.any(Integer.class),
                                                                                                       Mockito.any(String.class)))

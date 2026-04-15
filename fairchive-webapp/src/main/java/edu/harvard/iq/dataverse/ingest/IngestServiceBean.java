@@ -391,7 +391,7 @@ public class IngestServiceBean {
                 // todo: investigate why when calling save with the file object
                 // gotten from the loop, the roles assignment added at create is removed
                 // (switching to refinding via id resolves that)
-                dataFile = fileService.find(dataFile.getId());
+                dataFile = fileService.find(dataFile.getId()).get();
                 scheduledFiles.add(dataFile);
             }
         }
@@ -409,7 +409,7 @@ public class IngestServiceBean {
         for (DataFile dataFile : dataFiles) {
 
             // refresh the copy of the DataFile:
-            dataFile = fileService.find(dataFile.getId());
+            dataFile = fileService.find(dataFile.getId()).get();
 
             if (!exceedsIngestSizeLimit(dataFile)) {
                 dataFile.setIngestInProgress();
@@ -474,7 +474,7 @@ public class IngestServiceBean {
 
     @TransactionAttribute(NOT_SUPPORTED)
     public boolean performOCR(final Long datafile_id) {
-        final DataFile dataFile = fileService.find(datafile_id);
+        final DataFile dataFile = fileService.find(datafile_id).get();
         try {
             this.ocrService.ocr(dataFile);
             dataFile.setIngestDone();
@@ -502,7 +502,7 @@ public class IngestServiceBean {
 
     @TransactionAttribute(NOT_SUPPORTED)
     public boolean performHTR(final Long datafile_id) {
-        final DataFile dataFile = fileService.find(datafile_id);
+        final DataFile dataFile = fileService.find(datafile_id).get();
         try {
             this.htrService.htr(dataFile);
             dataFile.setIngestDone();
@@ -530,7 +530,7 @@ public class IngestServiceBean {
     
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean ingestAsTabular(Long datafile_id) {
-        DataFile dataFile = fileService.find(datafile_id);
+        DataFile dataFile = fileService.find(datafile_id).get();
         IngestRequest ingestRequest = dataFile.getIngestRequest();
 
         boolean forceTypeCheck = ingestRequest != null && ingestRequest.isForceTypeCheck();
@@ -1338,7 +1338,7 @@ public class IngestServiceBean {
     // the ingested original. It will check the saved original file to
     // determine the type.
     private void fixMissingOriginalType(long fileId) {
-        DataFile dataFile = fileService.find(fileId);
+        DataFile dataFile = fileService.find(fileId).orElse(null);
 
         if (dataFile != null && dataFile.isTabularData()) {
             String originalFormat = dataFile.getDataTable().getOriginalFileFormat();
@@ -1418,7 +1418,7 @@ public class IngestServiceBean {
     // This method fixes a datatable object that's missing the size of the
     // ingested original.
     private void fixMissingOriginalSize(long fileId) {
-        DataFile dataFile = fileService.find(fileId);
+        DataFile dataFile = fileService.find(fileId).orElse(null);
 
         if (dataFile != null && dataFile.isTabularData()) {
             Long savedOriginalFileSize = dataFile.getDataTable().getOriginalFileSize();

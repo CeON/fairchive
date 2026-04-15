@@ -597,7 +597,7 @@ public class WorldMapRelatedData extends AbstractApiBean {
         }
 
         // Check if this file exists
-        DataFile dfile = dataFileService.find(datafileId);
+        DataFile dfile = dataFileService.find(datafileId).orElse(null);
         if (dfile == null) {
             return notFound("DataFile not found for id: " + datafileId);
         }

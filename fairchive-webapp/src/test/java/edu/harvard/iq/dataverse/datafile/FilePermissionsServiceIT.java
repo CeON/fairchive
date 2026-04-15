@@ -73,8 +73,8 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
     @Test
     public void assignFileDownloadRole() {
         // given
-        DataFile datafile1 = dataFileService.find(53L);
-        DataFile datafile2 = dataFileService.find(55L);
+        DataFile datafile1 = dataFileService.find(53L).get();
+        DataFile datafile2 = dataFileService.find(55L).get();
         AuthenticatedUser user = authenticationService.getAuthenticatedUser("superuser");
         int userNotificationsCountBefore = userNotificationRepository.findByUser(user.getId()).size();
 
@@ -102,8 +102,8 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
         assertContainsRoleAssignment(roleAssignments, "&explicit/1-rootgroup", 53L);
         assertContainsRoleAssignment(roleAssignments, "&explicit/1-rootgroup", 55L);
 
-        MatcherAssert.assertThat(dataFileService.find(53L).getFileAccessRequesters(), is(empty()));
-        MatcherAssert.assertThat(dataFileService.find(55L).getFileAccessRequesters(), is(empty()));
+        MatcherAssert.assertThat(dataFileService.find(53L).get().getFileAccessRequesters(), is(empty()));
+        MatcherAssert.assertThat(dataFileService.find(55L).get().getFileAccessRequesters(), is(empty()));
 
 
         EmailModel userEmail = FakeSmtpServerUtil.waitForEmailSentTo(smtpServer, "superuser@mailinator.com");
@@ -133,7 +133,7 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
         // given
         dataverseSession.logIn(GuestUser.get());
         AuthenticatedUser user = authenticationService.getAuthenticatedUser("superuser");
-        DataFile datafile = dataFileService.find(53L);
+        DataFile datafile = dataFileService.find(53L).get();
 
         // when
         Executable assignRoleOperation = () -> filePermissionsService.assignFileDownloadRole(
@@ -149,8 +149,8 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
     @Transactional(TransactionMode.ROLLBACK)
     public void revokeFileDownloadRole() {
         // given
-        DataFile datafile1 = dataFileService.find(53L);
-        DataFile datafile2 = dataFileService.find(55L);
+        DataFile datafile1 = dataFileService.find(53L).get();
+        DataFile datafile2 = dataFileService.find(55L).get();
         AuthenticatedUser user = authenticationService.getAuthenticatedUser("filedownloader");
 
         // when
@@ -173,7 +173,7 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
     public void revokeFileDownloadRole__MISSING_MANAGE_DATASET_PERMISSIONS() {
         // given
         dataverseSession.logIn(GuestUser.get());
-        DataFile datafile = dataFileService.find(53L);
+        DataFile datafile = dataFileService.find(53L).get();
         AuthenticatedUser user = authenticationService.getAuthenticatedUser("filedownloader");
 
         // when
@@ -193,11 +193,11 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
         AuthenticatedUser userToBeInformed = authenticationService.getAuthenticatedUser("dataverseAdmin");
         int userToBeInformedNotificationsCountBefore = userNotificationRepository.findByUser(userToBeInformed.getId()).size();
 
-        DataFile datafile1 = dataFileService.find(53L);
+        DataFile datafile1 = dataFileService.find(53L).get();
         datafile1.getFileAccessRequesters().add(user);
         datafile1 = dataFileService.save(datafile1);
 
-        DataFile datafile2 = dataFileService.find(55L);
+        DataFile datafile2 = dataFileService.find(55L).get();
         datafile2.getFileAccessRequesters().add(user);
         datafile2 = dataFileService.save(datafile2);
 
@@ -205,8 +205,8 @@ public class FilePermissionsServiceIT extends WebappArquillianDeployment {
         filePermissionsService.rejectRequestAccessToFiles(user, Lists.newArrayList(datafile1, datafile2));
 
         // then
-        MatcherAssert.assertThat(dataFileService.find(53L).getFileAccessRequesters(), is(empty()));
-        MatcherAssert.assertThat(dataFileService.find(55L).getFileAccessRequesters(), is(empty()));
+        MatcherAssert.assertThat(dataFileService.find(53L).get().getFileAccessRequesters(), is(empty()));
+        MatcherAssert.assertThat(dataFileService.find(55L).get().getFileAccessRequesters(), is(empty()));
 
         EmailModel userEmail = FakeSmtpServerUtil.waitForEmailSentTo(smtpServer, "superuser@mailinator.com");
         assertEquals("Root: Your request for access to a restricted file has been", userEmail.getSubject());
