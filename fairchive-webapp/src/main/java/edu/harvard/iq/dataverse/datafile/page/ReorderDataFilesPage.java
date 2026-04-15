@@ -26,7 +26,7 @@ public class ReorderDataFilesPage implements java.io.Serializable {
     private PermissionsWrapper permissionsWrapper;
 
     private Long datasetVersionId;
-    private DatasetVersion datasetVersion = new DatasetVersion();
+    private DatasetVersion datasetVersion;
     private List<FileMetadata> fileMetadatas;
     private Change lastChange;
     
