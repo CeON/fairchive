@@ -1,7 +1,9 @@
 package edu.harvard.iq.dataverse.datafile.page;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Collections.swap;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,8 +69,8 @@ public class ReorderDataFilesPage implements java.io.Serializable {
     }
 
     public void moveUp(final int fileIndex) {
-        final FileMetadata fileToMove = this.fileMetadatas.remove(fileIndex);
-        this.fileMetadatas.add(fileIndex - 1, fileToMove);
+        final FileMetadata fileToMove = this.fileMetadatas.get(fileIndex);
+        swap(this.fileMetadatas, fileIndex, fileIndex -1);
 
         this.lastChange = new Change(fileIndex, fileIndex - 1, fileToMove);
     }
@@ -81,8 +83,8 @@ public class ReorderDataFilesPage implements java.io.Serializable {
     }
 
     public void moveDown(final int fileIndex) {
-        final FileMetadata fileToMove = this.fileMetadatas.remove(fileIndex);
-        this.fileMetadatas.add(fileIndex + 1, fileToMove);
+    	final FileMetadata fileToMove = this.fileMetadatas.get(fileIndex);
+        swap(this.fileMetadatas, fileIndex, fileIndex + 1);
 
         this.lastChange = new Change(fileIndex, fileIndex + 1, fileToMove);
     }
