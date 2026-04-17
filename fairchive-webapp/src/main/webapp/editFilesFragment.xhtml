@@ -121,12 +121,6 @@
                                                     rendered="#{EditDatafilesPage.batchSizeSet}">
                                         <f:param value="#{EditDatafilesPage.humanMaxBatchUploadSize}"/>
                                     </h:outputFormat>
-                                    <p:selectBooleanCheckbox 
-                                        rendered="#{EditDatafilesPage.superuserLoggedIn}"
-                                        value="#{EditDatafilesPage.ignoringMaxUploadLimit}"
-                                        itemLabel="#{bundle['file.selectToAdd.ignoreLimits']}"> 
-                                            <p:ajax/>
-                                        </p:selectBooleanCheckbox>
                                 </p>
 
                                 <script>
@@ -188,15 +182,15 @@
                                               oncomplete="uploadFinished(PF('fileUploadWidget'));"
                                               onstart="javascript:uploadWidgetDropRemoveMsg();uploadStarted();"
                                               onerror="javascript:uploadFailure();"
-                                              invalidSizeMessage="#{bundle['file.edit.error.file_exceeds_limit']}"
+                                              invalidSizeMessage="#{EditDatafilesPage.uploadFileTooBigMessage}"
+                                              fileLimitMessage="#{EditDatafilesPage.uploadBatchFileCountTooBigMessage}"
                                               sequential="true"
-                                              widgetVar="fileUploadWidget"/>
-                                              <!-- 
+                                              widgetVar="fileUploadWidget"
                                               fileLimit="#{EditDatafilesPage.maxNumberOfFiles}"
                                               sizeLimit="#{EditDatafilesPage.maxFileUploadSizeInBytes}"
                                               pt:data-maxBatchSize="#{EditDatafilesPage.singleUploadBatchMaxSize}"
                                               pt:data-uploadBatchTooBigMessage="#{EditDatafilesPage.uploadBatchTooBigMessage}"
-                                              -->
+                                              />
                                 <div jsf:id="dropboxBlock"
                                      jsf:rendered="#{settingsWrapper.isHasDropBoxKey() and !lockedFromEdits }"
                                      class="margin-top">

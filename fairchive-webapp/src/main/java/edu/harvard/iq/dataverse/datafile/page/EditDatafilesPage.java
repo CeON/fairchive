@@ -178,7 +178,7 @@ public class EditDatafilesPage implements java.io.Serializable {
     private boolean saveEnabled = false;
 
     private long maxFileUploadSizeInBytes = Long.MAX_VALUE;
-    private long multipleUploadFilesLimit = Long.MAX_VALUE;
+    private int multipleUploadFilesLimit = Integer.MAX_VALUE;
     private long singleUploadBatchMaxSize = Long.MAX_VALUE;
 
     private List<SelectItem> termsOfUseSelectItems;
@@ -286,18 +286,15 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
 
     public long getMaxFileUploadSizeInBytes() {
-        return this.maxFileUploadSizeInBytes;
+        return  ignoreLimits() ? Long.MAX_VALUE : this.maxFileUploadSizeInBytes;
     }
 
-    // The number of files the GUI user is allowed to upload in one batch,
-    // via drag-and-drop, or through the file select dialog. Now configurable
-    // in the Settings table.
-    public long getMaxNumberOfFiles() {
-        return this.multipleUploadFilesLimit;
+    public int getMaxNumberOfFiles() {
+        return ignoreLimits() ? Integer.MAX_VALUE : this.multipleUploadFilesLimit;
     }
     
     public long getSingleUploadBatchMaxSize() {
-        return this.singleUploadBatchMaxSize;
+        return ignoreLimits() ? Long.MAX_VALUE : this.singleUploadBatchMaxSize;
     }
 
     public String getGlobalId() {
@@ -510,7 +507,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         }
 
         this.maxFileUploadSizeInBytes = this.settings.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes, Long.MAX_VALUE);
-        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsLong(Key.MultipleUploadFilesLimit, Long.MAX_VALUE);
+        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsInt(Key.MultipleUploadFilesLimit, Integer.MAX_VALUE);
         this.singleUploadBatchMaxSize = this.settings.getValueForKeyAsLong(Key.SingleUploadBatchMaxSize, Long.MAX_VALUE);
         this.workingVersion = version;
         this.dataset = version.getDataset();
@@ -532,7 +529,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         cleanupTempFiles();
 
         this.maxFileUploadSizeInBytes = this.settings.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes, Long.MAX_VALUE);
-        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsLong(Key.MultipleUploadFilesLimit, Long.MAX_VALUE);
+        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsInt(Key.MultipleUploadFilesLimit, Integer.MAX_VALUE);
         this.singleUploadBatchMaxSize = this.settings.getValueForKeyAsLong(Key.SingleUploadBatchMaxSize, Long.MAX_VALUE);
         this.termsOfUseSelectItems = this.termsOfUseSelectItemsFactory.buildLicenseSelectItems();
 
@@ -1062,21 +1059,23 @@ public class EditDatafilesPage implements java.io.Serializable {
     }
     
     private boolean sizeOfFileExceedsLimit(final long fileSize) {
-        return isSuperuserLoggedIn() && this.ignoringMaxUploadLimit
-            ? false
-            : fileSize > this.maxFileUploadSizeInBytes;
+        return ignoreLimits() ? false : fileSize > this.maxFileUploadSizeInBytes;
     }
     
     private boolean sizeOfBatchExceedsLimit(final long fileSize) {
-        return isSuperuserLoggedIn() && this.ignoringMaxUploadLimit
-            ? false
-            : (this.currentBatchSize + fileSize) > this.singleUploadBatchMaxSize;
+        return ignoreLimits() 
+        		? false 
+        		: (this.currentBatchSize + fileSize) > this.singleUploadBatchMaxSize;
     }
 
     private boolean numberOfFilesExceedsLimit() {
-        return isSuperuserLoggedIn() && this.ignoringMaxUploadLimit
+        return ignoreLimits()
             ? false
             : newFiles.size() >= this.multipleUploadFilesLimit;
+    }
+    
+    private boolean ignoreLimits() {
+    	return isSuperuserLoggedIn() && this.ignoringMaxUploadLimit;
     }
 
     /**
@@ -1186,7 +1185,6 @@ public class EditDatafilesPage implements java.io.Serializable {
         return this.session.isSuperUserLoggedIn();
     }
     
-
     public boolean isLocked() {
         if (this.dataset != null) {
             logger.log(Level.FINE, "checking lock status of dataset {0}", this.dataset.getId());

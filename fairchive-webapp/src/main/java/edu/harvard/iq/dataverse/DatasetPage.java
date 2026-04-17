@@ -363,6 +363,10 @@ public class DatasetPage implements Serializable {
     public boolean isSessionUserAuthenticated() {
         return session.isUserLoggedIn();
     }
+    
+    public boolean isSuperuserLoggedIn() {
+        return this.session.isSuperUserLoggedIn();
+    }
 
     public boolean hasAnythingToUningest() {
         return this.dataset.hasUningestableFiles();

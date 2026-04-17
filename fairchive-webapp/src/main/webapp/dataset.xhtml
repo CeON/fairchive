@@ -425,6 +425,12 @@
                                                     <h:outputText value="#{bundle['dataset.editBtn.itemLabel.upload']}"/>
                                                 </h:outputLink>
                                             </li>
+                                            <li jsf:rendered="#{DatasetPage.superuserLoggedIn}">
+                                                <h:outputLink
+                                                        value="/editdatafiles.xhtml?datasetId=#{DatasetPage.dataset.id}&#38;mode=UPLOAD&#38;ignoringMaxUploadLimit=true">
+                                                    <h:outputText value="#{bundle['dataset.editBtn.itemLabel.uploadIgnoringLimit']}"/>
+                                                </h:outputLink>
+                                            </li>
                                             <li>
                                                 <h:outputLink
                                                         value="/editDatasetMetadata.xhtml?datasetId=#{DatasetPage.dataset.id}">
