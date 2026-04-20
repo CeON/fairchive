@@ -1326,6 +1326,16 @@ public class DatasetPage implements Serializable {
         return termsOfUse.getIcon().map(this::toStreamedContent);
     }
 
+    /**
+     * Retrieves a localized string from the application bundle. Goes through
+     * the alternate bundles if the primary bundle does not contain the key.
+     * This allows for overriding the message in an extension, as referring to
+     * the bundle directly in the template won't work.
+     */
+    public String getMessage(String key) {
+        return BundleUtil.getStringFromBundle(key);
+    }
+
     // -------------------- PRIVATE ---------------------
     
     private DefaultStreamedContent toStreamedContent(final LicenseIcon icon) {
