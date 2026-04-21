@@ -114,19 +114,13 @@
                                         <f:param value="#{EditDatafilesPage.multipleUploadFilesLimit}"/>
                                     </h:outputFormat>
                                     <h:outputFormat value=" #{bundle['file.selectToAdd.tipLimit']}" escape="false"
-                                                    rendered="#{!EditDatafilesPage.unlimitedUploadFileSize}">
+                                                    rendered="#{EditDatafilesPage.uploadFileSizeSet}">
                                         <f:param value="#{EditDatafilesPage.humanMaxFileUploadSize}"/>
                                     </h:outputFormat>
                                     <h:outputFormat value=" #{bundle['file.selectToAdd.tipBatchLimit']}" escape="false"
-                                                    rendered="#{EditDatafilesPage.maxBatchSize > 0}">
+                                                    rendered="#{EditDatafilesPage.batchSizeSet}">
                                         <f:param value="#{EditDatafilesPage.humanMaxBatchUploadSize}"/>
                                     </h:outputFormat>
-                                    <p:selectBooleanCheckbox 
-                                        rendered="#{EditDatafilesPage.superuserLoggedIn}"
-                                        value="#{EditDatafilesPage.ignoringMaxUploadLimit}"
-                                        itemLabel="#{bundle['file.selectToAdd.ignoreLimits']}"> 
-                                            <p:ajax/>
-                                        </p:selectBooleanCheckbox>
                                 </p>
 
                                 <script>
@@ -188,13 +182,15 @@
                                               oncomplete="uploadFinished(PF('fileUploadWidget'));"
                                               onstart="javascript:uploadWidgetDropRemoveMsg();uploadStarted();"
                                               onerror="javascript:uploadFailure();"
-                                              fileLimit="#{EditDatafilesPage.getMaxNumberOfFiles()}"
-                                              invalidSizeMessage="#{bundle['file.edit.error.file_exceeds_limit']}"
+                                              invalidSizeMessage="#{EditDatafilesPage.uploadFileTooBigMessage}"
+                                              fileLimitMessage="#{EditDatafilesPage.uploadBatchFileCountTooBigMessage}"
                                               sequential="true"
-                                              pt:data-maxBatchSize="#{EditDatafilesPage.maxBatchSize}"
+                                              widgetVar="fileUploadWidget"
+                                              fileLimit="#{EditDatafilesPage.maxNumberOfFiles}"
+                                              sizeLimit="#{EditDatafilesPage.maxFileUploadSizeInBytes}"
+                                              pt:data-maxBatchSize="#{EditDatafilesPage.singleUploadBatchMaxSize}"
                                               pt:data-uploadBatchTooBigMessage="#{EditDatafilesPage.uploadBatchTooBigMessage}"
-                                              widgetVar="fileUploadWidget"/>
-
+                                              />
                                 <div jsf:id="dropboxBlock"
                                      jsf:rendered="#{settingsWrapper.isHasDropBoxKey() and !lockedFromEdits }"
                                      class="margin-top">

@@ -177,8 +177,9 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private boolean saveEnabled = false;
 
-    private Long maxFileUploadSizeInBytes = null;
-    private Long multipleUploadFilesLimit = null;
+    private long maxFileUploadSizeInBytes;
+    private int multipleUploadFilesLimit;
+    private long singleUploadBatchMaxSize;
 
     private List<SelectItem> termsOfUseSelectItems;
     private List<FileMetadata> selectedFiles;
@@ -284,15 +285,16 @@ public class EditDatafilesPage implements java.io.Serializable {
         return this.mode;
     }
 
-    public Long getMaxFileUploadSizeInBytes() {
-        return this.maxFileUploadSizeInBytes;
+    public long getMaxFileUploadSizeInBytes() {
+        return  ignoreLimits() ? Long.MAX_VALUE : this.maxFileUploadSizeInBytes;
     }
 
-    // The number of files the GUI user is allowed to upload in one batch,
-    // via drag-and-drop, or through the file select dialog. Now configurable
-    // in the Settings table.
-    public Long getMaxNumberOfFiles() {
-        return this.multipleUploadFilesLimit;
+    public int getMaxNumberOfFiles() {
+        return ignoreLimits() ? Integer.MAX_VALUE : this.multipleUploadFilesLimit;
+    }
+    
+    public long getSingleUploadBatchMaxSize() {
+        return ignoreLimits() ? Long.MAX_VALUE : this.singleUploadBatchMaxSize;
     }
 
     public String getGlobalId() {
@@ -457,25 +459,29 @@ public class EditDatafilesPage implements java.io.Serializable {
      *  This may be null, signifying unlimited download size.
      */
     public String getHumanMaxFileUploadSize() {
-        return getMaxFileUploadSizeInBytes() == null
-                ? EMPTY
-                : bytesToHumanReadable(getMaxFileUploadSizeInBytes());
+        return bytesToHumanReadable(getMaxFileUploadSizeInBytes());
     }
-
-    public boolean isUnlimitedUploadFileSize() {
-        return this.maxFileUploadSizeInBytes == null;
+    
+    public boolean isUploadFileSizeSet() {
+        return getMaxFileUploadSizeInBytes() < Long.MAX_VALUE;
+    }
+    
+    public boolean isBatchSizeSet() {
+    	return getSingleUploadBatchMaxSize() < Long.MAX_VALUE;
     }
 
     public String getHumanMaxBatchUploadSize() {
-        Long batchSize = getMaxBatchSize();
-        return batchSize == null || batchSize.equals(0L)
-                ? EMPTY
-                : bytesToHumanReadable(batchSize);
+        return bytesToHumanReadable(getSingleUploadBatchMaxSize());
     }
 
     public String getUploadBatchTooBigMessage() {
         return getStringFromBundle("dataset.file.uploadBatchTooBig", 
                 getHumanMaxBatchUploadSize());
+    }
+    
+    public String getUploadFileTooBigMessage() {
+        return getStringFromBundle("dataset.file.uploadFileTooBig", 
+        		getHumanMaxFileUploadSize());
     }
 
     public String getUploadBatchFileCountTooBigMessage() {
@@ -500,8 +506,7 @@ public class EditDatafilesPage implements java.io.Serializable {
             return this.permissionsWrapper.notFound();
         }
 
-        this.maxFileUploadSizeInBytes = this.settings.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes);
-        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsLong(Key.MultipleUploadFilesLimit);
+        initUploadLimits();
         this.workingVersion = version;
         this.dataset = version.getDataset();
         this.mode = FileEditMode.CREATE;
@@ -521,8 +526,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.uploadedFiles = new ArrayList<>();
         cleanupTempFiles();
 
-        this.maxFileUploadSizeInBytes = this.settings.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes);
-        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsLong(Key.MultipleUploadFilesLimit);
+        initUploadLimits();
         this.termsOfUseSelectItems = this.termsOfUseSelectItemsFactory.buildLicenseSelectItems();
 
         if (this.dataset.getId() != null) {
@@ -572,6 +576,12 @@ public class EditDatafilesPage implements java.io.Serializable {
             setUpRsync();
         }
         return null;
+    }
+    
+    private void initUploadLimits() {
+    	this.maxFileUploadSizeInBytes = this.settings.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes);
+        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsInt(Key.MultipleUploadFilesLimit);
+        this.singleUploadBatchMaxSize = this.settings.getValueForKeyAsLong(Key.SingleUploadBatchMaxSize);
     }
 
     public boolean isInUploadMode() {
@@ -918,7 +928,7 @@ public class EditDatafilesPage implements java.io.Serializable {
             // Check file size
             //  - Max size NOT specified in db: default is unlimited
             //  - Max size specified in db: check too make sure file is within limits
-            if (!isUnlimitedUploadFileSize() && fileSize > getMaxFileUploadSizeInBytes()) {
+            if (fileSize > getMaxFileUploadSizeInBytes()) {
                 String warningMessage = "Dropbox file \"" + fileName + 
                         "\" exceeded the limit of " + fileSize 
                         + " bytes and was not uploaded.";
@@ -1049,27 +1059,25 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.hasDuplicates = hasDuplicatesInUploadedFiles(this.newFiles);
         this.hasReplacements = !listReplacements().isEmpty();
     }
-
-    public Long getMaxBatchSize() {
-        return this.settings.getValueForKeyAsLong(Key.SingleUploadBatchMaxSize);
+    
+    private boolean sizeOfFileExceedsLimit(final long fileSize) {
+        return ignoreLimits() ? false : fileSize > this.maxFileUploadSizeInBytes;
     }
     
-    private boolean sizeExceedsLimit(final long fileSize) {
-        if (isSuperuserLoggedIn() && this.ignoringMaxUploadLimit) {
-            return false;
-        } else {
-            return getMaxBatchSize() > 0
-                    && (this.currentBatchSize + fileSize) > getMaxBatchSize();
-        }
+    private boolean sizeOfBatchExceedsLimit(final long fileSize) {
+        return ignoreLimits() 
+        		? false 
+        		: (this.currentBatchSize + fileSize) > this.singleUploadBatchMaxSize;
     }
 
     private boolean numberOfFilesExceedsLimit() {
-        if (isSuperuserLoggedIn() && this.ignoringMaxUploadLimit) {
-            return false;
-        } else {
-            return getMaxNumberOfFiles() > 0
-                    && newFiles.size() >= getMaxNumberOfFiles();
-        }
+        return ignoreLimits()
+            ? false
+            : newFiles.size() >= this.multipleUploadFilesLimit;
+    }
+    
+    private boolean ignoreLimits() {
+    	return isSuperuserLoggedIn() && this.ignoringMaxUploadLimit;
     }
 
     /**
@@ -1079,7 +1087,10 @@ public class EditDatafilesPage implements java.io.Serializable {
         final UploadedFile uploadedFile = event.getFile();
         final long fileSize = uploadedFile.getSize();
 
-        if (sizeExceedsLimit(fileSize)) {
+        if (sizeOfFileExceedsLimit(fileSize)) {
+            this.uploadWarningMessage = getUploadFileTooBigMessage();
+            this.uploadComponentId = event.getComponent().getClientId();
+        } else if (sizeOfBatchExceedsLimit(fileSize)) {
             this.uploadWarningMessage = getUploadBatchTooBigMessage();
             this.uploadComponentId = event.getComponent().getClientId();
         } else if (numberOfFilesExceedsLimit()) {
@@ -1176,7 +1187,6 @@ public class EditDatafilesPage implements java.io.Serializable {
         return this.session.isSuperUserLoggedIn();
     }
     
-
     public boolean isLocked() {
         if (this.dataset != null) {
             logger.log(Level.FINE, "checking lock status of dataset {0}", this.dataset.getId());
@@ -1727,8 +1737,6 @@ public class EditDatafilesPage implements java.io.Serializable {
             final Long fileId = fileMetadata.getDataFile().getId();
 
             if (selectedFileIds.contains(fileId)) {
-                logger.fine("Success! - found the file id " 
-                        + fileId + " in the edit version.");
                 this.fileMetadatas.add(fileMetadata);
                 selectedFileIds.remove(fileId);
             }
