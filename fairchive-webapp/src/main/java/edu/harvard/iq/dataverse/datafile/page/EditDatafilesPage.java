@@ -177,9 +177,9 @@ public class EditDatafilesPage implements java.io.Serializable {
 
     private boolean saveEnabled = false;
 
-    private long maxFileUploadSizeInBytes = Long.MAX_VALUE;
-    private int multipleUploadFilesLimit = Integer.MAX_VALUE;
-    private long singleUploadBatchMaxSize = Long.MAX_VALUE;
+    private long maxFileUploadSizeInBytes;
+    private int multipleUploadFilesLimit;
+    private long singleUploadBatchMaxSize;
 
     private List<SelectItem> termsOfUseSelectItems;
     private List<FileMetadata> selectedFiles;
@@ -459,19 +459,19 @@ public class EditDatafilesPage implements java.io.Serializable {
      *  This may be null, signifying unlimited download size.
      */
     public String getHumanMaxFileUploadSize() {
-        return bytesToHumanReadable(this.maxFileUploadSizeInBytes);
+        return bytesToHumanReadable(getMaxFileUploadSizeInBytes());
     }
-
-    public boolean isUnlimitedUploadFileSize() {
-        return this.maxFileUploadSizeInBytes == Long.MAX_VALUE;
+    
+    public boolean isUploadFileSizeSet() {
+        return getMaxFileUploadSizeInBytes() < Long.MAX_VALUE;
     }
     
     public boolean isBatchSizeSet() {
-    	return this.singleUploadBatchMaxSize < Long.MAX_VALUE;
+    	return getSingleUploadBatchMaxSize() < Long.MAX_VALUE;
     }
 
     public String getHumanMaxBatchUploadSize() {
-        return bytesToHumanReadable(this.singleUploadBatchMaxSize);
+        return bytesToHumanReadable(getSingleUploadBatchMaxSize());
     }
 
     public String getUploadBatchTooBigMessage() {
@@ -506,9 +506,7 @@ public class EditDatafilesPage implements java.io.Serializable {
             return this.permissionsWrapper.notFound();
         }
 
-        this.maxFileUploadSizeInBytes = this.settings.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes, Long.MAX_VALUE);
-        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsInt(Key.MultipleUploadFilesLimit, Integer.MAX_VALUE);
-        this.singleUploadBatchMaxSize = this.settings.getValueForKeyAsLong(Key.SingleUploadBatchMaxSize, Long.MAX_VALUE);
+        initUploadLimits();
         this.workingVersion = version;
         this.dataset = version.getDataset();
         this.mode = FileEditMode.CREATE;
@@ -528,9 +526,7 @@ public class EditDatafilesPage implements java.io.Serializable {
         this.uploadedFiles = new ArrayList<>();
         cleanupTempFiles();
 
-        this.maxFileUploadSizeInBytes = this.settings.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes, Long.MAX_VALUE);
-        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsInt(Key.MultipleUploadFilesLimit, Integer.MAX_VALUE);
-        this.singleUploadBatchMaxSize = this.settings.getValueForKeyAsLong(Key.SingleUploadBatchMaxSize, Long.MAX_VALUE);
+        initUploadLimits();
         this.termsOfUseSelectItems = this.termsOfUseSelectItemsFactory.buildLicenseSelectItems();
 
         if (this.dataset.getId() != null) {
@@ -580,6 +576,12 @@ public class EditDatafilesPage implements java.io.Serializable {
             setUpRsync();
         }
         return null;
+    }
+    
+    private void initUploadLimits() {
+    	this.maxFileUploadSizeInBytes = this.settings.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes);
+        this.multipleUploadFilesLimit = this.settings.getValueForKeyAsInt(Key.MultipleUploadFilesLimit);
+        this.singleUploadBatchMaxSize = this.settings.getValueForKeyAsLong(Key.SingleUploadBatchMaxSize);
     }
 
     public boolean isInUploadMode() {
@@ -926,7 +928,7 @@ public class EditDatafilesPage implements java.io.Serializable {
             // Check file size
             //  - Max size NOT specified in db: default is unlimited
             //  - Max size specified in db: check too make sure file is within limits
-            if (!isUnlimitedUploadFileSize() && fileSize > getMaxFileUploadSizeInBytes()) {
+            if (fileSize > getMaxFileUploadSizeInBytes()) {
                 String warningMessage = "Dropbox file \"" + fileName + 
                         "\" exceeded the limit of " + fileSize 
                         + " bytes and was not uploaded.";
