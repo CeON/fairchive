@@ -257,10 +257,10 @@
                             <div id="border-block">
                                 <div id="preview-square">
                                     <span class="icon-#{FilePage.fileMetadata.dataFile.fileClass} text-muted" 
-                                          jsf:rendered="#{!FilePage.isThumbnailAvailable()}"/>
+                                          jsf:rendered="#{!FilePage.thumbnailAvailable}"/>
                                     <p:graphicImage styleClass="img-responsive"
                                                     value="/api/access/datafile/#{FilePage.fileId}?imageThumb=400"
-                                                    rendered="#{FilePage.isThumbnailAvailable()}"/>
+                                                    rendered="#{FilePage.thumbnailAvailable}"/>
                                 </div>
                             </div>
                         </div>

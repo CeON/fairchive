@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.StringReader;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -26,10 +27,16 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 @Stateless
 public class ExternalToolServiceBean {
 
-    @Inject
     private ExternalToolRepository repository;
+    
+    public ExternalToolServiceBean() {}
 
-    public List<ExternalTool> findAll() {
+    @Inject
+    public ExternalToolServiceBean(final ExternalToolRepository repository) {
+		this.repository = repository;
+	}
+
+	public List<ExternalTool> findAll() {
         return this.repository.findAll();
     }
 
@@ -106,6 +113,22 @@ public class ExternalToolServiceBean {
             return findBy(type, contentType,
                     file.getFileMetadata().getFileNameExtention());
         }
+    }
+    
+    public Optional<ExternalTool> findFor(final Type type, final DataFile file,
+            final DatasetVersion version) {
+    	
+    	final String contentType = file.isTabularData() 
+    			? MimeTypes.TAB_SEPARATED_VALUES 
+    			: file.getContentType();
+    	final List<ExternalTool> tools = findExternalTools(type, contentType, file, version);
+    	return tools.isEmpty() ? Optional.empty() : Optional.of(tools.get(0));
+    }
+    
+    public boolean isAvailableFor(final Type type, final DataFile file,
+            final DatasetVersion version) {
+    	
+    	return findFor(type, file, version).isPresent();
     }
 
     public ExternalTool parseAddExternalToolManifest(String manifest) {

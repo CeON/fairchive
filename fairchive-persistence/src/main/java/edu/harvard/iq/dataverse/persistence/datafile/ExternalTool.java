@@ -80,6 +80,9 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String contentType;
     
+    @Column(nullable = false)
+    private Boolean trusted = Boolean.FALSE;
+    
     private String fileExtention;
 
 
@@ -192,7 +195,15 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
         return this.toolParameters;
     }
     
-    private JsonObject getToolParametersAsJSON() {
+    public Boolean isTrusted() {
+		return this.trusted;
+	}
+
+	public void setTrusted(final Boolean trusted) {
+		this.trusted = trusted;
+	}
+
+	private JsonObject getToolParametersAsJSON() {
         return Json.createReader(new StringReader(this.toolParameters)).readObject();
     }
     
