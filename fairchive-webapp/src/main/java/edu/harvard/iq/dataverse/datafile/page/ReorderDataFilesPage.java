@@ -1,153 +1,193 @@
 package edu.harvard.iq.dataverse.datafile.page;
 
-import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Collections.swap;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.ReorderEvent;
 
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.List;
-import java.util.Optional;
+import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 @SuppressWarnings("serial")
 @ViewScoped
 @Named("ReorderDataFilesPage")
 public class ReorderDataFilesPage implements java.io.Serializable {
 
-    @EJB
     private DatasetVersionServiceBean datasetVersionService;
-    @Inject
     private PermissionsWrapper permissionsWrapper;
 
-    private DatasetVersion datasetVersion = new DatasetVersion();
+    private Long datasetVersionId;
+    private DatasetVersion datasetVersion;
     private List<FileMetadata> fileMetadatas;
-    private Tuple2<Integer, Integer> lastReorderFromAndTo;
-    private FileMetadata lastReorderFileMetadata;
+    private Change lastChange;
+    
+    
+    public ReorderDataFilesPage() {}
+    
+    @Inject
+    public ReorderDataFilesPage(final DatasetVersionServiceBean datasetVersionService,
+    		final PermissionsWrapper permissionsWrapper) {
+    	this.datasetVersionService = datasetVersionService;
+    	this.permissionsWrapper = permissionsWrapper;
+    }
 
-    /**
-     * Initializes all properties requested by frontend.
-     * Like files for dataset with specific id.
-     *
-     * @return error if something goes wrong or null if success.
-     */
     public String init() {
+    	if(this.datasetVersionId == null) {
+    		return this.permissionsWrapper.notFound();
+    	}
+    	
+        final Optional<DatasetVersion> version = 
+        		this.datasetVersionService.findById(this.datasetVersionId);
 
-        Optional<DatasetVersion> fetchedDatasetVersion = fetchDatasetVersion(datasetVersion.getId());
-
-        if (!fetchedDatasetVersion.isPresent() || fetchedDatasetVersion.get().getDataset().isHarvested()) {
-            return permissionsWrapper.notFound();
+        if (!version.isPresent()) {
+            return this.permissionsWrapper.notFound();
+        }
+        
+        this.datasetVersion = version.get();
+        
+        if (getDataset().isHarvested()) {
+            return this.permissionsWrapper.notFound();
         }
 
-        fileMetadatas = fetchedDatasetVersion.get().getAllFilesMetadataSorted();
-
-        if (!permissionsWrapper.canCurrentUserUpdateDataset(datasetVersion.getDataset())) {
-            return permissionsWrapper.notAuthorized();
+        if (!this.permissionsWrapper.canCurrentUserUpdateDataset(getDataset())) {
+            return this.permissionsWrapper.notAuthorized();
         }
-
+        
+        this.fileMetadatas = this.datasetVersion.getAllFilesMetadataSorted();
         return null;
     }
 
-    public void moveUp(int fileIndex) {
-        FileMetadata fileToMove = fileMetadatas.remove(fileIndex);
-        fileMetadatas.add(fileIndex - 1, fileToMove);
+    public void moveUp(final int fileIndex) {
+        final FileMetadata fileToMove = this.fileMetadatas.get(fileIndex);
+        swap(this.fileMetadatas, fileIndex, fileIndex -1);
 
-        lastReorderFromAndTo = new Tuple2<Integer, Integer>(fileIndex, fileIndex - 1);
-        lastReorderFileMetadata = fileToMove;
+        this.lastChange = new Change(fileIndex, fileIndex - 1, fileToMove);
+    }
+    
+    public void moveToTop(final int fileIndex) {
+        final FileMetadata fileToMove = this.fileMetadatas.remove(fileIndex);
+        this.fileMetadatas.add(0, fileToMove);
+
+        this.lastChange = new Change(fileIndex, 0, fileToMove);
     }
 
-    public void moveDown(int fileIndex) {
-        FileMetadata fileToMove = fileMetadatas.remove(fileIndex);
-        fileMetadatas.add(fileIndex + 1, fileToMove);
+    public void moveDown(final int fileIndex) {
+    	final FileMetadata fileToMove = this.fileMetadatas.get(fileIndex);
+        swap(this.fileMetadatas, fileIndex, fileIndex + 1);
 
-        lastReorderFromAndTo = Tuple.of(fileIndex, fileIndex + 1);
-        lastReorderFileMetadata = fileToMove;
+        this.lastChange = new Change(fileIndex, fileIndex + 1, fileToMove);
+    }
+    
+    public void moveToBottom(final int fileIndex) {
+        final FileMetadata fileToMove = this.fileMetadatas.remove(fileIndex);
+        this.fileMetadatas.add(fileToMove);
+
+        this.lastChange = new Change(fileIndex, this.fileMetadatas.size() -1, fileToMove);
     }
 
-    public void onRowReorder(ReorderEvent event) {
-        lastReorderFromAndTo = Tuple.of(event.getFromIndex(), event.getToIndex());
-        lastReorderFileMetadata = fileMetadatas.get(event.getToIndex());
+    public void onRowReorder(final ReorderEvent event) { 
+        this.lastChange = new Change(event.getFromIndex(), event.getToIndex(), 
+        		this.fileMetadatas.get(event.getToIndex()));
     }
 
     public void undoLastReorder() {
-        FileMetadata fileMoved = fileMetadatas.remove(lastReorderFromAndTo._2().intValue());
-        fileMetadatas.add(lastReorderFromAndTo._1(), fileMoved);
+        final FileMetadata fileMoved = this.fileMetadatas.remove(this.lastChange.getToIndex());
+        this.fileMetadatas.add(this.lastChange.getFromIndex(), fileMoved);
 
-        lastReorderFromAndTo = null;
-        lastReorderFileMetadata = null;
+        this.lastChange = null;
     }
 
-    /**
-     * Reorders files display order if any were reordered, saves the changes to the database
-     * and returns to the previous page.
-     *
-     * @return uri to previous page
-     */
     public String saveFileOrder() {
-
-        datasetVersionService.saveFileMetadata(FileMetadataOrder.reorderDisplayOrder(fileMetadatas));
-
+        this.datasetVersionService.saveInOrder(this.fileMetadatas);
         return returnToPreviousPage();
     }
 
-    /**
-     * Method responsible for retrieving dataset from database.
-     *
-     * @param id
-     * @return optional
-     */
-    private Optional<DatasetVersion> fetchDatasetVersion(Long id) {
-        return Optional.ofNullable(id)
-                .map(datasetId -> this.datasetVersion = datasetVersionService.getById(datasetId));
-    }
-
-    /**
-     * returns you to the dataset page.
-     *
-     * @return uri
-     */
     public String returnToPreviousPage() {
-        if (datasetVersion.isDraft()) {
-            return "/dataset.xhtml?persistentId=" +
-                    datasetVersion.getDataset().getGlobalId().asString() + "&version=DRAFT&faces-redirect=true";
+        if (this.datasetVersion.isDraft()) {
+            return "/dataset.xhtml?version=DRAFT&faces-redirect=true&persistentId=".
+            		concat(this.datasetVersion.getDataset().getGlobalId().asString());
+        } else {
+        	return "/dataset.xhtml?faces-redirect=true&persistentId="
+                    + this.datasetVersion.getDataset().getGlobalId().asString()
+                    + "&version="
+                    + this.datasetVersion.getVersionNumber() 
+                    + '.'
+                    + this.datasetVersion.getMinorVersionNumber();
         }
-        return "/dataset.xhtml?persistentId="
-                    + datasetVersion.getDataset().getGlobalId().asString()
-                    + "&faces-redirect=true&version="
-                    + datasetVersion.getVersionNumber() + "." + datasetVersion.getMinorVersionNumber();
+    }
+    
+    public String urlFor(final FileMetadata fileMetadata) {
+    	final String gid = fileMetadata.getDataFile().getGlobalId().toString();
+    	if(gid.isEmpty()) {
+    		return "/file.xhtml?fileId=" + fileMetadata.getDataFile().getId() + 
+    				"&version=" + fileMetadata.getDatasetVersion().getFriendlyVersionNumber();
+    	} else {
+    		return "/file.xhtml?persistentId=" + gid + 
+    				"&version=" + fileMetadata.getDatasetVersion().getFriendlyVersionNumber();
+    	}
     }
 
-    public String getPageTitle() {
-        return BundleUtil.getStringFromBundle("file.reorderFiles") + " - " + datasetVersion.getParsedTitle();
+    public String getTitle() {
+        return getStringFromBundle("file.reorderFiles") + " - " + 
+        		this.datasetVersion.getParsedTitle();
+    }
+    
+    public Long getDatasetVersionId() {
+        return this.datasetVersionId;
+    }
+    
+    public void setDatasetVersionId(final Long id) {
+        this.datasetVersionId = id;
     }
 
-    public DatasetVersion getDatasetVersion() {
-        return datasetVersion;
+    public Dataset getDataset() {
+        return this.datasetVersion.getDataset();
     }
 
     public List<FileMetadata> getFileMetadatas() {
-        return fileMetadatas;
+        return this.fileMetadatas;
     }
-
-    public Tuple2<Integer, Integer> getLastReorderFromAndTo() {
-        return lastReorderFromAndTo;
+    
+    public Change getLastChange() {
+        return this.lastChange;
     }
-
-    public FileMetadata getLastReorderFileMetadata() {
-        return lastReorderFileMetadata;
+    
+    public boolean displayUndoLastReorder() {
+    	return this.lastChange != null;
     }
-
-    public void setDatasetVersion(DatasetVersion datasetVersion) {
-        this.datasetVersion = datasetVersion;
-    }
-
-    public void setFileMetadatas(List<FileMetadata> fileMetadatas) {
-        this.fileMetadatas = fileMetadatas;
+    
+    //--------------------------------------------------------------------------
+    public static class Change {
+    	private final int fromIndex;
+    	private final int toIndex;
+    	private final FileMetadata fileMetadata;
+    	
+		public Change(final int fromIndex, final int toIndex, 
+				final FileMetadata fileMetadata) {
+			
+			this.fromIndex = fromIndex;
+			this.toIndex = toIndex;
+			this.fileMetadata = fileMetadata;
+		}
+		public int getFromIndex() {
+			return this.fromIndex;
+		}
+		public int getToIndex() {
+			return this.toIndex;
+		}
+		public FileMetadata getFileMetadata() {
+			return this.fileMetadata;
+		}
     }
 }

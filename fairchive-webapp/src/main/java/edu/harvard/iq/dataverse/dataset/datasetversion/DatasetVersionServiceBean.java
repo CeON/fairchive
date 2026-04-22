@@ -193,6 +193,10 @@ public class DatasetVersionServiceBean implements Serializable {
     public DatasetVersion getById(Long id) {
         return versionRepository.findById(id).orElse(null);
     }
+    
+    public Optional<DatasetVersion> findById(final Long id) {
+    	return this.versionRepository.findById(id);
+    }
 
     public DatasetVersion findByFriendlyVersionNumber(Long datasetId, String friendlyVersionNumber) {
         Long majorVersionNumber = null;
@@ -825,6 +829,16 @@ public class DatasetVersionServiceBean implements Serializable {
 
     public void saveFileMetadata(List<FileMetadata> fileMetadatas) {
         fileMetadatas.forEach(em::merge);
+    }
+    
+    public void saveInOrder(List<FileMetadata> fileMetadatas) {
+        for (int i = 0; i < fileMetadatas.size(); i++) {
+            final FileMetadata fileMetadata = fileMetadatas.get(i);
+            if (fileMetadata.getDisplayOrder() != i) {
+                fileMetadata.setDisplayOrder(i);
+            }
+            em.merge(fileMetadata);
+        }
     }
 
     private boolean isFileUnfsIdentical(List<String> fileUnfs1, List<String> fileUnfs2) {

@@ -7,4 +7,8 @@ public interface JpaEntity<ID> {
     default boolean isNew() {
         return getId() == null;
     }
+    
+    default boolean isNotNew() {
+        return getId() != null;
+    }
 }
