@@ -22,11 +22,9 @@ public class WorkflowExecutionRepository extends JpaRepository<Long, WorkflowExe
      * @return {@link Optional Optionally} a {@link WorkflowExecution} matching given invocation ID.
      */
     public Optional<WorkflowExecution> findByInvocationId(String invocationId) {
-        return getSingleResult(em.createQuery(
-                        "select e " +
-                                "from WorkflowExecution e " +
-                                "where e.invocationId = :invocationId",
-                        WorkflowExecution.class)
+        return getSingleResult(createQuery(
+                "select e from WorkflowExecution e " +
+                "where e.invocationId = :invocationId")
                 .setParameter("invocationId", invocationId));
     }
 
@@ -41,15 +39,13 @@ public class WorkflowExecutionRepository extends JpaRepository<Long, WorkflowExe
     public Optional<WorkflowExecution> findLatestByTriggerTypeAndDatasetVersion(
             String triggerType, long datasetId, long majorVersionNumber, long minorVersionNumber) {
 
-        return getSingleResult(em.createQuery(
-                        "select e " +
-                                "from WorkflowExecution e " +
-                                "where e.triggerType = :triggerType " +
-                                    "and e.datasetId = :datasetId " +
-                                    "and e.majorVersionNumber = :majorVersionNumber " +
-                                    "and e.minorVersionNumber = :minorVersionNumber " +
-                                "order by e.startedAt desc",
-                        WorkflowExecution.class)
+        return getSingleResult(createQuery(
+                "select e from WorkflowExecution e " +
+                "where e.triggerType = :triggerType " +
+                    "and e.datasetId = :datasetId " +
+                    "and e.majorVersionNumber = :majorVersionNumber " +
+                    "and e.minorVersionNumber = :minorVersionNumber " +
+                "order by e.startedAt desc")
                 .setParameter("triggerType", triggerType)
                 .setParameter("datasetId", datasetId)
                 .setParameter("majorVersionNumber", majorVersionNumber)

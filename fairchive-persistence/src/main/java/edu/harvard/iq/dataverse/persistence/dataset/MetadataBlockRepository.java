@@ -15,16 +15,14 @@ public class MetadataBlockRepository extends JpaRepository<Long, MetadataBlock> 
     }
 
     public Optional<MetadataBlock> findByName(final String name) {
-        return getSingleResult(this.em.createQuery(
-                        "SELECT mdb FROM MetadataBlock mdb WHERE mdb.name=:name",
-                        MetadataBlock.class)
+        return getSingleResult(createQuery(
+                        "SELECT mdb FROM MetadataBlock mdb WHERE mdb.name=:name")
                 .setParameter("name", name));
     }
     
     public List<MetadataBlock> findSystemMetadataBlocks() {
-        return this.em.createQuery(
-                "select object(o) from MetadataBlock as o where o.owner.id=null  order by o.displayOrder",
-                MetadataBlock.class)
+        return createQuery(
+                "select object(o) from MetadataBlock as o where o.owner.id=null  order by o.displayOrder")
                 .getResultList();
     }
 }

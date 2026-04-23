@@ -17,20 +17,17 @@ public class WorkflowArtifactRepository extends JpaRepository<Long, WorkflowArti
     // -------------------- LOGIC --------------------
 
     public List<WorkflowArtifact> findByWorkflowExecutionId(Long workflowExecutionId) {
-        return em.createQuery(
-                        "select a " +
-                                "from WorkflowArtifact a " +
-                                "where a.workflowExecutionId = :workflowExecutionId",
-                        WorkflowArtifact.class)
+        return createQuery(
+                "select a from WorkflowArtifact a " +
+                 "where a.workflowExecutionId = :workflowExecutionId")
                 .setParameter("workflowExecutionId", workflowExecutionId)
                 .getResultList();
     }
 
     public int deleteByWorkflowExecutionId(Long workflowExecutionId) {
         return em.createQuery(
-                        "select a " +
-                                "from WorkflowArtifact a " +
-                                "where a.workflowExecutionId = :workflowExecutionId")
+                "select a from WorkflowArtifact a " +
+                 "where a.workflowExecutionId = :workflowExecutionId")
                 .setParameter("workflowExecutionId", workflowExecutionId)
                 .executeUpdate();
     }

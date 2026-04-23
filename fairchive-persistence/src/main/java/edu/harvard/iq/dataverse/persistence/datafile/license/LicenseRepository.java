@@ -21,29 +21,26 @@ public class LicenseRepository extends JpaRepository<Long, License> {
     // -------------------- LOGIC --------------------
 
     public License findFirstActive() {
-        return em.createQuery(
-                "SELECT l FROM License l WHERE l.active = true ORDER BY l.position ASC",
-                License.class)
+        return createQuery(
+                "SELECT l FROM License l WHERE l.active = true ORDER BY l.position ASC")
                 .setMaxResults(1)
                 .getSingleResult();
     }
 
     public Optional<License> findLicenseByName(String licenseName) {
         return JpaRepository.getSingleResult(
-                em.createQuery("SELECT l FROM License l WHERE l.name=:licenseName",
-                        License.class)
+                createQuery("SELECT l FROM License l WHERE l.name=:licenseName")
                         .setParameter("licenseName", licenseName));
     }
 
     public List<License> findAllOrderedByPosition() {
-        return em.createQuery("SELECT l FROM License l ORDER BY l.position ASC",
-                License.class).getResultList();
+        return createQuery("SELECT l FROM License l ORDER BY l.position ASC")
+        		.getResultList();
     }
 
     public List<License> findActiveOrderedByPosition() {
-        return em.createQuery(
-                "SELECT l FROM License l WHERE l.active = true ORDER BY l.position ASC",
-                License.class)
+        return createQuery(
+                "SELECT l FROM License l WHERE l.active = true ORDER BY l.position ASC")
                 .getResultList();
     }
 

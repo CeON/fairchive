@@ -31,7 +31,7 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
     }
 
     public List<RoleAssignment> findByDefinitionPointIds(List<Long> definitionPointIds) {
-        return em.createQuery("SELECT r FROM RoleAssignment r WHERE r.definitionPoint.id IN :definitionPointIds", RoleAssignment.class)
+        return createQuery("SELECT r FROM RoleAssignment r WHERE r.definitionPoint.id IN :definitionPointIds")
                 .setParameter("definitionPointIds", definitionPointIds)
                 .getResultList();
     }
@@ -43,16 +43,16 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
     }
 
     public List<RoleAssignment> findByRoleId(long roleId) {
-        return em.createQuery("SELECT r FROM RoleAssignment r WHERE r.role.id=:roleId", RoleAssignment.class)
+        return createQuery("SELECT r FROM RoleAssignment r WHERE r.role.id=:roleId")
                 .setParameter("roleId", roleId)
                 .getResultList();
     }
 
     public List<RoleAssignment> findByAssigneeIdentifiersAndDefinitionPointIds(List<String> assigneeIdentifiers,
                                                                                List<Long> definitionPointIds) {
-        return em.createQuery("SELECT r FROM RoleAssignment r WHERE "
+        return createQuery("SELECT r FROM RoleAssignment r WHERE "
                                 + " r.assigneeIdentifier in :assigneeIdentifiers AND "
-                                + " r.definitionPoint.id in :definitionPointIds", RoleAssignment.class)
+                                + " r.definitionPoint.id in :definitionPointIds")
                 .setParameter("assigneeIdentifiers", assigneeIdentifiers)
                 .setParameter("definitionPointIds", definitionPointIds)
                 .getResultList();

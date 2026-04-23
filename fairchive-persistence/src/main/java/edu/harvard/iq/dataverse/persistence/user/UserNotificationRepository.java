@@ -98,8 +98,7 @@ public class UserNotificationRepository extends JpaRepository<Long, UserNotifica
     }
 
     public int deleteByUser(Long userId) {
-        return this.em.createQuery("delete from UserNotification where user.id = :id", 
-        		UserNotification.class)
+        return createQuery("delete from UserNotification where user.id = :id")
                 .setParameter("id", userId)
                 .executeUpdate();
     }
@@ -124,10 +123,10 @@ public class UserNotificationRepository extends JpaRepository<Long, UserNotifica
     }
 
     public UserNotification findLastSubmitNotificationByObjectId(final long id) {
-        final List<UserNotification> notifications = this.em.createQuery(
+        final List<UserNotification> notifications = createQuery(
         		"SELECT un FROM UserNotification un " +
                 "WHERE un.objectId = :id AND un.type = :type " +
-                "ORDER BY un.sendDate DESC", UserNotification.class)
+                "ORDER BY un.sendDate DESC")
                 .setParameter("id", id)
                 .setParameter("type", NotificationType.SUBMITTEDDS)
                 .getResultList();
