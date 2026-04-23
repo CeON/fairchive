@@ -25,7 +25,8 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
     // -------------------- LOGIC --------------------
 
     public List<RoleAssignment> findByDefinitionPointId(long definitionPointId) {
-        return em.createNamedQuery("RoleAssignment.listByDefinitionPointId", RoleAssignment.class)
+        return createQuery("SELECT r FROM RoleAssignment r " +
+                           "WHERE r.definitionPoint.id=:definitionPointId")
                 .setParameter("definitionPointId", definitionPointId)
                 .getResultList();
     }
@@ -37,7 +38,8 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
     }
 
     public List<RoleAssignment> findByAssigneeIdentifier(String assigneeIdentifier) {
-        return em.createNamedQuery("RoleAssignment.listByAssigneeIdentifier", RoleAssignment.class)
+        return createQuery("SELECT r FROM RoleAssignment r " +
+                           "WHERE r.assigneeIdentifier=:assigneeIdentifier")
                 .setParameter("assigneeIdentifier", assigneeIdentifier)
                 .getResultList();
     }
@@ -59,7 +61,8 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
     }
 
     public int deleteAllByAssigneeIdentifier(String identifier) {
-        return em.createNamedQuery("RoleAssignment.deleteAllByAssigneeIdentifier")
+        return createQuery("DELETE FROM RoleAssignment r " +
+                           "WHERE r.assigneeIdentifier=:assigneeIdentifier")
                 .setParameter("assigneeIdentifier", identifier)
                 .executeUpdate();
     }
