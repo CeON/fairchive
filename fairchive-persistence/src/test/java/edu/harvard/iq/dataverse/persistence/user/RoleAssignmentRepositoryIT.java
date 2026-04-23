@@ -1,43 +1,45 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
-import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.junit.jupiter.api.Test;
+
+import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
+
 public class RoleAssignmentRepositoryIT extends PersistenceArquillianDeployment {
 
     @Inject
-    private RoleAssignmentRepository roleAssignmentRepository;
+    private RoleAssignmentRepository repository;
 
     //-------------------- TESTS --------------------
 
     @Test
     public void findByDefinitionPointId() {
         // when
-        List<RoleAssignment> roleAssignments = roleAssignmentRepository.findByDefinitionPointId(1L);
+        List<RoleAssignment> assignments = this.repository.findByDefinitionPointId(1L);
 
         // then
         assertThat(
-                roleAssignments.stream().map(RoleAssignment::getId).collect(toList()),
+                assignments.stream().map(RoleAssignment::getId).collect(toList()),
                 containsInAnyOrder(5L, 32L, 33L));
     }
 
     @Test
     public void findByDefinitionPointIds() {
         // given
-        ArrayList<Long> definitionPointIds = Lists.newArrayList(1L, 19L, 51L);
+        ArrayList<Long> definitionPointIds = newArrayList(1L, 19L, 51L);
 
         // when
-        List<RoleAssignment> roleAssignments = roleAssignmentRepository.findByDefinitionPointIds(definitionPointIds);
+        List<RoleAssignment> roleAssignments = this.repository.findByDefinitionPointIds(definitionPointIds);
 
         // then
         assertThat(
@@ -48,7 +50,7 @@ public class RoleAssignmentRepositoryIT extends PersistenceArquillianDeployment 
     @Test
     public void findByAssigneeIdentifier() {
         // when
-        List<RoleAssignment> roleAssignments = roleAssignmentRepository.findByAssigneeIdentifier("@dataverseAdmin");
+        List<RoleAssignment> roleAssignments = this.repository.findByAssigneeIdentifier("@dataverseAdmin");
 
         // then
         assertThat(
@@ -59,7 +61,7 @@ public class RoleAssignmentRepositoryIT extends PersistenceArquillianDeployment 
     @Test
     public void findByRoleId() {
         // when
-        List<RoleAssignment> roleAssignments = roleAssignmentRepository.findByRoleId(2L);
+        List<RoleAssignment> roleAssignments = this.repository.findByRoleId(2L);
 
         // then
         assertThat(
@@ -70,13 +72,13 @@ public class RoleAssignmentRepositoryIT extends PersistenceArquillianDeployment 
     @Test
     public void findByAssigneeIdentifiersAndDefinitionPointIds() {
         // when
-        List<RoleAssignment> roleAssignments = roleAssignmentRepository.findByAssigneeIdentifiersAndDefinitionPointIds(
-                Lists.newArrayList("@dataverseAdmin", "@superuser"),
-                Lists.newArrayList(1L, 51L));
+        List<RoleAssignment> ssignments = this.repository.findByAssigneeIdentifiersAndDefinitionPointIds(
+                newArrayList("@dataverseAdmin", "@superuser"),
+                newArrayList(1L, 51L));
 
         // then
         assertThat(
-                roleAssignments.stream().map(RoleAssignment::getId).collect(toList()),
+                ssignments.stream().map(RoleAssignment::getId).collect(toList()),
                 containsInAnyOrder(5L, 29L, 33L));
     }
 
@@ -84,7 +86,7 @@ public class RoleAssignmentRepositoryIT extends PersistenceArquillianDeployment 
     public void deleteAllByAssigneeIdentifier() {
 
         // when
-        int deletedCount = roleAssignmentRepository.deleteAllByAssigneeIdentifier("&mail/toDelete");
+        int deletedCount = this.repository.deleteAllByAssigneeIdentifier("&mail/toDelete");
 
         // then
         assertThat(deletedCount, is(2));
