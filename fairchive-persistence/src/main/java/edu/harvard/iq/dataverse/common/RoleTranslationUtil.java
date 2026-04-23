@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.common;
 
-import org.apache.commons.lang3.StringUtils;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
 
 public class RoleTranslationUtil {
 
@@ -13,24 +13,15 @@ public class RoleTranslationUtil {
      *             usually original role name should be passed here
      * @return localized Role name if found, or provided in second parameter default
      */
-    public static String getLocaleNameFromAlias(String alias, String name) {
-        if (alias != null) {
-            String key = "role." + alias.toLowerCase() + ".name";
-            String localeName = BundleUtil.getStringFromNonDefaultBundle(key, "BuiltInRoles");
-            if (StringUtils.isEmpty(localeName)) {
-                return name;
-            } else {
-                return localeName;
-            }
-        }
-        return name;
+    public static String getLocaleNameFromAlias(final String alias, final String name) {
+    	return getFromAlias(alias, name, ".name");
     }
 
     /**
      * Returns localized name for the role alias or the provided alias if the
      * localized version was not found.
      */
-    public static String getLocaleNameFromAlias(String alias) {
+    public static String getLocaleNameFromAlias(final String alias) {
         return getLocaleNameFromAlias(alias, alias);
     }
 
@@ -41,16 +32,19 @@ public class RoleTranslationUtil {
      *             usually original role description should be passed here
      * @return localized Role description if found, or provided in second parameter default
      */
-    public static String getLocaleDescriptionFromAlias(String alias, String description) {
+    public static String getLocaleDescriptionFromAlias(final String alias, 
+    		final String description) {
+    	return getFromAlias(alias, description, ".description");
+    }
+    
+    private static String getFromAlias(final String alias, final String text, 
+    		final String keySuffix) {
         if (alias != null) {
-            String key = "role." + alias.toLowerCase() + ".description";
-            String localeDescription = BundleUtil.getStringFromNonDefaultBundle(key, "BuiltInRoles");
-            if (StringUtils.isEmpty(localeDescription)) {
-                return description;
-            } else {
-                return localeDescription;
-            }
+            final String key = "role." + alias.toLowerCase() + keySuffix;
+            final String localized= getStringFromNonDefaultBundle(key, "BuiltInRoles");
+            return localized.isEmpty() ? text : localized;
+        } else {
+        	return text;
         }
-        return description;
     }
 }
