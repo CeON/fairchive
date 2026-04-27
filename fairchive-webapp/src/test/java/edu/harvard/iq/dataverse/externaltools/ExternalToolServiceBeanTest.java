@@ -407,4 +407,62 @@ public class ExternalToolServiceBeanTest {
         assertThat(this.service.findBy(CONFIGURE)).containsExactly(tool1);
         assertThat(this.service.findBy(PREVIEW)).containsExactly(tool2, tool3, tool4, tool5);
     }
+    
+    @Test
+    public void findFor_returnsTool_baseOnMimeType() {
+    	
+        // given
+        DataFile dataFile = new DataFile();
+        dataFile.setId(42l);
+        dataFile.setContentType(TEXT_PLAIN);
+        DatasetVersion datasetVersion = new DatasetVersion();
+        datasetVersion.setVersionState(RELEASED);
+        Dataset dataset = new Dataset();
+        datasetVersion.setDataset(dataset);
+
+        FileMetadata metadata = new FileMetadata();
+        metadata.setDatasetVersion(datasetVersion);
+        metadata.setLabel("abc");
+        List<FileMetadata> metadataList = new ArrayList<>();
+        metadataList.add(metadata);
+        dataFile.setOwner(dataset);
+
+        FileTermsOfUse termsOfUse = new FileTermsOfUse();
+        metadata.setTermsOfUse(termsOfUse);
+
+        dataFile.setFileMetadatas(metadataList);
+
+        // when
+        assertThat(this.service.findFor(PREVIEW, dataFile, datasetVersion).get()).isSameAs(tool3);
+        assertThat(this.service.isAvailableFor(PREVIEW, dataFile, datasetVersion)).isTrue();
+    }
+    
+    @Test
+    public void findFor_returnsNonith_baseOnMimeType() {
+    	
+        // given
+        DataFile dataFile = new DataFile();
+        dataFile.setId(42l);
+        dataFile.setContentType("text/csv");
+        DatasetVersion datasetVersion = new DatasetVersion();
+        datasetVersion.setVersionState(RELEASED);
+        Dataset dataset = new Dataset();
+        datasetVersion.setDataset(dataset);
+
+        FileMetadata metadata = new FileMetadata();
+        metadata.setDatasetVersion(datasetVersion);
+        metadata.setLabel("abc");
+        List<FileMetadata> metadataList = new ArrayList<>();
+        metadataList.add(metadata);
+        dataFile.setOwner(dataset);
+
+        FileTermsOfUse termsOfUse = new FileTermsOfUse();
+        metadata.setTermsOfUse(termsOfUse);
+
+        dataFile.setFileMetadatas(metadataList);
+
+        // when
+        assertThat(this.service.findFor(PREVIEW, dataFile, datasetVersion)).isEmpty();
+        assertThat(this.service.isAvailableFor(PREVIEW, dataFile, datasetVersion)).isFalse();
+    }
 }

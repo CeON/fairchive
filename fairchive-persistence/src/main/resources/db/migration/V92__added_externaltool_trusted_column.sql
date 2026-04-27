@@ -1,0 +1,1 @@
+ALTER TABLE externaltool ADD trusted boolean DEFAULT false NOT NULL;

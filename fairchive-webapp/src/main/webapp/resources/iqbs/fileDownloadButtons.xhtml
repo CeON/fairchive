@@ -56,11 +56,7 @@
 
     <!--"Preview" button -->
     <div class="btn-group"
-         jsf:rendered="#{canDownloadFile
-            and not empty cc.attrs.previewTools
-            and not fileMetadata.datasetVersion.deaccessioned
-            and not fileMetadata.datasetVersion.draft
-            and not fileMetadata.datasetVersion.dataset.hasActiveEmbargo()}">
+         jsf:rendered="#{fileDownloadHelper.isPreviewAvailable(fileMetadata)}">
         <a class="btn btn-default" href="#{(empty fileMetadata.dataFile.globalIdString
                 ? widgetWrapper.wrapURL('/file.xhtml?fileId='.concat(fileMetadata.dataFile.id)
                     .concat('&amp;version=').concat(fileMetadata.datasetVersion.friendlyVersionNumber))

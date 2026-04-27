@@ -6,6 +6,7 @@ import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EX
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.ALL_RIGHTS_RESERVED;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
+import static java.lang.Boolean.FALSE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -82,7 +83,7 @@ public class FilePage implements java.io.Serializable {
     private DatasetVersionServiceBean datasetVersionService;
     private PermissionServiceBean permissionService;
     private SystemConfig systemConfig;
-    private ExternalToolServiceBean externalToolService;
+    private ExternalToolServiceBean externalTools;
     private DataverseRequestServiceBean dvRequestService;
     private PermissionsWrapper permissionsWrapper;
     private FileDownloadHelper fileDownloadHelper;
@@ -102,11 +103,12 @@ public class FilePage implements java.io.Serializable {
     private DataFile file;
     private int selectedTabIndex;
     private Dataset dataset;
+    private DatasetVersion datasetVersion;
     private List<FileMetadata> fileMetadatasForTab;
     private String persistentId;
     private List<ExternalTool> configureTools;
     private List<ExternalTool> exploreTools;
-    private List<ExternalTool> previewTools;
+    //private List<ExternalTool> previewTools;
     private Boolean thumbnailAvailable = null;
     private Boolean lockedFromEditsVar;
     private Boolean lockedFromDownloadVar;
@@ -139,7 +141,7 @@ public class FilePage implements java.io.Serializable {
         this.datasetVersionService = datasetVersionService;
         this.permissionService = permissionService;
         this.systemConfig = systemConfig;
-        this.externalToolService = externalToolService;
+        this.externalTools = externalToolService;
         this.dvRequestService = dvRequestService;
         this.permissionsWrapper = permissionsWrapper;
         this.fileDownloadHelper = fileDownloadHelper;
@@ -197,10 +199,6 @@ public class FilePage implements java.io.Serializable {
         return exploreTools;
     }
 
-    public List<ExternalTool> getPreviewTools() {
-        return previewTools;
-    }
-
     public Boolean getGuestbookResponseProvided() {
         return guestbookResponseProvided;
     }
@@ -251,8 +249,8 @@ public class FilePage implements java.io.Serializable {
 
         final RetrieveDatasetVersionResponse retrieveDatasetVersionResponse
                 = datasetVersionService.selectRequestedVersion(file.getOwner().getVersions(), version);
-        final DatasetVersion version = retrieveDatasetVersionResponse.getDatasetVersion();
-        fileMetadata = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(version.getId(), fileId).orElse(null);
+        this.datasetVersion = retrieveDatasetVersionResponse.getDatasetVersion();
+        fileMetadata = datafileService.findFileMetadataByDatasetVersionIdAndDataFileId(datasetVersion.getId(), fileId).orElse(null);
 
         if (fileMetadata == null) {
         	return permissionsWrapper.notFound();
@@ -279,9 +277,8 @@ public class FilePage implements java.io.Serializable {
         // created and false for other mimetypes
         // For tabular data, indicate successful ingest by returning a contentType for the derived .tab file
         final String contentType = file.isTabularData() ? MimeTypes.TAB_SEPARATED_VALUES : file.getContentType();
-        configureTools = externalToolService.findExternalTools(CONFIGURE, contentType, file, version);
-        exploreTools = externalToolService.findExternalTools(EXPLORE, contentType, file, version);
-        previewTools = externalToolService.findExternalTools(PREVIEW, contentType, file, version);
+        configureTools = externalTools.findExternalTools(CONFIGURE, contentType, file, datasetVersion);
+        exploreTools = externalTools.findExternalTools(EXPLORE, contentType, file, datasetVersion);
         return null;
     }
     
@@ -296,8 +293,7 @@ public class FilePage implements java.io.Serializable {
     }
     
     public boolean displayRestrictedIcon() {
-        return this.fileMetadata.isFileUseRestricted()
-                && !this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata);
+        return this.fileMetadata.isFileUseRestricted() && ! canUserDownloadFile();
     }
     
     public boolean displayFileDescriptionBlock() {
@@ -309,10 +305,11 @@ public class FilePage implements java.io.Serializable {
                 || !this.fileMetadata.getDataFile().getTags().isEmpty();
     }
     
-    public boolean displayPreviewTab() {
-        return this.previewTools.size() > 0
-                && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata)
-                && this.fileMetadata.isFilePubliclyAccessible();
+    public boolean displayPreviewTab() { 	
+    	return getPreviewTool().
+    		map(viewer -> this.fileMetadata.isFilePubliclyAccessible() ||
+    			(canUserDownloadFile() && viewer.isTrusted())).
+    		orElse(FALSE);
     }
     
     public boolean displayDownloadPopup() {
@@ -371,7 +368,7 @@ public class FilePage implements java.io.Serializable {
     
     public boolean displayUnlockIcon() {
         return this.fileMetadata.getTermsOfUse().getTermsOfUseType() == RESTRICTED 
-                && this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata);
+                && canUserDownloadFile();
     }
     
     public boolean displayPublicDownloadUrl() {
@@ -508,7 +505,7 @@ public class FilePage implements java.io.Serializable {
                 () -> fileService.saveProvenanceFileWithDesc(fileMetadata, dataFileFromPopup, freeformTextInput))
                 .onFailure(this::handleProvenanceExceptions);
         if (saveProvOperation.isFailure()){
-            return "";
+            return EMPTY;
         }
         this.ui.addFlashSuccessMessage(getStringFromBundle("file.message.editSuccess"));
         return returnToDraftVersion();
@@ -532,7 +529,7 @@ public class FilePage implements java.io.Serializable {
                 .onFailure(this::handleDeleteFileExceptions);
 
         if (deleteFileOperation.isFailure()) {
-            return "";
+            return EMPTY;
         }
 
         this.ui.addFlashSuccessMessage(BundleUtil.getStringFromBundle("file.message.deleteSuccess"));
@@ -548,10 +545,6 @@ public class FilePage implements java.io.Serializable {
     }
     
     public boolean isThumbnailAvailable() {
-    	return isThumbnailAvailable(this.fileMetadata);
-    }
-
-    public boolean isThumbnailAvailable(final FileMetadata fileMetadata) {
         // new and optimized logic:
         // - check download permission here (should be cached - so it's free!)
         // - only then ask the file service if the thumbnail is available/exists.
@@ -564,8 +557,8 @@ public class FilePage implements java.io.Serializable {
             return thumbnailAvailable;
         }
 
-        thumbnailAvailable = fileDownloadHelper.canUserDownloadFile(fileMetadata)
-                && datafileService.isThumbnailAvailable(fileMetadata.getDataFile());
+        thumbnailAvailable = canUserDownloadFile()
+                && datafileService.isThumbnailAvailable(this.fileMetadata.getDataFile());
 
         return thumbnailAvailable;
     }
@@ -688,22 +681,16 @@ public class FilePage implements java.io.Serializable {
     //Provenance fragment bean calls this to show error dialogs after popup failure
     //This can probably be replaced by calling JsfHelper from the provpopup bean
     public void showProvError() {
-        this.ui.addErrorMessage(getStringFromBundle("file.metadataTab.provenance.error"), "");
+        this.ui.addErrorMessage(getStringFromBundle("file.metadataTab.provenance.error"), EMPTY);
     }
 
     public String getPreviewUrl() {
-        if (this.previewTools.isEmpty()) {
-            return EMPTY;
-        } else {
-            final ExternalTool previewer = previewTools.get(0);
-            return externalToolHandler.buildToolUrlWithQueryParams(previewer,
-                    this.file, null,
-                    this.session.getLocaleCode()) + "&preview=true";
-        }
+    	return getPreviewTool().map(this::buildPreviewUrl).orElse(EMPTY);
     }
 
     public void showPreview(final GuestbookResponse guestbookResponse) {
-        fileDownloadHelper.writeGuestbookResponseForPreview(guestbookResponse, fileMetadata, previewTools.get(0));
+        fileDownloadHelper.writeGuestbookResponseForPreview(guestbookResponse, fileMetadata, 
+        		this.externalTools.findFor(PREVIEW, this.file, this.datasetVersion).orElse(null));
         guestbookResponseProvided = true;
     }
     
@@ -714,20 +701,33 @@ public class FilePage implements java.io.Serializable {
     }
 
     // -------------------- PRIVATE --------------------
+    
+    private Optional<ExternalTool> getPreviewTool() {
+    	return this.externalTools.findFor(PREVIEW, this.file, this.datasetVersion);
+    }
+    
+    private String buildPreviewUrl(final ExternalTool viewer) {
+    	return this.externalToolHandler.buildToolUrlWithQueryParams(viewer,
+                this.file, null, this.session.getLocaleCode()).concat("&preview=true");
+    }
+    
+    private boolean canUserDownloadFile() {
+    	return this.fileDownloadHelper.canUserDownloadFile(this.fileMetadata);
+    }
 
     private void handleProvenanceExceptions(Throwable throwable){
         throwable = throwable instanceof EJBException ? throwable.getCause() : throwable;
 
         if (throwable instanceof ValidationException){
             this.ui.addErrorMessage(
-                    getStringFromBundle("dataset.message.validationError"), "");
+                    getStringFromBundle("dataset.message.validationError"), EMPTY);
         } else if (throwable instanceof UpdateDatasetException){
             this.ui.addErrorMessage(
                     getStringFromBundle("dataset.save.fail"),
                     throwable.toString());
         } else {
             this.ui.addErrorMessage(
-                    getStringFromBundle("dataset.save.fail"), "");
+                    getStringFromBundle("dataset.save.fail"), EMPTY);
         }
     }
 
@@ -736,13 +736,13 @@ public class FilePage implements java.io.Serializable {
 
         if (throwable instanceof ValidationException){
             this.ui.addErrorMessage(
-                    getStringFromBundle("dataset.message.validationError"), "");
+                    getStringFromBundle("dataset.message.validationError"), EMPTY);
         } else if (throwable instanceof UpdateDatasetException){
             this.ui.addErrorMessage(
                     getStringFromBundle("dataset.delete.fail"),
                     throwable.toString());
         } else {
-            this.ui.addErrorMessage(getStringFromBundle("dataset.delete.fail"), "");
+            this.ui.addErrorMessage(getStringFromBundle("dataset.delete.fail"), EMPTY);
         }
     }
 

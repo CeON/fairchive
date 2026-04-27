@@ -130,7 +130,7 @@ public class DatasetVersionServiceBean implements Serializable {
         private String actualVersion = null;
         private String requestedVersion = null;
 
-        private RetrieveDatasetVersionResponse(DatasetVersion datasetVersion, String requestedVersion) {
+        public RetrieveDatasetVersionResponse(DatasetVersion datasetVersion, String requestedVersion) {
             if (datasetVersion == null) {
                 throw new IllegalArgumentException("datasetVersion cannot be null");
             }
