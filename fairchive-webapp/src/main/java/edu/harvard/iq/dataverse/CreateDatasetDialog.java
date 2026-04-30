@@ -134,8 +134,13 @@ public class CreateDatasetDialog implements Serializable {
     }
 
     public String createDataset() {
-        return "/createDataset.xhtml?faces-redirect=true&ownerId=" +
-        		((NodeData) this.selectedNode.getData()).getId();
+    	final StringBuilder builder = new StringBuilder(80);
+        builder.append("/createDataset.xhtml?faces-redirect=true&ownerId=").
+        	append(((NodeData) this.selectedNode.getData()).getId());
+    	if(this.dataset != null) {
+    		builder.append("&sourceDatasetId=").append(this.dataset.getId());
+    	}
+    	return builder.toString();
     }
 
     public String getSelectDataverseInfo() {
