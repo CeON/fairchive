@@ -19,7 +19,6 @@ import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.NodeExpandEvent;
 import org.primefaces.model.TreeNode;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
@@ -144,7 +143,7 @@ public class CreateDatasetDialog implements Serializable {
     }
     
     public boolean displaySelectDataverseInfo() {
-        return !this.systemConfig.getSelectDataverseInfo(this.session.getLocale()).isEmpty();
+        return !getSelectDataverseInfo().isEmpty();
     }
     
     public String getCreateButtonLabel() {
