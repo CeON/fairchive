@@ -17,7 +17,7 @@ public class MailDomainGroupRepository extends JpaRepository<Long, MailDomainGro
     // -------------------- LOGIC --------------------
 
     public Optional<MailDomainGroup> findByAlias(String alias) {
-        return em.createQuery("SELECT m FROM MailDomainGroup m WHERE m.persistedGroupAlias = :alias", MailDomainGroup.class)
+        return createQuery("SELECT m FROM MailDomainGroup m WHERE m.persistedGroupAlias = :alias")
                 .setParameter("alias", alias)
                 .getResultList().stream()
                 .findFirst();

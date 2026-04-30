@@ -25,9 +25,8 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
     // -------------------- LOGIC --------------------
 
     public List<Dataset> findByOwnerId(Long ownerId) {
-        return this.em.createQuery(
-                "SELECT o FROM Dataset o WHERE o.owner.id=:ownerId",
-                Dataset.class)
+        return createQuery(
+                "SELECT o FROM Dataset o WHERE o.owner.id=:ownerId")
                 .setParameter("ownerId", ownerId)
                 .getResultList();
     }
@@ -48,16 +47,14 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
     }
 
     public List<Dataset> findByNonRegisteredIdentifier() {
-        return this.em.createQuery(
+        return createQuery(
                 "SELECT o FROM Dataset o WHERE o.dtype = 'Dataset'" +
-                        " AND o.identifierRegistered = false AND o.harvestedFrom IS NULL ",
-                Dataset.class)
+                        " AND o.identifierRegistered = false AND o.harvestedFrom IS NULL ")
                 .getResultList();
     }
 
     public List<Dataset> findAllOrderedById() {
-        return this.em.createQuery("select object(o) from Dataset as o order by o.id",
-                Dataset.class)
+        return createQuery("select object(o) from Dataset as o order by o.id")
                 .getResultList();
     }
 
@@ -69,10 +66,9 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
     }
 
     public List<Dataset> findNotIndexedAfterEmbargo() {
-        return this.em.createQuery(
+        return createQuery(
                 "select d from Dataset d, DvObject o " +
-                        "where d.id = o.id and d.embargoDate < :actualTimestamp and d.embargoDate > o.indexTime",
-                Dataset.class)
+                        "where d.id = o.id and d.embargoDate < :actualTimestamp and d.embargoDate > o.indexTime")
                 .setParameter("actualTimestamp", Timestamp.from(now()))
                 .getResultList();
     }
@@ -93,9 +89,8 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
             final long partitionId) {
         return this.em.createQuery(
                 "SELECT o.id FROM Dataset o " +
-                        "WHERE MOD( o.id, :numPartitions) = :partitionId AND o.indexTime is null "
-                        +
-                        "ORDER BY o.id",
+                "WHERE MOD( o.id, :numPartitions) = :partitionId AND o.indexTime is null " +
+                "ORDER BY o.id",
                 Long.class)
                 .setParameter("numPartitions", max(numPartitions, 1))
                 .setParameter("partitionId", partitionId)
@@ -106,7 +101,7 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
             final Dataset dataset) {
         return this.em.createQuery(
                 "SELECT d FROM Dataset d " +
-                        "WHERE d.identifier=:id AND d.protocol=:protocol AND d.authority=:authority")
+                "WHERE d.identifier=:id AND d.protocol=:protocol AND d.authority=:authority")
                 .setParameter("id", identifier)
                 .setParameter("authority", dataset.getAuthority())
                 .setParameter("protocol", dataset.getProtocol())
@@ -133,11 +128,13 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
     
     public Dataset getDatasetByHarvestInfo(final Long dataverseId,
             final String harvestIdentifier) {
-        final List<Dataset> list = em.createQuery(
-                "SELECT d FROM Dataset d, DvObject o WHERE d.id = o.id AND o.owner.id = "
-                        + dataverseId + " and d.harvestIdentifier = '"
-                        + harvestIdentifier + "'",
-                Dataset.class).getResultList();
+        final List<Dataset> list = createQuery(
+                "SELECT d FROM Dataset d, DvObject o " +
+                "WHERE d.id = o.id AND o.owner.id = :dataverseId " +
+                	"and d.harvestIdentifier = :harvestIdentifier")
+                .setParameter("dataverseId", dataverseId)
+                .setParameter("harvestIdentifier", harvestIdentifier)
+        		.getResultList();
 
         if (list.size() > 1) {
             throw new EJBException("More than one dataset found in the dataverse (id= "

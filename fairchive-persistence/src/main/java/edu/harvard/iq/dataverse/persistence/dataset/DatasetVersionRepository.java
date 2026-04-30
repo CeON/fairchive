@@ -20,12 +20,11 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
 
     public Optional<DatasetVersion> findByDatasetIdAndVersionNumber(
             final long datasetId, final long majorVersionNumber) {
-        return getSingleResult(this.em.createQuery(
+        return getSingleResult(createQuery(
                 "select v from DatasetVersion v " +
                 "where v.dataset.id = :datasetId " +
                 "and v.versionNumber= :majorVersionNumber " +
-                "order by v.minorVersionNumber desc",
-                DatasetVersion.class)
+                "order by v.minorVersionNumber desc")
                 .setParameter("datasetId", datasetId)
                 .setParameter("majorVersionNumber", majorVersionNumber)
                 .setMaxResults(1));
@@ -33,12 +32,11 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
 
     public Optional<DatasetVersion> findByDatasetIdAndVersionNumber(
             final DatasetVersionIdentifier versionIdentifier) {
-        return getSingleResult(this.em.createQuery(
+        return getSingleResult(createQuery(
                 "select v from DatasetVersion v " +
                 "where v.dataset.id = :datasetId " +
                 "and v.versionNumber= :versionNumber " +
-                "and v.minorVersionNumber= :minorVersionNumber",
-                DatasetVersion.class)
+                "and v.minorVersionNumber= :minorVersionNumber")
                 .setParameter("datasetId", versionIdentifier.getDatasetId())
                 .setParameter("versionNumber", versionIdentifier.getVersionNumber())
                 .setParameter("minorVersionNumber",
