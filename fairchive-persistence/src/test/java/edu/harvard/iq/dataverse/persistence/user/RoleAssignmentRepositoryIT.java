@@ -72,13 +72,13 @@ public class RoleAssignmentRepositoryIT extends PersistenceArquillianDeployment 
     @Test
     public void findByAssigneeIdentifiersAndDefinitionPointIds() {
         // when
-        List<RoleAssignment> ssignments = this.repository.findByAssigneeIdentifiersAndDefinitionPointIds(
+        List<RoleAssignment> assignments = this.repository.findByAssigneeIdentifiersAndDefinitionPointIds(
                 newArrayList("@dataverseAdmin", "@superuser"),
                 newArrayList(1L, 51L));
 
         // then
         assertThat(
-                ssignments.stream().map(RoleAssignment::getId).collect(toList()),
+                assignments.stream().map(RoleAssignment::getId).collect(toList()),
                 containsInAnyOrder(5L, 29L, 33L));
     }
 

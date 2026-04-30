@@ -1,17 +1,20 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
-import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
-import java.util.List;
-
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.junit.jupiter.api.Test;
+
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
 
 public class DatasetRepositoryIT extends PersistenceArquillianDeployment {
 
@@ -87,5 +90,11 @@ public class DatasetRepositoryIT extends PersistenceArquillianDeployment {
         org.assertj.core.api.Assertions.assertThat(datasetsFound).size().isEqualTo(7);
         org.assertj.core.api.Assertions.assertThat(datasetsFound).extracting(DvObject::getId)
                 .containsOnly(52L, 56L, 57L, 66L, 72L, 73L, 74L);
+    }
+    
+    @Test
+    public void getDatasetByHarvestInfo() {
+    	
+    	assertNull(datasetRepository.getDatasetByHarvestInfo(1L, "abc"));
     }
 }

@@ -89,9 +89,8 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
             final long partitionId) {
         return this.em.createQuery(
                 "SELECT o.id FROM Dataset o " +
-                        "WHERE MOD( o.id, :numPartitions) = :partitionId AND o.indexTime is null "
-                        +
-                        "ORDER BY o.id",
+                "WHERE MOD( o.id, :numPartitions) = :partitionId AND o.indexTime is null " +
+                "ORDER BY o.id",
                 Long.class)
                 .setParameter("numPartitions", max(numPartitions, 1))
                 .setParameter("partitionId", partitionId)
@@ -102,7 +101,7 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
             final Dataset dataset) {
         return this.em.createQuery(
                 "SELECT d FROM Dataset d " +
-                        "WHERE d.identifier=:id AND d.protocol=:protocol AND d.authority=:authority")
+                "WHERE d.identifier=:id AND d.protocol=:protocol AND d.authority=:authority")
                 .setParameter("id", identifier)
                 .setParameter("authority", dataset.getAuthority())
                 .setParameter("protocol", dataset.getProtocol())
@@ -130,9 +129,11 @@ public class DatasetRepository extends JpaRepository<Long, Dataset> {
     public Dataset getDatasetByHarvestInfo(final Long dataverseId,
             final String harvestIdentifier) {
         final List<Dataset> list = createQuery(
-                "SELECT d FROM Dataset d, DvObject o WHERE d.id = o.id AND o.owner.id = "
-                        + dataverseId + " and d.harvestIdentifier = '"
-                        + harvestIdentifier + "'")
+                "SELECT d FROM Dataset d, DvObject o " +
+                "WHERE d.id = o.id AND o.owner.id = :dataverseId " +
+                	"and d.harvestIdentifier = :harvestIdentifier")
+                .setParameter("dataverseId", dataverseId)
+                .setParameter("harvestIdentifier", harvestIdentifier)
         		.getResultList();
 
         if (list.size() > 1) {
