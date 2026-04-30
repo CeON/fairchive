@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowContactToCreateDataverseTip;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -16,6 +19,8 @@ import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.NodeExpandEvent;
 import org.primefaces.model.TreeNode;
 
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.search.dataverselookup.DataverseLookupService;
@@ -25,7 +30,6 @@ import edu.harvard.iq.dataverse.search.dataversestree.NodesInfo;
 import edu.harvard.iq.dataverse.search.dataversestree.SolrTreeService;
 import edu.harvard.iq.dataverse.search.dataversestree.TreeNodeBrowser;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @SuppressWarnings("serial")
@@ -37,10 +41,9 @@ public class CreateDatasetDialog implements Serializable {
     private DataverseLookupService dataverseLookupService;
     private DataverseRepository dataverseRepo;
 
-    private boolean initialized = false;
-
     private NodesInfo nodesInfo = new NodesInfo(emptyMap(), emptySet());
     private TreeNode selectedNode;
+    private Dataset dataset;
 
     private String permissionFilterQuery;
     private String treeFilter;
@@ -87,11 +90,8 @@ public class CreateDatasetDialog implements Serializable {
     }
 
     // -------------------- LOGIC --------------------
-
+    @PostConstruct
     public void init() {
-        if (this.initialized) {
-            return;
-        }
         this.permissionFilterQuery = this.dataverseLookupService.
         		buildFilterQuery(this.dataverseRequestService.getDataverseRequest());
 
@@ -100,12 +100,10 @@ public class CreateDatasetDialog implements Serializable {
         		this.dataverseRequestService.getDataverseRequest());
         this.treeNodeBrowser = new TreeNodeBrowser(rootDataverse, 
         		this.nodesInfo, this::loadParentDataverseId, this::fetchChildren);
-        this.initialized = true;
     }
 
     public void onNodeExpand(final NodeExpandEvent event) {
-        final TreeNode selectedNode = event.getTreeNode();
-        this.treeNodeBrowser.fetchChildNodes(selectedNode);
+        this.treeNodeBrowser.fetchChildNodes(event.getTreeNode());
     }
 
     public void executeTreeFilter() {
@@ -132,8 +130,8 @@ public class CreateDatasetDialog implements Serializable {
         this.prevTreeFilter = this.treeFilter;
     }
 
-    public boolean showContactToCreateDataverseTip() {
-        return settingsService.isTrueForKey(Key.ShowContactToCreateDataverseTip);
+    public boolean displayContactToCreateDataverseTip() {
+        return this.settingsService.isTrueForKey(ShowContactToCreateDataverseTip);
     }
 
     public String createDataset() {
@@ -143,6 +141,16 @@ public class CreateDatasetDialog implements Serializable {
 
     public String getSelectDataverseInfo() {
         return this.systemConfig.getSelectDataverseInfo(this.session.getLocale());
+    }
+    
+    public boolean displaySelectDataverseInfo() {
+        return !this.systemConfig.getSelectDataverseInfo(this.session.getLocale()).isEmpty();
+    }
+    
+    public String getCreateButtonLabel() {
+    	return getStringFromBundle(this.dataset != null 
+	    			? "add.dataset.dialog.button.clone" 
+	    			: "add.dataset.dialog.button.create");
     }
 
     // -------------------- PRIVATE --------------------
@@ -165,5 +173,9 @@ public class CreateDatasetDialog implements Serializable {
 
     public void setTreeFilter(final String filter) {
         this.treeFilter = filter;
+    }
+    
+    public void setDataset(final Dataset dataset) {
+    	this.dataset = dataset;
     }
 }

@@ -3,8 +3,7 @@
                 xmlns:f="http://java.sun.com/jsf/core"
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:p="http://primefaces.org/ui"
-                xmlns:jsf="http://xmlns.jcp.org/jsf"
->
+                xmlns:jsf="http://xmlns.jcp.org/jsf">
     <div class="button-block tab-header margin-bottom text-right">
 
         <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"
@@ -42,6 +41,10 @@
                 </ui:repeat>
             </ul>
         </div>
+        <p:commandButton rendered="#{DatasetMetadataTab.displayCloneButton()}"
+                         value="#{bundle['dataset.clone']}"
+                         onclick="primeFacesShowModal('createDatasetDialog', this)"
+                         styleClass="btn btn-default"/>
     </div>
     <ui:include src="viewMetadata.xhtml">
         <ui:param name="metadataBlocks"

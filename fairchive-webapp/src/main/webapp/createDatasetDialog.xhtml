@@ -14,7 +14,7 @@
               modal="true">
         <div class="form-horizontal">
             <o:form id="create-dataset-dialog">
-                <p jsf:rendered="#{not empty CreateDatasetDialog.selectDataverseInfo}">#{CreateDatasetDialog.selectDataverseInfo}</p>
+                <p jsf:rendered="#{CreateDatasetDialog.displaySelectDataverseInfo()}">#{CreateDatasetDialog.selectDataverseInfo}</p>
                 <p>#{bundle['add.dataset.dialog.info']}</p>
                 <div class="form-group">
                     <div class="col-md-10">
@@ -62,11 +62,13 @@
                                    display="text"/>
                     </div>
                 </div>
-                <p jsf:rendered="#{CreateDatasetDialog.showContactToCreateDataverseTip()}">
-                    <h:outputFormat value="#{bundle['add.dataset.dialog.createDataverse.tip']}" escape="false">
+                <p jsf:rendered="#{CreateDatasetDialog.displayContactToCreateDataverseTip()}">
+                    <h:outputFormat value="#{bundle['add.dataset.dialog.createDataverse.tip']}" 
+                                    escape="false">
                         <o:param>
                             <p:commandLink value="#{installationConfig.supportTeamName}"
-                                           oncomplete="PF('createDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" update=":contactDialog"
+                                           oncomplete="PF('createDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" 
+                                           update=":contactDialog"
                                            actionListener="#{sendFeedbackDialog.resetWithSubject(bundle['add.dataset.dialog.createDataverse.message.subject'])}">
                                 <o:ignoreValidationFailed />
                             </p:commandLink>
@@ -74,7 +76,7 @@
                     </h:outputFormat>
                 </p>
                 <div class="row button-block">
-                    <p:commandButton value="#{bundle['add.dataset.dialog.button.create']}"
+                    <p:commandButton value="#{CreateDatasetDialog.createButtonLabel}"
                                      action="#{CreateDatasetDialog.createDataset()}" 
                                      update="@form"
                                      styleClass="btn btn-default btn-access"

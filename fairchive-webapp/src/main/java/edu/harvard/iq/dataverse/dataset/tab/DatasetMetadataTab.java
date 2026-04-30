@@ -13,6 +13,7 @@ import javax.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 
+import edu.harvard.iq.dataverse.CreateDatasetDialog;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
@@ -41,6 +42,7 @@ public class DatasetMetadataTab implements Serializable {
 	private DatasetFieldsInitializer datasetFieldsInitializer;
 	private DatasetService datasetService;
 	private DataverseSession session;
+	private CreateDatasetDialog cloneDatasetDialog;
 
 	private Dataset dataset;
 	private boolean isDatasetLocked;
@@ -55,13 +57,14 @@ public class DatasetMetadataTab implements Serializable {
 	}
 
 	@Inject
-	public DatasetMetadataTab(PermissionsWrapper permissionsWrapper, 
-			                  DataverseSession session,
-			                  ExportService exportService, 
-			                  SystemConfig systemConfig,
-			                  DatasetFieldsInitializer datasetVersionUI,
-			                  DatasetService datasetService, 
-			                  Translator translator) {
+	public DatasetMetadataTab(final PermissionsWrapper permissionsWrapper, 
+			                  final DataverseSession session,
+			                  final ExportService exportService, 
+			                  final SystemConfig systemConfig,
+			                  final DatasetFieldsInitializer datasetVersionUI,
+			                  final DatasetService datasetService, 
+			                  final Translator translator,
+			                  final CreateDatasetDialog cloneDatasetDialog) {
 		this.permissionsWrapper = permissionsWrapper;
 		this.session = session;
 		this.exportService = exportService;
@@ -69,6 +72,7 @@ public class DatasetMetadataTab implements Serializable {
 		this.datasetFieldsInitializer = datasetVersionUI;
 		this.datasetService = datasetService;
 		this.translator = translator;
+		this.cloneDatasetDialog = cloneDatasetDialog;
 	}
 
 	// -------------------- GETTERS --------------------
@@ -96,6 +100,10 @@ public class DatasetMetadataTab implements Serializable {
 	public TranslationDialog getTranslationDialog() {
 		return this.translationDialog;
 	}
+	
+	public boolean displayCloneButton() {
+		return this.session.isUserLoggedIn();
+	}
 
 	// -------------------- LOGIC --------------------
 
@@ -106,6 +114,7 @@ public class DatasetMetadataTab implements Serializable {
 		List<DatasetField> datasetFields = datasetFieldsInitializer
 				.prepareDatasetFieldsForView(datasetVersion.getDatasetFields(), false);
 		this.metadataBlocks = DatasetFieldUtil.groupByBlockAndType(datasetFields);
+		this.cloneDatasetDialog.setDataset(this.dataset);
 	}
 
 	public boolean showEditMetadataButton() {
