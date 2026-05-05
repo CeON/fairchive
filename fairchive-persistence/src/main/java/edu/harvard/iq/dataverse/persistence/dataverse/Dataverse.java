@@ -469,6 +469,15 @@ public class Dataverse extends DvObjectContainer {
         }
         return retList;
     }
+    
+    public List<Template> getApplicableTemplates() {
+        final List<Template> result = new ArrayList<>(getTemplates());
+        if (!isTemplateRoot()) {
+            result.addAll(getParentTemplates());
+        }
+        result.sort(Template.comparator);
+        return result;
+    }
 
     public boolean isThemeRoot() {
         return themeRoot;

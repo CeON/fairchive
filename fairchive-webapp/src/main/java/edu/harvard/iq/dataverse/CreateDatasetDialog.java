@@ -134,7 +134,7 @@ public class CreateDatasetDialog implements Serializable {
     }
 
     public String createDataset() {
-    	final StringBuilder builder = new StringBuilder(80);
+    	final StringBuilder builder = new StringBuilder(65);
         builder.append("/createDataset.xhtml?faces-redirect=true&ownerId=").
         	append(((NodeData) this.selectedNode.getData()).getId());
     	if(this.dataset != null) {

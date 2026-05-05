@@ -212,7 +212,7 @@ public class CreateDatasetPage implements Serializable {
             return this.permissionsWrapper.notAuthorized();
         }
 
-        this.dataverseTemplates = fetchApplicableTemplates(ownerDataverse);
+        this.dataverseTemplates = ownerDataverse.getApplicableTemplates();
         this.selectedTemplate = ownerDataverse.getDefaultTemplate();
 
         this.dataset = new Dataset();
@@ -350,15 +350,6 @@ public class CreateDatasetPage implements Serializable {
             throw new NotAuthenticatedException();
         }
         return this.session.getAuthenticatedUser();
-    }
-    
-    private List<Template> fetchApplicableTemplates(final Dataverse dataverse) {
-        final List<Template> templates = new ArrayList<>(dataverse.getTemplates());
-        if (!dataverse.isTemplateRoot()) {
-            templates.addAll(dataverse.getParentTemplates());
-        }
-        templates.sort(Template.comparator);
-        return templates;
     }
 
     private void resetDatasetFields() {
