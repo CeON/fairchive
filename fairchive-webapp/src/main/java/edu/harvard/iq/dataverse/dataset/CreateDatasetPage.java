@@ -1,10 +1,11 @@
 package edu.harvard.iq.dataverse.dataset;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ProvCollectionEnabled;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.PublicInstall;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,6 @@ import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRenderer;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRendererManager;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -83,6 +83,7 @@ public class CreateDatasetPage implements Serializable {
 
     private Dataset dataset;
     private Long ownerId;
+    private Long sourceDatasetId;
 
     private DatasetVersion workingVersion;
     private List<DataFile> newFiles = new ArrayList<>();
@@ -110,15 +111,22 @@ public class CreateDatasetPage implements Serializable {
     public CreateDatasetPage() { }
 
     @Inject
-    public CreateDatasetPage(ImporterRegistry importerRegistry, DataverseDao dataverseDao,
-                             PermissionsWrapper permissionsWrapper, SettingsServiceBean settingsService,
-                             DatasetFieldsInitializer datasetFieldsInitializer, DataverseSession session,
-                             TermsOfUseFormMapper termsOfUseFormMapper, UserDataFieldFiller userDataFieldFiller,
-                             DatasetService datasetService, InputFieldRendererManager inputFieldRendererManager,
-                             DatasetFieldValidationService fieldValidationService, AsyncExecutionService asyncExecutionService,
-                             ProvPopupFragmentBean provPopupFragmentBean,
-                             IngestServiceBean ingestService, EjbDataverseEngine commandEngine,
-                             DataverseRequestServiceBean dvRequestService) {
+    public CreateDatasetPage(final ImporterRegistry importerRegistry, 
+    		                 final DataverseDao dataverseDao,
+                             final PermissionsWrapper permissionsWrapper, 
+                             final SettingsServiceBean settingsService,
+                             final DatasetFieldsInitializer datasetFieldsInitializer, 
+                             final DataverseSession session,
+                             final TermsOfUseFormMapper termsOfUseFormMapper, 
+                             final UserDataFieldFiller userDataFieldFiller,
+                             final DatasetService datasetService, 
+                             final InputFieldRendererManager inputFieldRendererManager,
+                             final DatasetFieldValidationService fieldValidationService, 
+                             final AsyncExecutionService asyncExecutionService,
+                             final ProvPopupFragmentBean provPopupFragmentBean,
+                             final IngestServiceBean ingestService, 
+                             final EjbDataverseEngine commandEngine,
+                             final DataverseRequestServiceBean dvRequestService) {
         this.importerRegistry = importerRegistry;
         this.dataverseDao = dataverseDao;
         this.permissionsWrapper = permissionsWrapper;
@@ -140,116 +148,123 @@ public class CreateDatasetPage implements Serializable {
     // -------------------- GETTERS --------------------
 
     public Dataset getDataset() {
-        return dataset;
+        return this.dataset;
     }
 
     public Long getOwnerId() {
-        return ownerId;
+        return this.ownerId;
+    }
+    
+    public Long getSourceDatasetId() {
+    	return this.sourceDatasetId;
     }
 
     public DatasetVersion getWorkingVersion() {
-        return workingVersion;
+        return this.workingVersion;
     }
 
     public List<DataFile> getNewFiles() {
-        return newFiles;
+        return this.newFiles;
     }
 
     public List<FileMetadata> getSelectedFiles() {
-        return selectedFiles;
+        return this.selectedFiles;
     }
 
     public List<Template> getDataverseTemplates() {
-        return dataverseTemplates;
+        return this.dataverseTemplates;
     }
 
     public Template getSelectedTemplate() {
-        return selectedTemplate;
+        return this.selectedTemplate;
     }
 
     public Map<MetadataBlock, List<DatasetFieldsByType>> getMetadataBlocksForEdit() {
-        return metadataBlocksForEdit;
+        return this.metadataBlocksForEdit;
     }
 
     public Map<DatasetFieldType, InputFieldRenderer> getInputRenderersByFieldType() {
-        return inputRenderersByFieldType;
+        return this.inputRenderersByFieldType;
     }
 
     public ImportersForView getImporters() {
-        return importers;
+        return this.importers;
     }
 
     public MetadataImporter getSelectedImporter() {
-        return selectedImporter;
+        return this.selectedImporter;
     }
 
     public ImporterForm getImporterForm() {
-        return importerForm;
+        return this.importerForm;
     }
 
     // -------------------- LOGIC --------------------
 
     public String init() {
 
-        Dataverse ownerDataverse = dataverseDao.find(ownerId);
+        final Dataverse ownerDataverse = this.dataverseDao.find(this.ownerId);
 
         if (ownerDataverse == null) {
-            return permissionsWrapper.notFound();
+            return this.permissionsWrapper.notFound();
         }
-        if (!permissionsWrapper.canIssueCreateDatasetCommand(ownerDataverse)) {
-            return permissionsWrapper.notAuthorized();
+        if (!this.permissionsWrapper.canIssueCreateDatasetCommand(ownerDataverse)) {
+            return this.permissionsWrapper.notAuthorized();
         }
 
-        dataverseTemplates = fetchApplicableTemplates(ownerDataverse);
-        selectedTemplate = ownerDataverse.getDefaultTemplate();
+        this.dataverseTemplates = fetchApplicableTemplates(ownerDataverse);
+        this.selectedTemplate = ownerDataverse.getDefaultTemplate();
 
-        dataset = new Dataset();
-        dataset.setOwner(ownerDataverse);
+        this.dataset = new Dataset();
+        this.dataset.setOwner(ownerDataverse);
 
-        this.importers = ImportersForView.createInitialized(dataset, importerRegistry.getImporters(), session.getLocale());
+        this.importers = ImportersForView.createInitialized(this.dataset, 
+        		this.importerRegistry.getImporters(), this.session.getLocale());
 
-        workingVersion = dataset.getLatestVersion();
+        this.workingVersion = this.dataset.getLatestVersion();
         resetDatasetFields();
 
         return StringUtils.EMPTY;
     }
 
-    public void updateSelectedTemplate(AjaxBehaviorEvent event) {
+    public void updateSelectedTemplate(final AjaxBehaviorEvent event) {
         resetDatasetFields();
     }
 
     public void checkSaveStatus() {
         if (getIsSaveRunning()) {
-            JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.save.inprogress"));
+            JsfHelper.addFlashWarningMessage(getStringFromBundle("dataset.save.inprogress"));
         }
     }
 
     public boolean getIsSaveRunning() {
-        return saveDatasetProcess != null &&
-                saveDatasetProcess.getAddingFiles() != null &&
-                !saveDatasetProcess.getAddingFiles().isDone();
+        return this.saveDatasetProcess != null &&
+                this.saveDatasetProcess.getAddingFiles() != null &&
+                !this.saveDatasetProcess.getAddingFiles().isDone();
     }
 
     public boolean getIsSaveStarted() {
-        return (saveDatasetProcess != null && !saveDatasetProcess.hasPreconditionErrors());
+        return (this.saveDatasetProcess != null && !this.saveDatasetProcess.hasPreconditionErrors());
     }
 
     public void save() {
-        saveDatasetProcess = new SaveDatasetProcess();
+        this.saveDatasetProcess = new SaveDatasetProcess();
 
-        workingVersion.setDatasetFields(DatasetFieldUtil.flattenDatasetFieldsFromBlocks(metadataBlocksForEdit));
+        this.workingVersion.setDatasetFields(DatasetFieldUtil.flattenDatasetFieldsFromBlocks(this.metadataBlocksForEdit));
 
-        List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(workingVersion);
-        Set<ConstraintViolation<FileMetadata>> constraintViolations = workingVersion.validateFileMetadata();
+        final List<FieldValidationResult> fieldValidationResults = 
+        		this.fieldValidationService.validateFieldsOfDatasetVersion(this.workingVersion);
+        final Set<ConstraintViolation<FileMetadata>> constraintViolations = this.workingVersion.validateFileMetadata();
         if (!fieldValidationResults.isEmpty() || !constraintViolations.isEmpty()) {
             JsfHelper.addErrorMessage("", getStringFromBundle("dataset.message.validationErrorDetails"));
-            saveDatasetProcess.setPreconditionErrors(true);
+            this.saveDatasetProcess.setPreconditionErrors(true);
             return;
         }
 
-        mapTermsOfUseInFiles(newFiles);
+        mapTermsOfUseInFiles(this.newFiles);
 
-        Try<Dataset> createDatasetOperation = Try.of(() -> datasetService.createDataset(dataset, selectedTemplate))
+        final Try<Dataset> createDatasetOperation = 
+        		Try.of(() -> this.datasetService.createDataset(this.dataset, this.selectedTemplate))
                 .onFailure(NotAuthenticatedException.class,
                     ex -> handleErrorMessage(getStringFromBundle("dataset.create.authenticatedUsersOnly"), ex))
                 .onFailure(EJBException.class,
@@ -258,34 +273,37 @@ public class CreateDatasetPage implements Serializable {
                     ex -> handleErrorMessage(getStringFromBundle("dataset.message.createFailure"), ex));
 
         if (createDatasetOperation.isFailure()) {
-            saveDatasetProcess.setPreconditionErrors(true);
+            this.saveDatasetProcess.setPreconditionErrors(true);
             return;
         }
 
-        if (settingsService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled)) {
-            provPopupFragmentBean.saveStageProvFreeformToLatestVersion();
+        if (isProvenanceCollectionEnabled()) {
+            this.provPopupFragmentBean.saveStageProvFreeformToLatestVersion();
         }
 
         //we need full refresh of the dataset to properly link with role assignments
-        dataset = datasetService.find(dataset.getId());
+        this.dataset = this.datasetService.find(this.dataset.getId());
 
-        saveDatasetProcess.setAddingFiles(asyncExecutionService.executeAsync(() -> datasetService.addFilesToDataset(dataset, newFiles)));
+        this.saveDatasetProcess.setAddingFiles(
+        		this.asyncExecutionService.executeAsync(() -> 
+        			this.datasetService.addFilesToDataset(this.dataset, this.newFiles)));
 
     }
 
     public String finalizeSave() {
-        if (saveDatasetProcess == null || saveDatasetProcess.hasPreconditionErrors()) {
+        if (this.saveDatasetProcess == null || this.saveDatasetProcess.hasPreconditionErrors()) {
             return null;
         }
 
-        AuthenticatedUser user = retrieveAuthenticatedUser();
+        final AuthenticatedUser user = retrieveAuthenticatedUser();
         
         //After dataset saved, then persist prov json data
         boolean hasProvenanceErrors = false;
 
-        if (settingsService.isTrueForKey(SettingsServiceBean.Key.ProvCollectionEnabled)) {
+        if (isProvenanceCollectionEnabled()) {
             try {
-                provPopupFragmentBean.saveStagedProvJson(false, dataset.getLatestVersion().getFileMetadatas());
+                this.provPopupFragmentBean.saveStagedProvJson(false, 
+                		this.dataset.getLatestVersion().getFileMetadatas());
             } catch (AbstractApiBean.WrappedResponse ex) {
                 logger.log(Level.SEVERE, null, ex);
                 hasProvenanceErrors = true;
@@ -294,84 +312,94 @@ public class CreateDatasetPage implements Serializable {
         
         final boolean showProvenanceErrors = hasProvenanceErrors;
         
-        Try.of(() -> saveDatasetProcess.getAddingFiles().get())
+        Try.of(() -> this.saveDatasetProcess.getAddingFiles().get())
             .onFailure(ex -> handleErrorMessage(getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"), ex))
             .onSuccess(addFilesResult -> updateVersion(addFilesResult))
-            .onSuccess(addFilesResult -> handleSuccessOrPartialSuccessMessages(newFiles.size(), addFilesResult, showProvenanceErrors))
-            .onSuccess(addFilesResult -> dataset = datasetService.find(dataset.getId()))
-            .onSuccess(addFilesResult -> ingestService.startIngestJobsForDataset(dataset, user));
+            .onSuccess(addFilesResult -> handleSuccessOrPartialSuccessMessages(this.newFiles.size(), addFilesResult, showProvenanceErrors))
+            .onSuccess(addFilesResult -> this.dataset = this.datasetService.find(this.dataset.getId()))
+            .onSuccess(addFilesResult -> this.ingestService.startIngestJobsForDataset(this.dataset, user));
 
         return returnToDraftVersion();
     }
 
     public void initMetadataImportDialog() {
-        importerForm = ImporterForm.createInitializedForm(selectedImporter, session.getLocale(), this::getMetadataBlocksForEdit);
+        this.importerForm = ImporterForm.createInitializedForm(this.selectedImporter, 
+        		this.session.getLocale(), this::getMetadataBlocksForEdit);
     }
 
     public boolean isInstallationPublic() {
-        return settingsService.isTrueForKey(SettingsServiceBean.Key.PublicInstall);
+        return this.settingsService.isTrueForKey(PublicInstall);
     }
 
     // -------------------- PRIVATE --------------------
 
-    private void updateVersion(AddFilesResult addFilesResult) {
+    private boolean isProvenanceCollectionEnabled() {
+    	return this.settingsService.isTrueForKey(ProvCollectionEnabled);
+    }
+    
+    private void updateVersion(final AddFilesResult addFilesResult) {
     	if (addFilesResult.getSavedFilesCount() > 0) {
-    		dataset = commandEngine.submit(new UpdateDatasetVersionCommand(dataset, dvRequestService.getDataverseRequest()));
+    		this.dataset = this.commandEngine.submit(
+    				new UpdateDatasetVersionCommand(this.dataset, 
+    						this.dvRequestService.getDataverseRequest()));
     	}
     }
     
     private AuthenticatedUser retrieveAuthenticatedUser() {
-        if (!session.isUserLoggedIn()) {
+        if (!this.session.isUserLoggedIn()) {
             throw new NotAuthenticatedException();
         }
-        return (AuthenticatedUser) session.getUser();
+        return this.session.getAuthenticatedUser();
     }
     
-    private List<Template> fetchApplicableTemplates(Dataverse dataverse) {
-        List<Template> templates = new ArrayList<>(dataverse.getTemplates());
+    private List<Template> fetchApplicableTemplates(final Dataverse dataverse) {
+        final List<Template> templates = new ArrayList<>(dataverse.getTemplates());
         if (!dataverse.isTemplateRoot()) {
             templates.addAll(dataverse.getParentTemplates());
         }
-        Collections.sort(templates, (Template t1, Template t2) -> t1.getName().compareToIgnoreCase(t2.getName()));
+        templates.sort(Template.comparator);
         return templates;
     }
 
     private void resetDatasetFields() {
         List<DatasetField> datasetFields = new ArrayList<>();
 
-        if (selectedTemplate != null) {
-            datasetFields = DatasetFieldUtil.copyDatasetFields(selectedTemplate.getDatasetFields());
+        if (this.selectedTemplate != null) {
+            datasetFields = DatasetFieldUtil.copyDatasetFields(this.selectedTemplate.getDatasetFields());
         }
 
-        datasetFields = datasetFieldsInitializer.prepareDatasetFieldsForEdit(datasetFields, dataset.getOwner().getMetadataBlockRootDataverse());
+        datasetFields = this.datasetFieldsInitializer.prepareDatasetFieldsForEdit(datasetFields, 
+        		this.dataset.getOwner().getMetadataBlockRootDataverse());
 
-        if (session.isUserLoggedIn()) {
-            userDataFieldFiller.fillUserDataInDatasetFields(datasetFields, (AuthenticatedUser) session.getUser());
+        if (this.session.isUserLoggedIn()) {
+        	this.userDataFieldFiller.fillUserDataInDatasetFields(datasetFields, this.session.getAuthenticatedUser());
         }
 
-        inputRenderersByFieldType = inputFieldRendererManager.obtainRenderersByType(datasetFields);
+        this.inputRenderersByFieldType = this.inputFieldRendererManager.obtainRenderersByType(datasetFields);
 
-        metadataBlocksForEdit = datasetFieldsInitializer.groupAndUpdateFlagsForEdit(datasetFields, dataset.getOwner().getMetadataBlockRootDataverse());
+        this.metadataBlocksForEdit = this.datasetFieldsInitializer.
+        		groupAndUpdateFlagsForEdit(datasetFields, this.dataset.getOwner().getMetadataBlockRootDataverse());
 
     }
 
-    private void mapTermsOfUseInFiles(List<DataFile> files) {
-        for (DataFile file : files) {
-            TermsOfUseForm termsOfUseForm = file.getFileMetadata().getTermsOfUseForm();
-            FileTermsOfUse termsOfUse = termsOfUseFormMapper.mapToFileTermsOfUse(termsOfUseForm);
+    private void mapTermsOfUseInFiles(final List<DataFile> files) {
+        for (final DataFile file : files) {
+            final TermsOfUseForm termsOfUseForm = file.getFileMetadata().getTermsOfUseForm();
+            final FileTermsOfUse termsOfUse = this.termsOfUseFormMapper.mapToFileTermsOfUse(termsOfUseForm);
 
             file.getFileMetadata().setTermsOfUse(termsOfUse);
         }
     }
 
-    private void handleSuccessOrPartialSuccessMessages(int filesToSaveCount, AddFilesResult addFilesResult, boolean hasProvenanceErrors) {
+    private void handleSuccessOrPartialSuccessMessages(final int filesToSaveCount, 
+    		final AddFilesResult addFilesResult, final boolean hasProvenanceErrors) {
 
         if (filesToSaveCount == addFilesResult.getSavedFilesCount()) {
             JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.createSuccess"));
         } else if (addFilesResult.getSavedFilesCount() == 0) {
             JsfHelper.addFlashWarningMessage(getStringFromBundle("dataset.message.createSuccess.failedToSaveFiles"));
         } else {
-            String partialSuccessMessage = getStringFromBundle("dataset.message.createSuccess.partialSuccessSavingFiles",
+            final String partialSuccessMessage = getStringFromBundle("dataset.message.createSuccess.partialSuccessSavingFiles",
             		addFilesResult.getSavedFilesCount(), filesToSaveCount);
             JsfHelper.addFlashWarningMessage(partialSuccessMessage);
         }
@@ -381,21 +409,21 @@ public class CreateDatasetPage implements Serializable {
         }
     }
 
-    private void handleErrorMessage(String messageToUser, Throwable ex) {
+    private void handleErrorMessage(final String messageToUser, final Throwable ex) {
         logger.log(Level.SEVERE, ex.getMessage(), ex);
         JsfHelper.addFlashErrorMessage(messageToUser);
     }
 
     private String returnToDraftVersion() {
         return "/dataset.xhtml?faces-redirect=true&version=DRAFT&persistentId=" 
-                + dataset.getGlobalId();
+                + this.dataset.getGlobalId();
     }
     
-    public List<DatasetField> findCopySources(String sourceId) {
-        List<DatasetField> sourceFields = new ArrayList<>();
-        for (List<DatasetFieldsByType> datasetFieldsByTypeList : metadataBlocksForEdit.values()) {
-            for (DatasetFieldsByType datasetFieldsByType : datasetFieldsByTypeList) {
-                for (DatasetField datasetField : datasetFieldsByType.getDatasetFields()) {
+    public List<DatasetField> findCopySources(final String sourceId) {
+        final List<DatasetField> sourceFields = new ArrayList<>();
+        for (final List<DatasetFieldsByType> datasetFieldsByTypeList : this.metadataBlocksForEdit.values()) {
+            for (final DatasetFieldsByType datasetFieldsByType : datasetFieldsByTypeList) {
+                for (final DatasetField datasetField : datasetFieldsByType.getDatasetFields()) {
                     if (sourceId.equals(datasetField.getTypeName())) {
                         sourceFields.add(datasetField);
                     }
@@ -407,16 +435,20 @@ public class CreateDatasetPage implements Serializable {
 
     // -------------------- SETTERS --------------------
 
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
+    public void setOwnerId(final Long id) {
+        this.ownerId = id;
+    }
+    
+    public void setSourceDatasetId(final Long id) {
+    	this.sourceDatasetId = id;
     }
 
-    public void setSelectedTemplate(Template selectedTemplate) {
-        this.selectedTemplate = selectedTemplate;
+    public void setSelectedTemplate(final Template template) {
+        this.selectedTemplate = template;
     }
 
-    public void setSelectedImporter(MetadataImporter selectedImporter) {
-        this.selectedImporter = selectedImporter;
+    public void setSelectedImporter(final MetadataImporter importer) {
+        this.selectedImporter = importer;
     }
 
     public static class SaveDatasetProcess {
@@ -424,19 +456,19 @@ public class CreateDatasetPage implements Serializable {
         private CompletableFuture<AddFilesResult> addingFiles;
 
         public boolean hasPreconditionErrors() {
-            return preconditionErrors;
+            return this.preconditionErrors;
         }
 
-        public void setPreconditionErrors(boolean preconditionErrors) {
+        public void setPreconditionErrors(final boolean preconditionErrors) {
             this.preconditionErrors = preconditionErrors;
         }
 
-        public void setAddingFiles(CompletableFuture<AddFilesResult> addingFiles) {
+        public void setAddingFiles(final CompletableFuture<AddFilesResult> addingFiles) {
             this.addingFiles = addingFiles;
         }
 
         public CompletableFuture<AddFilesResult> getAddingFiles() {
-            return addingFiles;
+            return this.addingFiles;
         }
     }
 }
