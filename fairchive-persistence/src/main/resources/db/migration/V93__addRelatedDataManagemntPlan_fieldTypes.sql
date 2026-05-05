@@ -26,7 +26,7 @@ VALUES(true, false, false, 'The full bibliographic citation for this related pub
     false, 'TEXTBOX', 'managementPlanCitation', false, 'Citation', NULL, '', 
     (SELECT id  FROM metadatablock where name = 'citation'), 
     (SELECT id  FROM datasetfieldtype where name = 'dataManagementPlan'), 'TEXTBOX', 
-    '{}', '[{\"name\":\"standard_input\"}]', '{}', false, true, NULL);
+    '{}', '[{"name":"standard_input"}]', '{}', false, true, NULL);
      
 
 INSERT INTO datasetfieldtype (advancedsearchfieldtype,allowcontrolledvocabulary,
