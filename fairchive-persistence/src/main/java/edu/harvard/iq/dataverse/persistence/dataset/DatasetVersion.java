@@ -640,6 +640,13 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
                 .flatMap(List::stream)
                 .collect(toList());
     }
+    
+    public List<String> extractFieldValuesWithoutFormatting(String fieldName) {
+        return streamDatasetFieldsByTypeName(fieldName)
+                .map(DatasetField::getValuesWithoutFormatting)
+                .flatMap(List::stream)
+                .collect(toList());
+    }
 
     public List<String> getDatasetSubjects() {
         return extractFieldValues(DatasetFieldConstant.subject);
