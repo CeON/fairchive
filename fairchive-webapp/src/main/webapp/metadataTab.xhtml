@@ -5,7 +5,11 @@
                 xmlns:p="http://primefaces.org/ui"
                 xmlns:jsf="http://xmlns.jcp.org/jsf">
     <div class="button-block tab-header margin-bottom text-right">
-
+        <p:commandButton rendered="#{DatasetMetadataTab.displayCloneButton()}"
+                         value="#{bundle['dataset.clone']}"
+                         onclick="primeFacesShowModal('createDatasetDialog', this)"
+                         styleClass="btn btn-default pull-left"
+                         icon="glyphicon glyphicon-plus"/>
         <p:commandLink styleClass="text-button btn-share bootstrap-button-tooltip"
                        rendered="#{DatasetMetadataTab.showMachineTranslation()}"
                        title="translate"
@@ -41,10 +45,6 @@
                 </ui:repeat>
             </ul>
         </div>
-        <p:commandButton rendered="#{DatasetMetadataTab.displayCloneButton()}"
-                         value="#{bundle['dataset.clone']}"
-                         onclick="primeFacesShowModal('createDatasetDialog', this)"
-                         styleClass="btn btn-default"/>
     </div>
     <ui:include src="viewMetadata.xhtml">
         <ui:param name="metadataBlocks"

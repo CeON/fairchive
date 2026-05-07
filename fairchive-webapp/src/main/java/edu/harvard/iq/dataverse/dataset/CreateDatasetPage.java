@@ -224,6 +224,14 @@ public class CreateDatasetPage implements Serializable {
 
         this.workingVersion = this.dataset.getLatestVersion();
         resetDatasetFields();
+        
+        if(this.sourceDatasetId != null) {
+        	final Dataset source = this.datasetService.find(this.sourceDatasetId);
+        	if(! source.getLatestVersionForCopy().isPubliclyAccessible() 
+        			&& ! this.permissionsWrapper.canViewUnpublishedDataset(source)) {
+        		return this.permissionsWrapper.notAuthorized();
+        	}
+        }
 
         return StringUtils.EMPTY;
     }
@@ -411,9 +419,10 @@ public class CreateDatasetPage implements Serializable {
 		});
     }
     
-    private static Optional<DatasetField> find(final List<DatasetField> fields, final DatasetFieldType type) {
+    private static Optional<DatasetField> find(final List<DatasetField> fields, 
+    		final DatasetFieldType type) {
     	
-    	return fields.stream().filter(field -> field.getDatasetFieldType().equals(type)).findFirst();
+    	return fields.stream().filter(field -> field.isOfType(type)).findFirst();
     }
 
     private void mapTermsOfUseInFiles(final List<DataFile> files) {
