@@ -270,31 +270,34 @@ public class ImageThumbConverter {
             final InputStream inputStream) {
         try {
             final BufferedImage fullSizeImage = ImageIO.read(inputStream);
-            requireNonNull(fullSizeImage, "Could not read image.");
-            final int width = fullSizeImage.getWidth(null);
-            final int height = fullSizeImage.getHeight(null);
-
-            try (final OutputStream out = storageIO.openAuxOutput(suffix(size))) {
-                rescaleImage(fullSizeImage, width, height, size, out);
-            } catch (final Exception e) {
-                logger.warn("Exception during thumbnail generation.", e);
-                // With some storage drivers, we can open a WritableChannel, or
-                // OutputStream
-                // to directly write the generated thumbnail that we want to cache;
-                // Some drivers (like Swift) do not support that, and will give us an
-                // "operation not supported" exception. If that's the case, we'll have
-                // to save the output into a temp file, and then copy it over to the
-                // permanent storage using the DataAccess IO "save" command:
-                final File tempFile = createTempFile("tempFileToRescale", ".tmp");
-                try (final OutputStream out = new FileOutputStream(tempFile)) {
-                    rescaleImage(fullSizeImage, width, height, size, out);
-                    storageIO.savePathAsAux(Paths.get(tempFile.getAbsolutePath()),
-                            suffix(size));
-                } finally {
-                    tempFile.delete();
-                }
+            if(fullSizeImage != null) {
+	            final int width = fullSizeImage.getWidth(null);
+	            final int height = fullSizeImage.getHeight(null);
+	
+	            try (final OutputStream out = storageIO.openAuxOutput(suffix(size))) {
+	                rescaleImage(fullSizeImage, width, height, size, out);
+	            } catch (final Exception e) {
+	                logger.warn("Exception during thumbnail generation.", e);
+	                // With some storage drivers, we can open a WritableChannel, or
+	                // OutputStream
+	                // to directly write the generated thumbnail that we want to cache;
+	                // Some drivers (like Swift) do not support that, and will give us an
+	                // "operation not supported" exception. If that's the case, we'll have
+	                // to save the output into a temp file, and then copy it over to the
+	                // permanent storage using the DataAccess IO "save" command:
+	                final File tempFile = createTempFile("tempFileToRescale", ".tmp");
+	                try (final OutputStream out = new FileOutputStream(tempFile)) {
+	                    rescaleImage(fullSizeImage, width, height, size, out);
+	                    storageIO.savePathAsAux(Paths.get(tempFile.getAbsolutePath()),
+	                            suffix(size));
+	                } finally {
+	                    tempFile.delete();
+	                }
+	            }
+	            return true;
+            } else {
+            	return false; // unsupported image format - nothing to worry about
             }
-            return true;
         } catch (final Exception e) {
             logger.warn("Faild to generate thumbnail.", e);
             return false;
