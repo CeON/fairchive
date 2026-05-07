@@ -84,7 +84,8 @@ public class DatasetFieldsInitializer {
      * @param metadataBlocksDataverse - dataverse used as definition of possible dataset fields
      * @return dataset fields suitable for edit operation
      */
-    public List<DatasetField> prepareDatasetFieldsForEdit(List<DatasetField> datasetFields, Dataverse metadataBlocksDataverse) {
+    public List<DatasetField> prepareDatasetFieldsForEdit(final List<DatasetField> datasetFields, 
+    		final Dataverse metadataBlocksDataverse) {
         List<DatasetField> newDatasetFields = Lists.newArrayList(datasetFields);
 
         newDatasetFields = createBlankDatasetFields(newDatasetFields, metadataBlocksDataverse);
@@ -212,7 +213,8 @@ public class DatasetFieldsInitializer {
         return dsf;
     }
 
-    private List<DatasetField> createBlankDatasetFields(List<DatasetField> datasetFields, Dataverse metadataBlocksDataverse) {
+    private List<DatasetField> createBlankDatasetFields(final List<DatasetField> datasetFields, 
+    		final Dataverse metadataBlocksDataverse) {
         Set<MetadataBlock> dataverseMetadataBlocks = new HashSet<>(metadataBlocksDataverse.getMetadataBlocks());
 
         //retList - Return List of values

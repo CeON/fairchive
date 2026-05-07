@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -370,7 +371,49 @@ public class CreateDatasetPage implements Serializable {
 
         this.metadataBlocksForEdit = this.datasetFieldsInitializer.
         		groupAndUpdateFlagsForEdit(datasetFields, this.dataset.getOwner().getMetadataBlockRootDataverse());
+        
+        if(this.sourceDatasetId != null) {
+        	copyVieldValuesFromSourceDataset();
+        }
 
+    }
+    
+    private void copyVieldValuesFromSourceDataset() {
+  	
+    	final List<DatasetField> sourceFields = this.datasetService.find(this.sourceDatasetId).
+    			getLatestVersionForCopy().getDatasetFieldsAll();
+    	
+    	for(final List<DatasetFieldsByType> fieldsByType : this.metadataBlocksForEdit.values()) {
+    		for(final DatasetFieldsByType fieldByType : fieldsByType) {
+    			for(final DatasetField field : fieldByType.getDatasetFields()) {
+    				copyFieldValue(field, sourceFields);
+    			}
+    		}
+    	}
+    }
+    
+    private static void copyFieldValue(final DatasetField target, 
+    		final List<DatasetField> sourceFields) {
+    	
+    	find(sourceFields, target.getDatasetFieldType()).ifPresent(source -> {
+			if(source.getFieldValue().isDefined()) {
+				target.setValue(source.getFieldValue().get());
+			}
+			if(! source.getControlledVocabularyValues().isEmpty()) {
+				target.setControlledVocabularyValues(source.getControlledVocabularyValues());
+			}
+			
+			if(target.getDatasetFieldType().isCompound()) {
+				for(final DatasetField childTarget : target.getChildren()) {
+					copyFieldValue(childTarget, source.getChildren());
+				}
+			}
+		});
+    }
+    
+    private static Optional<DatasetField> find(final List<DatasetField> fields, final DatasetFieldType type) {
+    	
+    	return fields.stream().filter(field -> field.getDatasetFieldType().equals(type)).findFirst();
     }
 
     private void mapTermsOfUseInFiles(final List<DataFile> files) {
