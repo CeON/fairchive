@@ -71,6 +71,7 @@ public class FilePageTest {
 		this.file = new DataFile();
 		this.file.setContentType("text/plain");
 		this.file.setId(1L);
+		this.file.setFilesize(2000);
 		FileMetadata meta = new FileMetadata();
 		meta.setId(1L);
 		meta.setDataFile(this.file);
@@ -118,4 +119,20 @@ public class FilePageTest {
 		assertThat(this.page.displayPreviewTab()).isTrue();
 	}
 	
+	
+	@Test
+	void isFileSizeUnderLimit() {
+		
+		// no viewer for text/plain is available
+		assertThat(this.page.isFileSizeUnderLimit()).isFalse();
+		
+		this.file.setContentType("image/png");
+		assertThat(this.page.isFileSizeUnderLimit()).isTrue();
+		
+		this.viewer.setFileSizeLimit(5000L);
+		assertThat(this.page.isFileSizeUnderLimit()).isTrue();
+		
+		this.viewer.setFileSizeLimit(1000L);
+		assertThat(this.page.isFileSizeUnderLimit()).isFalse();
+	}
 }

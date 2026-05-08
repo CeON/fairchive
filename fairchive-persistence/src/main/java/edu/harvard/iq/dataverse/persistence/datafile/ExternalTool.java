@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
+import static java.lang.Boolean.TRUE;
 import static java.util.Collections.emptyMap;
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -84,6 +85,8 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
     private Boolean trusted = Boolean.FALSE;
     
     private String fileExtention;
+    
+    private Long fileSizeLimit;
 
 
     /**
@@ -201,6 +204,18 @@ public class ExternalTool implements Serializable, JpaEntity<Long> {
 
 	public void setTrusted(final Boolean trusted) {
 		this.trusted = trusted;
+	}
+
+	public Long getFileSizeLimit() {
+		return this.fileSizeLimit;
+	}
+
+	public void setFileSizeLimit(final Long limit) {
+		this.fileSizeLimit = limit;
+	}
+	
+	public boolean acceptsFileOfSize(final long size) {
+		return this.fileSizeLimit != null ? this.fileSizeLimit > size : true;
 	}
 
 	private JsonObject getToolParametersAsJSON() {

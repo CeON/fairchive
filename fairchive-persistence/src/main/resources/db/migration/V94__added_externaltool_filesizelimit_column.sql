@@ -1,0 +1,1 @@
+ALTER TABLE public.externaltool ADD filesizelimit int8 NULL;
