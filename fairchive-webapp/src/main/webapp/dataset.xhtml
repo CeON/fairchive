@@ -614,7 +614,7 @@
 
                                         <div id="keywords" 
                                              class="form-group"
-                                             jsf:rendered="#{!empty DatasetPage.keywordsDisplaySummary and fieldsByType.datasetFieldType.name=='keyword'}">
+                                             jsf:rendered="#{DatasetPage.displayKeywords(fieldsByType)}">
                                             <div class="col-sm-3 control-label section-title">
                                                 #{bundle['dataset.keywordDisplay.title']}
                                                 <span class="glyphicon glyphicon-question-sign tooltip-icon"

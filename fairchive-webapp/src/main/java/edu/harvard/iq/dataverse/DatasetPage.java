@@ -482,7 +482,12 @@ public class DatasetPage implements Serializable {
         return !(this.settingsWrapper.isRsyncDownload() 
                 || this.workingVersion.isDeaccessioned());
     }
-
+    
+	public boolean displayKeywords(final DatasetFieldsByType fields) {
+		return !getKeywordsDisplaySummary().isEmpty() && 
+				fields.getDatasetFieldType().getName().equals("keyword");
+	}
+	
     public Dataset getDataset() {
         return dataset;
     }
