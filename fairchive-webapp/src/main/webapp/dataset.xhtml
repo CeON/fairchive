@@ -607,7 +607,7 @@
                             <div jsf:id="dataset-summary-metadata" 
                                  class="row panel panel-default"
                                  jsf:rendered="#{!widgetWrapper.widgetView and !DatasetPage.workingVersion.deaccessioned and
-                                                    (!empty DatasetPage.datasetSummaryFields or (DatasetPage.getFileSize() gt 0)) }">
+                                                    (!empty DatasetPage.datasetSummaryFields or DatasetPage.hasFiles()) }">
                                 <div class="panel-body metadata-panel-body metadata-summary-panel-body">
                                     <ui:repeat value="#{DatasetPage.datasetSummaryFields}" 
                                                var="fieldsByType">
@@ -689,7 +689,7 @@
                                     </ui:repeat>
 
                                     <ui:fragment
-                                            rendered="#{(DatasetPage.getFileSize() gt 0) and !DatasetPage.sameTermsOfUseForAllFiles and !DatasetPage.isUserUnderEmbargo()}">
+                                            rendered="#{(DatasetPage.hasFiles()) and !DatasetPage.sameTermsOfUseForAllFiles and !DatasetPage.isUserUnderEmbargo()}">
                                         <div class="form-group">
                                             <label class="col-sm-3 control-label">
                                                 #{bundle['dataset.files.license']}
@@ -707,7 +707,7 @@
                                         </div>
                                     </ui:fragment>
                                     <ui:fragment
-                                            rendered="#{(DatasetPage.getFileSize() gt 0) and DatasetPage.sameTermsOfUseForAllFiles and !DatasetPage.isUserUnderEmbargo()}">
+                                            rendered="#{DatasetPage.hasFiles() and DatasetPage.sameTermsOfUseForAllFiles and !DatasetPage.isUserUnderEmbargo()}">
                                         <div class="form-group"
                                              jsf:rendered="#{DatasetPage.termsOfUseOfFirstFile.get().termsOfUseType == termsOfUseTypeEnum.LICENSE_BASED}">
                                             <label class="col-sm-3 control-label">

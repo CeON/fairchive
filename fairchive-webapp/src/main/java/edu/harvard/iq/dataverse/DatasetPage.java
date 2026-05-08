@@ -1343,6 +1343,10 @@ public class DatasetPage implements Serializable {
 
         return fileSize;
     }
+    
+    public boolean hasFiles() {
+    	return getFileSize() > 0;
+    }
 
     public boolean isMinorUpdate() {
         isDsvMinorUpdate = Optional.of(isDsvMinorUpdate.orElseGet(() -> datasetPageFacade.isMinorUpdate(dataset.getLatestVersion().getId())));
