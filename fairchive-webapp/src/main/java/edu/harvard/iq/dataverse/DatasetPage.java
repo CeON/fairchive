@@ -412,6 +412,12 @@ public class DatasetPage implements Serializable {
         return ! isViewedFromAnonymizedPrivateUrl();
     }
     
+	public boolean displayVersionNumberBadge() {
+		return !(this.workingVersion.isDraft() || 
+				this.workingVersion.isInReview() || 
+				this.workingVersion.isDeaccessioned());
+	}
+    
     public boolean displayGeustbookTab() {
     	return this.settingsService.getValueForKeyAsBoolean(DiplayGuestbooks, false)
     			&& !isViewedFromAnonymizedPrivateUrl()
@@ -1195,6 +1201,15 @@ public class DatasetPage implements Serializable {
         return workingVersion.getDatasetAuthors().stream()
                 .map(a -> a.getName().getValue())
                 .collect(Collectors.toList());
+    }
+    
+    public String getDatasetVersion() {
+    	return this.workingVersion.isReleased()
+    			? getStringFromBundle("file.DatasetVersion") + ' ' +
+    					this.workingVersion.getVersionNumber() + '.' + 
+    					this.workingVersion.getMinorVersionNumber()
+    			: getStringFromBundle("file.DatasetVersion") + ' ' + 
+    					this.workingVersion.getVersionState();
     }
 
     /**

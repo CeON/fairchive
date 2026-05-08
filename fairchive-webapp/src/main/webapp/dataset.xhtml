@@ -579,12 +579,10 @@
                                                   styleClass="label label-danger"
                                                   rendered="#{DatasetPage.workingVersion.deaccessioned}"/>
                                     <!-- DATASET VERSION NUMBER -->
-                                    <h:outputText styleClass="label label-default"
-                                                  rendered="#{DatasetPage.workingVersion.released and !(DatasetPage.workingVersion.draft or DatasetPage.workingVersion.inReview or DatasetPage.workingVersion.deaccessioned)}"
-                                                  value="#{bundle['file.DatasetVersion']} #{DatasetPage.workingVersion.versionNumber}.#{DatasetPage.workingVersion.minorVersionNumber}"/>
-                                    <h:outputText styleClass="label label-default"
-                                                  rendered="#{!DatasetPage.workingVersion.released and !(DatasetPage.workingVersion.draft or DatasetPage.workingVersion.inReview or DatasetPage.workingVersion.deaccessioned)}"
-                                                  value="#{bundle['file.DatasetVersion']} #{DatasetPage.workingVersion.versionState}"/>
+                                    <ui:fragment rendered="#{DatasetPage.displayVersionNumberBadge()}">
+	                                    <h:outputText styleClass="label label-default"
+	                                                  value="#{DatasetPage.datasetVersion}"/>
+                                    </ui:fragment>
                                 </div>
                             </div>
                             <!-- CITATION BLOCK -->
