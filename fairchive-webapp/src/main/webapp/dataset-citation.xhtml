@@ -48,19 +48,19 @@
                     <ul class="dropdown-menu pull-right text-left" role="menu">
                         <li>
                             <a jsf:id="endNoteLink" 
-                               jsf:action="#{fileDownloadService.downloadDatasetCitationXML(DatasetPage.workingVersion)}" >
+                               jsf:action="#{DatasetPage.downloadDatasetCitationXML()}" >
                                 #{bundle['dataset.cite.downloadBtn.xml']}
                             </a>
                         </li>
                         <li>
                             <a jsf:id="risLink" 
-                               jsf:actionListener="#{fileDownloadService.downloadDatasetCitationRIS(DatasetPage.workingVersion)}">
+                               jsf:actionListener="#{DatasetPage.downloadDatasetCitationRIS()}">
                                 #{bundle['dataset.cite.downloadBtn.ris']}
                             </a>
                         </li>
                         <li>
                             <a jsf:id="bibLink" 
-                               jsf:actionListener="#{fileDownloadService.downloadDatasetCitationBibtex(DatasetPage.workingVersion)}" 
+                               jsf:actionListener="#{DatasetPage.downloadDatasetCitationBibtex()}" 
                                target="_blank">
                                 #{bundle['dataset.cite.downloadBtn.bib']}
                             </a>

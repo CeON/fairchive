@@ -29,8 +29,8 @@ import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.model.DefaultStreamedContent;
@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.datafile.FileDownloadServiceBean;
 import edu.harvard.iq.dataverse.dataset.DatasetSummaryService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnail;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
@@ -87,8 +88,8 @@ import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Try;
@@ -134,6 +135,7 @@ public class DatasetPage implements Serializable {
     private CitationFactory citationFactory;
     private PrivateUrlServiceBean privateUrlService;
     private SettingsWrapper settingsWrapper;
+    private FileDownloadServiceBean fileDownloadService;
 
     private Dataset dataset = new Dataset();
 
@@ -184,7 +186,8 @@ public class DatasetPage implements Serializable {
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
                        DatasetPageFacade datasetPageFacade,
                        CitationFactory citationFactory,
-                       PrivateUrlServiceBean privateUrlService, SettingsWrapper settingsWrapper) {
+                       PrivateUrlServiceBean privateUrlService, SettingsWrapper settingsWrapper,
+                       FileDownloadServiceBean fileDownloadService) {
         this.session = session;
         this.commandEngine = commandEngine;
         this.permissionsWrapper = permissionsWrapper;
@@ -206,6 +209,7 @@ public class DatasetPage implements Serializable {
         this.citationFactory = citationFactory;
         this.privateUrlService = privateUrlService;
         this.settingsWrapper = settingsWrapper;
+        this.fileDownloadService = fileDownloadService;
     }
 
 
@@ -1358,6 +1362,18 @@ public class DatasetPage implements Serializable {
      */
     public String getMessage(String key) {
         return BundleUtil.getStringFromBundle(key);
+    }
+    
+    public void downloadDatasetCitationXML() {
+    	this.fileDownloadService.downloadDatasetCitationXML(this.workingVersion);
+    }
+    
+    public void downloadDatasetCitationRIS() {
+    	this.fileDownloadService.downloadDatasetCitationRIS(this.workingVersion);
+    }
+    
+    public void downloadDatasetCitationBibtex() {
+    	this.fileDownloadService.downloadDatasetCitationBibtex(this.workingVersion);
     }
 
     // -------------------- PRIVATE ---------------------
