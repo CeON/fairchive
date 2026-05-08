@@ -3,10 +3,20 @@ package edu.harvard.iq.dataverse;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.valueOf;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowDatasetPublishWithoutFiles;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CustomDatasetSummaryFields;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DatasetPublishPopupCustomText;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DatasetPublishPopupCustomTextOnAllVersions;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DiplayGuestbooks;
 import static edu.harvard.iq.dataverse.util.FileUtil.getResourceAsStream;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
+import static java.util.stream.Collectors.toList;
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static javax.faces.application.FacesMessage.SEVERITY_INFO;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -248,7 +258,8 @@ public class DatasetPage implements Serializable {
 
             thumbnailString = datasetThumbnail.getBase64image();
         } else {
-            thumbnailString = thumbnailServiceWrapper.getDatasetCardImageAsBase64Url(dataset, workingVersion.getId(), !workingVersion.isDraft());
+            thumbnailString = thumbnailServiceWrapper.getDatasetCardImageAsBase64Url(dataset,
+            		workingVersion.getId(), !workingVersion.isDraft());
         }
         thumbnailStringIsCached = true;
         return thumbnailString;
@@ -344,7 +355,7 @@ public class DatasetPage implements Serializable {
     }
 
     public boolean latestDatasetHasFileOrPublishingWithoutFilesAllowed() {
-        return settingsService.isTrueForKey(Key.AllowDatasetPublishWithoutFiles) ||
+        return settingsService.isTrueForKey(AllowDatasetPublishWithoutFiles) ||
                 isLatestDatasetWithAnyFilesIncluded();
     }
 
@@ -379,7 +390,7 @@ public class DatasetPage implements Serializable {
     private final Map<Long, MapLayerMetadata> mapLayerMetadataLookup = new HashMap<>();
     
     public String getPrivateUrlHelpUrl() {
-        return this.settingsWrapper.getGuidesBaseUrl() + "/"
+        return this.settingsWrapper.getGuidesBaseUrl() + '/'
                 + this.settingsWrapper.getGuidesVersion() +
                 "/user/dataset-management.html#private-url-for-reviewing-an-unpublished-dataset";
     }
@@ -628,9 +639,9 @@ public class DatasetPage implements Serializable {
             logger.fine("retrieved dataset, id=" + dataset.getId());
 
             retrieveDatasetVersionResponse = datasetVersionService.selectRequestedVersion(dataset.getVersions(), version);
-            //retrieveDatasetVersionResponse = datasetVersionService.retrieveDatasetVersionByPersistentId(persistentId, version);
             workingVersion = retrieveDatasetVersionResponse.getDatasetVersion();
-            logger.fine("retrieved version: id: " + workingVersion.getId() + ", state: " + workingVersion.getVersionState());
+            logger.fine("retrieved version: id: " + workingVersion.getId() + 
+            		", state: " + workingVersion.getVersionState());
 
         } else if (dataset.getId() != null) {
             // Set Working Version and Dataset by Dataset Id and Version
@@ -639,7 +650,6 @@ public class DatasetPage implements Serializable {
                 logger.warning("No such dataset: " + dataset);
                 return permissionsWrapper.notFound();
             }
-            //retrieveDatasetVersionResponse = datasetVersionService.retrieveDatasetVersionById(dataset.getId(), version);
             retrieveDatasetVersionResponse = datasetVersionService.selectRequestedVersion(dataset.getVersions(), version);
             workingVersion = retrieveDatasetVersionResponse.getDatasetVersion();
             logger.info("retreived version: id: " + workingVersion.getId() + ", state: " + workingVersion.getVersionState());
@@ -706,8 +716,7 @@ public class DatasetPage implements Serializable {
         }
 
         if (!retrieveDatasetVersionResponse.wasRequestedVersionRetrieved()) {
-            //msg("checkit " + retrieveDatasetVersionResponse.getDifferentVersionMessage());
-            JsfHelper.addFlashWarningMessage(retrieveDatasetVersionResponse.getDifferentVersionMessage());//BundleUtil.getStringFromBundle("dataset.message.metadataSuccess"));
+            JsfHelper.addFlashWarningMessage(retrieveDatasetVersionResponse.getDifferentVersionMessage());
         }
 
         // init the citation
@@ -725,16 +734,10 @@ public class DatasetPage implements Serializable {
 
             datasetNextMajorVersion = dataset.getNextMajorVersionString();
             datasetNextMinorVersion = dataset.getNextMinorVersionString();
-            returnToAuthorReason = StringUtils.EMPTY;
-            contributorMessageToCurator = StringUtils.EMPTY;
+            returnToAuthorReason = EMPTY;
+            contributorMessageToCurator = EMPTY;
             fileTermDiffsWithLatestReleased = Lists.newArrayList();
 
-            //moving setVersionTabList to tab change event
-            //setVersionTabList(resetVersionTabList());
-            //setReleasedVersionTabList(resetReleasedVersionTabList());
-            //SEK - lazymodel may be needed for datascroller in future release
-            // lazyModel = new LazyFileMetadataDataModel(workingVersion.getId(), datafileService );
-            // populate MapLayerMetadata
             loadMapLayerMetadataLookup();  // A DataFile may have a related MapLayerMetadata object
         }
 
@@ -810,19 +813,19 @@ public class DatasetPage implements Serializable {
         params.put(NotificationParameter.REPLY_TO.key(), replyTo);
         params.put(NotificationParameter.SEND_COPY.key(), String.valueOf(sendCopy));
         Try.of(() -> commandEngine.submit(new ReturnDatasetToAuthorCommand(dvRequestService.getDataverseRequest(), dataset, params)))
-                .onSuccess(ds -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.reject.success")))
+                .onSuccess(ds -> JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.reject.success")))
                 .onFailure(throwable -> logger.log(Level.SEVERE, "Sending back to Contributor failed:", throwable))
-                .onFailure(throwable -> JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.reject.failure", throwable.getMessage())));
+                .onFailure(throwable -> JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.reject.failure", throwable.getMessage())));
 
         return returnToLatestVersion();
     }
 
     public String submitDataset() {
         Try.of(() -> commandEngine.submit(new SubmitDatasetForReviewCommand(dvRequestService.getDataverseRequest(), dataset, contributorMessageToCurator)))
-                .onSuccess(ds -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.submit.success")))
+                .onSuccess(ds -> JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.submit.success")))
                 .onSuccess(ds -> stateChanged = true)
                 .onFailure(throwable -> logger.log(Level.SEVERE, "Submitting for review failed:", throwable))
-                .onFailure(throwable -> JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.submit.failure", throwable.getMessage())));
+                .onFailure(throwable -> JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.submit.failure", throwable.getMessage())));
 
         return returnToLatestVersion();
     }
@@ -841,15 +844,17 @@ public class DatasetPage implements Serializable {
             PublishDataverseCommand cmd = new PublishDataverseCommand(dvRequestService.getDataverseRequest(), dataset.getOwner());
             try {
                 commandEngine.submit(cmd);
-                JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("dataverse.publish.success"));
+                JsfHelper.addSuccessMessage(getStringFromBundle("dataverse.publish.success"));
 
             } catch (CommandException ex) {
                 logger.log(Level.SEVERE, "Unexpected Exception calling  publish dataverse command", ex);
-                JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataverse.publish.failure"));
+                JsfHelper.addErrorMessage(getStringFromBundle("dataverse.publish.failure"));
 
             }
         } else {
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, BundleUtil.getStringFromBundle("dataverse.notreleased"), BundleUtil.getStringFromBundle("dataverse.release.authenticatedUsersOnly"));
+            FacesMessage message = new FacesMessage(SEVERITY_INFO, 
+            		getStringFromBundle("dataverse.notreleased"), 
+            		getStringFromBundle("dataverse.release.authenticatedUsersOnly"));
             FacesContext.getCurrentInstance().addMessage(null, message);
         }
 
@@ -868,21 +873,22 @@ public class DatasetPage implements Serializable {
                 // the process. So it may be premature to show the "success" message at this point.
 
                 if (result.isCompleted()) {
-                    JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.publishSuccess"));
+                    JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.publishSuccess"));
                 } else {
-                    JsfHelper.addFlashWarningMessage(BundleUtil.getStringFromBundle("dataset.locked.message"), BundleUtil.getStringFromBundle("dataset.locked.message.details"));
+                    JsfHelper.addFlashWarningMessage(getStringFromBundle("dataset.locked.message"), 
+                    		getStringFromBundle("dataset.locked.message.details"));
                 }
 
             } catch (CommandException ex) {
                 JsfHelper.addFlashErrorMessage(ex.getLocalizedMessage());
                 logger.severe(ex.getMessage());
             } catch (NoDatasetFilesException ex){
-                JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.publish.error.noFiles"));
+                JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.publish.error.noFiles"));
                 logger.log(Level.SEVERE,"", ex);
             }
 
         } else {
-            JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.message.only.authenticatedUsers"));
+            JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.message.only.authenticatedUsers"));
         }
         return returnToDatasetOnly();
     }
@@ -895,12 +901,12 @@ public class DatasetPage implements Serializable {
          * messaging about results) should be applied to the code there as well.
          */
         String errorMsg = null;
-        String successMsg = BundleUtil.getStringFromBundle("datasetversion.update.success");
+        String successMsg = getStringFromBundle("datasetversion.update.success");
         try {
             CuratePublishedDatasetVersionCommand cmd = new CuratePublishedDatasetVersionCommand(datasetPageFacade.retrieveDataset(dataset.getId()), dvRequestService.getDataverseRequest());
             dataset = commandEngine.submit(cmd);
         } catch (CommandException ex) {
-            errorMsg = BundleUtil.getStringFromBundle("datasetversion.update.failure") + " - " + ex.toString();
+            errorMsg = getStringFromBundle("datasetversion.update.failure") + " - " + ex.toString();
             logger.severe(ex.getMessage());
         }
         if (errorMsg != null) {
@@ -918,15 +924,10 @@ public class DatasetPage implements Serializable {
         try {
             DestroyDatasetCommand cmd = new DestroyDatasetCommand(dataset, dvRequestService.getDataverseRequest());
             commandEngine.submit(cmd);
-            /* - need to figure out what to do
-             Update notification in Delete Dataset Method
-             for (UserNotification und : userNotificationService.findByDvObject(dataset.getId())){
-             userNotificationService.delete(und);
-             } */
             datafileService.finalizeFileDeletes(deleteStorageLocations);
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.deleteSuccess"));
+            JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.deleteSuccess"));
         } catch (CommandException ex) {
-            JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.message.deleteFailure"), "");
+            JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.message.deleteFailure"), "");
             logger.severe(ex.getMessage());
         }
 
@@ -936,9 +937,9 @@ public class DatasetPage implements Serializable {
     public String deleteDatasetVersion() {
         try {
             commandEngine.submit(new DeleteDatasetVersionCommand(dvRequestService.getDataverseRequest(), dataset));
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("datasetVersion.message.deleteSuccess"));
+            JsfHelper.addFlashSuccessMessage(getStringFromBundle("datasetVersion.message.deleteSuccess"));
         } catch (CommandException ex) {
-            JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataset.message.deleteFailure"), "");
+            JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.message.deleteFailure"), "");
             logger.severe(ex.getMessage());
         }
 
@@ -957,7 +958,8 @@ public class DatasetPage implements Serializable {
 
     public void loadFilesTermDiffs(ActionEvent ae) {
         if(workingVersion.isDraft() && dataset.hasEverBeenPublished()) {
-            fileTermDiffsWithLatestReleased = datasetPageFacade.loadFilesTermDiffs(workingVersion.getId(), dataset.getReleasedVersion().getId());
+            fileTermDiffsWithLatestReleased = datasetPageFacade.loadFilesTermDiffs(workingVersion.getId(), 
+            		dataset.getReleasedVersion().getId());
         }
     }
 
@@ -965,7 +967,8 @@ public class DatasetPage implements Serializable {
         return fileTermDiffsWithLatestReleased.stream()
                 .filter(item -> item.getFileSummary().getFileId().equals(fileId))
                 .map(DatasetFileTermDifferenceItem::getFileName)
-                .findFirst().orElse(StringUtils.EMPTY);
+                .findFirst()
+                .orElse(EMPTY);
     }
 
     public String getPageTitle() {
@@ -976,8 +979,9 @@ public class DatasetPage implements Serializable {
     private Object[] getSuccessMessageArguments() {
         List<String> arguments = new ArrayList<>();
         String dataverseString = "";
-        arguments.add(StringEscapeUtils.escapeHtml4(dataset.getDisplayName()));
-        dataverseString += " <a href=\"/dataverse/" + selectedDataverseForLinking.getAlias() + "\">" + StringEscapeUtils.escapeHtml4(selectedDataverseForLinking.getDisplayName()) + "</a>";
+        arguments.add(escapeHtml4(dataset.getDisplayName()));
+        dataverseString += " <a href=\"/dataverse/" + selectedDataverseForLinking.getAlias() + 
+        		"\">" + escapeHtml4(selectedDataverseForLinking.getDisplayName()) + "</a>";
         arguments.add(dataverseString);
         return arguments.toArray();
     }
@@ -986,9 +990,11 @@ public class DatasetPage implements Serializable {
     public void saveLinkingDataverses(ActionEvent evt) {
 
         if (saveLink(selectedDataverseForLinking)) {
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.message.linkSuccess", getSuccessMessageArguments()));
+            JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.message.linkSuccess", 
+            		getSuccessMessageArguments()));
         } else {
-            FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_INFO, BundleUtil.getStringFromBundle("dataset.notlinked"), linkingDataverseErrorMessage);
+            FacesMessage message = new FacesMessage(SEVERITY_INFO, 
+            		getStringFromBundle("dataset.notlinked"), linkingDataverseErrorMessage);
             FacesContext.getCurrentInstance().addMessage(null, message);
         }
 
@@ -1014,7 +1020,7 @@ public class DatasetPage implements Serializable {
         } catch (CommandException ex) {
             String msg = "There was a problem linking this dataset to yours: " + ex;
             logger.severe(msg);
-            msg = BundleUtil.getStringFromBundle("dataset.notlinked.msg") + ex;
+            msg = getStringFromBundle("dataset.notlinked.msg") + ex;
             /**
              * @todo how do we get this message to show up in the GUI?
              */
@@ -1040,7 +1046,8 @@ public class DatasetPage implements Serializable {
         if (workingVersion.isDeaccessioned() && dataset.getReleasedVersion() != null) {
             workingVersion = dataset.getReleasedVersion();
         }
-        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId().asString() + "&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
+        return "/dataset.xhtml?persistentId=" + dataset.getGlobalId().asString() + 
+        		"&version=" + workingVersion.getFriendlyVersionNumber() + "&faces-redirect=true";
     }
 
     private String returnToDatasetOnly() {
@@ -1111,7 +1118,9 @@ public class DatasetPage implements Serializable {
     public boolean isLockedFromEdits() {
         if (null == lockedFromEditsVar || stateChanged) {
             try {
-                permissionService.checkEditDatasetLock(dataset, dvRequestService.getDataverseRequest(), new UpdateDatasetVersionCommand(datasetPageFacade.retrieveDataset(dataset.getId()), dvRequestService.getDataverseRequest()));
+                permissionService.checkEditDatasetLock(dataset, dvRequestService.getDataverseRequest(), 
+                		new UpdateDatasetVersionCommand(datasetPageFacade.retrieveDataset(dataset.getId()), 
+                				dvRequestService.getDataverseRequest()));
                 lockedFromEditsVar = false;
             } catch (IllegalCommandException ex) {
                 lockedFromEditsVar = true;
@@ -1146,11 +1155,11 @@ public class DatasetPage implements Serializable {
 
 
     public String getDatasetPublishCustomText() {
-        return settingsService.getValueForKey(SettingsServiceBean.Key.DatasetPublishPopupCustomText);
+        return settingsService.getValueForKey(DatasetPublishPopupCustomText);
     }
 
     public Boolean isDatasetPublishPopupCustomTextOnAllVersions() {
-        return settingsService.isTrueForKey(SettingsServiceBean.Key.DatasetPublishPopupCustomTextOnAllVersions);
+        return settingsService.isTrueForKey(DatasetPublishPopupCustomTextOnAllVersions);
     }
     
     PrivateUrl createPrivateUrl(final boolean anonymized) {
@@ -1169,7 +1178,7 @@ public class DatasetPage implements Serializable {
     void disablePrivateUrl(final boolean anonymized) {
         try {
             commandEngine.submit(new DeletePrivateUrlCommand(dvRequestService.getDataverseRequest(), dataset, anonymized));
-            JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataset.privateurl.disabledSuccess"));
+            JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.privateurl.disabledSuccess"));
         } catch (CommandException ex) {
             logger.info("CommandException caught calling DeletePrivateUrlCommand: " + ex);
         }
@@ -1209,7 +1218,7 @@ public class DatasetPage implements Serializable {
         assert (workingVersion != null);
         return workingVersion.getDatasetAuthors().stream()
                 .map(a -> a.getName().getValue())
-                .collect(Collectors.toList());
+                .collect(toList());
     }
     
     public String getDatasetVersion() {
@@ -1255,13 +1264,13 @@ public class DatasetPage implements Serializable {
      * @return the dataset fields to be shown in the dataset summary
      */
     public List<DatasetFieldsByType> getDatasetSummaryFields() {
-        List<String> customFields = settingsService.getValueForKeyAsList(SettingsServiceBean.Key.CustomDatasetSummaryFields);
+        List<String> customFields = settingsService.getValueForKeyAsList(CustomDatasetSummaryFields);
 
         return datasetSummaryService.getDatasetSummaryFields(workingVersion, customFields);
     }
 
     public String getKeywordsDisplaySummary() {
-        return StringUtils.join(workingVersion.getKeywords(), ", ");
+        return join(workingVersion.getKeywords(), ", ");
     }
 
     public DatasetRelPublication getFirstRelPublication() {
@@ -1309,7 +1318,7 @@ public class DatasetPage implements Serializable {
     }
 
     public String getCurrentEmbargoDateForDisplay() {
-        SimpleDateFormat format = new SimpleDateFormat(settingsService.getValueForKey(SettingsServiceBean.Key.DefaultDateFormat));
+        SimpleDateFormat format = new SimpleDateFormat(settingsService.getValueForKey(DefaultDateFormat));
         return dataset.getEmbargoDate().getOrNull() != null ? format.format(dataset.getEmbargoDate().getOrNull()) : "";
     }
 
@@ -1320,8 +1329,8 @@ public class DatasetPage implements Serializable {
         String email = (String) value;
         boolean valid = org.apache.commons.validator.routines.EmailValidator.getInstance().isValid(email);
         if (!valid) {
-            throw new ValidatorException(new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    BundleUtil.getStringFromBundle("email.invalid", email), ""));
+            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR,
+                    getStringFromBundle("email.invalid", email), ""));
         }
     }
 
@@ -1400,6 +1409,7 @@ public class DatasetPage implements Serializable {
      * that changes of content should be initiated by user.
      */
     public void showDatasetUnlockedInfo() {
-   		JsfHelper.addInfoMessage(BundleUtil.getStringFromBundle("dataset.unlocked.info"), BundleUtil.getStringFromBundle("dataset.unlocked.info.details"));
+   		JsfHelper.addInfoMessage(getStringFromBundle("dataset.unlocked.info"), 
+   				getStringFromBundle("dataset.unlocked.info.details"));
     }
 }
