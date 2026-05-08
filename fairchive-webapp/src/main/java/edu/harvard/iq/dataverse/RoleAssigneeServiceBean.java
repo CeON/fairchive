@@ -374,9 +374,7 @@ public class RoleAssigneeServiceBean {
                 .setParameter("query", "%" + query + "%")
                 .getResultList().stream()
                 .filter(ra -> roleAssignSelectedRoleAssignees == null || !roleAssignSelectedRoleAssignees.contains(ra))
-                .forEach((ra) -> {
-                    roleAssigneeList.add(ra);
-                });
+                .forEach(roleAssigneeList::add);
 
         // now we add groups to the list, both global and explicit
         Set<Group> groups = groupSvc.findGlobalGroups();
@@ -385,9 +383,7 @@ public class RoleAssigneeServiceBean {
                 .filter(ra -> containsIgnoreCase(ra.getDisplayInfo().getTitle(), query)
                         || containsIgnoreCase(ra.getIdentifier(), query))
                 .filter(ra -> roleAssignSelectedRoleAssignees == null || !roleAssignSelectedRoleAssignees.contains(ra))
-                .forEach((ra) -> {
-                    roleAssigneeList.add(ra);
-                });
+                .forEach(roleAssigneeList::add);
 
         return roleAssigneeList;
     }
