@@ -121,128 +121,108 @@
                 <p:fragment id="topDatasetBlockFragment">
                     <!-- static Messages -->
                     <p:outputPanel id="staticMessagesPanel">
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('Workflow')}" 
+                        <p jsf:rendered="#{DatasetPage.isLockedBy('Workflow')}" 
                              class="alert alert-warning" 
                              role="alert" 
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.locked.message']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{bundle['dataset.locked.workflow.message.details']} "/>
-                            </p>
-                        </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('InReview')}"
+                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"/>&#160;
+                            <strong>#{bundle['dataset.locked.message']}</strong> –
+                            #{bundle['dataset.locked.workflow.message.details']}
+                        </p>
+                        <p jsf:rendered="#{DatasetPage.isLockedBy('InReview')}"
                              class="alert alert-warning" 
                              role="alert" 
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.locked.inReview.message']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{bundle['dataset.inreview.infoMessage']} "/>
-                            </p>
-                        </div>
-                        <div jsf:rendered="#{DatasetPage.displaySubmitForReviewButton()}"
+                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"/>&#160;
+                            <strong>#{bundle['dataset.locked.inReview.message']}</strong> –
+                            #{bundle['dataset.inreview.infoMessage']}
+                        </p>
+                        <p jsf:rendered="#{DatasetPage.displaySubmitForReviewButton()}"
                              class="alert alert-warning"
                              role="alert"
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.submitForReview.requirement']}</strong> –
-                                <h:outputText escape="false"
-                                              value="#{bundle['dataset.submitForReview.requirementInfoMessage']} "/>
-                            </p>
-                        </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('DcmUpload')}" 
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"/>&#160;
+                            <strong>#{bundle['dataset.submitForReview.requirement']}</strong> –
+                            #{bundle['dataset.submitForReview.requirementInfoMessage']}
+                        </p>
+                        <p jsf:rendered="#{DatasetPage.isLockedBy('DcmUpload')}" 
                              class="alert alert-warning" 
                              role="alert" 
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['file.rsyncUpload.inProgressMessage.summary']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{bundle['file.rsyncUpload.inProgressMessage.details']} "/>
-                            </p>
-                        </div>
-                        <div jsf:rendered="#{DatasetPage.isLockedBy('pidRegister')}" 
+                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"/>&#160;
+                            <strong>#{bundle['file.rsyncUpload.inProgressMessage.summary']}</strong> –
+                            #{bundle['file.rsyncUpload.inProgressMessage.details']}
+                        </p>
+                        <p jsf:rendered="#{DatasetPage.isLockedBy('pidRegister')}" 
                              class="alert alert-warning" 
                              role="alert" 
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;<strong>#{bundle['dataset.publish.workflow.message']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{bundle['dataset.pidRegister.workflow.inprogress']} "/>
-                            </p>
-                        </div>
+                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"/>&#160;
+                            <strong>#{bundle['dataset.publish.workflow.message']}</strong> –
+                            #{bundle['dataset.pidRegister.workflow.inprogress']}
+                        </p>
 
-                        <div jsf:rendered="#{DatasetPage.displayPrivateUrl(false)}" 
+                        <p jsf:rendered="#{DatasetPage.displayPrivateUrl(false)}" 
                              class="alert alert-info" 
                              role="alert" 
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.infoMessageAuthor.title']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{DatasetPage.getPrivateUrlMessageDetails(false)}"/>
-                                <span class="btn" 
-                                      aria-label="#{bundle['dataset.copyUrl']}"
-                                      tabindex="0"
-                                      onclick="navigator.clipboard.writeText('#{privateUrlDialog.url}');"
-                                      onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{privateUrlDialog.url}');">
-                                    <span class="glyphicon glyphicon-copy"/>
-                                    #{bundle['dataset.copyUrl']} 
-                                </span>
-                            </p>
-                        </div> 
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"/>&#160;
+                            <strong>#{bundle['dataset.privateurl.infoMessageAuthor.title']}</strong> –
+                            #{DatasetPage.getPrivateUrlMessageDetails(false)}
+                            <button type="button"
+                                    class="btn" 
+                                    style="background: rgba(0,0,0,0)"
+                                    aria-label="#{bundle['dataset.copyUrl']}"
+                                    onclick="navigator.clipboard.writeText('#{privateUrlDialog.url}');">
+                                <span class="glyphicon glyphicon-copy" aria-hidden="true"/>
+                                #{bundle['dataset.copyUrl']} 
+                            </button>
+                        </p> 
                         <div jsf:rendered="#{DatasetPage.displayPrivateUrl(true)}" 
                              class="alert alert-info" 
                              role="alert" 
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.anonymized.infoMessageAuthor.title']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{DatasetPage.getPrivateUrlMessageDetails(true)}"/>
-                                <span class="btn" 
-                                      aria-label="#{bundle['dataset.copyUrl']}"
-                                      tabindex="0"
-                                      onclick="navigator.clipboard.writeText('#{anonymizedPrivateUrlDialog.url}');"
-                                      onkeypress="if (event.key=='Enter') navigator.clipboard.writeText('#{anonymizedPrivateUrlDialog.url}');">
-                                    <span class="glyphicon glyphicon-copy"/>
+                            <p>
+                                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"/>&#160;
+                                <strong>#{bundle['dataset.privateurl.anonymized.infoMessageAuthor.title']}</strong> –
+                                #{DatasetPage.getPrivateUrlMessageDetails(true)}
+                                <button type="button"
+                                        class="btn"
+                                        style="background: rgba(0,0,0,0)"
+                                        aria-label="#{bundle['dataset.copyUrl']}"
+                                        onclick="navigator.clipboard.writeText('#{anonymizedPrivateUrlDialog.url}');">
+                                    <span class="glyphicon glyphicon-copy" aria-hidden="true"/>
                                     #{bundle['dataset.copyUrl']} 
-                                </span>
-                                <p  jsf:rendered="#{anonymizedPrivateUrlDialog.displayPublishedWarning()}"
-                                    class="text-warning">
-                                    <span class="glyphicon glyphicon-warning-sign" />
-                                    #{bundle['dataset.anonymized.privateurl.warning']}
-                                </p>
+                                </button>
+                            </p>
+                            <p jsf:rendered="#{anonymizedPrivateUrlDialog.displayPublishedWarning()}"
+                                class="text-warning">
+                                <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"/>
+                                #{bundle['dataset.anonymized.privateurl.warning']}
                             </p>
                         </div>
-                        <div jsf:rendered="#{DatasetPage.displayPrivateUrl(true)}" 
+                        <p jsf:rendered="#{DatasetPage.displayPrivateUrl(true)}" 
                              class="alert alert-warning" 
                              role="alert" 
                              aria-atomic="true">
-                             <p class="text-block">
-                                <span class="glyphicon glyphicon-info-sign"/>&#160;
-                                <h:outputText escape="false" 
-                                              value="#{bundle['dataset.privateurl.anonymized.warning']} "/>
-                            </p>
-                        </div>
-                        <div jsf:rendered="#{DatasetPage.isViewedFromPrivateUrl()}" 
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"/>&#160;
+                            #{bundle['dataset.privateurl.anonymized.warning']}
+                        </p>
+                        <p jsf:rendered="#{DatasetPage.isViewedFromPrivateUrl()}" 
                              class="alert alert-info" 
                              role="alert" 
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dataset.privateurl.infoMessageReviewer.title']}</strong> –
-                                <h:outputText escape="false" 
-                                              value="#{bundle['dataset.privateurl.infoMessageReviewer.details']}"/>
-                            </p>
-                        </div>
-                        <div jsf:rendered="#{!DatasetPage.isDoiReserved()}" 
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"/>&#160;
+                            <strong>#{bundle['dataset.privateurl.infoMessageReviewer.title']}</strong> –
+                            #{bundle['dataset.privateurl.infoMessageReviewer.details']}
+                        </p>
+                        <p jsf:rendered="#{!DatasetPage.isDoiReserved()}" 
                              class="alert alert-info" 
                              role="alert" 
                              aria-atomic="true">
-                            <p class="text-block">
-                                <span class="glyphicon glyphicon-exclamation-sign"></span>&#160;
-                                <h:outputText escape="false" 
-                                              value="#{bundle['dataset.datacite.reservation']}"/>
-                            </p>
-                        </div>
+                            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"/>&#160;
+                            #{bundle['dataset.datacite.reservation']}
+                        </p>
                     </p:outputPanel>
                     <!-- END static Messages -->
                     <div id="topDatasetBlock">
@@ -551,9 +531,10 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div id="datasetVersionBlock" class="container-fluid">
-                            <div id="title-block" class="row"
+                        <div id="datasetVersionBlock" 
+                             class="container-fluid">
+                            <div id="title-block" 
+                                 class="row"
                                  jsf:rendered="#{!empty DatasetPage.title}">
                                 <div class="col-xs-1 vcenter title-preview-icon-block">
                                     <img src="#{DatasetPage.thumbnailString}"
@@ -562,7 +543,7 @@
                                           jsf:rendered="#{empty DatasetPage.thumbnailString}"/>
                                 </div>
                                 <div class="col-xs-11 vcenter">
-                                    <h2 class="header-inline dataset-title-label"><h:outputText escape="false" value="#{DatasetPage.title}" /></h2>
+                                    <h2 class="header-inline dataset-title-label">#{DatasetPage.title}"</h2>
                                     <h:outputText value="#{bundle['dataset.versionUI.draft']}"
                                                   styleClass="label label-primary"
                                                   rendered="#{DatasetPage.workingVersion.draft}"/>
@@ -579,10 +560,9 @@
                                                   styleClass="label label-danger"
                                                   rendered="#{DatasetPage.workingVersion.deaccessioned}"/>
                                     <!-- DATASET VERSION NUMBER -->
-                                    <ui:fragment rendered="#{DatasetPage.displayVersionNumberBadge()}">
-	                                    <h:outputText styleClass="label label-default"
-	                                                  value="#{DatasetPage.datasetVersion}"/>
-                                    </ui:fragment>
+                                    <h:outputText value="#{DatasetPage.datasetVersion}"
+                                                  styleClass="label label-default"
+                                                  rendered="#{DatasetPage.displayVersionNumberBadge()}"/>
                                 </div>
                             </div>
                             <!-- CITATION BLOCK -->
@@ -659,10 +639,9 @@
                                                                     value="#{DatasetPage.firstRelPublication.idType}: #{DatasetPage.firstRelPublication.idNumber}"/>
                                                         </a>
                                                     </ui:fragment>
-                                                    <ui:fragment rendered="#{empty DatasetPage.firstRelPublication.url}">
-                                                        <h:outputText
-                                                                value="#{DatasetPage.firstRelPublication.idType}: #{DatasetPage.firstRelPublication.idNumber}"/>
-                                                    </ui:fragment>
+                                                    <h:outputText
+                                                            rendered="#{empty DatasetPage.firstRelPublication.url}"
+                                                            value="#{DatasetPage.firstRelPublication.idType}: #{DatasetPage.firstRelPublication.idNumber}"/>
                                                 </p>
                                             </div>
                                         </div>
