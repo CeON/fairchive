@@ -276,8 +276,7 @@ public class ImageThumbConverter {
 	
 	            try (final OutputStream out = storageIO.openAuxOutput(suffix(size))) {
 	                rescaleImage(fullSizeImage, width, height, size, out);
-	            } catch (final Exception e) {
-	                logger.warn("Exception during thumbnail generation.", e);
+	            } catch (final UnsupportedDataAccessOperationException e) {
 	                // With some storage drivers, we can open a WritableChannel, or
 	                // OutputStream
 	                // to directly write the generated thumbnail that we want to cache;
@@ -555,11 +554,11 @@ public class ImageThumbConverter {
     }
     
     private static boolean isPDF(final DataFile file) {
-        return file.getContentType().equalsIgnoreCase("application/pdf");
+        return file.isPdf();
     }
     
     private static boolean isShape(final DataFile file) {
-        return file.getContentType().equalsIgnoreCase("application/zipped-shapefile")
+        return file.isShapefileType()
                 || (file.isTabularData() && file.hasGeospatialTag());
     }
     
