@@ -21,14 +21,12 @@ import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.faces.application.FacesMessage;
@@ -39,8 +37,6 @@ import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.model.DefaultStreamedContent;
@@ -98,7 +94,6 @@ import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -335,7 +330,7 @@ public class DatasetPage implements Serializable {
     }
 
     public PublishButtonCase showPublishButtonCase() {
-        if (dataset.getLatestVersion().getVersionState() != VersionState.DRAFT || !canPublishDataset()) {
+        if (!this.dataset.getLatestVersion().isDraft() || !canPublishDataset()) {
             return PublishButtonCase.DO_NOT_SHOW;
         }
         if (!latestDatasetHasFileOrPublishingWithoutFilesAllowed()) {
@@ -977,13 +972,11 @@ public class DatasetPage implements Serializable {
 
 
     private Object[] getSuccessMessageArguments() {
-        List<String> arguments = new ArrayList<>();
-        String dataverseString = "";
-        arguments.add(escapeHtml4(dataset.getDisplayName()));
-        dataverseString += " <a href=\"/dataverse/" + selectedDataverseForLinking.getAlias() + 
-        		"\">" + escapeHtml4(selectedDataverseForLinking.getDisplayName()) + "</a>";
-        arguments.add(dataverseString);
-        return arguments.toArray();
+    	final String[] result = new String[2];
+        result[0] = escapeHtml4(this.dataset.getDisplayName());
+        result[1] = " <a href=\"/dataverse/" + this.selectedDataverseForLinking.getAlias() + 
+        		"\">" + escapeHtml4(this.selectedDataverseForLinking.getDisplayName()) + "</a>";
+        return result;
     }
 
 
