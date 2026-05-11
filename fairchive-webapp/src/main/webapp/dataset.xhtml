@@ -235,10 +235,9 @@
                                  jsf:rendered="#{DatasetPage.displayMetricsBlock()}">
                                 <div id="metrics-label" 
                                      class="col-xs-4 small text-center">
-                                    <span class="glyphicon glyphicon-stats"/> #{bundle['metrics.title']}
+                                    <span class="glyphicon glyphicon-stats"/>#{bundle['metrics.title']}
                                 </div>
-                                <div jsf:id="metrics-content" 
-                                     id="metrics-content" 
+                                <div id="metrics-content" 
                                      class="col-xs-8 small text-center">
                                     <h:outputFormat styleClass="metric metrics-downloads"
                                                     value="{0} #{bundle['metrics.downloads']}">
@@ -312,21 +311,21 @@
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('publishConfirm', this)"
                                                        rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PUBLISH_NOT_RELEASED}">
-                                            <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
+                                            <span class="glyphicon glyphicon-globe"/>#{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('releaseDraft', this)"
                                                        rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PUBLISH_RELEASED}">
-                                            <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
+                                            <span class="glyphicon glyphicon-globe"/>#{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('noFilesInDataset', this)"
                                                        rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.NO_FILES_IN_DATASET}">
-                                            <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
+                                            <span class="glyphicon glyphicon-globe"/>#{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
                                         <!-- 4.2.1:  replaced permissionServiceBean.on(DatasetPage.dataset.owner).has('PublishDataverse') with DatasetPage.canPublishDataverse() -->
@@ -334,21 +333,21 @@
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('mayNotRelease', this)"
                                                        rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PARENT_NOT_RELEASED_NO_PERMISSION_TO_PUBLISH}">
-                                            <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
+                                            <span class="glyphicon glyphicon-globe"/>#{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        onclick="primeFacesShowModal('publishParent', this)"
                                                        rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PARENT_NOT_RELEASED_CAN_PUBLISH}">
-                                            <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
+                                            <span class="glyphicon glyphicon-globe"/>#{bundle['dataset.publish.btn']}
                                         </p:commandLink>
 
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
                                                        rendered="#{DatasetPage.showPublishButtonCase() == publishButtonCaseEnum.PARENT_AND_GRANDPARENT_NOT_RELEASED}"
                                                        onclick="primeFacesShowModal('maynotPublishParent', this)">
-                                            <span class="glyphicon glyphicon-globe"/> #{bundle['dataset.publish.btn']}
+                                            <span class="glyphicon glyphicon-globe"/>#{bundle['dataset.publish.btn']}
                                         </p:commandLink>
                                         <!-- END: Publish Buttons -->
 
@@ -358,7 +357,7 @@
                                                        styleClass="btn btn-default btn-access #{(DatasetPage.locked and !DatasetPage.dataset.latestVersion.inReview) ? 'disabled' : ''}"
                                                        onclick="primeFacesShowModal('sendBackToContributor', this)"
                                                        rendered="#{DatasetPage.displayReturnToAuthorButton()}">
-                                            <span class="glyphicon glyphicon-repeat"/> #{bundle['dataset.rejectBtn']}
+                                            <span class="glyphicon glyphicon-repeat"/>#{bundle['dataset.rejectBtn']}
                                         </p:commandLink>
                                         <!-- END: Return to Author Button -->
 
@@ -370,9 +369,8 @@
                                                     disabled="#{DatasetPage.dataset.latestVersion.inReview or DatasetPage.dataset.locked}"
                                                     oncomplete="primeFacesShowModal('inreview', this);"
                                                     actionListener="#{DatasetPage.loadFilesTermDiffs}"
-                                                    update="inreview"
-                                            >
-                                                <span class="glyphicon glyphicon-globe"/> #{DatasetPage.dataset.latestVersion.inReview ? bundle['dataset.disabledSubmittedBtn'] : bundle['dataset.submitForReview.submitBtn']}
+                                                    update="inreview" >
+                                                <span class="glyphicon glyphicon-globe"/>#{DatasetPage.dataset.latestVersion.inReview ? bundle['dataset.disabledSubmittedBtn'] : bundle['dataset.submitForReview.submitBtn']}
                                             </p:commandLink>
                                         </ui:fragment>
 
@@ -386,7 +384,7 @@
                                             styleClass="btn btn-default btn-access"
                                             oncomplete="primeFacesShowModal('linkDatasetForm', this);"
                                             update="linkDatasetForm">
-                                        <span class="glyphicon glyphicon-link"/> #{bundle['link']}
+                                        <span class="glyphicon glyphicon-link"/>#{bundle['link']}
                                     </p:commandLink>
 
                                     <!-- Edit Button -->
@@ -395,45 +393,38 @@
                                                 id="editDataSet"
                                                 class="btn btn-default btn-access dropdown-toggle #{DatasetPage.lockedFromEdits ? 'disabled' : ''}"
                                                 data-toggle="dropdown">
-                                            <span class="glyphicon glyphicon-pencil"/> #{bundle['dataset.editBtn']} <span
+                                            <span class="glyphicon glyphicon-pencil"/>#{bundle['dataset.editBtn']}<span
                                                 class="caret"></span>
                                         </button>
                                         <ul class="dropdown-menu pull-right text-left" role="menu">
                                             <li>
-                                                <h:outputLink
-                                                        value="/editdatafiles.xhtml?datasetId=#{DatasetPage.dataset.id}&#38;mode=UPLOAD">
-                                                    <h:outputText value="#{bundle['dataset.editBtn.itemLabel.upload']}"/>
-                                                </h:outputLink>
-                                            </li>
+                                                <h:outputLink value="/editdatafiles.xhtml?datasetId=#{DatasetPage.dataset.id}&#38;mode=UPLOAD">
+                                                    #{bundle['dataset.editBtn.itemLabel.upload']}
+                                                </h:outputLink> 
+											</li>
                                             <li jsf:rendered="#{DatasetPage.superuserLoggedIn}">
-                                                <h:outputLink
-                                                        value="/editdatafiles.xhtml?datasetId=#{DatasetPage.dataset.id}&#38;mode=UPLOAD&#38;ignoringMaxUploadLimit=true">
-                                                    <h:outputText value="#{bundle['dataset.editBtn.itemLabel.uploadIgnoringLimit']}"/>
+                                                <h:outputLink value="/editdatafiles.xhtml?datasetId=#{DatasetPage.dataset.id}&#38;mode=UPLOAD&#38;ignoringMaxUploadLimit=true">
+                                                    #{bundle['dataset.editBtn.itemLabel.uploadIgnoringLimit']}
                                                 </h:outputLink>
                                             </li>
                                             <li>
-                                                <h:outputLink
-                                                        value="/editDatasetMetadata.xhtml?datasetId=#{DatasetPage.dataset.id}">
-                                                    <h:outputText value="#{bundle['dataset.editBtn.itemLabel.metadata']}"/>
+                                                <h:outputLink value="/editDatasetMetadata.xhtml?datasetId=#{DatasetPage.dataset.id}">
+                                                    #{bundle['dataset.editBtn.itemLabel.metadata']}
                                                 </h:outputLink>
                                             </li>
                                             <li jsf:rendered="#{DatasetPage.displayGeustbookTab()}">
-                                                <h:outputLink
-                                                        value="/selectGuestbook.xhtml?datasetId=#{DatasetPage.dataset.id}">
-                                                    <h:outputText
-                                                            value="#{bundle['dataset.editBtn.itemLabel.selectGuestbook']}"/>
+                                                <h:outputLink value="/selectGuestbook.xhtml?datasetId=#{DatasetPage.dataset.id}">
+                                                    #{bundle['dataset.editBtn.itemLabel.selectGuestbook']}
                                                 </h:outputLink>
                                             </li>
                                             <li>
                                                 <p:commandLink id="setEmbargoLink"
-                                                                   onclick="showEmbargoDialog(); return false;">
-                                                    <h:outputText
-                                                            value="#{bundle['dataset.editBtn.itemLabel.embargo']}"/>
-                                                </p:commandLink>
+                                                               onclick="showEmbargoDialog(); return false;"
+                                                               value="#{bundle['dataset.editBtn.itemLabel.embargo']}"/>
                                             </li>
                                             <li jsf:rendered="#{DatasetPage.hasAnythingToUningest()}">
                                                 <h:outputLink value="/uningest.xhtml?datasetId=#{DatasetPage.dataset.id}">
-                                                    <h:outputText value="#{bundle['dataset.editBtn.itemLabel.uningest']}"/>
+                                                    #{bundle['dataset.editBtn.itemLabel.uningest']}
                                                 </h:outputLink>
                                             </li>
                                             <ui:fragment
@@ -445,16 +436,16 @@
                                                             <li>
                                                                 <h:link id="manageDatasetPermissions"
                                                                         styleClass="ui-commandlink ui-widget"
-                                                                        outcome="permissions-manage">
-                                                                    <h:outputText value="#{bundle['dataset']}"/>
+                                                                        outcome="permissions-manage"
+                                                                        value="#{bundle['dataset']}">
                                                                     <f:param name="id" value="#{DatasetPage.dataset.id}"/>
                                                                 </h:link>
                                                             </li>
                                                             <li>
                                                                 <h:link id="manageFilePermissions"
                                                                         styleClass="ui-commandlink ui-widget"
-                                                                        outcome="permissions-manage-files">
-                                                                    <h:outputText value="#{bundle['file']}"/>
+                                                                        outcome="permissions-manage-files"
+                                                                        value="#{bundle['file']}">
                                                                     <f:param name="id" value="#{DatasetPage.dataset.id}"/>
                                                                 </h:link>
                                                             </li>
@@ -463,32 +454,25 @@
                                                     <h:link id="managePermissions"
                                                             rendered="#{settingsWrapper.publicInstall}"
                                                             styleClass="ui-commandlink ui-widget"
-                                                            outcome="permissions-manage">
-                                                        <h:outputText
-                                                                value="#{bundle['dataset.editBtn.itemLabel.permissions']}"/>
+                                                            outcome="permissions-manage"
+                                                            value="#{bundle['dataset.editBtn.itemLabel.permissions']}">
                                                         <f:param name="id" value="#{DatasetPage.dataset.id}"/>
                                                     </h:link>
                                                 </li>
                                                 <li>
                                                     <p:commandLink id="privateUrl"
-                                                                   oncomplete="primeFacesShowModal('prvUrlDlg', this)">
-                                                        <h:outputText
-                                                                value="#{bundle['dataset.editBtn.itemLabel.privateUrl']}"/>
-                                                    </p:commandLink>
+                                                                   oncomplete="primeFacesShowModal('prvUrlDlg', this)"
+                                                                   value="#{bundle['dataset.editBtn.itemLabel.privateUrl']}"/>
                                                 </li>
                                                 <li>
                                                     <p:commandLink id="anonymizedPrivateUrl"
-                                                                   oncomplete="primeFacesShowModal('anonPrvUrlDlg', this)">
-                                                        <h:outputText
-                                                                value="#{bundle['dataset.editBtn.itemLabel.privateAnonymizedUrl']}"/>
-                                                    </p:commandLink>
+                                                                   oncomplete="primeFacesShowModal('anonPrvUrlDlg', this)"
+                                                                   value="#{bundle['dataset.editBtn.itemLabel.privateAnonymizedUrl']}"/>
                                                 </li>
                                             </ui:fragment>
                                             <li>
-                                                <h:outputLink
-                                                        value="/dataset-widgets.xhtml?datasetId=#{DatasetPage.dataset.id}">
-                                                    <h:outputText
-                                                            value="#{bundle['dataset.editBtn.itemLabel.thumbnailsAndWidgets']}"/>
+                                                <h:outputLink value="/dataset-widgets.xhtml?datasetId=#{DatasetPage.dataset.id}">
+                                                    #{bundle['dataset.editBtn.itemLabel.thumbnailsAndWidgets']}
                                                 </h:outputLink>
                                             </li>
                                             <ui:fragment
@@ -496,10 +480,8 @@
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deleteDataset"
-                                                                   onclick="primeFacesShowModal('deleteConfirmation', this)">
-                                                        <h:outputText
-                                                                value="#{bundle['dataset.editBtn.itemLabel.deleteDataset']}"/>
-                                                    </p:commandLink>
+                                                                   onclick="primeFacesShowModal('deleteConfirmation', this)"
+                                                                   value="#{bundle['dataset.editBtn.itemLabel.deleteDataset']}"/>
                                                 </li>
                                             </ui:fragment>
                                             <ui:fragment
@@ -507,10 +489,8 @@
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deleteVersion"
-                                                                   onclick="primeFacesShowModal('deleteVersionConfirmation', this)">
-                                                        <h:outputText
-                                                                value="#{bundle['dataset.editBtn.itemLabel.deleteDraft']}"/>
-                                                    </p:commandLink>
+                                                                   onclick="primeFacesShowModal('deleteVersionConfirmation', this)"
+                                                                   value="#{bundle['dataset.editBtn.itemLabel.deleteDraft']}"/>
                                                 </li>
                                             </ui:fragment>
                                             <ui:fragment
@@ -518,10 +498,8 @@
                                                 <li class="divider"></li>
                                                 <li>
                                                     <p:commandLink id="deaccessionDatasetLink"
-                                                                   onclick="showDeaccessionDialog(); return false;">
-                                                        <h:outputText
-                                                                value="#{bundle['dataset.editBtn.itemLabel.deaccession']}"/>
-                                                    </p:commandLink>
+                                                                   onclick="showDeaccessionDialog(); return false;"
+                                                                   value="#{bundle['dataset.editBtn.itemLabel.deaccession']}"/>
                                                 </li>
                                             </ui:fragment>
                                         </ul>
