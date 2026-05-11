@@ -564,8 +564,7 @@
                             <!-- BEGIN: DATASET SUMMARY -->
                             <div jsf:id="dataset-summary-metadata" 
                                  class="row panel panel-default"
-                                 jsf:rendered="#{!widgetWrapper.widgetView and !DatasetPage.workingVersion.deaccessioned and
-                                                    (!empty DatasetPage.datasetSummaryFields or DatasetPage.hasFiles()) }">
+                                 jsf:rendered="#{!widgetWrapper.widgetView and DatasetPage.displaySummaryMetadata()}">
                                 <div class="panel-body metadata-panel-body metadata-summary-panel-body">
                                     <ui:repeat value="#{DatasetPage.datasetSummaryFields}" 
                                                var="fieldsByType">

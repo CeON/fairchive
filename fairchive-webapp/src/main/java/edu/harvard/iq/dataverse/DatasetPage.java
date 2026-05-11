@@ -498,6 +498,11 @@ public class DatasetPage implements Serializable {
 				fields.getDatasetFieldType().getName().equals("keyword");
 	}
 	
+	public boolean displaySummaryMetadata() {
+		return !this.workingVersion.isDeaccessioned() &&
+				(!getDatasetSummaryFields().isEmpty() || hasFiles());
+	}
+	
     public Dataset getDataset() {
         return dataset;
     }
