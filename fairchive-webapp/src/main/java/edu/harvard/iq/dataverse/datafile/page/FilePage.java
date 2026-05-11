@@ -312,6 +312,12 @@ public class FilePage implements java.io.Serializable {
     		orElse(FALSE);
     }
     
+    public boolean isFileSizeUnderLimit() {   	
+    	return getPreviewTool()
+    			.map(tool -> tool.acceptsFileOfSize(this.file.getFilesize()))
+    			.orElse(FALSE);
+    }
+    
     public boolean displayDownloadPopup() {
         return isDownloadPopupRequired() && !getGuestbookResponseProvided();
     }

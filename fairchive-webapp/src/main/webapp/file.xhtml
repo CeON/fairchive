@@ -577,21 +577,26 @@
                                     </ui:include>
                                 </ui:fragment>
                                 <ui:fragment rendered="#{FilePage.displayPreviewArea()}">
-                                    <div class="row">
-                                        <a class="btn btn-default" 
-                                           href="#{FilePage.previewUrl}" 
-                                           target="_blank" 
-                                           rel="noopener noreferrer">
-                                            #{bundle['file.previewTab.open.in.new.window.btn.text']}
-                                            <span class="glyphicon glyphicon-new-window"/>
-                                        </a>
-                                    </div>
-                                    <div id="previewPresentation" 
-                                         class="embed-responsive embed-responsive-16by9">
-                                        <iframe role="presentation" 
-                                                title="#{bundle['file.previewTab.presentation']}" 
-                                                src="#{FilePage.previewUrl}"/>
-                                    </div>
+                                    <ui:fragment rendered="#{FilePage.fileSizeUnderLimit}">
+	                                    <div class="row">
+	                                        <a class="btn btn-default"
+	                                           href="#{FilePage.previewUrl}" 
+	                                           target="_blank" 
+	                                           rel="noopener noreferrer">
+	                                            #{bundle['file.previewTab.open.in.new.window.btn.text']}
+	                                            <span class="glyphicon glyphicon-new-window"/>
+	                                        </a>
+	                                    </div>
+	                                    <div id="previewPresentation" 
+	                                         class="embed-responsive embed-responsive-16by9">
+	                                        <iframe role="presentation" 
+	                                                title="#{bundle['file.previewTab.presentation']}" 
+	                                                src="#{FilePage.previewUrl}"/>
+	                                    </div>
+                                    </ui:fragment>
+                                    <ui:fragment rendered="#{! FilePage.fileSizeUnderLimit}">
+                                    <div>#{bundle['file.preview.tooBig']}</div>
+                                    </ui:fragment>
                                 </ui:fragment>
                             </p:tab>
 
