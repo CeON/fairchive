@@ -1000,8 +1000,7 @@
                         </p>
                         <div jsf:rendered="#{!empty(DatasetPage.fileTermDiffsWithLatestReleased)}">
                             <p class="text-warning">
-                                <span class="glyphicon glyphicon-warning-sign"/>
-                                <h:outputText escape="false" value="#{bundle['dataset.submitForReview.licenseDiffMessage']}" />
+                                <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.submitForReview.licenseDiffMessage']}
                             </p>
                         </div>
                         <div class="panel panel-default" jsf:rendered="#{!empty(DatasetPage.fileTermDiffsWithLatestReleased)}" >
@@ -1081,8 +1080,7 @@
                                            oncomplete="PF('inreview').hide();"
                                            actionListener="#{DatasetPage.submitDataset()}"
                                            update=":messagePanel topDatasetBlockFragment"
-                                           styleClass="btn btn-default btn-access"
-                            />
+                                           styleClass="btn btn-default btn-access"/>
                             <p:commandButton value="#{bundle.cancel}"
                                              onclick="PF('inreview').hide();" type="button"
                                              immediate="true"/>
@@ -1117,7 +1115,8 @@
                                       escape="false"/>
                     </div>
                     <div class="button-block">
-                        <p:commandButton value="#{bundle.continue}" onclick="PF('publishConfirm').hide();"
+                        <p:commandButton value="#{bundle.continue}" 
+                                         onclick="PF('publishConfirm').hide();"
                                          action="#{DatasetPage.releaseDataset}"
                                          immediate="true"/>
                         <p:commandButton value="#{bundle.cancel}"
