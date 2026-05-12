@@ -1,12 +1,12 @@
 package edu.harvard.iq.dataverse;
 
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.ingest.UningestService;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
 
@@ -209,7 +209,7 @@ public class UningestPage implements Serializable {
         // -------------------- PRIVATE --------------------
 
         public static String extractAndFormatExtension(final DataFile file) {
-            String extension = FileUtil.generateOriginalExtension(file.isTabularData()
+            String extension = MimeTypes.fileExtensionOf(file.isTabularData()
                     ? file.getDataTable().getOriginalFileFormat()
                     : file.getContentType());
             return extension.replaceFirst("\\.", EMPTY).toUpperCase();

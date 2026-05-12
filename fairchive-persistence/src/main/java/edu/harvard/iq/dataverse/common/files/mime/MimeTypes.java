@@ -140,19 +140,20 @@ public final class MimeTypes {
 	}
 	
     public static String fileExtensionOf(final String fileType) {
-        if (fileType.equalsIgnoreCase(SPSS_SAV)) {
+        
+    	if (SPSS_SAV.equalsIgnoreCase(fileType)) {
             return ".sav";
-        } else if (fileType.equalsIgnoreCase(SPSS_POR)) {
+        } else if (SPSS_POR.equalsIgnoreCase(fileType)) {
             return ".por";
-        } else if (fileType.equalsIgnoreCase(STATA)) {
+        } else if (STATA.equalsIgnoreCase(fileType)) {
             return ".dta";
-        } else if (fileType.equalsIgnoreCase(RDATA)) {
+        } else if (RDATA.equalsIgnoreCase(fileType)) {
             return ".RData";
-        } else if (fileType.equalsIgnoreCase(CSV)) {
+        } else if (CSV.equalsIgnoreCase(fileType)) {
             return ".csv";
-        } else if (fileType.equalsIgnoreCase(TSV)) {
+        } else if (TSV.equalsIgnoreCase(fileType)) {
             return ".tsv";
-        } else if (fileType.equalsIgnoreCase(XLSX)) {
+        } else if (XLSX.equalsIgnoreCase(fileType)) {
             return ".xlsx";
         } else {
         	return EMPTY;

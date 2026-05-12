@@ -1,8 +1,9 @@
 package edu.harvard.iq.dataverse.api.dto;
 
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.util.FileUtil;
-import org.apache.commons.lang3.StringUtils;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.Serializable;
 
@@ -45,7 +46,7 @@ public class UningestableItemDTO implements Serializable {
         item.fileName = file.getFileMetadata().getLabel();
         item.originalFormat = extractAndFormatExtension(file);
         item.md5 = file.getChecksumType() == DataFile.ChecksumType.MD5
-                ? file.getChecksumValue() : StringUtils.EMPTY;
+                ? file.getChecksumValue() : EMPTY;
         item.unf = file.getUnf();
         return item;
     }
@@ -53,9 +54,9 @@ public class UningestableItemDTO implements Serializable {
     // -------------------- PRIVATE --------------------
 
     private static String extractAndFormatExtension(DataFile file) {
-        String extension = FileUtil.generateOriginalExtension(file.isTabularData()
+        String extension = MimeTypes.fileExtensionOf(file.isTabularData()
                 ? file.getDataTable().getOriginalFileFormat()
                 : file.getContentType());
-        return extension.replaceFirst("\\.", StringUtils.EMPTY).toUpperCase();
+        return extension.replaceFirst("\\.", EMPTY).toUpperCase();
     }
 }
