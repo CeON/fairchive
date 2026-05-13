@@ -223,7 +223,7 @@ public class CreateDatasetPage implements Serializable {
         		this.importerRegistry.getImporters(), this.session.getLocale());
 
         this.workingVersion = this.dataset.getLatestVersion();
-        resetDatasetFields();
+        resetAndCloneDatasetFields();
         
         if(this.sourceDatasetId != null) {
         	final Dataset source = this.datasetService.find(this.sourceDatasetId);
@@ -237,7 +237,7 @@ public class CreateDatasetPage implements Serializable {
     }
 
     public void updateSelectedTemplate(final AjaxBehaviorEvent event) {
-        resetDatasetFields();
+        resetAndCloneDatasetFields();
     }
 
     public void checkSaveStatus() {
@@ -361,7 +361,7 @@ public class CreateDatasetPage implements Serializable {
         return this.session.getAuthenticatedUser();
     }
 
-    private void resetDatasetFields() {
+    private void resetAndCloneDatasetFields() {
         List<DatasetField> datasetFields = new ArrayList<>();
 
         if (this.selectedTemplate != null) {
