@@ -381,12 +381,12 @@ public class CreateDatasetPage implements Serializable {
         		groupAndUpdateFlagsForEdit(datasetFields, this.dataset.getOwner().getMetadataBlockRootDataverse());
         
         if(this.sourceDatasetId != null) {
-        	copyVieldValuesFromSourceDataset();
+        	copyFieldValuesFromSourceDataset();
         }
 
     }
     
-    private void copyVieldValuesFromSourceDataset() {
+    private void copyFieldValuesFromSourceDataset() {
   	
     	final List<DatasetField> sourceFields = this.datasetService.find(this.sourceDatasetId).
     			getLatestVersionForCopy().getDatasetFieldsAll();
