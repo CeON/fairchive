@@ -17,6 +17,7 @@ import javax.servlet.http.HttpSession;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.persistence.user.User;
@@ -59,6 +60,10 @@ public class DataverseSession implements Serializable {
 
     public User getUser() {
         return this.user;
+    }
+    
+    public AuthenticatedUser getAuthenticatedUser() {
+        return (AuthenticatedUser) this.user;
     }
     
     public boolean isUserLoggedIn() {

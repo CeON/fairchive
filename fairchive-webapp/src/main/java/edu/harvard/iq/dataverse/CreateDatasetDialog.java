@@ -1,6 +1,27 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowContactToCreateDataverseTip;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toMap;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.event.NodeExpandEvent;
+import org.primefaces.model.TreeNode;
+
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.search.dataverselookup.DataverseLookupService;
 import edu.harvard.iq.dataverse.search.dataverselookup.LookupData;
 import edu.harvard.iq.dataverse.search.dataversestree.NodeData;
@@ -8,20 +29,7 @@ import edu.harvard.iq.dataverse.search.dataversestree.NodesInfo;
 import edu.harvard.iq.dataverse.search.dataversestree.SolrTreeService;
 import edu.harvard.iq.dataverse.search.dataversestree.TreeNodeBrowser;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.event.NodeExpandEvent;
-import org.primefaces.model.TreeNode;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @SuppressWarnings("serial")
 @ViewScoped
@@ -30,12 +38,11 @@ public class CreateDatasetDialog implements Serializable {
     private SolrTreeService solrTreeService;
     private DataverseRequestServiceBean dataverseRequestService;
     private DataverseLookupService dataverseLookupService;
-    private DataverseDao dataverseDao;
+    private DataverseRepository dataverseRepo;
 
-    private boolean initialized = false;
-
-    private NodesInfo nodesInfo = new NodesInfo(Collections.emptyMap(), Collections.emptySet());
+    private NodesInfo nodesInfo = new NodesInfo(emptyMap(), emptySet());
     private TreeNode selectedNode;
+    private Dataset dataset;
 
     private String permissionFilterQuery;
     private String treeFilter;
@@ -50,13 +57,18 @@ public class CreateDatasetDialog implements Serializable {
     public CreateDatasetDialog() { }
 
     @Inject
-    public CreateDatasetDialog(SolrTreeService solrTreeService, DataverseRequestServiceBean dataverseRequestService,
-                               DataverseLookupService dataverseLookupService, DataverseDao dataverseDao,
-                               DataverseSession session, SystemConfig systemConfig, SettingsServiceBean settingsService) {
+    public CreateDatasetDialog(final SolrTreeService solrTreeService, 
+    		final DataverseRequestServiceBean dataverseRequestService,
+            final DataverseLookupService dataverseLookupService, 
+            final DataverseRepository dataverseRepo,
+            final DataverseSession session, 
+            final SystemConfig systemConfig, 
+            final SettingsServiceBean settingsService) {
+    	
         this.solrTreeService = solrTreeService;
         this.dataverseRequestService = dataverseRequestService;
         this.dataverseLookupService = dataverseLookupService;
-        this.dataverseDao = dataverseDao;
+        this.dataverseRepo = dataverseRepo;
         this.session = session;
         this.systemConfig = systemConfig;
         this.settingsService = settingsService;
@@ -65,91 +77,109 @@ public class CreateDatasetDialog implements Serializable {
     // -------------------- GETTERS --------------------
 
     public TreeNode getRootNode() {
-        return treeNodeBrowser != null ? treeNodeBrowser.getRootNode() : null;
+        return this.treeNodeBrowser != null ? this.treeNodeBrowser.getRootNode() : null;
     }
 
     public TreeNode getSelectedNode() {
-        return selectedNode;
+        return this.selectedNode;
     }
 
     public String getTreeFilter() {
-        return treeFilter;
+        return this.treeFilter;
     }
 
     // -------------------- LOGIC --------------------
-
+    @PostConstruct
     public void init() {
-        if (initialized) {
-            return;
-        }
-        permissionFilterQuery = dataverseLookupService.buildFilterQuery(dataverseRequestService.getDataverseRequest());
+        this.permissionFilterQuery = this.dataverseLookupService.
+        		buildFilterQuery(this.dataverseRequestService.getDataverseRequest());
 
-        Dataverse rootDataverse = dataverseDao.findRootDataverse();
-        nodesInfo = solrTreeService.fetchNodesInfo(dataverseRequestService.getDataverseRequest());
-        treeNodeBrowser = new TreeNodeBrowser(rootDataverse, nodesInfo, this::loadParentDataverseId, this::fetchChildren);
-        initialized = true;
+        final Dataverse rootDataverse = this.dataverseRepo.findRoot();
+        this.nodesInfo = this.solrTreeService.fetchNodesInfo(
+        		this.dataverseRequestService.getDataverseRequest());
+        this.treeNodeBrowser = new TreeNodeBrowser(rootDataverse, 
+        		this.nodesInfo, this::loadParentDataverseId, this::fetchChildren);
     }
 
-    public void onNodeExpand(NodeExpandEvent event) {
-        TreeNode selectedNode = event.getTreeNode();
-        treeNodeBrowser.fetchChildNodes(selectedNode);
+    public void onNodeExpand(final NodeExpandEvent event) {
+        this.treeNodeBrowser.fetchChildNodes(event.getTreeNode());
     }
 
     public void executeTreeFilter() {
-        if (prevTreeFilter != null && prevTreeFilter.equals(treeFilter)) {
+        if (this.prevTreeFilter != null && this.prevTreeFilter.equals(this.treeFilter)) {
             return;
         }
 
-        treeNodeBrowser.resetRoot();
+        this.treeNodeBrowser.resetRoot();
 
-        if (treeFilter == null || treeFilter.length() < 3) {
+        if (this.treeFilter == null || this.treeFilter.length() < 3) {
             return;
         }
 
-        List<LookupData> results = dataverseLookupService.fetchLookupDataByNameAndExtraDescription(treeFilter, permissionFilterQuery);
+        final List<LookupData> results = this.dataverseLookupService.fetchLookupDataByNameAndExtraDescription(
+        		this.treeFilter, this.permissionFilterQuery);
         if (results.isEmpty()) {
             return;
         }
 
-        Map<Long, Long> parentIdsCache = treeNodeBrowser.expandTreeTo(results.stream()
-                .collect(Collectors.toMap(LookupData::getId, LookupData::getParentId)));
-        treeNodeBrowser.trimTree(parentIdsCache.keySet());
+        final Map<Long, Long> parentIdsCache = this.treeNodeBrowser.expandTreeTo(results.stream()
+                .collect(toMap(LookupData::getId, LookupData::getParentId)));
+        this.treeNodeBrowser.trimTree(parentIdsCache.keySet());
 
-        prevTreeFilter = treeFilter;
+        this.prevTreeFilter = this.treeFilter;
     }
 
-    public boolean showContactToCreateDataverseTip() {
-        return settingsService.isTrueForKey(Key.ShowContactToCreateDataverseTip);
+    public boolean displayContactToCreateDataverseTip() {
+        return this.settingsService.isTrueForKey(ShowContactToCreateDataverseTip);
     }
 
     public String createDataset() {
-        return "/createDataset.xhtml?ownerId=" + ((NodeData) selectedNode.getData()).getId()
-                + "&faces-redirect=true";
+    	final StringBuilder builder = new StringBuilder(65);
+        builder.append("/createDataset.xhtml?faces-redirect=true&ownerId=").
+        	append(((NodeData) this.selectedNode.getData()).getId());
+    	if(this.dataset != null) {
+    		builder.append("&sourceDatasetId=").append(this.dataset.getId());
+    	}
+    	return builder.toString();
     }
 
     public String getSelectDataverseInfo() {
-        return systemConfig.getSelectDataverseInfo(session.getLocale());
+        return this.systemConfig.getSelectDataverseInfo(this.session.getLocale());
+    }
+    
+    public boolean displaySelectDataverseInfo() {
+        return !getSelectDataverseInfo().isEmpty();
+    }
+    
+    public String getCreateButtonLabel() {
+    	return getStringFromBundle(this.dataset != null 
+	    			? "add.dataset.dialog.button.clone" 
+	    			: "add.dataset.dialog.button.create");
     }
 
     // -------------------- PRIVATE --------------------
 
-    private Optional<Long> loadParentDataverseId(Long id) {
-        return Optional.ofNullable(dataverseDao.find(id))
+    private Optional<Long> loadParentDataverseId(final Long id) {
+        return this.dataverseRepo.findById(id)
                 .map(Dataverse::getOwner)
                 .map(Dataverse::getId);
     }
 
-    private List<NodeData> fetchChildren(Long id) {
-        return solrTreeService.fetchNodes(id, nodesInfo);
+    private List<NodeData> fetchChildren(final Long id) {
+        return this.solrTreeService.fetchNodes(id, this.nodesInfo);
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setSelectedNode(TreeNode selectedNode) {
-        this.selectedNode = selectedNode;
+    public void setSelectedNode(final TreeNode node) {
+        this.selectedNode = node;
     }
 
-    public void setTreeFilter(String treeFilter) {
-        this.treeFilter = treeFilter;
+    public void setTreeFilter(final String filter) {
+        this.treeFilter = filter;
+    }
+    
+    public void setDataset(final Dataset dataset) {
+    	this.dataset = dataset;
     }
 }

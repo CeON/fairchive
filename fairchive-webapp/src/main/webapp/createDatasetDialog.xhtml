@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+    xmlns:jsf="http://xmlns.jcp.org/jsf" 
+    xmlns:o="http://omnifaces.org/ui"
+    xmlns:dv="http://dataverse.org/facelets"
+    xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:body>
+    <p:dialog id="createDataset" 
+              header="#{bundle['add.dataset.dialog.header']}" 
+              widgetVar="createDatasetDialog" 
+              modal="true">
+        <div class="form-horizontal">
+            <o:form id="create-dataset-dialog">
+                <p jsf:rendered="#{CreateDatasetDialog.displaySelectDataverseInfo()}">#{CreateDatasetDialog.selectDataverseInfo}</p>
+                <p>#{bundle['add.dataset.dialog.info']}</p>
+                <div class="form-group">
+                    <div class="col-md-10">
+                        <p:inputText id="treeFilter"
+                                     value="#{CreateDatasetDialog.treeFilter}"
+                                     placeholder="#{bundle['add.dataset.dialog.tree.filter']}"
+                                     styleClass="full-width"
+                                     size="50">
+                            <p:ajax update="selectDvTree"
+                                    event="keyup"
+                                    delay="1000"
+                                    listener="#{CreateDatasetDialog.executeTreeFilter}" />
+                        </p:inputText>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="glyphicon glyphicon-question-sign tooltip-icon"
+                              tabindex="0" 
+                              role="button"
+                              data-toggle="tooltip" 
+                              data-placement="auto right"
+                              data-original-title="#{bundle['add.dataset.dialog.select.tree.tooltip']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <p:tree id="selectDvTree" 
+                                value="#{CreateDatasetDialog.rootNode}" 
+                                var="node"
+                                styleClass="no-border full-width"
+                                dynamic="true" 
+                                animate="true"
+                                selectionMode="single" 
+                                selection="#{CreateDatasetDialog.selectedNode}"
+                                required="true"
+                                requiredMessage="#{bundle['add.dataset.dialog.tree.required']}">
+                            <p:ajax event="expand" 
+                                    listener="#{CreateDatasetDialog.onNodeExpand}" />
+                            <p:treeNode>
+                                <h:outputText value="#{node.name}"/>
+                            </p:treeNode>
+                        </p:tree>
+                        <p:message id="treeMsg" 
+                                   for="selectDvTree" 
+                                   styleClass="bg-danger text-danger" 
+                                   display="text"/>
+                    </div>
+                </div>
+                <p jsf:rendered="#{CreateDatasetDialog.displayContactToCreateDataverseTip()}">
+                    <h:outputFormat value="#{bundle['add.dataset.dialog.createDataverse.tip']}" 
+                                    escape="false">
+                        <o:param>
+                            <p:commandLink value="#{installationConfig.supportTeamName}"
+                                           oncomplete="PF('createDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" 
+                                           update=":contactDialog"
+                                           actionListener="#{sendFeedbackDialog.resetWithSubject(bundle['add.dataset.dialog.createDataverse.message.subject'])}">
+                                <o:ignoreValidationFailed />
+                            </p:commandLink>
+                        </o:param>
+                    </h:outputFormat>
+                </p>
+                <div class="row button-block">
+                    <p:commandButton value="#{CreateDatasetDialog.createButtonLabel}"
+                                     action="#{CreateDatasetDialog.createDataset()}" 
+                                     update="@form"
+                                     styleClass="btn btn-default btn-access"
+                                     oncomplete="if (args &amp;&amp; !args.validationFailed) PF('createDatasetDialog').hide();"/>
+                    <button type="button" 
+                            onclick="PF('createDatasetDialog').hide()" 
+                            class="btn btn-default" 
+                            value="#{bundle.cancel}">
+                        #{bundle.cancel}
+                    </button>
+                </div>
+            </o:form>
+        </div>
+    </p:dialog>
+</h:body>
+</html>
