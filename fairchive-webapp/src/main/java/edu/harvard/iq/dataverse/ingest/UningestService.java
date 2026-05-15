@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.ingest;
 
 import edu.harvard.iq.dataverse.MapLayerMetadataServiceBean;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.dataaccess.StorageIOConstants;
@@ -15,7 +16,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.MapLayerMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -122,7 +122,7 @@ public class UningestService {
         String filename = fileMetadata.getLabel();
         String extensionToRemove = StringUtil.substringIncludingLast(filename, ".");
         if (StringUtils.isNotBlank(extensionToRemove)) {
-            fileMetadata.setLabel(filename.replace(extensionToRemove, FileUtil.generateOriginalExtension(originalFormat)));
+            fileMetadata.setLabel(filename.replace(extensionToRemove, MimeTypes.fileExtensionOf(originalFormat)));
             fileMetadataRepository.save(fileMetadata);
         }
 

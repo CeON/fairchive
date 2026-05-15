@@ -1,9 +1,11 @@
 package edu.harvard.iq.dataverse.common.files.mime;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.List;
+
 
 public final class MimeTypes {
 
@@ -136,4 +138,25 @@ public final class MimeTypes {
 				|| UNDETERMINED_BINARY.equals(mimeType) 
 				|| UNDETERMINED_DEFAULT.equals(mimeType);
 	}
+	
+    public static String fileExtensionOf(final String fileType) {
+        
+    	if (SPSS_SAV.equalsIgnoreCase(fileType)) {
+            return ".sav";
+        } else if (SPSS_POR.equalsIgnoreCase(fileType)) {
+            return ".por";
+        } else if (STATA.equalsIgnoreCase(fileType)) {
+            return ".dta";
+        } else if (RDATA.equalsIgnoreCase(fileType)) {
+            return ".RData";
+        } else if (CSV.equalsIgnoreCase(fileType)) {
+            return ".csv";
+        } else if (TSV.equalsIgnoreCase(fileType)) {
+            return ".tsv";
+        } else if (XLSX.equalsIgnoreCase(fileType)) {
+            return ".xlsx";
+        } else {
+        	return EMPTY;
+        }
+    }
 }

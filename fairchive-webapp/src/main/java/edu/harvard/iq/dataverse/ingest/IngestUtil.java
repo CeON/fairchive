@@ -19,6 +19,7 @@
  */
 package edu.harvard.iq.dataverse.ingest;
 
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
@@ -177,8 +178,7 @@ public class IngestUtil {
             // match. e.g. stata file foobar.dta becomes foobar.tab once ingested!
             if (metadata.getDataFile().isTabularData()) {
                 String originalMimeType = metadata.getDataFile().getDataTable().getOriginalFileFormat();
-                String originalPath = existingPath.replaceAll(".tab$",
-                        originalMimeType != null ? FileUtil.generateOriginalExtension(originalMimeType) : EMPTY);
+                String originalPath = existingPath.replaceAll(".tab$", MimeTypes.fileExtensionOf(originalMimeType));
                 pathNamesExisting.add(originalPath);
             }
         }

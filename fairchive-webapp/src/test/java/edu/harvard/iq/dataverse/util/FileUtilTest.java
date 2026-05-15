@@ -138,8 +138,7 @@ public class FileUtilTest {
     @Test
     public void testGenerateOriginalExtension() {
         assertEquals("", FileUtil.generateOriginalExtension("foo"));
-        // uh-oh, NullPointerException
-//        assertEquals("", FileUtil.generateOriginalExtension(null));
+        assertEquals("", FileUtil.generateOriginalExtension(null));
         assertEquals(".sav", FileUtil.generateOriginalExtension("application/x-spss-sav"));
         assertEquals(".por", FileUtil.generateOriginalExtension("application/x-spss-por"));
         assertEquals(".dta", FileUtil.generateOriginalExtension("application/x-stata"));
