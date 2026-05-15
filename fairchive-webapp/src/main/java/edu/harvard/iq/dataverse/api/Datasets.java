@@ -570,7 +570,11 @@ public class Datasets extends AbstractApiBean {
                 Dataset dataset = findDatasetOrDie(datasetId);
                 publicationTime = dataset.getCreateDate();
                 DatasetVersion datasetVersion = getDatasetVersionOrDie(dataverseRequest, versionId, dataset);
-                author = datasetVersion.getDatasetAuthors().get(0).getName().getRawValue();
+                author = datasetVersion.getDatasetAuthors()
+                	    .stream()
+                	    .findFirst()
+                	    .map(a -> a.getName().getRawValue())
+                	    .orElse("Unknown");
                 finalVersionId = datasetVersion.getId().toString();
             } catch (WrappedResponse wr) {
                 return wr.getResponse();
@@ -603,7 +607,7 @@ public class Datasets extends AbstractApiBean {
     
     private String createFileName(final String authorName, final Timestamp datasetCreationTime) {
     	
-    	final String publicationYear = new SimpleDateFormat("YYY").format(datasetCreationTime);
+    	final String publicationYear = new SimpleDateFormat("YYYY").format(datasetCreationTime);
     	final String now = new SimpleDateFormat("yyyyMMddHHmmss").format(Timestamp.from(now()));
     	return "fairchive_files_"  + authorName + '_' + publicationYear + '_' + now + ".zip";
     }
