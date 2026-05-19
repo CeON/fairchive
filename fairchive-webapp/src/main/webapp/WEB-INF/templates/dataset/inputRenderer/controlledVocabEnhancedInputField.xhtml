@@ -37,13 +37,9 @@
                     unique="true"
                     widgetVar="#{widgetVar}"
                     placeholder="#{inputRenderer.getAutocompletePlaceholderMessage(datasetField)}"
-                    moreText="#{inputRenderer.getAutocompleteLoadMoreMessage(datasetField)}"
+                    moreText="#{inputRenderer.getAutocompleteMoreMessage(datasetField)}"
                     maxResults="#{inputRenderer.numberOfResults-1}"
     >
-
-        <p:ajax event="moreText"
-                listener="#{inputRenderer.loadMore(datasetField, widgetVar)}"
-                onsuccess="DvJS.EnhancedSelect.EnhancedSelectView.prepare('#{widgetVar}')" />
         <p:column style="width:100%"><h:outputText value="#{item.strValue}" /></p:column>
     </p:autoComplete>
 
@@ -63,12 +59,9 @@
                     unique="true"
                     widgetVar="#{widgetVar}"
                     placeholder="#{inputRenderer.getAutocompletePlaceholderMessage(datasetField)}"
-                    moreText="#{inputRenderer.getAutocompleteLoadMoreMessage(datasetField)}"
+                    moreText="#{inputRenderer.getAutocompleteMoreMessage(datasetField)}"
                     maxResults="#{inputRenderer.numberOfResults-1}"
     >
-        <p:ajax event="moreText"
-                listener="#{inputRenderer.loadMore(datasetField, widgetVar)}"
-                onsuccess="DvJS.EnhancedSelect.EnhancedSelectView.prepare('#{widgetVar}')" />
         <p:ajax event="itemSelect" listener="#{inputRenderer.onSelection(datasetField, widgetVar)}"  />
         <p:ajax event="itemUnselect" listener="#{inputRenderer.onDeselection(datasetField, widgetVar)}" />
         #{item.strValue}

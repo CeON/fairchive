@@ -18,7 +18,6 @@ public class VocabSelectEnhancedInputFieldRenderer implements InputFieldRenderer
     private Collection<ControlledVocabularyValue> all = new ArrayList<>();
     private int numberOfResults = 100;
     private final ConditionalRendering conditionalRendering;
-    private static final int RESULTS_INCREMENT_STEP = 100;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -81,9 +80,9 @@ public class VocabSelectEnhancedInputFieldRenderer implements InputFieldRenderer
      * more results matching the autocomplete input text but they are not
      * currently displayed.
      */
-    public String getAutocompleteLoadMoreMessage(DatasetField datasetField) {
-        String key = "datasetfieldtype." + datasetField.getDatasetFieldType().getName() + ".autocomplete.loadMore";
-        return getStringFromMetadataBlockBundle(datasetField.getDatasetFieldType(), key, "common.forms.autocomplete.loadMore");
+    public String getAutocompleteMoreMessage(DatasetField datasetField) {
+        String key = "datasetfieldtype." + datasetField.getDatasetFieldType().getName() + ".autocomplete.moreText";
+        return getStringFromMetadataBlockBundle(datasetField.getDatasetFieldType(), key, "common.forms.autocomplete.moreText");
     }
 
     /**
@@ -113,11 +112,6 @@ public class VocabSelectEnhancedInputFieldRenderer implements InputFieldRenderer
     }
 
     public List<ControlledVocabularyValue> complete(DatasetField datasetField, String autoCompleteId) {
-        return queryControlledVocabularyValues(datasetField, autoCompleteId);
-    }
-
-    public List<ControlledVocabularyValue> loadMore(DatasetField datasetField, String autoCompleteId) {
-        numberOfResults += RESULTS_INCREMENT_STEP;
         return queryControlledVocabularyValues(datasetField, autoCompleteId);
     }
 
