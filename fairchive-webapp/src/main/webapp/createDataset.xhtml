@@ -23,6 +23,7 @@
         <ui:define name="body">
             <f:metadata>
                 <f:viewParam name="ownerId" value="#{CreateDatasetPage.ownerId}"/>
+                <f:viewParam name="sourceDatasetId" value="#{CreateDatasetPage.sourceDatasetId}"/>
                 <f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}"/>
                 <f:viewAction action="#{CreateDatasetPage.init}"/>
                 <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(CreateDatasetPage.dataset)}"/>

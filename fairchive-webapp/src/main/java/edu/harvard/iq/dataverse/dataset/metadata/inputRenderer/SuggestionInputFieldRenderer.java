@@ -8,7 +8,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.faces.context.FacesContext;
 import java.util.ArrayList;

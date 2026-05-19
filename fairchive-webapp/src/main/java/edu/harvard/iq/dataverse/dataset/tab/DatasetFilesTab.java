@@ -880,7 +880,7 @@ public class DatasetFilesTab implements Serializable {
         if (cachedTools != null) { // if already queried before and added to list
             return cachedTools;
         }
-        DataFile dataFile = datafileService.find(fileId);
+        DataFile dataFile = datafileService.find(fileId).get();
         cachedTools = externalToolService.findExternalToolsByFileAndVersion(externalTools, dataFile, workingVersion);
         cachedToolsByFileId.put(fileId, cachedTools); // add to map so we don't have to do the lifting again
         return cachedTools;

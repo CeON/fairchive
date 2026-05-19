@@ -2,8 +2,8 @@ package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
-import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;

@@ -28,7 +28,7 @@ import static java.util.Collections.emptyList;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Logger.getLogger;
 import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
-import static org.apache.commons.lang.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Your goto bean for everything {@link DvObject}, that's not tied to any

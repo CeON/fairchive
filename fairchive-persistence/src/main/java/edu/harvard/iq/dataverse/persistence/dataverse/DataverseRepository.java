@@ -19,17 +19,15 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
     // -------------------- LOGIC --------------------
 
     public List<Dataverse> findPublishedByOwnerId(final Long ownerId) {
-        return this.em.createQuery(
-                "select d from Dataverse d where d.owner.id =:ownerId and d.publicationDate is not null order by d.name",
-                Dataverse.class)
+        return createQuery(
+                "select d from Dataverse d where d.owner.id =:ownerId and d.publicationDate is not null order by d.name")
                 .setParameter("ownerId", ownerId)
                 .getResultList();
     }
 
     public List<Dataverse> findByOwnerId(final Long ownerId) {
-        return this.em.createQuery(
-                "select object(o) from Dataverse as o where o.owner.id =:ownerId order by o.name",
-                Dataverse.class)
+        return createQuery(
+                "select object(o) from Dataverse as o where o.owner.id =:ownerId order by o.name")
                 .setParameter("ownerId", ownerId)
                 .getResultList();
     }
@@ -70,19 +68,16 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
     }
 
     public Optional<Dataverse> findByAlias(String alias) {
-        return getSingleResult(
-                this.em.createQuery(
-                        "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias)=:alias",
-                        Dataverse.class)
+        return getSingleResult(createQuery(
+                        "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias)=:alias")
                         .setParameter("alias", alias.toLowerCase()));
     }
 
     public List<Dataverse> findByAliasOrName(final String alias, final String name) {
-        return this.em.createQuery(
+        return createQuery(
                 "SELECT dv FROM Dataverse dv " +
                 "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) "+
-                "order by dv.alias",
-                Dataverse.class)
+                "order by dv.alias")
                 .setParameter("alias", "%" + alias.toLowerCase() + "%")
                 .setParameter("name", "%" + name.toLowerCase() + "%")
                 .getResultList();
@@ -90,11 +85,10 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
 
     public List<Dataverse> findByAliasOrNameOrAffiliation(final String alias,
             final String name, final String affiliation) {
-        return this.em.createQuery(
+        return createQuery(
                 "SELECT dv FROM Dataverse dv "+
                 "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) " +
-                 "order by dv.alias",
-                Dataverse.class)
+                 "order by dv.alias")
                 .setParameter("alias", alias.toLowerCase() + "%")
                 .setParameter("name", "%" + name.toLowerCase() + "%")
                 .setParameter("affiliation", "%" + affiliation.toLowerCase() + "%")

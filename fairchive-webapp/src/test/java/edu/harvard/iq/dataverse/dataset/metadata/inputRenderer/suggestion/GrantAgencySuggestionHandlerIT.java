@@ -2,7 +2,7 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.suggestion;
 
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.Suggestion;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.BeforeEach;

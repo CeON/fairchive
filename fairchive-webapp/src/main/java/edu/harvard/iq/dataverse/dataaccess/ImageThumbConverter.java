@@ -29,7 +29,7 @@ import static java.nio.file.Files.size;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.apache.commons.lang.StringUtils.startsWithIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.awt.Graphics2D;
@@ -270,31 +270,33 @@ public class ImageThumbConverter {
             final InputStream inputStream) {
         try {
             final BufferedImage fullSizeImage = ImageIO.read(inputStream);
-            requireNonNull(fullSizeImage, "Could not read image.");
-            final int width = fullSizeImage.getWidth(null);
-            final int height = fullSizeImage.getHeight(null);
-
-            try (final OutputStream out = storageIO.openAuxOutput(suffix(size))) {
-                rescaleImage(fullSizeImage, width, height, size, out);
-            } catch (final Exception e) {
-                logger.warn("Exception during thumbnail generation.", e);
-                // With some storage drivers, we can open a WritableChannel, or
-                // OutputStream
-                // to directly write the generated thumbnail that we want to cache;
-                // Some drivers (like Swift) do not support that, and will give us an
-                // "operation not supported" exception. If that's the case, we'll have
-                // to save the output into a temp file, and then copy it over to the
-                // permanent storage using the DataAccess IO "save" command:
-                final File tempFile = createTempFile("tempFileToRescale", ".tmp");
-                try (final OutputStream out = new FileOutputStream(tempFile)) {
-                    rescaleImage(fullSizeImage, width, height, size, out);
-                    storageIO.savePathAsAux(Paths.get(tempFile.getAbsolutePath()),
-                            suffix(size));
-                } finally {
-                    tempFile.delete();
-                }
+            if(fullSizeImage != null) {
+	            final int width = fullSizeImage.getWidth(null);
+	            final int height = fullSizeImage.getHeight(null);
+	
+	            try (final OutputStream out = storageIO.openAuxOutput(suffix(size))) {
+	                rescaleImage(fullSizeImage, width, height, size, out);
+	            } catch (final UnsupportedDataAccessOperationException e) {
+	                // With some storage drivers, we can open a WritableChannel, or
+	                // OutputStream
+	                // to directly write the generated thumbnail that we want to cache;
+	                // Some drivers (like Swift) do not support that, and will give us an
+	                // "operation not supported" exception. If that's the case, we'll have
+	                // to save the output into a temp file, and then copy it over to the
+	                // permanent storage using the DataAccess IO "save" command:
+	                final File tempFile = createTempFile("tempFileToRescale", ".tmp");
+	                try (final OutputStream out = new FileOutputStream(tempFile)) {
+	                    rescaleImage(fullSizeImage, width, height, size, out);
+	                    storageIO.savePathAsAux(Paths.get(tempFile.getAbsolutePath()),
+	                            suffix(size));
+	                } finally {
+	                    tempFile.delete();
+	                }
+	            }
+	            return true;
+            } else {
+            	return false; // unsupported image format - nothing to worry about
             }
-            return true;
         } catch (final Exception e) {
             logger.warn("Faild to generate thumbnail.", e);
             return false;
@@ -552,11 +554,11 @@ public class ImageThumbConverter {
     }
     
     private static boolean isPDF(final DataFile file) {
-        return file.getContentType().equalsIgnoreCase("application/pdf");
+        return file.isPdf();
     }
     
     private static boolean isShape(final DataFile file) {
-        return file.getContentType().equalsIgnoreCase("application/zipped-shapefile")
+        return file.isShapefileType()
                 || (file.isTabularData() && file.hasGeospatialTag());
     }
     

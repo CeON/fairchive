@@ -270,7 +270,7 @@ public class Index extends AbstractApiBean {
                     return notFound("Could not find dataset with id of " + id + ". Result from deletion attempt: " + response);
                 }
             } else if (type.equals("files")) {
-                DataFile dataFile = dataFileService.find(id);
+                DataFile dataFile = dataFileService.find(id).get();
                 Dataset datasetThatOwnsTheFile = datasetService.find(dataFile.getOwner().getId());
                 /**
                  * @todo How can we display the result to the user?

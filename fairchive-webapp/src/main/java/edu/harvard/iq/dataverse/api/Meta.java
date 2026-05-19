@@ -117,7 +117,7 @@ public class Meta {
 
         response.setHeader("Content-disposition", "attachment; filename=\"dataverse_files.zip\"");
 
-        dataFile = datafileService.find(fileId);
+        dataFile = datafileService.find(fileId).orElse(null);
         if (dataFile == null) {
             throw new NotFoundException();
         }

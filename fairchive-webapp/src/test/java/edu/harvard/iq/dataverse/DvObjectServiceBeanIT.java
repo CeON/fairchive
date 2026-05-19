@@ -42,7 +42,7 @@ public class DvObjectServiceBeanIT extends WebappArquillianDeployment {
     @Test
     public void getDataverseHierarchyFor() {
         // given
-        DataFile dataFile = dataFileService.find(53L);
+        DataFile dataFile = dataFileService.find(53L).get();
 
         // when
         String result = dvObjectServiceBean.getDataverseHierarchyFor(dataFile);

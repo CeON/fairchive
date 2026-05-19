@@ -1,5 +1,17 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import static java.util.Collections.emptySet;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -7,15 +19,6 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandExecutionExcepti
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static java.util.Collections.emptySet;
-import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
  * Imports a dataset from a different system. This command validates that the PID
@@ -65,21 +68,18 @@ public class ImportDatasetCommand extends AbstractCreateDatasetCommand {
                     ds.getGlobalId() + " already exists in this Dataverse installation.", this);
         }
 
-        String pid = ds.getPersistentURL();
-        GetMethod httpGet = new GetMethod(pid);
-        httpGet.setFollowRedirects(false);
+        String url = ds.getPersistentURL();
 
-        HttpClient client = new HttpClient();
+        try (CloseableHttpClient client = HttpClients.createDefault()){
+        	try(CloseableHttpResponse response = client.execute(new HttpGet(url))) {
+        		int responseStatus = response.getStatusLine().getStatusCode();
 
-        try {
-            int responseStatus = client.executeMethod(httpGet);
-
-            if (responseStatus == 404) {
-                throw new CommandExecutionException("Provided PID does not exist. Status code for GET '" + pid + "' is 404.", this);
-            }
-
+	            if (responseStatus == 404) {
+	                throw new CommandExecutionException("Provided PID does not exist. Status code for GET '" + url + "' is 404.", this);
+	            }
+        	}
         } catch (IOException ex) {
-            logger.log(Level.WARNING, "Error while validating PID at '" + pid + "' for an imported dataset: " + ex.getMessage(), ex);
+            logger.log(Level.WARNING, "Error while validating PID at '" + url + "' for an imported dataset: " + ex.getMessage(), ex);
             throw new CommandExecutionException("Cannot validate PID due to a connection error: " + ex.getMessage(), this);
         }
 

@@ -73,7 +73,7 @@ import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
 import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;

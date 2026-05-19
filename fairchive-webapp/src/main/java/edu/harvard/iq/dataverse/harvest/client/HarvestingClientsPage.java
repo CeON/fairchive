@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.omnifaces.cdi.ViewScoped;
 

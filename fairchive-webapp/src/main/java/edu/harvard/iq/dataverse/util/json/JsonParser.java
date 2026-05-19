@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.util.json;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.api.dto.UningestRequestDTO;
 import edu.harvard.iq.dataverse.common.Util;
-import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParamsParser;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;

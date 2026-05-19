@@ -96,7 +96,7 @@ public class FileDownloadServiceBean implements java.io.Serializable {
         }
         //For tools to get the dataset and datasetversion ids, we need a full DataFile object (not a findCheapAndEasy() copy)
         if (dataFile.getFileMetadata() == null) {
-            dataFile = datafileService.find(dataFile.getId());
+            dataFile = datafileService.find(dataFile.getId()).get();
         }
         // Back when we only had TwoRavens, the downloadType was always "Explore".
         // Now we persist the name of the tool (i.e. "TwoRavens", "Data Explorer", etc.)

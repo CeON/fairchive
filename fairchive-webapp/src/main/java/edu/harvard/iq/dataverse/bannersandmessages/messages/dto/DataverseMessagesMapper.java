@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Stateless
 public class DataverseMessagesMapper {

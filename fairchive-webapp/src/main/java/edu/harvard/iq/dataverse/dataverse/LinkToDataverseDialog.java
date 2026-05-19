@@ -17,7 +17,7 @@ import javax.inject.Named;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
-import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -151,7 +151,7 @@ public class LinkToDataverseDialog implements java.io.Serializable {
                 .onSuccess(savedSearch -> {
                     String hrefArgument = "<a href=\"/dataverse/" + 
                     		targetDataverseLink.getAlias() + '"' + '>' +
-                    		escapeHtml(targetDataverseLink.getDisplayName()) + "</a>";
+                    		escapeHtml4(targetDataverseLink.getDisplayName()) + "</a>";
                     this.uiMessages.addFlashSuccessMessage(getStringFromBundle("dataverse.saved.search.success", hrefArgument));
                 })
                 .onFailure(ex -> {
@@ -212,9 +212,9 @@ public class LinkToDataverseDialog implements java.io.Serializable {
 
     private Object[] getSuccessMessageArguments(Dataverse savedTargetDataverseLink) {
         final Object[] result = new Object[2];
-        result[0] = escapeHtml(this.dataverse.getDisplayName());
+        result[0] = escapeHtml4(this.dataverse.getDisplayName());
         result[1] = "<a href=\"/dataverse/" + savedTargetDataverseLink.getAlias() + 
-        		'"' + '>' + escapeHtml(savedTargetDataverseLink.getDisplayName()) + "</a>";
+        		'"' + '>' + escapeHtml4(savedTargetDataverseLink.getDisplayName()) + "</a>";
         return result;
     }
 

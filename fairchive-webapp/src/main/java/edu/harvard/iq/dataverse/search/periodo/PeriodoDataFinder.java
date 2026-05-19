@@ -1,11 +1,12 @@
 package edu.harvard.iq.dataverse.search.periodo;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
 
 import java.io.IOException;
-import java.util.AbstractList;
 import java.util.List;
 import java.util.Optional;
 
@@ -116,25 +117,10 @@ public class PeriodoDataFinder {
         final QueryRequest req = new QueryRequest(params);
         req.setPath("/terms"); 
         final NamedList<Object> terms = (NamedList<Object>)this.solr.request(req).get("terms");
-        return new LocationsList((NamedList<Object>)terms.get("locations"));
-    }
-    
-    private static final class LocationsList extends AbstractList<String> {
-        
-        private final NamedList<Object> source;
-        
-        private LocationsList(NamedList<Object> source) {
-            this.source = source;
-        }
-
-        @Override
-        public String get(final int index) {
-            return this.source.getName(index);
-        }
-
-        @Override
-        public int size() {
-            return this.source.size();
-        }
+        final NamedList<Object> locations = (NamedList<Object>)terms.get("locations");
+        return range(0, locations.size()).
+        		mapToObj(locations::getName).
+        		sorted().
+        		collect(toList());
     }
 }

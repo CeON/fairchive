@@ -8,6 +8,7 @@ package edu.harvard.iq.dataverse.datafile.page;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.datafile.FileDownloadServiceBean;
+import edu.harvard.iq.dataverse.externaltools.ExternalToolServiceBean;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.ExternalTool;
@@ -23,8 +24,11 @@ import org.primefaces.PrimeFaces;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
+import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
+import static java.lang.Boolean.FALSE;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -54,6 +58,8 @@ public class FileDownloadHelper implements java.io.Serializable {
     private GuestbookResponseServiceBean guestbookResponseService;
 
     private RequestedDownloadType requestedDownloadType;
+    
+    private ExternalToolServiceBean externalTools;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -65,12 +71,14 @@ public class FileDownloadHelper implements java.io.Serializable {
     @Inject
     public FileDownloadHelper(DataverseSession session, PermissionsWrapper permissionsWrapper,
                               FileDownloadServiceBean fileDownloadService, GuestbookResponseServiceBean guestbookResponseService,
-                              RequestedDownloadType requestedDownloadType) {
+                              RequestedDownloadType requestedDownloadType,
+                              ExternalToolServiceBean externalTools) {
         this.session = session;
         this.permissionsWrapper = permissionsWrapper;
         this.fileDownloadService = fileDownloadService;
         this.guestbookResponseService = guestbookResponseService;
         this.requestedDownloadType = requestedDownloadType;
+        this.externalTools = externalTools;
     }
 
     // -------------------- LOGIC --------------------
@@ -186,6 +194,22 @@ public class FileDownloadHelper implements java.io.Serializable {
         }
 
         return false;
+    }
+    
+    public boolean isPreviewAvailable(final FileMetadata metadata) { 	
+    	if(metadata != null) {
+	    	return getPreviewTool(metadata.getDataFile()).
+	    		map(viewer -> metadata.isFilePubliclyAccessible() ||
+	    			(canUserDownloadFile(metadata) && viewer.isTrusted())).
+	    		orElse(FALSE);
+    	} else {
+    		return false;
+    	}
+    }
+    
+    private Optional<ExternalTool> getPreviewTool(final DataFile file) {
+    	return this.externalTools.findFor(PREVIEW, file, 
+    			file.getLatestFileMetadata().getDatasetVersion());
     }
 
 

@@ -1,7 +1,25 @@
 package edu.harvard.iq.dataverse.datafile.page;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import javax.faces.event.ActionEvent;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.lang3.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
@@ -19,21 +37,6 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssigneeDisplayInfo;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import io.vavr.control.Try;
-import jersey.repackaged.com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.faces.event.ActionEvent;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * @author gdurand
@@ -166,7 +169,7 @@ public class ManageFilePermissionsPage implements java.io.Serializable {
         
         List<DataFile> files = Lists.newArrayList();
         List<RoleAssignee> roleAssignees = Lists.newArrayList();
-        Set<String> roleAssigneeNames = Sets.newTreeSet();
+        Set<String> roleAssigneeNames = new TreeSet<>();
         
         for (RoleAssignmentRow raRow: selectedRoleAssignmentRows) {
             files.add(raRow.getDefinitionPoint());

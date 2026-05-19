@@ -156,7 +156,7 @@
 							listener="#{sendFeedbackDialog.handleFileUpload}"
 							auto="true" 
 							fileLimit="5"
-							update="attachmentsList attachmentsListMsg"/>
+							update="emailForm:attachmentsList emailForm:attachmentsListMsg"/>
 						 <p:dataList id="attachmentsList"
 						             value="#{sendFeedbackDialog.attachments}"
 						             var="attachment">

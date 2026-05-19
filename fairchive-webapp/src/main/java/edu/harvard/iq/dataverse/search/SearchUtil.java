@@ -10,7 +10,7 @@ import static edu.harvard.iq.dataverse.search.SearchFields.ID;
 import static edu.harvard.iq.dataverse.search.SearchFields.NAME_SORT;
 import static edu.harvard.iq.dataverse.search.SearchFields.RELEASE_OR_CREATE_DATE;
 import static edu.harvard.iq.dataverse.search.SearchFields.RELEVANCE;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.sql.Timestamp;
 

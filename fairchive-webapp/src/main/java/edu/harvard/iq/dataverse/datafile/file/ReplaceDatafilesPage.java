@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.datafile.file;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -21,9 +22,11 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;
@@ -140,7 +143,7 @@ public class ReplaceDatafilesPage implements Serializable {
 
     public String init() {
         dataset = datasetService.find(datasetId);
-        fileToBeReplaced = datafileService.find(fileId);
+        fileToBeReplaced = datafileService.find(fileId).get();
 
         String permissionError = checkPermissions(dataset, fileToBeReplaced);
 
@@ -252,7 +255,7 @@ public class ReplaceDatafilesPage implements Serializable {
                 continue; // skip to next file
             }
 
-            GetMethod dropBoxMethod = new GetMethod(fileLink);
+            HttpGet dropBoxMethod = new HttpGet(fileLink);
 
             Try<DataFile> dataFile = Try.withResources(() -> this.getDropBoxContent(dropBoxMethod))
                .of(dropBoxContent -> replaceFileHandler.createDataFile(dataset,
@@ -422,22 +425,28 @@ public class ReplaceDatafilesPage implements Serializable {
      * @param dropBoxMethod
      * @return
      */
-    private InputStream getDropBoxContent(GetMethod dropBoxMethod) throws IOException {
-        // -----------------------------------------------------------
-        // Make http call, download the file:
-        // -----------------------------------------------------------
-        int status = 0;
-
-        try {
-            HttpClient httpclient = new HttpClient();
-            status = httpclient.executeMethod(dropBoxMethod);
+    private InputStream getDropBoxContent(final HttpGet dropBoxMethod) 
+            throws IOException {
+    	try (CloseableHttpClient client = HttpClients.createDefault()){
+        	CloseableHttpResponse response = client.execute(dropBoxMethod);
+        		int status = response.getStatusLine().getStatusCode();
             if (status != 200) {
-                logger.log(Level.WARNING, "Failed to get DropBox InputStream for file: {0}, status code: {1}", new Object[] {dropBoxMethod.getPath(), status});
+                logger.log(Level.WARNING, "Failed to get DropBox InputStream for file: {0}, status code: {1}",
+                        new Object[] {dropBoxMethod.getRequestLine(), status});
                 throw new IOException("Non 200 status code returned from dropbox");
             }
-            return dropBoxMethod.getResponseBodyAsStream();
-        } catch (IOException ex) {
-            logger.log(Level.WARNING, "Failed to access DropBox url: {0}!", dropBoxMethod.getPath());
+            
+            return new FilterInputStream(response.getEntity().getContent()) {
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    response.close();
+                    client.close();
+                }
+            };
+        } catch (final IOException ex) {
+            logger.log(Level.WARNING, "Failed to access DropBox url: {0}!", 
+                    dropBoxMethod.getRequestLine());
             throw ex;
         }
     }

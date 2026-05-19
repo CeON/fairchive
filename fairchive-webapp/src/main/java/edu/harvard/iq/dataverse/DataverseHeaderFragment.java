@@ -19,7 +19,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -124,7 +124,7 @@ public class DataverseHeaderFragment implements Serializable {
         Dataset dataset = datafile.getOwner();
         Long getDatasetVersionID = dataset.getLatestVersion().getId();
         FileMetadata fmd = datafileService.
-                findFileMetadataByDatasetVersionIdAndDataFileId(getDatasetVersionID, datafile.getId());
+                findFileMetadataByDatasetVersionIdAndDataFileId(getDatasetVersionID, datafile.getId()).orElse(null);
 
         initBreadcrumbsForFileMetadata(fmd, subPage);
     }

@@ -1,9 +1,11 @@
 package edu.harvard.iq.dataverse.api;
 
+import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +14,6 @@ import java.security.InvalidParameterException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -95,6 +96,7 @@ import edu.harvard.iq.dataverse.dataset.DatasetThumbnail;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.FileLabelInfo;
 import edu.harvard.iq.dataverse.dataset.FileLabelsService;
+import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.datasetutility.AddReplaceFileHelper;
 import edu.harvard.iq.dataverse.datasetutility.NoFilesException;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
@@ -105,7 +107,6 @@ import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.NoDatasetFilesException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
-import edu.harvard.iq.dataverse.engine.command.impl.AbstractSubmitToArchiveCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.AddLockCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.AssignRoleCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateDatasetVersionCommand;
@@ -162,7 +163,6 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.EjbUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
@@ -198,6 +198,7 @@ public class Datasets extends AbstractApiBean {
     private DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter;
     private UningestService uningestService;
     private SystemConfig config;
+    private DatasetVersionServiceBean datasetVersionService;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -220,7 +221,8 @@ public class Datasets extends AbstractApiBean {
                     FileLabelsService fileLabelsService,
                     DatasetFileDownloadUrlCsvWriter fileDownloadUrlCsvWriter,
                     UningestService uningestService,
-                    SystemConfig config) {
+                    SystemConfig config,
+                    DatasetVersionServiceBean datasetVersionService) {
         this.dataverseDao = dataverseDao;
         this.userNotificationService = userNotificationService;
         this.permissionService = permissionService;
@@ -246,6 +248,7 @@ public class Datasets extends AbstractApiBean {
         this.fileDownloadUrlCsvWriter = fileDownloadUrlCsvWriter;
         this.uningestService = uningestService;
         this.config = config;
+        this.datasetVersionService = datasetVersionService;
     }
 
     // -------------------- LOGIC --------------------
@@ -547,20 +550,40 @@ public class Datasets extends AbstractApiBean {
     @GET
     @Path("{id}/versions/{versionId}/files/download")
     @Produces({"application/zip"})
-    public Response getVersionFiles(@PathParam("id") String datasetId, @PathParam("versionId") String versionId, @QueryParam("gbrecs") boolean gbrecs,
-                                    @Context HttpServletResponse response, @Context UriInfo uriInfo) {
+    public Response getVersionFiles(@PathParam("id") String datasetId, 
+    								@PathParam("versionId") String versionId, 
+    								@QueryParam("gbrecs") boolean gbrecs,
+                                    @Context HttpServletResponse response,
+                                    @Context UriInfo uriInfo) {
 
         User apiTokenUser = Try.of(this::findUserOrDie)
                                .onFailure(throwable -> logger.log(Level.FINE, "Failed finding user for apiToken: ", throwable))
                                .get();
 
         String finalVersionId = versionId;
+        String author = EMPTY;
+        Timestamp publicationTime;
+        
         if (!versionId.matches("[0-9]+")) {
             DataverseRequest dataverseRequest = createDataverseRequest(apiTokenUser);
             try {
                 Dataset dataset = findDatasetOrDie(datasetId);
+                publicationTime = dataset.getCreateDate();
                 DatasetVersion datasetVersion = getDatasetVersionOrDie(dataverseRequest, versionId, dataset);
+                author = datasetVersion.getDatasetAuthors()
+                	    .stream()
+                	    .findFirst()
+                	    .map(a -> a.getName().getRawValue())
+                	    .orElse("Unknown");
                 finalVersionId = datasetVersion.getId().toString();
+            } catch (WrappedResponse wr) {
+                return wr.getResponse();
+            }
+        } else {
+        	try {
+                Dataset dataset = findDatasetOrDie(datasetId);
+                publicationTime = dataset.getCreateDate();
+                author = getAuthorName(versionId);
             } catch (WrappedResponse wr) {
                 return wr.getResponse();
             }
@@ -568,11 +591,25 @@ public class Datasets extends AbstractApiBean {
 
         boolean originalFormatRequested = isOriginalFormatRequested(uriInfo.getQueryParameters());
 
-        response.setHeader("Content-disposition", "attachment; filename=\"dataverse_files.zip\"");
-        response.setHeader("Content-Type", "application/zip; name=\"dataverse_files.zip\"");
+        response.setHeader("Content-disposition", "attachment; filename=\"" + createFileName(author, publicationTime) + '"');
+        response.setHeader("Content-Type", "application/zip; name=\"" + createFileName(author, publicationTime) + '"');
 
         StreamingOutput fileStream = fileDownloadAPIHandler.downloadFiles(apiTokenUser, finalVersionId, originalFormatRequested, gbrecs);
         return Response.ok(fileStream).build();
+    }
+    
+    private String getAuthorName(final String versionId) {
+    	return this.datasetVersionService.findById(Long.valueOf(versionId))
+        		.map(version -> version.getDatasetAuthors().get(0).getName().
+        				getFieldValue().map(name -> name.replace(' ', '_')).getOrElse(EMPTY))
+        		.orElse(EMPTY);
+    }
+    
+    private String createFileName(final String authorName, final Timestamp datasetCreationTime) {
+    	
+    	final String publicationYear = new SimpleDateFormat("YYYY").format(datasetCreationTime);
+    	final String now = new SimpleDateFormat("yyyyMMddHHmmss").format(Timestamp.from(now()));
+    	return "fairchive_files_"  + authorName + '_' + publicationYear + '_' + now + ".zip";
     }
 
     @GET
@@ -882,32 +919,7 @@ public class Datasets extends AbstractApiBean {
                     CuratePublishedDatasetVersionCommand cmd =
                             new CuratePublishedDatasetVersionCommand(ds, createDataverseRequest(user));
                     ds = commandEngine.submit(cmd);
-                    successMsg = BundleUtil.getStringFromBundle("datasetversion.update.success");
-
-                    // If configured, update archive copy as well
-                    String className = settingsService.getValueForKey(SettingsServiceBean.Key.ArchiverClassName);
-                    DatasetVersion updateVersion = ds.getLatestVersion();
-                    AbstractSubmitToArchiveCommand archiveCommand = ArchiverUtil.createSubmitToArchiveCommand(
-                            className, createDataverseRequest(user), updateVersion, authenticationServiceBean, Clock.systemUTC());
-                    if (archiveCommand != null) {
-                        // Delete the record of any existing copy since it is now out of date/incorrect
-                        updateVersion.setArchivalCopyLocation(null);
-
-                        // Then try to generate and submit an archival copy. Note that running this command within the
-                        // CuratePublishedDatasetVersionCommand was causing an error:
-                        // "The attribute [id] of class [edu.harvard.iq.dataverse.DatasetFieldCompoundValue] is mapped
-                        // to a primary key column in the database. Updates are not allowed."
-                        // To avoid that, and to simplify reporting back to the GUI whether this optional step
-                        // succeeded, I've pulled this out as a separate submit().
-                        try {
-                            updateVersion = commandEngine.submit(archiveCommand);
-                            successMsg = BundleUtil.getStringFromBundle(updateVersion.getArchivalCopyLocation() != null
-                                    ? "datasetversion.update.archive.success" : "datasetversion.update.archive.failure");
-                        } catch (CommandException ex) {
-                            successMsg = BundleUtil.getStringFromBundle("datasetversion.update.archive.failure") + " - " + ex.toString();
-                            logger.severe(ex.getMessage());
-                        }
-                    }
+                    successMsg = BundleUtil.getStringFromBundle("datasetversion.update.success");                  
                 } catch (CommandException ex) {
                     errorMsg = BundleUtil.getStringFromBundle("datasetversion.update.failure") + " - " + ex.toString();
                     logger.severe(ex.getMessage());

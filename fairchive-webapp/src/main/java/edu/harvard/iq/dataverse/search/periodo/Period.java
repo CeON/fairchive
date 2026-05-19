@@ -11,7 +11,7 @@ import org.apache.solr.client.solrj.beans.Field;
 
 public class Period {
     
-    static final String base = "http://n2t.net/ark:/99152/";
+    public static final String base = "http://n2t.net/ark:/99152/";
     
     @Field
     private String id;

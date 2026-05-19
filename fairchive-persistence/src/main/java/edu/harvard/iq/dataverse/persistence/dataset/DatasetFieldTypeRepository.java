@@ -17,9 +17,8 @@ public class DatasetFieldTypeRepository extends JpaRepository<Long, DatasetField
     // -------------------- LOGIC --------------------
 
     public Optional<DatasetFieldType> findByName(String name) {
-        return getSingleResult(em.createQuery(
-                        "select t from DatasetFieldType t where t.name= :name",
-                        DatasetFieldType.class)
+        return getSingleResult(createQuery(
+                        "select t from DatasetFieldType t where t.name= :name")
                 .setParameter("name", name));
     }
 }

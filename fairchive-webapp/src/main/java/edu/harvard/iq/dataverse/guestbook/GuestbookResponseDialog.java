@@ -6,7 +6,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
 import edu.harvard.iq.dataverse.util.FileUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
 import javax.inject.Inject;

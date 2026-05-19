@@ -1,18 +1,18 @@
 package edu.harvard.iq.dataverse.persistence.workflow;
 
-import com.google.common.io.InputSupplier;
+import static java.util.Objects.requireNonNull;
 
 import java.io.InputStream;
+import java.util.function.Supplier;
 
-import static java.util.Objects.requireNonNull;
 
 public class WorkflowArtifactSource {
 
     private final String name;
     private final String encoding;
-    private final InputSupplier<InputStream> dataSupplier;
+    private final Supplier<InputStream> dataSupplier;
 
-    public WorkflowArtifactSource(String name, String encoding, InputSupplier<InputStream> dataSupplier) {
+    public WorkflowArtifactSource(String name, String encoding, Supplier<InputStream> dataSupplier) {
         this.name = requireNonNull(name);
         this.encoding = requireNonNull(encoding);
         this.dataSupplier = requireNonNull(dataSupplier);
@@ -26,7 +26,7 @@ public class WorkflowArtifactSource {
         return encoding;
     }
 
-    public InputSupplier<InputStream> getDataSupplier() {
+    public Supplier<InputStream> getDataSupplier() {
         return dataSupplier;
     }
 }

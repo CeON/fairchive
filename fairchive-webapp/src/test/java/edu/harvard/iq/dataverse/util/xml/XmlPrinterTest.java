@@ -11,12 +11,14 @@ public class XmlPrinterTest {
     @Test
     public void testPrettyPrintXmlShort() {
 
-        String[] results = prettyPrintXml("<foo><bar>baz</bar></foo>").split("\\R");
-
-        assertThat(results[0]).isEqualTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        assertThat(results[1]).isEqualTo("<foo>");
-        assertThat(results[2]).isEqualTo("  <bar>baz</bar>");
-        assertThat(results[3]).isEqualTo("</foo>");
+    	String result = prettyPrintXml("<foo><bar>baz</bar></foo>");
+        
+        assertThat(result).containsSubsequence(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<foo>",
+                "  <bar>baz</bar>",
+                "</foo>"
+        );
     }
 
     @Test

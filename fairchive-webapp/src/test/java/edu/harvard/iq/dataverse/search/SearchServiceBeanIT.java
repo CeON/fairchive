@@ -20,7 +20,7 @@ import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
 import edu.harvard.iq.dataverse.search.response.GeoPoint;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;

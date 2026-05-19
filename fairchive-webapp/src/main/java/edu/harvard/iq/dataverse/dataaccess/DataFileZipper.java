@@ -21,7 +21,7 @@ package edu.harvard.iq.dataverse.dataaccess;
 
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.IOException;
 import java.io.InputStream;

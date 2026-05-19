@@ -21,8 +21,18 @@
 package edu.harvard.iq.dataverse.util;
 
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundleWithLocale;
 import static edu.harvard.iq.dataverse.common.FileSizeUtil.bytesToHumanReadable;
+import static java.io.File.createTempFile;
+import static java.lang.String.format;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.createTempFile;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.newOutputStream;
+import static java.util.UUID.randomUUID;
 import static org.apache.commons.io.IOUtils.toByteArray;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,13 +51,13 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
 import edu.harvard.iq.dataverse.datasetutility.FileExceedsMaxSizeException;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
@@ -92,12 +102,15 @@ public class FileUtil implements java.io.Serializable {
             fileType = fileType.substring(0, fileType.indexOf(";"));
         }
         if (fileType.split("/")[0].isEmpty()) {
-            return BundleUtil.getStringFromNonDefaultBundleWithLocale("application/octet-stream", "MimeTypeFacets", locale);
+            return getStringFromNonDefaultBundleWithLocale("application/octet-stream", 
+            		"MimeTypeFacets", locale);
         }
 
-        return Optional.ofNullable(BundleUtil.getStringFromNonDefaultBundleWithLocale(fileType, "MimeTypeFacets", locale))
+        return Optional.ofNullable(getStringFromNonDefaultBundleWithLocale(fileType, 
+        			"MimeTypeFacets", locale))
                 .filter(bundleName -> !bundleName.isEmpty())
-                .orElse(BundleUtil.getStringFromNonDefaultBundleWithLocale("application/octet-stream", "MimeTypeFacets", locale));
+                .orElse(getStringFromNonDefaultBundleWithLocale("application/octet-stream", 
+                		"MimeTypeFacets", locale));
     }
 
     // from MD5Checksum.java
@@ -160,37 +173,21 @@ public class FileUtil implements java.io.Serializable {
         return sb.toString();
     }
 
-    public static String generateOriginalExtension(String fileType) {
-        if (fileType.equalsIgnoreCase("application/x-spss-sav")) {
-            return ".sav";
-        } else if (fileType.equalsIgnoreCase("application/x-spss-por")) {
-            return ".por";
-        } else if (fileType.equalsIgnoreCase("application/x-stata")) {
-            return ".dta";
-        } else if (fileType.equalsIgnoreCase("application/x-rlang-transport")) {
-            return ".RData";
-        } else if (fileType.equalsIgnoreCase("text/csv")) {
-            return ".csv";
-        } else if (fileType.equalsIgnoreCase("text/tsv")) {
-            return ".tsv";
-        } else if (fileType.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
-            return ".xlsx";
-        }
-
-        return "";
+    public static String generateOriginalExtension(final String fileType) {
+        return MimeTypes.fileExtensionOf(fileType);
     }
 
     public static String getFilesTempDirectory() {
         String filesRootDirectory = SystemConfig.getFilesDirectoryStatic();
-        String filesTempDirectory = filesRootDirectory + "/temp";
+        String filesTempDirectory = filesRootDirectory.concat("/temp");
 
-        if (!Files.exists(Paths.get(filesTempDirectory))) {
+        if (!exists(Paths.get(filesTempDirectory))) {
             /* Note that "createDirectories()" must be used - not
              * "createDirectory()", to make sure all the parent
              * directories that may not yet exist are created as well.
              */
             try {
-                Files.createDirectories(Paths.get(filesTempDirectory));
+                createDirectories(Paths.get(filesTempDirectory));
             } catch (IOException ex) {
                 throw new IllegalStateException("Failed to create files temp directory: " + filesTempDirectory, ex);
             }
@@ -200,9 +197,9 @@ public class FileUtil implements java.io.Serializable {
 
     public static Path limitedInputStreamToTempFile(InputStream inputStream, Long fileSizeLimit)
             throws IOException, FileExceedsMaxSizeException {
-        Path tempFile = Files.createTempFile(Paths.get(getFilesTempDirectory()), "tmp", "upload");
+        Path tempFile = createTempFile(Paths.get(getFilesTempDirectory()), "tmp", "upload");
 
-        try (OutputStream outStream = Files.newOutputStream(tempFile)) {
+        try (OutputStream outStream = newOutputStream(tempFile)) {
             logger.info("Will attempt to save the file as: " + tempFile.toString());
             byte[] buffer = new byte[8 * 1024];
             int bytesRead;
@@ -215,8 +212,9 @@ public class FileUtil implements java.io.Serializable {
                     } catch (Exception ex) {
                         logger.error("There was a problem with deleting temporary file");
                     }
-                    throw new FileExceedsMaxSizeException(fileSizeLimit, MessageFormat.format(BundleUtil.getStringFromBundle("file.addreplace.error.file_exceeds_limit"),
-                                                                               bytesToHumanReadable(fileSizeLimit)));
+                    throw new FileExceedsMaxSizeException(fileSizeLimit, 
+                    		MessageFormat.format(getStringFromBundle("file.addreplace.error.file_exceeds_limit"),
+                                                    bytesToHumanReadable(fileSizeLimit)));
                 }
                 outStream.write(buffer, 0, bytesRead);
             }
@@ -233,7 +231,7 @@ public class FileUtil implements java.io.Serializable {
             logger.info("In inputStreamToFile but inputStream was null! Returning null rather than a File.");
             return null;
         }
-        File file = File.createTempFile(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        File file = createTempFile(randomUUID().toString(), randomUUID().toString());
         try (OutputStream outputStream = new FileOutputStream(file)) {
             byte[] bytes = new byte[bufferSize];
             int read;
@@ -245,7 +243,7 @@ public class FileUtil implements java.io.Serializable {
     }
 
     public static String generateStorageIdentifier() {
-        UUID uid = UUID.randomUUID();
+        UUID uid = randomUUID();
 
         logger.trace("UUID value: {}", uid.toString());
 
@@ -292,7 +290,10 @@ public class FileUtil implements java.io.Serializable {
         }
 
         // 1. Guest Book:
-        if (datasetVersion.getDataset() != null && datasetVersion.getDataset().getGuestbook() != null && datasetVersion.getDataset().getGuestbook().isEnabled() && datasetVersion.getDataset().getGuestbook().getDataverse() != null) {
+        if (datasetVersion.getDataset() != null && 
+        		datasetVersion.getDataset().getGuestbook() != null && 
+        		datasetVersion.getDataset().getGuestbook().isEnabled() && 
+        		datasetVersion.getDataset().getGuestbook().getDataverse() != null) {
             logger.trace("Download popup required because of guestbook.");
             return true;
         }
@@ -364,7 +365,8 @@ public class FileUtil implements java.io.Serializable {
      * This is what the UI displays for "Download URL" on the file landing page
      * (DOIs rather than file IDs.
      */
-    public static String getPublicDownloadUrl(String dataverseSiteUrl, String persistentId, Long fileId) {
+    public static String getPublicDownloadUrl(String dataverseSiteUrl, 
+    		String persistentId, Long fileId) {
         String path = null;
         if (persistentId != null) {
             path = dataverseSiteUrl + "/api/access/datafile/:persistentId?persistentId=" + persistentId;
@@ -379,7 +381,8 @@ public class FileUtil implements java.io.Serializable {
     /**
      * The FileDownloadServiceBean operates on file IDs, not DOIs.
      */
-    public static String getFileDownloadUrlPath(ApiDownloadType downloadType, Long fileId, boolean gbRecordsWritten) {
+    public static String getFileDownloadUrlPath(ApiDownloadType downloadType, 
+    		Long fileId, boolean gbRecordsWritten) {
         Preconditions.checkNotNull(downloadType);
         Preconditions.checkNotNull(fileId);
 
@@ -416,7 +419,8 @@ public class FileUtil implements java.io.Serializable {
         return fileDownloadUrl;
     }
 
-    public static String getBatchFilesDownloadUrlPath(List<Long> fileIds, boolean guestbookRecordsAlreadyWritten, ApiBatchDownloadType downloadType) {
+    public static String getBatchFilesDownloadUrlPath(List<Long> fileIds, 
+    		boolean guestbookRecordsAlreadyWritten, ApiBatchDownloadType downloadType) {
 
         String fileDownloadUrl = "/api/access/datafiles/" + StringUtils.join(fileIds, ',');
         if (guestbookRecordsAlreadyWritten && downloadType == ApiBatchDownloadType.DEFAULT) {
@@ -430,9 +434,11 @@ public class FileUtil implements java.io.Serializable {
         return fileDownloadUrl;
     }
 
-    public static String getDownloadWholeDatasetUrlPath(DatasetVersion dsv, boolean guestbookRecordsAlreadyWritten, ApiBatchDownloadType downloadType) {
+    public static String getDownloadWholeDatasetUrlPath(DatasetVersion dsv, 
+    		boolean guestbookRecordsAlreadyWritten, ApiBatchDownloadType downloadType) {
 
-        String fileDownloadUrl = String.format("/api/datasets/%s/versions/%s/files/download", dsv.getDataset().getId(), dsv.getId());
+        String fileDownloadUrl = format("/api/datasets/%s/versions/%s/files/download", 
+        		dsv.getDataset().getId(), dsv.getId());
 
         if (guestbookRecordsAlreadyWritten && downloadType == ApiBatchDownloadType.DEFAULT) {
             fileDownloadUrl += "?gbrecs=true";
@@ -452,10 +458,11 @@ public class FileUtil implements java.io.Serializable {
     public static String getDownloadWholeDatasetAsCSVUrlPath(DatasetVersion dsv) {
         if (dsv.isReleased()) {
             String version = dsv.getVersionNumber() + "." + dsv.getMinorVersionNumber();
-            return String.format("/api/datasets/%s/versions/%s/files/urls", dsv.getDataset().getId(), version);
+            return format("/api/datasets/%s/versions/%s/files/urls", 
+            		dsv.getDataset().getId(), version);
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     public static byte[] getFileFromResources(String path) {
@@ -488,11 +495,11 @@ public class FileUtil implements java.io.Serializable {
         }
 
         FileCitationExtension(String extension) {
-            this(StringUtils.EMPTY, extension);
+            this(EMPTY, extension);
         }
 
         public String getSuffix() {
-            return text + extension;
+            return text.concat(extension);
         }
 
         public String getExtension() {

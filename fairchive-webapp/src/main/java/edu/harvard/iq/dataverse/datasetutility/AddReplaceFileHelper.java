@@ -1,6 +1,32 @@
 package edu.harvard.iq.dataverse.datasetutility;
 
+import static java.util.Objects.requireNonNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+
+import javax.ejb.EJBException;
+import javax.validation.ConstraintViolation;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.ocpsoft.common.util.Strings;
+
 import com.google.common.base.Preconditions;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
@@ -21,29 +47,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.ocpsoft.common.util.Strings;
-
-import javax.ejb.EJBException;
-import javax.validation.ConstraintViolation;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Methods to add or replace a single file.
@@ -659,13 +662,12 @@ public class AddReplaceFileHelper {
 
         // Does the file exist?
         //
-        DataFile existingFile = fileService.find(dataFileId);
+        DataFile existingFile = fileService.find(dataFileId).orElse(null);
 
         if (existingFile == null) {
             this.addError(BundleUtil.getStringFromBundle("file.addreplace.error.existing_file_to_replace_not_found_by_id", dataFileId.toString()));
             return false;
         }
-
 
         // Do we have permission to replace this file? e.g. Edit the file's dataset
         //

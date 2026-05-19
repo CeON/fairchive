@@ -10,8 +10,8 @@ function initDvJS() {
 
     const MAX_ZOOM = 19;
     var bounds = [
-      [-85, -180], // Southwest corner (near Antarctica)
-      [85, 180]    // Northeast corner (near the Arctic)
+      [-90, -180], // Southwest corner (near Antarctica)
+      [80, 180]    // Northeast corner (near the Arctic)
     ];
     const READ_ONLY_INIT_MAP_OPTS = {
       center: [52.1145028, 19.4235611],
@@ -480,6 +480,11 @@ function initDvJS() {
 
         return cords
     }
+    
+    function isSinglePoint(coordinates) {
+        return Math.abs(coordinates[0][0] - coordinates[1][0]) < 0.000001 &&
+                Math.abs(coordinates[0][1] - coordinates[1][1]) < 0.000001
+    }
 
     // Draw on map: marker, line, polygon using list of coordinates
     // coordinates - excepted format, each line represent pair of longitude, latitude
@@ -505,7 +510,11 @@ function initDvJS() {
       if (cords.length == 1) {
           shape = L.marker(cords[0]).addTo(data.polygonLayer)
       } else if (cords.length == 2) {
-          shape = L.polyline(cords).addTo(data.polygonLayer)
+          if(isSinglePoint(cords)) {
+              shape = L.marker(cords[0]).addTo(data.polygonLayer)
+          } else {
+              shape = L.polyline(cords).addTo(data.polygonLayer)
+          }
       } else if (cords.length >= 3) {
           if (isRectangleAxisAligned(cords)) {
             shape = L.rectangle(cords).addTo(data.polygonLayer);
@@ -690,8 +699,9 @@ function initDvJS() {
     function initializeMapSearchResults(key, data) {
       const mapOptions = Object.assign({}, INIT_MAP_OPTS, {
         maxZoom: MAX_ZOOM,
-        zoom: 1,
-        minZoom: 1
+        zoom: 1.5,
+        minZoom: 1,
+        zoomSnap: 0.5
       });
       data.leafMap = L.map(key, mapOptions);
       let map = data.leafMap;

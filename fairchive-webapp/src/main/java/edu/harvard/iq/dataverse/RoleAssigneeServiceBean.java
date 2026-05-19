@@ -15,6 +15,7 @@ import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
+import edu.harvard.iq.dataverse.persistence.user.RoleAssignmentRepository;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 
 import javax.annotation.PostConstruct;
@@ -25,8 +26,8 @@ import javax.persistence.PersistenceContext;
 
 import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.join;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +60,9 @@ public class RoleAssigneeServiceBean {
 
     @EJB
     DataverseRoleServiceBean dataverseRoleService;
+    
+    @EJB
+    RoleAssignmentRepository roleAssignmentRepository;
 
     protected Map<String, RoleAssignee> predefinedRoleAssignees = new TreeMap<>();
 
@@ -98,9 +102,7 @@ public class RoleAssigneeServiceBean {
     }
 
     public List<RoleAssignment> getAssignmentsFor(String roleAssigneeIdentifier) {
-        return em.createNamedQuery("RoleAssignment.listByAssigneeIdentifier", RoleAssignment.class)
-                .setParameter("assigneeIdentifier", roleAssigneeIdentifier)
-                .getResultList();
+    	return this.roleAssignmentRepository.findByAssigneeIdentifier(roleAssigneeIdentifier);
     }
 
     public Optional<RoleAssignment> getAssignmentFor(String roleAssigneeIdentifier, 
@@ -391,8 +393,6 @@ public class RoleAssigneeServiceBean {
     }
 
     public void removeAllRolesForUserByIdentifier(String identifier) {
-        em.createNamedQuery("RoleAssignment.deleteAllByAssigneeIdentifier", RoleAssignment.class)
-                .setParameter("assigneeIdentifier", identifier)
-                .executeUpdate();
+    	this.roleAssignmentRepository.deleteAllByAssigneeIdentifier(identifier);
     }
 }

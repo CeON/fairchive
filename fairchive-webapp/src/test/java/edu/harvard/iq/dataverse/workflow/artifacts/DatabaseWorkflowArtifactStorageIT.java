@@ -1,21 +1,23 @@
 package edu.harvard.iq.dataverse.workflow.artifacts;
 
-import com.google.common.io.InputSupplier;
-import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.apache.commons.io.IOUtils;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 
 @Transactional(TransactionMode.ROLLBACK)
 public class DatabaseWorkflowArtifactStorageIT extends WebappArquillianDeployment {
@@ -34,7 +36,7 @@ public class DatabaseWorkflowArtifactStorageIT extends WebappArquillianDeploymen
         String location = storageService.write(() -> new ByteArrayInputStream(TEST_DATA));
         byte[] read = IOUtils.toByteArray(storageService.read(location)
                 .orElseThrow(IllegalStateException::new)
-                .getInput());
+                .get());
 
         // then
         assertThat(read).isEqualTo(read);
@@ -45,7 +47,7 @@ public class DatabaseWorkflowArtifactStorageIT extends WebappArquillianDeploymen
         // given & when
         String location = storageService.write(() -> new ByteArrayInputStream(TEST_DATA));
         storageService.delete(location);
-        Optional<InputSupplier<InputStream>> read = storageService.read(location);
+        Optional<Supplier<InputStream>> read = storageService.read(location);
 
         // then
         assertThat(read.isPresent()).isFalse();

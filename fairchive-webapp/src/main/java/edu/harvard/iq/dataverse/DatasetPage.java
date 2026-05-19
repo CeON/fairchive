@@ -11,7 +11,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +29,7 @@ import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.omnifaces.cdi.ViewScoped;
@@ -39,7 +38,6 @@ import org.primefaces.model.StreamedContent;
 
 import com.google.common.collect.Lists;
 
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.DatasetSummaryService;
@@ -51,7 +49,6 @@ import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.NoDatasetFilesException;
-import edu.harvard.iq.dataverse.engine.command.impl.AbstractSubmitToArchiveCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.CreatePrivateUrlCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.CuratePublishedDatasetVersionCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.DeleteDatasetVersionCommand;
@@ -92,7 +89,6 @@ import edu.harvard.iq.dataverse.privateurl.PrivateUrlUtil;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Try;
@@ -134,7 +130,6 @@ public class DatasetPage implements Serializable {
     private DatasetSummaryService datasetSummaryService;
     private GuestbookResponseServiceBean guestbookResponseService;
     private ConfirmEmailServiceBean confirmEmailService;
-    private AuthenticationServiceBean authenticationService;
     private DatasetPageFacade datasetPageFacade;
     private CitationFactory citationFactory;
     private PrivateUrlServiceBean privateUrlService;
@@ -187,7 +182,7 @@ public class DatasetPage implements Serializable {
                        ExportService exportService, 
                        DatasetThumbnailService datasetThumbnailService, DatasetSummaryService datasetSummaryService,
                        GuestbookResponseServiceBean guestbookResponseService, ConfirmEmailServiceBean confirmEmailService,
-                       AuthenticationServiceBean authenticationService, DatasetPageFacade datasetPageFacade,
+                       DatasetPageFacade datasetPageFacade,
                        CitationFactory citationFactory,
                        PrivateUrlServiceBean privateUrlService, SettingsWrapper settingsWrapper) {
         this.session = session;
@@ -207,7 +202,6 @@ public class DatasetPage implements Serializable {
         this.datasetSummaryService = datasetSummaryService;
         this.guestbookResponseService = guestbookResponseService;
         this.confirmEmailService = confirmEmailService;
-        this.authenticationService = authenticationService;
         this.datasetPageFacade = datasetPageFacade;
         this.citationFactory = citationFactory;
         this.privateUrlService = privateUrlService;
@@ -368,6 +362,10 @@ public class DatasetPage implements Serializable {
 
     public boolean isSessionUserAuthenticated() {
         return session.isUserLoggedIn();
+    }
+    
+    public boolean isSuperuserLoggedIn() {
+        return this.session.isSuperUserLoggedIn();
     }
 
     public boolean hasAnythingToUningest() {
@@ -886,37 +884,6 @@ public class DatasetPage implements Serializable {
         try {
             CuratePublishedDatasetVersionCommand cmd = new CuratePublishedDatasetVersionCommand(datasetPageFacade.retrieveDataset(dataset.getId()), dvRequestService.getDataverseRequest());
             dataset = commandEngine.submit(cmd);
-            // If configured, and currently published version is archived, try to update archive copy as well
-            DatasetVersion updateVersion = dataset.getLatestVersion();
-            if (updateVersion.getArchivalCopyLocation() != null) {
-                String className = settingsService.getValueForKey(SettingsServiceBean.Key.ArchiverClassName);
-                AbstractSubmitToArchiveCommand archiveCommand = ArchiverUtil.createSubmitToArchiveCommand(
-                        className, dvRequestService.getDataverseRequest(), updateVersion, authenticationService, Clock.systemUTC());
-                if (archiveCommand != null) {
-                    // Delete the record of any existing copy since it is now out of date/incorrect
-                    updateVersion.setArchivalCopyLocation(null);
-                    /*
-                     * Then try to generate and submit an archival copy. Note that running this
-                     * command within the CuratePublishedDatasetVersionCommand was causing an error:
-                     * "The attribute [id] of class
-                     * [edu.harvard.iq.dataverse.DatasetFieldCompoundValue] is mapped to a primary
-                     * key column in the database. Updates are not allowed." To avoid that, and to
-                     * simplify reporting back to the GUI whether this optional step succeeded, I've
-                     * pulled this out as a separate submit().
-                     */
-                    try {
-                        updateVersion = commandEngine.submit(archiveCommand);
-                        if (updateVersion.getArchivalCopyLocation() != null) {
-                            successMsg = BundleUtil.getStringFromBundle("datasetversion.update.archive.success");
-                        } else {
-                            errorMsg = BundleUtil.getStringFromBundle("datasetversion.update.archive.failure");
-                        }
-                    } catch (CommandException ex) {
-                        errorMsg = BundleUtil.getStringFromBundle("datasetversion.update.archive.failure") + " - " + ex.toString();
-                        logger.severe(ex.getMessage());
-                    }
-                }
-            }
         } catch (CommandException ex) {
             errorMsg = BundleUtil.getStringFromBundle("datasetversion.update.failure") + " - " + ex.toString();
             logger.severe(ex.getMessage());
@@ -994,8 +961,8 @@ public class DatasetPage implements Serializable {
     private Object[] getSuccessMessageArguments() {
         List<String> arguments = new ArrayList<>();
         String dataverseString = "";
-        arguments.add(StringEscapeUtils.escapeHtml(dataset.getDisplayName()));
-        dataverseString += " <a href=\"/dataverse/" + selectedDataverseForLinking.getAlias() + "\">" + StringEscapeUtils.escapeHtml(selectedDataverseForLinking.getDisplayName()) + "</a>";
+        arguments.add(StringEscapeUtils.escapeHtml4(dataset.getDisplayName()));
+        dataverseString += " <a href=\"/dataverse/" + selectedDataverseForLinking.getAlias() + "\">" + StringEscapeUtils.escapeHtml4(selectedDataverseForLinking.getDisplayName()) + "</a>";
         arguments.add(dataverseString);
         return arguments.toArray();
     }
@@ -1361,6 +1328,16 @@ public class DatasetPage implements Serializable {
 
     public Optional<StreamedContent> getLicenseIconContent(FileTermsOfUse termsOfUse) {
         return termsOfUse.getIcon().map(this::toStreamedContent);
+    }
+
+    /**
+     * Retrieves a localized string from the application bundle. Goes through
+     * the alternate bundles if the primary bundle does not contain the key.
+     * This allows for overriding the message in an extension, as referring to
+     * the bundle directly in the template won't work.
+     */
+    public String getMessage(String key) {
+        return BundleUtil.getStringFromBundle(key);
     }
 
     // -------------------- PRIVATE ---------------------

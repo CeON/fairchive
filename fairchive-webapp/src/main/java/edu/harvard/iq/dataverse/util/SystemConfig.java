@@ -43,11 +43,11 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.UseOAISt
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.System.getProperty;
 import static java.util.logging.Logger.getLogger;
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
-import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.math.NumberUtils.toLong;
 
 import java.io.IOException;

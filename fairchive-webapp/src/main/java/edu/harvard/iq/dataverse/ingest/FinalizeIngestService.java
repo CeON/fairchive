@@ -61,7 +61,7 @@ public class FinalizeIngestService {
             logger.warning(
                     "Ingest failure: Failed to save tabular metadata (datatable, datavariables, etc.) in the database. Clearing the datafile object.");
 
-            dataFile = fileService.find(dataFileId);
+            dataFile = fileService.find(dataFileId).orElse(null);
 
             if (dataFile != null) {
                 dataFile.setIngestProblem();
@@ -102,7 +102,7 @@ public class FinalizeIngestService {
             // this probably means that an error occurred while saving the file to the file system
             logger.log(Level.WARNING, "Failed to save the tabular file produced by the ingest (resetting the ingested DataFile back to its original state)", e);
 
-            dataFile = fileService.find(dataFileId);
+            dataFile = fileService.find(dataFileId).orElse(null);
 
             if (dataFile != null) {
                 dataFile.setIngestProblem();

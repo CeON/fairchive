@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.dataset;
 
-import com.google.common.base.Stopwatch;
 import edu.harvard.iq.dataverse.globalid.DataCiteFindDoiResponse;
 import edu.harvard.iq.dataverse.globalid.DataCiteRestApiClient;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
@@ -16,7 +15,6 @@ import javax.inject.Inject;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Service responsible for creating/updating {@link DatasetCitationsCount}s
@@ -66,9 +64,6 @@ public class DatasetCitationsCountUpdater {
      * such cases.
      */
     public void updateCitationCount() {
-        Stopwatch watch = new Stopwatch().start();
-
-        logger.info("Updating citation count started");
         List<Long> datasetIds = datasetRepository.findIdsByNullHarvestedFrom();
         
         for (Long datasetId: datasetIds) {
@@ -80,8 +75,7 @@ public class DatasetCitationsCountUpdater {
             }
         }
         
-        logger.info("Updating citation count finished. Process took {}s", watch.elapsedTime(TimeUnit.SECONDS));
-        watch.stop();
+        logger.info("Updating citation count finished");
     }
 
     // -------------------- PRIVATE --------------------

@@ -4,7 +4,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.omnifaces.cdi.Eager;
 

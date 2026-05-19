@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.export.openaire;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Class which holds information's required to generate OpenAire funder contributor.

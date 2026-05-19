@@ -22,7 +22,6 @@ import edu.harvard.iq.dataverse.api.dto.RoleDTO;
 import edu.harvard.iq.dataverse.api.dto.UserListResultDTO;
 import edu.harvard.iq.dataverse.authorization.AuthTestDataServiceBean;
 import edu.harvard.iq.dataverse.authorization.AuthenticationProvider;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.authorization.UserRecordIdentifier;
 import edu.harvard.iq.dataverse.authorization.exceptions.AuthenticationProviderFactoryNotFoundException;
 import edu.harvard.iq.dataverse.authorization.exceptions.AuthorizationSetupException;
@@ -42,8 +41,6 @@ import edu.harvard.iq.dataverse.dataset.DatasetThumbnail;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
-import edu.harvard.iq.dataverse.engine.command.impl.AbstractSubmitToArchiveCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.PublishDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.RegisterDvObjectCommand;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
@@ -58,7 +55,6 @@ import edu.harvard.iq.dataverse.persistence.config.EMailValidator;
 import edu.harvard.iq.dataverse.persistence.consent.Consent;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
@@ -70,7 +66,6 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.userdata.UserListMaker;
 import edu.harvard.iq.dataverse.userdata.UserListResult;
-import edu.harvard.iq.dataverse.util.ArchiverUtil;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.validation.BeanValidationServiceBean;
 import edu.harvard.iq.dataverse.validation.PasswordValidatorServiceBean;
@@ -112,7 +107,6 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 import java.io.InputStream;
 import java.io.StringReader;
-import java.time.Clock;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -194,9 +188,6 @@ public class Admin extends AbstractApiBean {
 
     @Inject
     private DvObjectDao dvObjectDao;
-
-    @Inject
-    private AuthenticationServiceBean authenticationService;
 
     public static final String listUsersPartialAPIPath = "list-users";
     public static final String listUsersFullAPIPath = "/api/admin/" + listUsersPartialAPIPath;
@@ -1381,49 +1372,6 @@ public class Admin extends AbstractApiBean {
                 successes + " of  " + rehashed + " files successfully rehashed with the new algorithm. " + new Date());
 
         return ok("Datafile rehashing complete." + successes + " of  " + rehashed + " files successfully rehashed.");
-    }
-
-    @GET
-    @Path("/submitDataVersionToArchive/{id}/{version}")
-    public Response submitDatasetVersionToArchive(@PathParam("id") String dsid, @PathParam("version") String versionNumber) {
-
-        try {
-            AuthenticatedUser au = findAuthenticatedUserOrDie();
-            session.logIn(au);
-            Dataset ds = findDatasetOrDie(dsid);
-
-            DatasetVersion dv = datasetversionService.findByFriendlyVersionNumber(ds.getId(), versionNumber);
-            if (dv.getArchivalCopyLocation() == null) {
-                String className = settingsService.getValueForKey(SettingsServiceBean.Key.ArchiverClassName);
-                AbstractSubmitToArchiveCommand cmd = ArchiverUtil.createSubmitToArchiveCommand(
-                        className, dvRequestService.getDataverseRequest(), dv, authenticationService, Clock.systemUTC());
-                if (cmd != null) {
-                    new Thread(new Runnable() {
-                        public void run() {
-                            try {
-                                DatasetVersion dv = commandEngine.submit(cmd);
-                                if (dv.getArchivalCopyLocation() != null) {
-                                    logger.info("DatasetVersion id=" + ds.getGlobalId().toString() + " v" + versionNumber + " submitted to Archive at: "
-                                                        + dv.getArchivalCopyLocation());
-                                } else {
-                                    logger.severe("Error submitting version due to conflict/error at Archive");
-                                }
-                            } catch (CommandException ex) {
-                                logger.log(Level.SEVERE, "Unexpected Exception calling  submit archive command", ex);
-                            }
-                        }
-                    }).start();
-                    return ok("Archive submission using " + cmd.getClass().getCanonicalName() + " started. Processing can take significant time for large datasets. View log and/or check archive for results.");
-                } else {
-                    logger.log(Level.SEVERE, "Could not find Archiver class: " + className);
-                    return error(INTERNAL_SERVER_ERROR, "Could not find Archiver class: " + className);
-                }
-            } else {
-                return error(BAD_REQUEST, "Version already archived at: " + dv.getArchivalCopyLocation());
-            }
-        } catch (WrappedResponse e1) {
-            return error(UNAUTHORIZED, "api key required");
-        }
     }
 
     @DELETE

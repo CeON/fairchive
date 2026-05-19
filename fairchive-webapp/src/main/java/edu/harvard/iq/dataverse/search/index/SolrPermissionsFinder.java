@@ -4,7 +4,7 @@ import static edu.harvard.iq.dataverse.search.index.SearchPermissions.ALWAYS_PUB
 import static edu.harvard.iq.dataverse.search.index.SearchPermissions.NEVER_PUBLIC;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.time.Instant;
 import java.util.ArrayList;

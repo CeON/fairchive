@@ -23,26 +23,26 @@ public class OAIRecordRepository extends JpaRepository<Long, OAIRecord> {
     // -------------------- LOGIC --------------------
 
     public List<OAIRecord> findBySetName(String setName) {
-        return em.createQuery("SELECT r from OAIRecord r where r.setName = :setName", OAIRecord.class)
+        return createQuery("SELECT r from OAIRecord r where r.setName = :setName")
             .setParameter("setName", setName)
             .getResultList();
     }
 
     public List<OAIRecord> findBySetNameAndRemoved(String setName, boolean removed) {
-        return em.createQuery("SELECT r from OAIRecord r where r.setName = :setName and r.removed = :removed", OAIRecord.class)
+        return createQuery("SELECT r from OAIRecord r where r.setName = :setName and r.removed = :removed")
             .setParameter("setName", setName)
             .setParameter("removed", removed)
             .getResultList();
     }
 
     public List<OAIRecord> findByGlobalId(String globalId) {
-        return em.createQuery("SELECT r from OAIRecord r where r.globalId = :globalId", OAIRecord.class)
+        return createQuery("SELECT r from OAIRecord r where r.globalId = :globalId")
                 .setParameter("globalId", globalId)
                 .getResultList();
     }
 
     public List<OAIRecord> findByGlobalIds(List<String> globalIds) {
-        return em.createQuery("SELECT r from OAIRecord r where r.globalId in :globalIds", OAIRecord.class)
+        return createQuery("SELECT r from OAIRecord r where r.globalId in :globalIds")
                 .setParameter("globalIds", globalIds)
                 .getResultList();
     }
@@ -76,7 +76,7 @@ public class OAIRecordRepository extends JpaRepository<Long, OAIRecord> {
     }
 
     public void deleteBySetName(String setName) {
-        em.createQuery("delete from OAIRecord hs where hs.setName = :setName", OAIRecord.class)
+        createQuery("delete from OAIRecord hs where hs.setName = :setName")
             .setParameter("setName", setName)
             .executeUpdate();
     }

@@ -87,14 +87,14 @@ public class DatasetFieldUtil {
         return dsf;
     }
 
-    public static List<DatasetField> copyDatasetFields(List<DatasetField> copyFromList) {
-        List<DatasetField> retList = new ArrayList<>();
+    public static List<DatasetField> copyDatasetFields(final List<DatasetField> source) {
+        final List<DatasetField> result = new ArrayList<>(source.size());
 
-        for (DatasetField sourceDsf : copyFromList) {
-            retList.add(copyDatasetField(sourceDsf));
+        for (final DatasetField field : source) {
+            result.add(copyDatasetField(field));
         }
 
-        return retList;
+        return result;
     }
 
     public static Map<MetadataBlock, List<DatasetField>> groupByBlock(List<DatasetField> datasetFields) {

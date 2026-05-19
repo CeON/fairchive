@@ -1,9 +1,7 @@
 package edu.harvard.iq.dataverse.workflow.artifacts;
 
-import com.google.common.io.InputSupplier;
-import org.apache.commons.io.IOUtils;
+import static java.util.Optional.ofNullable;
 
-import javax.enterprise.inject.Vetoed;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,8 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-import static java.util.Optional.ofNullable;
+import javax.enterprise.inject.Vetoed;
+
+import org.apache.commons.io.IOUtils;
 
 /**
  * Simple in-memory implementation of {@link WorkflowArtifactStorage}.
@@ -24,15 +25,15 @@ public class MemoryWorkflowArtifactStorage implements WorkflowArtifactStorage {
     private static final Map<String, byte[]> storage = new HashMap<>();
 
     @Override
-    public Optional<InputSupplier<InputStream>> read(String location) {
+    public Optional<Supplier<InputStream>> read(String location) {
         return ofNullable(storage.get(location))
                 .map(bytes -> () -> new ByteArrayInputStream(bytes));
     }
 
     @Override
-    public String write(InputSupplier<InputStream> data) throws IOException {
+    public String write(Supplier<InputStream> data) throws IOException {
         String location = UUID.randomUUID().toString();
-        try (InputStream in = data.getInput()) {
+        try (InputStream in = data.get()) {
             storage.put(location, IOUtils.toByteArray(in));
         }
         return location;

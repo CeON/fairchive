@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.authorization.providers.builtin;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3. RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mindrot.jbcrypt.BCrypt;
 

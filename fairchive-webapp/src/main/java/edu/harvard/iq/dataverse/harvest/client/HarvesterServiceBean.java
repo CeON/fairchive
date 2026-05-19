@@ -5,7 +5,7 @@ import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestType;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Asynchronous;

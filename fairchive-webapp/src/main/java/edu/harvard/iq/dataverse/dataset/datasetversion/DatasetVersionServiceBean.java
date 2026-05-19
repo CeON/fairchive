@@ -7,7 +7,7 @@ import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.sort;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.Serializable;
@@ -35,7 +35,7 @@ import javax.persistence.Query;
 import javax.validation.ConstraintViolation;
 import javax.validation.ValidationException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
@@ -130,7 +130,7 @@ public class DatasetVersionServiceBean implements Serializable {
         private String actualVersion = null;
         private String requestedVersion = null;
 
-        private RetrieveDatasetVersionResponse(DatasetVersion datasetVersion, String requestedVersion) {
+        public RetrieveDatasetVersionResponse(DatasetVersion datasetVersion, String requestedVersion) {
             if (datasetVersion == null) {
                 throw new IllegalArgumentException("datasetVersion cannot be null");
             }
@@ -192,6 +192,10 @@ public class DatasetVersionServiceBean implements Serializable {
 
     public DatasetVersion getById(Long id) {
         return versionRepository.findById(id).orElse(null);
+    }
+    
+    public Optional<DatasetVersion> findById(final Long id) {
+    	return this.versionRepository.findById(id);
     }
 
     public DatasetVersion findByFriendlyVersionNumber(Long datasetId, String friendlyVersionNumber) {
@@ -682,9 +686,9 @@ public class DatasetVersionServiceBean implements Serializable {
 
             if (thumbnailFileId != null) {
                 log.trace("obtained file id: {}", thumbnailFileId);
-                DataFile thumbnailFile = datafileService.find(thumbnailFileId);
-                if (thumbnailFile != null) {
-                    if (datafileService.isThumbnailAvailable(thumbnailFile)) {
+                Optional<DataFile> thumbnailFile = datafileService.find(thumbnailFileId);
+                if (thumbnailFile.isPresent()) {
+                    if (datafileService.isThumbnailAvailable(thumbnailFile.get())) {
                         assignDatasetThumbnailByNativeQuery(versionId, thumbnailFileId);
                         return thumbnailFileId;
                     }
@@ -712,9 +716,9 @@ public class DatasetVersionServiceBean implements Serializable {
             }
 
             if (thumbnailFileId != null) {
-                DataFile thumbnailFile = datafileService.find(thumbnailFileId);
-                if (thumbnailFile != null) {
-                    if (datafileService.isThumbnailAvailable(thumbnailFile)) {
+                Optional<DataFile> thumbnailFile = datafileService.find(thumbnailFileId);
+                if (thumbnailFile.isPresent()) {
+                    if (datafileService.isThumbnailAvailable(thumbnailFile.get())) {
                         assignDatasetThumbnailByNativeQuery(versionId, thumbnailFileId);
                         return thumbnailFileId;
                     }
@@ -825,6 +829,16 @@ public class DatasetVersionServiceBean implements Serializable {
 
     public void saveFileMetadata(List<FileMetadata> fileMetadatas) {
         fileMetadatas.forEach(em::merge);
+    }
+    
+    public void saveInOrder(List<FileMetadata> fileMetadatas) {
+        for (int i = 0; i < fileMetadatas.size(); i++) {
+            final FileMetadata fileMetadata = fileMetadatas.get(i);
+            if (fileMetadata.getDisplayOrder() != i) {
+                fileMetadata.setDisplayOrder(i);
+            }
+            em.merge(fileMetadata);
+        }
     }
 
     private boolean isFileUnfsIdentical(List<String> fileUnfs1, List<String> fileUnfs2) {

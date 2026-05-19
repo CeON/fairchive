@@ -12,7 +12,7 @@ import edu.harvard.iq.dataverse.export.RelatedIdentifierTypeConstants;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.search.response.GeoPoint;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -1043,7 +1043,7 @@ public class OpenAireExportUtil {
                             for (final DatasetFieldDTO next : foo) {
                                 if (DatasetFieldConstant.descriptionText.equals(next.getTypeName())) {
                                     descriptionOfAbstract = MarkupChecker.stripAllTags(next.getSinglePrimitive());
-                                    descriptionOfAbstract = StringEscapeUtils.unescapeHtml(descriptionOfAbstract);
+                                    descriptionOfAbstract = StringEscapeUtils.unescapeHtml4(descriptionOfAbstract);
                                 }
                             }
 

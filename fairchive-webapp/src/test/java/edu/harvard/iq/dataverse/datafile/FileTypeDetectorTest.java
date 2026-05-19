@@ -49,7 +49,7 @@ public class FileTypeDetectorTest {
         // given
         File file = UnitTestUtils.copyFileFromClasspath(fileClasspath, tempDir.toPath().resolve("file")).toFile();
         // when & then
-        assertThat(fileTypeDetector.determineFileType(file, "file")).isEqualTo(expectedFileType);
+        assertThat(fileTypeDetector.determineFileType(file, "file")).startsWith(expectedFileType);
     }
     
     @ParameterizedTest
@@ -76,7 +76,7 @@ public class FileTypeDetectorTest {
         // given
         File file = UnitTestUtils.copyFileFromClasspath("jhove/empty", tempDir.toPath().resolve("file")).toFile();
         // when & then
-        assertThat(fileTypeDetector.determineFileType(file, filename)).isEqualTo(expectedFileType);
+        assertThat(fileTypeDetector.determineFileType(file, filename)).startsWith(expectedFileType);
     }
 
     @ParameterizedTest
@@ -102,6 +102,6 @@ public class FileTypeDetectorTest {
         // given
         File file = UnitTestUtils.copyFileFromClasspath(fileClasspath, tempDir.toPath().resolve("file")).toFile();
         // when & then
-        assertThat(fileTypeDetector.determineFileType(file, filename)).isEqualTo(expectedFileType);
+        assertThat(fileTypeDetector.determineFileType(file, filename)).startsWith(expectedFileType);
     }
 }

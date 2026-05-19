@@ -1,6 +1,6 @@
 package edu.harvard.iq.dataverse.license.dto;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class LicenseIconDto {
 

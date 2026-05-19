@@ -425,6 +425,12 @@
                                                     <h:outputText value="#{bundle['dataset.editBtn.itemLabel.upload']}"/>
                                                 </h:outputLink>
                                             </li>
+                                            <li jsf:rendered="#{DatasetPage.superuserLoggedIn}">
+                                                <h:outputLink
+                                                        value="/editdatafiles.xhtml?datasetId=#{DatasetPage.dataset.id}&#38;mode=UPLOAD&#38;ignoringMaxUploadLimit=true">
+                                                    <h:outputText value="#{bundle['dataset.editBtn.itemLabel.uploadIgnoringLimit']}"/>
+                                                </h:outputLink>
+                                            </li>
                                             <li>
                                                 <h:outputLink
                                                         value="/editDatasetMetadata.xhtml?datasetId=#{DatasetPage.dataset.id}">
@@ -1149,7 +1155,7 @@
                           rendered="#{DatasetPage.canPublishDataset()}">
 
                     <p class="text-warning">
-                        <span class="glyphicon glyphicon-warning-sign"/> #{bundle['dataset.publish.tip']}
+                        <span class="glyphicon glyphicon-warning-sign"/> #{DatasetPage.getMessage('dataset.publish.tip')}
                     </p>
                     <div id="terms-agreement-block" class="well"
                          jsf:rendered="#{DatasetPage.datasetPublishCustomText.length() > 0}">
@@ -1206,7 +1212,7 @@
                                       escape="false"/>
                     </div>
                     <p class="help-block">
-                        #{bundle['dataset.publishBoth.tip']}
+                        #{DatasetPage.getMessage('dataset.publishBoth.tip')}
                     </p>
                     <div class="button-block">
                         <p:commandButton value="#{bundle['dataset.mayNotBePublished.both.button']}"

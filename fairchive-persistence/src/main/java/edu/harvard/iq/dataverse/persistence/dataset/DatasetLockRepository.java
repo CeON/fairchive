@@ -27,7 +27,7 @@ public class DatasetLockRepository extends JpaRepository<Long, DatasetLock> {
     }
     
     private List<DatasetLock> find(final String query, final Long id) {
-        return this.em.createQuery(query, DatasetLock.class)
+        return createQuery(query)
                 .setParameter("id", id)
                 .getResultList();
     }

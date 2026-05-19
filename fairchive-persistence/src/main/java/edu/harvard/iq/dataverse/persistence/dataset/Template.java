@@ -1,10 +1,18 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.persistence.config.EntityCustomizer;
-import edu.harvard.iq.dataverse.persistence.config.annotations.CustomizeSelectionQuery;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import org.eclipse.persistence.annotations.Customizer;
-import org.hibernate.validator.constraints.NotBlank;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+import static javax.persistence.TemporalType.TIMESTAMP;
+
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,18 +26,12 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.validation.constraints.Size;
 
-import static javax.persistence.CascadeType.MERGE;
-import static javax.persistence.CascadeType.PERSIST;
-import static javax.persistence.CascadeType.REMOVE;
-import static javax.persistence.GenerationType.IDENTITY;
-import static javax.persistence.TemporalType.TIMESTAMP;
+import org.eclipse.persistence.annotations.Customizer;
+import org.hibernate.validator.constraints.NotBlank;
 
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import edu.harvard.iq.dataverse.persistence.config.EntityCustomizer;
+import edu.harvard.iq.dataverse.persistence.config.annotations.CustomizeSelectionQuery;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 /**
  * @author skraffmiller
@@ -63,6 +65,8 @@ public class Template implements Serializable {
     @ManyToOne
     @JoinColumn(nullable = true)
     private Dataverse dataverse;
+    
+    public final static Comparator<Template> comparator = (t1, t2) -> t1.name.compareToIgnoreCase(t2.name);
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -153,9 +157,7 @@ public class Template implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override

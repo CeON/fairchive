@@ -11,7 +11,7 @@ import edu.harvard.iq.dataverse.globalid.DataCiteFindDoiResponse;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import io.vavr.control.Option;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.Stateless;
 import java.util.ArrayList;

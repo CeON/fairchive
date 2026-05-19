@@ -66,7 +66,7 @@ public class UpdateDatasetThumbnailCommand extends AbstractCommand<DatasetThumbn
                 if (dataFileIdSupplied == null) {
                     throw new CommandException("A file was not selected to be the new dataset thumbnail.", this);
                 }
-                DataFile datasetFileThumbnailToSwitchTo = ctxt.files().find(dataFileIdSupplied);
+                DataFile datasetFileThumbnailToSwitchTo = ctxt.files().find(dataFileIdSupplied).orElse(null);
                 if (datasetFileThumbnailToSwitchTo == null) {
                     throw new CommandException("Could not find file based on id supplied: " 
                             + dataFileIdSupplied + ".", this);

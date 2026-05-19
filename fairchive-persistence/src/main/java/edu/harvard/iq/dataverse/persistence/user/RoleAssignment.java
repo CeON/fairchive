@@ -36,18 +36,8 @@ import edu.harvard.iq.dataverse.persistence.JpaEntity;
         , @Index(columnList = "role_id")}
 )
 @NamedQueries({
-        @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier_DefinitionPointId",
-                query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId AND r.anonymized = :anonymized"),
         @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier_DefinitionPointId_RoleId",
                 query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId and r.role.id=:roleId"),
-        @NamedQuery(name = "RoleAssignment.listByAssigneeIdentifier",
-                query = "SELECT r FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier"),
-        @NamedQuery(name = "RoleAssignment.listByDefinitionPointId",
-                query = "SELECT r FROM RoleAssignment r WHERE r.definitionPoint.id=:definitionPointId"),
-        @NamedQuery(name = "RoleAssignment.listByPrivateUrlToken",
-                query = "SELECT r FROM RoleAssignment r WHERE r.privateUrlToken=:privateUrlToken"),
-        @NamedQuery(name = "RoleAssignment.deleteAllByAssigneeIdentifier",
-                query = "DELETE FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier"),
         @NamedQuery(name = "RoleAssignment.deleteAllByAssigneeIdentifier_Definition_PointId_RoleType",
                 query = "DELETE FROM RoleAssignment r WHERE r.assigneeIdentifier=:assigneeIdentifier AND r.role.id=:roleId and r.definitionPoint.id=:definitionPointId")
 })

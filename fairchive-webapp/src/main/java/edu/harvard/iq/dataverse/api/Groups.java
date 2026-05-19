@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang.StringUtils.isNumeric;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 /**
  * @author michael

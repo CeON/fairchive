@@ -45,7 +45,7 @@ import static edu.harvard.iq.dataverse.util.StringUtil.isEmpty;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -449,7 +449,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
         Object[] messageArgs = {
                 r.getName(),
                 ra.getDisplayInfo().getTitle(),
-                escapeHtml(dvObject.getDisplayName())
+                escapeHtml4(dvObject.getDisplayName())
         };
 
         Try.of(() -> managePermissionsService.assignRoleWithNotification(r, ra, dvObject))

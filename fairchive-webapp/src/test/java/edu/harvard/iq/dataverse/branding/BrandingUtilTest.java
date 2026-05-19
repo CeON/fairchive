@@ -1,47 +1,57 @@
 package edu.harvard.iq.dataverse.branding;
 
-import edu.harvard.iq.dataverse.common.BrandingUtil;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import org.junit.jupiter.api.Test;
+import static edu.harvard.iq.dataverse.common.BrandingUtil.getContactHeader;
+import static edu.harvard.iq.dataverse.common.BrandingUtil.getInstallationBrandName;
+import static edu.harvard.iq.dataverse.common.BrandingUtil.getSupportTeamEmailAddress;
+import static edu.harvard.iq.dataverse.common.BrandingUtil.getSupportTeamName;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.UnsupportedEncodingException;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import java.io.UnsupportedEncodingException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class BrandingUtilTest {
 
     @Test
     public void testGetInstallationBrandName() {
-        assertEquals("LibraScholar", BrandingUtil.getInstallationBrandName("LibraScholar"));
-        assertEquals(null, BrandingUtil.getInstallationBrandName(null));// misconfiguration to set to null
-        assertEquals("", BrandingUtil.getInstallationBrandName(""));// misconfiguration to set to empty string
+    	
+        assertEquals("LibraScholar", getInstallationBrandName("LibraScholar"));
+        assertEquals(null, getInstallationBrandName(null));// misconfiguration to set to null
+        assertEquals("", getInstallationBrandName(""));// misconfiguration to set to empty string
     }
 
     @Test
-    public void testGetSupportTeamName() throws AddressException, UnsupportedEncodingException {
-        assertEquals("Support", BrandingUtil.getSupportTeamName(null, null));
-        assertEquals("Support", BrandingUtil.getSupportTeamName(null, ""));
-        assertEquals("LibraScholar Support", BrandingUtil.getSupportTeamName(null, "LibraScholar"));
-        assertEquals("LibraScholar Support", BrandingUtil.getSupportTeamName(new InternetAddress("support@librascholar.edu"), "LibraScholar"));
-        assertEquals("LibraScholar Support Team", BrandingUtil.getSupportTeamName(new InternetAddress("support@librascholar.edu", "LibraScholar Support Team"), "LibraScholar"));
-        assertEquals("", BrandingUtil.getSupportTeamName(new InternetAddress("support@librascholar.edu", ""), "LibraScholar")); // misconfiguration to set to empty string
+    public void testGetSupportTeamName() 
+    		throws AddressException, UnsupportedEncodingException {
+    	
+        assertEquals("Support", getSupportTeamName(null, null));
+        assertEquals("Support", getSupportTeamName(null, ""));
+        assertEquals("LibraScholar Support", getSupportTeamName(null, "LibraScholar"));
+        assertEquals("LibraScholar Support", getSupportTeamName(new InternetAddress("support@librascholar.edu"), "LibraScholar"));
+        assertEquals("LibraScholar Support Team", getSupportTeamName(new InternetAddress("support@librascholar.edu", "LibraScholar Support Team"), "LibraScholar"));
+        assertEquals("", getSupportTeamName(new InternetAddress("support@librascholar.edu", ""), "LibraScholar")); // misconfiguration to set to empty string
     }
 
     @Test
-    public void testGetSupportEmailAddress() throws AddressException, UnsupportedEncodingException {
-        assertEquals(null, BrandingUtil.getSupportTeamEmailAddress(null));
-        assertEquals("support@librascholar.edu", BrandingUtil.getSupportTeamEmailAddress(new InternetAddress("support@librascholar.edu")));
-        assertEquals("support@librascholar.edu", BrandingUtil.getSupportTeamEmailAddress(new InternetAddress("support@librascholar.edu", "LibraScholar Support Team")));
-        assertEquals("support@librascholar.edu", BrandingUtil.getSupportTeamEmailAddress(new InternetAddress("support@librascholar.edu", ""))); // misconfiguration to set to empty string but doesn't matter
-        assertEquals(null, BrandingUtil.getSupportTeamEmailAddress(new InternetAddress(null, "LibraScholar Support Team"))); // misconfiguration to set to null
-        assertEquals("", BrandingUtil.getSupportTeamEmailAddress(new InternetAddress("", "LibraScholar Support Team"))); // misconfiguration to set to empty string
+    public void testGetSupportEmailAddress() 
+    		throws AddressException, UnsupportedEncodingException {
+    	
+        assertEquals(null, getSupportTeamEmailAddress(null));
+        assertEquals("support@librascholar.edu", getSupportTeamEmailAddress(new InternetAddress("support@librascholar.edu")));
+        assertEquals("support@librascholar.edu", getSupportTeamEmailAddress(new InternetAddress("support@librascholar.edu", "LibraScholar Support Team")));
+        assertEquals("support@librascholar.edu", getSupportTeamEmailAddress(new InternetAddress("support@librascholar.edu", ""))); // misconfiguration to set to empty string but doesn't matter
+        assertEquals(null, getSupportTeamEmailAddress(new InternetAddress(null, "LibraScholar Support Team"))); // misconfiguration to set to null
+        assertEquals("", getSupportTeamEmailAddress(new InternetAddress("", "LibraScholar Support Team"))); // misconfiguration to set to empty string
     }
 
     @Test
     public void testWelcomeInAppNotification() {
-        String message = BundleUtil.getStringFromBundle("notification.welcome",
+    	
+        String message = getStringFromBundle("notification.welcome",
                                                                 "LibraScholar",
                                                                 "<a href=\"http://guides.dataverse.org/en/4.3/user/index.html\">User Guide</a>",
                                                                 "<a href=\"https://demo.dataverse.org\">Demo Site</a>"
@@ -54,7 +64,8 @@ public class BrandingUtilTest {
 
     @Test
     public void testWelcomeEmail() {
-        String message = BundleUtil.getStringFromBundle("notification.email.welcome",
+    	
+        String message = getStringFromBundle("notification.email.welcome",
                                                                 "LibraScholar",
                                                                 "http://guides.librascholar.edu/en",
                                                                 "4.3",
@@ -69,7 +80,8 @@ public class BrandingUtilTest {
 
     @Test
     public void testEmailClosing() {
-        String message = BundleUtil.getStringFromBundle("notification.email.closing",
+    	
+        String message = getStringFromBundle("notification.email.closing",
                                                                 "support@librascholar.edu",
                                                                 "LibraScholar Support Team"
                                                         );
@@ -79,7 +91,8 @@ public class BrandingUtilTest {
 
     @Test
     public void testEmailSubject() {
-        String message = BundleUtil.getStringFromBundle("notification.email.create.account.subject",
+    	
+        String message = getStringFromBundle("notification.email.create.account.subject",
                                                                 "LibraScholar"
                                                         );
         assertEquals("LibraScholar: Your account has been created",
@@ -88,7 +101,8 @@ public class BrandingUtilTest {
 
     @Test
     public void testGetContactHeader() {
-        assertEquals("Contact the Repository's Support", BrandingUtil.getContactHeader());
+    	
+        assertEquals("Contact the Repository's Support", getContactHeader());
     }
 
 }

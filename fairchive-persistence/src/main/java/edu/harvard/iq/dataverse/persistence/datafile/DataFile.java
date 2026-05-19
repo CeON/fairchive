@@ -787,12 +787,10 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof DataFile)) {
-            return false;
-        }
-        DataFile other = (DataFile) object;
-        return Objects.equals(getId(), other.getId());
+    public boolean equals(final Object other) {
+        return other instanceof DataFile
+            ? Objects.equals(getId(), ((DataFile) other).getId())
+            : false;
     }
     
 

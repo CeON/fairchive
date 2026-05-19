@@ -4,7 +4,7 @@ import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseBannerDt
 import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.DataverseLocalizedBannerDto;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.util.Components;
 import org.primefaces.component.datalist.DataList;
