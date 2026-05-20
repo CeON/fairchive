@@ -131,11 +131,11 @@
                 <div jsf:id="filesHeaderCount" 
                      class="col-sm-3 text-left">
                     <!-- Files Count -->
-                    <h:outputFormat value="#{datasetFilesTab.fileMetadatasSearch.getAllAvailableFilesCount() == 1 ? bundle['file.count.one'] : bundle['file.count']}" 
-                                    rendered="#{datasetFilesTab.fileMetadatasSearch.getAllAvailableFilesCount() gt 0}">
-                        <f:param value="#{(datasetFilesTab.filePaginatorPage * datasetFilesTab.rowsPerPage) + 1}"/>
-                        <f:param value="#{Math:min((datasetFilesTab.filePaginatorPage + 1) * datasetFilesTab.rowsPerPage,datasetFilesTab.fileMetadatasSearch.getAllAvailableFilesCount()) }"/>
-                        <f:param value="#{datasetFilesTab.fileMetadatasSearch.getAllAvailableFilesCount()}"/>
+                    <h:outputFormat value="#{datasetFilesTab.fileCount == 1 ? bundle['file.count.one'] : bundle['file.count']}" 
+                                    rendered="#{datasetFilesTab.displayFilesCount()}">
+                        <f:param value="#{datasetFilesTab.minVisibleFileIndex}"/>
+                        <f:param value="#{datasetFilesTab.maxVisibleFileIndex}"/>
+                        <f:param value="#{datasetFilesTab.fileCount}"/>
                     </h:outputFormat>
                 </div>
 
@@ -161,8 +161,7 @@
 
                         <!-- DOWNLOAD ALL FILES BUTTON -->
                         <p:outputPanel style="display: inline-block"
-                                       rendered="#{not empty datasetFilesTab.workingVersion.fileMetadatas
-                                        and datasetFilesTab.downloadButtonAvailable}">
+                                       rendered="#{datasetFilesTab.displayDownloadAllFilesButton()}">
                             <button type="button"
                                     class="btn btn-default btn-access dropdown-toggle" 
                                     data-toggle="dropdown">
@@ -296,7 +295,7 @@
 
                 <!-- Restricted File Icon -->
                 <div class="file-icon-restricted-block"
-                     jsf:rendered="#{fileMetadata.termsOfUse.termsOfUseType eq termsOfUseTypeEnum.RESTRICTED}">
+                     jsf:rendered="#{fileMetadata.fileUseRestricted}">
                     <span class="glyphicon glyphicon-lock text-danger"
                           jsf:rendered="#{!fileDownloadHelper.canUserDownloadFile(fileMetadata)}"/>
                     <span class="icon-unlock text-success"
@@ -307,7 +306,6 @@
         <p:column class="col-file-metadata">
 
             <ui:fragment rendered="#{!empty fileMetadata.dataFile.globalIdString}">
-                <!-- rendered="# {!(fileMetadata.datasetVersion.released or fileMetadata.datasetVersion.deaccessioned)}" -->
                 <a href="#{widgetWrapper.wrapURL('/file.xhtml?persistentId='.concat(fileMetadata.dataFile.globalIdString).concat('&amp;version=').concat(fileMetadata.datasetVersion.friendlyVersionNumber))}"
                     class="file-title-label">
                     #{fileMetadata.label}
@@ -376,7 +374,7 @@
                 </div>
 
                 <div class="file-tags-block"
-                     jsf:rendered="#{!(empty fileMetadata.categories) or !(empty fileMetadata.dataFile.tags)}">
+                     jsf:rendered="#{ileMetadata.hasCategoriesOrTags()}">
                     <ui:fragment rendered="#{!(empty fileMetadata.categories)}">
                         <ui:repeat value="#{fileMetadata.categories}" var="cat">
                             <h:outputText value="#{cat.name}"
@@ -397,7 +395,7 @@
                     <!-- EDIT -->
                     <div style="margin-right:14px;" class="btn-group" 
                          jsf:rendered="#{!widgetWrapper.widgetView and datasetFilesTab.canUpdateDataset() 
-                                        and (datasetFilesTab.fileMetadatasSearch.getAllAvailableFilesCount() gt 0)}">
+                                        and (datasetFilesTab.fileCount gt 0)}">
                         <button type="button" 
                                 class="btn btn-default btn-access dropdown-toggle" 
                                 data-toggle="dropdown"
