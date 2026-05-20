@@ -408,7 +408,13 @@ public class DatasetFilesTab implements Serializable {
 		return fileMetadata.getDataFile().getId() != null 
 				&& isThumbnailAvailable(fileMetadata);
 	}
+	
+	public boolean displayReorderFilesButton() {
+		return canUpdateDataset() && 
+				this.fileMetadatasSearch.getAllAvailableFilesCount() > 1;
+	}
 
+	
     public boolean isThumbnailAvailable(FileMetadata fileMetadata) {
 
         // new and optimized logic:

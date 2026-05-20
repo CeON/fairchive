@@ -205,7 +205,7 @@
                         </p:outputPanel>
 
                         <!-- REORDER FILES BUTTON -->
-                        <h:outputLink rendered="#{datasetFilesTab.canUpdateDataset()}"
+                        <h:outputLink rendered="#{datasetFilesTab.displayReorderFilesButton()}"
                                       value="/reorderdatafiles.xhtml?datasetVersionId=#{datasetFilesTab.workingVersion.id}"
                                       type="button"
                                       styleClass="btn btn-default btn-access #{datasetFilesTab.lockedFromEdits ? 'ui-state-disabled' : ''}"
