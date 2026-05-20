@@ -242,13 +242,14 @@
                 </button>
             </p>
 
-            <h2>#{bundle['dataverse.results.header']}</h2>
-
             <!-- Message for zero results -->
-            <div id="emptyResults" class="emptyResults bg-warning" jsf:rendered="#{(empty SearchIncludeFragment.searchResultsList) and (!SearchIncludeFragment.wasSolrErrorEncountered())}">
+            <div id="emptyResults" 
+                 class="emptyResults bg-warning" 
+                 jsf:rendered="#{(empty SearchIncludeFragment.searchResultsList) and (!SearchIncludeFragment.wasSolrErrorEncountered())}">
                 <!--SEARCH ZERO COUNTS-->
                 <ui:fragment rendered="#{!empty SearchIncludeFragment.query and SearchIncludeFragment.facetCountDataverses eq 0 and SearchIncludeFragment.facetCountDatasets eq 0 and SearchIncludeFragment.facetCountFiles eq 0}">
-                    <p><h:outputFormat value="#{bundle['dataverse.results.empty.zero']}" escape="false">
+                    <p><h:outputFormat value="#{bundle['dataverse.results.empty.zero']}" 
+                                       escape="false">
                         <f:param value="#{settingsWrapper.guidesBaseUrl}"/>
                         <f:param value="#{settingsWrapper.guidesVersion}"/>
                     </h:outputFormat></p>
@@ -257,16 +258,22 @@
                     <!--THIS IS EMPTY / SEARCH-->
                     <ui:fragment rendered="#{SearchIncludeFragment.facetCountDataverses gt 0 or SearchIncludeFragment.facetCountDatasets gt 0 or SearchIncludeFragment.facetCountFiles gt 0}">
                         <!--SEARCH HIDDEN-->
-                        <p><h:outputFormat value="#{bundle['dataverse.results.empty.hidden']}" escape="false">
+                        <p><h:outputFormat value="#{bundle['dataverse.results.empty.hidden']}" 
+                                           escape="false">
                             <f:param value="#{settingsWrapper.guidesBaseUrl}"/>
                             <f:param value="#{settingsWrapper.guidesVersion}"/>
                         </h:outputFormat></p>
                     </ui:fragment>
                     <ui:fragment rendered="#{SearchIncludeFragment.errorFromSolr != null}">
                         <p>
-                            <a data-toggle="collapse" data-parent="#emptyResults" href="#technicalDetails" aria-expanded="true" aria-controls="technicalDetails">[+] #{bundle['dataverse.results.empty.link.technicalDetails']}</a>
+                            <a data-toggle="collapse"
+                               data-parent="#emptyResults"
+                               href="#technicalDetails"
+                               aria-expanded="true"
+                               aria-controls="technicalDetails">[+] #{bundle['dataverse.results.empty.link.technicalDetails']}</a>
                         </p>
-                        <div id="technicalDetails" class="collapse">
+                        <div id="technicalDetails" 
+                             class="collapse">
                             <pre><h:outputText value="#{SearchIncludeFragment.errorFromSolr}"/></pre>
                         </div>
                     </ui:fragment>

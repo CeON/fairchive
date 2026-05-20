@@ -23,7 +23,9 @@
 	   </h:outputFormat>
 	</div>
 
-	<div id="resultsCountPaginatorBlock" class="row" jsf:rendered="#{SearchIncludeFragment.searchResultsCount > 0}">
+	<div id="resultsCountPaginatorBlock" 
+	     class="row" 
+	     jsf:rendered="#{SearchIncludeFragment.searchResultsCount > 0}">
     <!-- RESULTS COUNT -->
     <div class="results-count col-sm-6">
         <h:outputFormat value="#{bundle['dataverse.results.count.toofresults']}">
