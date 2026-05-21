@@ -135,12 +135,13 @@ public class ManageGroupsPage implements java.io.Serializable {
             return this.permissionsWrapper.notFound();
         }
 
-        Boolean hasPermissions = this.permissionsWrapper.canIssueCommand(editDv, CreateExplicitGroupCommand.class);
-        hasPermissions |= this.permissionsWrapper.canIssueCommand(editDv, DeleteExplicitGroupCommand.class);
-        hasPermissions |= this.permissionsWrapper.canIssueCommand(editDv, UpdateExplicitGroupCommand.class);
-        if (!hasPermissions) {
+        if (!this.permissionsWrapper.canIssueAnyOf(editDv, 
+        		CreateExplicitGroupCommand.class, 
+        		DeleteExplicitGroupCommand.class,
+        		UpdateExplicitGroupCommand.class)) {
             return this.permissionsWrapper.notAuthorized();
         }
+        
         this.explicitGroups = new LinkedList<>(this.explicitGroupService.findByOwner(getDataverseId()));
         this.selectedGroup = null;
 
