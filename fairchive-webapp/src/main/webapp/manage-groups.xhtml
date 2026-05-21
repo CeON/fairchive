@@ -207,10 +207,15 @@
                                  value="#{manageGroupsPage.selectedGroupRoleAssignees}"
                                  emptyMessage="#{bundle['dataverse.manageGroups.nomembers']}">
                         <!-- Member Name -->
-                        <p:column width="31%"
+                        <p:column width="25%"
                                   sortBy="#{groupMember.getDisplayInfo().getTitle()}"
                                   headerText="#{bundle['dataverse.manageGroups.edit.dialog.members.name']}">
                             <h:outputText value="#{groupMember.getDisplayInfo().getTitle()}" />
+                        </p:column>
+                        <p:column width="15%"
+                                  sortBy="#{groupMember.getIdentifier()}"
+                                  headerText="#{bundle['dataverse.manageGroups.edit.dialog.members.id']}">
+                            <h:outputText value="#{groupMember.getIdentifier()}" />
                         </p:column>
                         <!-- Member Type -->
                         <p:column width="13%"

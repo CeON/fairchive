@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.util.logging.Logger.getLogger;
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.ArrayList;
@@ -307,14 +308,14 @@ public class ManageGroupsPage implements java.io.Serializable {
             if (!Pattern.matches("^[a-zA-Z0-9\\_\\-]+$", value)) {
                 input.setValid(false);
                 context.addMessage(toValidate.getClientId(),
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "", 
+                        new FacesMessage(SEVERITY_ERROR, "", 
                         		getStringFromBundle("dataverse.permissions.explicitGroupEditDialog.groupIdentifier.invalid")));
 
             } else if (explicitGroupService.findInOwner(dataverse.getId(), value) != null) {
                 // Ok, see that the alias is not taken
                 input.setValid(false);
                 context.addMessage(toValidate.getClientId(),
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "", 
+                        new FacesMessage(SEVERITY_ERROR, "", 
                         		getStringFromBundle("dataverse.permissions.explicitGroupEditDialog.groupIdentifier.taken")));
             }
         }
