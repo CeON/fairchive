@@ -11,6 +11,8 @@ public class FieldValueCopy {
     private String type = StringUtils.EMPTY;
     private String typeField = StringUtils.EMPTY;
     private List<Map<String, String>> fieldsToCopyNames = new ArrayList<>();
+    private String copySourceName = StringUtils.EMPTY;
+    private DatasetFieldType fieldType;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -33,6 +35,8 @@ public class FieldValueCopy {
             }
         }
         FieldValueCopy copier = new FieldValueCopy();
+        copier.copySourceName = copySourceName;
+        copier.fieldType = fieldType;
         copier.type = (String) copyData.get("setType");
         if (copyData.containsKey("setTypeField")) {
             copier.typeField = (String) copyData.get("setTypeField");
@@ -51,16 +55,8 @@ public class FieldValueCopy {
             DatasetField target = DatasetField.createNewEmptyDatasetField(targetCompound.getDatasetFieldType(), null);
             fields.add(target);
 
-            for (Map<String, String> copyMapping : fieldsToCopyNames) {
-                DatasetField sourceMapping = getChildrenField(sourceCompound, copyMapping.get("from"));
-                DatasetField targetMapping = getChildrenField(target, copyMapping.get("to"));
-
-                targetMapping.setValue(sourceMapping.getValue());
-                if(targetMapping.getValue() != null) {
-                	setControlledVocabulary(targetMapping);
-                }
-
-            }
+            target.copyChildValuesFrom(sourceCompound);
+            
             if (!type.equals("copy")) {
                 DatasetField targetMapping = getChildrenField(target, typeField);
                 targetMapping.setValue(type);
@@ -68,22 +64,5 @@ public class FieldValueCopy {
             }
         }
         return fields;
-    }
-
-    // -------------------- PRIVATE --------------------
-
-    private void setControlledVocabulary(DatasetField targetMapping) {
-        if (targetMapping.getDatasetFieldType().isAllowControlledVocabulary()) {
-            targetMapping.getControlledVocabularyValues().add(targetMapping.getDatasetFieldType().getControlledVocabularyValue(targetMapping.getValue()));
-        }
-    }
-
-    private DatasetField getChildrenField(DatasetField compound, String name) {
-        for (DatasetField child : compound.getDatasetFieldsChildren()) {
-            if (name.equals(child.getTypeName())) {
-                return child;
-            }
-        }
-        return null;
     }
 }

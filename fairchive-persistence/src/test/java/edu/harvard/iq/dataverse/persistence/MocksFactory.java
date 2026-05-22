@@ -20,6 +20,8 @@ import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import org.assertj.core.util.Lists;
 
+import static java.util.Arrays.asList;
+
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.Month;
@@ -47,7 +49,7 @@ public class MocksFactory {
         return Long.valueOf(NEXT_ID.incrementAndGet());
     }
 
-    public static Date date(int year, int month, int day) {
+    public static Date date(final int year, int month, int day) {
         return new Date(LocalDate.of(year, Month.of(month), day).toEpochDay());
     }
 
@@ -195,7 +197,8 @@ public class MocksFactory {
         return makeMetadataBlock(nextId(), name, displayName, displayOrder);
     }
 
-    public static MetadataBlock makeMetadataBlock(long id, String name, String displayName, int displayOrder) {
+    public static MetadataBlock makeMetadataBlock(long id, String name, 
+    		String displayName, int displayOrder) {
         MetadataBlock metadataBlock = new MetadataBlock();
         metadataBlock.setId(id);
         metadataBlock.setName(name);
@@ -211,7 +214,8 @@ public class MocksFactory {
         return retVal;
     }
 
-    public static DatasetFieldType makeDatasetFieldType(String name, FieldType fieldType, boolean allowMultiple, MetadataBlock metadataBlock) {
+    public static DatasetFieldType makeDatasetFieldType(String name, FieldType fieldType, 
+    		boolean allowMultiple, MetadataBlock metadataBlock) {
         final Long id = nextId();
         DatasetFieldType retVal = new DatasetFieldType(name, fieldType, allowMultiple);
         retVal.setId(id);
@@ -224,7 +228,8 @@ public class MocksFactory {
         return retVal;
     }
 
-    public static DatasetFieldType makeControlledVocabDatasetFieldType(String name, boolean allowMultiple, MetadataBlock metadataBlock, String... vocabularyStrValues) {
+    public static DatasetFieldType makeControlledVocabDatasetFieldType(String name, 
+    		boolean allowMultiple, MetadataBlock metadataBlock, String... vocabularyStrValues) {
         final Long id = nextId();
         DatasetFieldType retVal = new DatasetFieldType(name, FieldType.TEXT, allowMultiple);
         retVal.setControlledVocabularyValues(new ArrayList<>());
@@ -242,7 +247,9 @@ public class MocksFactory {
         return retVal;
     }
 
-    public static DatasetFieldType makeComplexDatasetFieldType(String name, boolean allowMultiple, MetadataBlock metadataBlock, DatasetFieldType... childDatasetTypes) {
+    public static DatasetFieldType makeComplexDatasetFieldType(String name, 
+    		boolean allowMultiple, MetadataBlock metadataBlock, 
+    		DatasetFieldType... childDatasetTypes) {
         final Long id = nextId();
         DatasetFieldType retVal = new DatasetFieldType(name, FieldType.NONE, allowMultiple);
         retVal.getChildDatasetFieldTypes().addAll(Arrays.asList(childDatasetTypes));
@@ -256,14 +263,16 @@ public class MocksFactory {
         return retVal;
     }
 
-    public static DatasetFieldType makeChildDatasetFieldType(String name, FieldType fieldType, boolean allowMultiple) {
+    public static DatasetFieldType makeChildDatasetFieldType(String name, 
+    		FieldType fieldType, boolean allowMultiple) {
         final Long id = nextId();
         DatasetFieldType retVal = new DatasetFieldType(name, fieldType, allowMultiple);
         retVal.setId(id);
         return retVal;
     }
 
-    public static DatasetField makeEmptyDatasetField(DatasetFieldType datasetFieldType, int numberOfValues) {
+    public static DatasetField makeEmptyDatasetField(DatasetFieldType datasetFieldType, 
+    		int numberOfValues) {
         DatasetField datasetField = new DatasetField();
 
         datasetField.setDatasetFieldType(datasetFieldType);
@@ -376,6 +385,36 @@ public class MocksFactory {
 
     public static ExplicitGroup makeExplicitGroup() {
         return makeExplicitGroup(null);
+    }
+    
+    public static DatasetFieldType newType(final long id, final String name) {
+    	final DatasetFieldType type = new DatasetFieldType();
+		type.setId(id);
+		type.setName(name);
+		type.setTitle(name);
+    	type.setDisplayFormat("#NAME: #VALUE");
+		return type;
+    }
+    
+    public static DatasetField newField(final long id, final String value, 
+    		final DatasetFieldType type) {
+        final DatasetField field = new DatasetField();
+        field.setId(id);
+        field.setValue(value);
+        field.setDatasetFieldType(type);
+        return field;
+    }
+    
+    public static DatasetField newControlledField(final long id, final String value, 
+    		final DatasetFieldType type) {
+        final DatasetField field = new DatasetField();
+        field.setId(id);
+        final ControlledVocabularyValue cValue = new ControlledVocabularyValue();
+        cValue.setId(id);
+        cValue.setStrValue(value);
+        field.setControlledVocabularyValues(asList(cValue));
+        field.setDatasetFieldType(type);
+        return field;
     }
 
 }

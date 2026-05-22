@@ -6,6 +6,7 @@ import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.EMAIL;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.NONE;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXT;
 import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXTBOX;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
@@ -20,6 +21,7 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 
 import javax.faces.model.SelectItem;
 import javax.faces.model.SelectItemGroup;
@@ -729,6 +732,22 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
 
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
+    }
+    
+    void forEachCopyPairFrom(final String sourceFieldName, final BiConsumer<String, String> consumer) {
+        for(final Map<String, String> pair : findCopyPairsBySourceName(sourceFieldName)) {
+        	consumer.accept(pair.get("from"), pair.get("to"));
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+	private List<Map<String, String>> findCopyPairsBySourceName(final String sourceFieldName) {
+    	return ((List<Map<String, Object>>) getMetadata("copyFrom")).
+    		stream().
+    		filter(copyData -> sourceFieldName.equals(copyData.get("source"))).
+    		findFirst().
+    		map(copyData -> (List<Map<String, String>>) copyData.get("copy")).
+    		orElse(emptyList());
     }
 
     // -------------------- hashCode & equals --------------------

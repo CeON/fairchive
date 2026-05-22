@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.Serializable;
@@ -12,6 +13,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -125,6 +128,13 @@ public class DatasetField implements Serializable, ValidatableField {
 
     public List<DatasetField> getDatasetFieldsChildren() {
         return datasetFieldsChildren;
+    }
+    
+    public Optional<DatasetField> getChildByName(final String name) {
+    	return this.datasetFieldsChildren.
+    			stream().
+    			filter(child -> child.isNamed(name)).
+    			findFirst();
     }
 
     public Option<DatasetField> getDatasetFieldParent() {
@@ -251,15 +261,15 @@ public class DatasetField implements Serializable, ValidatableField {
         return getDatasetFieldParent()
                 .map(DatasetField::getDatasetFieldType)
                 .map(DatasetFieldType::getDisplayFormat)
-                .filter(displayFormat -> !StringUtils.equals(displayFormat, "#NEWLINE"))
-                .getOrElse(StringUtils.EMPTY);
+                .filter(displayFormat -> !"#NEWLINE".equals(displayFormat))
+                .getOrElse(EMPTY);
     }
 
     public boolean getParentDisplayFormatIsNewLine() {
         return getDatasetFieldParent()
                 .map(DatasetField::getDatasetFieldType)
                 .map(DatasetFieldType::getDisplayFormat)
-                .map(displayFormat -> StringUtils.equals(displayFormat, "#NEWLINE"))
+                .map(displayFormat -> "#NEWLINE".equals(displayFormat))
                 .getOrElse(false);
     }
 
@@ -417,6 +427,28 @@ public class DatasetField implements Serializable, ValidatableField {
 
     public DatasetField copy() {
         return DatasetFieldUtil.copyDatasetField(this);
+    }
+    
+    public void copyValueFrom(final DatasetField source) {
+    	final String sourceValue = source.getValue();
+    	setValue(sourceValue);
+        if(sourceValue != null && allowsControlledVocabulary()) {
+            this.controlledVocabularyValues.add(this.datasetFieldType.getControlledVocabularyValue(sourceValue));
+        }
+    }
+    
+	public void copyChildValuesFrom(final DatasetField source) {
+		this.datasetFieldType.forEachCopyPairFrom(source.getTypeName(), (from, to) -> {
+			final Optional<DatasetField> sourceChild = source.getChildByName(from);
+			final Optional<DatasetField> targetChild = getChildByName(to);
+			if (sourceChild.isPresent() && targetChild.isPresent()) {
+				targetChild.get().copyValueFrom(sourceChild.get());
+			}
+		});
+	}
+    
+    public boolean allowsControlledVocabulary() {
+    	return this.datasetFieldType.isAllowControlledVocabulary();
     }
 
     public void trimTrailingSpaces() {
@@ -623,9 +655,7 @@ public class DatasetField implements Serializable, ValidatableField {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
