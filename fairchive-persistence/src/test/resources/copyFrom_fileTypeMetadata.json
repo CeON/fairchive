@@ -3,8 +3,6 @@
         {
             "source": "author",
             "text": "dataset.edit.copy.author",
-            "setType": "person",
-            "setTypeField": "sreType",
             "copy": [
                 {
                     "from": "authorName",
@@ -34,12 +32,26 @@
                     "from": "authorIdType",
                     "to": "inexistent"
                 }
+            ],
+            "set": [
+                {
+                    "value":"abc",
+                    "to": "inexistent"
+                },
+                {
+                    "value":"xyz",
+                    "to": "distributorAbbreviation"
+                },
+                {
+                    "value":"a@a.com",
+                    "to": "distributorContactEmail"
+                }
+                
             ]
         },
         {
             "source": "rightsOwner",
             "text": "dataset.edit.copy.rightsOwner",
-            "setType": "copy",
             "copy": [
                 {
                     "from": "roType",

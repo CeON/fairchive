@@ -445,6 +445,16 @@ public class DatasetField implements Serializable, ValidatableField {
 				targetChild.get().copyValueFrom(sourceChild.get());
 			}
 		});
+		
+		this.datasetFieldType.forEachSetPairFrom(source.getTypeName(), (value, to) -> {
+			getChildByName(to).ifPresent(child -> {
+				child.setValue(value);
+				if (value != null && child.allowsControlledVocabulary()) {
+					child.controlledVocabularyValues.add(
+							child.datasetFieldType.getControlledVocabularyValue(value));
+				}
+			});
+		});
 	}
     
     public boolean allowsControlledVocabulary() {

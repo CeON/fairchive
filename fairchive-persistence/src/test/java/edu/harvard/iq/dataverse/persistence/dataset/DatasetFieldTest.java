@@ -8,14 +8,16 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorIdValue
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorName;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributionDate;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributor;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributorAbbreviation;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributorAffiliation;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributorContactEmail;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributorContactName;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributorLogo;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributorName;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributorURL;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeControlledVocabDatasetFieldType;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeDatasetFieldType;
-import static edu.harvard.iq.dataverse.persistence.MocksFactory.*;
+import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeEmptyDatasetField;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.newField;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.newType;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -163,15 +165,23 @@ public class DatasetFieldTest {
         DatasetField distributorLogoField = newField(24, null, newType(24, distributorLogo));
         DatasetField distributionDateField = newField(25, "abc", newType(25, distributionDate));
         DatasetField distributorContactNameField = newField(26, null, newType(26, distributorContactName));
+        DatasetField distributorAbbreviationField = newField(27, null, 
+        		makeControlledVocabDatasetFieldType(distributorAbbreviation, false, 
+        				new MetadataBlock(), "abc", "xyz"));
+        distributorAbbreviationField.getDatasetFieldType().setAllowControlledVocabulary(true);
+        DatasetField distributorContactEmailField = newField(28, null, newType(28, distributorContactEmail));
+        
         distributorField.setDatasetFieldsChildren(asList(distributorNameField, 
         		distributorAffiliationField, distributorURLField, 
-        		distributorLogoField, distributionDateField, distributorContactNameField));
+        		distributorLogoField, distributionDateField, distributorContactNameField,
+        		distributorAbbreviationField, distributorContactEmailField));
         
         distributorField.copyChildValuesFrom(authorField);
         
         assertThat(distributorField.getChildren()).contains(distributorNameField, 
         		distributorAffiliationField, distributorURLField, 
-        		distributorLogoField, distributionDateField, distributorContactNameField);
+        		distributorLogoField, distributionDateField, distributorContactNameField,
+        		distributorAbbreviationField, distributorContactEmailField);
         
         assertThat(distributorNameField.getValue()).isEqualTo(authorNameField.getValue());
         assertThat(distributorAffiliationField.getValue()).isEqualTo(authorAffiliationField.getValue());
@@ -179,7 +189,8 @@ public class DatasetFieldTest {
         assertThat(distributorLogoField.getValue()).isNull();
         assertThat(distributionDateField.getValue()).isEqualTo("abc");
         assertThat(distributorContactNameField.getValue()).isEqualTo(authorNameField.getValue());
-        
+        assertThat(distributorAbbreviationField.getValue()).isEqualTo("xyz");
+        assertThat(distributorContactEmailField.getValue()).isEqualTo("a@a.com");
     }
     
     private static Map<String, Object> createMetadata() throws Exception {

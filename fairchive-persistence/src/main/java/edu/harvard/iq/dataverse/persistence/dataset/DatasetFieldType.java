@@ -735,18 +735,23 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     }
     
     void forEachCopyPairFrom(final String sourceFieldName, final BiConsumer<String, String> consumer) {
-        for(final Map<String, String> pair : findCopyPairsBySourceName(sourceFieldName)) {
+        for(final Map<String, String> pair : findPairsBySourceName(sourceFieldName, "copy")) {
         	consumer.accept(pair.get("from"), pair.get("to"));
+        }
+    }
+    void forEachSetPairFrom(final String sourceFieldName, final BiConsumer<String, String> consumer) {
+        for(final Map<String, String> pair : findPairsBySourceName(sourceFieldName, "set")) {
+        	consumer.accept(pair.get("value"), pair.get("to"));
         }
     }
     
     @SuppressWarnings("unchecked")
-	private List<Map<String, String>> findCopyPairsBySourceName(final String sourceFieldName) {
+	private List<Map<String, String>> findPairsBySourceName(final String sourceFieldName, final String tag) {
     	return ((List<Map<String, Object>>) getMetadata("copyFrom")).
     		stream().
     		filter(copyData -> sourceFieldName.equals(copyData.get("source"))).
     		findFirst().
-    		map(copyData -> (List<Map<String, String>>) copyData.get("copy")).
+    		map(copyData -> (List<Map<String, String>>) copyData.get(tag)).
     		orElse(emptyList());
     }
 
