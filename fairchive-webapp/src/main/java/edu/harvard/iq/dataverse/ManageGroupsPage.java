@@ -1,7 +1,28 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.logging.Logger.getLogger;
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.authorization.groups.impl.explicit.ExplicitGroupServiceBean;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateExplicitGroupCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.DeleteExplicitGroupCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateExplicitGroupCommand;
@@ -12,22 +33,6 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * @author michaelsuo
@@ -37,7 +42,7 @@ import java.util.regex.Pattern;
 @Named
 public class ManageGroupsPage implements java.io.Serializable {
 
-    private static final Logger logger = Logger.getLogger(ManageGroupsPage.class.getCanonicalName());
+    private static final Logger logger = getLogger(ManageGroupsPage.class.getCanonicalName());
 
     private DataverseDao dataverseDao;
     private ExplicitGroupServiceBean explicitGroupService;
@@ -69,9 +74,11 @@ public class ManageGroupsPage implements java.io.Serializable {
     }
 
     @Inject
-    public ManageGroupsPage(DataverseDao dataverseDao, ExplicitGroupServiceBean explicitGroupService,
-                            RoleAssigneeServiceBean roleAssigneeService, PermissionsWrapper permissionsWrapper,
-                            ManageGroupsCRUDService mgCrudService) {
+    public ManageGroupsPage(final DataverseDao dataverseDao, 
+    						final ExplicitGroupServiceBean explicitGroupService,
+                            final RoleAssigneeServiceBean roleAssigneeService, 
+                            final PermissionsWrapper permissionsWrapper,
+                            final ManageGroupsCRUDService mgCrudService) {
         this.dataverseDao = dataverseDao;
         this.explicitGroupService = explicitGroupService;
         this.roleAssigneeService = roleAssigneeService;
@@ -81,19 +88,19 @@ public class ManageGroupsPage implements java.io.Serializable {
 
     // -------------------- GETTERS --------------------
     public List<ExplicitGroup> getExplicitGroups() {
-        return explicitGroups;
+        return this.explicitGroups;
     }
 
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
     }
 
     public Long getDataverseId() {
-        return dataverseId;
+        return this.dataverseId;
     }
 
     public Group getSelectedGroup() {
-        return selectedGroup;
+        return this.selectedGroup;
     }
 
     public List<RoleAssignee> getSelectedGroupRoleAssignees() {
@@ -105,52 +112,53 @@ public class ManageGroupsPage implements java.io.Serializable {
     }
 
     public String getExplicitGroupName() {
-        return explicitGroupName;
+        return this.explicitGroupName;
     }
 
     public String getExplicitGroupIdentifier() {
-        return explicitGroupIdentifier;
+        return this.explicitGroupIdentifier;
     }
 
     public List<RoleAssignee> getNewExplicitGroupRoleAssignees() {
-        return newExplicitGroupRoleAssignees;
+        return this.newExplicitGroupRoleAssignees;
     }
 
     public String getNewExplicitGroupDescription() {
-        return newExplicitGroupDescription;
+        return this.newExplicitGroupDescription;
     }
 
     // -------------------- LOGIC --------------------
     public String init() {
-        setDataverse(dataverseDao.find(getDataverseId()));
+        setDataverse(this.dataverseDao.find(getDataverseId()));
         Dataverse editDv = getDataverse();
 
         if (editDv == null) {
-            return permissionsWrapper.notFound();
+            return this.permissionsWrapper.notFound();
         }
 
-        Boolean hasPermissions = permissionsWrapper.canIssueCommand(editDv, CreateExplicitGroupCommand.class);
-        hasPermissions |= permissionsWrapper.canIssueCommand(editDv, DeleteExplicitGroupCommand.class);
-        hasPermissions |= permissionsWrapper.canIssueCommand(editDv, UpdateExplicitGroupCommand.class);
-        if (!hasPermissions) {
-            return permissionsWrapper.notAuthorized();
+        if (!this.permissionsWrapper.canIssueAnyOf(editDv, 
+        		CreateExplicitGroupCommand.class, 
+        		DeleteExplicitGroupCommand.class,
+        		UpdateExplicitGroupCommand.class)) {
+            return this.permissionsWrapper.notAuthorized();
         }
-        explicitGroups = new LinkedList<>(explicitGroupService.findByOwner(getDataverseId()));
-        selectedGroup = null;
+        
+        this.explicitGroups = new LinkedList<>(this.explicitGroupService.findByOwner(getDataverseId()));
+        this.selectedGroup = null;
 
         return null;
     }
 
     public void deleteGroup() {
-        if (selectedGroup != null) {
+        if (this.selectedGroup != null) {
             Try
-                    .run(() -> mgCrudService.delete(selectedGroup))
+                    .run(() -> this.mgCrudService.delete(this.selectedGroup))
                     .andThen(() -> {
-                        explicitGroups.remove(selectedGroup);
-                        JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("dataverse.manageGroups.delete"));
+                        this.explicitGroups.remove(this.selectedGroup);
+                        JsfHelper.addSuccessMessage(getStringFromBundle("dataverse.manageGroups.delete"));
                     })
                     .onFailure(throwable -> {
-                        String failMessage = BundleUtil.getStringFromBundle("dataverse.manageGroups.nodelete");
+                        String failMessage = getStringFromBundle("dataverse.manageGroups.nodelete");
                         JsfHelper.addErrorMessage(failMessage);
                     })
             ;
@@ -159,8 +167,8 @@ public class ManageGroupsPage implements java.io.Serializable {
         }
     }
 
-    public void viewSelectedGroup(ExplicitGroup selectedGroup) {
-        this.selectedGroup = explicitGroupService.findByAlias(selectedGroup.getAlias());
+    public void viewSelectedGroup(final ExplicitGroup selectedGroup) {
+        this.selectedGroup = this.explicitGroupService.findByAlias(selectedGroup.getAlias());
 
         // initialize member list for autocomplete interface
         setSelectedGroupAddRoleAssignees(new LinkedList<>());
@@ -174,9 +182,9 @@ public class ManageGroupsPage implements java.io.Serializable {
      * @param eg The explicit group to check.
      * @return The set of role assignees belonging to explicit group.
      */
-    public List<RoleAssignee> getExplicitGroupMembers(ExplicitGroup eg) {
+    public List<RoleAssignee> getExplicitGroupMembers(final ExplicitGroup eg) {
         return (eg != null) ?
-                new ArrayList<>(explicitGroupService.getDirectMembers(eg)) : null;
+                new ArrayList<>(this.explicitGroupService.getDirectMembers(eg)) : null;
     }
 
     /**
@@ -186,20 +194,20 @@ public class ManageGroupsPage implements java.io.Serializable {
      * @param ra The role assignee
      * @return A {@code String} representing the role assignee's type.
      */
-    public String getRoleAssigneeTypeString(RoleAssignee ra) {
+    public String getRoleAssigneeTypeString(final RoleAssignee ra) {
         if (ra instanceof User) {
-            return BundleUtil.getStringFromBundle("dataverse.manageGroups.User");
+            return getStringFromBundle("dataverse.manageGroups.User");
         } else if (ra instanceof Group) {
-            return BundleUtil.getStringFromBundle("dataverse.manageGroups.Group");
+            return getStringFromBundle("dataverse.manageGroups.Group");
         } else {
-            return BundleUtil.getStringFromBundle("dataverse.manageGroups.unknown");
+            return getStringFromBundle("dataverse.manageGroups.unknown");
         }
     }
 
-    public String getMembershipString(ExplicitGroup eg) {
+    public String getMembershipString(final ExplicitGroup eg) {
         long userCount = 0;
         long groupCount = 0;
-        for (RoleAssignee ra : explicitGroupService.getDirectMembers(eg)) {
+        for (RoleAssignee ra : this.explicitGroupService.getDirectMembers(eg)) {
             if (ra instanceof User) {
                 userCount++;
             } else {
@@ -208,33 +216,33 @@ public class ManageGroupsPage implements java.io.Serializable {
         }
 
         if (userCount == 0 && groupCount == 0) {
-            return BundleUtil.getStringFromBundle("dataverse.manageGroups.nomembers");
+            return getStringFromBundle("dataverse.manageGroups.nomembers");
         }
 
         String memberString = "";
         if (userCount == 1) {
-            memberString = "1 " + BundleUtil.getStringFromBundle("dataverse.manageGroups.user");
+            memberString = "1 " + getStringFromBundle("dataverse.manageGroups.user");
         } else if (userCount != 1) {
-            memberString = userCount + " " + BundleUtil.getStringFromBundle("dataverse.manageGroups.users");
+            memberString = userCount + " " + getStringFromBundle("dataverse.manageGroups.users");
         }
 
         if (groupCount == 1) {
-            memberString = memberString + ", 1 " + BundleUtil.getStringFromBundle("dataverse.manageGroups.group");
+            memberString = memberString + ", 1 " + getStringFromBundle("dataverse.manageGroups.group");
         } else if (groupCount != 1) {
-            memberString = memberString + ", " + groupCount + " " + BundleUtil.getStringFromBundle("dataverse.manageGroups.groups");
+            memberString = memberString + ", " + groupCount + " " + getStringFromBundle("dataverse.manageGroups.groups");
         }
 
         return memberString;
     }
 
-    public void removeMemberFromSelectedGroup(RoleAssignee ra) {
-        selectedGroup.remove(ra);
-        selectedGroupRoleAssignees.remove(ra);
+    public void removeMemberFromSelectedGroup(final RoleAssignee ra) {
+        this.selectedGroup.remove(ra);
+        this.selectedGroupRoleAssignees.remove(ra);
     }
 
-    public List<RoleAssignee> completeRoleAssignee(String query) {
+    public List<RoleAssignee> completeRoleAssignee(final String query) {
 
-        List<RoleAssignee> alreadyAssignedRoleAssignees = new ArrayList<>();
+        final List<RoleAssignee> alreadyAssignedRoleAssignees = new ArrayList<>();
 
         if (this.getNewExplicitGroupRoleAssignees() != null) {
             alreadyAssignedRoleAssignees.addAll(this.getNewExplicitGroupRoleAssignees());
@@ -246,11 +254,12 @@ public class ManageGroupsPage implements java.io.Serializable {
             alreadyAssignedRoleAssignees.addAll(this.getSelectedGroupAddRoleAssignees());
         }
 
-        return roleAssigneeService.filterRoleAssignees(query, dataverse, alreadyAssignedRoleAssignees);
+        return this.roleAssigneeService.filterRoleAssignees(query, this.dataverse, 
+        		alreadyAssignedRoleAssignees);
 
     }
 
-    public void initExplicitGroupDialog(ActionEvent ae) {
+    public void initExplicitGroupDialog(final ActionEvent ae) {
         setExplicitGroupName("");
         setExplicitGroupIdentifier("");
         setNewExplicitGroupDescription("");
@@ -259,87 +268,94 @@ public class ManageGroupsPage implements java.io.Serializable {
     }
 
     public void createExplicitGroup(ActionEvent ae) {
-        Try.of(() -> mgCrudService.create(dataverse, explicitGroupName, explicitGroupIdentifier, newExplicitGroupDescription, newExplicitGroupRoleAssignees))
+        Try.of(() -> this.mgCrudService.create(this.dataverse, this.explicitGroupName, 
+        		this.explicitGroupIdentifier, this.newExplicitGroupDescription, 
+        		this.newExplicitGroupRoleAssignees))
             .onSuccess((eg) -> {
-                explicitGroups.add(eg.get());
-                JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("dataverse.manageGroups.create.success", eg.get().getDisplayName()));
+                this.explicitGroups.add(eg.get());
+                JsfHelper.addSuccessMessage(getStringFromBundle("dataverse.manageGroups.create.success", 
+                		eg.get().getDisplayName()));
             })
             .onFailure(throwable -> {
                 logger.log(Level.WARNING, "Group creation failed", throwable);
-                JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataverse.manageGroups.create.fail"), "");
+                JsfHelper.addErrorMessage(getStringFromBundle("dataverse.manageGroups.create.fail"), "");
             })
         ;
     }
 
-    public void editExplicitGroup(ActionEvent ae) {
+    public void editExplicitGroup(final ActionEvent ae) {
 
-        Try.of(() -> mgCrudService.update(selectedGroup, selectedGroupAddRoleAssignees))
+        Try.of(() -> this.mgCrudService.update(this.selectedGroup, this.selectedGroupAddRoleAssignees))
             .onSuccess((eg) -> {
-                JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.manageGroups.save.success", eg.get().getDisplayName()));
-                explicitGroups.set(explicitGroups.indexOf(eg.get()), eg.get());
+                JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.manageGroups.save.success", 
+                		eg.get().getDisplayName()));
+                this.explicitGroups.set(this.explicitGroups.indexOf(eg.get()), eg.get());
             })
-            .onFailure(throwable -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dataverse.manageGroups.edit.fail"),
+            .onFailure(throwable -> JsfHelper.addErrorMessage(getStringFromBundle("dataverse.manageGroups.edit.fail"),
                     ""))
         ;
     }
 
-    public void validateGroupIdentifier(FacesContext context, UIComponent toValidate, Object rawValue) {
-        String value = (String) rawValue;
-        UIInput input = (UIInput) toValidate;
+    public void validateGroupIdentifier(final FacesContext context, 
+    		final UIComponent toValidate, final Object rawValue) {
+        final String value = (String) rawValue;
+        final UIInput input = (UIInput) toValidate;
         input.setValid(true); // Optimistic approach
 
-        if (!StringUtils.isEmpty(value)) {
+        if (!isEmpty(value)) {
 
             // cheap test - regex
             if (!Pattern.matches("^[a-zA-Z0-9\\_\\-]+$", value)) {
                 input.setValid(false);
                 context.addMessage(toValidate.getClientId(),
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "", BundleUtil.getStringFromBundle("dataverse.permissions.explicitGroupEditDialog.groupIdentifier.invalid")));
+                        new FacesMessage(SEVERITY_ERROR, "", 
+                        		getStringFromBundle("dataverse.permissions.explicitGroupEditDialog.groupIdentifier.invalid")));
 
             } else if (explicitGroupService.findInOwner(dataverse.getId(), value) != null) {
                 // Ok, see that the alias is not taken
                 input.setValid(false);
                 context.addMessage(toValidate.getClientId(),
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "", BundleUtil.getStringFromBundle("dataverse.permissions.explicitGroupEditDialog.groupIdentifier.taken")));
+                        new FacesMessage(SEVERITY_ERROR, "", 
+                        		getStringFromBundle("dataverse.permissions.explicitGroupEditDialog.groupIdentifier.taken")));
             }
         }
     }
     // -------------------- PRIVATE ---------------------
 
     // -------------------- SETTERS --------------------
-    public void setSelectedGroup(ExplicitGroup selectedGroup) {
+    public void setSelectedGroup(final ExplicitGroup selectedGroup) {
         this.selectedGroup = selectedGroup;
     }
 
-    public void setDataverse(Dataverse dataverse) {
+    public void setDataverse(final Dataverse dataverse) {
         this.dataverse = dataverse;
     }
 
-    public void setDataverseId(Long dataverseId) {
+    public void setDataverseId(final Long dataverseId) {
         this.dataverseId = dataverseId;
     }
 
-    public void setSelectedGroupRoleAssignees(List<RoleAssignee> newSelectedGroupRoleAssignees) {
-        this.selectedGroupRoleAssignees = newSelectedGroupRoleAssignees;
+    public void setSelectedGroupRoleAssignees(final List<RoleAssignee> assignees) {
+        this.selectedGroupRoleAssignees = assignees;
     }
 
-    public void setSelectedGroupAddRoleAssignees(List<RoleAssignee> ras) {
-        this.selectedGroupAddRoleAssignees = ras;
+    public void setSelectedGroupAddRoleAssignees(final List<RoleAssignee> assignees) {
+        this.selectedGroupAddRoleAssignees = assignees;
     }
 
-    public void setExplicitGroupName(String explicitGroupFriendlyName) {
-        this.explicitGroupName = explicitGroupFriendlyName;
+    public void setExplicitGroupName(final String name) {
+        this.explicitGroupName = name;
     }
 
-    public void setExplicitGroupIdentifier(String explicitGroupName) {
-        this.explicitGroupIdentifier = explicitGroupName;
+    public void setExplicitGroupIdentifier(final String name) {
+        this.explicitGroupIdentifier = name;
     }
 
-    public void setNewExplicitGroupRoleAssignees(List<RoleAssignee> newExplicitGroupRoleAssignees) {
-        this.newExplicitGroupRoleAssignees = newExplicitGroupRoleAssignees;
+    public void setNewExplicitGroupRoleAssignees(final List<RoleAssignee> assignees) {
+        this.newExplicitGroupRoleAssignees = assignees;
     }
 
-    public void setNewExplicitGroupDescription(String newExplicitGroupDescription) {
-        this.newExplicitGroupDescription = newExplicitGroupDescription;
+    public void setNewExplicitGroupDescription(final String description) {
+        this.newExplicitGroupDescription = description;
     }
 }

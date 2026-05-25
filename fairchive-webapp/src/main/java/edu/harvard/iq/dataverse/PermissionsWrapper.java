@@ -76,6 +76,15 @@ public class PermissionsWrapper implements java.io.Serializable {
             return addCommandtoDvoCommandMap(dvo, command, newDvoCommandMap);
         }
     }
+    
+	public boolean canIssueAnyOf(final DvObject dvo, 
+			final Class<? extends Command<?>> command1,
+			final Class<? extends Command<?>> command2, 
+			final Class<? extends Command<?>> command3) {
+
+		return canIssueCommand(dvo, command1) || canIssueCommand(dvo, command2) 
+				|| canIssueCommand(dvo, command3);
+	}
 
     private boolean addCommandtoDvoCommandMap(DvObject dvo, Class<? extends Command<?>> command, Map<Class<? extends Command<?>>, Boolean> dvoCommandMap) {
         if (dvo == null || (dvo.getId() == null)) {
