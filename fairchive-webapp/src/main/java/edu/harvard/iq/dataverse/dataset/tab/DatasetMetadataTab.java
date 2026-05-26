@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.dataset.tab;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.EnableDatasetCloning;
 import static java.util.Arrays.asList;
 
 import java.io.Serializable;
@@ -26,6 +27,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.translation.Translator;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
@@ -43,6 +45,7 @@ public class DatasetMetadataTab implements Serializable {
 	private DatasetService datasetService;
 	private DataverseSession session;
 	private CreateDatasetDialog cloneDatasetDialog;
+	private SettingsServiceBean settings;
 
 	private Dataset dataset;
 	private boolean isDatasetLocked;
@@ -64,7 +67,8 @@ public class DatasetMetadataTab implements Serializable {
 			                  final DatasetFieldsInitializer datasetVersionUI,
 			                  final DatasetService datasetService, 
 			                  final Translator translator,
-			                  final CreateDatasetDialog cloneDatasetDialog) {
+			                  final CreateDatasetDialog cloneDatasetDialog,
+			                  final SettingsServiceBean settings) {
 		this.permissionsWrapper = permissionsWrapper;
 		this.session = session;
 		this.exportService = exportService;
@@ -73,6 +77,7 @@ public class DatasetMetadataTab implements Serializable {
 		this.datasetService = datasetService;
 		this.translator = translator;
 		this.cloneDatasetDialog = cloneDatasetDialog;
+		this.settings = settings;
 	}
 
 	// -------------------- GETTERS --------------------
@@ -102,7 +107,8 @@ public class DatasetMetadataTab implements Serializable {
 	}
 	
 	public boolean displayCloneButton() {
-		return this.session.isUserLoggedIn();
+		return this.session.isUserLoggedIn() && 
+				this.settings.isTrueForKey(EnableDatasetCloning);
 	}
 
 	// -------------------- LOGIC --------------------

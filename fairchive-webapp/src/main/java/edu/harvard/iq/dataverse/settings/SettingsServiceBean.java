@@ -853,7 +853,9 @@ public class SettingsServiceBean {
          * used in other files in the dataset and files in the current upload
          * batch (but only if terms of use is the same for all of the files).
          */
-        FillDefaultTermsOfUseUsingExistingFiles;
+        FillDefaultTermsOfUseUsingExistingFiles,
+    	
+    	EnableDatasetCloning;
 
         @Override
         public String toString() {
