@@ -109,15 +109,9 @@ public class RoleAssigneeServiceBean {
     }
 
     public Optional<RoleAssignment> getAssignmentFor(final String roleAssigneeIdentifier, 
-            Long definitionPointId, long roleId) {
-        RoleAssignment roleAssignment = em.createQuery("SELECT r FROM RoleAssignment r WHERE "
-                + "r.assigneeIdentifier=:assigneeIdentifier AND r.definitionPoint.id=:definitionPointId and r.role.id=:roleId",
-                RoleAssignment.class)
-            .setParameter("assigneeIdentifier", roleAssigneeIdentifier)
-            .setParameter("definitionPointId", definitionPointId)
-            .setParameter("roleId", roleId)
-            .getSingleResult();
-        return Optional.ofNullable(roleAssignment);
+            final Long definitionPointId, final Long roleId) {
+        return this.roleAssignmentRepository.getAssignmentFor(roleAssigneeIdentifier, 
+        		definitionPointId, roleId);
     }
 
     public List<AuthenticatedUser> getExplicitUsers(final RoleAssignee ra) {

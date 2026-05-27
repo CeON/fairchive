@@ -11,6 +11,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
+import java.util.Optional;
 
 @Singleton
 public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment> {
@@ -124,5 +125,16 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
                 return null;
             }
         }
+    }
+    
+    public Optional<RoleAssignment> getAssignmentFor(final String roleAssigneeIdentifier, 
+            final Long definitionPointId, final Long roleId) {
+        return getSingleResult(createQuery(
+        		"SELECT r FROM RoleAssignment r WHERE" +
+                " r.assigneeIdentifier=:assigneeIdentifier" + 
+        		" AND r.definitionPoint.id=:definitionPointId AND r.role.id=:roleId")
+            .setParameter("assigneeIdentifier", roleAssigneeIdentifier)
+            .setParameter("definitionPointId", definitionPointId)
+            .setParameter("roleId", roleId));
     }
 }
