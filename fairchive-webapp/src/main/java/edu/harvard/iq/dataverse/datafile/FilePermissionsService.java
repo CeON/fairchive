@@ -123,10 +123,9 @@ public class FilePermissionsService {
         Set<RoleAssignment> roleAssignments = Sets.newHashSet();
 
         for (Tuple2<RoleAssignee, DataFile> roleAssigneeAndFile: prepareRoleAssigneeAndFileTuples(roleAssignees, files)) {
-            Optional<RoleAssignment> roleAssignment = roleAssigneeService.findAssignmentFor(
-                    roleAssigneeAndFile._1.getIdentifier(), roleAssigneeAndFile._2.getId(), fileDownloaderRole.getId());
-
-            roleAssignment.ifPresent(roleAssignments::add);
+            this.roleAssigneeService.findAssignmentFor(
+                    roleAssigneeAndFile._1.getIdentifier(), roleAssigneeAndFile._2.getId(), fileDownloaderRole.getId())
+            	.ifPresent(roleAssignments::add);
         }
 
         for (RoleAssignment roleAssignment: roleAssignments) {
