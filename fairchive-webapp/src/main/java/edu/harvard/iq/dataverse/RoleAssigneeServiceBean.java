@@ -11,6 +11,7 @@ import edu.harvard.iq.dataverse.persistence.group.AuthenticatedUsers;
 import edu.harvard.iq.dataverse.persistence.group.ExplicitGroup;
 import edu.harvard.iq.dataverse.persistence.group.Group;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
@@ -63,6 +64,9 @@ public class RoleAssigneeServiceBean {
     
     @EJB
     RoleAssignmentRepository roleAssignmentRepository;
+    
+    @EJB
+    AuthenticatedUserRepository authenticatedUserRepo;
 
     protected Map<String, RoleAssignee> predefinedRoleAssignees = new TreeMap<>();
 
@@ -370,9 +374,7 @@ public class RoleAssigneeServiceBean {
 
         // we get the users through a query that does the filtering through the db,
         // so that we don't have to instantiate all of the RoleAssignee objects
-        em.createNamedQuery("AuthenticatedUser.filter", AuthenticatedUser.class)
-                .setParameter("query", "%" + query + "%")
-                .getResultList().stream()
+        this.authenticatedUserRepo.findUsersByIdentifierOrName(query).stream()
                 .filter(ra -> roleAssignSelectedRoleAssignees == null || !roleAssignSelectedRoleAssignees.contains(ra))
                 .forEach(roleAssigneeList::add);
 

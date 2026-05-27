@@ -96,6 +96,18 @@ public class UserServiceBean {
     	return this.repo.findByIdentifier(identifier);
     }
     
+    public long countByIdentifier(final String identifier) {
+    	return this.countByIdentifier(identifier);
+    }
+    
+	public List<AuthenticatedUser> findAll() {
+		return this.repo.findAll();
+	}
+	
+	public AuthenticatedUser getAdmin() {
+		return this.repo.getAdmin();
+	}
+    
     private static int sanitize(final Integer value, final int minimum) {
     	return value == null || value < minimum
     			? minimum

@@ -1,25 +1,5 @@
 package edu.harvard.iq.dataverse.persistence.user;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.config.LocaleConverter;
-import edu.harvard.iq.dataverse.persistence.config.ValidateEmail;
-import edu.harvard.iq.dataverse.persistence.consent.AcceptedConsent;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
-
-import org.hibernate.validator.constraints.NotBlank;
-
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
-
 import static java.lang.String.format;
 import static java.util.Locale.ENGLISH;
 import static javax.persistence.CascadeType.ALL;
@@ -37,6 +17,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.config.LocaleConverter;
+import edu.harvard.iq.dataverse.persistence.config.ValidateEmail;
+import edu.harvard.iq.dataverse.persistence.consent.AcceptedConsent;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
+
 /**
  * When adding an attribute to this class, be sure to update the following:
  * <p>
@@ -46,21 +44,6 @@ import java.util.Objects;
  * @author rmp553
  */
 @SuppressWarnings("serial")
-@NamedQueries({
-        @NamedQuery(name = "AuthenticatedUser.findAll",
-                query = "select au from AuthenticatedUser au where au.userIdentifier not like 'ERASED%'"),
-        @NamedQuery(name = "AuthenticatedUser.countOfIdentifier",
-                query = "SELECT COUNT(a) FROM AuthenticatedUser a WHERE a.userIdentifier=:identifier"),
-        @NamedQuery(name = "AuthenticatedUser.filter",
-                query = "select au from AuthenticatedUser au WHERE ("
-                        + "lower(au.userIdentifier) like lower(:query) OR "
-                        + "lower(concat(au.firstName,' ',au.lastName)) like lower(:query))"),
-        @NamedQuery(name = "AuthenticatedUser.findAdminUser",
-                query = "select au from AuthenticatedUser au WHERE "
-                        + "au.superuser = true "
-                        + "order by au.id")
-
-})
 @Entity
 public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
 

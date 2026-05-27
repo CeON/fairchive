@@ -321,13 +321,7 @@ public class AuthenticationServiceBean {
     }
 
     public AuthenticatedUser getAdminUser() {
-        try {
-            return em.createNamedQuery("AuthenticatedUser.findAdminUser", AuthenticatedUser.class)
-                    .setMaxResults(1)
-                    .getSingleResult();
-        } catch (Exception ex) {
-            return null;
-        }
+        return this.userService.getAdmin();
     }
 
     public AuthenticatedUser getAuthenticatedUserByEmail(final String email) {
@@ -617,10 +611,8 @@ public class AuthenticationServiceBean {
      *
      * @return {@code true} iff there's already a user by that username.
      */
-    public boolean identifierExists(String idtf) {
-        return em.createNamedQuery("AuthenticatedUser.countOfIdentifier", Number.class)
-                .setParameter("identifier", idtf)
-                .getSingleResult().intValue() > 0;
+    public boolean identifierExists(final String identifier) {
+        return this.userService.countByIdentifier(identifier) > 0L;
     }
 
     public AuthenticatedUser updateAuthenticatedUser(AuthenticatedUser user, AuthenticatedUserDisplayInfo userDisplayInfo) {
@@ -637,7 +629,7 @@ public class AuthenticationServiceBean {
     }
 
     public List<AuthenticatedUser> findAllAuthenticatedUsers() {
-        return em.createNamedQuery("AuthenticatedUser.findAll", AuthenticatedUser.class).getResultList();
+        return this.userService.findAll();
     }
 
     public List<AuthenticatedUser> findSuperUsers() {
