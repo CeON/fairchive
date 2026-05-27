@@ -11,6 +11,7 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultD
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashErrorMessage;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashSuccessMessage;
+import static java.lang.Math.min;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -318,6 +319,18 @@ public class DatasetFilesTab implements Serializable {
     public int getRowsPerPage() {
         return rowsPerPage;
     }
+    
+    public int getMinVisibleFileIndex() {
+    	return this.filePaginatorPage * this.rowsPerPage + 1;
+    }
+    
+    public int getMaxVisibleFileIndex() {
+    	return min((this.filePaginatorPage + 1) * this.rowsPerPage, getFileCount());
+    }
+    
+    public int getFileCount() {
+    	return this.fileMetadatasSearch.getAllAvailableFilesCount();
+    }
 
     public List<FileMetadata> getSelectedFileMetadataForView() {
         return this.fileMetadatasSearch.getWrappedData().stream()
@@ -408,7 +421,20 @@ public class DatasetFilesTab implements Serializable {
 		return fileMetadata.getDataFile().getId() != null 
 				&& isThumbnailAvailable(fileMetadata);
 	}
+	
+	public boolean displayReorderFilesButton() {
+		return canUpdateDataset() && getFileCount() > 1;
+	}
 
+	public boolean displayFilesCount() {
+		return this.fileMetadatasSearch.getAllAvailableFilesCount() > 0;
+	}
+	
+	public boolean displayDownloadAllFilesButton() {
+		return !this.workingVersion.getFileMetadatas().isEmpty() && 
+				isDownloadButtonAvailable();
+	}
+	
     public boolean isThumbnailAvailable(FileMetadata fileMetadata) {
 
         // new and optimized logic:
