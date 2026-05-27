@@ -374,7 +374,7 @@
                 </div>
 
                 <div class="file-tags-block"
-                     jsf:rendered="#{ileMetadata.hasCategoriesOrTags()}">
+                     jsf:rendered="#{fileMetadata.hasCategoriesOrTags()}">
                     <ui:fragment rendered="#{!(empty fileMetadata.categories)}">
                         <ui:repeat value="#{fileMetadata.categories}" var="cat">
                             <h:outputText value="#{cat.name}"
