@@ -132,6 +132,17 @@ public class DatasetLock implements Serializable, JpaEntity<Long> {
         this.info = infoMessage;
 
     }
+    
+    public DatasetLock(final Dataset dataset, final Reason aReason, 
+    		final AuthenticatedUser aUser) {
+    	requireNonNull(dataset, "Dataset cannot be null");
+    	requireNonNull(aReason, "Cannot lock a dataset for a null reason");
+    	requireNonNull(aUser, "Cannot lock a dataset for a null user");
+    	this.dataset = dataset;
+        this.reason = aReason;
+        this.startTime = new Date();
+        this.user = aUser;
+    }
 
     /**
      * JPA no-args constructor. Client code should use the public constructor
