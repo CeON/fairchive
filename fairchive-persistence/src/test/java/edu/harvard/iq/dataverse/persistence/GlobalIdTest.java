@@ -1,17 +1,25 @@
 package edu.harvard.iq.dataverse.persistence;
 
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.Test;
+
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+
 /**
  * @author rmp553
  */
 public class GlobalIdTest {
+	
+	@Test
+	public void testContruction() {
+		
+		 assertEquals("doi:10.5072/FK2/BYM3IW", new GlobalId("doi:10.5072/FK2/BYM3IW").toString());
+		 assertThrows(NullPointerException.class, () -> new GlobalId((String)null));
+	}
 
     @Test
     public void testValidDOI() {
@@ -57,9 +65,6 @@ public class GlobalIdTest {
         assertEquals("hdl", instance.getProtocol());
         assertEquals("Selectvaluefromdatasetfieldvalue", instance.getAuthority());
         assertEquals("ha", instance.getIdentifier());
-        //exception.expect(IllegalArgumentException.class);
-        //exception.expectMessage("Failed to parse identifier: " + badProtocol);
-        //new GlobalId(badProtocol);
     }
 
     @Test
