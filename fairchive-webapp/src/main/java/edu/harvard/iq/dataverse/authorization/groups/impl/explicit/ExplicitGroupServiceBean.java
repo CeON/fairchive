@@ -1,26 +1,26 @@
 package edu.harvard.iq.dataverse.authorization.groups.impl.explicit;
 
-import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
-import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.group.ExplicitGroup;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
+import static java.util.stream.Collectors.joining;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.joining;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
+import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.group.ExplicitGroup;
+import edu.harvard.iq.dataverse.persistence.group.ExplicitGroupRepository;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 
 /**
  * A bean providing the {@link ExplicitGroupProvider}s with container services,
@@ -39,6 +39,9 @@ public class ExplicitGroupServiceBean {
     
     @EJB
     private GroupServiceBean groupService;
+    
+    @EJB
+    private ExplicitGroupRepository repository;
 
     /**
      * A PostgreSQL-specific query that returns a group and all the groups
@@ -91,31 +94,16 @@ public class ExplicitGroupServiceBean {
         }
     }
 
-    public List<ExplicitGroup> findByOwner(Long dvObjectId) {
-        return em.createNamedQuery("ExplicitGroup.findByOwnerId", ExplicitGroup.class)
-                                               .setParameter("ownerId", dvObjectId)
-                                               .getResultList();
+    public List<ExplicitGroup> findByOwnerId(final Long dvObjectId) {
+        return this.repository.findByOwnerId(dvObjectId);
     }
 
-    public ExplicitGroup findByAlias(String groupAlias) {
-        try {
-            return em.createNamedQuery("ExplicitGroup.findByAlias", ExplicitGroup.class)
-                                                   .setParameter("alias", groupAlias)
-                                                   .getSingleResult();
-        } catch (NoResultException nre) {
-            return null;
-        }
+    public ExplicitGroup findByAlias(final String groupAlias) {
+        return this.repository.findByAlias(groupAlias).orElse(null);
     }
 
-    public ExplicitGroup findInOwner(Long ownerId, String groupAliasInOwner) {
-        try {
-            return em.createNamedQuery("ExplicitGroup.findByOwnerIdAndAlias", ExplicitGroup.class)
-                            .setParameter("alias", groupAliasInOwner)
-                            .setParameter("ownerId", ownerId)
-                            .getSingleResult();
-        } catch (NoResultException nre) {
-            return null;
-        }
+    public ExplicitGroup findByOwnerIdAndAlias(final Long ownerId, final String groupAliasInOwner) {
+        return this.repository.findByOwnerIdAndAlias(ownerId, groupAliasInOwner).orElse(null);
     }
 
     public void removeGroup(ExplicitGroup explicitGroup) {
@@ -131,7 +119,7 @@ public class ExplicitGroupServiceBean {
     public Set<ExplicitGroup> findAvailableFor(DvObject d) {
         Set<ExplicitGroup> egs = new HashSet<>();
         while (d != null) {
-            egs.addAll(findByOwner(d.getId()));
+            egs.addAll(findByOwnerId(d.getId()));
             d = d.getOwner();
         }
         return egs;
@@ -191,51 +179,6 @@ public class ExplicitGroupServiceBean {
         return findGroups(ra).stream()
                 .filter(g -> g.getOwner().isAncestorOf(o))
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Finds all the groups {@code ra} directly belongs to in the context of {@code o}. In effect,
-     * collects all the groups {@code ra} belongs to and that are defined at {@code o}
-     * or one of its ancestors.
-     *
-     * <B>Does not take group containment into account.</B> Use
-     *
-     * @param ra The role assignee that belongs to the groups
-     * @param o  the DvObject that defines the context of the search.
-     * @return All the groups ra belongs to in the context of o.
-     */
-    public Set<ExplicitGroup> findDirectGroups(RoleAssignee ra, DvObject o) {
-        if (o == null) {
-            return Collections.emptySet();
-        }
-        List<ExplicitGroup> groupList = new LinkedList<>();
-
-        if (ra instanceof ExplicitGroup) {
-            for (DvObject cur = o; cur != null; cur = cur.getOwner()) {
-                groupList.addAll(em.createNamedQuery("ExplicitGroup.findByOwnerAndSubExGroupId", ExplicitGroup.class)
-                                         .setParameter("ownerId", cur.getId())
-                                         .setParameter("subExGroupId", ((ExplicitGroup) ra).getId())
-                                         .getResultList());
-            }
-
-        } else if (ra instanceof AuthenticatedUser) {
-            for (DvObject cur = o; cur != null; cur = cur.getOwner()) {
-                groupList.addAll(em.createNamedQuery("ExplicitGroup.findByOwnerAndAuthUserId", ExplicitGroup.class)
-                                         .setParameter("ownerId", cur.getId())
-                                         .setParameter("authUserId", ((AuthenticatedUser) ra).getId())
-                                         .getResultList());
-            }
-
-        } else {
-            for (DvObject cur = o; cur != null; cur = cur.getOwner()) {
-                groupList.addAll(em.createNamedQuery("ExplicitGroup.findByOwnerAndRAIdtf", ExplicitGroup.class)
-                                         .setParameter("ownerId", cur.getId())
-                                         .setParameter("raIdtf", ra.getIdentifier())
-                                         .getResultList());
-            }
-        }
-
-        return new HashSet<>(groupList);
     }
 
     /**

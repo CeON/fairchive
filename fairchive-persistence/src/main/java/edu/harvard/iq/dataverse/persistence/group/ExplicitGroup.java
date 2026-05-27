@@ -44,23 +44,6 @@ import edu.harvard.iq.dataverse.persistence.user.User;
  */
 @SuppressWarnings("serial")
 @NamedQueries({
-        @NamedQuery(name = "ExplicitGroup.findAll",
-                query = "SELECT eg FROM ExplicitGroup eg"),
-        @NamedQuery(name = "ExplicitGroup.findByOwnerIdAndAlias",
-                query = "SELECT eg FROM ExplicitGroup eg WHERE eg.owner.id=:ownerId AND eg.groupAliasInOwner=:alias"),
-        @NamedQuery(name = "ExplicitGroup.findByAlias",
-                query = "SELECT eg FROM ExplicitGroup eg WHERE eg.groupAlias=:alias"),
-        @NamedQuery(name = "ExplicitGroup.findByOwnerId",
-                query = "SELECT eg FROM ExplicitGroup eg WHERE eg.owner.id=:ownerId"),
-        @NamedQuery(name = "ExplicitGroup.findByOwnerAndAuthUserId",
-                query = "SELECT eg FROM ExplicitGroup eg join eg.containedAuthenticatedUsers au "
-                        + "WHERE eg.owner.id=:ownerId AND au.id=:authUserId"),
-        @NamedQuery(name = "ExplicitGroup.findByOwnerAndSubExGroupId",
-                query = "SELECT eg FROM ExplicitGroup eg join eg.containedExplicitGroups ceg "
-                        + "WHERE eg.owner.id=:ownerId AND ceg.id=:subExGroupId"),
-        @NamedQuery(name = "ExplicitGroup.findByOwnerAndRAIdtf",
-                query = "SELECT eg FROM ExplicitGroup eg join eg.containedRoleAssignees ra "
-                        + "WHERE eg.owner.id=:ownerId AND ra=:raIdtf"),
         @NamedQuery(name = "ExplicitGroup.findByAuthenticatedUserIdentifier",
                 query = "SELECT eg FROM ExplicitGroup eg JOIN eg.containedAuthenticatedUsers au "
                         + "WHERE au.userIdentifier=:authenticatedUserIdentifier"),

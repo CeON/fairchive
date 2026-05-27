@@ -63,9 +63,7 @@ public class DeleteDataverseCommand extends AbstractVoidCommand {
         }
 
         // EXPLICIT GROUPS
-        for (ExplicitGroup eg : ctxt.em().createNamedQuery("ExplicitGroup.findByOwnerId", ExplicitGroup.class)
-                .setParameter("ownerId", doomed.getId())
-                .getResultList()) {
+        for (ExplicitGroup eg : ctxt.explicitGroups().findByOwnerId(doomed.getId())) {
             ctxt.explicitGroups().removeGroup(eg);
         }
         // FACETS handled with cascade on dataverse
