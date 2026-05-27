@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.ejb.Stateless;
@@ -81,6 +82,18 @@ public class UserServiceBean {
         //assumes that AuthenticatedUser user already exists
         user.setLastApiUseTime(Timestamp.from(now()));
         return save(user);
+    }
+    
+    public List<AuthenticatedUser> findSuperUsers() {
+        return this.repo.findSuperUsers();
+    }
+    
+    public Optional<AuthenticatedUser> findByEmail(final String email) {
+    	return this.repo.findByEmail(email);
+    }
+    
+    public Optional<AuthenticatedUser> findByIdentifier(final String identifier) {
+    	return this.repo.findByIdentifier(identifier);
     }
     
     private static int sanitize(final Integer value, final int minimum) {

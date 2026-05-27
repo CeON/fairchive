@@ -49,12 +49,6 @@ import java.util.Objects;
 @NamedQueries({
         @NamedQuery(name = "AuthenticatedUser.findAll",
                 query = "select au from AuthenticatedUser au where au.userIdentifier not like 'ERASED%'"),
-        @NamedQuery(name = "AuthenticatedUser.findSuperUsers",
-                query = "SELECT au FROM AuthenticatedUser au WHERE au.superuser = TRUE"),
-        @NamedQuery(name = "AuthenticatedUser.findByIdentifier",
-                query = "select au from AuthenticatedUser au WHERE au.userIdentifier=:identifier"),
-        @NamedQuery(name = "AuthenticatedUser.findByEmail",
-                query = "select au from AuthenticatedUser au WHERE LOWER(au.email)=LOWER(:email)"),
         @NamedQuery(name = "AuthenticatedUser.countOfIdentifier",
                 query = "SELECT COUNT(a) FROM AuthenticatedUser a WHERE a.userIdentifier=:identifier"),
         @NamedQuery(name = "AuthenticatedUser.filter",
@@ -230,7 +224,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
 
     @Override
     public String getIdentifier() {
-        return IDENTIFIER_PREFIX.concat(this.userIdentifier);
+        return IDENTIFIER_PREFIX + this.userIdentifier;
     }
     
 

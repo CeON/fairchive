@@ -316,14 +316,8 @@ public class AuthenticationServiceBean {
         }
     }
 
-    public AuthenticatedUser getAuthenticatedUser(String identifier) {
-        try {
-            return em.createNamedQuery("AuthenticatedUser.findByIdentifier", AuthenticatedUser.class)
-                    .setParameter("identifier", identifier)
-                    .getSingleResult();
-        } catch (NoResultException nre) {
-            return null;
-        }
+    public AuthenticatedUser getAuthenticatedUser(final String identifier) {
+        return this.userService.findByIdentifier(identifier).orElse(null);
     }
 
     public AuthenticatedUser getAdminUser() {
@@ -336,18 +330,8 @@ public class AuthenticationServiceBean {
         }
     }
 
-    public AuthenticatedUser getAuthenticatedUserByEmail(String email) {
-        try {
-            return em.createNamedQuery("AuthenticatedUser.findByEmail", AuthenticatedUser.class)
-                    .setParameter("email", email)
-                    .getSingleResult();
-        } catch (NoResultException ex) {
-            logger.log(Level.INFO, "no user found using {0}", email);
-            return null;
-        } catch (NonUniqueResultException ex) {
-            logger.log(Level.INFO, "multiple users found using {0}: {1}", new Object[]{email, ex});
-            return null;
-        }
+    public AuthenticatedUser getAuthenticatedUserByEmail(final String email) {
+        return this.userService.findByEmail(email).orElse(null);
     }
 
     /**
@@ -657,7 +641,7 @@ public class AuthenticationServiceBean {
     }
 
     public List<AuthenticatedUser> findSuperUsers() {
-        return em.createNamedQuery("AuthenticatedUser.findSuperUsers", AuthenticatedUser.class).getResultList();
+        return this.userService.findSuperUsers();
     }
 
     public List <WorkflowComment> getWorkflowCommentsByAuthenticatedUser(AuthenticatedUser user){

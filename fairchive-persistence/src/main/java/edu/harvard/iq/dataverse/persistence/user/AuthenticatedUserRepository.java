@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.persistence.user;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.ejb.Stateless;
@@ -88,6 +89,22 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
         return this.em.createQuery(
                 "SELECT count(au) FROM AuthenticatedUser au WHERE au.superuser = true",
                 Long.class).getSingleResult();
+    }
+    public List<AuthenticatedUser> findSuperUsers() {
+        return createQuery("SELECT au FROM AuthenticatedUser au WHERE au.superuser = TRUE").
+        		getResultList();
+    }
+    
+    public Optional<AuthenticatedUser> findByEmail(final String email) {
+    	return getSingleResult(
+    			createQuery("select au from AuthenticatedUser au WHERE LOWER(au.email)=:email").
+    			setParameter("email", email.toLowerCase()));
+    }
+    
+    public Optional<AuthenticatedUser> findByIdentifier(final String identifier) {
+    	return getSingleResult(
+    			createQuery("select au from AuthenticatedUser au WHERE au.userIdentifier=:identifier")
+    			.setParameter("identifier", identifier));
     }
     
 	@SuppressWarnings("unchecked")
