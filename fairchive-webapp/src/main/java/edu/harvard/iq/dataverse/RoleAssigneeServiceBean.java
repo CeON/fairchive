@@ -108,9 +108,9 @@ public class RoleAssigneeServiceBean {
     	return this.roleAssignmentRepository.findByAssigneeIdentifier(roleAssigneeIdentifier);
     }
 
-    public Optional<RoleAssignment> getAssignmentFor(final String roleAssigneeIdentifier, 
+    public Optional<RoleAssignment> findAssignmentFor(final String roleAssigneeIdentifier, 
             final Long definitionPointId, final Long roleId) {
-        return this.roleAssignmentRepository.getAssignmentFor(roleAssigneeIdentifier, 
+        return this.roleAssignmentRepository.findAssignmentFor(roleAssigneeIdentifier, 
         		definitionPointId, roleId);
     }
 

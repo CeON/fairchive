@@ -127,7 +127,7 @@ public class RoleAssignmentRepository extends JpaRepository<Long, RoleAssignment
         }
     }
     
-    public Optional<RoleAssignment> getAssignmentFor(final String roleAssigneeIdentifier, 
+    public Optional<RoleAssignment> findAssignmentFor(final String roleAssigneeIdentifier, 
             final Long definitionPointId, final Long roleId) {
         return getSingleResult(createQuery(
         		"SELECT r FROM RoleAssignment r WHERE" +
