@@ -141,56 +141,56 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     // -------------------- GETTERS --------------------
 
     public List<DatasetLock> getDatasetLocks() {
-        return datasetLocks;
+        return this.datasetLocks;
     }
 
     public String getRoles() {
-        return roles;
+        return this.roles;
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public String getUserIdentifier() {
-        return userIdentifier;
+        return this.userIdentifier;
     }
 
     public String getEmail() {
-        return email;
+        return this.email;
     }
 
     public String getOrcid() {
-        return orcid;
+        return this.orcid;
     }
 
     public String getAffiliation() {
-        return affiliation;
+        return this.affiliation;
     }
 
     public String getAffiliationROR() {
-        return affiliationROR;
+        return this.affiliationROR;
     }
 
     public String getPosition() {
-        return position;
+        return this.position;
     }
 
     public String getLastName() {
-        return lastName;
+        return this.lastName;
     }
 
     public String getFirstName() {
-        return firstName;
+        return this.firstName;
     }
 
     public Timestamp getEmailConfirmed() {
-        return emailConfirmed;
+        return this.emailConfirmed;
     }
     
     @Override
     public Locale getNotificationsLanguage() {
-        return notificationsLanguage;
+        return this.notificationsLanguage;
     }
 
     /**
@@ -198,20 +198,20 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
      * This is history table so no element should be removed from this list.
      */
     public List<AcceptedConsent> getAcceptedConsents() {
-        return acceptedConsents;
+        return this.acceptedConsents;
     }
 
     @Override
     public boolean isSuperuser() {
-        return superuser;
+        return this.superuser;
     }
 
     public AuthenticatedUserLookup getAuthenticatedUserLookup() {
-        return authenticatedUserLookup;
+        return this.authenticatedUserLookup;
     }
 
     public String getShibIdentityProvider() {
-        return shibIdentityProvider;
+        return this.shibIdentityProvider;
     }
 
     public Timestamp getLastLoginTime() {
@@ -230,21 +230,22 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
 
     @Override
     public String getIdentifier() {
-        return IDENTIFIER_PREFIX + userIdentifier;
+        return IDENTIFIER_PREFIX.concat(this.userIdentifier);
     }
     
 
     @Override
     public AuthenticatedUserDisplayInfo getDisplayInfo() {
-        return new AuthenticatedUserDisplayInfo(firstName, lastName, email, 
-                orcid, affiliation, affiliationROR, position);
+        return new AuthenticatedUserDisplayInfo(this.firstName, this.lastName, 
+        		this.email, this.orcid, this.affiliation, this.affiliationROR, 
+        		this.position);
     }
 
     /**
      * Takes the passed info object and updated the internal fields according to it.
      * @param inf the info from which we update the fields.
      */
-    public void applyDisplayInfo(AuthenticatedUserDisplayInfo inf) {
+    public void applyDisplayInfo(final AuthenticatedUserDisplayInfo inf) {
         setFirstName(inf.getFirstName());
         setLastName(inf.getLastName());
         if (isNotBlank(inf.getEmailAddress())) {
@@ -270,7 +271,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
     }
 
     public String getName() {
-        return firstName + SPACE + lastName;
+        return this.firstName + SPACE + this.lastName;
     }
 
     public String getSortByString() {
@@ -279,80 +280,80 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
 
     // -------------------- SETTERS --------------------
 
-    public void setDatasetLocks(List<DatasetLock> datasetLocks) {
-        this.datasetLocks = datasetLocks;
+    public void setDatasetLocks(final List<DatasetLock> locks) {
+        this.datasetLocks = locks;
     }
 
-    public void setRoles(String roles) {
+    public void setRoles(final String roles) {
         this.roles = roles;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    public void setUserIdentifier(String userIdentifier) {
+    public void setUserIdentifier(final String userIdentifier) {
         this.userIdentifier = userIdentifier;
     }
 
     //Stripping spaces to continue support of #2945
-    public void setEmail(String email) {
+    public void setEmail(final String email) {
         this.email = email.trim();
     }
 
-    public void setOrcid(String orcid) {
+    public void setOrcid(final String orcid) {
         this.orcid = orcid;
     }
 
-    public void setAffiliation(String affiliation) {
+    public void setAffiliation(final String affiliation) {
         this.affiliation = affiliation;
     }
 
-    public void setAffiliationROR(String affiliationROR) {
+    public void setAffiliationROR(final String affiliationROR) {
         this.affiliationROR = affiliationROR;
     }
 
-    public void setPosition(String position) {
+    public void setPosition(final String position) {
         this.position = position;
     }
 
-    public void setLastName(String lastName) {
+    public void setLastName(final String lastName) {
         this.lastName = lastName;
     }
 
-    public void setFirstName(String firstName) {
+    public void setFirstName(final String firstName) {
         this.firstName = firstName;
     }
 
-    public void setEmailConfirmed(Timestamp emailConfirmed) {
+    public void setEmailConfirmed(final Timestamp emailConfirmed) {
         this.emailConfirmed = emailConfirmed;
     }
 
-    public void setNotificationsLanguage(Locale notificationsLanguage) {
+    public void setNotificationsLanguage(final Locale notificationsLanguage) {
         this.notificationsLanguage = notificationsLanguage;
     }
 
-    public void setSuperuser(boolean superuser) {
+    public void setSuperuser(final boolean superuser) {
         this.superuser = superuser;
     }
 
-    public void setAuthenticatedUserLookup(AuthenticatedUserLookup authenticatedUserLookup) {
+    public void setAuthenticatedUserLookup(final AuthenticatedUserLookup authenticatedUserLookup) {
         this.authenticatedUserLookup = authenticatedUserLookup;
     }
 
-    public void setShibIdentityProvider(String shibIdentityProvider) {
+    public void setShibIdentityProvider(final String shibIdentityProvider) {
         this.shibIdentityProvider = shibIdentityProvider;
     }
 
-    public void setLastLoginTime(Timestamp lastLoginTime) {
+    public void setLastLoginTime(final Timestamp lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
     }
 
-    public void setCreatedTime(Timestamp createdTime) {
+    public void setCreatedTime(final Timestamp createdTime) {
         this.createdTime = createdTime;
     }
 
-    public void setLastApiUseTime(Timestamp lastApiUseTime) {
+    public void setLastApiUseTime(final Timestamp lastApiUseTime) {
         this.lastApiUseTime = lastApiUseTime;
     }
 
@@ -367,7 +368,7 @@ public class AuthenticatedUser implements User, Serializable, JpaEntity<Long> {
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return Objects.hashCode(this.id);
     }
 
     @Override
