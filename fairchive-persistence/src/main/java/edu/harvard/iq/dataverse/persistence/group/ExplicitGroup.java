@@ -264,11 +264,11 @@ public class ExplicitGroup implements Group, Serializable, JpaEntity<Long> {
      * Updates the alias of the group. Call this after setting the owner or the
      * groupAliasInOwner fields. JPA-related activities call this automatically.
      */
-    public void updateAlias() {
-        groupAlias = ((getOwner() != null)
-                ? getOwner().getId() + "-"
-                : "") + getGroupAliasInOwner();
-    }
+	public void updateAlias() {
+		this.groupAlias = getOwner() != null 
+				? getOwner().getId() + "-" + getGroupAliasInOwner()
+				: getGroupAliasInOwner(); 
+	}
 
     @PrePersist
     void prepersist() {
