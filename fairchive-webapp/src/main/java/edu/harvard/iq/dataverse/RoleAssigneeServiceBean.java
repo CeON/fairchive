@@ -116,17 +116,17 @@ public class RoleAssigneeServiceBean {
     }
 
     public List<AuthenticatedUser> getExplicitUsers(final RoleAssignee ra) {
-        final List<AuthenticatedUser> explicitUsers = new ArrayList<>();
+        final List<AuthenticatedUser> result = new ArrayList<>();
         if (ra instanceof AuthenticatedUser) {
-            explicitUsers.add((AuthenticatedUser) ra);
+            result.add((AuthenticatedUser) ra);
         } else if (ra instanceof ExplicitGroup) {
             final ExplicitGroup group = (ExplicitGroup) ra;
             for (String raIdentifier : group.getContainedRoleAssgineeIdentifiers()) {
-                explicitUsers.addAll(getExplicitUsers(getRoleAssignee(raIdentifier)));
+                result.addAll(getExplicitUsers(getRoleAssignee(raIdentifier)));
             }
         }
 
-        return explicitUsers;
+        return result;
     }
 
     private String getRoleIdListClause(final List<Long> roleIdList) {
