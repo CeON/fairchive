@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.join;
 
 import java.util.ArrayList;
@@ -325,29 +326,23 @@ public class RoleAssigneeServiceBean {
                 .collect(toList());
     }
 
-    private List<String> getUserRuntimeGroups(final DataverseRequest dataverseRequest) {
-        final List<String> result = new ArrayList<>();
-
-        final Set<Group> groups = this.groupService.collectAncestors(this.groupService.groupsFor(dataverseRequest));
-        for (final Group group : groups) {
-            final String groupAlias = group.getAlias();
-            if (groupAlias != null && !groupAlias.isEmpty()) {
-            	final String prefix = group instanceof ExplicitGroup ? "&explicit/" : "&";
-                result.add(prefix.concat(groupAlias));
-            }
-        }
-        return result;
+    private List<String> getUserRuntimeGroups(final DataverseRequest dataverseRequest) {       
+        return this.groupService.collectAncestors(this.groupService.groupsFor(dataverseRequest))
+        	.stream()
+        	.filter(group -> isNotEmpty(group.getAlias()))
+        	.map(group -> (group instanceof ExplicitGroup ? "&explicit/" : "&").concat(group.getAlias()))
+        	.collect(toList());
     }
 
     public List<RoleAssignee> filterRoleAssignees(final String query, final DvObject dvObject, 
             final List<RoleAssignee> roleAssignSelectedRoleAssignees) {
-        final List<RoleAssignee> roleAssigneeList = new ArrayList<>();
+        final List<RoleAssignee> result = new ArrayList<>();
 
         // we get the users through a query that does the filtering through the db,
         // so that we don't have to instantiate all of the RoleAssignee objects
         this.authenticatedUserRepo.findUsersByIdentifierOrName(query).stream()
                 .filter(ra -> roleAssignSelectedRoleAssignees == null || !roleAssignSelectedRoleAssignees.contains(ra))
-                .forEach(roleAssigneeList::add);
+                .forEach(result::add);
 
         // now we add groups to the list, both global and explicit
         final Set<Group> groups = this.groupService.findGlobalGroups();
@@ -356,9 +351,9 @@ public class RoleAssigneeServiceBean {
                 .filter(ra -> containsIgnoreCase(ra.getDisplayInfo().getTitle(), query)
                         || containsIgnoreCase(ra.getIdentifier(), query))
                 .filter(ra -> roleAssignSelectedRoleAssignees == null || !roleAssignSelectedRoleAssignees.contains(ra))
-                .forEach(roleAssigneeList::add);
+                .forEach(result::add);
 
-        return roleAssigneeList;
+        return result;
     }
 
     public void removeAllRolesForUserByIdentifier(final String identifier) {
