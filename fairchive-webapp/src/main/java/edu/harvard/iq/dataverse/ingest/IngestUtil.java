@@ -19,16 +19,7 @@
  */
 package edu.harvard.iq.dataverse.ingest;
 
-import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.util.FileUtil;
-import org.dataverse.unf.UNFUtil;
-import org.dataverse.unf.UnfException;
-
 import static java.math.BigInteger.ONE;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.File;
@@ -40,6 +31,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.dataverse.unf.UNFUtil;
+import org.dataverse.unf.UnfException;
+
+import edu.harvard.iq.dataverse.common.files.mime.MimeTypes;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 /**
  * Various helper methods used by IngestServiceBean.

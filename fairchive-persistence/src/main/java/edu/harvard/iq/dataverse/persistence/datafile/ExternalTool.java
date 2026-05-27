@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
-import static java.lang.Boolean.TRUE;
 import static java.util.Collections.emptyMap;
 import static javax.persistence.GenerationType.IDENTITY;
 
