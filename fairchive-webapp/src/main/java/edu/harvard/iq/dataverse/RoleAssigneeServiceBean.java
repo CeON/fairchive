@@ -50,13 +50,13 @@ public class RoleAssigneeServiceBean {
     private EntityManager em;
 
     @EJB
-    AuthenticationServiceBean authSvc;
+    AuthenticationServiceBean authenticationService;
 
     @EJB
-    GroupServiceBean groupSvc;
+    GroupServiceBean groupService;
 
     @EJB
-    ExplicitGroupServiceBean explicitGroupSvc;
+    ExplicitGroupServiceBean explicitGroupService;
 
     @EJB
     DataverseRoleServiceBean dataverseRoleService;
@@ -71,7 +71,7 @@ public class RoleAssigneeServiceBean {
 
     @PostConstruct
     protected void setup() {
-        GuestUser gu = GuestUser.get();
+        final GuestUser gu = GuestUser.get();
         this.predefinedRoleAssignees.put(gu.getIdentifier(), gu);
         this.predefinedRoleAssignees.put(AuthenticatedUsers.get().getIdentifier(), AuthenticatedUsers.get());
         this.predefinedRoleAssignees.put(AllUsers.get().getIdentifier(), AllUsers.get());
@@ -93,9 +93,9 @@ public class RoleAssigneeServiceBean {
             case ':':
                 return this.predefinedRoleAssignees.get(identifier);
             case '@':
-                return this.authSvc.getAuthenticatedUser(identifier.substring(1));
+                return this.authenticationService.getAuthenticatedUser(identifier.substring(1));
             case '&':
-                return this.groupSvc.getGroup(identifier.substring(1));
+                return this.groupService.getGroup(identifier.substring(1));
             case '#':
                 return PrivateUrlUtil.identifier2roleAssignee(identifier);
             default:
@@ -320,7 +320,7 @@ public class RoleAssigneeServiceBean {
      * @todo Support groups within groups: https://github.com/IQSS/dataverse/issues/3056
      */
     public List<String> getUserExplicitGroups(final RoleAssignee ra) {
-        return this.explicitGroupSvc.findGroups(ra).stream()
+        return this.explicitGroupService.findGroups(ra).stream()
                 .map(g -> g.getAlias())
                 .collect(toList());
     }
@@ -328,7 +328,7 @@ public class RoleAssigneeServiceBean {
     private List<String> getUserRuntimeGroups(final DataverseRequest dataverseRequest) {
         final List<String> result = new ArrayList<>();
 
-        final Set<Group> groups = this.groupSvc.collectAncestors(this.groupSvc.groupsFor(dataverseRequest));
+        final Set<Group> groups = this.groupService.collectAncestors(this.groupService.groupsFor(dataverseRequest));
         for (final Group group : groups) {
             final String groupAlias = group.getAlias();
             if (groupAlias != null && !groupAlias.isEmpty()) {
@@ -350,8 +350,8 @@ public class RoleAssigneeServiceBean {
                 .forEach(roleAssigneeList::add);
 
         // now we add groups to the list, both global and explicit
-        final Set<Group> groups = this.groupSvc.findGlobalGroups();
-        groups.addAll(this.explicitGroupSvc.findAvailableFor(dvObject));
+        final Set<Group> groups = this.groupService.findGlobalGroups();
+        groups.addAll(this.explicitGroupService.findAvailableFor(dvObject));
         groups.stream()
                 .filter(ra -> containsIgnoreCase(ra.getDisplayInfo().getTitle(), query)
                         || containsIgnoreCase(ra.getIdentifier(), query))
