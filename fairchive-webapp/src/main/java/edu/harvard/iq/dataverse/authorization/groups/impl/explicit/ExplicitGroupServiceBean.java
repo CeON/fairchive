@@ -1,13 +1,14 @@
 package edu.harvard.iq.dataverse.authorization.groups.impl.explicit;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -32,7 +33,7 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 public class ExplicitGroupServiceBean {
 
     @EJB
-    protected RoleAssigneeServiceBean roleAssigneeSvc;
+    protected RoleAssigneeServiceBean roleAssigneeService;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;
@@ -69,7 +70,7 @@ public class ExplicitGroupServiceBean {
             "WHERE id IN (SELECT distinct id FROM parents);";
 
     public ExplicitGroupProvider getProvider() {
-        return groupService.getExplicitGroupProvider();
+        return this.groupService.getExplicitGroupProvider();
     }
 
     public ExplicitGroup persist(ExplicitGroup g) {
@@ -81,7 +82,7 @@ public class ExplicitGroupServiceBean {
             if (Math.random() >= 0.5) {
                 Set<String> stale = new TreeSet<>();
                 for (String idtf : g.getContainedRoleAssignees()) {
-                    if (roleAssigneeSvc.getRoleAssignee(idtf) == null) {
+                    if (roleAssigneeService.getRoleAssignee(idtf) == null) {
                         stale.add(idtf);
                     }
                 }
@@ -106,23 +107,23 @@ public class ExplicitGroupServiceBean {
         return this.repository.findByOwnerIdAndAlias(ownerId, groupAliasInOwner).orElse(null);
     }
 
-    public void removeGroup(ExplicitGroup explicitGroup) {
-        em.remove(explicitGroup);
+    public void removeGroup(final ExplicitGroup group) {
+    	this.repository.delete(group);
     }
 
     /**
      * Returns all the explicit groups that are available in the context of the passed DvObject.
      *
-     * @param d The DvObject where the groups are queried
+     * @param owner The DvObject where the groups are queried
      * @return All the explicit groups defined at {@code d} and its ancestors.
      */
-    public Set<ExplicitGroup> findAvailableFor(DvObject d) {
-        Set<ExplicitGroup> egs = new HashSet<>();
-        while (d != null) {
-            egs.addAll(findByOwnerId(d.getId()));
-            d = d.getOwner();
+    public Set<ExplicitGroup> findAvailableFor(DvObject owner) {
+        final Set<ExplicitGroup> result = new HashSet<>();
+        while (owner != null) {
+            result.addAll(findByOwnerId(owner.getId()));
+            owner = owner.getOwner();
         }
-        return egs;
+        return result;
     }
 
     /**
@@ -130,29 +131,20 @@ public class ExplicitGroupServiceBean {
      * To find all these groups and the groups the contain them (recursively upwards),
      * consider using {@link #findGroups(edu.harvard.iq.dataverse.persistence.user.RoleAssignee)}
      *
-     * @param ra the role assignee whose membership list we seek
+     * @param assignee the role assignee whose membership list we seek
      * @return set of the explicit groups that contain {@code ra} directly.
      * @see #findGroups(edu.harvard.iq.dataverse.persistence.user.RoleAssignee)
      */
-    public Set<ExplicitGroup> findDirectlyContainingGroups(RoleAssignee ra) {
-        if (ra instanceof AuthenticatedUser) {
-            return new HashSet<>(
-                            em.createNamedQuery("ExplicitGroup.findByAuthenticatedUserIdentifier", ExplicitGroup.class)
-                                    .setParameter("authenticatedUserIdentifier", ra.getIdentifier().substring(1))
-                                    .getResultList()
-                    );
-        } else if (ra instanceof ExplicitGroup) {
-            return new HashSet<>(
-                            em.createNamedQuery("ExplicitGroup.findByContainedExplicitGroupId", ExplicitGroup.class)
-                                    .setParameter("containedExplicitGroupId", ((ExplicitGroup) ra).getId())
-                                    .getResultList()
-                    );
+    public Set<ExplicitGroup> findDirectlyContainingGroups(final RoleAssignee assignee) {
+        if (assignee instanceof AuthenticatedUser) {
+            return new HashSet<>(this.repository.
+            		findByAuthUserIdentifier(assignee.getIdentifier().substring(1)));
+        } else if (assignee instanceof ExplicitGroup) {
+            return new HashSet<>(this.repository.
+            		findByContainedExplicitGroupId(((ExplicitGroup) assignee).getId()));
         } else {
-            return new HashSet<>(
-                            em.createNamedQuery("ExplicitGroup.findByRoleAssgineeIdentifier", ExplicitGroup.class)
-                                    .setParameter("roleAssigneeIdentifier", ra.getIdentifier())
-                                    .getResultList()
-                    );
+            return new HashSet<>(this.repository.
+            		findByRoleAssgineeIdentifier(assignee.getIdentifier()));
         }
     }
 
@@ -163,22 +155,22 @@ public class ExplicitGroupServiceBean {
      * @param ra the role assignee whose membership list we seek
      * @return set of the explicit groups that contain {@code ra}.
      */
-    public Set<ExplicitGroup> findGroups(RoleAssignee ra) {
-        return findClosure(findDirectlyContainingGroups(ra));
+    public Set<ExplicitGroup> findGroups(final RoleAssignee assignee) {
+        return findClosure(findDirectlyContainingGroups(assignee));
     }
 
     /**
      * Finds all the groups {@code ra} is a member of, in the context of {@code o}.
      * This includes both direct and indirect memberships.
      *
-     * @param ra The role assignee whose memberships we seek.
-     * @param o  The {@link DvObject} whose context we search.
+     * @param rassignee The role assignee whose memberships we seek.
+     * @param owner  The {@link DvObject} whose context we search.
      * @return All the groups in {@code o}'s context that {@code ra} is a member of.
      */
-    public Set<ExplicitGroup> findGroups(RoleAssignee ra, DvObject o) {
-        return findGroups(ra).stream()
-                .filter(g -> g.getOwner().isAncestorOf(o))
-                .collect(Collectors.toSet());
+    public Set<ExplicitGroup> findGroups(final RoleAssignee rassignee, final DvObject owner) {
+        return findGroups(rassignee).stream()
+                .filter(g -> g.getOwner().isAncestorOf(owner))
+                .collect(toSet());
     }
 
     /**
@@ -210,12 +202,8 @@ public class ExplicitGroupServiceBean {
      *
      * @param assignee User or Group
      */
-    public void revokeAllGroupsForAssignee(RoleAssignee assignee) {
-        if (assignee instanceof AuthenticatedUser) {
-            em.createNativeQuery("DELETE FROM explicitgroup_authenticateduser WHERE containedauthenticatedusers_id=" + ((AuthenticatedUser) assignee).getId()).executeUpdate();
-        } else if (assignee instanceof ExplicitGroup) {
-            em.createNativeQuery("DELETE FROM explicitgroup_explicitgroup WHERE containedexplicitgroups_id=" + ((ExplicitGroup) assignee).getId()).executeUpdate();
-        }
+    public void revokeAllGroupsFor(final AuthenticatedUser user) {
+    	this.repository.revokeAllGroupForAuthUser(user.getId());
     }
 
     /**
@@ -224,18 +212,16 @@ public class ExplicitGroupServiceBean {
      *
      * @return members of the group.
      */
-    public Set<RoleAssignee> getDirectMembers(ExplicitGroup explicitGroup) {
-        Set<RoleAssignee> res = new HashSet<>();
+    public Set<RoleAssignee> getDirectMembers(ExplicitGroup group) {
+        final Set<RoleAssignee> result = new HashSet<>();
 
-        res.addAll(explicitGroup.getContainedExplicitGroups());
-        res.addAll(explicitGroup.getContainedAuthenticatedUsers());
-        for (String idtf : explicitGroup.getContainedRoleAssignees()) {
-            RoleAssignee ra = roleAssigneeSvc.getRoleAssignee(idtf);
-            if (ra != null) {
-                res.add(ra);
-            }
-        }
-
-        return res;
+        result.addAll(group.getContainedExplicitGroups());
+        result.addAll(group.getContainedAuthenticatedUsers());
+        group.getContainedRoleAssignees().stream()
+        	.map(this.roleAssigneeService::getRoleAssignee)
+        	.filter(Objects::nonNull)
+        	.forEach(result::add);
+        
+        return result;
     }
 }

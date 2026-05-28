@@ -19,8 +19,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
@@ -43,17 +41,6 @@ import edu.harvard.iq.dataverse.persistence.user.User;
  * @author michael
  */
 @SuppressWarnings("serial")
-@NamedQueries({
-        @NamedQuery(name = "ExplicitGroup.findByAuthenticatedUserIdentifier",
-                query = "SELECT eg FROM ExplicitGroup eg JOIN eg.containedAuthenticatedUsers au "
-                        + "WHERE au.userIdentifier=:authenticatedUserIdentifier"),
-        @NamedQuery(name = "ExplicitGroup.findByRoleAssgineeIdentifier",
-                query = "SELECT eg FROM ExplicitGroup eg JOIN eg.containedRoleAssignees cra "
-                        + "WHERE cra=:roleAssigneeIdentifier"),
-        @NamedQuery(name = "ExplicitGroup.findByContainedExplicitGroupId",
-                query = "SELECT eg FROM ExplicitGroup eg join eg.containedExplicitGroups ceg "
-                        + "WHERE ceg.id=:containedExplicitGroupId")
-})
 @Entity
 @Table(indexes = {@Index(columnList = "owner_id"),
         @Index(columnList = "groupaliasinowner")})

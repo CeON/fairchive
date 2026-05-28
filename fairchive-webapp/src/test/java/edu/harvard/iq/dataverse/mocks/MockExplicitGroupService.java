@@ -21,7 +21,7 @@ public class MockExplicitGroupService extends ExplicitGroupServiceBean {
     private Map<Long, ExplicitGroup> groups = new HashMap<>();
 
     public MockExplicitGroupService(RoleAssigneeServiceBean roleAssigneeService) {
-        this.roleAssigneeSvc = roleAssigneeService;
+        this.roleAssigneeService = roleAssigneeService;
     }
     
     public ExplicitGroup registerGroup(ExplicitGroup grp) {

@@ -34,4 +34,36 @@ public class ExplicitGroupRepository extends JpaRepository<Long, ExplicitGroup>{
                  .setParameter("alias", groupAliasInOwner)
                  .setParameter("ownerId", ownerId));
     }
+    
+    public void revokeAllGroupForAuthUser(final Long authUserId) {
+    	this.em.createNativeQuery(
+    			"DELETE FROM explicitgroup_authenticateduser" + 
+    			" WHERE containedauthenticatedusers_id=?")
+    			.setParameter(1, authUserId)
+    			.executeUpdate();
+    }
+    
+	public List<ExplicitGroup> findByAuthUserIdentifier(final String identifier) {
+		return createQuery(
+				"SELECT eg FROM ExplicitGroup eg JOIN eg.containedAuthenticatedUsers au" +
+                " WHERE au.userIdentifier=:id")
+				.setParameter("id", identifier)
+				.getResultList();
+	}
+	
+	public List<ExplicitGroup> findByContainedExplicitGroupId(final Long id) {
+		return createQuery(
+				"SELECT eg FROM ExplicitGroup eg join eg.containedExplicitGroups ceg" +
+                 " WHERE ceg.id=:id")
+				.setParameter("id", id)
+				.getResultList();
+	}
+	
+	public List<ExplicitGroup> findByRoleAssgineeIdentifier(final String identifier) {
+		return createQuery(
+				"SELECT eg FROM ExplicitGroup eg JOIN eg.containedRoleAssignees cra" +
+                 " WHERE cra=:id")
+				.setParameter("id", identifier)
+				.getResultList();
+	}
 }

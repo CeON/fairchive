@@ -46,7 +46,7 @@ public class RevokeAllRolesCommand extends AbstractCommand<AuthenticatedUser> im
         try {
             ctxt.roles().revokeAll(assignee);
 
-            ctxt.explicitGroups().revokeAllGroupsForAssignee(assignee);
+            ctxt.explicitGroups().revokeAllGroupsFor(assignee);
             return assignee;
 
         } catch (Exception ex) {
