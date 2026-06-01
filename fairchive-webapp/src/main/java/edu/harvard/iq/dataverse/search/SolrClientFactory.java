@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.search;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SolrHostColonPort;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SolrMainIndexCollectionName;
 
 import java.io.IOException;
 
@@ -25,7 +26,8 @@ public class SolrClientFactory {
 
     @Produces
     public SolrClient produceSolrClient() throws IOException {
-        return createClient("collection1");
+        return createClient(this.settings.getValueForKey(SolrMainIndexCollectionName,
+        		"collection1"));
     }
 
     @Produces
