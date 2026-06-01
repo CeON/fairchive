@@ -24,18 +24,19 @@
             <ui:repeat value="#{banners}" 
                        var="banner">
                 <div style="display: flex;align-content: center;">
-                  <h:commandLink style="text-align: center; display: block; margin: auto;  padding: 10px; "
-                                   target="_blank" 
-                                   disabled="#{banner.link == null}" 
-                                   action="#{MessagesAndBannersFragment.redirect(banner.link)}">
+                  <h:outputLink style="text-align: center; display: block; margin: auto;  padding: 10px; "
+                                value="#{banner.link}"
+                                target="_blank"
+                                disabled="#{banner.link == null}"
+                                title="#{bundle['opensInNewTab']}">
                          <p:graphicImage 
                                         stream="false"
                                         value="#{banner.image}"
                                         alt="#{bundle['header.banner.alt']} #{banner.link != null ? bundle['opensInNewTab'] : ''}"
                                         title="#{bundle['header.banner.alt']} #{banner.link != null ? bundle['opensInNewTab'] : ''}"
                         />
-                 </h:commandLink> 
-                </div>
+                  </h:outputLink>
+               </div>
             </ui:repeat>
         </div>
     </h:form>
