@@ -911,7 +911,8 @@ public class SettingsServiceBean {
     }
     
     public String getValueForKey(final Key key, final String defaultValue) {
-        return get(key.toString());
+    	final String val = this.getValueForKey(key);
+		return isNotBlank(val) ? val.trim() : defaultValue;
     }
 
     /**
