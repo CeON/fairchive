@@ -144,7 +144,11 @@ public class NewBannerPage implements Serializable {
 
     public String save() {
         if (isDataCorrect()) {
-            this.bannerRepo.save(banner);
+            banner.setDataverse(this.dataverse);
+        	banner.getLocalizedBanners().forEach(localizedBanner -> { 
+        		localizedBanner.setDataverseBanner(banner);
+        	});
+        	this.bannerRepo.save(banner);
             this.uiMessages.addFlashSuccessMessage(
                     getStringFromBundle("dataversemessages.banners.new.success"));
             return redirectToTextMessages();
