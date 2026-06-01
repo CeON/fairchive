@@ -148,6 +148,9 @@ public class SettingsServiceBean {
          * Solr hostname and port, such as "localhost:8983".
          */
         SolrHostColonPort,
+        
+        SolrMainIndexCollectionName,
+        
         /**
          * Enable full-text indexing in solr
          * Defaults to false
