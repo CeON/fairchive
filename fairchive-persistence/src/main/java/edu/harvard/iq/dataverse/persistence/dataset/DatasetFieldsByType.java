@@ -84,11 +84,9 @@ public class DatasetFieldsByType {
     		this.datasetFields.add(DatasetField.createNewEmptyChildDatasetField(this.datasetFieldType, null));
     	}
     	
-    	for (DatasetField source : sources) {
+    	for (final DatasetField source : sources) {
     		this.datasetFields.get(position++).copyChildValuesFrom(source);
     	}
-    	
-    	System.gc();
     }
 
     public void removeDatasetField(int position) {

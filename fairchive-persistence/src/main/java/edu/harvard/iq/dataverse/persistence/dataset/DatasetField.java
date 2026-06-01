@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -485,6 +486,17 @@ public class DatasetField implements Serializable, ValidatableField {
     @Override
     public List<DatasetField> getChildren() {
         return getDatasetFieldsChildren();
+    }
+    
+    public Stream<DatasetField> streamSiblings() {
+    	if(this.datasetFieldParent == null) {
+    		return Stream.empty();
+    	} else {
+    		return this.datasetFieldParent
+    				.getChildren()
+    				.stream()
+    				.filter(child -> !child.isOfType(this.datasetFieldType));
+    	}
     }
 
     @Override
