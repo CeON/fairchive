@@ -41,11 +41,4 @@ public class MessagesAndBannersFragment implements java.io.Serializable {
                 dataverseSession.getLocaleCode());
     }
 
-    public void redirect(String link) throws IOException {
-
-        if (!link.startsWith("http")) {
-            link = "http://".concat(link);
-        }
-        FacesContext.getCurrentInstance().getExternalContext().redirect(link);
-    }
 }
