@@ -14,6 +14,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -56,6 +57,13 @@ public class ForeignMetadataFormatMapping implements Serializable, JpaEntity<Lon
 
     public List<ForeignMetadataFieldMapping> getDatasetFieldTypes() {
         return this.foreignMetadataFieldMappings;
+    }
+    
+    public Optional<ForeignMetadataFieldMapping> getFieldMappingBy(final String path) {
+    	return getDatasetFieldTypes().
+    			stream().
+    			filter(mapping -> mapping.getForeignFieldXPath().equals(path)).
+    			findFirst();
     }
 
     public void setDatasetFieldTypes(final List<ForeignMetadataFieldMapping> fieldTypes) {

@@ -61,12 +61,14 @@ public class HarvesterServiceBean {
      * Called to run an "On Demand" harvest.
      */
     @Asynchronous
-    public void doAsyncHarvest(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, HarvesterParams params) {
+    public void doAsyncHarvest(DataverseRequest dataverseRequest, 
+    		HarvestingClient harvestingClient, HarvesterParams params) {
 
         try {
             doHarvest(dataverseRequest, harvestingClient.getId(), params);
         } catch (Exception e) {
-            logger.info("Caught exception running an asynchronous harvest (dataverse \"" + harvestingClient.getName() + "\")");
+            logger.info("Caught exception running an asynchronous harvest (dataverse \"" + 
+            			harvestingClient.getName() + "\")");
         }
     }
 
@@ -77,7 +79,8 @@ public class HarvesterServiceBean {
      * @param harvestingClientId
      * @throws IOException
      */
-    public <T extends HarvesterParams> void doHarvest(DataverseRequest dataverseRequest, Long harvestingClientId, HarvesterParams params) throws IOException {
+    public <T extends HarvesterParams> void doHarvest(DataverseRequest dataverseRequest, 
+    		Long harvestingClientId, HarvesterParams params) throws IOException {
         HarvestingClient client = harvestingClientService.find(harvestingClientId);
 
         if (client == null) {

@@ -1,5 +1,22 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.commons.io.FileUtils;
+import org.dspace.xoai.model.oaipmh.Header;
+import org.dspace.xoai.serviceprovider.exceptions.HarvestException;
+import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
+
 import edu.harvard.iq.dataverse.api.imports.HarvestImporterType;
 import edu.harvard.iq.dataverse.api.imports.HarvestImporterTypeResolver;
 import edu.harvard.iq.dataverse.api.imports.ImportException;
@@ -9,23 +26,6 @@ import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandler;
 import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandlerException;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestType;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import org.apache.commons.io.FileUtils;
-import org.dspace.xoai.model.oaipmh.Header;
-import org.dspace.xoai.serviceprovider.exceptions.HarvestException;
-import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
-
-import javax.ejb.EJB;
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.io.File;
-import java.nio.file.Files;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Harvester for OAI clients.
@@ -33,9 +33,6 @@ import java.util.logging.Logger;
 @Stateless
 @LocalBean
 public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterParams> {
-
-    @PersistenceContext(unitName = "VDCNet-ejbPU")
-    private EntityManager em;
 
     @EJB
     ImportServiceBean importService;
@@ -104,7 +101,8 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
     // -------------------- PRIVATE --------------------
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    private void processRecord(HarvesterResult result, DataverseRequest dataverseRequest, Logger hdLogger, OaiHandler oaiHandler, String identifier) {
+    private void processRecord(HarvesterResult result, DataverseRequest dataverseRequest, 
+    		Logger hdLogger, OaiHandler oaiHandler, String identifier) {
         logGetRecord(hdLogger, oaiHandler, identifier);
         File tempFile = null;
 
