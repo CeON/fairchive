@@ -669,7 +669,11 @@ public class Dataset extends DvObjectContainer {
             }
             return getHarvestedFrom().getArchiveUrl();
         } else {
-            return getHarvestedFrom().getArchiveUrl();
+        	if("hdl".equals(getProtocol())) {
+        		return "https://hdl.handle.net/" + getAuthority() + '/' + getIdentifier();
+        	} else {
+        		return getHarvestedFrom().getArchiveUrl();
+        	}
         }
     }
 

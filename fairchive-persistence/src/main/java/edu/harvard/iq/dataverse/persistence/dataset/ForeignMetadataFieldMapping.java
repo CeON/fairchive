@@ -12,6 +12,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
@@ -19,6 +21,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Leonid Andreev
@@ -32,17 +35,18 @@ import java.util.Collection;
                 query = "SELECT fmfm FROM ForeignMetadataFieldMapping fmfm WHERE fmfm.foreignMetadataFormatMapping.name=:formatName AND fmfm.foreignFieldXPath=:xPath")
 })
 @Entity
-public class ForeignMetadataFieldMapping implements Serializable {
+public class ForeignMetadataFieldMapping implements Serializable, JpaEntity<Long> {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
-
+    
+    @Override
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
@@ -64,50 +68,50 @@ public class ForeignMetadataFieldMapping implements Serializable {
     private boolean isAttribute;
 
     public ForeignMetadataFormatMapping getForeignMetadataFormatMapping() {
-        return foreignMetadataFormatMapping;
+        return this.foreignMetadataFormatMapping;
     }
 
-    public void setForeignMetadataFormatMapping(ForeignMetadataFormatMapping foreignMetadataFormatMapping) {
-        this.foreignMetadataFormatMapping = foreignMetadataFormatMapping;
+    public void setForeignMetadataFormatMapping(final ForeignMetadataFormatMapping mapping) {
+        this.foreignMetadataFormatMapping = mapping;
     }
 
     public String getForeignFieldXPath() {
-        return foreignFieldXPath;
+        return this.foreignFieldXPath;
     }
 
-    public void setForeignFieldXPath(String foreignFieldXPath) {
+    public void setForeignFieldXPath(final String foreignFieldXPath) {
         this.foreignFieldXPath = foreignFieldXPath;
     }
 
     public String getDatasetfieldName() {
-        return datasetfieldName;
+        return this.datasetfieldName;
     }
 
-    public void setDatasetfieldName(String datasetfieldName) {
-        this.datasetfieldName = datasetfieldName;
+    public void setDatasetfieldName(final String name) {
+        this.datasetfieldName = name;
     }
 
     public Collection<ForeignMetadataFieldMapping> getChildFieldMappings() {
         return this.childFieldMappings;
     }
 
-    public void setChildFieldMappings(Collection<ForeignMetadataFieldMapping> childFieldMappings) {
-        this.childFieldMappings = childFieldMappings;
+    public void setChildFieldMappings(final Collection<ForeignMetadataFieldMapping> mappings) {
+        this.childFieldMappings = mappings;
     }
 
     public ForeignMetadataFieldMapping getParentFieldMapping() {
-        return parentFieldMapping;
+        return this.parentFieldMapping;
     }
 
-    public void setParentFieldMapping(ForeignMetadataFieldMapping parentFieldMapping) {
-        this.parentFieldMapping = parentFieldMapping;
+    public void setParentFieldMapping(final ForeignMetadataFieldMapping mapping) {
+        this.parentFieldMapping = mapping;
     }
 
     public boolean isAttribute() {
-        return isAttribute;
+        return this.isAttribute;
     }
 
-    public void setIsAttribute(boolean isAttribute) {
+    public void setIsAttribute(final boolean isAttribute) {
         this.isAttribute = isAttribute;
     }
 
@@ -125,9 +129,7 @@ public class ForeignMetadataFieldMapping implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
@@ -141,7 +143,7 @@ public class ForeignMetadataFieldMapping implements Serializable {
 
     @Override
     public String toString() {
-        return "ForeignMetadataFieldMapping[ id=" + id + " ]";
+        return this.datasetfieldName;
     }
 
 }
