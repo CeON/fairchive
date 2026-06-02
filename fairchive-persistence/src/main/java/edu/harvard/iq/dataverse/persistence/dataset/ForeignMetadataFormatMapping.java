@@ -6,16 +6,6 @@
 
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
@@ -23,18 +13,22 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
-/**
- * @author Leonid Andreev
- */
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
-@NamedQueries({
-        @NamedQuery(name = "ForeignMetadataFormatMapping.listAll", query = "SELECT fmfm FROM ForeignMetadataFormatMapping fmfm"),
-        @NamedQuery(name = "ForeignMetadataFormatMapping.findByName", query = "SELECT fmfm FROM ForeignMetadataFormatMapping fmfm WHERE fmfm.name=:name")
-})
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+
 @Entity
 @Table(indexes = {@Index(columnList = "name")})
-public class ForeignMetadataFormatMapping implements Serializable {
+public class ForeignMetadataFormatMapping implements Serializable, JpaEntity<Long> {
+	
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -51,78 +45,76 @@ public class ForeignMetadataFormatMapping implements Serializable {
     private String startElement;
 
     /* getters/setters: */
-
+    @Override
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public List<ForeignMetadataFieldMapping> getDatasetFieldTypes() {
-        return foreignMetadataFieldMappings;
+        return this.foreignMetadataFieldMappings;
     }
 
-    public void setDatasetFieldTypes(List<ForeignMetadataFieldMapping> foreignMetadataFieldMappings) {
-        this.foreignMetadataFieldMappings = foreignMetadataFieldMappings;
+    public void setDatasetFieldTypes(final List<ForeignMetadataFieldMapping> fieldTypes) {
+        this.foreignMetadataFieldMappings = fieldTypes;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
     public String getDisplayName() {
-        return displayName;
+        return this.displayName;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setDisplayName(final String name) {
+        this.displayName = name;
     }
 
     public String getSchemaLocation() {
-        return schemaLocation;
+        return this.schemaLocation;
     }
 
-    public void setSchemaLocation(String schemaLocation) {
-        this.schemaLocation = schemaLocation;
+    public void setSchemaLocation(final String location) {
+        this.schemaLocation = location;
     }
 
     public String getStartElement() {
-        return startElement;
+        return this.startElement;
     }
 
-    public void setStartElement(String startElement) {
-        this.startElement = startElement;
+    public void setStartElement(final String element) {
+        this.startElement = element;
     }
 
     /* overrides: */
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ForeignMetadataFormatMapping)) {
-            return false;
-        }
-        ForeignMetadataFormatMapping other = (ForeignMetadataFormatMapping) object;
-        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
+    public boolean equals(final Object object) {
+    	if(object != null && getClass().equals(object.getClass())) {
+    		final ForeignMetadataFormatMapping other = (ForeignMetadataFormatMapping) object;
+    		return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
+    	} else {
+    		return false;
+    	}
     }
 
 
     @Override
     public String toString() {
-        return "ForeignMetadataFormatMapping[ id=" + id + " ]";
+        return "ForeignMetadataFormatMapping: " + this.name;
     }
 
 }
