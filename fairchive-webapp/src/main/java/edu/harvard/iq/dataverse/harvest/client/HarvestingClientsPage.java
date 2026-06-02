@@ -29,7 +29,7 @@ import org.omnifaces.cdi.ViewScoped;
 
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.NavigationWrapper;
-import edu.harvard.iq.dataverse.api.imports.HarvestImporterTypeResolver;
+import edu.harvard.iq.dataverse.api.imports.HarvestImporterType;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandler;
@@ -68,8 +68,6 @@ public class HarvestingClientsPage implements java.io.Serializable {
     private HarvestingClientsService harvestingClientsService;
     @Inject
     private SystemConfig systemConfig;
-    @Inject
-    private HarvestImporterTypeResolver harvestImporterTypeResolver;
 
     private List<HarvestingClient> configuredHarvestingClients;
     private Dataverse dataverse;
@@ -504,7 +502,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
             try {
                 List<MetadataFormat> formats = oaiHandler.runListMetadataFormats();
                 if (!formats.isEmpty()) {
-                    List<MetadataFormat> supportedFormats = harvestImporterTypeResolver.filterSupportedFormats(formats);
+                    List<MetadataFormat> supportedFormats = HarvestImporterType.filterSupported(formats);
                     if (!supportedFormats.isEmpty()) {
                         createOaiMetadataFormatSelectItems(supportedFormats);
                     } else {

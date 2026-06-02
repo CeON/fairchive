@@ -18,7 +18,6 @@ import org.dspace.xoai.serviceprovider.exceptions.HarvestException;
 import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
 
 import edu.harvard.iq.dataverse.api.imports.HarvestImporterType;
-import edu.harvard.iq.dataverse.api.imports.HarvestImporterTypeResolver;
 import edu.harvard.iq.dataverse.api.imports.ImportException;
 import edu.harvard.iq.dataverse.api.imports.ImportServiceBean;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -36,9 +35,6 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
 
     @EJB
     ImportServiceBean importService;
-
-    @EJB
-    private HarvestImporterTypeResolver harvestImporterTypeResolver;
 
     // -------------------- LOGIC --------------------
 
@@ -121,7 +117,7 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
 
             } else {
                 hdLogger.info("Successfully retrieved GetRecord response.");
-                HarvestImporterType importType = harvestImporterTypeResolver.resolveImporterType(oaiHandler.getMetadataFormat())
+                HarvestImporterType importType = HarvestImporterType.resolve(oaiHandler.getMetadataFormat())
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "Unsupported import metadata format: " + oaiHandler.getMetadataFormat().getMetadataPrefix()));
 
