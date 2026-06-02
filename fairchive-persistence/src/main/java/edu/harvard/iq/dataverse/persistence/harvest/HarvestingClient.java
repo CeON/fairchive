@@ -33,8 +33,6 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
@@ -52,10 +50,6 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
         , @Index(columnList = "harveststyle")
         , @Index(columnList = "harvestingurl")})
 @Entity
-@NamedQueries({
-        @NamedQuery(name = "HarvestingClient.findByNickname", 
-        		   query = "SELECT hc FROM HarvestingClient hc WHERE LOWER(hc.name)=:nickName")
-})
 public class HarvestingClient implements Serializable, JpaEntity<Long> {
     private static final long serialVersionUID = 1L;
     

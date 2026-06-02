@@ -1,37 +1,5 @@
 package edu.harvard.iq.dataverse.api.imports;
 
-import com.google.gson.Gson;
-import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
-import edu.harvard.iq.dataverse.api.dto.DatasetDTO;
-import edu.harvard.iq.dataverse.api.dto.DatasetFieldDTOFactory;
-import edu.harvard.iq.dataverse.api.dto.DatasetVersionDTO;
-import edu.harvard.iq.dataverse.api.dto.MetadataBlockWithFieldsDTO;
-import edu.harvard.iq.dataverse.api.dto.DatasetFieldDTO;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.dataset.ForeignMetadataFieldMapping;
-import edu.harvard.iq.dataverse.persistence.dataset.ForeignMetadataFormatMapping;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.json.JsonParseException;
-import edu.harvard.iq.dataverse.util.json.JsonParser;
-
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +10,40 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import com.google.gson.Gson;
+
+import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
+import edu.harvard.iq.dataverse.api.dto.DatasetDTO;
+import edu.harvard.iq.dataverse.api.dto.DatasetFieldDTO;
+import edu.harvard.iq.dataverse.api.dto.DatasetFieldDTOFactory;
+import edu.harvard.iq.dataverse.api.dto.DatasetVersionDTO;
+import edu.harvard.iq.dataverse.api.dto.MetadataBlockWithFieldsDTO;
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.ForeignMetadataFieldMapping;
+import edu.harvard.iq.dataverse.persistence.dataset.ForeignMetadataFormatMapping;
+import edu.harvard.iq.dataverse.persistence.dataset.ForeignMetadataFormatMappingRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.json.JsonParseException;
+import edu.harvard.iq.dataverse.util.json.JsonParser;
 
 
 /**
@@ -64,23 +66,24 @@ public class ImportGenericServiceBean {
 
     @Inject
     SettingsServiceBean settingsService;
+    
+    @Inject
+    ForeignMetadataFormatMappingRepository foreignMetadataFormatMappingRepository;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
+    
 
     public static String DCTERMS = "http://purl.org/dc/terms/";
     public static final String OAI_DC_OPENING_TAG = "dc";
 
     public enum ImportType {NEW, MIGRATION, HARVEST}
 
-    public ForeignMetadataFormatMapping findFormatMappingByName(String name) {
-        try {
-            return em.createNamedQuery("ForeignMetadataFormatMapping.findByName", ForeignMetadataFormatMapping.class)
-                    .setParameter("name", name)
-                    .getSingleResult();
-        } catch (NoResultException nre) {
-            return null;
-        }
+    public ForeignMetadataFormatMapping findFormatMappingByName(final String name) {
+    	
+    	return this.foreignMetadataFormatMappingRepository.findByName(name).
+    		orElseThrow(() -> new EJBException(
+    				"Unknown/unsupported foreign metadata format ".concat(name)));
     }
 
     public void importXML(String xmlToParse, String foreignFormat, DatasetVersion datasetVersion) throws JsonParseException {
