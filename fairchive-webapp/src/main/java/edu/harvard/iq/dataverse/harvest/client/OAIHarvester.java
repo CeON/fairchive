@@ -53,7 +53,11 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
      * @param hdLogger             custom logger (specific to this harvesting run)
      */
     @Override
-    public HarvesterResult harvest(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, Logger hdLogger, HarvesterParams.EmptyHarvesterParams params) throws ImportException {
+    public HarvesterResult harvest(final DataverseRequest dataverseRequest, 
+    		final HarvestingClient harvestingClient, 
+    		final Logger hdLogger, 
+    		final HarvesterParams.EmptyHarvesterParams params) throws ImportException {
+    	
         logBeginOaiHarvest(hdLogger, harvestingClient);
 
         HarvesterResult result = new HarvesterResult();
@@ -72,7 +76,7 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
         }
 
         try {
-            for (Iterator<Header> idIter = oaiHandler.runListIdentifiers(); idIter.hasNext(); ) {
+            for (Iterator<Header> idIter = oaiHandler.listIdentifiers(); idIter.hasNext(); ) {
 
                 Header h = idIter.next();
                 String identifier = h.getIdentifier();
@@ -103,7 +107,7 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
         File tempFile = null;
 
         try {
-            FastGetRecord record = oaiHandler.runGetRecord(identifier);
+            FastGetRecord record = oaiHandler.getRecord(identifier);
             String errMessage = record.getErrorMessage();
             if (errMessage != null) {
                 throw new HarvestException("Error calling GetRecord - " + errMessage);
