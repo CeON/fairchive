@@ -1,21 +1,19 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
+import static java.util.logging.Level.SEVERE;
+
 import java.io.File;
 import java.nio.file.Files;
-import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
-import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.serviceprovider.exceptions.HarvestException;
-import org.dspace.xoai.serviceprovider.exceptions.IdDoesNotExistException;
 
 import edu.harvard.iq.dataverse.api.imports.HarvestImporterType;
 import edu.harvard.iq.dataverse.api.imports.ImportException;
@@ -33,10 +31,14 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 @LocalBean
 public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterParams> {
 
-    @EJB
-    ImportServiceBean importService;
-
-    // -------------------- LOGIC --------------------
+    private ImportServiceBean importService;
+    
+    public OAIHarvester() {}
+    
+    @Inject
+    public OAIHarvester(final ImportServiceBean importService) {
+		this.importService = importService;
+	}
 
     @Override
     public HarvestType harvestType() {
@@ -49,53 +51,31 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
     }
 
     /**
-     * @param harvestingClient     the harvesting client object
+     * @param client     the harvesting client object
      * @param hdLogger             custom logger (specific to this harvesting run)
      */
     @Override
     public HarvesterResult harvest(final DataverseRequest dataverseRequest, 
-    		final HarvestingClient harvestingClient, 
-    		final Logger hdLogger, 
+    		final HarvestingClient client, final Logger logger, 
     		final HarvesterParams.EmptyHarvesterParams params) throws ImportException {
-    	
-        logBeginOaiHarvest(hdLogger, harvestingClient);
-
-        HarvesterResult result = new HarvesterResult();
-        OaiHandler oaiHandler;
-
+ 
         try {
-            oaiHandler = new OaiHandler(harvestingClient)
-                    .withFetchedMetadataFormat();
-        } catch (OaiHandlerException | IdDoesNotExistException ohe) {
-            String errorMessage = "Failed to create OaiHandler for harvesting client "
-                    + harvestingClient.getName()
-                    + "; "
-                    + ohe.getMessage();
-            hdLogger.log(Level.SEVERE, errorMessage);
-            throw new ImportException(errorMessage, ohe);
+            logBeginOaiHarvest(logger, client);
+            final HarvesterResult result = new HarvesterResult();
+            final OaiHandler handler = new OaiHandler(client)
+                        .withFetchedMetadataFormat();
+            handler.listIdentifiers().forEachRemaining( header -> {
+                final String identifier = header.getIdentifier();
+                logger.info("Processing identifier: ".concat(identifier));
+                processRecord(result, dataverseRequest, logger, handler, identifier);
+                logger.info("Total content processed so far: " + result.getNumHarvested());
+            });
+            logCompletedOaiHarvest(logger, client);
+            return result;
+        } catch (final OaiHandlerException e) {
+        	logger.log(SEVERE, "Harvest '" + client.getName() + "' failed.", e);
+            throw new ImportException(e);
         }
-
-        try {
-            for (Iterator<Header> idIter = oaiHandler.listIdentifiers(); idIter.hasNext(); ) {
-
-                Header h = idIter.next();
-                String identifier = h.getIdentifier();
-
-                hdLogger.info("processing identifier: " + identifier);
-
-                // Retrieve and process this record with a separate GetRecord call:
-                processRecord(result, dataverseRequest, hdLogger, oaiHandler, identifier);
-
-                hdLogger.info("Total content processed so far: " + result.getNumHarvested());
-            }
-        } catch (OaiHandlerException e) {
-            throw new ImportException("Failed to run ListIdentifiers: " + e.getMessage(), e);
-        }
-
-        logCompletedOaiHarvest(hdLogger, harvestingClient);
-
-        return result;
-
     }
 
     // -------------------- PRIVATE --------------------
@@ -148,49 +128,31 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
         }
     }
 
-    private void logBeginOaiHarvest(Logger hdLogger, HarvestingClient harvestingClient) {
-        hdLogger.log(Level.INFO, "BEGIN HARVEST, oaiUrl="
-                + harvestingClient.getHarvestingUrl()
-                + ",set="
-                + harvestingClient.getHarvestingSet()
-                + ", metadataPrefix="
-                + harvestingClient.getMetadataPrefix()
-                + harvestingClient.getLastNonEmptyHarvestTime() == null ? "" : "from=" + harvestingClient.getLastNonEmptyHarvestTime());
+    private void logBeginOaiHarvest(final Logger hdLogger, final HarvestingClient client) {
+        hdLogger.info("Started harvest: oaiUrl=" + client.getHarvestingUrl()
+                + ",set=" + client.getHarvestingSet()
+                + ",metadataPrefix=" + client.getMetadataPrefix()
+                + ",from=" + client.getLastNonEmptyHarvestTime());
     }
 
-    private void logCompletedOaiHarvest(Logger hdLogger, HarvestingClient harvestingClient) {
-        hdLogger.log(Level.INFO, "COMPLETED HARVEST, oaiUrl="
-                + harvestingClient.getHarvestingUrl()
-                + ",set="
-                + harvestingClient.getHarvestingSet()
-                + ", metadataPrefix="
-                + harvestingClient.getMetadataPrefix()
-                + harvestingClient.getLastNonEmptyHarvestTime() == null ? "" : "from=" + harvestingClient.getLastNonEmptyHarvestTime());
+    private void logCompletedOaiHarvest(final Logger logger, final HarvestingClient client) {
+        logger.info("Completed harvest: oaiUrl=" + client.getHarvestingUrl()
+                + ",set=" + client.getHarvestingSet()
+                + ",metadataPrefix=" + client.getMetadataPrefix()
+                + ",from=" + client.getLastNonEmptyHarvestTime());
     }
 
-    private void logGetRecord(Logger hdLogger, OaiHandler oaiHandler, String identifier) {
-        hdLogger.log(Level.FINE, "Calling GetRecord: oaiUrl ="
-                + oaiHandler.getBaseOaiUrl()
-                + "?verb=GetRecord&identifier="
-                + identifier
-                + "&metadataPrefix=" + oaiHandler.getMetadataPrefix());
+    private void logGetRecord(final Logger logger, final OaiHandler handler, 
+    		final String identifier) {
+        logger.fine("Calling GetRecord: oaiUrl ="  + handler.getBaseOaiUrl()
+                + "?verb=GetRecord&identifier=" + identifier
+                + "&metadataPrefix=" + handler.getMetadataPrefix());
     }
 
-    private void logGetRecordException(Logger hdLogger, OaiHandler oaiHandler, String identifier, Throwable e) {
-        String errMessage = "Exception processing getRecord(), oaiUrl="
-                + oaiHandler.getBaseOaiUrl()
-                + ",identifier="
-                + identifier
-                + " "
-                + e.getClass().getName()
-                //+" (exception message suppressed)";
-                + " "
-                + e.getMessage();
-
-        hdLogger.log(Level.SEVERE, errMessage);
-
-        // temporary:
-        e.printStackTrace();
+    private void logGetRecordException(final Logger logger,  
+    		final OaiHandler handler, final String identifier, final Throwable e) {
+        final String message = "Exception processing getRecord: oaiUrl=" + handler.getBaseOaiUrl()
+                + ",identifier=" + identifier;
+        logger.log(SEVERE, message, e);
     }
-
 }

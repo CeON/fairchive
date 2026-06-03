@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.harvest.client.oai;
 
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -17,7 +18,6 @@ import javax.xml.transform.TransformerException;
 import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
-import org.dspace.xoai.model.oaipmh.Set;
 import org.dspace.xoai.serviceprovider.ServiceProvider;
 import org.dspace.xoai.serviceprovider.client.HttpOAIClient;
 import org.dspace.xoai.serviceprovider.exceptions.BadArgumentException;
@@ -105,32 +105,32 @@ public class OaiHandler {
      * Fetches all available metadata formats from the remote and searches for the set metadata prefix.
      */
     public OaiHandler withFetchedMetadataFormat() 
-            throws OaiHandlerException, IdDoesNotExistException {
+            throws OaiHandlerException {
     	if (this.metadataPrefix == null) {
             throw new OaiHandlerException("Can't fetch metadata format, prefix not set.");
         }
-        this.metadataFormat = listMetadataFormats().stream()
-                .filter(format -> this.metadataPrefix.equals(format.getMetadataPrefix()))
-                .findFirst()
-                .orElseThrow(() -> new OaiHandlerException(
-                		"Couldn't find metadata format with prefix: "
-                			.concat(this.metadataPrefix)));
+        try {
+			this.metadataFormat = listMetadataFormats().stream()
+			        .filter(format -> this.metadataPrefix.equals(format.getMetadataPrefix()))
+			        .findFirst()
+			        .orElseThrow(() -> new OaiHandlerException(
+			        		"Couldn't find metadata format with prefix: "
+			        			.concat(this.metadataPrefix)));
+	        return this;
+		} catch (final IdDoesNotExistException e) {
+			throw new OaiHandlerException(e);
+		} 
 
-        return this;
     }
 
     public List<String> listSets() throws OaiHandlerException {
         try {
             final List<String> result = new ArrayList<>();
-            final Iterator<Set> it = getServiceProvider().listSets();
-            
-            while (it.hasNext()) {
-                final String setSpec = it.next().getSpec();
-                if (!isEmpty(setSpec)) {
-                    result.add(setSpec);
+            getServiceProvider().listSets().forEachRemaining(set -> {
+                if (isNotEmpty(set.getSpec())) {
+                    result.add(set.getSpec());
                 }
-            }
-            
+            });
             return result;
         } catch (final NoSetHierarchyException e) {
             return emptyList();
@@ -143,14 +143,11 @@ public class OaiHandler {
             throws OaiHandlerException, IdDoesNotExistException {
         try {
             final List<MetadataFormat> result = new ArrayList<>();
-            final Iterator<MetadataFormat> it = getServiceProvider().listMetadataFormats();
-            
-            while (it.hasNext()) {
-                final MetadataFormat format = it.next();
-                if (!isEmpty(format.getMetadataPrefix())) {
+            getServiceProvider().listMetadataFormats().forEachRemaining(format -> {
+                if (isNotEmpty(format.getMetadataPrefix())) {
                     result.add(format);
                 }
-            }
+            });
             return result;
         } catch (final InvalidOAIResponse e) {
             throw new OaiHandlerException(e);
@@ -180,21 +177,19 @@ public class OaiHandler {
 
     private ListIdentifiersParameters buildListIdentifiersParams() 
             throws OaiHandlerException {
-        final ListIdentifiersParameters result = ListIdentifiersParameters.request();
 
         if (isEmpty(this.metadataPrefix)) {
             throw new OaiHandlerException("Empty metadata prefix");
         }
+        
+        final ListIdentifiersParameters result = ListIdentifiersParameters.request();
         result.withMetadataPrefix(this.metadataPrefix);
-
         if (this.fromDate != null) {
             result.withFrom(this.fromDate);
         }
-
-        if (!isEmpty(this.setName)) {
+        if (isNotEmpty(this.setName)) {
             result.withSetSpec(this.setName);
         }
-
         return result;
     }
 }
