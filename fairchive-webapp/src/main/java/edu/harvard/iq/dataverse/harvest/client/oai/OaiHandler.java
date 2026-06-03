@@ -1,15 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.harvard.iq.dataverse.harvest.client.oai;
 
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -37,8 +31,7 @@ import org.xml.sax.SAXException;
 import edu.harvard.iq.dataverse.harvest.client.FastGetRecord;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 
-@SuppressWarnings("serial")
-public class OaiHandler implements Serializable {
+public class OaiHandler {
 
     private final String baseOaiUrl; 
     private String metadataPrefix; 
@@ -50,7 +43,7 @@ public class OaiHandler implements Serializable {
 
     public OaiHandler(final String baseOaiUrl) throws OaiHandlerException {
         if (isEmpty(baseOaiUrl)) {
-            throw new OaiHandlerException("Valid OAI url is needed to create a handler");
+            throw new OaiHandlerException("Empty OAI url");
         }
         this.baseOaiUrl = baseOaiUrl;
     }
@@ -61,14 +54,14 @@ public class OaiHandler implements Serializable {
 
         this.metadataPrefix = client.getMetadataPrefix();
         if (isEmpty(this.metadataPrefix)) {
-            throw new OaiHandlerException("HarvestingClient must have a metadataPrefix to create a handler");
+            throw new OaiHandlerException("Empty metadata prefix");
         }
 
         if (!isEmpty(client.getHarvestingSet())) {
             try {
                 this.setName = URLEncoder.encode(client.getHarvestingSet(), "UTF-8");
-            } catch (final UnsupportedEncodingException uee) {
-                throw new OaiHandlerException("Harvesting set: unsupported (non-UTF8) encoding");
+            } catch (final UnsupportedEncodingException e) {
+                throw new OaiHandlerException(e);
             }
         }
 
@@ -120,7 +113,7 @@ public class OaiHandler implements Serializable {
                 .filter(format -> this.metadataPrefix.equals(format.getMetadataPrefix()))
                 .findFirst()
                 .orElseThrow(() -> new OaiHandlerException(
-                		"Couldn't find meta data format with prefix:"
+                		"Couldn't find metadata format with prefix: "
                 			.concat(this.metadataPrefix)));
 
         return this;
@@ -142,8 +135,7 @@ public class OaiHandler implements Serializable {
         } catch (final NoSetHierarchyException e) {
             return emptyList();
         } catch (final InvalidOAIResponse e) {
-            throw new OaiHandlerException(
-                    "No valid response received from the OAI server.", e);
+            throw new OaiHandlerException(e);
         }
     }
 
@@ -161,29 +153,28 @@ public class OaiHandler implements Serializable {
             }
             return result;
         } catch (final InvalidOAIResponse e) {
-            throw new OaiHandlerException(
-                    "No valid response received from the OAI server.", e);
+            throw new OaiHandlerException(e);
         }
     }
 
     public Iterator<Header> listIdentifiers() throws OaiHandlerException {
         try {
             return getServiceProvider().listIdentifiers(buildListIdentifiersParams());
-        } catch (final BadArgumentException e) {
-            throw new OaiHandlerException(
-            		"BadArgumentException thrown when attempted to run ListIdentifiers", e);
+        } catch (final BadArgumentException | InvalidOAIResponse e) {
+            throw new OaiHandlerException(e);
         }
 
     }
 
 	public FastGetRecord getRecord(final String identifier) throws OaiHandlerException {
 		if (isEmpty(this.metadataPrefix)) {
-			throw new OaiHandlerException("Attempted to execute GetRecord without metadataPrefix specified");
+			throw new OaiHandlerException("Empty metadata prefix");
 		}
 		try {
 			return new FastGetRecord(this.baseOaiUrl, identifier, this.metadataPrefix);
-		} catch (final ParserConfigurationException | SAXException | TransformerException | IOException e) {
-			throw new OaiHandlerException("GeotRecord failed.", e);
+		} catch (final ParserConfigurationException | SAXException | 
+				TransformerException | IOException e) {
+			throw new OaiHandlerException(e);
 		}
 	}
 
@@ -192,7 +183,7 @@ public class OaiHandler implements Serializable {
         final ListIdentifiersParameters result = ListIdentifiersParameters.request();
 
         if (isEmpty(this.metadataPrefix)) {
-            throw new OaiHandlerException("Attempted to create a ListIdentifiers request without metadataPrefix specified");
+            throw new OaiHandlerException("Empty metadata prefix");
         }
         result.withMetadataPrefix(this.metadataPrefix);
 
