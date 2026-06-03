@@ -19,14 +19,9 @@
 */
 package edu.harvard.iq.dataverse.harvest.client;
 
-import org.xml.sax.SAXException;
+import static java.nio.file.Files.readAllBytes;
+import static org.apache.commons.io.FileUtils.deleteQuietly;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.TransformerException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,6 +37,15 @@ import java.net.URL;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.TransformerException;
+
+import org.xml.sax.SAXException;
 
 //import org.xml.sax.InputSource;
 
@@ -64,7 +68,7 @@ import java.util.zip.ZipInputStream;
  *
  */
 
-public class FastGetRecord {
+public class FastGetRecord implements AutoCloseable {
 
     private static final String DATAVERSE_EXTENDED_METADATA = "dataverse_json";
     private static final String XML_METADATA_TAG = "metadata";
@@ -105,6 +109,10 @@ public class FastGetRecord {
 
     public File getMetadataFile() {
         return savedMetadataFile;
+    }
+    
+    public String getContent() throws IOException {
+    	return new String(readAllBytes(this.savedMetadataFile.toPath()));
     }
 
     public boolean isDeleted() {
@@ -625,5 +633,8 @@ public class FastGetRecord {
         return content.toString();
     }
 
-
+	@Override
+	public void close() throws Exception {
+		deleteQuietly(this.savedMetadataFile);
+	}
 }

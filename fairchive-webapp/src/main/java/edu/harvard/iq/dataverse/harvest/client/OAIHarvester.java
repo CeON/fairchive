@@ -2,8 +2,6 @@ package edu.harvard.iq.dataverse.harvest.client;
 
 import static java.util.logging.Level.SEVERE;
 
-import java.io.File;
-import java.nio.file.Files;
 import java.util.logging.Logger;
 
 import javax.ejb.LocalBean;
@@ -12,10 +10,8 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 
-import org.apache.commons.io.FileUtils;
 import org.dspace.xoai.serviceprovider.exceptions.HarvestException;
 
-import edu.harvard.iq.dataverse.api.imports.HarvestImporterType;
 import edu.harvard.iq.dataverse.api.imports.ImportException;
 import edu.harvard.iq.dataverse.api.imports.ImportServiceBean;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -55,7 +51,7 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
      * @param hdLogger             custom logger (specific to this harvesting run)
      */
     @Override
-    public HarvesterResult harvest(final DataverseRequest dataverseRequest, 
+    public HarvesterResult harvest(final DataverseRequest request, 
     		final HarvestingClient client, final Logger logger, 
     		final HarvesterParams.EmptyHarvesterParams params) throws ImportException {
  
@@ -66,8 +62,8 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
                         .withFetchedMetadataFormat();
             handler.listIdentifiers().forEachRemaining( header -> {
                 final String identifier = header.getIdentifier();
-                logger.info("Processing identifier: ".concat(identifier));
-                processRecord(result, dataverseRequest, logger, handler, identifier);
+                logger.info("Processing ".concat(identifier));
+                processRecord(result, request, logger, handler, identifier);
                 logger.info("Total content processed so far: " + result.getNumHarvested());
             });
             logCompletedOaiHarvest(logger, client);
@@ -80,79 +76,42 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
 
     // -------------------- PRIVATE --------------------
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    private void processRecord(HarvesterResult result, DataverseRequest dataverseRequest, 
-    		Logger hdLogger, OaiHandler oaiHandler, String identifier) {
-        logGetRecord(hdLogger, oaiHandler, identifier);
-        File tempFile = null;
+	@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+	private void processRecord(final HarvesterResult result, final DataverseRequest request,
+			final Logger logger, final OaiHandler handler, final String identifier) {
 
-        try {
-            FastGetRecord record = oaiHandler.getRecord(identifier);
-            String errMessage = record.getErrorMessage();
-            if (errMessage != null) {
-                throw new HarvestException("Error calling GetRecord - " + errMessage);
-            }
+		try (final FastGetRecord record = handler.getRecord(identifier)) {
+			if (record.getErrorMessage() != null) {
+				throw new HarvestException(record.getErrorMessage());
+			}
+			if (record.isDeleted()) {
+				logger.info("Deleting harvesting dataset for ".concat(identifier));
+				this.importService.doDeleteHarvestedDataset(request, 
+						handler.getHarvestingClient(), identifier);
+				result.incrementDeleted();
+			} else {
+				this.importService.doImportHarvestedDataset(request, 
+						handler.getHarvestingClient(), identifier,
+						handler.resolveImportType(), record.getContent());
+				result.incrementHarvested();
+			}
+		} catch (final Throwable e) {
+			result.incrementFailed();
+	        logger.log(SEVERE, "Failed to process ".concat(identifier), e);
+		}
+	}
 
-            if (record.isDeleted()) {
-                hdLogger.info("Deleting harvesting dataset for " + identifier + ", per the OAI server's instructions.");
-
-                importService.doDeleteHarvestedDataset(dataverseRequest, oaiHandler.getHarvestingClient(), identifier);
-                result.incrementDeleted();
-
-            } else {
-                hdLogger.info("Successfully retrieved GetRecord response.");
-                HarvestImporterType importType = HarvestImporterType.resolve(oaiHandler.getMetadataFormat())
-                        .orElseThrow(() -> new IllegalArgumentException(
-                                "Unsupported import metadata format: " + oaiHandler.getMetadataFormat().getMetadataPrefix()));
-
-                tempFile = record.getMetadataFile();
-                String metadataFileContents = new String(Files.readAllBytes(tempFile.toPath()));
-
-                hdLogger.info("importing " + importType + ": " + tempFile.getAbsolutePath());
-                importService.doImportHarvestedDataset(dataverseRequest,
-                        oaiHandler.getHarvestingClient(),
-                        identifier,
-                        importType,
-                        metadataFileContents);
-
-                result.incrementHarvested();
-
-                hdLogger.fine("Harvest Successful for identifier " + identifier);
-                hdLogger.fine("Size of this record: " + record.getMetadataFile().length());
-            }
-        } catch (Throwable e) {
-            result.incrementFailed();
-            logGetRecordException(hdLogger, oaiHandler, identifier, e);
-        } finally {
-            FileUtils.deleteQuietly(tempFile);
-        }
-    }
-
-    private void logBeginOaiHarvest(final Logger hdLogger, final HarvestingClient client) {
+    private static void logBeginOaiHarvest(final Logger hdLogger, final HarvestingClient client) {
         hdLogger.info("Started harvest: oaiUrl=" + client.getHarvestingUrl()
                 + ",set=" + client.getHarvestingSet()
                 + ",metadataPrefix=" + client.getMetadataPrefix()
                 + ",from=" + client.getLastNonEmptyHarvestTime());
     }
 
-    private void logCompletedOaiHarvest(final Logger logger, final HarvestingClient client) {
+    private static void logCompletedOaiHarvest(final Logger logger, final HarvestingClient client) {
         logger.info("Completed harvest: oaiUrl=" + client.getHarvestingUrl()
                 + ",set=" + client.getHarvestingSet()
                 + ",metadataPrefix=" + client.getMetadataPrefix()
                 + ",from=" + client.getLastNonEmptyHarvestTime());
-    }
-
-    private void logGetRecord(final Logger logger, final OaiHandler handler, 
-    		final String identifier) {
-        logger.fine("Calling GetRecord: oaiUrl ="  + handler.getBaseOaiUrl()
-                + "?verb=GetRecord&identifier=" + identifier
-                + "&metadataPrefix=" + handler.getMetadataPrefix());
-    }
-
-    private void logGetRecordException(final Logger logger,  
-    		final OaiHandler handler, final String identifier, final Throwable e) {
-        final String message = "Exception processing getRecord: oaiUrl=" + handler.getBaseOaiUrl()
-                + ",identifier=" + identifier;
-        logger.log(SEVERE, message, e);
     }
 }
