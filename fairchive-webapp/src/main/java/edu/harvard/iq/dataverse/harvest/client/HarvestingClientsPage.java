@@ -491,7 +491,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         return true;
     }
 
-    public boolean validateServerUrlOAI() {
+    public boolean validateServerUrlOAI() throws Exception {
         if (!isEmpty(getNewHarvestingUrl())) {
 
             OaiHandler oaiHandler = new OaiHandler(getNewHarvestingUrl());
@@ -500,7 +500,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
             // First, we'll try to obtain the list of supported metadata formats:
             try {
-                List<MetadataFormat> formats = oaiHandler.runListMetadataFormats();
+                List<MetadataFormat> formats = oaiHandler.listMetadataFormats();
                 if (!formats.isEmpty()) {
                     List<MetadataFormat> supportedFormats = HarvestImporterType.filterSupported(formats);
                     if (!supportedFormats.isEmpty()) {
@@ -532,7 +532,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
             if (success) {
                 try {
-                    List<String> sets = oaiHandler.runListSets();
+                    List<String> sets = oaiHandler.listSets();
                     createOaiSetsSelectItems(sets);
                 } catch (Exception ex) {
                     //success = false; 
@@ -565,7 +565,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         return false;
     }
 
-    public void validateInitialSettings() {
+    public void validateInitialSettings() throws Exception {
         if (isHarvestTypeOAI()) {
             boolean nicknameValidated = true;
             boolean destinationDataverseValidated = true;
