@@ -1,17 +1,17 @@
 package edu.harvard.iq.dataverse.api.imports;
 
-/**
- * Thrown when something goes wrong in the import process
- *
- * @author ellenk
- */
 @SuppressWarnings("serial")
 public class ImportException extends Exception {
-    public ImportException(String message) {
+	
+    public ImportException(final String message) {
         super(message);
     }
+    
+    public ImportException(final Throwable cause) {
+        super(cause);
+    }
 
-    public ImportException(String message, Throwable cause) {
+    public ImportException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }
