@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.api.imports;
 
+import static java.util.logging.Logger.getLogger;
 import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 
 import java.io.StringReader;
@@ -12,7 +13,6 @@ import javax.ejb.TransactionAttribute;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.xml.stream.XMLStreamException;
@@ -45,7 +45,7 @@ import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
  */
 @Stateless
 public class ImportServiceBean {
-    private static final Logger logger = Logger.getLogger(ImportServiceBean.class.getCanonicalName());
+    private static final Logger logger = getLogger(ImportServiceBean.class.getCanonicalName());
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -68,13 +68,19 @@ public class ImportServiceBean {
     // -------------------- LOGIC --------------------
 
     @TransactionAttribute(REQUIRES_NEW)
-    public Dataset doImportHarvestedDataset(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, String harvestIdentifier, DatasetDTO datasetDTO) throws ImportException {
-        return importDatasetDTOJson(dataverseRequest, harvestingClient, harvestIdentifier, toJson(datasetDTO));
+    public Dataset doImportHarvestedDataset(final DataverseRequest request, 
+    		final HarvestingClient client, final String identifier, 
+    		final DatasetDTO datasetDTO) throws ImportException {
+    	
+        return importDatasetDTOJson(request, client, identifier, toJson(datasetDTO));
     }
 
     @TransactionAttribute(REQUIRES_NEW)
-    public Dataset doImportHarvestedDataset(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, String harvestIdentifier, HarvestImporterType importType, String metadata) throws ImportException {
-        if (harvestingClient == null || harvestingClient.getDataverse() == null) {
+    public Dataset doImportHarvestedDataset(final DataverseRequest request, 
+    		final HarvestingClient client, final String identifier, 
+    		final HarvestImporterType importType, final String xml) throws ImportException {
+    	
+        if (client == null || client.getDataverse() == null) {
             throw new ImportException("importHarvestedDataset called wiht a null harvestingClient, or an invalid harvestingClient.");
         }
 
@@ -95,34 +101,38 @@ public class ImportServiceBean {
                 // select whether you want to harvest with or without files,
                 // ImportType.HARVEST vs. ImportType.HARVEST_WITH_FILES
                 logger.fine("importing DDI");
-                DatasetDTO dsDTO = importDDIService.doImport(ImportType.HARVEST, metadata);
-                return importDatasetDTOJson(dataverseRequest, harvestingClient, harvestIdentifier, toJson(dsDTO));
+                DatasetDTO dsDTO = this.importDDIService.doImport(ImportType.HARVEST, xml);
+                return importDatasetDTOJson(request, client, identifier, toJson(dsDTO));
             } catch (XMLStreamException | ImportException e) {
-                throw new ImportException("Failed to process DDI XML record: " + e.getClass() + " (" + e.getMessage() + ")");
+                throw new ImportException("Failed to process DDI XML record: " + 
+                		e.getClass() + " (" + e.getMessage() + ")");
             }
         } else if (importType == HarvestImporterType.DUBLIN_CORE) {
             try {
-                DatasetDTO dsDTO = importGenericService.processOAIDCxml(metadata);
-                return importDatasetDTOJson(dataverseRequest, harvestingClient, harvestIdentifier, toJson(dsDTO));
+                DatasetDTO dsDTO = this.importGenericService.processOAIDCxml(xml);
+                return importDatasetDTOJson(request, client, identifier, toJson(dsDTO));
             } catch (XMLStreamException e) {
-                throw new ImportException("Failed to process Dublin Core XML record: " + e.getClass() + " (" + e.getMessage() + ")");
+                throw new ImportException("Failed to process Dublin Core XML record: " + 
+                		e.getClass() + " (" + e.getMessage() + ")");
             }
         } else if (importType == HarvestImporterType.DATAVERSE_JSON) {
             // This is Dataverse metadata already formatted in JSON.
             // Simply read it into a string, and pass to the final import further down:
-            return importDatasetDTOJson(dataverseRequest, harvestingClient, harvestIdentifier, metadata);
+            return importDatasetDTOJson(request, client, identifier, xml);
         } else {
             throw new ImportException("Unsupported import type: " + importType);
         }
     }
 
     @TransactionAttribute(REQUIRES_NEW)
-    public void doDeleteHarvestedDataset(DataverseRequest request, HarvestingClient harvestingClient, String identifier) throws ImportException {
-        Dataset dataset = datasetService.getDatasetByHarvestInfo(harvestingClient.getDataverse(), identifier);
+    public void doDeleteHarvestedDataset(final DataverseRequest request, 
+    		final HarvestingClient client, final String identifier) throws ImportException {
+    	
+        final Dataset dataset = this.datasetService.getDatasetByHarvestInfo(client.getDataverse(), identifier);
         if (dataset != null) {
             // Purge all the SOLR documents associated with this client from the
             // index server:
-            indexService.deleteHarvestedDocuments(dataset);
+            this.indexService.deleteHarvestedDocuments(dataset);
 
             // files from harvested datasets are removed unceremoniously,
             // directly in the database. no need to bother calling the
@@ -134,17 +144,21 @@ public class ImportServiceBean {
 
             dataset.setFiles(null);
             Dataset merged = em.merge(dataset);
-            engineSvc.submit(new DeleteDatasetCommand(request, merged));
+            this.engineSvc.submit(new DeleteDatasetCommand(request, merged));
         } else {
-            throw new ImportException("No dataset found for " + identifier + ", skipping delete. ");
+            throw new ImportException("No dataset found for " + identifier + 
+            		", skipping delete. ");
         }
     }
 
-    private Dataset importDatasetDTOJson(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, String harvestIdentifier, String json) throws ImportException {
+    private Dataset importDatasetDTOJson(final DataverseRequest request, 
+    		final HarvestingClient client, final String identifier, 
+    		final String json) throws ImportException {
+    	
         try {
             Dataset ds = harvestedJsonParser.parseDataset(json);
 
-            Dataverse owner = harvestingClient.getDataverse();
+            Dataverse owner = client.getDataverse();
             ds.setOwner(owner);
             ds.getLatestVersion().setDatasetFields(ds.getLatestVersion().initDatasetFields());
 
@@ -156,12 +170,12 @@ public class ImportServiceBean {
             // A Global ID is required, in order for us to be able to harvest and import
             // this dataset:
             if (StringUtils.isEmpty(ds.getGlobalId().toString())) {
-                throw new ImportException("The harvested metadata record with the OAI server identifier " + harvestIdentifier
+                throw new ImportException("The harvested metadata record with the OAI server identifier " + identifier
                         + " does not contain a global unique identifier that we could recognize, skipping.");
             }
 
-            ds.setHarvestedFrom(harvestingClient);
-            ds.setHarvestIdentifier(harvestIdentifier);
+            ds.setHarvestedFrom(client);
+            ds.setHarvestIdentifier(identifier);
 
             Dataset existingDs = datasetService.findByGlobalId(ds.getGlobalId().toString());
 
@@ -169,19 +183,22 @@ public class ImportServiceBean {
                 // If this dataset already exists IN ANOTHER DATAVERSE
                 // we are just going to skip it!
                 if (existingDs.isNotRoot() && !owner.getId().equals(existingDs.getOwner().getId())) {
-                    throw new ImportException("The dataset with the global id " + ds.getGlobalId() + " already exists, in the dataverse "
+                    throw new ImportException("The dataset with the global id " + 
+                    		ds.getGlobalId() + " already exists, in the dataverse "
                             + existingDs.getOwner().getAlias() + ", skipping.");
                 }
                 // And if we already have a dataset with this same id, in this same
                 // dataverse, but it is  LOCAL dataset (can happen!), we're going to
                 // skip it also:
                 if (!existingDs.isHarvested()) {
-                    throw new ImportException("A LOCAL dataset with the global id " + ds.getGlobalId() + " already exists in this dataverse; skipping.");
+                    throw new ImportException("A LOCAL dataset with the global id " + 
+                    		ds.getGlobalId() + " already exists in this dataverse; skipping.");
                 }
                 // For harvested datasets, there should always only be one version.
                 // We will replace the current version with the imported version.
                 if (existingDs.getVersions().size() != 1) {
-                    throw new ImportException("Error importing Harvested Dataset, existing dataset has " + existingDs.getVersions().size() + " versions");
+                    throw new ImportException("Error importing Harvested Dataset, existing dataset has " + 
+                    		existingDs.getVersions().size() + " versions");
                 }
                 // Purge all the SOLR documents associated with this client from the
                 // index server:
@@ -199,38 +216,43 @@ public class ImportServiceBean {
                 existingDs.setFiles(null);
                 Dataset merged = em.merge(existingDs);
                 // harvested datasets don't have physical files - so no need to worry about that.
-                engineSvc.submit(new DestroyDatasetCommand(merged, dataverseRequest));
+                engineSvc.submit(new DestroyDatasetCommand(merged, request));
             }
 
-            return engineSvc.submit(new CreateHarvestedDatasetCommand(ds, dataverseRequest));
+            return engineSvc.submit(new CreateHarvestedDatasetCommand(ds, request));
         } catch (JsonParseException | ImportException ex) {
-            logger.fine("Failed to import harvested dataset: " + ex.getClass() + ": " + ex.getMessage());
+            logger.fine("Failed to import harvested dataset: " + ex.getClass() + 
+            		": " + ex.getMessage());
             throw new ImportException(
-                    String.format("Failed to import harvested dataset: %s (%s)", ex.getClass(), ex.getMessage()), ex);
+                    String.format("Failed to import harvested dataset: %s (%s)",
+                    		ex.getClass(), ex.getMessage()), ex);
         }
     }
 
-    private void removeInvalidFieldsFromDataset(DatasetVersion  datasetVersion) {
+    private void removeInvalidFieldsFromDataset(final DatasetVersion  version) {
         // We do not expect the validation-removal process to require many iterations.
         // 10 attempts is a safe upper bound to prevent accidental infinite loops.
         // Under normal circumstances, all invalid fields should be resolved in first pass
         // Only dependent fields may use more passes
         int validationAttemptNumber = 0;
         while (validationAttemptNumber <= 10) {
-            List<FieldValidationResult> fieldValidationResults = fieldValidationService.validateFieldsOfDatasetVersion(datasetVersion);
+            List<FieldValidationResult> fieldValidationResults = 
+            		fieldValidationService.validateFieldsOfDatasetVersion(version);
             if (fieldValidationResults.isEmpty()) {
                 break;
             }
             for (FieldValidationResult fieldValidationResult : fieldValidationResults) {
                 DatasetField invalidField = (DatasetField)fieldValidationResult.getField();
-                removeInvalidField(datasetVersion.getDatasetFields(), invalidField);
+                removeInvalidField(version.getDatasetFields(), invalidField);
             }
 
             validationAttemptNumber++;
         }
     }
 
-    private void removeInvalidField(List<DatasetField> fields, DatasetField invalidField) {
+    private void removeInvalidField(final List<DatasetField> fields, 
+    		final DatasetField invalidField) {
+    	
     	fields.removeIf(df -> df == invalidField);
         for (DatasetField datasetField : fields) {
         	if (datasetField.getChildren() != null) {
@@ -239,22 +261,19 @@ public class ImportServiceBean {
         }
     }
     
-    public JsonObject ddiToJson(String xmlToParse) throws ImportException {
-        DatasetDTO dsDTO;
+    public JsonObject ddiToJson(final String xmlToParse) throws ImportException {
 
         try {
-            dsDTO = importDDIService.doImport(ImportType.IMPORT, xmlToParse);
+        	DatasetDTO dsDTO = importDDIService.doImport(ImportType.IMPORT, xmlToParse);
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(dsDTO);
+            return Json.createReader(new StringReader(json)).readObject();
         } catch (XMLStreamException e) {
             throw new ImportException("XMLStreamException" + e);
         }
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(dsDTO);
-        JsonReader jsonReader = Json.createReader(new StringReader(json));
-
-        return jsonReader.readObject();
     }
 
-    private String toJson(DatasetDTO dto) {
+    private String toJson(final DatasetDTO dto) {
         return new GsonBuilder().setPrettyPrinting().create().toJson(dto);
     }
 }
