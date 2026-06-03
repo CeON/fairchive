@@ -28,6 +28,7 @@ import org.dspace.xoai.serviceprovider.model.Context;
 import org.dspace.xoai.serviceprovider.parameters.ListIdentifiersParameters;
 import org.xml.sax.SAXException;
 
+import edu.harvard.iq.dataverse.api.imports.HarvestImporterType;
 import edu.harvard.iq.dataverse.harvest.client.FastGetRecord;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 
@@ -122,6 +123,13 @@ public class OaiHandler {
 		} 
 
     }
+    
+	public HarvestImporterType resolveImportType() {
+		return HarvestImporterType.resolve(this.metadataFormat).
+				orElseThrow(() -> new IllegalArgumentException(
+						"Unsupported import metadata format: " + 
+								this.metadataFormat.getMetadataPrefix()));
+	}
 
     public List<String> listSets() throws OaiHandlerException {
         try {
