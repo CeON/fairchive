@@ -121,29 +121,28 @@ public class ImportGenericServiceBean {
      It is distributed as required content, in reference_data.sql.
      Note that arbitrary formatting tags are supported for the outer xml
      wrapper. -- L.A. 4.5 **/
-    public DatasetDTO processOAIDCxml(String DcXmlToParse) throws XMLStreamException {
+    public DatasetDTO processOAIDCxml(final String xml) throws XMLStreamException {
 
-        ForeignMetadataFormatMapping dublinCoreMapping = findFormatMappingByName(DCTERMS);
+        final ForeignMetadataFormatMapping dublinCoreMapping = findFormatMappingByName(DCTERMS);
         if (dublinCoreMapping == null) {
             throw new EJBException("Failed to find metadata mapping for " + DCTERMS);
         }
 
-        DatasetDTO datasetDTO = this.initializeDataset();
+        final DatasetDTO datasetDTO = this.initializeDataset();
         
-        try (final StringReader reader = new StringReader(DcXmlToParse);){
-            XMLInputFactory xmlFactory = javax.xml.stream.XMLInputFactory.newInstance();
-            XMLStreamReader xmlr = xmlFactory.createXMLStreamReader(reader);
+        try (final StringReader reader = new StringReader(xml);){
+            final XMLInputFactory xmlFactory = javax.xml.stream.XMLInputFactory.newInstance();
+            final XMLStreamReader xmlr = xmlFactory.createXMLStreamReader(reader);
             try {
 	            xmlr.nextTag();
-	
 	            xmlr.require(XMLStreamConstants.START_ELEMENT, null, OAI_DC_OPENING_TAG);
-	
 	            processXMLElement(xmlr, ":", OAI_DC_OPENING_TAG, dublinCoreMapping, datasetDTO);
             } finally {
             	xmlr.close();
             }
-        } catch (XMLStreamException ex) {
-            throw new EJBException("ERROR occurred while parsing XML fragment  (" + DcXmlToParse.substring(0, 64) + "...); ", ex);
+        } catch (final XMLStreamException e) {
+            throw new EJBException("ERROR occurred while parsing XML fragment  (" + 
+            		xml.substring(0, 64) + "...); ", e);
         }
 
 
@@ -184,17 +183,22 @@ public class ImportGenericServiceBean {
 
     }
 
-    private void processXMLElement(XMLStreamReader xmlr, String currentPath, String openingTag, ForeignMetadataFormatMapping foreignFormatMapping, DatasetDTO datasetDTO) throws XMLStreamException {
-        logger.fine("entering processXMLElement; (" + currentPath + ")");
+    private void processXMLElement(final XMLStreamReader reader, 
+    		final String currentPath, final String openingTag, 
+    		final ForeignMetadataFormatMapping formatMapping, 
+    		final DatasetDTO datasetDTO) throws XMLStreamException {
 
-        for (int event = xmlr.next(); event != XMLStreamConstants.END_DOCUMENT; event = xmlr.next()) {
+        for (int event = reader.next(); event != XMLStreamConstants.END_DOCUMENT; event = reader.next()) {
             if (event == XMLStreamConstants.START_ELEMENT) {
-                String currentElement = xmlr.getLocalName();
+                String currentElement = reader.getLocalName();
 
-                ForeignMetadataFieldMapping mappingDefined = datasetfieldService.findFieldMapping(foreignFormatMapping.getName(), currentPath + currentElement);
+                ForeignMetadataFieldMapping mappingDefined = 
+                		datasetfieldService.findFieldMapping(formatMapping.getName(), 
+                				currentPath + currentElement);
 
                 if (mappingDefined != null) {
-                    DatasetFieldType mappingDefinedFieldType = datasetfieldService.findByNameOpt(mappingDefined.getDatasetfieldName());
+                    DatasetFieldType mappingDefinedFieldType = datasetfieldService.
+                    		findByNameOpt(mappingDefined.getDatasetfieldName());
                     String dataverseFieldName = mappingDefined.getDatasetfieldName();
                     // Process attributes, if any are defined in the mapping:
                     if (mappingDefinedFieldType.isCompound()) {
@@ -204,42 +208,47 @@ public class ImportGenericServiceBean {
                             if (childMapping.isAttribute()) {
                                 String attributeName = childMapping.getForeignFieldXPath();
 
-                                String attributeValue = xmlr.getAttributeValue(null, attributeName);
+                                String attributeValue = reader.getAttributeValue(null, attributeName);
                                 if (attributeValue != null) {
                                     String mappedFieldName = childMapping.getDatasetfieldName();
-
-                                    logger.fine("looking up dataset field " + mappedFieldName);
 
                                     DatasetFieldType mappedFieldType = datasetfieldService.findByNameOpt(mappedFieldName);
                                     if (mappedFieldType != null) {
                                         try {
                                             addToSet(set, attributeName, attributeValue);
                                         } catch (Exception ex) {
-                                            logger.warning("Caught unknown exception when processing attribute " + currentPath + currentElement + "{" + attributeName + "} (skipping);");
+                                            logger.warning("Caught unknown exception when processing attribute " + 
+                                            		currentPath + currentElement + "{" + attributeName + "} (skipping);");
                                         }
                                     } else {
-                                        throw new EJBException("Bad foreign metadata field mapping: no such DatasetField " + mappedFieldName + "!");
+                                        throw new EJBException("Bad foreign metadata field mapping: no such DatasetField " + 
+                                        		mappedFieldName + "!");
                                     }
                                 }
                             }
                         }
                         if (!set.isEmpty()) {
                             compoundField.add(set);
-                            MetadataBlockWithFieldsDTO citationBlock = datasetDTO.getDatasetVersion().getMetadataBlocks().get(mappingDefinedFieldType.getMetadataBlock().getName());
+                            MetadataBlockWithFieldsDTO citationBlock = 
+                            		datasetDTO.getDatasetVersion().getMetadataBlocks().
+                            		get(mappingDefinedFieldType.getMetadataBlock().getName());
                             DatasetFieldDTOFactory.embedInMetadataBlock(
-                                    DatasetFieldDTOFactory.createMultipleCompound(mappingDefined.getDatasetfieldName(), compoundField), citationBlock);
+                                    DatasetFieldDTOFactory.createMultipleCompound(
+                                    		mappingDefined.getDatasetfieldName(), compoundField), citationBlock);
                         } else {
                             DatasetFieldDTO value;
                             if (mappingDefinedFieldType.isAllowMultiples()) {
                                 List<String> values = new ArrayList<>();
-                                values.add(parseText(xmlr));
+                                values.add(parseText(reader));
                                 value = DatasetFieldDTOFactory.createMultiplePrimitive(dataverseFieldName, values);
                             } else {
-                                value = DatasetFieldDTOFactory.createPrimitive(dataverseFieldName, parseText(xmlr));
+                                value = DatasetFieldDTOFactory.createPrimitive(dataverseFieldName, parseText(reader));
                             }
 
                             value = makeDTO(mappingDefinedFieldType, value, dataverseFieldName);
-                            MetadataBlockWithFieldsDTO citationBlock = datasetDTO.getDatasetVersion().getMetadataBlocks().get(mappingDefinedFieldType.getMetadataBlock().getName());
+                            MetadataBlockWithFieldsDTO citationBlock = datasetDTO.
+                            		getDatasetVersion().getMetadataBlocks().
+                            		get(mappingDefinedFieldType.getMetadataBlock().getName());
                             DatasetFieldDTOFactory.embedInMetadataBlock(value, citationBlock);
                         }
                     } else if (dataverseFieldName != null && !dataverseFieldName.isEmpty()) {
@@ -248,23 +257,25 @@ public class ImportGenericServiceBean {
                             if (dataverseFieldType != null) {
 
                                 if (dataverseFieldType.isControlledVocabulary()) {
-                                    value = DatasetFieldDTOFactory.createVocabulary(dataverseFieldName, parseText(xmlr));
+                                    value = DatasetFieldDTOFactory.createVocabulary(dataverseFieldName, parseText(reader));
                                 } else {
-                                    value = DatasetFieldDTOFactory.createPrimitive(dataverseFieldName, parseText(xmlr));
+                                    value = DatasetFieldDTOFactory.createPrimitive(dataverseFieldName, parseText(reader));
                                 }
                                 value = makeDTO(dataverseFieldType, value, dataverseFieldName);
-                                MetadataBlockWithFieldsDTO citationBlock = datasetDTO.getDatasetVersion().getMetadataBlocks().get(mappingDefinedFieldType.getMetadataBlock().getName());
+                                MetadataBlockWithFieldsDTO citationBlock = datasetDTO.
+                                		getDatasetVersion().getMetadataBlocks().
+                                		get(mappingDefinedFieldType.getMetadataBlock().getName());
                                 DatasetFieldDTOFactory.embedInMetadataBlock(value, citationBlock);
                             } else {
                                 throw new EJBException("Bad foreign metadata field mapping: no such DatasetField " + dataverseFieldName + "!");
                             }
                         }
                 } else {
-                    processXMLElement(xmlr, currentPath + currentElement + ":", currentElement, foreignFormatMapping, datasetDTO);
+                    processXMLElement(reader, currentPath + currentElement + ":", currentElement, formatMapping, datasetDTO);
                 }
 
             } else if (event == XMLStreamConstants.END_ELEMENT) {
-                if (xmlr.getLocalName().equals(openingTag)) {
+                if (reader.getLocalName().equals(openingTag)) {
                     return;
                 }
             }
