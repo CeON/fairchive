@@ -97,7 +97,7 @@ public class UserServiceBean {
     }
     
     public long countByIdentifier(final String identifier) {
-    	return this.countByIdentifier(identifier);
+    	return this.repo.countByIdentifier(identifier);
     }
     
 	public List<AuthenticatedUser> findAll() {
