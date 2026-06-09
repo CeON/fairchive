@@ -24,7 +24,7 @@ public class GetExplicitGroupCommand extends AbstractCommand<ExplicitGroup> {
 
     @Override
     public ExplicitGroup execute(CommandContext ctxt)  {
-        return ctxt.explicitGroups().findInOwner(getAffectedDvObjects().get("").getId(), groupAliasInOwner);
+        return ctxt.explicitGroups().findByOwnerIdAndAlias(getAffectedDvObjects().get("").getId(), groupAliasInOwner);
     }
 
 }

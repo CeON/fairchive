@@ -20,7 +20,7 @@ public class ListExplicitGroupsCommand extends AbstractCommand<List<ExplicitGrou
 
     @Override
     public List<ExplicitGroup> execute(CommandContext ctxt) {
-        return ctxt.explicitGroups().findByOwner(getAffectedDvObjects().get("").getId());
+        return ctxt.explicitGroups().findByOwnerId(getAffectedDvObjects().get("").getId());
     }
 
 }

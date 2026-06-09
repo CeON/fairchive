@@ -63,7 +63,7 @@ public class ManageGroupsCRUDServiceIT extends WebappArquillianDeployment {
         // then
         ExplicitGroup dbExplicitGroup = explicitGroupService.findByAlias(dv.getId() + "-testGroupId");
 
-        Assertions.assertEquals(1, explicitGroupService.findByOwner(dv.getId()).size());
+        Assertions.assertEquals(1, explicitGroupService.findByOwnerId(dv.getId()).size());
         Assertions.assertEquals("testGroup", dbExplicitGroup.getDisplayName());
         Assertions.assertEquals(roleAssignee, dbExplicitGroup.getContainedAuthenticatedUsers().iterator().next());
     }
@@ -88,7 +88,7 @@ public class ManageGroupsCRUDServiceIT extends WebappArquillianDeployment {
 
         // then
         ExplicitGroup dbExplicitGroup = explicitGroupService.findByAlias(dv.getId() + "-explicitGroupIdentifier");
-        Assertions.assertEquals(1, explicitGroupService.findByOwner(dv.getId()).size());
+        Assertions.assertEquals(1, explicitGroupService.findByOwnerId(dv.getId()).size());
         Assertions.assertEquals(explicitGroup.getId(), dbExplicitGroup.getId());
         Assertions.assertEquals("updatedName", dbExplicitGroup.getDisplayName());
         Assertions.assertEquals(2, dbExplicitGroup.getContainedAuthenticatedUsers().size());
@@ -110,7 +110,7 @@ public class ManageGroupsCRUDServiceIT extends WebappArquillianDeployment {
         manageGroupsCRUDService.delete(explicitGroup);
 
         // then
-        Assertions.assertEquals(0, explicitGroupService.findByOwner(dv.getId()).size());
+        Assertions.assertEquals(0, explicitGroupService.findByOwnerId(dv.getId()).size());
         Assertions.assertNull(explicitGroupService.findByAlias(dv.getId() + "-explicitGroupIdentifier"));
     }
 

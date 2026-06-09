@@ -143,7 +143,7 @@ public class ManageGroupsPage implements java.io.Serializable {
             return this.permissionsWrapper.notAuthorized();
         }
         
-        this.explicitGroups = new LinkedList<>(this.explicitGroupService.findByOwner(getDataverseId()));
+        this.explicitGroups = new LinkedList<>(this.explicitGroupService.findByOwnerId(getDataverseId()));
         this.selectedGroup = null;
 
         return null;
@@ -311,7 +311,7 @@ public class ManageGroupsPage implements java.io.Serializable {
                         new FacesMessage(SEVERITY_ERROR, "", 
                         		getStringFromBundle("dataverse.permissions.explicitGroupEditDialog.groupIdentifier.invalid")));
 
-            } else if (explicitGroupService.findInOwner(dataverse.getId(), value) != null) {
+            } else if (explicitGroupService.findByOwnerIdAndAlias(dataverse.getId(), value) != null) {
                 // Ok, see that the alias is not taken
                 input.setValid(false);
                 context.addMessage(toValidate.getClientId(),

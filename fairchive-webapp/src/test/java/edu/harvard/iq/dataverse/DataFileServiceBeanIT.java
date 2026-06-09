@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.util.List;
 
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataTable;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 
 @Transactional(TransactionMode.ROLLBACK)

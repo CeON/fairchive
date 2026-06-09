@@ -1,23 +1,18 @@
 package edu.harvard.iq.dataverse.dataset;
 
+import javax.ejb.Singleton;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLockRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.Singleton;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
-import java.util.List;
 
 @Singleton
 public class DatasetLockServiceBean {
-
-    private static final Logger log = LoggerFactory.getLogger(DatasetLockServiceBean.class);
 
     private final DatasetRepository datasets;
     private final DatasetLockRepository locks;
@@ -32,7 +27,8 @@ public class DatasetLockServiceBean {
     }
 
     @Inject
-    public DatasetLockServiceBean(DatasetRepository datasets, DatasetLockRepository locks) {
+    public DatasetLockServiceBean(final DatasetRepository datasets, 
+    							  final DatasetLockRepository locks) {
         this.datasets = datasets;
         this.locks = locks;
     }
@@ -48,12 +44,11 @@ public class DatasetLockServiceBean {
      * the fact that the latest version is 'released' is not yet in the database.
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void lockDataset(long datasetId, AuthenticatedUser user, DatasetLock.Reason reason)  {
-        Dataset dataset = datasets.findById(datasetId)
+    public void lockDataset(final long datasetId, AuthenticatedUser user, 
+    		final DatasetLock.Reason reason)  {
+        final Dataset dataset = this.datasets.findById(datasetId)
                 .orElseThrow(() -> new IllegalStateException("Dataset " + datasetId + " not found"));
-        DatasetLock datasetLock = new DatasetLock(reason, user);
-        datasetLock.setDataset(dataset);
-        locks.saveAndFlush(datasetLock);
+        this.locks.saveAndFlush(new DatasetLock(dataset, reason, user));
     }
 
     /**
@@ -63,13 +58,9 @@ public class DatasetLockServiceBean {
      * (actually all workflow locks for this Dataset but only one workflow should be active).
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void unlockDataset(long datasetId, DatasetLock.Reason reason)  {
-        List<DatasetLock> datasetLocks = locks.findByDatasetId(datasetId);
-        for (DatasetLock lock : datasetLocks) {
-            if (reason == lock.getReason()) {
-                log.trace("Removing lock");
-                locks.delete(lock);
-            }
-        }
+    public void unlockDataset(final long datasetId, final DatasetLock.Reason reason)  {
+    	this.locks.findByDatasetId(datasetId).stream().
+    		filter(lock -> reason == lock.getReason()).
+    		forEach(this.locks::delete);
     }
 }

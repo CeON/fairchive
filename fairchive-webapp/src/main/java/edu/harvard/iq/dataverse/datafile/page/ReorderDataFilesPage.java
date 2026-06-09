@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.datafile.page;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.util.Collections.swap;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 

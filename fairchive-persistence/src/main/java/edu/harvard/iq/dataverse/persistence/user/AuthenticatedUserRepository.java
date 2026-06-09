@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.persistence.user;
 import static java.util.stream.Collectors.joining;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.ejb.Stateless;
@@ -47,7 +48,21 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
     }
 
 
-    /**
+    @Override
+	public List<AuthenticatedUser> findAll() {
+    	return createQuery("select au from AuthenticatedUser au where au.userIdentifier not like 'ERASED%'").
+		getResultList();
+	}
+    
+    public AuthenticatedUser getAdmin() {
+    	return createQuery(
+    			"select au from AuthenticatedUser au WHERE "
+                + "au.superuser = true order by au.id").
+    			setMaxResults(1).
+    			getSingleResult();
+    }
+
+	/**
      * Retrieves number of authenticatedUsers for a search term.
      *
      * @return number of results for given search term
@@ -88,6 +103,40 @@ public class AuthenticatedUserRepository extends JpaRepository<Long, Authenticat
         return this.em.createQuery(
                 "SELECT count(au) FROM AuthenticatedUser au WHERE au.superuser = true",
                 Long.class).getSingleResult();
+    }
+    
+    public List<AuthenticatedUser> findSuperUsers() {
+        return createQuery("SELECT au FROM AuthenticatedUser au WHERE au.superuser = TRUE").
+        		getResultList();
+    }
+    
+    public List<AuthenticatedUser> findUsersByIdentifierOrName(final String identifierOrName) {
+    	return createQuery(
+    			"select au from AuthenticatedUser au" + 
+    			" WHERE (lower(au.userIdentifier) like :query" +
+    			" OR lower(concat(au.firstName,' ',au.lastName)) like :query)")
+    			.setParameter("query", "%" + identifierOrName.toLowerCase() + "%").
+        		getResultList();
+    }
+    
+    public Optional<AuthenticatedUser> findByEmail(final String email) {
+    	return getSingleResult(
+    			createQuery("select au from AuthenticatedUser au WHERE LOWER(au.email)=:email").
+    			setParameter("email", email.toLowerCase()));
+    }
+    
+    public Optional<AuthenticatedUser> findByIdentifier(final String identifier) {
+    	return getSingleResult(
+    			createQuery("select au from AuthenticatedUser au WHERE au.userIdentifier=:identifier")
+    			.setParameter("identifier", identifier));
+    }
+    
+    public long countByIdentifier(final String identifier) {
+        return this.em.createQuery(
+        		"SELECT COUNT(a) FROM AuthenticatedUser a WHERE a.userIdentifier=:identifier",
+                Long.class).
+        		setParameter("identifier", identifier).
+        		getSingleResult();
     }
     
 	@SuppressWarnings("unchecked")

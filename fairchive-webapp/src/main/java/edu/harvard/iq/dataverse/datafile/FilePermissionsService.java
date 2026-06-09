@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -123,10 +122,9 @@ public class FilePermissionsService {
         Set<RoleAssignment> roleAssignments = Sets.newHashSet();
 
         for (Tuple2<RoleAssignee, DataFile> roleAssigneeAndFile: prepareRoleAssigneeAndFileTuples(roleAssignees, files)) {
-            Optional<RoleAssignment> roleAssignment = roleAssigneeService.getAssignmentFor(
-                    roleAssigneeAndFile._1.getIdentifier(), roleAssigneeAndFile._2.getId(), fileDownloaderRole.getId());
-
-            roleAssignment.ifPresent(roleAssignments::add);
+            this.roleAssigneeService.findAssignmentFor(
+                    roleAssigneeAndFile._1.getIdentifier(), roleAssigneeAndFile._2.getId(), fileDownloaderRole.getId())
+            	.ifPresent(roleAssignments::add);
         }
 
         for (RoleAssignment roleAssignment: roleAssignments) {
