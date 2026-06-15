@@ -1,0 +1,67 @@
+{
+    "copyFrom": [
+        {
+            "source": "author",
+            "text": "dataset.edit.copy.author",
+            "copy": [
+                {
+                    "from": "authorName",
+                    "to": "distributorName"
+                },
+                {
+                    "from": "authorAffiliation",
+                    "to": "distributorAffiliation"
+                },
+                {
+                    "from": "authorAffiliationIdentifier",
+                    "to": "distributorURL"
+                },
+                {
+                    "from": "authorName",
+                    "to": "distributorContactName"
+                },
+                {
+                    "from": "authorIdType",
+                    "to": "distributorLogo"
+                },
+                {
+                    "from": "inexistent",
+                    "to": "distributorLogo"
+                },
+                {
+                    "from": "authorIdType",
+                    "to": "inexistent"
+                }
+            ],
+            "set": [
+                {
+                    "value":"abc",
+                    "to": "inexistent"
+                },
+                {
+                    "value":"xyz",
+                    "to": "distributorAbbreviation"
+                },
+                {
+                    "value":"a@a.com",
+                    "to": "distributorContactEmail"
+                }
+                
+            ]
+        },
+        {
+            "source": "rightsOwner",
+            "text": "dataset.edit.copy.rightsOwner",
+            "copy": [
+                {
+                    "from": "roType",
+                    "to": "sreType"
+                },
+                {
+                    "from": "roPersonName",
+                    "to": "srePersonName"
+                }
+            ]
+        }
+    ]
+}

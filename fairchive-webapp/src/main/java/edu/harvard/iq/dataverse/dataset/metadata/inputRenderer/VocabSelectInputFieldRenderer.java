@@ -1,13 +1,11 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 
+import java.util.Map;
+
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import io.vavr.control.Option;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
 
@@ -25,9 +23,9 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
     // -------------------- CONSTRUCTORS --------------------
 
     public VocabSelectInputFieldRenderer(
-            boolean renderInTwoColumns,
-            boolean sortByLocalisedStringsOrder,
-            ConditionalRendering conditionalRendering) {
+            final boolean renderInTwoColumns,
+            final boolean sortByLocalisedStringsOrder,
+            final ConditionalRendering conditionalRendering) {
         this.renderInTwoColumns = renderInTwoColumns;
         this.sortByLocalisedStringsOrder = sortByLocalisedStringsOrder;
         this.conditionalRendering = conditionalRendering;
@@ -52,7 +50,7 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
      */
     @Override
     public boolean renderInTwoColumns() {
-        return renderInTwoColumns;
+        return this.renderInTwoColumns;
     }
 
     /**
@@ -67,54 +65,42 @@ public class VocabSelectInputFieldRenderer implements InputFieldRenderer {
 
     @Override
     public Option<ConditionalRendering> getConditionalRendering() {
-        return Option.of(conditionalRendering);
+        return Option.of(this.conditionalRendering);
     }
 
     public boolean isSortByLocalisedStringsOrder() {
-        return sortByLocalisedStringsOrder;
+        return this.sortByLocalisedStringsOrder;
     }
 
 
     // -------------------- LOGIC --------------------
 
-    public void processValueChange(DatasetField datasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
-        clearSiblingsDatasetField(datasetField, inputRenderersByFieldType);
+    public void processValueChange(final DatasetField field, 
+    		final Map<DatasetFieldType, InputFieldRenderer> renderersByFieldType) {
+    	
+    	field.streamSiblings().forEach(sibling -> {
+             final InputFieldRenderer renderer = renderersByFieldType.get(sibling.getDatasetFieldType());
+             if (renderer != null && renderer.getConditionalRendering().isDefined()) {
+                 sibling.clearValue();
+                 sibling.setValidationMessage(null);
+             }
+         });
     }
 
-    public boolean hasChangeListener(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
-        String typeName = vocabDatasetField.getDatasetFieldType().getName();
-        return vocabDatasetField
-                .getDatasetFieldParent()
-                .map(parent ->
-                        parent.getDatasetFieldsChildren().stream()
-                                .filter(df -> !df.getDatasetFieldType().getName().equals(typeName))
-                                .map(df -> inputRenderersByFieldType.get(df.getDatasetFieldType()))
-                                .anyMatch(renderer -> hasConditionalRenderingFor(typeName, renderer)))
-                .getOrElse(false);
+    public boolean hasChangeListener(final DatasetField field, 
+    		final Map<DatasetFieldType, InputFieldRenderer> renderersByFieldType) {
+    	
+        return field.streamSiblings()
+        	.map(sibling -> renderersByFieldType.get(sibling.getDatasetFieldType()))
+        	.anyMatch(renderer -> hasConditionalRenderingFor(field.getTypeName(), renderer));
     }
 
-    private boolean hasConditionalRenderingFor(String fieldTypeName, InputFieldRenderer renderer) {
+    private boolean hasConditionalRenderingFor(final String fieldTypeName, 
+    		final InputFieldRenderer renderer) {
+    	
         return Option.of(renderer)
                 .flatMap(InputFieldRenderer::getConditionalRendering)
                 .map(cr -> cr.getDatasetFieldName().equals(fieldTypeName))
                 .getOrElse(false);
-    }
-
-    private void clearSiblingsDatasetField(DatasetField vocabDatasetField, Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType) {
-        List<DatasetField> siblingsFields = vocabDatasetField.getDatasetFieldParent()
-                .getOrElseThrow(() -> new NullPointerException("datasetfield with type: " + vocabDatasetField.getTypeName()
-                        + " didn't have any parent required for conditional rendering"))
-                .getDatasetFieldsChildren()
-                .stream()
-                .filter(df -> !df.getDatasetFieldType().getName().equals(vocabDatasetField.getDatasetFieldType().getName()))
-                .collect(Collectors.toList());
-
-        for (DatasetField sibling : siblingsFields) {
-            InputFieldRenderer renderer = inputRenderersByFieldType.get(sibling.getDatasetFieldType());
-            if (renderer != null && renderer.getConditionalRendering().isDefined()) {
-                sibling.clearValue();
-                sibling.setValidationMessage(null);
-            }
-        }
     }
 }

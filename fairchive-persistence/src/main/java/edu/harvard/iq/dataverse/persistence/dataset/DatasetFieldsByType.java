@@ -78,12 +78,15 @@ public class DatasetFieldsByType {
     }
 
     public void copyValues(List<DatasetField> sources, String sourceName, int position) {
-        List<DatasetField> copied = FieldValueCopy.create(datasetFieldType, sourceName).copy(sources, datasetFields.get(position));
-
-        if (datasetFields.size() > 1 || !sources.isEmpty()) { // remove field only if that won't left us with no fields
-            datasetFields.remove(position);
-        }
-        datasetFields.addAll(position, copied);
+    	
+    	final int totalRequiredLength = position + sources.size();
+    	while(totalRequiredLength > this.datasetFields.size()) {
+    		this.datasetFields.add(DatasetField.createNewEmptyChildDatasetField(this.datasetFieldType, null));
+    	}
+    	
+    	for (final DatasetField source : sources) {
+    		this.datasetFields.get(position++).copyChildValuesFrom(source);
+    	}
     }
 
     public void removeDatasetField(int position) {
