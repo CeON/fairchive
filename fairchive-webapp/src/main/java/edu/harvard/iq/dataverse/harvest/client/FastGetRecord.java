@@ -47,8 +47,6 @@ import javax.xml.transform.TransformerException;
 
 import org.xml.sax.SAXException;
 
-//import org.xml.sax.InputSource;
-
 /*
  * This is an optimized implementation of OAIPMH GetRecord method.
  * Some code is borrowed from the OCLC implementation.
@@ -111,7 +109,7 @@ public class FastGetRecord implements AutoCloseable {
         return savedMetadataFile;
     }
     
-    public String getContent() throws IOException {
+    public String getContent() throws IOException {	
     	return new String(readAllBytes(this.savedMetadataFile.toPath()));
     }
 
