@@ -199,7 +199,7 @@ public class ImportGenericServiceBean {
                 if (mappingDefined != null) {
                     DatasetFieldType mappingDefinedFieldType = datasetfieldService.
                     		findByNameOpt(mappingDefined.getDatasetfieldName());
-                    String dataverseFieldName = mappingDefined.getDatasetfieldName();
+                    String datasetFieldName = mappingDefined.getDatasetfieldName();
                     // Process attributes, if any are defined in the mapping:
                     if (mappingDefinedFieldType.isCompound()) {
                         List<Set<DatasetFieldDTO>> compoundField = new ArrayList<>();
@@ -240,34 +240,34 @@ public class ImportGenericServiceBean {
                             if (mappingDefinedFieldType.isAllowMultiples()) {
                                 List<String> values = new ArrayList<>();
                                 values.add(parseText(reader));
-                                value = DatasetFieldDTOFactory.createMultiplePrimitive(dataverseFieldName, values);
+                                value = DatasetFieldDTOFactory.createMultiplePrimitive(datasetFieldName, values);
                             } else {
-                                value = DatasetFieldDTOFactory.createPrimitive(dataverseFieldName, parseText(reader));
+                                value = DatasetFieldDTOFactory.createPrimitive(datasetFieldName, parseText(reader));
                             }
 
-                            value = makeDTO(mappingDefinedFieldType, value, dataverseFieldName);
+                            value = makeDTO(mappingDefinedFieldType, value, datasetFieldName);
                             MetadataBlockWithFieldsDTO citationBlock = datasetDTO.
                             		getDatasetVersion().getMetadataBlocks().
                             		get(mappingDefinedFieldType.getMetadataBlock().getName());
                             DatasetFieldDTOFactory.embedInMetadataBlock(value, citationBlock);
                         }
-                    } else if (dataverseFieldName != null && !dataverseFieldName.isEmpty()) {
-                            DatasetFieldType dataverseFieldType = datasetfieldService.findByNameOpt(dataverseFieldName);
+                    } else if (datasetFieldName != null && !datasetFieldName.isEmpty()) {
+                            DatasetFieldType dataverseFieldType = datasetfieldService.findByNameOpt(datasetFieldName);
                             DatasetFieldDTO value;
                             if (dataverseFieldType != null) {
 
                                 if (dataverseFieldType.isControlledVocabulary()) {
-                                    value = DatasetFieldDTOFactory.createVocabulary(dataverseFieldName, parseText(reader));
+                                    value = DatasetFieldDTOFactory.createVocabulary(datasetFieldName, parseText(reader));
                                 } else {
-                                    value = DatasetFieldDTOFactory.createPrimitive(dataverseFieldName, parseText(reader));
+                                    value = DatasetFieldDTOFactory.createPrimitive(datasetFieldName, parseText(reader));
                                 }
-                                value = makeDTO(dataverseFieldType, value, dataverseFieldName);
+                                value = makeDTO(dataverseFieldType, value, datasetFieldName);
                                 MetadataBlockWithFieldsDTO citationBlock = datasetDTO.
                                 		getDatasetVersion().getMetadataBlocks().
                                 		get(mappingDefinedFieldType.getMetadataBlock().getName());
                                 DatasetFieldDTOFactory.embedInMetadataBlock(value, citationBlock);
                             } else {
-                                throw new EJBException("Bad foreign metadata field mapping: no such DatasetField " + dataverseFieldName + "!");
+                                throw new EJBException("Bad foreign metadata field mapping: no such DatasetField " + datasetFieldName + "!");
                             }
                         }
                 } else {
