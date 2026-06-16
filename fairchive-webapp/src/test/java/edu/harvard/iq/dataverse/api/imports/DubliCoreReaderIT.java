@@ -35,6 +35,8 @@ public class DubliCoreReaderIT extends WebappArquillianDeployment {
 			Dataset dataset = this.reader.read(client, xml);
 			
 			assertThat(dataset.getLatestVersion()).isNotNull();
+			
+			dataset.getLatestVersion().getDatasetFields().forEach(field -> System.out.println("name: " + field.getTypeName() + " value" + field.getValue()));
 		}
 	}
 	
