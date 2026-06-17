@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.logging.Level.WARNING;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.ArrayList;
@@ -517,6 +518,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
                 // TODO: differentiate between different exceptions/failure scenarios } catch (OaiHandlerException ohee) {
             } catch (Exception ex) {
+            	logger.log(WARNING, "Error while validating server.", ex);
                 success = false;
                 message = "Failed to execute listmetadataformats; " + ex.getMessage();
 
@@ -541,8 +543,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
                     // be safe to assume that this OAI server is at least 
                     // somewhat functioning...)
                     // (XOAI ListSets buggy as well?)
-                    message = "Failed to execute ListSets; " + ex.getMessage();
-                    logger.warning(message);
+                    logger.log(WARNING, "Failed to execute ListSets." , ex);
                 }
             }
 
