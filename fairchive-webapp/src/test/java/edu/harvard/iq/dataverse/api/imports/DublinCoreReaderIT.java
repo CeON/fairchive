@@ -15,7 +15,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 
-public class DubliCoreReaderIT extends WebappArquillianDeployment {
+public class DublinCoreReaderIT extends WebappArquillianDeployment {
 
 	@Inject 
 	DublinCoreReader reader;
