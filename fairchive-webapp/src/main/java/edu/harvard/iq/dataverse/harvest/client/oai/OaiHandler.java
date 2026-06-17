@@ -199,7 +199,7 @@ public class OaiHandler implements Serializable {
             return formats;
         } catch (InvalidOAIResponse ior) {
             throw new OaiHandlerException(
-                    "No valid response received from the OAI server.");
+                    "No valid response received from the OAI server.", ior);
         }
     }
 
