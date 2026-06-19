@@ -19,8 +19,10 @@ public class GlobalId implements Serializable {
 
     public static final String DOI_PROTOCOL = "doi";
     public static final String HDL_PROTOCOL = "hdl";
+    public static final String URL_PROTOCOL = "url";
     public static final String HDL_RESOLVER_URL = "https://hdl.handle.net/";
     public static final String DOI_RESOLVER_URL = "https://doi.org/";
+    public static final String URL_RESOLVER_URL = "https://";
     private static final String PID_ALLOWED_CHARACTERS_PATTERN = "^[A-Za-z0-9._/:\\\\-]*";
     
     private static final Logger logger = getLogger(GlobalId.class.getName());
@@ -108,9 +110,13 @@ public class GlobalId implements Serializable {
      * @return The string representation of this global id.
      */
     public String asString() {
-        return this.protocol == null || this.authority == null || this.identifier == null
-            ? ""
-            : this.protocol + ':' + this.authority + '/' + this.identifier;
+        if(this.protocol == null || this.authority == null || this.identifier == null) {
+            return "";
+        } else if(URL_PROTOCOL.equals(this.protocol)) {
+        	return this.protocol + ':' + this.identifier;
+        } else {
+            return this.protocol + ':' + this.authority + '/' + this.identifier;
+        }
     }
 
     public URL toURL() {
@@ -120,7 +126,9 @@ public class GlobalId implements Serializable {
 					return new URL(DOI_RESOLVER_URL + this.authority + '/' + this.identifier);
 				} else if (HDL_PROTOCOL.equals(this.protocol)) {
 					return new URL(HDL_RESOLVER_URL + this.authority + '/' + this.identifier);
-				} 
+				} else if(URL_PROTOCOL.equals(this.protocol)) {
+					return new URL(this.identifier);
+				}
 			} catch (final MalformedURLException ex) {
 				logger.log(SEVERE, null, ex);
 			}
@@ -152,30 +160,38 @@ public class GlobalId implements Serializable {
 
         final int index1 = identifierString.indexOf(':');
         if (index1 > 0) { // ':' found with one or more characters before it
-            final int index2 = identifierString.indexOf('/', index1 + 1);
-            if (index2 > 0 && (index2 + 1) < identifierString.length()) { // '/' found with one or more characters
-                // between ':'
-                this.protocol = identifierString.substring(0, index1); // and '/' and there are characters after '/'
-                if (!DOI_PROTOCOL.equals(this.protocol) && !HDL_PROTOCOL.equals(this.protocol)) {
-                    return false;
-                }
-                //Strip any whitespace, ; and ' from authority (should finding them cause a failure instead?)
-                this.authority = formatIdentifierString(identifierString.substring(index1 + 1, index2));
-                if (testforNullTerminator(this.authority)) {
-                    return false;
-                }
-                if (this.protocol.equals(DOI_PROTOCOL) && !this.checkDOIAuthority(this.authority)) {
-                    return false;
-                }
-                // Passed all checks
-                //Strip any whitespace, ; and ' from identifier (should finding them cause a failure instead?)
-                this.identifier = formatIdentifierString(identifierString.substring(index2 + 1));
-                return !testforNullTerminator(this.identifier);
-            } else {
-                logger.log(INFO, "Error parsing identifier: {0}: '':<authority>/<identifier>'' not found in string", 
-                		identifierString);
-                return false;
-            }
+        	if(identifierString.startsWith(URL_PROTOCOL)) {
+        		this.protocol = URL_PROTOCOL;
+        		this.authority = "";
+        		this.identifier = identifierString.substring(index1 +1);
+        		return !testforNullTerminator(this.identifier);
+        	} else {
+	            final int index2 = identifierString.indexOf('/', index1 + 1);
+	            if (index2 > 0 && (index2 + 1) < identifierString.length()) { // '/' found with one or more characters
+	                // between ':'
+	                this.protocol = identifierString.substring(0, index1); // and '/' and there are characters after '/'
+	                if (!DOI_PROTOCOL.equals(this.protocol) 
+	                		&& !HDL_PROTOCOL.equals(this.protocol)) {
+	                    return false;
+	                }
+	                //Strip any whitespace, ; and ' from authority (should finding them cause a failure instead?)
+	                this.authority = formatIdentifierString(identifierString.substring(index1 + 1, index2));
+	                if (testforNullTerminator(this.authority)) {
+	                    return false;
+	                }
+	                if (this.protocol.equals(DOI_PROTOCOL) && !this.checkDOIAuthority(this.authority)) {
+	                    return false;
+	                }
+	                // Passed all checks
+	                //Strip any whitespace, ; and ' from identifier (should finding them cause a failure instead?)
+	                this.identifier = formatIdentifierString(identifierString.substring(index2 + 1));
+	                return !testforNullTerminator(this.identifier);
+	            } else {
+	                logger.log(INFO, "Error parsing identifier: {0}: '':<authority>/<identifier>'' not found in string", 
+	                		identifierString);
+	                return false;
+	            }
+        	}
         } else {
             logger.log(INFO, "Error parsing identifier: {0}: ''<protocol>:'' not found in string", 
             		identifierString);

@@ -80,6 +80,16 @@ public class DublinCoreReaderIT extends WebappArquillianDeployment {
 		}
 	}
 	
+	@Test
+	void properFile_withUrl_identifier() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withUrl.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+			
+			assertThat(dataset.getGlobalId().toString()).isEqualTo("url:https://repozytorium.uw.edu.pl//handle/item/124996");
+		}
+	}
+	
 	private Reader open(final String fileName) {
 		return new InputStreamReader(getClass().getResourceAsStream(fileName), UTF_8);
 	}

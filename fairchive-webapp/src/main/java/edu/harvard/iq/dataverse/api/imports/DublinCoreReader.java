@@ -10,6 +10,8 @@ import static edu.harvard.iq.dataverse.persistence.GlobalId.DOI_PROTOCOL;
 import static edu.harvard.iq.dataverse.persistence.GlobalId.DOI_RESOLVER_URL;
 import static edu.harvard.iq.dataverse.persistence.GlobalId.HDL_PROTOCOL;
 import static edu.harvard.iq.dataverse.persistence.GlobalId.HDL_RESOLVER_URL;
+import static edu.harvard.iq.dataverse.persistence.GlobalId.URL_PROTOCOL;
+import static edu.harvard.iq.dataverse.persistence.GlobalId.URL_RESOLVER_URL;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
 import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
@@ -163,6 +165,17 @@ public class DublinCoreReader {
 			return handle.get();
 		}
 		
+		final Optional<GlobalId> url = identifiers
+				.stream()
+				.filter(id -> id.startsWith(URL_RESOLVER_URL))
+				.findFirst()
+				.map(id -> {
+					return new GlobalId(URL_PROTOCOL, "", id);
+				});
+		
+		if(url.isPresent()) {
+			return url.get();
+		}
 		
 		return null;
 	}
