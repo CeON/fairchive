@@ -28,7 +28,8 @@ public class GlobalIdTest {
         assertEquals("doi", instance.getProtocol());
         assertEquals("10.5072", instance.getAuthority());
         assertEquals("FK2/BYM3IW", instance.getIdentifier());
-        // TODO review the generated test code and remove the default call to fail.
+        assertEquals("doi:10.5072/FK2/BYM3IW", instance.toString());
+        assertEquals("https://doi.org/10.5072/FK2/BYM3IW", instance.toURL().toString());
     }
 
     @Test
@@ -38,6 +39,19 @@ public class GlobalIdTest {
         assertEquals("hdl", instance.getProtocol());
         assertEquals("1902.1", instance.getAuthority());
         assertEquals("111012", instance.getIdentifier());
+        assertEquals("hdl:1902.1/111012", instance.toString());
+        assertEquals("https://hdl.handle.net/1902.1/111012", instance.toURL().toString());
+    }
+    
+    @Test
+    public void testValidUrl() {
+        GlobalId instance = new GlobalId("url:https://google.com");
+
+        assertEquals("url", instance.getProtocol());
+        assertEquals("", instance.getAuthority());
+        assertEquals("https://google.com", instance.getIdentifier());
+        assertEquals("url:https://google.com", instance.toString());
+        assertEquals("https://google.com", instance.toURL().toString());
     }
 
     @Test
