@@ -833,6 +833,12 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
         fileMetadata.setDisplayOrder(fileMetadataNextOrder());
         getFileMetadatas().add(fileMetadata);
     }
+    
+    public DatasetVersion addField(final DatasetField field) {
+    	this.datasetFields.add(field);
+    	field.setDatasetVersion(this);
+    	return this;
+    }
 
     // -------------------- PRIVATE --------------------
 

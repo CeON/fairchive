@@ -161,6 +161,12 @@ public class DatasetField implements Serializable, ValidatableField {
     public String getValidationMessage() {
         return validationMessage;
     }
+    
+    public DatasetField addChild(final DatasetField child) {
+    	this.datasetFieldsChildren.add(child);
+    	child.setDatasetFieldParent(this);
+    	return this;
+    }
 
     // -------------------- LOGIC --------------------
 
