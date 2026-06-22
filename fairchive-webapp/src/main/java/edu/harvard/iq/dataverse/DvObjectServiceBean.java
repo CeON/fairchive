@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Collections.emptyList;
@@ -113,8 +114,8 @@ public class DvObjectServiceBean implements java.io.Serializable {
             }
             return foundDvObject;
 
-        } catch (IllegalArgumentException iae) {
-            logger.info("Invalid identifier: " + globalIdString);
+        } catch (IllegalArgumentException e) {
+            logger.log(Level.INFO, "Invalid identifier: '" + globalIdString + "'.", e);
             return null;
         }
     }

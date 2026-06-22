@@ -34,6 +34,7 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
@@ -45,6 +46,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.TransformerException;
 
+import org.apache.http.entity.ContentType;
 import org.xml.sax.SAXException;
 
 /*
@@ -123,14 +125,11 @@ public class FastGetRecord implements AutoCloseable {
 
         xmlInputFactory = javax.xml.stream.XMLInputFactory.newInstance();
 
-        String requestURL = getRequestURL(baseURL, identifier, metadataPrefix);
+        final String requestURL = getRequestURL(baseURL, identifier, metadataPrefix);
 
-        InputStream in = null;
-        URL url = new URL(requestURL);
-        HttpURLConnection con = null;
         int responseCode = 0;
 
-        con = (HttpURLConnection) url.openConnection();
+        final HttpURLConnection con = (HttpURLConnection) new URL(requestURL).openConnection();
         con.setRequestProperty("User-Agent", "DataverseHarvester/3.0");
         con.setRequestProperty("Accept-Encoding",
                                "compress, gzip, identify");
@@ -152,30 +151,15 @@ public class FastGetRecord implements AutoCloseable {
 
         if (responseCode == 200) {
 
-            String contentEncoding = con.getHeaderField("Content-Encoding");
-            //logger.debug("contentEncoding=" + contentEncoding);
-
-            // support for the standard compress/gzip/deflate compression
-            // schemes:
-
-            if ("compress".equals(contentEncoding)) {
-                ZipInputStream zis = new ZipInputStream(con.getInputStream());
-                zis.getNextEntry();
-                in = zis;
-            } else if ("gzip".equals(contentEncoding)) {
-                in = new GZIPInputStream(con.getInputStream());
-            } else if ("deflate".equals(contentEncoding)) {
-                in = new InflaterInputStream(con.getInputStream());
-            } else {
-                in = con.getInputStream();
-            }
+            final InputStream in = openInputStream(con);
 
             // We are going to read the OAI header and SAX-parse it for the
             // error messages and other protocol information;
             // The metadata section we're going to simply save in a temporary
             // file, unparsed.
 
-            BufferedReader rd = new BufferedReader(new InputStreamReader(in));
+            Charset charset = ContentType.parse(con.getHeaderField("Content-Type")).getCharset();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(in, charset));
 
             String line = null;
             String oaiResponseHeader = "";
@@ -427,6 +411,22 @@ public class FastGetRecord implements AutoCloseable {
             this.errorMessage = "GetRecord request failed. HTTP error code " + responseCode;
         }
     }
+
+	private InputStream openInputStream(final HttpURLConnection con) 
+			throws IOException {
+		switch(con.getHeaderField("Content-Encoding")) {
+		case "compress":
+		    final ZipInputStream zip = new ZipInputStream(con.getInputStream());
+		    zip.getNextEntry();
+		    return zip;
+		case "gzip":
+		    return new GZIPInputStream(con.getInputStream());
+		case "deflate":
+		    return new InflaterInputStream(con.getInputStream());
+		default:
+		    return con.getInputStream();
+		}
+	}
 
     /**
      * Construct the query portion of the http request
