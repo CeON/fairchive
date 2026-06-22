@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.persistence;
 
-import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Logger.getLogger;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -21,8 +20,11 @@ public class GlobalId implements Serializable {
     public static final String HDL_PROTOCOL = "hdl";
     public static final String URL_PROTOCOL = "url";
     public static final String HDL_RESOLVER_URL = "https://hdl.handle.net/";
+    public static final String HDL_RESOLVER_URL2 = "http://hdl.handle.net/";
     public static final String DOI_RESOLVER_URL = "https://doi.org/";
+    public static final String DOI_RESOLVER_URL2 = "http://doi.org/";
     public static final String URL_RESOLVER_URL = "https://";
+    public static final String URL_RESOLVER_URL2 = "http://";
     private static final String PID_ALLOWED_CHARACTERS_PATTERN = "^[A-Za-z0-9._/:\\\\-]*";
     
     private static final Logger logger = getLogger(GlobalId.class.getName());
@@ -136,6 +138,17 @@ public class GlobalId implements Serializable {
 		return null;
     }
 
+    public static boolean isDOI(final String id) {
+    	return id.startsWith(DOI_RESOLVER_URL) || id.startsWith(DOI_RESOLVER_URL2);
+    }
+    
+    public static boolean isHDL(final String id) {
+    	return id.startsWith(HDL_RESOLVER_URL) || id.startsWith(HDL_RESOLVER_URL2);
+    }
+    
+    public static boolean isURL(final String id) {
+    	return id.startsWith(URL_RESOLVER_URL) || id.startsWith(URL_RESOLVER_URL2);
+    }
 
     /**
      * Parse a Persistent Id and set the protocol, authority, and identifier
@@ -187,15 +200,13 @@ public class GlobalId implements Serializable {
 	                this.identifier = formatIdentifierString(identifierString.substring(index2 + 1));
 	                return !testforNullTerminator(this.identifier);
 	            } else {
-	                logger.log(INFO, "Error parsing identifier: {0}: '':<authority>/<identifier>'' not found in string", 
-	                		identifierString);
-	                return false;
+	            	throw new IllegalArgumentException("Error parsing globall d '" + 
+	            			identifierString + "'. Authority/identifier not found.");
 	            }
         	}
         } else {
-            logger.log(INFO, "Error parsing identifier: {0}: ''<protocol>:'' not found in string", 
-            		identifierString);
-            return false;
+        	throw new IllegalArgumentException("Error parsing globall d '" + 
+        			identifierString + "'. Protocol not found.");
         }
     }
 

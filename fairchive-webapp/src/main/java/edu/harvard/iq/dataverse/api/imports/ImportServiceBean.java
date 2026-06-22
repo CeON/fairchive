@@ -64,6 +64,8 @@ public class ImportServiceBean {
     private HarvestedJsonParser harvestedJsonParser;
     @Inject
     private DatasetFieldValidationService fieldValidationService;
+    @Inject
+    private DublinCoreReader dublinCoreReader;
 
     // -------------------- LOGIC --------------------
 
@@ -108,13 +110,21 @@ public class ImportServiceBean {
                 		e.getClass() + " (" + e.getMessage() + ")");
             }
         } else if (importType == HarvestImporterType.DUBLIN_CORE) {
-            try {
-                DatasetDTO dsDTO = this.importGenericService.processOAIDCxml(xml);
-                return importDatasetDTOJson(request, client, identifier, toJson(dsDTO));
-            } catch (XMLStreamException e) {
-                throw new ImportException("Failed to process Dublin Core XML record: " + 
-                		e.getClass() + " (" + e.getMessage() + ")");
-            }
+//            try {
+//                DatasetDTO dsDTO = this.importGenericService.processOAIDCxml(xml);
+//                return importDatasetDTOJson(request, client, identifier, toJson(dsDTO));
+//            } catch (XMLStreamException e) {
+//                throw new ImportException("Failed to process Dublin Core XML record: " + 
+//                		e.getClass() + " (" + e.getMessage() + ")");
+//            }
+        	
+        	  try {
+        		  final Dataset set = this.dublinCoreReader.read(client, identifier, 
+        				  new StringReader(xml));
+        		  return createHarvestedDataset(request, set, client.getDataverse());
+        	  } catch (final Exception e) {
+        		  throw new ImportException(xml, e);
+        	  }
         } else if (importType == HarvestImporterType.DATAVERSE_JSON) {
             // This is Dataverse metadata already formatted in JSON.
             // Simply read it into a string, and pass to the final import further down:
@@ -177,49 +187,7 @@ public class ImportServiceBean {
             ds.setHarvestedFrom(client);
             ds.setHarvestIdentifier(identifier);
 
-            Dataset existingDs = datasetService.findByGlobalId(ds.getGlobalId().toString());
-
-            if (existingDs != null) {
-                // If this dataset already exists IN ANOTHER DATAVERSE
-                // we are just going to skip it!
-                if (existingDs.isNotRoot() && !owner.getId().equals(existingDs.getOwner().getId())) {
-                    throw new ImportException("The dataset with the global id " + 
-                    		ds.getGlobalId() + " already exists, in the dataverse "
-                            + existingDs.getOwner().getAlias() + ", skipping.");
-                }
-                // And if we already have a dataset with this same id, in this same
-                // dataverse, but it is  LOCAL dataset (can happen!), we're going to
-                // skip it also:
-                if (!existingDs.isHarvested()) {
-                    throw new ImportException("A LOCAL dataset with the global id " + 
-                    		ds.getGlobalId() + " already exists in this dataverse; skipping.");
-                }
-                // For harvested datasets, there should always only be one version.
-                // We will replace the current version with the imported version.
-                if (existingDs.getVersions().size() != 1) {
-                    throw new ImportException("Error importing Harvested Dataset, existing dataset has " + 
-                    		existingDs.getVersions().size() + " versions");
-                }
-                // Purge all the SOLR documents associated with this client from the
-                // index server:
-                indexService.deleteHarvestedDocuments(existingDs);
-                // files from harvested datasets are removed unceremoniously,
-                // directly in the database. no need to bother calling the
-                // DeleteFileCommand on them.
-                for (DataFile harvestedFile : existingDs.getFiles()) {
-                    DataFile merged = em.merge(harvestedFile);
-                    em.remove(merged);
-                }
-                // TODO:
-                // Verify what happens with the indexed files in SOLR?
-                // are they going to be overwritten by the reindexing of the dataset?
-                existingDs.setFiles(null);
-                Dataset merged = em.merge(existingDs);
-                // harvested datasets don't have physical files - so no need to worry about that.
-                engineSvc.submit(new DestroyDatasetCommand(merged, request));
-            }
-
-            return engineSvc.submit(new CreateHarvestedDatasetCommand(ds, request));
+            return createHarvestedDataset(request, ds, owner);
         } catch (JsonParseException | ImportException ex) {
             logger.fine("Failed to import harvested dataset: " + ex.getClass() + 
             		": " + ex.getMessage());
@@ -228,6 +196,53 @@ public class ImportServiceBean {
                     		ex.getClass(), ex.getMessage()), ex);
         }
     }
+
+	private Dataset createHarvestedDataset(final DataverseRequest request, Dataset ds, Dataverse owner)
+			throws ImportException {
+		Dataset existingDs = datasetService.findByGlobalId(ds.getGlobalId().toString());
+
+		if (existingDs != null) {
+		    // If this dataset already exists IN ANOTHER DATAVERSE
+		    // we are just going to skip it!
+		    if (existingDs.isNotRoot() && !owner.getId().equals(existingDs.getOwner().getId())) {
+		        throw new ImportException("The dataset with the global id " + 
+		        		ds.getGlobalId() + " already exists, in the dataverse "
+		                + existingDs.getOwner().getAlias() + ", skipping.");
+		    }
+		    // And if we already have a dataset with this same id, in this same
+		    // dataverse, but it is  LOCAL dataset (can happen!), we're going to
+		    // skip it also:
+		    if (!existingDs.isHarvested()) {
+		        throw new ImportException("A LOCAL dataset with the global id " + 
+		        		ds.getGlobalId() + " already exists in this dataverse; skipping.");
+		    }
+		    // For harvested datasets, there should always only be one version.
+		    // We will replace the current version with the imported version.
+		    if (existingDs.getVersions().size() != 1) {
+		        throw new ImportException("Error importing Harvested Dataset, existing dataset has " + 
+		        		existingDs.getVersions().size() + " versions");
+		    }
+		    // Purge all the SOLR documents associated with this client from the
+		    // index server:
+		    indexService.deleteHarvestedDocuments(existingDs);
+		    // files from harvested datasets are removed unceremoniously,
+		    // directly in the database. no need to bother calling the
+		    // DeleteFileCommand on them.
+		    for (DataFile harvestedFile : existingDs.getFiles()) {
+		        DataFile merged = em.merge(harvestedFile);
+		        em.remove(merged);
+		    }
+		    // TODO:
+		    // Verify what happens with the indexed files in SOLR?
+		    // are they going to be overwritten by the reindexing of the dataset?
+		    existingDs.setFiles(null);
+		    Dataset merged = em.merge(existingDs);
+		    // harvested datasets don't have physical files - so no need to worry about that.
+		    engineSvc.submit(new DestroyDatasetCommand(merged, request));
+		}
+
+		return engineSvc.submit(new CreateHarvestedDatasetCommand(ds, request));
+	}
 
     private void removeInvalidFieldsFromDataset(final DatasetVersion  version) {
         // We do not expect the validation-removal process to require many iterations.

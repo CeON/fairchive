@@ -88,7 +88,7 @@ public class DublinCoreReader {
         
         final ArrayList<Node> creators = getNodes(document, "creator");
         if(creators.isEmpty()) {
-        	throw new EJBException("Missing dc:creator xml element");
+        	throw new EJBException("Missing dc:creator xml element.\n" + xml.toString());
         }
         for(final Node node : creators) {
         	version.addField(newField(author, null).
@@ -111,7 +111,6 @@ public class DublinCoreReader {
         }
         dataset.setGlobalId(createGlobalId(identifiers));
 
-       
 		return dataset;
 	}
 	
@@ -139,7 +138,7 @@ public class DublinCoreReader {
 		
 		final Optional<GlobalId> doi = identifiers
 				.stream()
-				.filter(id -> id.startsWith(DOI_RESOLVER_URL))
+				.filter(GlobalId::isDOI)
 				.findFirst()
 				.map(id -> {
 					final int lastSlashIndex = id.lastIndexOf('/');
@@ -153,7 +152,7 @@ public class DublinCoreReader {
 		
 		final Optional<GlobalId> handle = identifiers
 				.stream()
-				.filter(id -> id.startsWith(HDL_RESOLVER_URL))
+				.filter(GlobalId::isHDL)
 				.findFirst()
 				.map(id -> {
 					final int lastSlashIndex = id.lastIndexOf('/');
@@ -167,7 +166,7 @@ public class DublinCoreReader {
 		
 		final Optional<GlobalId> url = identifiers
 				.stream()
-				.filter(id -> id.startsWith(URL_RESOLVER_URL))
+				.filter(GlobalId::isURL)
 				.findFirst()
 				.map(id -> {
 					return new GlobalId(URL_PROTOCOL, "", id);
