@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.author;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorName;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.contributor;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.contributorName;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.language;
 
 import java.io.InputStreamReader;
@@ -54,8 +56,11 @@ public class DublinCoreReaderIT extends WebappArquillianDeployment {
 			assertThat(fields.get(4).getTypeName()).isEqualTo(author);
 			assertThat(fields.get(4).getChildByName(authorName).
 					map(DatasetField::getValue)).contains("Jonason, Peter");
-			assertThat(fields.get(5).getTypeName()).isEqualTo(language);
-			assertThat(fields.get(5).getValue()).isEqualTo("en");
+			assertThat(fields.get(5).getTypeName()).isEqualTo(contributor);
+			assertThat(fields.get(5).getChildByName(contributorName).
+					map(DatasetField::getValue)).contains("Pilarczyk, Zbigniew");
+			assertThat(fields.get(6).getTypeName()).isEqualTo(language);
+			assertThat(fields.get(6).getValue()).isEqualTo("en");
 			
 //			System.out.println("==============================================");
 //			System.out.println("GlobalId: " + dataset.getGlobalId());
@@ -87,6 +92,38 @@ public class DublinCoreReaderIT extends WebappArquillianDeployment {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 			
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("url:https://repozytorium.uw.edu.pl//handle/item/124996");
+		}
+	}
+	
+	@Test
+	void properFile_withDOI_noAuthor_contributorOnly() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withDoi_noAuthor_contributorOnly.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+			List<DatasetField> fields = dataset.getLatestVersion().getDatasetFields();
+			
+			assertThat(dataset.getHarvestedFrom()).isSameAs(client);
+			assertThat(dataset.getHarvestIdentifier()).isEqualTo(harvestId);
+			assertThat(dataset.getGlobalId().toString()).isEqualTo("doi:10.18150/04M8OI");
+			
+			assertThat(fields.get(0).getTypeName()).isEqualTo(title);
+			assertThat(fields.get(0).getValue()).isEqualTo("Who complies with the restrictions");
+			assertThat(fields.get(1).getTypeName()).isEqualTo(contributor);
+			assertThat(fields.get(1).getChildByName(contributorName).
+					map(DatasetField::getValue)).contains("Pilarczyk, Zbigniew");
+			assertThat(fields.get(2).getTypeName()).isEqualTo(language);
+			assertThat(fields.get(2).getValue()).isEqualTo("en");
+			
+//			System.out.println("==============================================");
+//			System.out.println("GlobalId: " + dataset.getGlobalId());
+//			
+//			System.out.println("==============================================");
+//			
+//			dataset.getLatestVersion().getDatasetFields().
+//				forEach(field -> System.out.println(field.getTypeName() + 
+//						" -> " + field.getValue()));
+//			
+//			System.out.println("==============================================");
 		}
 	}
 	
