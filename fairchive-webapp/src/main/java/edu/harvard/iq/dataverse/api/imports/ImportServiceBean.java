@@ -123,6 +123,7 @@ public class ImportServiceBean {
         				  new StringReader(xml));
         		  return createHarvestedDataset(request, set, client.getDataverse());
         	  } catch (final Exception e) {
+        		  logger.warning("error processing\n" + xml);
         		  throw new ImportException(xml, e);
         	  }
         } else if (importType == HarvestImporterType.DATAVERSE_JSON) {

@@ -2,6 +2,8 @@ package edu.harvard.iq.dataverse.api.imports;
 
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.author;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorName;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.contributor;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.contributorName;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.language;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherId;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherIdValue;
@@ -87,12 +89,15 @@ public class DublinCoreReader {
         version.addField(newField(title, titleNode.getTextContent()));
         
         final ArrayList<Node> creators = getNodes(document, "creator");
-        if(creators.isEmpty()) {
-        	throw new EJBException("Missing dc:creator xml element.\n" + xml.toString());
-        }
         for(final Node node : creators) {
         	version.addField(newField(author, null).
         			addChild(newField(authorName, node.getTextContent())));
+        }
+        
+        final ArrayList<Node> contributors = getNodes(document, "contributor");
+        for(final Node node : contributors) {
+        	version.addField(newField(contributor, null).
+        			addChild(newField(contributorName, node.getTextContent())));
         }
         
         final Node languageNode = getNode(document, "language");
