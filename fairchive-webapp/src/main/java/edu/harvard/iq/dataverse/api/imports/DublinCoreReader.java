@@ -145,12 +145,7 @@ public class DublinCoreReader {
 				.stream()
 				.filter(GlobalId::isDOI)
 				.findFirst()
-				.map(id -> {
-					final int lastSlashIndex = id.lastIndexOf('/');
-					return new GlobalId(DOI_PROTOCOL, 
-							id.substring(DOI_RESOLVER_URL.length(), lastSlashIndex),
-							id.substring(lastSlashIndex +1 ));
-				});
+				.map(GlobalId::fromDOIUrl);
 		if(doi.isPresent()) {
 			return doi.get();
 		}
@@ -159,12 +154,7 @@ public class DublinCoreReader {
 				.stream()
 				.filter(GlobalId::isHDL)
 				.findFirst()
-				.map(id -> {
-					final int lastSlashIndex = id.lastIndexOf('/');
-					return new GlobalId(HDL_PROTOCOL, 
-							id.substring(HDL_RESOLVER_URL.length(), lastSlashIndex),
-							id.substring(lastSlashIndex + 1));
-				});
+				.map(GlobalId::fromHDLUrl);
 		if(handle.isPresent()) {
 			return handle.get();
 		}
