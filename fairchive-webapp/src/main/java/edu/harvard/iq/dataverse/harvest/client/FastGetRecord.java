@@ -35,6 +35,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
@@ -46,6 +50,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.xml.sax.SAXException;
 
@@ -112,6 +117,7 @@ public class FastGetRecord implements AutoCloseable {
     }
     
     public String getContent() throws IOException {	
+    	Files.copy(this.savedMetadataFile.toPath(), Paths.get("C:\\prj\\dariah\\oai_files", this.savedMetadataFile.getName()), StandardCopyOption.REPLACE_EXISTING);
     	return new String(readAllBytes(this.savedMetadataFile.toPath()));
     }
 

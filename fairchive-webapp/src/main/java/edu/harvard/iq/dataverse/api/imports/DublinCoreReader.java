@@ -8,20 +8,21 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.language;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherId;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherIdValue;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
-import static edu.harvard.iq.dataverse.persistence.GlobalId.DOI_PROTOCOL;
-import static edu.harvard.iq.dataverse.persistence.GlobalId.DOI_RESOLVER_URL;
-import static edu.harvard.iq.dataverse.persistence.GlobalId.HDL_PROTOCOL;
-import static edu.harvard.iq.dataverse.persistence.GlobalId.HDL_RESOLVER_URL;
 import static edu.harvard.iq.dataverse.persistence.GlobalId.URL_PROTOCOL;
-import static edu.harvard.iq.dataverse.persistence.GlobalId.URL_RESOLVER_URL;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
 import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 import java.io.Reader;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJBException;
@@ -50,6 +51,8 @@ public class DublinCoreReader {
 	
 	private final static String DC_NAMESPACE = "http://purl.org/dc/elements/1.1/";
 	private final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+	private final Predicate<String> isYearOnlyDate = Pattern.compile("^\\d{4}$").asPredicate();
+	private final SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY");
 	
     private DatasetFieldTypeRepository fieldTypeRepository;
     private SettingsServiceBean settings;
@@ -88,16 +91,22 @@ public class DublinCoreReader {
         }
         version.addField(newField(title, titleNode.getTextContent()));
         
-        final ArrayList<Node> creators = getNodes(document, "creator");
-        for(final Node node : creators) {
+        for(final Node node : getNodes(document, "creator")) {
         	version.addField(newField(author, null).
         			addChild(newField(authorName, node.getTextContent())));
         }
         
-        final ArrayList<Node> contributors = getNodes(document, "contributor");
-        for(final Node node : contributors) {
+        for(final Node node : getNodes(document, "contributor")) {
         	version.addField(newField(contributor, null).
         			addChild(newField(contributorName, node.getTextContent())));
+        }
+        
+        for(final Node node : getNodes(document, "date")) {
+        	if(this.isYearOnlyDate.test(node.getTextContent())) {
+        		final LocalDateTime year = Year.parse(node.getTextContent()).
+        				atDay(1).atStartOfDay();
+        		dataset.setPublicationDate(Timestamp.valueOf(year));
+        	}
         }
         
         final Node languageNode = getNode(document, "language");

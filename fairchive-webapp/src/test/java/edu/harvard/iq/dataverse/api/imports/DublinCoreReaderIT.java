@@ -47,6 +47,7 @@ public class DublinCoreReaderIT extends WebappArquillianDeployment {
 			assertThat(dataset.getHarvestedFrom()).isSameAs(client);
 			assertThat(dataset.getHarvestIdentifier()).isEqualTo(harvestId);
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("doi:10.18150/04M8OI");
+			assertThat(dataset.getPublicationDate().toLocalDateTime().getYear()).isEqualTo(2020);
 			
 			assertThat(fields.get(0).getTypeName()).isEqualTo(title);
 			assertThat(fields.get(0).getValue()).isEqualTo("Who complies with the restrictions");

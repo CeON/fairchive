@@ -1,22 +1,28 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.AlternativePersistentIdentifier;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.DvObjectContainer;
-import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
-import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
+import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.Entity;
 import javax.persistence.Index;
@@ -34,28 +40,24 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import static java.util.Arrays.stream;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-import static javax.persistence.CascadeType.ALL;
-import static javax.persistence.CascadeType.MERGE;
-import static javax.persistence.CascadeType.PERSIST;
-import static javax.persistence.CascadeType.REMOVE;
+import org.apache.commons.lang3.StringUtils;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.persistence.AlternativePersistentIdentifier;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.DvObjectContainer;
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
+import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
+import io.vavr.control.Option;
 
 /**
  * @author skraffmiller
@@ -669,8 +671,9 @@ public class Dataset extends DvObjectContainer {
             }
             return getHarvestedFrom().getArchiveUrl();
         } else {
-        	if("hdl".equals(getProtocol())) {
-        		return "https://hdl.handle.net/" + getAuthority() + '/' + getIdentifier();
+        	final URL url = getGlobalId().toURL();
+        	if(url != null) {
+        		return url.toString();
         	} else {
         		return getHarvestedFrom().getArchiveUrl();
         	}
