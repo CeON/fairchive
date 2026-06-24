@@ -19,6 +19,7 @@
 */
 package edu.harvard.iq.dataverse.harvest.client;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static org.apache.commons.io.FileUtils.deleteQuietly;
 
@@ -35,7 +36,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -50,7 +50,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.xml.sax.SAXException;
 
@@ -118,7 +117,7 @@ public class FastGetRecord implements AutoCloseable {
     
     public String getContent() throws IOException {	
     	Files.copy(this.savedMetadataFile.toPath(), Paths.get("C:\\prj\\dariah\\oai_files", this.savedMetadataFile.getName()), StandardCopyOption.REPLACE_EXISTING);
-    	return new String(readAllBytes(this.savedMetadataFile.toPath()));
+    	return new String(readAllBytes(this.savedMetadataFile.toPath()), UTF_8);
     }
 
     public boolean isDeleted() {
@@ -139,6 +138,8 @@ public class FastGetRecord implements AutoCloseable {
         con.setRequestProperty("User-Agent", "DataverseHarvester/3.0");
         con.setRequestProperty("Accept-Encoding",
                                "compress, gzip, identify");
+        con.setRequestProperty("Accept-Charset", "utf-8");
+        
         try {
             responseCode = con.getResponseCode();
             //logger.debug("responseCode=" + responseCode);
@@ -172,7 +173,6 @@ public class FastGetRecord implements AutoCloseable {
             boolean metadataFlag = false;
             boolean metadataWritten = false;
             boolean schemaChecked = false;
-            FileOutputStream tempFileStream = null;
             PrintWriter metadataOut = null;
 
             savedMetadataFile = File.createTempFile("meta", ".tmp");
@@ -204,11 +204,7 @@ public class FastGetRecord implements AutoCloseable {
                         }
 
                         oaiResponseHeader = oaiResponseHeader.concat(lineCopy.replaceAll(XML_METADATA_TAG_OPEN + ".*", XML_METADATA_TAG_OPEN + XML_METADATA_TAG_CLOSE + XML_OAI_PMH_CLOSING_TAGS));
-                        tempFileStream = new FileOutputStream(savedMetadataFile);
-                        metadataOut = new PrintWriter(tempFileStream, true);
-
-                        //metadataOut.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"); /* ? */
-
+                        metadataOut = new PrintWriter(savedMetadataFile, "UTF-8");
                         metadataFlag = true;
                     } else if (line.matches(".*<" + XML_METADATA_TAG + " [^>]*>.*")) {
                         if (metadataPrefix.equals(DATAVERSE_EXTENDED_METADATA)) {
