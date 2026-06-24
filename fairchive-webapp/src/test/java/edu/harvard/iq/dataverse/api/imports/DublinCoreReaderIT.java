@@ -38,9 +38,9 @@ public class DublinCoreReaderIT extends WebappArquillianDeployment {
 	}
 	
 	@Test
-	void properFile_withDOI_identifier() throws Exception {
+	void properFile_withHttpDOI_identifier() throws Exception {
 		
-		try(final Reader xml = open("/xml/imports/dublinCore_withDoi.xml")) {
+		try(final Reader xml = open("/xml/imports/dublinCore_withHttpDoi.xml")) {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 			List<DatasetField> fields = dataset.getLatestVersion().getDatasetFields();
 			
@@ -74,14 +74,34 @@ public class DublinCoreReaderIT extends WebappArquillianDeployment {
 //			System.out.println("==============================================");
 		}
 	}
+	
+	@Test
+	void properFile_withHttpsDOI_identifier() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withHttpsDoi.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+
+			assertThat(dataset.getGlobalId().toString()).isEqualTo("doi:10.18150/04M8OI");
+		}
+	}
 		
 	@Test
-	void properFile_withHDL_identifier() throws Exception {
+	void properFile_withHttpHDL_identifier() throws Exception {
 		
-		try(final Reader xml = open("/xml/imports/dublinCore_withHandle.xml")) {
+		try(final Reader xml = open("/xml/imports/dublinCore_withHttpHandle.xml")) {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 			
-			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:123/456");
+			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:10593/22946");
+		}
+	}
+	
+	@Test
+	void properFile_withHttpsHDL_identifier() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withHttpsHandle.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+			
+			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:10593/22946");
 		}
 	}
 	

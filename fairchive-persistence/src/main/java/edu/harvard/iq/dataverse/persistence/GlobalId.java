@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.persistence;
 
+import static edu.harvard.iq.dataverse.persistence.GlobalId.HDL_PROTOCOL;
+import static edu.harvard.iq.dataverse.persistence.GlobalId.HDL_RESOLVER_URL;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Logger.getLogger;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -32,6 +34,24 @@ public class GlobalId implements Serializable {
     private String protocol;
     private String authority;
     private String identifier;
+    
+    public static GlobalId fromHDLUrl(final String url) {
+		final int lastSlashIndex = url.lastIndexOf('/');
+		final int authorityOffset = url.startsWith(HDL_RESOLVER_URL)
+			? HDL_RESOLVER_URL.length() : HDL_RESOLVER_URL2.length();
+		return new GlobalId(HDL_PROTOCOL, 
+				url.substring(authorityOffset, lastSlashIndex),
+				url.substring(lastSlashIndex + 1));
+    }
+    
+    public static GlobalId fromDOIUrl(final String url) {
+ 		final int lastSlashIndex = url.lastIndexOf('/');
+ 		final int authorityOffset = url.startsWith(DOI_RESOLVER_URL)
+ 			? DOI_RESOLVER_URL.length() : DOI_RESOLVER_URL2.length();
+ 		return new GlobalId(DOI_PROTOCOL, 
+ 				url.substring(authorityOffset, lastSlashIndex),
+ 				url.substring(lastSlashIndex + 1));
+     }
 
     public static Optional<GlobalId> parse(final String identifierString) {
         try {
