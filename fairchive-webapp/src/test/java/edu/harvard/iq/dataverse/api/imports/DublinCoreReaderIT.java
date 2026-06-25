@@ -134,17 +134,17 @@ public class DublinCoreReaderIT extends WebappArquillianDeployment {
 					map(DatasetField::getValue)).contains("Pilarczyk, Zbigniew");
 			assertThat(fields.get(2).getTypeName()).isEqualTo(language);
 			assertThat(fields.get(2).getValue()).isEqualTo("en");
-			
-//			System.out.println("==============================================");
-//			System.out.println("GlobalId: " + dataset.getGlobalId());
-//			
-//			System.out.println("==============================================");
-//			
-//			dataset.getLatestVersion().getDatasetFields().
-//				forEach(field -> System.out.println(field.getTypeName() + 
-//						" -> " + field.getValue()));
-//			
-//			System.out.println("==============================================");
+		}
+	}
+	
+	@Test
+	void fileWithPublicationDate_containingOnlyYearAndMoth() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_publication_year_and_month_only.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+			assertThat(dataset.getPublicationDate().toLocalDateTime().getYear()).isEqualTo(2018);
+			assertThat(dataset.getPublicationDate().toLocalDateTime().getMonthValue()).isEqualTo(9);
+			assertThat(dataset.getPublicationDate().toLocalDateTime().getDayOfMonth()).isEqualTo(1);
 		}
 	}
 	

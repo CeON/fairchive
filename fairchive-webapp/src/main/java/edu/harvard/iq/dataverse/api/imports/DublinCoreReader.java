@@ -10,25 +10,20 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherIdValue;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.persistence.GlobalId.URL_PROTOCOL;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
-import static java.time.Instant.now;
+import static java.lang.Character.isDigit;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 import java.io.Reader;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -36,7 +31,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -48,30 +42,22 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 @Stateless
 public class DublinCoreReader {
 	
 	private final static String DC_NAMESPACE = "http://purl.org/dc/elements/1.1/";
 	private final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-	private final Predicate<String> isYearOnlyDate = Pattern.compile("^\\d{4}$").asPredicate();
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY");
 	
     private DatasetFieldTypeRepository fieldTypeRepository;
-    private SettingsServiceBean settings;
 	
     public DublinCoreReader() {}
     
     @Inject
-	public DublinCoreReader(final DatasetFieldTypeRepository fieldTypeRepository,
-							final SettingsServiceBean settings) {
+	public DublinCoreReader(final DatasetFieldTypeRepository fieldTypeRepository) {
+    	
 		this.fieldTypeRepository = fieldTypeRepository;
-		this.settings = settings;
-	}
-	
-	@PostConstruct
-	public void setUp() {
+		
 		this.factory.setNamespaceAware(true);
 	}
 
@@ -148,6 +134,9 @@ public class DublinCoreReader {
 
 	private static Instant parseToInstant(String value) {
 	    value = value.trim();
+	    if(isYearAndMonthOnly(value)) {
+	    	value = value.concat("-01");
+	    }
 	
 	    try {
 	        return Instant.parse(value);
@@ -158,11 +147,22 @@ public class DublinCoreReader {
 	    } catch (Exception ignored) {}
 	
 	    try {
-	        int year = Year.parse(value).getValue();
+	        final int year = Year.parse(value).getValue();
 	        return LocalDate.of(year, 1, 1).atStartOfDay(UTC).toInstant();
 	    } catch (Exception ignored) {}
-	
+	    
 	    throw new IllegalArgumentException("Unsupported date format: ".concat(value));
+	}
+	
+	private static boolean isYearAndMonthOnly(final String date) {
+		return date.length() == 7 
+				&& isDigit(date.charAt(0))
+				&& isDigit(date.charAt(1))
+				&& isDigit(date.charAt(2))
+				&& isDigit(date.charAt(3))
+				&& date.charAt(4) == '-'
+				&& isDigit(date.charAt(5))
+				&& isDigit(date.charAt(6));
 	}
 	
 	private GlobalId createGlobalId(final ArrayList<Node> identifierNodes) {
