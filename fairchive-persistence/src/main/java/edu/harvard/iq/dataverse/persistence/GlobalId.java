@@ -1,7 +1,5 @@
 package edu.harvard.iq.dataverse.persistence;
 
-import static edu.harvard.iq.dataverse.persistence.GlobalId.HDL_PROTOCOL;
-import static edu.harvard.iq.dataverse.persistence.GlobalId.HDL_RESOLVER_URL;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Logger.getLogger;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
