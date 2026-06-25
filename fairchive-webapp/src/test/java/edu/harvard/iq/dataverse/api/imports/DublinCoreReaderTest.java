@@ -1,32 +1,31 @@
 package edu.harvard.iq.dataverse.api.imports;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
-import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.author;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.authorName;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.contributor;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.contributorName;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.language;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
+import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXT;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
-
-import javax.inject.Inject;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 
-public class DublinCoreReaderIT extends WebappArquillianDeployment {
+public class DublinCoreReaderTest {
 
-	@Inject 
-	DublinCoreReader reader;
+	private DublinCoreReader reader = new DublinCoreReader(this::findTypeByName);
 	
 	private final static HarvestingClient client;
 	private final static String harvestId = "id1";
@@ -148,8 +147,42 @@ public class DublinCoreReaderIT extends WebappArquillianDeployment {
 		}
 	}
 	
+	
+	@Test
+	void fileWithBrokenDoi_butValidHandle() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withBrokenDoi_butValidHandle.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+
+			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:10593/25658");
+		}
+	}
+	
+	@Test
+	void fileWithBrokenDoiAndHandle_butValidUrl() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withBrokenDoiAndHandle_butValidUrl.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+
+			assertThat(dataset.getGlobalId().toString()).isEqualTo("url:https://repozytorium.uw.edu.pl//handle/item/124996");
+		}
+	}
+	
+	@Test
+	void fileWithMissingLanguage() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withoutLanguageTag.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+
+			assertThat(dataset.getLatestVersion().streamDatasetFieldsByTypeName(language)).isEmpty();
+		}
+	}
+	
 	private Reader open(final String fileName) {
 		return new InputStreamReader(getClass().getResourceAsStream(fileName), UTF_8);
 	}
 	
+	private Optional<DatasetFieldType> findTypeByName(final String name) {
+		return Optional.of(new DatasetFieldType(name, TEXT, false));
+	}
 }

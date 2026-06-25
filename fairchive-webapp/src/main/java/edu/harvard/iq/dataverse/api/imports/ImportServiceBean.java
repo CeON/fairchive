@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -32,6 +33,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.DestroyDatasetCommand;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
@@ -65,8 +67,15 @@ public class ImportServiceBean {
     @Inject
     private DatasetFieldValidationService fieldValidationService;
     @Inject
+    private DatasetFieldTypeRepository typeRepository;
+    
     private DublinCoreReader dublinCoreReader;
 
+    @PostConstruct
+    public void setUp() {
+    	this.dublinCoreReader = new DublinCoreReader(this.typeRepository::findByName);
+    }
+    
     // -------------------- LOGIC --------------------
 
     @TransactionAttribute(REQUIRES_NEW)
