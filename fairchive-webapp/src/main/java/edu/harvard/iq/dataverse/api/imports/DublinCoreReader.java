@@ -10,14 +10,18 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherIdValue;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
 import static edu.harvard.iq.dataverse.persistence.GlobalId.URL_PROTOCOL;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
+import static java.time.Instant.now;
+import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 import java.io.Reader;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.Year;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -81,6 +85,12 @@ public class DublinCoreReader {
         dataset.setOwner(client.getDataverse());
         dataset.setHarvestedFrom(client);
         dataset.setHarvestIdentifier(identifier);
+        dataset.setPublicationDate(Timestamp.from(getNodes(document, "date")
+				.stream()
+				.map(Node::getTextContent)
+				.map(DublinCoreReader::parseToInstant)
+				.min(Instant::compareTo)
+				.orElse(Instant.now())));
         
         final DatasetVersion version = dataset.getLatestVersion();
         version.setVersionState(RELEASED);
@@ -101,13 +111,6 @@ public class DublinCoreReader {
         			addChild(newField(contributorName, node.getTextContent())));
         }
         
-        for(final Node node : getNodes(document, "date")) {
-        	if(this.isYearOnlyDate.test(node.getTextContent())) {
-        		final LocalDateTime year = Year.parse(node.getTextContent()).
-        				atDay(1).atStartOfDay();
-        		dataset.setPublicationDate(Timestamp.valueOf(year));
-        	}
-        }
         
         final Node languageNode = getNode(document, "language");
         if(languageNode == null) {
@@ -141,6 +144,25 @@ public class DublinCoreReader {
 		}
 		
 		return document;
+	}
+
+	private static Instant parseToInstant(String value) {
+	    value = value.trim();
+	
+	    try {
+	        return Instant.parse(value);
+	    } catch (Exception ignored) {}
+	
+	    try {
+	        return LocalDate.parse(value).atStartOfDay(UTC).toInstant();
+	    } catch (Exception ignored) {}
+	
+	    try {
+	        int year = Year.parse(value).getValue();
+	        return LocalDate.of(year, 1, 1).atStartOfDay(UTC).toInstant();
+	    } catch (Exception ignored) {}
+	
+	    throw new IllegalArgumentException("Unsupported date format: ".concat(value));
 	}
 	
 	private GlobalId createGlobalId(final ArrayList<Node> identifierNodes) {
@@ -213,35 +235,12 @@ public class DublinCoreReader {
 		return result;
 	}
 	
-	
 	private static boolean matches(final Node child, final String nodeName) {
 		return child.getNodeType() == ELEMENT_NODE
 				&& DC_NAMESPACE.equals(child.getNamespaceURI())
 				&& nodeName.equals(child.getLocalName());
 	}
-	
-	private static String getValueOfNodeAttribute(final Document document, 
-			final String nodeName, final String attrName) {
 
-		final NodeList children = document.getDocumentElement().getChildNodes();
-		
-		for (int index = 0; index < children.getLength(); ++index) {
-			final Node child = children.item(index);
-			if (child.getNodeType() == ELEMENT_NODE
-					&& DC_NAMESPACE.equals(child.getNamespaceURI())
-					&& nodeName.endsWith(child.getLocalName())) { // endsWith since nodeName will start with ':'
-				final NamedNodeMap attrs = child.getAttributes();
-				for(int i = 0; i < attrs.getLength(); ++i) {
-					if(attrs.item(i).getLocalName().equals(attrName)) {
-						return attrs.item(i).getNodeValue();
-					}
-				}
-			}
-		}
-
-		return null;
-	}
-	
     private DatasetField newField(final String typeName, final String value) {
     	
         final DatasetField field = new DatasetField();
@@ -256,16 +255,4 @@ public class DublinCoreReader {
     	    	orElseThrow(() -> new EJBException("Undefined dataset field type: ".
     	    			concat(typeName)));
     }
-    
-//    private static DatasetField newControlledField(final String value, 
-//    		final DatasetFieldType type) {
-//        final DatasetField field = new DatasetField();
-//        field.setId(id);
-//        final ControlledVocabularyValue cValue = new ControlledVocabularyValue();
-//        cValue.setId(id);
-//        cValue.setStrValue(value);
-//        field.setControlledVocabularyValues(asList(cValue));
-//        field.setDatasetFieldType(type);
-//        return field;
-//    }
 }
