@@ -12,6 +12,7 @@ import static edu.harvard.iq.dataverse.persistence.GlobalId.URL_PROTOCOL;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
 import static java.lang.Character.isDigit;
 import static java.time.ZoneOffset.UTC;
+import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
@@ -23,10 +24,11 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
@@ -39,24 +41,20 @@ import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 
-@Stateless
-public class DublinCoreReader {
+final class DublinCoreReader {
 	
 	private final static String DC_NAMESPACE = "http://purl.org/dc/elements/1.1/";
+	private final static Logger logger = getLogger(DublinCoreReader.class.getName());
+	
 	private final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    private final Function<String, Optional<DatasetFieldType>> fieldTypeFinder;
 	
-    private DatasetFieldTypeRepository fieldTypeRepository;
-	
-    public DublinCoreReader() {}
-    
-    @Inject
-	public DublinCoreReader(final DatasetFieldTypeRepository fieldTypeRepository) {
+	public DublinCoreReader(final Function<String, Optional<DatasetFieldType>> fieldTypeFinder) {
     	
-		this.fieldTypeRepository = fieldTypeRepository;
+		this.fieldTypeFinder = fieldTypeFinder;
 		
 		this.factory.setNamespaceAware(true);
 	}
@@ -99,10 +97,9 @@ public class DublinCoreReader {
         
         
         final Node languageNode = getNode(document, "language");
-        if(languageNode == null) {
-        	throw new EJBException("Missing dc:language xml element");
+        if(languageNode != null) {
+        	version.addField(newField(language, languageNode.getTextContent()));
         }
-        version.addField(newField(language, languageNode.getTextContent()));
         
         final ArrayList<Node> identifiers = getNodes(document, "identifier");
         if(identifier.isEmpty()) {
@@ -171,28 +168,34 @@ public class DublinCoreReader {
 				.stream()
 				.map(Node::getTextContent)
 				.collect(toList());
-		
-		final Optional<GlobalId> doi = identifiers
-				.stream()
-				.filter(GlobalId::isDOI)
-				.findFirst()
-				.map(GlobalId::fromDOIUrl);
-		if(doi.isPresent()) {
-			return doi.get();
+		try {
+			final Optional<GlobalId> doi = identifiers
+					.stream()
+					.filter(GlobalId::isDOI)
+					.findFirst()
+					.map(GlobalId::fromDOIUrl);
+			if(doi.isPresent()) {
+				return doi.get();
+			}
+		} catch(final Exception e) {
+			logger.log(Level.WARNING, "Parsing DOI failed. Trying HANDLE.", e);
 		}
-		
-		final Optional<GlobalId> handle = identifiers
-				.stream()
-				.filter(GlobalId::isHDL)
-				.findFirst()
-				.map(GlobalId::fromHDLUrl);
-		if(handle.isPresent()) {
-			return handle.get();
+		try {
+			final Optional<GlobalId> handle = identifiers
+					.stream()
+					.filter(GlobalId::isHDL)
+					.findFirst()
+					.map(GlobalId::fromHDLUrl);
+			if(handle.isPresent()) {
+				return handle.get();
+			}
+		} catch(final Exception e) {
+			logger.log(Level.WARNING, "Parsing HANDLE failed. Trying URL.", e);
 		}
-		
 		final Optional<GlobalId> url = identifiers
 				.stream()
 				.filter(GlobalId::isURL)
+				.filter(id -> ! GlobalId.isDOI(id) && ! GlobalId.isHDL(id))
 				.findFirst()
 				.map(id -> {
 					return new GlobalId(URL_PROTOCOL, "", id);
@@ -251,7 +254,7 @@ public class DublinCoreReader {
     
     private DatasetFieldType getType(final String typeName) {
     	
-    	return this.fieldTypeRepository.findByName(typeName).
+    	return this.fieldTypeFinder.apply(typeName).
     	    	orElseThrow(() -> new EJBException("Undefined dataset field type: ".
     	    			concat(typeName)));
     }

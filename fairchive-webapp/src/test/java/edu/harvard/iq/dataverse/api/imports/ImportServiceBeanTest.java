@@ -27,6 +27,7 @@ import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
@@ -50,6 +51,9 @@ class ImportServiceBeanTest {
 
     @Mock
     private DatasetFieldValidationService fieldValidationService;
+    
+    @Mock
+    private DatasetFieldTypeRepository typeRepository;
 
     @InjectMocks
     private ImportServiceBean importServiceBean;
