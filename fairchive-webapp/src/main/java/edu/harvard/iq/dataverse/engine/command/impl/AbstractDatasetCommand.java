@@ -1,18 +1,5 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import static java.util.stream.Collectors.joining;
-
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.validation.ConstraintViolation;
-
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
@@ -24,7 +11,6 @@ import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
 import edu.harvard.iq.dataverse.globalid.FakePidProviderServiceBean;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
@@ -35,6 +21,17 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 import io.vavr.control.Try;
+
+import javax.validation.ConstraintViolation;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * Base class for commands that deal with {@code Dataset}s.Mainly here as a code
@@ -145,13 +142,10 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
      */
     protected void tidyUpFields(DatasetVersion dsv) {
         removeBlankDatasetFields(dsv.getDatasetFields());
-        
-        removeControlledVocabularyDuplicates(dsv.getDatasetFields());
 
         updateDisplayOrder(dsv.getDatasetFields());
 
         dsv.getDatasetFields().forEach(field -> field.trimTrailingSpaces());
-        
     }
 
     /**
@@ -279,17 +273,5 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
             theDataset.setGlobalIdCreateTime(getTimestamp());
             theDataset.setIdentifierRegistered(true);
         }
-    }
-    
-    /* In theory this function shouldn't be needed but */
-    private void removeControlledVocabularyDuplicates(final List<DatasetField> fields) {
-    	
-    	final HashSet<ControlledVocabularyValue> alreadySeen = new HashSet<>();
-    	for(final DatasetField field : fields) {
-    		field.getControlledVocabularyValues().
-    				removeIf(value -> !alreadySeen.add(value));
-    		alreadySeen.clear();
-    		removeControlledVocabularyDuplicates(field.getChildren());
-    	}
     }
 }
