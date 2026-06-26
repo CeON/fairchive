@@ -178,6 +178,16 @@ public class DublinCoreReaderTest {
 		}
 	}
 	
+	@Test
+	void fileWithBrokenDoi_butValidHandle2() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withBrokenDoi_butValidHandle2.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+
+			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:10593/22153");
+		}
+	}
+	
 	private Reader open(final String fileName) {
 		return new InputStreamReader(getClass().getResourceAsStream(fileName), UTF_8);
 	}

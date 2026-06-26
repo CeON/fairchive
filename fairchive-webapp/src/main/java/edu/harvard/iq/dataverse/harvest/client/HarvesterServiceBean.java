@@ -1,19 +1,5 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
-import com.google.gson.Gson;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestType;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.annotation.PostConstruct;
-import javax.ejb.Asynchronous;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.faces.bean.ManagedBean;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -23,6 +9,24 @@ import java.util.Map;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.Asynchronous;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.faces.bean.ManagedBean;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.gson.Gson;
+
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestType;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 
 /**
  * @author Leonid Andreev
@@ -93,6 +97,7 @@ public class HarvesterServiceBean {
         Logger hdLogger = Logger.getLogger("edu.harvard.iq.dataverse.harvest.client.HarvesterServiceBean." + harvestingDataverse.getAlias() + logTimestamp);
         String logFileName = "../logs" + File.separator + "harvest_" + client.getName() + '_' + logTimestamp + ".log";
         FileHandler fileHandler = new FileHandler(logFileName);
+        fileHandler.setFormatter(new SimpleFormatter()); 
         hdLogger.setUseParentHandlers(false);
         hdLogger.addHandler(fileHandler);
 
