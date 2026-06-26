@@ -46,7 +46,6 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 
 final class DublinCoreReader {
 	
-	private final static String DC_NAMESPACE = "http://purl.org/dc/elements/1.1/";
 	private final static Logger logger = getLogger(DublinCoreReader.class.getName());
 	
 	private final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -240,7 +239,7 @@ final class DublinCoreReader {
 	
 	private static boolean matches(final Node child, final String nodeName) {
 		return child.getNodeType() == ELEMENT_NODE
-				&& DC_NAMESPACE.equals(child.getNamespaceURI())
+				&& "http://purl.org/dc/elements/1.1/".equals(child.getNamespaceURI())
 				&& nodeName.equals(child.getLocalName());
 	}
 

@@ -29,9 +29,9 @@ public class GlobalId implements Serializable {
     
     private static final Logger logger = getLogger(GlobalId.class.getName());
     
-    private String protocol;
-    private String authority;
-    private String identifier;
+    private final String protocol;
+    private final String authority;
+    private final String identifier;
     
     public static GlobalId fromHDLUrl(final String url) {
 		final int lastSlashIndex = url.lastIndexOf('/');
@@ -46,9 +46,19 @@ public class GlobalId implements Serializable {
  		final int lastSlashIndex = url.lastIndexOf('/');
  		final int authorityOffset = url.startsWith(DOI_RESOLVER_URL)
  			? DOI_RESOLVER_URL.length() : DOI_RESOLVER_URL2.length();
- 		return new GlobalId(DOI_PROTOCOL, 
- 				url.substring(authorityOffset, lastSlashIndex),
- 				url.substring(lastSlashIndex + 1));
+ 		
+ 		final String authority = url.substring(authorityOffset, lastSlashIndex);
+ 		final String identifier = url.substring(lastSlashIndex + 1);
+ 		
+ 		// sometimes DOIs come in form of
+ 		// https://doi.org/DOI: 10.19195/2353-8546.8.13 or
+ 		// https://doi.org/DOI : 10.19195/2353-8546.8.13
+ 		// even after fixing, these links lead to nowhere so it is 
+ 		// better to let the caller know that it needs to find another identifier
+ 		if(authority.startsWith("DOI")) {
+ 			throw new IllegalArgumentException("Bloken DOI url: ".concat(url));
+ 		}
+ 		return new GlobalId(DOI_PROTOCOL, authority, identifier);
      }
 
     public static Optional<GlobalId> parse(final String identifierString) {
@@ -64,11 +74,50 @@ public class GlobalId implements Serializable {
      * @throws IllegalArgumentException if the passed string cannot be parsed.
      * @Thorws NullPointerException i identifier is null
      */
-    public GlobalId(final String identifier) {
-        // set the protocol, authority, and identifier via parsePersistentId
-        if (!parsePersistentId(identifier)) {
-            throw new IllegalArgumentException("Failed to parse identifier: ".concat(identifier));
+    public GlobalId(final String identifierString) {
+        final int index1 = identifierString.indexOf(':');
+        if (index1 > 0) { // ':' found with one or more characters before it
+        	if(identifierString.startsWith(URL_PROTOCOL)) {
+        		this.protocol = URL_PROTOCOL;
+        		this.authority = "";
+        		this.identifier = identifierString.substring(index1 +1);
+        		if(conainsNullTerminator(this.identifier)) {
+        			throw createException(identifierString);
+        		}
+        	} else {
+	            final int index2 = identifierString.indexOf('/', index1 + 1);
+	            if (index2 > 0 && (index2 + 1) < identifierString.length()) { // '/' found with one or more characters
+	                // between ':'
+	                this.protocol = identifierString.substring(0, index1); // and '/' and there are characters after '/'
+	                if (!DOI_PROTOCOL.equals(this.protocol) 
+	                		&& !HDL_PROTOCOL.equals(this.protocol)) {
+	                	throw createException(identifierString);
+	                }
+	                //Strip any whitespace, ; and ' from authority (should finding them cause a failure instead?)
+	                this.authority = formatIdentifierString(identifierString.substring(index1 + 1, index2));
+	                if (conainsNullTerminator(this.authority)) {
+	                	throw createException(identifierString);
+	                }
+	                if (this.protocol.equals(DOI_PROTOCOL) && !this.checkDOIAuthority(this.authority)) {
+	                	throw createException(identifierString);
+	                }
+	                // Passed all checks
+	                //Strip any whitespace, ; and ' from identifier (should finding them cause a failure instead?)
+	                this.identifier = formatIdentifierString(identifierString.substring(index2 + 1));
+	                if(conainsNullTerminator(this.identifier)) {
+	                	throw createException(identifierString);
+	                }
+	            } else {
+	            	throw createException(identifierString);
+	            }
+        	}
+        } else {
+        	throw createException(identifierString);
         }
+    }
+    
+    private static IllegalArgumentException createException(final String identifier) {
+    	return new IllegalArgumentException("Failed to parse identifier: ".concat(identifier));
     }
 
     public GlobalId(final String protocol, final String authority, final String identifier) {
@@ -99,24 +148,12 @@ public class GlobalId implements Serializable {
         return this.protocol;
     }
 
-    public void setProtocol(final String protocol) {
-        this.protocol = protocol;
-    }
-
     public String getAuthority() {
         return this.authority;
     }
 
-    public void setAuthority(final String authority) {
-        this.authority = authority;
-    }
-
     public String getIdentifier() {
         return this.identifier;
-    }
-
-    public void setIdentifier(final String identifier) {
-        this.identifier = identifier;
     }
 
     public String toString() {
@@ -168,66 +205,6 @@ public class GlobalId implements Serializable {
     	return id.startsWith(URL_RESOLVER_URL) || id.startsWith(URL_RESOLVER_URL2);
     }
 
-    /**
-     * Parse a Persistent Id and set the protocol, authority, and identifier
-     * <p>
-     * Example 1: doi:10.5072/FK2/BYM3IW
-     * protocol: doi
-     * authority: 10.5072
-     * identifier: FK2/BYM3IW
-     * <p>
-     * Example 2: hdl:1902.1/111012
-     * protocol: hdl
-     * authority: 1902.1
-     * identifier: 111012
-     *
-     * @param identifierString
-     * @param separator        the string that separates the authority from the identifier.
-     * @param destination      the global id that will contain the parsed data.
-     * @return {@code destination}, after its fields have been updated, or
-     * {@code null} if parsing failed.
-     */
-    private boolean parsePersistentId(final String identifierString) {
-
-        final int index1 = identifierString.indexOf(':');
-        if (index1 > 0) { // ':' found with one or more characters before it
-        	if(identifierString.startsWith(URL_PROTOCOL)) {
-        		this.protocol = URL_PROTOCOL;
-        		this.authority = "";
-        		this.identifier = identifierString.substring(index1 +1);
-        		return !testforNullTerminator(this.identifier);
-        	} else {
-	            final int index2 = identifierString.indexOf('/', index1 + 1);
-	            if (index2 > 0 && (index2 + 1) < identifierString.length()) { // '/' found with one or more characters
-	                // between ':'
-	                this.protocol = identifierString.substring(0, index1); // and '/' and there are characters after '/'
-	                if (!DOI_PROTOCOL.equals(this.protocol) 
-	                		&& !HDL_PROTOCOL.equals(this.protocol)) {
-	                    return false;
-	                }
-	                //Strip any whitespace, ; and ' from authority (should finding them cause a failure instead?)
-	                this.authority = formatIdentifierString(identifierString.substring(index1 + 1, index2));
-	                if (testforNullTerminator(this.authority)) {
-	                    return false;
-	                }
-	                if (this.protocol.equals(DOI_PROTOCOL) && !this.checkDOIAuthority(this.authority)) {
-	                    return false;
-	                }
-	                // Passed all checks
-	                //Strip any whitespace, ; and ' from identifier (should finding them cause a failure instead?)
-	                this.identifier = formatIdentifierString(identifierString.substring(index2 + 1));
-	                return !testforNullTerminator(this.identifier);
-	            } else {
-	            	throw new IllegalArgumentException("Error parsing globall d '" + 
-	            			identifierString + "'. Authority/identifier not found.");
-	            }
-        	}
-        } else {
-        	throw new IllegalArgumentException("Error parsing globall d '" + 
-        			identifierString + "'. Protocol not found.");
-        }
-    }
-
     private static String formatIdentifierString(final String str) {
     	return str.replaceAll("\\s+|'|;", "");
 
@@ -247,7 +224,7 @@ public class GlobalId implements Serializable {
         // http://www.doi.org/doi_handbook/2_Numbering.html
     }
 
-    private static boolean testforNullTerminator(final String str) {
+    private static boolean conainsNullTerminator(final String str) {
     	return str != null ? str.indexOf('\u0000') > 0 : false;
     }
 
