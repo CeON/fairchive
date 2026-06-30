@@ -12,11 +12,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import edu.harvard.iq.dataverse.dataaccess.FileAccessIO;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
@@ -29,6 +32,9 @@ public class DublinCoreReaderTest {
 	
 	private final static HarvestingClient client;
 	private final static String harvestId = "id1";
+	
+	@TempDir
+	Path dir;
 	
 	static {
 		client = new HarvestingClient();
@@ -61,17 +67,6 @@ public class DublinCoreReaderTest {
 					map(DatasetField::getValue)).contains("Pilarczyk, Zbigniew");
 			assertThat(fields.get(6).getTypeName()).isEqualTo(language);
 			assertThat(fields.get(6).getValue()).isEqualTo("en");
-			
-//			System.out.println("==============================================");
-//			System.out.println("GlobalId: " + dataset.getGlobalId());
-//			
-//			System.out.println("==============================================");
-//			
-//			dataset.getLatestVersion().getDatasetFields().
-//				forEach(field -> System.out.println(field.getTypeName() + 
-//						" -> " + field.getValue()));
-//			
-//			System.out.println("==============================================");
 		}
 	}
 	
@@ -111,7 +106,14 @@ public class DublinCoreReaderTest {
 		try(final Reader xml = open("/xml/imports/dublinCore_withUrl.xml")) {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 			
-			assertThat(dataset.getGlobalId().toString()).isEqualTo("url:https://repozytorium.uw.edu.pl//handle/item/124996");
+			assertThat(dataset.getGlobalId().toString()).
+				isEqualTo("https:https://repozytorium.uw.edu.pl//handle/item/124996");
+			
+
+			final String storageId = FileAccessIO.createStorageId(dataset);
+			
+			System.out.println("!===================== StorageId: " + storageId);
+			
 		}
 	}
 	
@@ -164,7 +166,8 @@ public class DublinCoreReaderTest {
 		try(final Reader xml = open("/xml/imports/dublinCore_withBrokenDoiAndHandle_butValidUrl.xml")) {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 
-			assertThat(dataset.getGlobalId().toString()).isEqualTo("url:https://repozytorium.uw.edu.pl//handle/item/124996");
+			assertThat(dataset.getGlobalId().toString()).
+				isEqualTo("https:https://repozytorium.uw.edu.pl//handle/item/124996");
 		}
 	}
 	
