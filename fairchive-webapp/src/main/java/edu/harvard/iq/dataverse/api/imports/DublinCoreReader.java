@@ -8,10 +8,10 @@ import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.language;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherId;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherIdValue;
 import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.title;
-import static edu.harvard.iq.dataverse.persistence.GlobalId.URL_PROTOCOL;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
 import static java.lang.Character.isDigit;
 import static java.time.ZoneOffset.UTC;
+import static java.util.logging.Level.WARNING;
 import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
@@ -177,7 +177,7 @@ final class DublinCoreReader {
 				return doi.get();
 			}
 		} catch(final Exception e) {
-			logger.log(Level.WARNING, "Parsing DOI failed. Trying HANDLE.", e);
+			logger.log(WARNING, "Parsing DOI failed. Trying HANDLE.", e);
 		}
 		try {
 			final Optional<GlobalId> handle = identifiers
@@ -189,22 +189,33 @@ final class DublinCoreReader {
 				return handle.get();
 			}
 		} catch(final Exception e) {
-			logger.log(Level.WARNING, "Parsing HANDLE failed. Trying URL.", e);
+			logger.log(WARNING, "Parsing HANDLE failed. Trying URL.", e);
 		}
-		final Optional<GlobalId> url = identifiers
+		final Optional<GlobalId> https = identifiers
 				.stream()
-				.filter(GlobalId::isURL)
+				.filter(GlobalId::isHTTPS)
 				.filter(id -> ! GlobalId.isDOI(id) && ! GlobalId.isHDL(id))
 				.findFirst()
-				.map(id -> {
-					return new GlobalId(URL_PROTOCOL, "", id);
-				});
+				.map(GlobalId::fromHttpsUrl);
 		
-		if(url.isPresent()) {
-			return url.get();
+		if(https.isPresent()) {
+			return https.get();
+		} else {
+			logger.log(WARNING, "No HTTPS id found. Tryong HTTP");
 		}
 		
-		return null;
+		final Optional<GlobalId> http = identifiers
+				.stream()
+				.filter(GlobalId::isHTTP)
+				.filter(id -> ! GlobalId.isDOI(id) && ! GlobalId.isHDL(id))
+				.findFirst()
+				.map(GlobalId::fromHttpUrl);
+		
+		if(http.isPresent()) {
+			return http.get();
+		} else {
+			throw new EJBException("No proper identifier found.");
+		}
 	}
 	
 	private static Node getNode(final Document document, final String nodeName) {

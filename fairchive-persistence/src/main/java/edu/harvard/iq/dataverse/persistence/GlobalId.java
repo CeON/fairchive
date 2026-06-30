@@ -18,13 +18,14 @@ public class GlobalId implements Serializable {
 
     public static final String DOI_PROTOCOL = "doi";
     public static final String HDL_PROTOCOL = "hdl";
-    public static final String URL_PROTOCOL = "url";
+    public static final String HTTP_PROTOCOL = "http";
+    public static final String HTTPS_PROTOCOL = "https";
     public static final String HDL_RESOLVER_URL = "https://hdl.handle.net/";
     public static final String HDL_RESOLVER_URL2 = "http://hdl.handle.net/";
     public static final String DOI_RESOLVER_URL = "https://doi.org/";
     public static final String DOI_RESOLVER_URL2 = "http://doi.org/";
-    public static final String URL_RESOLVER_URL = "https://";
-    public static final String URL_RESOLVER_URL2 = "http://";
+    public static final String HTTPS_RESOLVER_URL = "https://";
+    public static final String HTTP_RESOLVER_URL = "http://";
     private static final String PID_ALLOWED_CHARACTERS_PATTERN = "^[A-Za-z0-9._/:\\\\-]*";
     
     private static final Logger logger = getLogger(GlobalId.class.getName());
@@ -59,7 +60,25 @@ public class GlobalId implements Serializable {
  			throw new IllegalArgumentException("Bloken DOI url: ".concat(url));
  		}
  		return new GlobalId(DOI_PROTOCOL, authority, identifier);
-     }
+   }
+    
+	public static GlobalId fromHttpUrl(final String url) throws RuntimeException {
+		try {
+			final URL u = new URL(url);
+			return new GlobalId(HTTP_PROTOCOL, u.getHost(), u.getPath());
+		} catch (final MalformedURLException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+		
+	public static GlobalId fromHttpsUrl(final String url) throws RuntimeException {
+		try {
+			final URL u = new URL(url);
+			return new GlobalId(HTTPS_PROTOCOL, u.getHost(), u.getPath());
+		} catch (final MalformedURLException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
 
     public static Optional<GlobalId> parse(final String identifierString) {
         try {
@@ -77,12 +96,29 @@ public class GlobalId implements Serializable {
     public GlobalId(final String identifierString) {
         final int index1 = identifierString.indexOf(':');
         if (index1 > 0) { // ':' found with one or more characters before it
-        	if(identifierString.startsWith(URL_PROTOCOL)) {
-        		this.protocol = URL_PROTOCOL;
-        		this.authority = "";
-        		this.identifier = identifierString.substring(index1 +1);
-        		if(conainsNullTerminator(this.identifier)) {
-        			throw createException(identifierString);
+        	if(identifierString.startsWith(HTTP_PROTOCOL)) {
+        		try {
+	        		final URL url = new URL(identifierString.substring(HTTP_PROTOCOL.length() +1));
+	        		this.protocol = HTTP_PROTOCOL;
+	        		this.authority = url.getHost();
+	        		this.identifier = url.getPath();
+	        		if(conainsNullTerminator(this.identifier)) {
+	        			throw createException(identifierString);
+	        		}
+        		} catch (final MalformedURLException e) {
+        			throw new IllegalArgumentException(e);
+        		}
+        	} else if(identifierString.startsWith(HTTPS_PROTOCOL)) {
+        		try {
+	        		final URL url = new URL(identifierString.substring(HTTPS_PROTOCOL.length() +1));
+	        		this.protocol = HTTPS_PROTOCOL;
+	        		this.authority = url.getHost();
+	        		this.identifier = url.getPath();
+	        		if(conainsNullTerminator(this.identifier)) {
+	        			throw createException(identifierString);
+	        		}
+        		} catch (final MalformedURLException e) {
+        			throw new IllegalArgumentException(e);
         		}
         	} else {
 	            final int index2 = identifierString.indexOf('/', index1 + 1);
@@ -148,12 +184,12 @@ public class GlobalId implements Serializable {
         return this.protocol;
     }
 
-    public String getAuthority() {
-        return this.authority;
-    }
+	public String getAuthority() {
+		return this.authority;
+	}
 
     public String getIdentifier() {
-        return this.identifier;
+		return this.identifier;
     }
 
     public String toString() {
@@ -169,8 +205,8 @@ public class GlobalId implements Serializable {
     public String asString() {
         if(this.protocol == null || this.authority == null || this.identifier == null) {
             return "";
-        } else if(URL_PROTOCOL.equals(this.protocol)) {
-        	return this.protocol + ':' + this.identifier;
+        } else if(HTTP_PROTOCOL.equals(this.protocol) || HTTPS_PROTOCOL.equals(this.protocol)) {
+        	return this.protocol + ':' + this.protocol + "://" + this.authority + this.identifier;
         } else {
             return this.protocol + ':' + this.authority + '/' + this.identifier;
         }
@@ -183,8 +219,8 @@ public class GlobalId implements Serializable {
 					return new URL(DOI_RESOLVER_URL + this.authority + '/' + this.identifier);
 				} else if (HDL_PROTOCOL.equals(this.protocol)) {
 					return new URL(HDL_RESOLVER_URL + this.authority + '/' + this.identifier);
-				} else if(URL_PROTOCOL.equals(this.protocol)) {
-					return new URL(this.identifier);
+				} else if(HTTP_PROTOCOL.equals(this.protocol) || HTTPS_PROTOCOL.equals(this.protocol)) {
+					return new URL(this.protocol, this.authority, this.identifier);
 				}
 			} catch (final MalformedURLException ex) {
 				logger.log(SEVERE, null, ex);
@@ -201,8 +237,12 @@ public class GlobalId implements Serializable {
     	return id.startsWith(HDL_RESOLVER_URL) || id.startsWith(HDL_RESOLVER_URL2);
     }
     
-    public static boolean isURL(final String id) {
-    	return id.startsWith(URL_RESOLVER_URL) || id.startsWith(URL_RESOLVER_URL2);
+    public static boolean isHTTP(final String id) {
+    	return id.startsWith(HTTP_RESOLVER_URL);
+    }
+    
+    public static boolean isHTTPS(final String id) {
+    	return id.startsWith(HTTPS_RESOLVER_URL);
     }
 
     private static String formatIdentifierString(final String str) {
