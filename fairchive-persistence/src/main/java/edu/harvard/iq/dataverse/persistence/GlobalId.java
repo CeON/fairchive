@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.persistence;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Logger.getLogger;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -10,6 +11,8 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 /**
  * @author skraffmiller
  */
@@ -54,9 +57,10 @@ public class GlobalId implements Serializable {
  		// sometimes DOIs come in form of
  		// https://doi.org/DOI: 10.19195/2353-8546.8.13 or
  		// https://doi.org/DOI : 10.19195/2353-8546.8.13
+ 		// https://doi.org/1https://doi.org/0.14746/eip.2023.2.8
  		// even after fixing, these links lead to nowhere so it is 
  		// better to let the caller know that it needs to find another identifier
- 		if(authority.startsWith("DOI")) {
+ 		if(startsWithIgnoreCase(authority, "DOI") || authority.startsWith("1https")) {
  			throw new IllegalArgumentException("Bloken DOI url: ".concat(url));
  		}
  		return new GlobalId(DOI_PROTOCOL, authority, identifier);
@@ -227,6 +231,19 @@ public class GlobalId implements Serializable {
 			}
 		}
 		return null;
+    }
+    
+    public String getStoragePath() {
+    	return this.authority.replace(':', '_') + '/' + 
+    			stripLeadingSlashes(this.identifier.replace(':', '_'));
+    }
+    
+    private static String stripLeadingSlashes(final String s) {
+    	int index = 0;
+    	while(s.charAt(index) == '/') {
+    		++index;
+    	}
+    	return s.substring(index);
     }
 
     public static boolean isDOI(final String id) {

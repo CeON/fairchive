@@ -119,14 +119,6 @@ public class ImportServiceBean {
                 		e.getClass() + " (" + e.getMessage() + ")");
             }
         } else if (importType == HarvestImporterType.DUBLIN_CORE) {
-//            try {
-//                DatasetDTO dsDTO = this.importGenericService.processOAIDCxml(xml);
-//                return importDatasetDTOJson(request, client, identifier, toJson(dsDTO));
-//            } catch (XMLStreamException e) {
-//                throw new ImportException("Failed to process Dublin Core XML record: " + 
-//                		e.getClass() + " (" + e.getMessage() + ")");
-//            }
-        	
         	  try {
         		  final Dataset set = this.dublinCoreReader.read(client, identifier, 
         				  new StringReader(xml));
