@@ -158,7 +158,8 @@ final class DublinCoreReader {
 	        return LocalDate.of(year, 1, 1).atStartOfDay(UTC).toInstant();
 	    } catch (final DateTimeParseException ignored) {}
 	    
-	    throw new IllegalArgumentException("Unsupported date format: ".concat(value));
+	    logger.log(WARNING, "Unsupported date format: ".concat(value));
+	    return Instant.now();
 	}
 	
 	private static boolean isYearAndMonthOnly(final String date) {

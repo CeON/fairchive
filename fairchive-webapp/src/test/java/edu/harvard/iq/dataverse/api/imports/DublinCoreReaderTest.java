@@ -195,6 +195,16 @@ public class DublinCoreReaderTest {
 		}
 	}
 	
+	@Test
+	void fileWithBrokenDate() throws Exception {
+		
+		try(final Reader xml = open("/xml/imports/dublinCore_withBrokenDate.xml")) {
+			Dataset dataset = this.reader.read(client, harvestId, xml);
+
+			assertThat(dataset.getPublicationDate().toLocalDateTime().getYear()).isEqualTo(2018);
+		}
+	}
+	
 	private Reader open(final String fileName) {
 		return new InputStreamReader(getClass().getResourceAsStream(fileName), UTF_8);
 	}

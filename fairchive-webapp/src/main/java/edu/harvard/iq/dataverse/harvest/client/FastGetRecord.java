@@ -22,6 +22,7 @@ package edu.harvard.iq.dataverse.harvest.client;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static org.apache.commons.io.FileUtils.deleteQuietly;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,6 +51,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.xml.sax.SAXException;
 
@@ -416,7 +418,8 @@ public class FastGetRecord implements AutoCloseable {
 
 	private InputStream openInputStream(final HttpURLConnection con) 
 			throws IOException {
-		switch(con.getHeaderField("Content-Encoding")) {
+		
+		switch(defaultString(con.getHeaderField("Content-Encoding"))) {
 		case "compress":
 		    final ZipInputStream zip = new ZipInputStream(con.getInputStream());
 		    zip.getNextEntry();
