@@ -11,8 +11,6 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
 /**
  * @author skraffmiller
  */
@@ -100,10 +98,10 @@ public class GlobalId implements Serializable {
     public GlobalId(final String identifierString) {
         final int index1 = identifierString.indexOf(':');
         if (index1 > 0) { // ':' found with one or more characters before it
-        	if(identifierString.startsWith(HTTP_PROTOCOL)) {
+        	if(identifierString.startsWith(HTTPS_PROTOCOL)) {
         		try {
-	        		final URL url = new URL(identifierString.substring(HTTP_PROTOCOL.length() +1));
-	        		this.protocol = HTTP_PROTOCOL;
+	        		final URL url = new URL(identifierString.substring(HTTPS_PROTOCOL.length() +1));
+	        		this.protocol = HTTPS_PROTOCOL;
 	        		this.authority = url.getHost();
 	        		this.identifier = url.getPath();
 	        		if(conainsNullTerminator(this.identifier)) {
@@ -112,10 +110,10 @@ public class GlobalId implements Serializable {
         		} catch (final MalformedURLException e) {
         			throw new IllegalArgumentException(e);
         		}
-        	} else if(identifierString.startsWith(HTTPS_PROTOCOL)) {
+        	} else if(identifierString.startsWith(HTTP_PROTOCOL)) {
         		try {
-	        		final URL url = new URL(identifierString.substring(HTTPS_PROTOCOL.length() +1));
-	        		this.protocol = HTTPS_PROTOCOL;
+	        		final URL url = new URL(identifierString.substring(HTTP_PROTOCOL.length() +1));
+	        		this.protocol = HTTP_PROTOCOL;
 	        		this.authority = url.getHost();
 	        		this.identifier = url.getPath();
 	        		if(conainsNullTerminator(this.identifier)) {
