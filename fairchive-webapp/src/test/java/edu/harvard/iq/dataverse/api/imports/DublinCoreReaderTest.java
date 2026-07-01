@@ -19,7 +19,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import edu.harvard.iq.dataverse.dataaccess.FileAccessIO;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
@@ -52,6 +51,7 @@ public class DublinCoreReaderTest {
 			assertThat(dataset.getHarvestedFrom()).isSameAs(client);
 			assertThat(dataset.getHarvestIdentifier()).isEqualTo(harvestId);
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("doi:10.18150/04M8OI");
+			assertThat(dataset.getGlobalId().getStoragePath()).isEqualTo("10.18150/04M8OI");
 			assertThat(dataset.getPublicationDate().toLocalDateTime().getYear()).isEqualTo(2020);
 			
 			assertThat(fields.get(0).getTypeName()).isEqualTo(title);
@@ -77,6 +77,7 @@ public class DublinCoreReaderTest {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("doi:10.18150/04M8OI");
+			assertThat(dataset.getGlobalId().getStoragePath()).isEqualTo("10.18150/04M8OI");
 		}
 	}
 		
@@ -87,6 +88,7 @@ public class DublinCoreReaderTest {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 			
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:10593/22946");
+			assertThat(dataset.getGlobalId().getStoragePath()).isEqualTo("10593/22946");
 		}
 	}
 	
@@ -97,6 +99,7 @@ public class DublinCoreReaderTest {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 			
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:10593/22946");
+			assertThat(dataset.getGlobalId().getStoragePath()).isEqualTo("10593/22946");
 		}
 	}
 	
@@ -108,12 +111,8 @@ public class DublinCoreReaderTest {
 			
 			assertThat(dataset.getGlobalId().toString()).
 				isEqualTo("https:https://repozytorium.uw.edu.pl//handle/item/124996");
-			
-
-			final String storageId = FileAccessIO.createStorageId(dataset);
-			
-			System.out.println("!===================== StorageId: " + storageId);
-			
+			assertThat(dataset.getGlobalId().getStoragePath()).
+				isEqualTo("repozytorium.uw.edu.pl/handle/item/124996");
 		}
 	}
 	
@@ -127,6 +126,7 @@ public class DublinCoreReaderTest {
 			assertThat(dataset.getHarvestedFrom()).isSameAs(client);
 			assertThat(dataset.getHarvestIdentifier()).isEqualTo(harvestId);
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("doi:10.18150/04M8OI");
+			assertThat(dataset.getGlobalId().getStoragePath()).isEqualTo("10.18150/04M8OI");
 			
 			assertThat(fields.get(0).getTypeName()).isEqualTo(title);
 			assertThat(fields.get(0).getValue()).isEqualTo("Who complies with the restrictions");
@@ -157,6 +157,7 @@ public class DublinCoreReaderTest {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:10593/25658");
+			assertThat(dataset.getGlobalId().getStoragePath()).isEqualTo("10593/25658");
 		}
 	}
 	
@@ -168,6 +169,8 @@ public class DublinCoreReaderTest {
 
 			assertThat(dataset.getGlobalId().toString()).
 				isEqualTo("https:https://repozytorium.uw.edu.pl//handle/item/124996");
+			assertThat(dataset.getGlobalId().getStoragePath()).
+				isEqualTo("repozytorium.uw.edu.pl/handle/item/124996");
 		}
 	}
 	
@@ -188,6 +191,7 @@ public class DublinCoreReaderTest {
 			Dataset dataset = this.reader.read(client, harvestId, xml);
 
 			assertThat(dataset.getGlobalId().toString()).isEqualTo("hdl:10593/22153");
+			assertThat(dataset.getGlobalId().getStoragePath()).isEqualTo("10593/22153");
 		}
 	}
 	
