@@ -45,13 +45,13 @@ public class GlobalIdTest {
     
     @Test
     public void testValidUrl() {
-        GlobalId instance = new GlobalId("url:https://google.com");
+        GlobalId instance = new GlobalId("https:https://google.com/id1");
 
-        assertEquals("url", instance.getProtocol());
-        assertEquals("", instance.getAuthority());
-        assertEquals("https://google.com", instance.getIdentifier());
-        assertEquals("url:https://google.com", instance.toString());
-        assertEquals("https://google.com", instance.toURL().toString());
+        assertEquals("https", instance.getProtocol());
+        assertEquals("google.com", instance.getAuthority());
+        assertEquals("/id1", instance.getIdentifier());
+        assertEquals("https:https://google.com/id1", instance.toString());
+        assertEquals("https://google.com/id1", instance.toURL().toString());
     }
 
     @Test

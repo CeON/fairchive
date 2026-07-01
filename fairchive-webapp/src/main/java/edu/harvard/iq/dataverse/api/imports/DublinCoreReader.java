@@ -14,13 +14,16 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.logging.Level.WARNING;
 import static java.util.logging.Logger.getLogger;
 import static java.util.stream.Collectors.toList;
+import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 import java.io.Reader;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.Year;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +32,7 @@ import java.util.logging.Logger;
 
 import javax.ejb.EJBException;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -51,10 +55,18 @@ final class DublinCoreReader {
     private final Function<String, Optional<DatasetFieldType>> fieldTypeFinder;
 	
 	public DublinCoreReader(final Function<String, Optional<DatasetFieldType>> fieldTypeFinder) {
-    	
+
 		this.fieldTypeFinder = fieldTypeFinder;
-		
-		this.factory.setNamespaceAware(true);
+		try {
+			this.factory.setNamespaceAware(true);
+			factory.setFeature(FEATURE_SECURE_PROCESSING, true);
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			factory.setExpandEntityReferences(false);
+		} catch (final ParserConfigurationException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public Dataset read(final HarvestingClient client, final String identifier, 
@@ -100,7 +112,7 @@ final class DublinCoreReader {
         }
         
         final ArrayList<Node> identifiers = getNodes(document, "identifier");
-        if(identifier.isEmpty()) {
+        if(identifiers.isEmpty()) {
         	throw new EJBException("Missing dc:identifier xml element");
         }
         for(final Node node : identifiers) {
@@ -118,7 +130,7 @@ final class DublinCoreReader {
 		final Element root = document.getDocumentElement();
 		
 		if(!"http://www.openarchives.org/OAI/2.0/oai_dc/".equals(root.getNamespaceURI())) {
-			throw new EJBException("Unsupported xml format. Root element namspace is not 'http://www.openarchives.org/OAI/2.0/oai_dc/'.");
+			throw new EJBException("Unsupported xml format. Root element namespace is not 'http://www.openarchives.org/OAI/2.0/oai_dc/'.");
 		}
 		if(!"dc".equals(root.getLocalName())) {
 			throw new EJBException("Unsupported xml format. Root element is not 'dc'.");
@@ -134,17 +146,17 @@ final class DublinCoreReader {
 	    }
 	
 	    try {
-	        return Instant.parse(value);
-	    } catch (Exception ignored) {}
+	        return OffsetDateTime.parse(value).toInstant();
+	    } catch (final DateTimeParseException ignored) {}
 	
 	    try {
 	        return LocalDate.parse(value).atStartOfDay(UTC).toInstant();
-	    } catch (Exception ignored) {}
+	    } catch (final DateTimeParseException ignored) {}
 	
 	    try {
 	        final int year = Year.parse(value).getValue();
 	        return LocalDate.of(year, 1, 1).atStartOfDay(UTC).toInstant();
-	    } catch (Exception ignored) {}
+	    } catch (final DateTimeParseException ignored) {}
 	    
 	    throw new IllegalArgumentException("Unsupported date format: ".concat(value));
 	}
@@ -200,7 +212,7 @@ final class DublinCoreReader {
 		if(https.isPresent()) {
 			return https.get();
 		} else {
-			logger.log(WARNING, "No HTTPS id found. Tryong HTTP");
+			logger.log(WARNING, "No HTTPS id found. Trying HTTP");
 		}
 		
 		final Optional<GlobalId> http = identifiers
