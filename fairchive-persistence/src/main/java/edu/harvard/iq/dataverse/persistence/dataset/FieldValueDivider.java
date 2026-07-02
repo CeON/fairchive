@@ -24,22 +24,22 @@ public class FieldValueDivider {
     // -------------------- LOGIC --------------------
 
     @SuppressWarnings("unchecked")
-    public static FieldValueDivider create(DatasetFieldType fieldType) {
-        boolean hasDivider = fieldType.hasMetadata("divider");
-        if (!hasDivider) {
-            return EMPTY;
-        }
-        Map<String, Object> dividerData = (Map<String, Object>) fieldType.getMetadata("divider");
-        FieldValueDivider divider = new FieldValueDivider();
-        divider.sourceFieldName = (String) dividerData.get("source");
-        divider.fieldsToCopyNames.addAll((List<String>) dividerData.get("copy"));
-        return divider;
-    }
+	public static FieldValueDivider create(final DatasetFieldType fieldType) {
+		if (fieldType.hasMetadata("divider")) {
+			final Map<String, Object> dividerData = (Map<String, Object>) fieldType.getMetadata("divider");
+			final FieldValueDivider divider = new FieldValueDivider();
+			divider.sourceFieldName = (String) dividerData.get("source");
+			divider.fieldsToCopyNames.addAll((List<String>) dividerData.get("copy"));
+			return divider;
+		} else {
+			return EMPTY;
+		}
+	}
 
     public List<DatasetField> divide(DatasetField sourceCompound, String delimiter) {
         final List<DatasetField> result = new ArrayList<>();
         sourceCompound.getDatasetFieldsChildren().stream()
-                .filter(f -> sourceFieldName.equals(f.getTypeName()))
+                .filter(f -> this.sourceFieldName.equals(f.getTypeName()))
                 .findFirst()
                 .map(sourceField -> splitValue(sourceField, delimiter))
                 .ifPresent(values -> {
@@ -51,7 +51,7 @@ public class FieldValueDivider {
                         
                         for (DatasetField subfield : result.get(i).getDatasetFieldsChildren()) {
                             String name = subfield.getTypeName();
-                            if (sourceFieldName.equals(name)) {
+                            if (this.sourceFieldName.equals(name)) {
                                 subfield.setFieldValue(values.get(i));
                             } else if (valuesToCopy.containsKey(name)) {
                                 subfield.setFieldValue(valuesToCopy.get(name));
@@ -64,7 +64,7 @@ public class FieldValueDivider {
 
     // -------------------- PRIVATE --------------------
 
-    private List<String> splitValue(DatasetField sourceField, String delimiter) {
+    private List<String> splitValue(final DatasetField sourceField, final String delimiter) {
         final String value = sourceField.getFieldValue().getOrElse(StringUtils.EMPTY);
         return Arrays.stream(value.split(delimiter))
                 .filter(StringUtils::isNotBlank)
@@ -72,9 +72,9 @@ public class FieldValueDivider {
                 .collect(toList());
     }
 
-    private Map<String, String> prepareValuesToCopy(DatasetField sourceCompound) {
+    private Map<String, String> prepareValuesToCopy(final DatasetField sourceCompound) {
         return sourceCompound.getDatasetFieldsChildren().stream()
-                .filter(f -> fieldsToCopyNames.contains(f.getTypeName())
+                .filter(f -> this.fieldsToCopyNames.contains(f.getTypeName())
                         && isNotBlank(f.getFieldValue().getOrElse(StringUtils.EMPTY)))
                 .collect(toMap(DatasetField::getTypeName, f -> f.getFieldValue().get(), (prev, next) -> next));
     }
