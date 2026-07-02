@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import org.apache.commons.lang3.StringUtils;
-
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -9,7 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class FieldValueDivider {
     private static final FieldValueDivider EMPTY = new FieldValueDivider();
@@ -37,39 +37,39 @@ public class FieldValueDivider {
     }
 
     public List<DatasetField> divide(DatasetField sourceCompound, String delimiter) {
-        List<DatasetField> fields = new ArrayList<>();
-        DatasetField sourceField = sourceCompound.getDatasetFieldsChildren().stream()
+        final List<DatasetField> result = new ArrayList<>();
+        sourceCompound.getDatasetFieldsChildren().stream()
                 .filter(f -> sourceFieldName.equals(f.getTypeName()))
-                .findFirst().orElse(null);
-        if (sourceField == null) {
-            return fields;
-        }
-        List<String> values = splitValue(sourceField, delimiter);
-        Map<String, String> valuesToCopy = prepareValuesToCopy(sourceCompound);
-        for (int i = 0; i < values.size(); i++) {
-            fields.add(i == 0
-                    ? sourceCompound
-                    : DatasetField.createNewEmptyDatasetField(sourceCompound.getDatasetFieldType(), null));
-            for (DatasetField subfield : fields.get(i).getDatasetFieldsChildren()) {
-                String name = subfield.getTypeName();
-                if (sourceFieldName.equals(name)) {
-                    subfield.setFieldValue(values.get(i));
-                } else if (valuesToCopy.containsKey(name)) {
-                    subfield.setFieldValue(valuesToCopy.get(name));
-                }
-            }
-        }
-        return fields;
+                .findFirst()
+                .map(sourceField -> splitValue(sourceField, delimiter))
+                .ifPresent(values -> {
+                    final Map<String, String> valuesToCopy = prepareValuesToCopy(sourceCompound);
+                    for (int i = 0; i < values.size(); i++) {
+                        result.add(i == 0
+                                ? sourceCompound
+                                : DatasetField.createNewEmptyDatasetField(sourceCompound.getDatasetFieldType(), null));
+                        
+                        for (DatasetField subfield : result.get(i).getDatasetFieldsChildren()) {
+                            String name = subfield.getTypeName();
+                            if (sourceFieldName.equals(name)) {
+                                subfield.setFieldValue(values.get(i));
+                            } else if (valuesToCopy.containsKey(name)) {
+                                subfield.setFieldValue(valuesToCopy.get(name));
+                            }
+                        }
+                    }
+                });
+        return result;
     }
 
     // -------------------- PRIVATE --------------------
 
     private List<String> splitValue(DatasetField sourceField, String delimiter) {
-        String value = sourceField.getFieldValue().getOrElse(StringUtils.EMPTY);
+        final String value = sourceField.getFieldValue().getOrElse(StringUtils.EMPTY);
         return Arrays.stream(value.split(delimiter))
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private Map<String, String> prepareValuesToCopy(DatasetField sourceCompound) {
