@@ -151,29 +151,6 @@ public class HarvesterServiceBean {
 
     // -------------------- PRIVATE --------------------
 
-    // TODO: I doubt we need a full stacktrace in the harvest log - ??
-    // -- L.A. 4.5 May 2016
-    private void logException(Throwable e, Logger logger) {
-
-        boolean cause = false;
-        String fullMessage = "";
-        do {
-            String message = e.getClass().getName() + ' ' + e.getMessage();
-            if (cause) {
-                message = "\nCaused By Exception.................... " + 
-                        e.getClass().getName() + ' ' + e.getMessage();
-            }
-            StackTraceElement[] ste = e.getStackTrace();
-            message += "\nStackTrace: \n";
-            for (int m = 0; m < ste.length; m++) {
-                message += ste[m].toString() + '\n';
-            }
-            fullMessage += message;
-            cause = true;
-        } while ((e = e.getCause()) != null);
-        logger.severe(fullMessage);
-    }
-
     @SuppressWarnings("unchecked")
     private <T extends HarvesterParams> Harvester<T> resolveHarvester(HarvestingClient client) {
         Harvester<?> harvester = harvesterMap.get(client.getHarvestType());

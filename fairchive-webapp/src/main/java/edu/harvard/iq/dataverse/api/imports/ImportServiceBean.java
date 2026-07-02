@@ -59,8 +59,6 @@ public class ImportServiceBean {
     @EJB
     private ImportDDIServiceBean importDDIService;
     @EJB
-    private ImportGenericServiceBean importGenericService;
-    @EJB
     private IndexServiceBean indexService;
     @Inject
     private HarvestedJsonParser harvestedJsonParser;

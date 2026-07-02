@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.harvest.client;
 import static java.util.logging.Level.SEVERE;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ejb.LocalBean;
