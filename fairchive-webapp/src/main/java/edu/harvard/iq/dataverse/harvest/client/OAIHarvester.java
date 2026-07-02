@@ -63,7 +63,7 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
             final HarvesterResult result = new HarvesterResult();
             final OaiHandler handler = new OaiHandler(client)
                         .withFetchedMetadataFormat();
-            final ArrayList<Header> headers = new ArrayList<>();
+            final ArrayList<Header> headers = new ArrayList<>(5000);
             // get all headers first to avoid potential connection timeout
             handler.listIdentifiers().forEachRemaining(headers::add);
             headers.forEach( header -> {
