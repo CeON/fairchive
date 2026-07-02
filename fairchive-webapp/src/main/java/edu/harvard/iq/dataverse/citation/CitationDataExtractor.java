@@ -177,20 +177,14 @@ public class CitationDataExtractor {
     }
 
     private List<CitationData.Producer> extractProducers(final DatasetVersion version) {
-        return getProducers(version).stream()
-                .map(p -> new CitationData.Producer(p._1, p._2))
-                .collect(toList());
-    }
-
-    private List<Tuple2<String, String>> getProducers(final DatasetVersion version) {
-        return version.extractFieldWithSubfields(producer, asList(producerName, producerAffiliation))
+    	return version.extractFieldWithSubfields(producer, asList(producerName, producerAffiliation))
                 .stream()
                 .filter(e -> {
                     final DatasetField name = e.get(producerName);
                     return name != null && !name.isEmptyForDisplay();
                 })
-                .map(e -> Tuple.of(e.get(producerName), e.get(producerAffiliation)))
-                .map(t -> Tuple.of(t._1.getValue(), defaultString(t._2.getValue())))
+                .map(e -> new CitationData.Producer(e.get(producerName).getValue(), 
+                		defaultString(e.get(producerAffiliation).getValue())))
                 .collect(toList());
     }
 
