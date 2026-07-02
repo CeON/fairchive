@@ -58,7 +58,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import io.vavr.Tuple;
-import io.vavr.Tuple2;
 
 @Stateless
 public class CitationDataExtractor {
