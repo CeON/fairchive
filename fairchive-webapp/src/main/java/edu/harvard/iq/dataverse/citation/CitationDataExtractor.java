@@ -1,7 +1,51 @@
 package edu.harvard.iq.dataverse.citation;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.city;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.country;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.dateOfCollection;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.dateOfCollectionEnd;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.dateOfCollectionStart;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.distributorName;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.geographicCoverage;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.grantNumber;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.grantNumberAgency;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.kindOfData;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.language;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherGeographicCoverage;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.otherIdValue;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.producer;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.producerAffiliation;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.producerName;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionDate;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.productionPlace;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.series;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.seriesName;
+import static edu.harvard.iq.dataverse.common.DatasetFieldConstant.state;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.defaultString;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ejb.Stateless;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.harvard.iq.dataverse.common.DateUtil;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
@@ -15,25 +59,6 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.Stateless;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeParseException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Stateless
 public class CitationDataExtractor {
@@ -42,247 +67,242 @@ public class CitationDataExtractor {
 
     // -------------------- LOGIC --------------------
 
-    public CitationData create(DatasetVersion datasetVersion, Locale locale) {
-        CitationData data = new CitationData();
-        extractAndWriteCommonValues(datasetVersion, data, locale);
-
-        data.setDirect(false)
-                .setPersistentId(extractPID(datasetVersion, datasetVersion.getDataset(), false)) // Global Id: always part of citation for local datasets & some harvested
-                .setPidOfDataset(extractDatasetPID(datasetVersion));
-
-        return data;
+    public CitationData create(final DatasetVersion version, final Locale locale) {
+        final CitationData result = new CitationData();
+        extractAndWriteCommonValues(version, result, locale);
+        result.setDirect(false)
+                .setPersistentId(extractPID(version, version.getDataset(), false)) // Global Id: always part of citation for local datasets & some harvested
+                .setPidOfDataset(extractDatasetPID(version));
+        return result;
     }
 
-    public CitationData create(FileMetadata fileMetadata, boolean direct, Locale locale) {
-        CitationData data = new CitationData();
-        DatasetVersion dsv = fileMetadata.getDatasetVersion();
-        extractAndWriteCommonValues(dsv, data, locale);
-
-        DataFile df = fileMetadata.getDataFile();
-
-        data.setDirect(direct)
-                .setFileTitle(fileMetadata.getLabel())
-                .setPersistentId(extractPID(dsv, df, direct)) // Global Id of datafile (if published & isDirect==true) or dataset as appropriate
-                .setPidOfDataset(extractDatasetPID(dsv))
-                .setPidOfFile(extractFilePID(dsv, df, direct));
-        return data;
+    public CitationData create(final FileMetadata metadata, final boolean direct, 
+    		final Locale locale) {
+        final CitationData result = new CitationData();
+        final DatasetVersion version = metadata.getDatasetVersion();
+        extractAndWriteCommonValues(version, result, locale);
+        final DataFile dataFile = metadata.getDataFile();
+        result.setDirect(direct)
+                .setFileTitle(metadata.getLabel())
+                .setPersistentId(extractPID(version, dataFile, direct)) // Global Id of datafile (if published & isDirect==true) or dataset as appropriate
+                .setPidOfDataset(extractDatasetPID(version))
+                .setPidOfFile(extractFilePID(version, dataFile, direct));
+        return result;
     }
 
     // -------------------- PRIVATE --------------------
 
-    private void extractAndWriteCommonValues(DatasetVersion dsv, CitationData data, Locale locale) {
-        Date dataDate = extractCitationDate(dsv);
+    private void extractAndWriteCommonValues(final DatasetVersion version, 
+    		final CitationData citation, final Locale locale) {
+        final Date citationDate = extractCitationDate(version);
 
-        data.getAuthors().addAll(extractAuthors(dsv));
-        data.setYear(new SimpleDateFormat("yyyy").format(dataDate))
-                .setTitle(dsv.getParsedTitle());
+        citation.getAuthors().addAll(extractAuthors(version));
+        citation.setYear(new SimpleDateFormat("yyyy").format(citationDate))
+                .setTitle(version.getParsedTitle());
 
-        if (!dsv.getDataset().isHarvested()) {
-            data.getProducers().addAll(extractProducers(dsv));
-            data.getDistributors().addAll(getDatasetFieldValuesByTypeName(dsv, DatasetFieldConstant.distributorName));
-            data.getFunders().addAll(getUniqueGrantAgencyValues(dsv));
-            data.getKindsOfData().addAll(dsv.extractFieldValues(DatasetFieldConstant.kindOfData));
-            data.getDatesOfCollection().addAll(getDatesOfCollection(dsv));
-            data.getLanguages().addAll(dsv.extractFieldValues(DatasetFieldConstant.language));
-            data.getSpatialCoverages().addAll(extractSpatialCoverages(dsv));
-            data.getKeywords().addAll(dsv.getKeywords());
-            data.getOtherIds().addAll(getDatasetFieldValuesByTypeName(dsv, DatasetFieldConstant.otherIdValue));
+        if (!version.getDataset().isHarvested()) {
+            citation.getProducers().addAll(extractProducers(version));
+            citation.getDistributors().addAll(getDatasetFieldValuesByTypeName(version, distributorName));
+            citation.getFunders().addAll(getUniqueGrantAgencyValues(version));
+            citation.getKindsOfData().addAll(version.extractFieldValues(kindOfData));
+            citation.getDatesOfCollection().addAll(getDatesOfCollection(version));
+            citation.getLanguages().addAll(version.extractFieldValues(language));
+            citation.getSpatialCoverages().addAll(extractSpatialCoverages(version));
+            citation.getKeywords().addAll(version.getKeywords());
+            citation.getOtherIds().addAll(getDatasetFieldValuesByTypeName(version, otherIdValue));
 
-            data.setDate(dataDate)
-                    .setProductionPlace(extractField(dsv, DatasetFieldConstant.productionPlace))
-                    .setProductionDate(extractProductionDate(dsv))
-                    .setReleaseYear(extractReleaseYear(dsv))
-                    .setRootDataverseName(dsv.getRootDataverseNameForCitation())
-                    .setSeriesTitle(getSeriesTitle(dsv))
-                    .setPublisher(extractPublisher(dsv))
-                    .setVersion(extractVersion(dsv,locale));
+            citation.setDate(citationDate)
+                    .setProductionPlace(extractField(version, productionPlace))
+                    .setProductionDate(extractProductionDate(version))
+                    .setReleaseYear(extractReleaseYear(version))
+                    .setRootDataverseName(version.getRootDataverseNameForCitation())
+                    .setSeriesTitle(getSeriesTitle(version))
+                    .setPublisher(extractPublisher(version))
+                    .setVersion(extractVersion(version,locale));
         }
     }
 
-    private List<String> getDatasetFieldValuesByTypeName(DatasetVersion dsv, String datasetFieldTypeName) {
-        return dsv.streamDatasetFieldsByTypeName(datasetFieldTypeName)
+    private List<String> getDatasetFieldValuesByTypeName(final DatasetVersion version, 
+    		final String datasetFieldTypeName) {
+        return version.streamDatasetFieldsByTypeName(datasetFieldTypeName)
                 .map(DatasetField::getValue)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private String extractField(DatasetVersion dsv, String typeName) {
-        return dsv.getDatasetFieldByTypeName(typeName)
+    private String extractField(final DatasetVersion version, final String typeName) {
+        return version.getDatasetFieldByTypeName(typeName)
                 .map(DatasetField::getValue)
                 .orElse(null);
     }
 
-    private List<String> getUniqueGrantAgencyValues(DatasetVersion version) {
+    private List<String> getUniqueGrantAgencyValues(final DatasetVersion version) {
         // Since only grant agency names are returned, use distinct() to avoid repeats
         // (e.g. if there are two grants from the same agency)
-        return version.getCompoundChildFieldValues(DatasetFieldConstant.grantNumber,
-                Collections.singletonList(DatasetFieldConstant.grantNumberAgency)).stream()
+        return version.getCompoundChildFieldValues(grantNumber,
+                singletonList(grantNumberAgency)).stream()
                 .distinct()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private List<String> getDatesOfCollection(DatasetVersion dsv) {
-        return dsv.extractFieldWithSubfields(DatasetFieldConstant.dateOfCollection,
-                Arrays.asList(DatasetFieldConstant.dateOfCollectionStart, DatasetFieldConstant.dateOfCollectionEnd))
+    private List<String> getDatesOfCollection(final DatasetVersion version) {
+        return version.extractFieldWithSubfields(dateOfCollection,
+                asList(dateOfCollectionStart, dateOfCollectionEnd))
                 .stream()
-                .map(e -> Tuple.of(e.get(DatasetFieldConstant.dateOfCollectionStart), e.get(DatasetFieldConstant.dateOfCollectionEnd)))
+                .map(e -> Tuple.of(e.get(dateOfCollectionStart), e.get(dateOfCollectionEnd)))
                 .filter(t -> t._1 != null && !t._1.isEmptyForDisplay() && t._2 != null && !t._2.isEmptyForDisplay())
                 .map(t -> t._1.getValue() + "/" + t._2.getValue())
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    public List<String> extractSpatialCoverages(DatasetVersion version) {
-        List<String> subfields = Arrays.asList(DatasetFieldConstant.country, DatasetFieldConstant.state,
-                DatasetFieldConstant.city, DatasetFieldConstant.otherGeographicCoverage);
-        return version.extractFieldWithSubfields(DatasetFieldConstant.geographicCoverage, subfields).stream()
+    public List<String> extractSpatialCoverages(final DatasetVersion version) {
+        final List<String> subfields = asList(country, state, city, otherGeographicCoverage);
+        return version.extractFieldWithSubfields(geographicCoverage, subfields).stream()
                 .map(s -> subfields.stream()
                         .map(s::get)
                         .filter(v -> v != null && !v.isEmptyForDisplay())
                         .map(DatasetField::getValue)
-                        .collect(Collectors.joining(",")))
+                        .collect(joining(",")))
                 .filter(StringUtils::isNotEmpty)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private String extractProductionDate(DatasetVersion dsv) {
-        String rawDate = dsv.getDatasetFieldByTypeName(DatasetFieldConstant.productionDate)
+    private String extractProductionDate(final DatasetVersion version) {
+        return version.getDatasetFieldByTypeName(productionDate)
                 .map(DatasetField::getValue)
-                .orElse(StringUtils.EMPTY);
-        Pattern year = Pattern.compile("\\d{4}");
-        Matcher yearMatcher = year.matcher(rawDate);
-        if (yearMatcher.find()) {
-            return yearMatcher.group();
-        }
-        return StringUtils.EMPTY;
+                .map(date -> {
+                    final Matcher yearMatcher = Pattern.compile("\\d{4}").matcher(date);
+                    return yearMatcher.find() ? yearMatcher.group(): EMPTY;
+                })
+                .orElse(EMPTY);
     }
 
-    private List<CitationData.Producer> extractProducers(DatasetVersion dsv) {
-        return getProducers(dsv).stream()
+    private List<CitationData.Producer> extractProducers(final DatasetVersion version) {
+        return getProducers(version).stream()
                 .map(p -> new CitationData.Producer(p._1, p._2))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private List<Tuple2<String, String>> getProducers(DatasetVersion dsv) {
-        return dsv.extractFieldWithSubfields(DatasetFieldConstant.producer,
-                Arrays.asList(DatasetFieldConstant.producerName, DatasetFieldConstant.producerAffiliation))
+    private List<Tuple2<String, String>> getProducers(final DatasetVersion version) {
+        return version.extractFieldWithSubfields(producer, asList(producerName, producerAffiliation))
                 .stream()
                 .filter(e -> {
-                    DatasetField name = e.get(DatasetFieldConstant.producerName);
+                    final DatasetField name = e.get(producerName);
                     return name != null && !name.isEmptyForDisplay();
                 })
-                .map(e -> Tuple.of(e.get(DatasetFieldConstant.producerName), e.get(DatasetFieldConstant.producerAffiliation)))
-                .map(t -> Tuple.of(t._1.getValue(),
-                        t._2 != null ? t._2.getValue() : StringUtils.EMPTY))
-                .collect(Collectors.toList());
+                .map(e -> Tuple.of(e.get(producerName), e.get(producerAffiliation)))
+                .map(t -> Tuple.of(t._1.getValue(), defaultString(t._2.getValue())))
+                .collect(toList());
     }
 
-    private String extractReleaseYear(DatasetVersion dsv) {
-        return dsv.getReleaseTime() != null
-                ? new SimpleDateFormat("yyyy").format(dsv.getReleaseTime())
-                : StringUtils.EMPTY;
+    private String extractReleaseYear(final DatasetVersion version) {
+        return version.getReleaseTime() != null
+                ? new SimpleDateFormat("yyyy").format(version.getReleaseTime())
+                : EMPTY;
     }
 
-    private List<String> extractAuthors(DatasetVersion dsv) {
-        return dsv.getDatasetAuthors().stream()
+    private List<String> extractAuthors(final DatasetVersion version) {
+        return version.getDatasetAuthors().stream()
                 .filter(a -> !a.isEmpty())
                 .map(a -> a.getName().getDisplayValue().trim())
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private GlobalId extractPID(DatasetVersion dsv, DvObject dv, boolean direct) {
-        if (shouldCreateGlobalId(dsv)) {
-            if (!direct && isNotEmpty(dsv.getDataset().getIdentifier())) {
-                return new GlobalId(dsv.getDataset());
-            } else if (direct && isNotEmpty(dv.getIdentifier())) {
-                return new GlobalId(dv);
+    private GlobalId extractPID(final DatasetVersion version, 
+    		final DvObject dvObject, final boolean direct) {
+        if (shouldCreateGlobalId(version)) {
+            if (!direct && isNotEmpty(version.getDataset().getIdentifier())) {
+                return new GlobalId(version.getDataset());
+            } else if (direct && isNotEmpty(dvObject.getIdentifier())) {
+                return new GlobalId(dvObject);
             }
         }
         return null;
     }
 
-    private GlobalId extractDatasetPID(DatasetVersion dsv) {
-        return shouldCreateGlobalId(dsv) && isNotEmpty(dsv.getDataset().getIdentifier())
-                ? new GlobalId(dsv.getDataset()) : null;
+    private GlobalId extractDatasetPID(final DatasetVersion version) {
+        return shouldCreateGlobalId(version) && isNotEmpty(version.getDataset().getIdentifier())
+                ? new GlobalId(version.getDataset()) : null;
     }
 
-    private GlobalId extractFilePID(DatasetVersion dsv, DataFile datafile, boolean direct) {
-        return shouldCreateGlobalId(dsv) && !direct && isNotEmpty(datafile.getIdentifier())
+    private GlobalId extractFilePID(final DatasetVersion version, 
+    		final DataFile datafile, final boolean direct) {
+        return shouldCreateGlobalId(version) && !direct && isNotEmpty(datafile.getIdentifier())
                 ? new GlobalId(datafile) : null;
     }
 
-    private boolean shouldCreateGlobalId(DatasetVersion dsv) {
-        HarvestStyle harvestStyle = Optional.ofNullable(dsv.getDataset().getHarvestedFrom())
+    private boolean shouldCreateGlobalId(final DatasetVersion version) {
+        final HarvestStyle harvestStyle = Optional.ofNullable(version.getDataset().getHarvestedFrom())
                 .map(HarvestingClient::getHarvestStyle)
                 .orElse(null);
 
-        return !dsv.getDataset().isHarvested()
+        return !version.getDataset().isHarvested()
                 || HarvestStyle.VDC.equals(harvestStyle)
                 || HarvestStyle.ICPSR.equals(harvestStyle)
                 || HarvestStyle.DATAVERSE.equals(harvestStyle)
                 || HarvestStyle.DOI.equals(harvestStyle);
     }
 
-    private Date extractCitationDate(DatasetVersion dsv) {
+    private Date extractCitationDate(final DatasetVersion version) {
         Date citationDate = null;
-        if (!dsv.getDataset().isHarvested()) {
-            citationDate = getCitationDate(dsv);
+        if (!version.getDataset().isHarvested()) {
+            citationDate = getCitationDate(version);
             if (citationDate == null) {
-                citationDate = dsv.getDataset().getPublicationDate() != null
-                        ? dsv.getDataset().getPublicationDate()
-                        : dsv.getLastUpdateTime(); // for drafts
+                citationDate = version.getDataset().getPublicationDate() != null
+                        ? version.getDataset().getPublicationDate()
+                        : version.getLastUpdateTime(); // for drafts
             }
         } else {
             try {
-                citationDate = DateUtil.parseDateTimeFormatAsDate(dsv.getProductionDate());
+                citationDate = DateUtil.parseDateTimeFormatAsDate(version.getProductionDate());
                 if (citationDate == null) {
-                    citationDate = dsv.getDataset().getPublicationDate();
+                    citationDate = version.getDataset().getPublicationDate();
                 }
             } catch (DateTimeParseException pe) {
-                logger.warn(String.format("Error parsing date [%s]", dsv.getProductionDate()), pe);
+                logger.warn(String.format("Error parsing date [%s]", version.getProductionDate()), pe);
             }
         }
         if (citationDate == null) {
-            logger.warn("Unable to find citation date for datasetversion: {}", dsv.getId());
+            logger.warn("Unable to find citation date for datasetversion: {}", version.getId());
             citationDate = new Date(); // As a last resort, pick the current date
         }
         return citationDate;
     }
 
-    private Date getCitationDate(DatasetVersion dsv) {
-        DatasetFieldType citationDateType = dsv.getDataset().getCitationDateDatasetFieldType();
-        DatasetField citationDate = citationDateType != null
-                ? dsv.getDatasetFieldByTypeName(citationDateType.getName()).orElse(null) : null;
+    private Date getCitationDate(final DatasetVersion version) {
+        final DatasetFieldType citationDateType = version.getDataset().getCitationDateDatasetFieldType();
+        final DatasetField citationDate = citationDateType != null
+                ? version.getDatasetFieldByTypeName(citationDateType.getName()).orElse(null) : null;
         if (citationDate != null && FieldType.DATE.equals(citationDate.getDatasetFieldType().getFieldType())) {
             try {
                 return new SimpleDateFormat("yyyy").parse(citationDate.getValue());
-            } catch (ParseException ex) {
+            } catch (final ParseException ex) {
                 logger.warn("Date parsing exception: ", ex);
             }
         }
         return null;
     }
 
-    private String getSeriesTitle(DatasetVersion version) {
-     return version.getCompoundChildFieldValues(DatasetFieldConstant.series,
-                Collections.singletonList(DatasetFieldConstant.seriesName))
+    private String getSeriesTitle(final DatasetVersion version) {
+     return version.getCompoundChildFieldValues(series, singletonList(seriesName))
                 .stream()
                 .findFirst()
                 .orElse(null);
     }
 
-    private String extractPublisher(DatasetVersion dsv) {
-        return dsv.getRootDataverseNameForCitation();
+    private String extractPublisher(final DatasetVersion version) {
+        return version.getRootDataverseNameForCitation();
     }
 
-    private String extractVersion(DatasetVersion dsv, Locale locale) {
-        String version = StringUtils.EMPTY;
-        if (dsv.isDraft()) {
-            version = BundleUtil.getStringFromBundleWithLocale("draftversion", locale);
-        } else if (dsv.getVersionNumber() != null) {
-            version = "V" + dsv.getVersionNumber()
-                    + (dsv.isDeaccessioned()
-                    ? ", " + BundleUtil.getStringFromBundleWithLocale("deaccessionedversion", locale)
-                    : StringUtils.EMPTY);
+    private String extractVersion(final DatasetVersion version, final Locale locale) {
+        if (version.isDraft()) {
+            return  getStringFromBundleWithLocale("draftversion", locale);
+        } else if (version.getVersionNumber() != null) {
+            return "V" + version.getVersionNumber()
+                    + (version.isDeaccessioned()
+                    ? ", " + getStringFromBundleWithLocale("deaccessionedversion", locale)
+                    : EMPTY);
+        } else {
+        	return EMPTY;
         }
-        return version;
     }
 }
