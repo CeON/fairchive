@@ -123,10 +123,9 @@ public class HarvesterServiceBean {
         } catch (Throwable e) {
             String message = "Exception processing harvest, server= " + 
                     client.getHarvestingUrl() + ",format=" + 
-                    client.getMetadataPrefix() + ' ' + e.getClass().getName() + 
-                    ' ' + e.getMessage();
-            hdLogger.log(Level.SEVERE, message);
-            logException(e, hdLogger);
+                    client.getMetadataPrefix() + ' ' + e.getClass().getName();
+            hdLogger.log(Level.SEVERE, message, e);
+            //logException(e, hdLogger);
             hdLogger.log(Level.INFO, "HARVEST NOT COMPLETED DUE TO UNEXPECTED ERROR.");
             // TODO:
             // even though this harvesting run failed, we may have had successfully
