@@ -2,6 +2,8 @@ package edu.harvard.iq.dataverse.harvest.client;
 
 import static java.util.logging.Level.SEVERE;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.ejb.LocalBean;
@@ -10,6 +12,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 
+import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.serviceprovider.exceptions.HarvestException;
 
 import edu.harvard.iq.dataverse.api.imports.ImportException;
@@ -60,7 +63,10 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
             final HarvesterResult result = new HarvesterResult();
             final OaiHandler handler = new OaiHandler(client)
                         .withFetchedMetadataFormat();
-            handler.listIdentifiers().forEachRemaining( header -> {
+            final ArrayList<Header> headers = new ArrayList<>();
+            // get all headers first to avoid potential connection timeout
+            handler.listIdentifiers().forEachRemaining(headers::add);
+            headers.forEach( header -> {
                 final String identifier = header.getIdentifier();
                 logger.info("Processing ".concat(identifier));
                 processRecord(result, request, logger, handler, identifier);
