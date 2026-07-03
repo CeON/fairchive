@@ -239,17 +239,6 @@ public class DvObjectServiceBean implements java.io.Serializable {
     }
 
     /**
-     * Used to exclude Harvested Data from the Mydata page
-     *
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public List<Long> getAllHarvestedDataverseIds() {
-        return em.createNativeQuery("SELECT h.dataverse_id FROM harvestingclient h;")
-                .getResultList();
-    }
-
-    /**
      * Used to calculate the dvObject tree paths for the search results on the
      * dataverse page. (In order to determine if "linked" or not).
      * *done in recursive 1 query!*
