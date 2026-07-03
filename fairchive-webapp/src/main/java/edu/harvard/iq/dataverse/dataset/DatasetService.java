@@ -10,6 +10,7 @@ import static org.apache.commons.lang3. RandomStringUtils.randomAlphanumeric;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -134,12 +135,13 @@ public class DatasetService {
     }
     
     public Dataset findByGlobalId(final String globalId) {
-        final Dataset retVal = (Dataset) this.dvObjectService.findByGlobalId(globalId, "Dataset");
-        if (retVal != null) {
-            return retVal;
+	
+        final Optional<DvObject> result = this.dvObjectService.findByGlobalId(globalId, "Dataset");
+        if(result.isPresent()) {
+            return (Dataset) result.get();
         } else {
-            //try to find with alternative PID
-            return (Dataset) this.dvObjectService.findByGlobalId(globalId, "Dataset", true);
+            return (Dataset) this.dvObjectService.findByAlternativeGlobalId(globalId, "Dataset")
+            		.orElse(null);
         }
     }
     

@@ -90,7 +90,7 @@ public class DataFileServiceBean implements Serializable {
 
     public DataFile findByGlobalId(final String globalId) {
         return (DataFile) this.dvObjectService.findByGlobalId(globalId, 
-        		DataFile.DATAFILE_DTYPE_STRING);
+        		DataFile.DATAFILE_DTYPE_STRING).orElse(null);
     }
 
     public Optional<DataFile> findReplacementFile(final Long previousFileId) {

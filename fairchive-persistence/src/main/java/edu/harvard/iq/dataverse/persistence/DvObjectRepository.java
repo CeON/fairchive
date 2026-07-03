@@ -42,4 +42,29 @@ public class DvObjectRepository extends JpaRepository<Long, DvObject> {
                 .setParameter("authority", authority)
                 .setParameter("identifier", identifier));
     }
+    
+    public Optional<DvObject> findByGlobalId(final String protocol, 
+    		final String authority, final String identifier, final String type) {
+        return getSingleResult(createQuery(
+        		"SELECT o FROM DvObject o " + 
+        		"WHERE o.identifier=:identifier and o.authority=:authority " + 
+        				"and o.protocol=:protocol and o.dtype=:type")
+                .setParameter("protocol", protocol)
+                .setParameter("authority", authority)
+                .setParameter("identifier", identifier)
+                .setParameter("type", type));
+    }
+    
+    public Optional<DvObject> findByAlternativeGlobalId(final String protocol, 
+    		final String authority, final String identifier, final String type) {
+        return getSingleResult(createQuery(
+        		"SELECT o FROM DvObject o, AlternativePersistentIdentifier a " +
+        		" WHERE o.id = a.dvObject.id and a.identifier=:identifier " +
+        				" and a.authority=:authority and a.protocol=:protocol " +
+        				" and o.dtype=:type")
+                .setParameter("protocol", protocol)
+                .setParameter("authority", authority)
+                .setParameter("identifier", identifier)
+                .setParameter("type", type));
+    }
 }
