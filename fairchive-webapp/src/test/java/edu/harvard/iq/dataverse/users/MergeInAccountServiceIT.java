@@ -229,7 +229,7 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
         guestbookResponse.setAuthenticatedUser(authenticatedUser);
         entityManager.merge(guestbookResponse);
 
-        DvObject dvObject = dvObjectService.findDvObject(67L);
+        DvObject dvObject = dvObjectService.getDvObject(67L);
         dvObject.setCreator(authenticatedUser);
         dvObject.setReleaseUser(authenticatedUser);
         entityManager.merge(dvObject);

@@ -48,24 +48,10 @@ import java.io.Serializable;
  */
 @SuppressWarnings("serial")
 @NamedQueries({
-        @NamedQuery(name = "DvObject.findAll",
-                query = "SELECT o FROM DvObject o ORDER BY o.id"),
-        @NamedQuery(name = "DvObject.findById",
-                query = "SELECT o FROM DvObject o WHERE o.id=:id"),
-        @NamedQuery(name = "DvObject.ownedObjectsById",
-                query = "SELECT COUNT(obj) FROM DvObject obj WHERE obj.owner.id=:id"),
         @NamedQuery(name = "DvObject.findByGlobalId",
                 query = "SELECT o FROM DvObject o WHERE o.identifier=:identifier and o.authority=:authority and o.protocol=:protocol and o.dtype=:dtype"),
-
         @NamedQuery(name = "DvObject.findByAlternativeGlobalId",
                 query = "SELECT o FROM DvObject o, AlternativePersistentIdentifier a  WHERE o.id = a.dvObject.id and a.identifier=:identifier and a.authority=:authority and a.protocol=:protocol and o.dtype=:dtype"),
-
-        @NamedQuery(name = "DvObject.findByProtocolIdentifierAuthority",
-                query = "SELECT o FROM DvObject o WHERE o.identifier=:identifier and o.authority=:authority and o.protocol=:protocol"),
-        @NamedQuery(name = "DvObject.findByOwnerId",
-                query = "SELECT o FROM DvObject o WHERE o.owner.id=:ownerId"),
-        @NamedQuery(name = "DvObject.findByAuthenticatedUserId",
-                query = "SELECT o FROM DvObject o WHERE o.creator.id=:ownerId or o.releaseUser.id=:releaseUserId")
 })
 @Entity
 // Inheritance strategy "JOINED" will create 4 db tables - 

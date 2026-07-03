@@ -1393,8 +1393,7 @@ public class IndexServiceBean {
             if (idObject != null) {
                 try {
                     long id = (Long) idObject;
-                    DvObject dvobject = dvObjectService.findDvObject(id);
-                    if (dvobject == null) {
+                    if (!this.dvObjectService.findDvObject(id).isPresent()) {
                         dvObjectInSolrOnly.add(id);
                     }
                 } catch (ClassCastException ex) {
