@@ -98,7 +98,7 @@ public class GlobalId implements Serializable {
     public GlobalId(final String identifierString) {
         final int index1 = identifierString.indexOf(':');
         if (index1 > 0) { // ':' found with one or more characters before it
-        	if(identifierString.startsWith(HTTPS_PROTOCOL)) {
+        	if (identifierString.startsWith(HTTPS_PROTOCOL)) {
         		try {
 	        		final URL url = new URL(identifierString.substring(HTTPS_PROTOCOL.length() +1));
 	        		this.protocol = HTTPS_PROTOCOL;
@@ -110,7 +110,7 @@ public class GlobalId implements Serializable {
         		} catch (final MalformedURLException e) {
         			throw new IllegalArgumentException(e);
         		}
-        	} else if(identifierString.startsWith(HTTP_PROTOCOL)) {
+        	} else if (identifierString.startsWith(HTTP_PROTOCOL)) {
         		try {
 	        		final URL url = new URL(identifierString.substring(HTTP_PROTOCOL.length() +1));
 	        		this.protocol = HTTP_PROTOCOL;
