@@ -172,7 +172,7 @@ public class DatasetFieldsInitializer {
                 .collect(Collectors.toList());
         
         List<Long> datasetFieldTypeIds = allFieldsByType.stream()
-                .map(fieldsByType -> fieldsByType.getDatasetFieldType().getId())
+                .map(fieldsByType -> fieldsByType.getType().getId())
                 .collect(Collectors.toList());
 
         List<Long> fieldTypeIdsToHide = dataverseFieldTypeInputLevelService
@@ -184,7 +184,7 @@ public class DatasetFieldsInitializer {
         
         for (DatasetFieldsOfType fieldsByType : allFieldsByType) {
             fieldsByType.setInclude(true);
-            if (fieldTypeIdsToHide.contains(fieldsByType.getDatasetFieldType().getId())) {
+            if (fieldTypeIdsToHide.contains(fieldsByType.getType().getId())) {
                 fieldsByType.setInclude(false);
             }
         }
@@ -304,7 +304,7 @@ public class DatasetFieldsInitializer {
     }
 
     private boolean anyFieldsRequired(List<DatasetFieldsOfType> list) {
-        return list.stream().anyMatch(fieldsByType -> fieldsByType.getDatasetFieldType().isRequiredInDataverse());
+        return list.stream().anyMatch(fieldsByType -> fieldsByType.getType().isRequiredInDataverse());
     }
 
     private boolean allFieldsEmpty(List<DatasetFieldsOfType> list) {

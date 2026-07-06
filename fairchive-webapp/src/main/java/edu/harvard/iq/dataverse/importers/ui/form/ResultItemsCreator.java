@@ -34,7 +34,7 @@ public class ResultItemsCreator {
 
     private ResultItem initializeItem(ResultItemWithFields itemWithFields) {
         ResultItem item = itemWithFields.resultItem;
-        DatasetFieldType fieldType = itemWithFields.fields.getDatasetFieldType();
+        DatasetFieldType fieldType = itemWithFields.fields.getType();
         item.setLocalizedName(fieldType.getLocaleTitle())
                 .setMultipleAllowed(fieldType.isAllowMultiples())
                 .setDisplayOrder(fieldType.getDisplayOrder())

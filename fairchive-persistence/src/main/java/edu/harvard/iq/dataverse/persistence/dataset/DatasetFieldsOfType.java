@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class DatasetFieldsOfType {
 
-    private DatasetFieldType datasetFieldType;
+    private final DatasetFieldType type;
 
     private List<DatasetField> datasetFields;
 
@@ -29,14 +29,14 @@ public class DatasetFieldsOfType {
     public DatasetFieldsOfType(DatasetFieldType datasetFieldType, List<DatasetField> datasetFields) {
         datasetFields.forEach(field -> Preconditions.checkArgument(field.getDatasetFieldType().equals(datasetFieldType)));
 
-        this.datasetFieldType = datasetFieldType;
+        this.type = datasetFieldType;
         this.datasetFields = datasetFields;
     }
 
     // -------------------- GETTERS --------------------
 
-    public DatasetFieldType getDatasetFieldType() {
-        return datasetFieldType;
+    public DatasetFieldType getType() {
+        return this.type;
     }
 
     public List<DatasetField> getDatasetFields() {
@@ -53,19 +53,19 @@ public class DatasetFieldsOfType {
     }
     
     public boolean isVisibleThroughAnonymizedUrl() {
-        return this.datasetFieldType.isVisibleThroughAnonymizedUrl();
+        return this.type.isVisibleThroughAnonymizedUrl();
     }
 
     // -------------------- LOGIC --------------------
 
     public void addEmptyDatasetField(int position) {
-        DatasetField newField = DatasetField.createNewEmptyDatasetField(datasetFieldType, null);
+        DatasetField newField = DatasetField.createNewEmptyDatasetField(type, null);
         applyDefaultValues(newField);
         datasetFields.add(position, newField);
     }
     
     public void addEmptyDatasetField() {
-        DatasetField newField = DatasetField.createNewEmptyDatasetField(datasetFieldType, null);
+        DatasetField newField = DatasetField.createNewEmptyDatasetField(type, null);
         applyDefaultValues(newField);
         datasetFields.add(newField);
     }
@@ -87,7 +87,7 @@ public class DatasetFieldsOfType {
     	
     	final int totalRequiredLength = position + sources.size();
     	while(totalRequiredLength > this.datasetFields.size()) {
-    		this.datasetFields.add(DatasetField.createNewEmptyChildDatasetField(this.datasetFieldType, null));
+    		this.datasetFields.add(DatasetField.createNewEmptyChildDatasetField(this.type, null));
     	}
     	
     	for (final DatasetField source : sources) {
@@ -107,7 +107,7 @@ public class DatasetFieldsOfType {
 
     private FieldValueDivider getDivider() {
         if (divider == null) {
-            divider = FieldValueDivider.create(datasetFieldType);
+            divider = FieldValueDivider.create(type);
         }
         return divider;
     }

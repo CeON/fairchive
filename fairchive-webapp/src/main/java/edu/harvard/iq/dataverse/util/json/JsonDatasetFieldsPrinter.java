@@ -47,11 +47,11 @@ public class JsonDatasetFieldsPrinter {
 
 
         for (DatasetFieldsOfType fieldsByType: DatasetFieldUtil.groupByType(dsfFields)) {
-            if (excludeEmailFields && FieldType.EMAIL.equals(fieldsByType.getDatasetFieldType().getFieldType())) {
+            if (excludeEmailFields && FieldType.EMAIL.equals(fieldsByType.getType().getFieldType())) {
                 continue;
             }
 
-            DatasetFieldType dsfType = fieldsByType.getDatasetFieldType();
+            DatasetFieldType dsfType = fieldsByType.getType();
             List<DatasetField> datasetFields = fieldsByType.getDatasetFields();
 
             if (dsfType.isControlledVocabulary()) {

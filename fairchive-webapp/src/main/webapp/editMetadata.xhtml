@@ -30,47 +30,47 @@
                      data-map-prefix="map_#{metadataBlockVal.key.name}_">
                     <div class="panel-body">
                         <ui:repeat id="fieldsByType" value="#{metadataBlockVal.value}" var="fieldsByType" varStatus="fieldsByTypeStatus">
-                            <c:set var="isGeospatial" value="#{fieldsByType.datasetFieldType.fieldType eq FieldType.GEOBOX}"/>
+                            <c:set var="isGeospatial" value="#{fieldsByType.type.fieldType eq FieldType.GEOBOX}"/>
                             <p:outputPanel id="fieldsByTypeFragment" rendered="#{((showAllFields
-                                                            or fieldsByType.datasetFieldType.displayOnCreate
+                                                            or fieldsByType.type.displayOnCreate
                                                             or !fieldsByType.areAllFieldsEmpty()
-                                                            or fieldsByType.datasetFieldType.requiredInDataverse)
+                                                            or fieldsByType.type.requiredInDataverse)
                                                      and fieldsByType.include)}"
-                                        styleClass="form-group #{inputRenderersByFieldType.get(fieldsByType.datasetFieldType).isHidden() ? 'hidden-form-group' : ''}">
+                                        styleClass="form-group #{inputRenderersByFieldType.get(fieldsByType.type).isHidden() ? 'hidden-form-group' : ''}">
 
-                            <div role="#{((fieldsByType.datasetFieldType.compound or fieldsByType.datasetFieldType.allowMultiples) and !fieldsByType.datasetFieldType.controlledVocabulary)
+                            <div role="#{((fieldsByType.type.compound or fieldsByType.type.allowMultiples) and !fieldsByType.type.controlledVocabulary)
                                                 ? 'group' : 'presentation'}"
-                                aria-label="#{((fieldsByType.datasetFieldType.compound or fieldsByType.datasetFieldType.allowMultiples) and !fieldsByType.datasetFieldType.controlledVocabulary)
-                                                ? fieldsByType.datasetFieldType.localeTitle : ''}">
+                                aria-label="#{((fieldsByType.type.compound or fieldsByType.type.allowMultiples) and !fieldsByType.type.controlledVocabulary)
+                                                ? fieldsByType.type.localeTitle : ''}">
 
                                 <div class="col-sm-3 control-label section-title"
-                                        jsf:rendered="#{not inputRenderersByFieldType.get(fieldsByType.datasetFieldType).isHidden()
-                                                        and not (inputRenderersByFieldType.get(fieldsByType.datasetFieldType).getType() eq inputRendererTypeEnum.CHECKBOX)}">
-                                    <h:outputText value="#{fieldsByType.datasetFieldType.localeTitle}" escape="false" />
-                                    <h:outputText styleClass="glyphicon glyphicon-asterisk text-danger" value="" rendered="#{fieldsByType.datasetFieldType.requiredInDataverse }" />
+                                        jsf:rendered="#{not inputRenderersByFieldType.get(fieldsByType.type).isHidden()
+                                                        and not (inputRenderersByFieldType.get(fieldsByType.type).getType() eq inputRendererTypeEnum.CHECKBOX)}">
+                                    <h:outputText value="#{fieldsByType.type.localeTitle}" escape="false" />
+                                    <h:outputText styleClass="glyphicon glyphicon-asterisk text-danger" value="" rendered="#{fieldsByType.type.requiredInDataverse }" />
 
                                     <span class="glyphicon glyphicon-question-sign tooltip-icon"
-                                          jsf:rendered="#{not empty fieldsByType.datasetFieldType.localeDescription}"
+                                          jsf:rendered="#{not empty fieldsByType.type.localeDescription}"
                                           tabindex="0" role="button"
-                                          aria-label="#{bundle['common.forms.field.tooltip.ariaLabel']} #{fieldsByType.datasetFieldType.localeTitle}"
+                                          aria-label="#{bundle['common.forms.field.tooltip.ariaLabel']} #{fieldsByType.type.localeTitle}"
                                           data-toggle="tooltip" data-placement="auto right"
-                                          data-original-title="#{fieldsByType.datasetFieldType.localeDescription}"></span>
+                                          data-original-title="#{fieldsByType.type.localeDescription}"></span>
                                 </div>
                                 <div class="col-sm-3 control-label section-title"
-                                     jsf:rendered="#{inputRenderersByFieldType.get(fieldsByType.datasetFieldType).getType() eq inputRendererTypeEnum.CHECKBOX}">
+                                     jsf:rendered="#{inputRenderersByFieldType.get(fieldsByType.type).getType() eq inputRendererTypeEnum.CHECKBOX}">
                                 </div>
 
 
 
                                 <div class="col-sm-9 form-group">
-                                    <ui:fragment rendered="#{!fieldsByType.datasetFieldType.controlledVocabulary}">
+                                    <ui:fragment rendered="#{!fieldsByType.type.controlledVocabulary}">
                                     <ui:repeat id="datasetFields" value="#{fieldsByType.datasetFields}" var="datasetField" varStatus="valCount" >
                                         <c:set var="currentMap" value="map_#{metadataBlockVal.key.name}_#{fieldsByTypeStatus.index}_#{valCount.index}"/>
                                         <div class="form-col-container form-group
-                                                #{fieldsByType.datasetFieldType.compound ? 'edit-compound-field form-field-group':'edit-field'}">
+                                                #{fieldsByType.type.compound ? 'edit-compound-field form-field-group':'edit-field'}">
 
                                             <!-- Main field -->
-                                            <div class="col-xs-9 form-col-container" jsf:rendered="#{fieldsByType.datasetFieldType.primitive}">
+                                            <div class="col-xs-9 form-col-container" jsf:rendered="#{fieldsByType.type.primitive}">
                                                 <ui:include src="datasetFieldForEditFragment.xhtml">
                                                     <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(datasetField.datasetFieldType)}" />
                                                     <ui:param name="datasetField" value="#{datasetField}" />
@@ -84,9 +84,9 @@
                                                     DvJS.Geo.EditView.prepare('#{currentMap}');
                                             </script>
                                             <!-- Sub Fields -->
-                                            <div class="col-xs-9 form-col-container field-add-delete-input" jsf:rendered="#{fieldsByType.datasetFieldType.compound}"
-                                                        role="#{fieldsByType.datasetFieldType.allowMultiples ? 'group' : 'presentation'}"
-                                                        aria-label="#{fieldsByType.datasetFieldType.allowMultiples ? datasetField.datasetFieldType.localeTitle.concat(' ').concat(valCount.index + 1) : ''}">
+                                            <div class="col-xs-9 form-col-container field-add-delete-input" jsf:rendered="#{fieldsByType.type.compound}"
+                                                        role="#{fieldsByType.type.allowMultiples ? 'group' : 'presentation'}"
+                                                        aria-label="#{fieldsByType.type.allowMultiples ? datasetField.datasetFieldType.localeTitle.concat(' ').concat(valCount.index + 1) : ''}">
                                                 <ui:repeat id="subfields" value="#{datasetField.datasetFieldsChildren}" var="subdsf">
                                                     <ui:fragment rendered="#{inputRenderersByFieldType.get(subdsf.datasetFieldType).showOnCondition(datasetField.datasetFieldsChildren)}">
 
@@ -112,16 +112,16 @@
                                             </div>
 
                                             <!-- Add / Remove buttons -->
-                                            <div class="col-xs-3 field-add-delete" jsf:rendered="#{fieldsByType.datasetFieldType.allowMultiples and !fieldsByType.datasetFieldType.controlledVocabulary}">
+                                            <div class="col-xs-3 field-add-delete" jsf:rendered="#{fieldsByType.type.allowMultiples and !fieldsByType.type.controlledVocabulary}">
                                                 <p:commandLink title="#{bundle.add}"
-                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.type.compound ? 'compound-field-btn' : ''}"
                                                                actionListener="#{fieldsByType.addEmptyDatasetField(valCount.index + 1)}"
                                                                update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
                                                     <span class="glyphicon glyphicon-plus no-text"/>
                                                     <o:skipValidators />
                                                 </p:commandLink>
                                                 <p:commandLink title="#{bundle.delete}"
-                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.type.compound ? 'compound-field-btn' : ''}"
                                                                rendered="#{isGeospatial and fieldsByType.datasetFields.size() > 1}"
                                                                actionListener="#{fieldsByType.removeDatasetField(valCount.index)}"
                                                                update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}"
@@ -131,7 +131,7 @@
                                                     <o:skipValidators />
                                                 </p:commandLink>
                                                 <p:commandLink title="#{bundle.delete}"
-                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.type.compound ? 'compound-field-btn' : ''}"
                                                                rendered="#{not isGeospatial and fieldsByType.datasetFields.size() > 1}"
                                                                actionListener="#{fieldsByType.removeDatasetField(valCount.index)}"
                                                                update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
@@ -140,26 +140,26 @@
                                                 </p:commandLink>
                                                 <br/>
                                                 <p:commandLink title="#{bundle['dataset.edit.divideBySemicolons.hint']}"
-                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
-                                                               rendered="#{fieldsByType.datasetFieldType.hasMetadata('divider')}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.type.compound ? 'compound-field-btn' : ''}"
+                                                               rendered="#{fieldsByType.type.hasMetadata('divider')}"
                                                                actionListener="#{fieldsByType.divide(valCount.index, ';')}"
                                                                update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
                                                     <span class="icon-text no-text">;</span>
                                                     <o:skipValidators/>
                                                 </p:commandLink>
                                                 <p:commandLink title="#{bundle['dataset.edit.divideByCommas.hint']}"
-                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
-                                                               rendered="#{fieldsByType.datasetFieldType.hasMetadata('divider')}"
+                                                               styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.type.compound ? 'compound-field-btn' : ''}"
+                                                               rendered="#{fieldsByType.type.hasMetadata('divider')}"
                                                                actionListener="#{fieldsByType.divide(valCount.index, ',')}"
                                                                update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
                                                     <span class="icon-text no-text">,</span>
                                                     <o:skipValidators/>
                                                 </p:commandLink>
 
-                                                <ui:fragment rendered="#{fieldsByType.datasetFieldType.hasMetadata('copyFrom')}">
-                                                    <ui:repeat id="copyFromFields" value="#{fieldsByType.datasetFieldType.getMetadata('copyFrom')}" var="copyFromFields">
+                                                <ui:fragment rendered="#{fieldsByType.type.hasMetadata('copyFrom')}">
+                                                    <ui:repeat id="copyFromFields" value="#{fieldsByType.type.getMetadata('copyFrom')}" var="copyFromFields">
                                                         <p:commandLink title="#{bundle['dataset.edit.copy.hint']}"
-                                                                       styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.datasetFieldType.compound ? 'compound-field-btn' : ''}"
+                                                                       styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsByType.type.compound ? 'compound-field-btn' : ''}"
                                                                        actionListener="#{fieldsByType.copyValues(page.findCopySources(copyFromFields.source), copyFromFields.source, valCount.index)}"
                                                                        update=":#{p:resolveClientIds('@id(fieldsByTypeFragment)', view)}">
                                                             <span class="icon-text" style="font-size: smaller;">#{bundle[copyFromFields.text]}</span>
@@ -174,9 +174,9 @@
                                     </ui:fragment>
 
                                     <!-- Controlled vocabulary field -->
-                                    <ui:fragment rendered="#{fieldsByType.datasetFieldType.controlledVocabulary}">
+                                    <ui:fragment rendered="#{fieldsByType.type.controlledVocabulary}">
                                         <ui:include src="datasetFieldForEditFragment.xhtml">
-                                            <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(fieldsByType.datasetFieldType)}" />
+                                            <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(fieldsByType.type)}" />
                                             <ui:param name="datasetField" value="#{fieldsByType.datasetFields.get(0)}" />
                                             <ui:param name="hiddenLabel" value="true" />
                                             <ui:param name="labelFieldNumber" value="0" />

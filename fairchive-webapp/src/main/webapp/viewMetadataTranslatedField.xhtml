@@ -12,7 +12,7 @@
 
     <!--@elvariable id="fieldsByType" type="edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType"-->
     <div class="col-sm-9 form-control-static">
-        <ui:fragment rendered="#{fieldsByType.datasetFieldType.name == 'datasetContact'}">
+        <ui:fragment rendered="#{fieldsByType.type.name == 'datasetContact'}">
             <p class="help-block no-margin-top">
                 <h:outputText value="#{bundle['dataset.contact.tip']}"/>
             </p>

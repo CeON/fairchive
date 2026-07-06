@@ -223,7 +223,7 @@ public class DatasetFieldDTO {
                     .sort(comparing(DatasetField::getDatasetFieldTypeDisplayOrder)));
             List<DatasetFieldDTO> fields = new ArrayList<>();
             for (DatasetFieldsOfType fieldsByType : DatasetFieldUtil.groupByType(datasetFields)) {
-                DatasetFieldType fieldType = fieldsByType.getDatasetFieldType();
+                DatasetFieldType fieldType = fieldsByType.getType();
                 DatasetFieldDTO field = createForType(fieldType);
                 List<DatasetField> fieldsOfType = fieldsByType.getDatasetFields();
                 List<?> values = emptyList();

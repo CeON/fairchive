@@ -415,7 +415,7 @@ public class CreateDatasetPage implements Serializable {
 			final List<DatasetField> sourceFields, final Dataset sourceDataset) {
 		
 		final List<DatasetField> selectedCourceFields = sourceFields.stream().
-				filter(field -> field.isOfType(fieldByType.getDatasetFieldType()))
+				filter(field -> field.isOfType(fieldByType.getType()))
 				.collect(toList());
 		
 		while(fieldByType.getDatasetFields().size() < selectedCourceFields.size()) {

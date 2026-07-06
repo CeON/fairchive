@@ -230,7 +230,7 @@ public class DatasetMetadataTab implements Serializable {
 
 			for (final DatasetFieldsOfType fieldByType : fieldsByType) {
 				final List<DatasetField> translated = translate(fieldByType.getDatasetFields());
-				result.add(new DatasetFieldsOfType(fieldByType.getDatasetFieldType(), translated));
+				result.add(new DatasetFieldsOfType(fieldByType.getType(), translated));
 			}
 
 			return result;

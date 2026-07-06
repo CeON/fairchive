@@ -63,12 +63,12 @@ public class MetadataFormLookup {
                 .orElse(Collections.emptyList());
 
         return fieldsForBlock.stream()
-                .collect(Collectors.toMap(f -> f.getDatasetFieldType().getName(), Function.identity()));
+                .collect(Collectors.toMap(f -> f.getType().getName(), Function.identity()));
     }
 
     private Map<String, DatasetFieldType> createChildrenLookup(Map<String, DatasetFieldsOfType> parentLookup) {
         return parentLookup.values().stream()
-                .flatMap(f -> f.getDatasetFieldType().getChildDatasetFieldTypes().stream())
+                .flatMap(f -> f.getType().getChildDatasetFieldTypes().stream())
                 .collect(Collectors.toMap(DatasetFieldType::getName, Function.identity()));
     }
 }

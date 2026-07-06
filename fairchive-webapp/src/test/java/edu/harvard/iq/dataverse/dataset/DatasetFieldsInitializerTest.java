@@ -236,7 +236,7 @@ public class DatasetFieldsInitializerTest {
 
         Optional<DatasetFieldsOfType> titleFields = updatedDsf.values().stream()
                 .flatMap(fieldsByTypes -> fieldsByTypes.stream())
-                .filter(fieldByType -> fieldByType.getDatasetFieldType().getName().equals("title"))
+                .filter(fieldByType -> fieldByType.getType().getName().equals("title"))
                 .findAny();
 
         //then

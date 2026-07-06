@@ -494,7 +494,7 @@ public class DatasetPage implements Serializable {
     
 	public boolean displayKeywords(final DatasetFieldsOfType fields) {
 		return !getKeywordsDisplaySummary().isEmpty() && 
-				fields.getDatasetFieldType().getName().equals("keyword");
+				fields.getType().getName().equals("keyword");
 	}
 	
 	public boolean displaySummaryMetadata() {
