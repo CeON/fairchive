@@ -5,7 +5,7 @@ import edu.harvard.iq.dataverse.importers.ui.form.ProcessingType;
 import edu.harvard.iq.dataverse.importers.ui.form.ResultItem;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
@@ -51,10 +51,10 @@ public class MetadataFormFiller {
     // -------------------- PRIVATE --------------------
 
     private void processItem(ResultItem item,
-                             Function<DatasetFieldsByType, DatasetField> fieldProvider,
+                             Function<DatasetFieldsOfType, DatasetField> fieldProvider,
                              BiConsumer<DatasetField, ResultItem> fieldSetter,
                              BiConsumer<DatasetField, List<ControlledVocabularyValue>> vocabularySetter) {
-        DatasetFieldsByType fieldsByType = lookup.getLookup().get(item.getName());
+        DatasetFieldsOfType fieldsByType = lookup.getLookup().get(item.getName());
         DatasetField field = fieldProvider.apply(fieldsByType);
         switch (item.getItemType()) {
             case COMPOUND:
@@ -103,29 +103,29 @@ public class MetadataFormFiller {
                 .orElseThrow(() -> new IllegalStateException("Child field [" + name + "] not found!"));
     }
 
-    private DatasetField clearAllAndCreateNew(DatasetFieldsByType datasetFieldsByType) {
-        List<DatasetField> fields = datasetFieldsByType.getDatasetFields();
+    private DatasetField clearAllAndCreateNew(DatasetFieldsOfType datasetFieldsOfType) {
+        List<DatasetField> fields = datasetFieldsOfType.getDatasetFields();
         fields.clear();
-        return datasetFieldsByType.addAndReturnEmptyDatasetField(0);
+        return datasetFieldsOfType.addAndReturnEmptyDatasetField(0);
     }
 
-    private DatasetField takeLastOrCreate(DatasetFieldsByType datasetFieldsByType) {
-        List<DatasetField> fields = datasetFieldsByType.getDatasetFields();
+    private DatasetField takeLastOrCreate(DatasetFieldsOfType datasetFieldsOfType) {
+        List<DatasetField> fields = datasetFieldsOfType.getDatasetFields();
         return fields.isEmpty()
-                ? datasetFieldsByType.addAndReturnEmptyDatasetField(0)
+                ? datasetFieldsOfType.addAndReturnEmptyDatasetField(0)
                 : fields.get(fields.size() - 1);
     }
 
-    private DatasetField createOrTakeEmptyField(DatasetFieldsByType datasetFieldsByType) {
-        List<DatasetField> fields = datasetFieldsByType.getDatasetFields();
+    private DatasetField createOrTakeEmptyField(DatasetFieldsOfType datasetFieldsOfType) {
+        List<DatasetField> fields = datasetFieldsOfType.getDatasetFields();
         if (fields.isEmpty()) {
-            return datasetFieldsByType.addAndReturnEmptyDatasetField(0);
+            return datasetFieldsOfType.addAndReturnEmptyDatasetField(0);
         } else {
             int index = fields.size() - 1;
             DatasetField field = fields.get(index);
             return field.isEmpty()
                     ? field
-                    : datasetFieldsByType.addAndReturnEmptyDatasetField(index + 1);
+                    : datasetFieldsOfType.addAndReturnEmptyDatasetField(index + 1);
         }
     }
 

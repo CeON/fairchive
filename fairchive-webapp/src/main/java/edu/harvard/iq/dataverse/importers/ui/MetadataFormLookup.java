@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.importers.ui;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 
 import java.util.Collections;
@@ -19,22 +19,22 @@ import java.util.stream.Collectors;
  */
 public class MetadataFormLookup {
     private String metadataBlockName;
-    private Supplier<Map<MetadataBlock, List<DatasetFieldsByType>>> metadataSupplier;
+    private Supplier<Map<MetadataBlock, List<DatasetFieldsOfType>>> metadataSupplier;
 
-    private Map<String, DatasetFieldsByType> lookup;
+    private Map<String, DatasetFieldsOfType> lookup;
     private Map<String, DatasetFieldType> childrenLookup;
 
     // -------------------- CONSTRUCTORS --------------------
 
     public MetadataFormLookup(String metadataBlockName,
-                       Supplier<Map<MetadataBlock, List<DatasetFieldsByType>>> metadataSupplier) {
+                       Supplier<Map<MetadataBlock, List<DatasetFieldsOfType>>> metadataSupplier) {
         this.metadataBlockName = metadataBlockName;
         this.metadataSupplier = metadataSupplier;
     }
 
     // -------------------- GETTERS --------------------
 
-    public Map<String, DatasetFieldsByType> getLookup() {
+    public Map<String, DatasetFieldsOfType> getLookup() {
         return lookup;
     }
 
@@ -45,7 +45,7 @@ public class MetadataFormLookup {
     // -------------------- LOGIC --------------------
 
     public static MetadataFormLookup create(String metadataBlockName,
-                                            Supplier<Map<MetadataBlock, List<DatasetFieldsByType>>> metadataSupplier) {
+                                            Supplier<Map<MetadataBlock, List<DatasetFieldsOfType>>> metadataSupplier) {
         MetadataFormLookup instance = new MetadataFormLookup(metadataBlockName, metadataSupplier);
         instance.lookup = instance.create();
         instance.childrenLookup = instance.createChildrenLookup(instance.lookup);
@@ -54,9 +54,9 @@ public class MetadataFormLookup {
 
     // -------------------- PRIVATE --------------------
 
-    private Map<String, DatasetFieldsByType> create() {
-        Map<MetadataBlock, List<DatasetFieldsByType>> metadata = metadataSupplier.get();
-        List<DatasetFieldsByType> fieldsForBlock = metadata.entrySet().stream()
+    private Map<String, DatasetFieldsOfType> create() {
+        Map<MetadataBlock, List<DatasetFieldsOfType>> metadata = metadataSupplier.get();
+        List<DatasetFieldsOfType> fieldsForBlock = metadata.entrySet().stream()
                 .filter(e -> metadataBlockName.equals(e.getKey().getName()))
                 .findFirst()
                 .map(Map.Entry::getValue)
@@ -66,7 +66,7 @@ public class MetadataFormLookup {
                 .collect(Collectors.toMap(f -> f.getDatasetFieldType().getName(), Function.identity()));
     }
 
-    private Map<String, DatasetFieldType> createChildrenLookup(Map<String, DatasetFieldsByType> parentLookup) {
+    private Map<String, DatasetFieldType> createChildrenLookup(Map<String, DatasetFieldsOfType> parentLookup) {
         return parentLookup.values().stream()
                 .flatMap(f -> f.getDatasetFieldType().getChildDatasetFieldTypes().stream())
                 .collect(Collectors.toMap(DatasetFieldType::getName, Function.identity()));

@@ -2,7 +2,7 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.buttonaction;
 
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.Stateless;
@@ -32,7 +32,7 @@ public class AddReplicationTextActionHandler implements FieldButtonActionHandler
      * It does nothing with allBlockFields param.
      */
     @Override
-    public void handleAction(DatasetField datasetField, List<DatasetFieldsByType> allBlockFields) {
+    public void handleAction(DatasetField datasetField, List<DatasetFieldsOfType> allBlockFields) {
         
         String newValue = BundleUtil.getStringFromBundle("dataset.replicationDataFor") + " "
                 + datasetField.getFieldValue().getOrElse(StringUtils.EMPTY);

@@ -81,7 +81,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseIcon;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetCitationsCount;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetCitationsCountRepository;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRelPublication;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
@@ -492,7 +492,7 @@ public class DatasetPage implements Serializable {
                 || this.workingVersion.isDeaccessioned());
     }
     
-	public boolean displayKeywords(final DatasetFieldsByType fields) {
+	public boolean displayKeywords(final DatasetFieldsOfType fields) {
 		return !getKeywordsDisplaySummary().isEmpty() && 
 				fields.getDatasetFieldType().getName().equals("keyword");
 	}
@@ -1260,7 +1260,7 @@ public class DatasetPage implements Serializable {
      *
      * @return the dataset fields to be shown in the dataset summary
      */
-    public List<DatasetFieldsByType> getDatasetSummaryFields() {
+    public List<DatasetFieldsOfType> getDatasetSummaryFields() {
         List<String> customFields = settingsService.getValueForKeyAsList(CustomDatasetSummaryFields);
 
         return datasetSummaryService.getDatasetSummaryFields(workingVersion, customFields);

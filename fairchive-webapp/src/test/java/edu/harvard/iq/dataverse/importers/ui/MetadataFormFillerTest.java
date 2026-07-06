@@ -5,7 +5,7 @@ import edu.harvard.iq.dataverse.importers.ui.form.ProcessingType;
 import edu.harvard.iq.dataverse.importers.ui.form.ResultItem;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,8 +43,8 @@ public class MetadataFormFillerTest {
     @DisplayName("Field should be overwritten on demand")
     public void overwriteSimpleField() {
         // given
-        Map<String, DatasetFieldsByType> formLookup = lookup.getLookup();
-        DatasetFieldsByType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
+        Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
+        DatasetFieldsOfType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
 
         DatasetField field = parentSimpleOnForm.addAndReturnEmptyDatasetField(0);
         field.setId(1L);
@@ -65,8 +65,8 @@ public class MetadataFormFillerTest {
     @DisplayName("Field should be filled if it's empty and 'fill if empty' was set")
     public void fillIfEmptySimpleField() {
         // given
-        Map<String, DatasetFieldsByType> formLookup = lookup.getLookup();
-        DatasetFieldsByType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
+        Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
+        DatasetFieldsOfType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
 
         DatasetField field = parentSimpleOnForm.addAndReturnEmptyDatasetField(0);
         field.setId(1L); // id does not have impact on field emptiness
@@ -88,8 +88,8 @@ public class MetadataFormFillerTest {
     @DisplayName("Field should not be filled if not empty when 'fill if empty' is set")
     public void doNotFillIfNotEmpty() {
         // given
-        Map<String, DatasetFieldsByType> formLookup = lookup.getLookup();
-        DatasetFieldsByType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
+        Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
+        DatasetFieldsOfType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
 
         DatasetField field = parentSimpleOnForm.addAndReturnEmptyDatasetField(0);
         field.setId(1L);
@@ -125,7 +125,7 @@ public class MetadataFormFillerTest {
         filler.fillForm(items);
 
         // then
-        Map<String, DatasetFieldsByType> formLookup = lookup.getLookup();
+        Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
         List<DatasetField> parentCompounds = formLookup.get(PARENT + COMPOUND).getDatasetFields();
         assertThat(parentCompounds, hasSize(3));
     }
@@ -134,9 +134,9 @@ public class MetadataFormFillerTest {
     @DisplayName("Should destroy any existing fields when overwriting compound fields")
     public void shouldOverwriteMultipleFields() {
         // given
-        Map<String, DatasetFieldsByType> formLookup = lookup.getLookup();
+        Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
 
-        DatasetFieldsByType parentCompound = formLookup.get(PARENT + COMPOUND);
+        DatasetFieldsOfType parentCompound = formLookup.get(PARENT + COMPOUND);
         IntStream.range(0, 10).forEach(i -> {
             DatasetField field = parentCompound.addAndReturnEmptyDatasetField(i);
             field.setValue(VALUE);
@@ -177,7 +177,7 @@ public class MetadataFormFillerTest {
         filler.fillForm(items);
 
         // then
-        Map<String, DatasetFieldsByType> formLookup = lookup.getLookup();
+        Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
         List<DatasetField> parentVocabulary = formLookup.get(PARENT + VOCABULARY).getDatasetFields();
         assertThat(parentVocabulary, hasSize(1));
         List<ControlledVocabularyValue> vocabularyValues = parentVocabulary.get(0).getControlledVocabularyValues();

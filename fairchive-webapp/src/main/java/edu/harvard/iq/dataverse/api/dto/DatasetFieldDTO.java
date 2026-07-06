@@ -26,7 +26,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import io.vavr.control.Option;
 
@@ -222,7 +222,7 @@ public class DatasetFieldDTO {
             datasetFields.forEach(f -> f.getDatasetFieldsChildren()
                     .sort(comparing(DatasetField::getDatasetFieldTypeDisplayOrder)));
             List<DatasetFieldDTO> fields = new ArrayList<>();
-            for (DatasetFieldsByType fieldsByType : DatasetFieldUtil.groupByType(datasetFields)) {
+            for (DatasetFieldsOfType fieldsByType : DatasetFieldUtil.groupByType(datasetFields)) {
                 DatasetFieldType fieldType = fieldsByType.getDatasetFieldType();
                 DatasetFieldDTO field = createForType(fieldType);
                 List<DatasetField> fieldsOfType = fieldsByType.getDatasetFields();

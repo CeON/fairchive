@@ -9,7 +9,7 @@ import java.util.List;
  * and perform some actions on them
  * @author madryk
  */
-public class DatasetFieldsByType {
+public class DatasetFieldsOfType {
 
     private DatasetFieldType datasetFieldType;
 
@@ -26,7 +26,7 @@ public class DatasetFieldsByType {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public DatasetFieldsByType(DatasetFieldType datasetFieldType, List<DatasetField> datasetFields) {
+    public DatasetFieldsOfType(DatasetFieldType datasetFieldType, List<DatasetField> datasetFields) {
         datasetFields.forEach(field -> Preconditions.checkArgument(field.getDatasetFieldType().equals(datasetFieldType)));
 
         this.datasetFieldType = datasetFieldType;

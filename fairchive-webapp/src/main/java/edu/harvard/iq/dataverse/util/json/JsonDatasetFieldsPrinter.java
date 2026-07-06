@@ -5,7 +5,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import io.vavr.control.Option;
 
@@ -46,7 +46,7 @@ public class JsonDatasetFieldsPrinter {
         dsfFields.sort(Comparator.comparing(DatasetField::getDatasetFieldTypeDisplayOrder));
 
 
-        for (DatasetFieldsByType fieldsByType: DatasetFieldUtil.groupByType(dsfFields)) {
+        for (DatasetFieldsOfType fieldsByType: DatasetFieldUtil.groupByType(dsfFields)) {
             if (excludeEmailFields && FieldType.EMAIL.equals(fieldsByType.getDatasetFieldType().getFieldType())) {
                 continue;
             }

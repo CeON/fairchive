@@ -52,7 +52,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
@@ -95,7 +95,7 @@ public class CreateDatasetPage implements Serializable {
     private List<Template> dataverseTemplates = new ArrayList<>();
     private Template selectedTemplate;
 
-    private Map<MetadataBlock, List<DatasetFieldsByType>> metadataBlocksForEdit = new HashMap<>();
+    private Map<MetadataBlock, List<DatasetFieldsOfType>> metadataBlocksForEdit = new HashMap<>();
     private Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType = new HashMap<>();
 
     private ImportersForView importers;
@@ -182,7 +182,7 @@ public class CreateDatasetPage implements Serializable {
         return this.selectedTemplate;
     }
 
-    public Map<MetadataBlock, List<DatasetFieldsByType>> getMetadataBlocksForEdit() {
+    public Map<MetadataBlock, List<DatasetFieldsOfType>> getMetadataBlocksForEdit() {
         return this.metadataBlocksForEdit;
     }
 
@@ -393,8 +393,8 @@ public class CreateDatasetPage implements Serializable {
     	final List<DatasetField> sourceFields = sourceDataset.getLatestVersionForCopy().
     			getDatasetFieldsAll();
     	
-    	for(final List<DatasetFieldsByType> fieldsByType : this.metadataBlocksForEdit.values()) {
-    		for(final DatasetFieldsByType fieldByType : fieldsByType) {
+    	for(final List<DatasetFieldsOfType> fieldsByType : this.metadataBlocksForEdit.values()) {
+    		for(final DatasetFieldsOfType fieldByType : fieldsByType) {
     			copyFields(fieldByType, sourceFields, sourceDataset);
 			}
     	}
@@ -411,7 +411,7 @@ public class CreateDatasetPage implements Serializable {
 		}
 	}
 	
-	private void copyFields(final DatasetFieldsByType fieldByType, 
+	private void copyFields(final DatasetFieldsOfType fieldByType, 
 			final List<DatasetField> sourceFields, final Dataset sourceDataset) {
 		
 		final List<DatasetField> selectedCourceFields = sourceFields.stream().
@@ -495,11 +495,11 @@ public class CreateDatasetPage implements Serializable {
     
     public List<DatasetField> findCopySources(final String sourceId) {
         final List<DatasetField> sourceFields = new ArrayList<>();
-        for (final List<DatasetFieldsByType> datasetFieldsByTypeList : this.metadataBlocksForEdit.values()) {
-            for (final DatasetFieldsByType datasetFieldsByType : datasetFieldsByTypeList) {
-                for (final DatasetField datasetField : datasetFieldsByType.getDatasetFields()) {
-                    if (sourceId.equals(datasetField.getTypeName())) {
-                        sourceFields.add(datasetField);
+        for (final List<DatasetFieldsOfType> fieldsOfTypeList : this.metadataBlocksForEdit.values()) {
+            for (final DatasetFieldsOfType fieldsOfType : fieldsOfTypeList) {
+                for (final DatasetField field : fieldsOfType.getDatasetFields()) {
+                    if (sourceId.equals(field.getTypeName())) {
+                        sourceFields.add(field);
                     }
                 }
             }

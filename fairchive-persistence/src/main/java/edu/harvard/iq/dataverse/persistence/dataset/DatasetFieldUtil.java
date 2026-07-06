@@ -110,16 +110,16 @@ public class DatasetFieldUtil {
         return metadataBlocks;
     }
     
-    public static Map<MetadataBlock, List<DatasetFieldsByType>> groupByBlockAndType(List<DatasetField> datasetFields) {
-        Map<MetadataBlock, List<DatasetFieldsByType>> fieldsByBlockAndType = new LinkedHashMap<>();
+    public static Map<MetadataBlock, List<DatasetFieldsOfType>> groupByBlockAndType(List<DatasetField> datasetFields) {
+        Map<MetadataBlock, List<DatasetFieldsOfType>> fieldsByBlockAndType = new LinkedHashMap<>();
         
         groupByBlock(datasetFields).forEach((key, value) -> fieldsByBlockAndType.put(key, groupByType(value)));
 
         return fieldsByBlockAndType;
     }
     
-    public static List<DatasetFieldsByType> groupByType(List<DatasetField> datasetFields) {
-        List<DatasetFieldsByType> fieldsByTypes = new ArrayList<>();
+    public static List<DatasetFieldsOfType> groupByType(List<DatasetField> datasetFields) {
+        List<DatasetFieldsOfType> fieldsByTypes = new ArrayList<>();
         
         Map<DatasetFieldType, List<DatasetField>> fieldsByTypesMap = datasetFields.stream()
                 .collect(groupingBy(
@@ -127,12 +127,12 @@ public class DatasetFieldUtil {
                             LinkedHashMap::new,
                             mapping(Function.identity(), toList())));
         
-        fieldsByTypesMap.forEach((key, value) -> fieldsByTypes.add(new DatasetFieldsByType(key, value)));
+        fieldsByTypesMap.forEach((key, value) -> fieldsByTypes.add(new DatasetFieldsOfType(key, value)));
         
         return fieldsByTypes;
     }
     
-    public static List<DatasetField> flattenDatasetFieldsFromBlocks(Map<MetadataBlock, List<DatasetFieldsByType>> fieldsByBlocksAndTypes) {
+    public static List<DatasetField> flattenDatasetFieldsFromBlocks(Map<MetadataBlock, List<DatasetFieldsOfType>> fieldsByBlocksAndTypes) {
         
         return fieldsByBlocksAndTypes.entrySet().stream()
             .flatMap(blockAndFieldsByType -> blockAndFieldsByType.getValue().stream())

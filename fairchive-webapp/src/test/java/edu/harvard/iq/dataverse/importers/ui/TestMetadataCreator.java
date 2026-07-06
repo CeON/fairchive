@@ -2,7 +2,7 @@ package edu.harvard.iq.dataverse.importers.ui;
 
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 
@@ -37,7 +37,7 @@ public class TestMetadataCreator {
 
     // -------------------- LOGIC --------------------
 
-    public static Map<MetadataBlock, List<DatasetFieldsByType>> createTestMetadata() {
+    public static Map<MetadataBlock, List<DatasetFieldsOfType>> createTestMetadata() {
         MetadataBlock block = new MetadataBlock();
         block.setName(BLOCK_NAME);
         return Collections.singletonMap(block, createDFsByType(TestMetadataCreator::getTestDFTs));
@@ -48,9 +48,9 @@ public class TestMetadataCreator {
                 .collect(Collectors.toList());
     }
 
-    public static List<DatasetFieldsByType> createDFsByType(Supplier<List<DatasetFieldType>> fieldTypes) {
+    public static List<DatasetFieldsOfType> createDFsByType(Supplier<List<DatasetFieldType>> fieldTypes) {
         return fieldTypes.get().stream()
-                .map(t -> new DatasetFieldsByType(t, new ArrayList<>()))
+                .map(t -> new DatasetFieldsOfType(t, new ArrayList<>()))
                 .collect(Collectors.toList());
     }
 

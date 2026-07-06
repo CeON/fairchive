@@ -10,7 +10,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -54,7 +54,7 @@ public class TemplatePage implements java.io.Serializable {
 
     private Template template;
     private Dataverse dataverse;
-    private Map<MetadataBlock, List<DatasetFieldsByType>> mdbForEdit;
+    private Map<MetadataBlock, List<DatasetFieldsOfType>> mdbForEdit;
     private Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType = new HashMap<>();
 
     @EJB
@@ -98,7 +98,7 @@ public class TemplatePage implements java.io.Serializable {
         return ownerId;
     }
 
-    public Map<MetadataBlock, List<DatasetFieldsByType>> getMdbForEdit() {
+    public Map<MetadataBlock, List<DatasetFieldsOfType>> getMdbForEdit() {
         return mdbForEdit;
     }
 
