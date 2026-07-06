@@ -54,8 +54,8 @@ public class MetadataFormFiller {
                              Function<DatasetFieldsOfType, DatasetField> fieldProvider,
                              BiConsumer<DatasetField, ResultItem> fieldSetter,
                              BiConsumer<DatasetField, List<ControlledVocabularyValue>> vocabularySetter) {
-        DatasetFieldsOfType fieldsByType = lookup.getLookup().get(item.getName());
-        DatasetField field = fieldProvider.apply(fieldsByType);
+        DatasetFieldsOfType fieldsOfType = lookup.getLookup().get(item.getName());
+        DatasetField field = fieldProvider.apply(fieldsOfType);
         switch (item.getItemType()) {
             case COMPOUND:
                 fillCompoundField(field, item, fieldSetter, vocabularySetter);

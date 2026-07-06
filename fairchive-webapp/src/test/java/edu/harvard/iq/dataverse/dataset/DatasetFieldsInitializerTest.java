@@ -235,7 +235,7 @@ public class DatasetFieldsInitializerTest {
         Map<MetadataBlock, List<DatasetFieldsOfType>> updatedDsf = datasetFieldsInitializer.groupAndUpdateFlagsForEdit(datasetFields, dataverse);
 
         Optional<DatasetFieldsOfType> titleFields = updatedDsf.values().stream()
-                .flatMap(fieldsByTypes -> fieldsByTypes.stream())
+                .flatMap(fieldsOfTypes -> fieldsOfTypes.stream())
                 .filter(fieldByType -> fieldByType.getType().getName().equals("title"))
                 .findAny();
 
@@ -243,7 +243,7 @@ public class DatasetFieldsInitializerTest {
         
         assertAll(
                 () -> assertEquals(1, updatedDsf.values().stream()
-                            .flatMap(fieldsByTypes -> fieldsByTypes.stream())
+                            .flatMap(fieldsOfTypes -> fieldsOfTypes.stream())
                             .filter(DatasetFieldsOfType::isInclude).count()),
                 
                 () -> assertTrue(titleFields.isPresent()),

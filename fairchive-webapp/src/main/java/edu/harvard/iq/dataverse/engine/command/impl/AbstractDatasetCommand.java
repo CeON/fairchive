@@ -233,9 +233,9 @@ public abstract class AbstractDatasetCommand<T> extends AbstractCommand<T> {
     }
 
     private void updateDisplayOrder(List<DatasetField> fields) {
-        DatasetFieldUtil.groupByType(fields).forEach(fieldsByType -> {
+        DatasetFieldUtil.groupByType(fields).forEach(fieldsOfType -> {
 
-            List<DatasetField> singleTypeFields = fieldsByType.getDatasetFields();
+            List<DatasetField> singleTypeFields = fieldsOfType.getDatasetFields();
 
             for (int i = 0; i < singleTypeFields.size(); ++i) {
                 singleTypeFields.get(i).setDisplayOrder(i);

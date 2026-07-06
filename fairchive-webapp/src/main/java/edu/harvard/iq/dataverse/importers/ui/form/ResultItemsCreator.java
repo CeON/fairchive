@@ -121,9 +121,9 @@ public class ResultItemsCreator {
             return fields != null;
         }
 
-        public ResultItemWithFields(ResultItem resultItem, DatasetFieldsOfType fieldsByType) {
+        public ResultItemWithFields(ResultItem resultItem, DatasetFieldsOfType fieldsOfType) {
             this.resultItem = resultItem;
-            this.fields = fieldsByType;
+            this.fields = fieldsOfType;
         }
     }
 }

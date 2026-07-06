@@ -167,12 +167,12 @@ public class DatasetFieldsInitializer {
      */
     private void updateDatasetFieldIncludeFlag(Map<MetadataBlock, List<DatasetFieldsOfType>> metadataBlocks, Dataverse metadataBlocksDataverse) {
 
-        List<DatasetFieldsOfType> allFieldsByType = metadataBlocks.entrySet().stream()
+        List<DatasetFieldsOfType> allFieldsOfType = metadataBlocks.entrySet().stream()
                 .flatMap(blockAndFieldsByType -> blockAndFieldsByType.getValue().stream())
                 .collect(Collectors.toList());
         
-        List<Long> datasetFieldTypeIds = allFieldsByType.stream()
-                .map(fieldsByType -> fieldsByType.getType().getId())
+        List<Long> datasetFieldTypeIds = allFieldsOfType.stream()
+                .map(fieldsOfType -> fieldsOfType.getType().getId())
                 .collect(Collectors.toList());
 
         List<Long> fieldTypeIdsToHide = dataverseFieldTypeInputLevelService
@@ -182,10 +182,10 @@ public class DatasetFieldsInitializer {
                 .map(inputLevel -> inputLevel.getDatasetFieldType().getId())
                 .collect(Collectors.toList());
         
-        for (DatasetFieldsOfType fieldsByType : allFieldsByType) {
-            fieldsByType.setInclude(true);
-            if (fieldTypeIdsToHide.contains(fieldsByType.getType().getId())) {
-                fieldsByType.setInclude(false);
+        for (DatasetFieldsOfType fieldsOfType : allFieldsOfType) {
+            fieldsOfType.setInclude(true);
+            if (fieldTypeIdsToHide.contains(fieldsOfType.getType().getId())) {
+                fieldsOfType.setInclude(false);
             }
         }
     }

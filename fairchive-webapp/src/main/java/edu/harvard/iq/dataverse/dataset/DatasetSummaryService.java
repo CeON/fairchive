@@ -19,7 +19,7 @@ public class DatasetSummaryService {
         Map<String, DatasetFieldsOfType> allFieldsByType = DatasetFieldUtil.groupByType(datasetVersion.getFlatDatasetFields())
                 .stream()
                 .collect(HashMap::new,
-                        (map, fieldsByType) -> map.put(fieldsByType.getType().getName(), fieldsByType),
+                        (map, fieldsOfType) -> map.put(fieldsOfType.getType().getName(), fieldsOfType),
                         (map1, map2) -> map1.putAll(map2));
 
         List<DatasetFieldsOfType> fieldsOfTypes = new ArrayList<>();

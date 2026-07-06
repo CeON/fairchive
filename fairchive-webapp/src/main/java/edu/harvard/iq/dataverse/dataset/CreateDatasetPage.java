@@ -393,8 +393,8 @@ public class CreateDatasetPage implements Serializable {
     	final List<DatasetField> sourceFields = sourceDataset.getLatestVersionForCopy().
     			getDatasetFieldsAll();
     	
-    	for(final List<DatasetFieldsOfType> fieldsByType : this.metadataBlocksForEdit.values()) {
-    		for(final DatasetFieldsOfType fieldByType : fieldsByType) {
+    	for(final List<DatasetFieldsOfType> fieldsOfType : this.metadataBlocksForEdit.values()) {
+    		for(final DatasetFieldsOfType fieldByType : fieldsOfType) {
     			copyFields(fieldByType, sourceFields, sourceDataset);
 			}
     	}

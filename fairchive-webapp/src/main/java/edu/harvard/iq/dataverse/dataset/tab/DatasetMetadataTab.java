@@ -225,10 +225,10 @@ public class DatasetMetadataTab implements Serializable {
 			return result;
 		}
 
-		private List<DatasetFieldsOfType> translateByType(List<DatasetFieldsOfType> fieldsByType) {
-			final ArrayList<DatasetFieldsOfType> result = new ArrayList<>(fieldsByType.size());
+		private List<DatasetFieldsOfType> translateByType(List<DatasetFieldsOfType> fieldsOfType) {
+			final ArrayList<DatasetFieldsOfType> result = new ArrayList<>(fieldsOfType.size());
 
-			for (final DatasetFieldsOfType fieldByType : fieldsByType) {
+			for (final DatasetFieldsOfType fieldByType : fieldsOfType) {
 				final List<DatasetField> translated = translate(fieldByType.getDatasetFields());
 				result.add(new DatasetFieldsOfType(fieldByType.getType(), translated));
 			}

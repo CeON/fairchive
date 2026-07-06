@@ -119,7 +119,7 @@ public class DatasetFieldUtil {
     }
     
     public static List<DatasetFieldsOfType> groupByType(List<DatasetField> datasetFields) {
-        List<DatasetFieldsOfType> fieldsByTypes = new ArrayList<>();
+        List<DatasetFieldsOfType> result = new ArrayList<>();
         
         Map<DatasetFieldType, List<DatasetField>> fieldsByTypesMap = datasetFields.stream()
                 .collect(groupingBy(
@@ -127,16 +127,16 @@ public class DatasetFieldUtil {
                             LinkedHashMap::new,
                             mapping(Function.identity(), toList())));
         
-        fieldsByTypesMap.forEach((key, value) -> fieldsByTypes.add(new DatasetFieldsOfType(key, value)));
+        fieldsByTypesMap.forEach((key, value) -> result.add(new DatasetFieldsOfType(key, value)));
         
-        return fieldsByTypes;
+        return result;
     }
     
     public static List<DatasetField> flattenDatasetFieldsFromBlocks(Map<MetadataBlock, List<DatasetFieldsOfType>> fieldsByBlocksAndTypes) {
         
         return fieldsByBlocksAndTypes.entrySet().stream()
             .flatMap(blockAndFieldsByType -> blockAndFieldsByType.getValue().stream())
-            .flatMap(fieldsByType -> fieldsByType.getDatasetFields().stream())
+            .flatMap(fieldsOfType -> fieldsOfType.getDatasetFields().stream())
             .collect(toList());
     }
     

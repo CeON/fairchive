@@ -46,13 +46,13 @@ public class JsonDatasetFieldsPrinter {
         dsfFields.sort(Comparator.comparing(DatasetField::getDatasetFieldTypeDisplayOrder));
 
 
-        for (DatasetFieldsOfType fieldsByType: DatasetFieldUtil.groupByType(dsfFields)) {
-            if (excludeEmailFields && FieldType.EMAIL.equals(fieldsByType.getType().getFieldType())) {
+        for (DatasetFieldsOfType fieldsOfType: DatasetFieldUtil.groupByType(dsfFields)) {
+            if (excludeEmailFields && FieldType.EMAIL.equals(fieldsOfType.getType().getFieldType())) {
                 continue;
             }
 
-            DatasetFieldType dsfType = fieldsByType.getType();
-            List<DatasetField> datasetFields = fieldsByType.getDatasetFields();
+            DatasetFieldType dsfType = fieldsOfType.getType();
+            List<DatasetField> datasetFields = fieldsOfType.getDatasetFields();
 
             if (dsfType.isControlledVocabulary()) {
 
