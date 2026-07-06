@@ -27,6 +27,7 @@ public interface Harvester<T extends HarvesterParams> {
      *
      * @param params: Parameters to use for the harvest. Implementations may require specific parameters.
      */
-    HarvesterResult harvest(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, Logger hdLogger, T params)
+    HarvesterResult harvest(DataverseRequest dataverseRequest, 
+    		HarvestingClient harvestingClient, Logger hdLogger, T params)
             throws ImportException;
 }

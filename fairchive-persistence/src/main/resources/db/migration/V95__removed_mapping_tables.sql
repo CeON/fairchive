@@ -1,0 +1,2 @@
+drop table foreignmetadatafieldmapping;
+drop table foreignmetadataformatmapping;

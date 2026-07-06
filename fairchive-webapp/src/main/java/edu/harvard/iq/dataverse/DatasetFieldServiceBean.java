@@ -1,11 +1,6 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabAlternate;
-import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.ForeignMetadataFieldMapping;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -13,7 +8,12 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabAlternate;
+import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 
 /**
  * @author xyang
@@ -85,26 +85,6 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
         } catch (NoResultException nre) {
             return null;
         }
-    }
-
-    /*
-     * Similar method for looking up foreign metadata field mappings, for metadata
-     * imports. for these the uniquness of names isn't guaranteed (i.e., there
-     * can be a field "author" in many different formats that we want to support),
-     * so these have to be looked up by both the field name and the name of the
-     * foreign format.
-     */
-    public ForeignMetadataFieldMapping findFieldMapping(String formatName, String pathName) {
-        try {
-            return em.createNamedQuery("ForeignMetadataFieldMapping.findByPath", ForeignMetadataFieldMapping.class)
-                    .setParameter("formatName", formatName)
-                    .setParameter("xPath", pathName)
-                    .getSingleResult();
-        } catch (NoResultException nre) {
-            return null;
-        }
-
-        // TODO: cache looked up results.
     }
 
     public ControlledVocabularyValue findControlledVocabularyValueByIdentifier(Object pk) {

@@ -83,7 +83,7 @@ public class FileAccessIO<T extends DvObject> extends StorageIO<T> {
             return FileUtil.generateStorageIdentifier();
         } else {
             Dataset dataset = (Dataset) dvObject;
-            return DATASET_STORAGE_PREFIX + dataset.getAuthority() + "/" + dataset.getIdentifier();
+            return DATASET_STORAGE_PREFIX.concat(dataset.getGlobalId().getStoragePath());
         }
     }
 

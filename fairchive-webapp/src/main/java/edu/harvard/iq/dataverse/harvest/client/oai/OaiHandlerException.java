@@ -5,17 +5,18 @@
  */
 package edu.harvard.iq.dataverse.harvest.client.oai;
 
-/**
- * @author Leonid Andreev
- */
 @SuppressWarnings("serial")
 public class OaiHandlerException extends Exception {
-    public OaiHandlerException(String message) {
+	
+    public OaiHandlerException(final String message) {
         super(message);
     }
-
-    public OaiHandlerException(String message, Throwable cause) {
-        super(message, cause);
+    
+    public OaiHandlerException(final Throwable cause) {
+        super(cause);
     }
 
+    public OaiHandlerException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 }

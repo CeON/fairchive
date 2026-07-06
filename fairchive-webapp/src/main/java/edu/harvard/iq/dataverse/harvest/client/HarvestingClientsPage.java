@@ -29,7 +29,7 @@ import org.omnifaces.cdi.ViewScoped;
 
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.NavigationWrapper;
-import edu.harvard.iq.dataverse.api.imports.HarvestImporterTypeResolver;
+import edu.harvard.iq.dataverse.api.imports.HarvestImporterType;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandler;
@@ -68,8 +68,6 @@ public class HarvestingClientsPage implements java.io.Serializable {
     private HarvestingClientsService harvestingClientsService;
     @Inject
     private SystemConfig systemConfig;
-    @Inject
-    private HarvestImporterTypeResolver harvestImporterTypeResolver;
 
     private List<HarvestingClient> configuredHarvestingClients;
     private Dataverse dataverse;
@@ -493,7 +491,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         return true;
     }
 
-    public boolean validateServerUrlOAI() {
+    public boolean validateServerUrlOAI() throws Exception {
         if (!isEmpty(getNewHarvestingUrl())) {
 
             OaiHandler oaiHandler = new OaiHandler(getNewHarvestingUrl());
@@ -502,9 +500,9 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
             // First, we'll try to obtain the list of supported metadata formats:
             try {
-                List<MetadataFormat> formats = oaiHandler.runListMetadataFormats();
+                List<MetadataFormat> formats = oaiHandler.listMetadataFormats();
                 if (!formats.isEmpty()) {
-                    List<MetadataFormat> supportedFormats = harvestImporterTypeResolver.filterSupportedFormats(formats);
+                    List<MetadataFormat> supportedFormats = HarvestImporterType.filterSupported(formats);
                     if (!supportedFormats.isEmpty()) {
                         createOaiMetadataFormatSelectItems(supportedFormats);
                     } else {
@@ -534,7 +532,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
             if (success) {
                 try {
-                    List<String> sets = oaiHandler.runListSets();
+                    List<String> sets = oaiHandler.listSets();
                     createOaiSetsSelectItems(sets);
                 } catch (Exception ex) {
                     //success = false; 
@@ -567,7 +565,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         return false;
     }
 
-    public void validateInitialSettings() {
+    public void validateInitialSettings() throws Exception {
         if (isHarvestTypeOAI()) {
             boolean nicknameValidated = true;
             boolean destinationDataverseValidated = true;
