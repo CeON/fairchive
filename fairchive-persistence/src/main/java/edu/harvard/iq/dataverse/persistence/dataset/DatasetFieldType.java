@@ -515,6 +515,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     public boolean isGeoName() {
         return this.fieldType.isGeoName();
     }
+    
+    public boolean isEmail() {
+    	return this.fieldType.isEmail();
+    }
 
     @Override
     public int compareTo(DatasetFieldType o) {

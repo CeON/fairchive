@@ -63,6 +63,12 @@ public class DatasetFieldsByType {
         applyDefaultValues(newField);
         datasetFields.add(position, newField);
     }
+    
+    public void addEmptyDatasetField() {
+        DatasetField newField = DatasetField.createNewEmptyDatasetField(datasetFieldType, null);
+        applyDefaultValues(newField);
+        datasetFields.add(newField);
+    }
 
     public DatasetField addAndReturnEmptyDatasetField(int position) {
         addEmptyDatasetField(position);

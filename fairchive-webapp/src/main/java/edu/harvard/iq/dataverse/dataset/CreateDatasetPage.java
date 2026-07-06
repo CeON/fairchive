@@ -3,6 +3,8 @@ package edu.harvard.iq.dataverse.dataset;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ProvCollectionEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.PublicInstall;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -371,7 +373,7 @@ public class CreateDatasetPage implements Serializable {
         datasetFields = this.datasetFieldsInitializer.prepareDatasetFieldsForEdit(datasetFields, 
         		this.dataset.getOwner().getMetadataBlockRootDataverse());
 
-        if (this.session.isUserLoggedIn()) {
+        if (this.sourceDatasetId == null && this.session.isUserLoggedIn()) {
         	this.userDataFieldFiller.fillUserDataInDatasetFields(datasetFields, this.session.getAuthenticatedUser());
         }
 
@@ -383,40 +385,69 @@ public class CreateDatasetPage implements Serializable {
         if(this.sourceDatasetId != null) {
         	copyFieldValuesFromSourceDataset();
         }
-
     }
     
     private void copyFieldValuesFromSourceDataset() {
   	
-    	final List<DatasetField> sourceFields = this.datasetService.find(this.sourceDatasetId).
-    			getLatestVersionForCopy().getDatasetFieldsAll();
+    	final Dataset sourceDataset = this.datasetService.find(this.sourceDatasetId);
+    	final List<DatasetField> sourceFields = sourceDataset.getLatestVersionForCopy().
+    			getDatasetFieldsAll();
     	
     	for(final List<DatasetFieldsByType> fieldsByType : this.metadataBlocksForEdit.values()) {
     		for(final DatasetFieldsByType fieldByType : fieldsByType) {
-    			for(final DatasetField field : fieldByType.getDatasetFields()) {
-    				copyFieldValue(field, sourceFields);
-    			}
-    		}
+    			copyFields(fieldByType, sourceFields, sourceDataset);
+			}
     	}
     }
     
-    private static void copyFieldValue(final DatasetField target, 
-    		final List<DatasetField> sourceFields) {
-    	
-    	find(sourceFields, target.getDatasetFieldType()).ifPresent(source -> {
-			if(source.getFieldValue().isDefined()) {
-				target.setValue(source.getFieldValue().get());
+	private boolean allowedToCopySensitiveDataFrom(final DatasetFieldType fieldType, 
+			final Dataset sourceDataset) {
+
+		if (fieldType.isEmail()) {
+			return this.permissionsWrapper.canCurrentUserUpdateDataset(sourceDataset)
+					|| this.session.isSuperUserLoggedIn();
+		} else {
+			return true;
+		}
+	}
+	
+	private void copyFields(final DatasetFieldsByType fieldByType, 
+			final List<DatasetField> sourceFields, final Dataset sourceDataset) {
+		
+		final List<DatasetField> selectedCourceFields = sourceFields.stream().
+				filter(field -> field.isOfType(fieldByType.getDatasetFieldType()))
+				.collect(toList());
+		
+		while(fieldByType.getDatasetFields().size() < selectedCourceFields.size()) {
+			fieldByType.addEmptyDatasetField();
+		}
+				
+		if(!selectedCourceFields.isEmpty()) {
+			for(int index = 0; index < fieldByType.getDatasetFields().size(); ++index) {
+				copyFieldValue(fieldByType.getDatasetFields().get(index),
+						singletonList(selectedCourceFields.get(index)), sourceDataset);
 			}
-			if(! source.getControlledVocabularyValues().isEmpty()) {
-				target.setControlledVocabularyValues(source.getControlledVocabularyValues());
-			}
-			
-			if(target.getDatasetFieldType().isCompound()) {
-				for(final DatasetField childTarget : target.getChildren()) {
-					copyFieldValue(childTarget, source.getChildren());
+		}
+	}
+    
+    private void copyFieldValue(final DatasetField target, 
+    		final List<DatasetField> sourceFields, final Dataset sourceDataset) {
+    	if(allowedToCopySensitiveDataFrom(target.getDatasetFieldType(), sourceDataset)) {
+	    	find(sourceFields, target.getDatasetFieldType()).ifPresent(source -> {
+				if(source.getFieldValue().isDefined()) {
+					target.setValue(source.getFieldValue().get());
 				}
-			}
-		});
+				if(! source.getControlledVocabularyValues().isEmpty()) {
+					target.setControlledVocabularyValues(source.getControlledVocabularyValues());
+				}
+				
+				if(target.getDatasetFieldType().isCompound()) {
+					for(final DatasetField childTarget : target.getChildren()) {
+						copyFieldValue(childTarget, source.getChildren(), sourceDataset);
+					}
+				}
+			});
+    	}
     }
     
     private static Optional<DatasetField> find(final List<DatasetField> fields, 
