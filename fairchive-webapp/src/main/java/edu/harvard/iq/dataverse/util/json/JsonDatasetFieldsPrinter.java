@@ -52,11 +52,10 @@ public class JsonDatasetFieldsPrinter {
             }
 
             DatasetFieldType dsfType = fieldsOfType.getType();
-            List<DatasetField> datasetFields = fieldsOfType.getDatasetFields();
 
             if (dsfType.isControlledVocabulary()) {
 
-                List<String> controlledVocabularyStrValues = datasetFields.stream()
+                List<String> controlledVocabularyStrValues = fieldsOfType.stream()
                     .flatMap(dsf -> dsf.getControlledVocabularyValues().stream())
                     .sorted(ControlledVocabularyValue.DisplayOrder)
                     .map(ControlledVocabularyValue::getStrValue)
@@ -69,7 +68,7 @@ public class JsonDatasetFieldsPrinter {
 
             } else if (dsfType.isPrimitive()) {
 
-                List<String> fieldValues = datasetFields.stream()
+                List<String> fieldValues = fieldsOfType.stream()
                     .map(dsf -> dsf.getFieldValue())
                     .filter(fieldValue -> fieldValue.isDefined())
                     .map(Option::get)
@@ -82,7 +81,7 @@ public class JsonDatasetFieldsPrinter {
 
             } else if (dsfType.isCompound()) {
 
-                List<JsonObject> fieldNodes = datasetFields.stream()
+                List<JsonObject> fieldNodes = fieldsOfType.stream()
                     .map(datasetField -> parseChildren(excludeEmailFields, datasetField))
                     .collect(toList());
 

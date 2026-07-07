@@ -1,20 +1,33 @@
 package edu.harvard.iq.dataverse.importers.ui;
 
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.BLOCK_NAME;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.CHILD;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.COMPOUND;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.OF;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.PARENT;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.SECOND;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.SIMPLE;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOCABULARY;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_1;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_2;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_3;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_A;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_B;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_C;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.*;
 
 public class TestMetadataCreator {
     public static final DatasetFieldType PARENT_SIMPLE = createDFT(PARENT + SIMPLE, false, false, 1);
@@ -40,18 +53,18 @@ public class TestMetadataCreator {
     public static Map<MetadataBlock, List<DatasetFieldsOfType>> createTestMetadata() {
         MetadataBlock block = new MetadataBlock();
         block.setName(BLOCK_NAME);
-        return Collections.singletonMap(block, createDFsByType(TestMetadataCreator::getTestDFTs));
+        return singletonMap(block, createDFsByType(TestMetadataCreator::getTestDFTs));
     }
 
     public static List<DatasetFieldType> getTestDFTs() {
         return Stream.of(PARENT_SIMPLE, PARENT_VOCABULARY, PARENT_COMPOUND, PARENT_SECOND_COMPOUND)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public static List<DatasetFieldsOfType> createDFsByType(Supplier<List<DatasetFieldType>> fieldTypes) {
         return fieldTypes.get().stream()
-                .map(t -> new DatasetFieldsOfType(t, new ArrayList<>()))
-                .collect(Collectors.toList());
+                .map(DatasetFieldsOfType::new)
+                .collect(toList());
     }
 
     // -------------------- PRIVATE --------------------

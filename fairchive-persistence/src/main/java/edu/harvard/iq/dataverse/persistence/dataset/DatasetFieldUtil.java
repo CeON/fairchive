@@ -127,6 +127,7 @@ public class DatasetFieldUtil {
                             LinkedHashMap::new,
                             mapping(Function.identity(), toList())));
         
+        System.gc();
         fieldsByTypesMap.forEach((key, value) -> result.add(new DatasetFieldsOfType(key, value)));
         
         return result;
@@ -136,7 +137,7 @@ public class DatasetFieldUtil {
         
         return fieldsByBlocksAndTypes.entrySet().stream()
             .flatMap(blockAndFieldsByType -> blockAndFieldsByType.getValue().stream())
-            .flatMap(fieldsOfType -> fieldsOfType.getDatasetFields().stream())
+            .flatMap(DatasetFieldsOfType::stream)
             .collect(toList());
     }
     

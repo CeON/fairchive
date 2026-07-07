@@ -418,13 +418,13 @@ public class CreateDatasetPage implements Serializable {
 				filter(field -> field.isOfType(fieldByType.getType()))
 				.collect(toList());
 		
-		while(fieldByType.getDatasetFields().size() < selectedCourceFields.size()) {
-			fieldByType.addEmptyDatasetField();
+		while(fieldByType.size() < selectedCourceFields.size()) {
+			fieldByType.addEmpty();
 		}
 				
 		if(!selectedCourceFields.isEmpty()) {
-			for(int index = 0; index < fieldByType.getDatasetFields().size(); ++index) {
-				copyFieldValue(fieldByType.getDatasetFields().get(index),
+			for(int index = 0; index < fieldByType.size(); ++index) {
+				copyFieldValue(fieldByType.get(index),
 						singletonList(selectedCourceFields.get(index)), sourceDataset);
 			}
 		}
@@ -497,7 +497,7 @@ public class CreateDatasetPage implements Serializable {
         final List<DatasetField> sourceFields = new ArrayList<>();
         for (final List<DatasetFieldsOfType> fieldsOfTypeList : this.metadataBlocksForEdit.values()) {
             for (final DatasetFieldsOfType fieldsOfType : fieldsOfTypeList) {
-                for (final DatasetField field : fieldsOfType.getDatasetFields()) {
+                for (final DatasetField field : fieldsOfType) {
                     if (sourceId.equals(field.getTypeName())) {
                         sourceFields.add(field);
                     }

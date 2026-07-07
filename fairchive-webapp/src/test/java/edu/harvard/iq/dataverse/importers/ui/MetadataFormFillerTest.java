@@ -1,31 +1,43 @@
 package edu.harvard.iq.dataverse.importers.ui;
 
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.BLOCK_NAME;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.CHILD;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.COMPOUND;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.PARENT;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.SIMPLE;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VALUE;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOCABULARY;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_1;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_2;
+import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.VOC_3;
+import static edu.harvard.iq.dataverse.importers.ui.TestMetadataUtils.createItems;
+import static edu.harvard.iq.dataverse.importers.ui.TestMetadataUtils.extract;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import edu.harvard.iq.dataverse.importer.metadata.ResultField;
 import edu.harvard.iq.dataverse.importers.ui.form.ProcessingType;
 import edu.harvard.iq.dataverse.importers.ui.form.ResultItem;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import static edu.harvard.iq.dataverse.importers.ui.MetadataNamesConstants.*;
-import static edu.harvard.iq.dataverse.importers.ui.TestMetadataUtils.createItems;
-import static edu.harvard.iq.dataverse.importers.ui.TestMetadataUtils.extract;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 
 public class MetadataFormFillerTest {
 
@@ -46,18 +58,18 @@ public class MetadataFormFillerTest {
         Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
         DatasetFieldsOfType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
 
-        DatasetField field = parentSimpleOnForm.addAndReturnEmptyDatasetField(0);
+        DatasetField field = parentSimpleOnForm.addEmpty();
         field.setId(1L);
 
-        List<ResultItem> items = createItems(Collections.singletonList(ResultField.of(PARENT + SIMPLE, "Value")));
+        List<ResultItem> items = createItems(singletonList(ResultField.of(PARENT + SIMPLE, "Value")));
         items.get(0).setProcessingType(ProcessingType.OVERWRITE);
 
         // when
         filler.fillForm(items);
 
         // then
-        DatasetField fieldAfterFill = parentSimpleOnForm.getDatasetFields().get(0);
-        assertThat(parentSimpleOnForm.getDatasetFields(), hasSize(1));
+        DatasetField fieldAfterFill = parentSimpleOnForm.get(0);
+        assertEquals(1, parentSimpleOnForm.size());
         assertThat(fieldAfterFill, not(equalTo(field)));
     }
 
@@ -68,18 +80,18 @@ public class MetadataFormFillerTest {
         Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
         DatasetFieldsOfType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
 
-        DatasetField field = parentSimpleOnForm.addAndReturnEmptyDatasetField(0);
+        DatasetField field = parentSimpleOnForm.addEmpty();
         field.setId(1L); // id does not have impact on field emptiness
 
-        List<ResultItem> items = createItems(Collections.singletonList(ResultField.of(PARENT + SIMPLE, VALUE)));
+        List<ResultItem> items = createItems(singletonList(ResultField.of(PARENT + SIMPLE, VALUE)));
         items.get(0).setProcessingType(ProcessingType.FILL_IF_EMPTY);
 
         // when
         filler.fillForm(items);
 
         // then
-        DatasetField fieldAfterFill = parentSimpleOnForm.getDatasetFields().get(0);
-        assertThat(parentSimpleOnForm.getDatasetFields(), hasSize(1));
+        DatasetField fieldAfterFill = parentSimpleOnForm.get(0);
+        assertEquals(1, parentSimpleOnForm.size());
         assertThat(fieldAfterFill.getValue(), is(VALUE));
         assertThat(fieldAfterFill, equalTo(field));
     }
@@ -91,19 +103,19 @@ public class MetadataFormFillerTest {
         Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
         DatasetFieldsOfType parentSimpleOnForm = formLookup.get(PARENT + SIMPLE);
 
-        DatasetField field = parentSimpleOnForm.addAndReturnEmptyDatasetField(0);
+        DatasetField field = parentSimpleOnForm.addEmpty();
         field.setId(1L);
         field.setValue("some other value");
 
-        List<ResultItem> items = createItems(Collections.singletonList(ResultField.of(PARENT + SIMPLE, VALUE)));
+        List<ResultItem> items = createItems(singletonList(ResultField.of(PARENT + SIMPLE, VALUE)));
         items.get(0).setProcessingType(ProcessingType.FILL_IF_EMPTY);
 
         // when
         filler.fillForm(items);
 
         // then
-        DatasetField fieldAfterFill = parentSimpleOnForm.getDatasetFields().get(0);
-        assertThat(parentSimpleOnForm.getDatasetFields(), hasSize(1));
+        DatasetField fieldAfterFill = parentSimpleOnForm.get(0);
+        assertEquals(1, parentSimpleOnForm.size());
         assertThat(fieldAfterFill.getValue(), not(equalTo(VALUE)));
         assertThat(fieldAfterFill, equalTo(field));
     }
@@ -126,8 +138,8 @@ public class MetadataFormFillerTest {
 
         // then
         Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
-        List<DatasetField> parentCompounds = formLookup.get(PARENT + COMPOUND).getDatasetFields();
-        assertThat(parentCompounds, hasSize(3));
+        DatasetFieldsOfType parentCompounds = formLookup.get(PARENT + COMPOUND);
+        assertEquals(3, parentCompounds.size());
     }
 
     @Test
@@ -137,10 +149,7 @@ public class MetadataFormFillerTest {
         Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
 
         DatasetFieldsOfType parentCompound = formLookup.get(PARENT + COMPOUND);
-        IntStream.range(0, 10).forEach(i -> {
-            DatasetField field = parentCompound.addAndReturnEmptyDatasetField(i);
-            field.setValue(VALUE);
-        });
+        range(0, 10).forEach(i -> parentCompound.addEmpty().setValue(VALUE));
 
         List<ResultItem> items = createItems(
                 Stream.of(
@@ -157,7 +166,8 @@ public class MetadataFormFillerTest {
         filler.fillForm(items);
 
         // then
-        assertThat(parentCompound.getDatasetFields(), hasSize(3));
+        assertEquals(3, parentCompound.size());
+        
     }
 
     @Test
@@ -170,7 +180,7 @@ public class MetadataFormFillerTest {
                                 ResultField.ofValue(VOC_1),
                                 ResultField.ofValue(VOC_2),
                                 ResultField.ofValue(VOC_3)))
-                        .collect(Collectors.toList()));
+                        .collect(toList()));
         items.get(0).setProcessingType(ProcessingType.OVERWRITE);
 
         // when
@@ -178,8 +188,8 @@ public class MetadataFormFillerTest {
 
         // then
         Map<String, DatasetFieldsOfType> formLookup = lookup.getLookup();
-        List<DatasetField> parentVocabulary = formLookup.get(PARENT + VOCABULARY).getDatasetFields();
-        assertThat(parentVocabulary, hasSize(1));
+        DatasetFieldsOfType parentVocabulary = formLookup.get(PARENT + VOCABULARY);
+        assertEquals(1, parentVocabulary.size());
         List<ControlledVocabularyValue> vocabularyValues = parentVocabulary.get(0).getControlledVocabularyValues();
         assertThat(vocabularyValues, hasSize(3));
         assertThat(extract(vocabularyValues, ControlledVocabularyValue::getStrValue),

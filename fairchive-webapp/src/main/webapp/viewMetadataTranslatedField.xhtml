@@ -18,7 +18,7 @@
             </p>
         </ui:fragment>
 
-        <ui:repeat var="datasetField" value="#{fieldsOfType.datasetFields}" varStatus="fieldsLoop">
+        <ui:repeat var="datasetField" value="#{fieldsOfType.fields}" varStatus="fieldsLoop">
             <div style="display: none" class="datasetfield-original-value ">
                 <ui:repeat var="value" value="#{datasetField.values}" varStatus="valuesLoop">
                     <c:set var="valueToDisplay" value="#{datasetFieldValueRenderer.getRendererFor(datasetField).render(value)}"/>

@@ -19,9 +19,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
 import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,12 +49,12 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.config.JsonMapConverter;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;

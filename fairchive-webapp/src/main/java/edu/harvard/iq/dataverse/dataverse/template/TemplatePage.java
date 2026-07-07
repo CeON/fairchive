@@ -119,7 +119,7 @@ public class TemplatePage implements java.io.Serializable {
 
     public String save() {
         mdbForEdit.values()
-                .forEach(v -> v.forEach(datasetFieldType -> saveDatasetFieldsGUIOrder(datasetFieldType.getDatasetFields())));
+                .forEach(v -> v.forEach(datasetFieldType -> saveDatasetFieldsGUIOrder(datasetFieldType.getFields())));
         template.setDatasetFields(DatasetFieldUtil.flattenDatasetFieldsFromBlocks(mdbForEdit));
 
         Try<Template> saveResult = handleSave();

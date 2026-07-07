@@ -178,7 +178,7 @@ public class EditDatasetMetadataPage implements Serializable {
         List<DatasetField> sourceFields = new ArrayList<>();
         for (List<DatasetFieldsOfType> fieldsOfTypeList : metadataBlocksForEdit.values()) {
             for (DatasetFieldsOfType fieldsOfType : fieldsOfTypeList) {
-                for (DatasetField field : fieldsOfType.getDatasetFields()) {
+                for (DatasetField field : fieldsOfType) {
                     if (sourceId.equals(field.getTypeName())) {
                         sourceFields.add(field);
                     }

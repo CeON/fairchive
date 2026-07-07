@@ -1,46 +1,55 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import com.google.common.base.Preconditions;
+import static java.util.Collections.unmodifiableList;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Model class grouping dataset fields with the same type
  * and perform some actions on them
  * @author madryk
  */
-public class DatasetFieldsOfType {
+public final class DatasetFieldsOfType implements Iterable<DatasetField> {
 
-    private final DatasetFieldType type;
+    private static FieldDefaultValueApplier defaultValueApplier = new FieldDefaultValueApplier();
 
-    private final List<DatasetField> datasetFields;
-
-    // Currently this is the only action we perform on the fields.
-    // If the number increases this should be made into more generic form, eg.
-    // some kind of factory and collection of field actions.
-    private FieldValueDivider divider;
-
-    private FieldDefaultValueApplier defaultValueApplier = new FieldDefaultValueApplier();
-
+	private final DatasetFieldType type;
+	private final ArrayList<DatasetField> fields = new ArrayList<>();
     private boolean include = true;
+    private FieldValueDivider divider;
+    
+    //--------------------------------------------------------------------------
 
-    // -------------------- CONSTRUCTORS --------------------
-
-    public DatasetFieldsOfType(final DatasetFieldType datasetFieldType, final List<DatasetField> datasetFields) {
-        datasetFields.forEach(field -> Preconditions.checkArgument(field.getDatasetFieldType().equals(datasetFieldType)));
-
-        this.type = datasetFieldType;
-        this.datasetFields = datasetFields;
+    public DatasetFieldsOfType(final DatasetFieldType type) {
+    	
+    	this.type = type;
+    }
+    
+    public DatasetFieldsOfType(final DatasetFieldType type, final List<DatasetField> fields) {
+    	
+        this.type = type;
+        fields.forEach(this::add);
     }
 
-    // -------------------- GETTERS --------------------
+	public boolean add(final DatasetField field) {
+		
+    	if(field.isOfType(this.type)) {
+    		return this.fields.add(field);
+    	} else {
+    		throw new IllegalArgumentException(
+    				"Field " + field + " is not of type " + this.type);
+    	}
+	}
 
-    public DatasetFieldType getType() {
+	public DatasetFieldType getType() {
         return this.type;
     }
 
-    public List<DatasetField> getDatasetFields() {
-        return this.datasetFields;
+    public List<DatasetField> getFields() {
+        return unmodifiableList(this.fields);
     }
 
     /**
@@ -52,73 +61,88 @@ public class DatasetFieldsOfType {
         return this.include;
     }
     
+    public void setInclude(final boolean include) {
+        this.include = include;
+    }
+    
     public boolean isVisibleThroughAnonymizedUrl() {
         return this.type.isVisibleThroughAnonymizedUrl();
     }
 
     // -------------------- LOGIC --------------------
 
-    public void addEmptyDatasetField(int position) {
-        DatasetField newField = DatasetField.createNewEmptyDatasetField(this.type, null);
-        applyDefaultValues(newField);
-        this.datasetFields.add(position, newField);
+    public DatasetField addEmpty(final int position) {
+        final DatasetField field = DatasetField.createNewEmptyDatasetField(this.type, null);
+        defaultValueApplier.applyDefaultValue(field);
+        this.fields.add(position, field);
+        return field;
     }
     
-    public void addEmptyDatasetField() {
-        DatasetField newField = DatasetField.createNewEmptyDatasetField(this.type, null);
-        applyDefaultValues(newField);
-        this.datasetFields.add(newField);
+    public DatasetField addEmpty() {
+        DatasetField field = DatasetField.createNewEmptyDatasetField(this.type, null);
+        defaultValueApplier.applyDefaultValue(field);
+        this.fields.add(field);
+        return field;
     }
-
-    public DatasetField addAndReturnEmptyDatasetField(int position) {
-        addEmptyDatasetField(position);
-        return this.datasetFields.get(position);
+    
+    public DatasetField clearAndAddEmpty() {
+    	this.fields.clear();
+        return addEmpty();
+    }
+    
+    public DatasetField getLast() {
+        return this.fields.isEmpty()? addEmpty() : this.fields.get(size() - 1);
     }
 
     public void divide(final int position, final String delimiter) {
-        List<DatasetField> divided = getDivider().divide(this.datasetFields.get(position), delimiter);
-        if (this.datasetFields.size() > 1 || !divided.isEmpty()) { // remove field only if that won't left us with no fields
-            this.datasetFields.remove(position);
+        final List<DatasetField> divided = getDivider().divide(get(position), delimiter);
+        if (size() > 1 || !divided.isEmpty()) { // remove field only if that won't left us with no fields
+        	this.fields.remove(position);
         }
-        this.datasetFields.addAll(position, divided);
+        this.fields.addAll(position, divided);
     }
 
     public void copyValues(final List<DatasetField> sources, final String sourceName, int position) {
     	
     	final int totalRequiredLength = position + sources.size();
-    	while(totalRequiredLength > this.datasetFields.size()) {
-    		this.datasetFields.add(DatasetField.createNewEmptyChildDatasetField(this.type, null));
+    	while(totalRequiredLength > size()) {
+    		add(DatasetField.createNewEmptyChildDatasetField(this.type, null));
     	}
     	
     	for (final DatasetField source : sources) {
-    		this.datasetFields.get(position++).copyChildValuesFrom(source);
+    		this.fields.get(position++).copyChildValuesFrom(source);
     	}
     }
 
-    public void removeDatasetField(final int position) {
-        this.datasetFields.remove(position);
-    }
-
     public boolean areAllFieldsEmpty() {
-        return this.datasetFields.stream().allMatch(DatasetField::isEmpty);
+        return this.fields.stream().allMatch(DatasetField::isEmpty);
     }
-
-    // -------------------- PRIVATE --------------------
+    
+    public DatasetField get(final int index) {
+    	return this.fields.get(index);
+    }
+    
+    @Override
+    public Iterator<DatasetField> iterator() {
+    	return this.fields.iterator();
+    }
+    
+    public Stream<DatasetField> stream() {
+    	return this.fields.stream();
+    }
+    
+    public int size() {
+    	return this.fields.size();
+    }
+    
+    public boolean isEmpty() {
+    	return this.fields.isEmpty();
+    }
 
     private FieldValueDivider getDivider() {
         if (this.divider == null) {
             this.divider = FieldValueDivider.create(this.type);
         }
         return this.divider;
-    }
-
-    private void applyDefaultValues(final DatasetField datasetField) {
-        this.defaultValueApplier.applyDefaultValue(datasetField);
-    }
-
-    // -------------------- SETTERS --------------------
-
-    public void setInclude(final boolean include) {
-        this.include = include;
     }
 }

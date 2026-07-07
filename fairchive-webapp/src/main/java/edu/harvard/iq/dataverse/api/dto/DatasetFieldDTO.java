@@ -222,10 +222,9 @@ public class DatasetFieldDTO {
             datasetFields.forEach(f -> f.getDatasetFieldsChildren()
                     .sort(comparing(DatasetField::getDatasetFieldTypeDisplayOrder)));
             List<DatasetFieldDTO> fields = new ArrayList<>();
-            for (DatasetFieldsOfType fieldsByType : DatasetFieldUtil.groupByType(datasetFields)) {
-                DatasetFieldType fieldType = fieldsByType.getType();
+            for (DatasetFieldsOfType fieldsOfType : DatasetFieldUtil.groupByType(datasetFields)) {
+                DatasetFieldType fieldType = fieldsOfType.getType();
                 DatasetFieldDTO field = createForType(fieldType);
-                List<DatasetField> fieldsOfType = fieldsByType.getDatasetFields();
                 List<?> values = emptyList();
                 if (fieldType.isControlledVocabulary()) {
                     values = fieldsOfType.stream()

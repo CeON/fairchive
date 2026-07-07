@@ -19,7 +19,7 @@
         </ui:fragment>
 
         <ui:repeat var="datasetField" 
-                   value="#{fieldsOfType.datasetFields}" 
+                   value="#{fieldsOfType.fields}" 
                    varStatus="fieldsLoop">
             <div style="#{fieldsLoop.last ? '': 'padding-bottom: 10px;'}" 
                  class="datasetfield-value #{datasetField.datasetFieldType.separableOnGui ? 'datasetfield-separable' : ''}">

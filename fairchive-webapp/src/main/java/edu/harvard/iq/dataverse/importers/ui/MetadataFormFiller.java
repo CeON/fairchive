@@ -34,13 +34,13 @@ public class MetadataFormFiller {
             switch (item.getProcessingType()) {
                 case OVERWRITE:
                 case MULTIPLE_OVERWRITE:
-                    processItem(item, this::clearAllAndCreateNew, this::setItemValue, this::overwriteVocabulary);
+                    processItem(item, DatasetFieldsOfType::clearAndAddEmpty, this::setItemValue, this::overwriteVocabulary);
                     break;
                 case MULTIPLE_CREATE_NEW:
                     processItem(item, this::createOrTakeEmptyField, this::setItemValue, this::overwriteVocabulary);
                     break;
                 case FILL_IF_EMPTY:
-                    processItem(item, this::takeLastOrCreate, this::setIfBlank, this::setVocabularyIfEmpty);
+                    processItem(item, DatasetFieldsOfType::getLast, this::setIfBlank, this::setVocabularyIfEmpty);
                     break;
                 default:
                     break;
@@ -103,29 +103,15 @@ public class MetadataFormFiller {
                 .orElseThrow(() -> new IllegalStateException("Child field [" + name + "] not found!"));
     }
 
-    private DatasetField clearAllAndCreateNew(DatasetFieldsOfType datasetFieldsOfType) {
-        List<DatasetField> fields = datasetFieldsOfType.getDatasetFields();
-        fields.clear();
-        return datasetFieldsOfType.addAndReturnEmptyDatasetField(0);
-    }
-
-    private DatasetField takeLastOrCreate(DatasetFieldsOfType datasetFieldsOfType) {
-        List<DatasetField> fields = datasetFieldsOfType.getDatasetFields();
-        return fields.isEmpty()
-                ? datasetFieldsOfType.addAndReturnEmptyDatasetField(0)
-                : fields.get(fields.size() - 1);
-    }
-
-    private DatasetField createOrTakeEmptyField(DatasetFieldsOfType datasetFieldsOfType) {
-        List<DatasetField> fields = datasetFieldsOfType.getDatasetFields();
-        if (fields.isEmpty()) {
-            return datasetFieldsOfType.addAndReturnEmptyDatasetField(0);
+    private DatasetField createOrTakeEmptyField(DatasetFieldsOfType fieldsOfType) {
+        if (fieldsOfType.isEmpty()) {
+            return fieldsOfType.addEmpty(0);
         } else {
-            int index = fields.size() - 1;
-            DatasetField field = fields.get(index);
+            int index = fieldsOfType.size() - 1;
+            DatasetField field = fieldsOfType.get(index);
             return field.isEmpty()
                     ? field
-                    : datasetFieldsOfType.addAndReturnEmptyDatasetField(index + 1);
+                    : fieldsOfType.addEmpty(index + 1);
         }
     }
 

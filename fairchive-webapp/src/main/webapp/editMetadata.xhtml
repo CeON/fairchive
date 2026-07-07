@@ -64,7 +64,7 @@
 
                                 <div class="col-sm-9 form-group">
                                     <ui:fragment rendered="#{!fieldsOfType.type.controlledVocabulary}">
-                                    <ui:repeat id="datasetFields" value="#{fieldsOfType.datasetFields}" var="datasetField" varStatus="valCount" >
+                                    <ui:repeat id="datasetFields" value="#{fieldsOfType.fields}" var="datasetField" varStatus="valCount" >
                                         <c:set var="currentMap" value="map_#{metadataBlockVal.key.name}_#{fieldsOfTypeStatus.index}_#{valCount.index}"/>
                                         <div class="form-col-container form-group
                                                 #{fieldsOfType.type.compound ? 'edit-compound-field form-field-group':'edit-field'}">
@@ -115,14 +115,14 @@
                                             <div class="col-xs-3 field-add-delete" jsf:rendered="#{fieldsOfType.type.allowMultiples and !fieldsOfType.type.controlledVocabulary}">
                                                 <p:commandLink title="#{bundle.add}"
                                                                styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsOfType.type.compound ? 'compound-field-btn' : ''}"
-                                                               actionListener="#{fieldsOfType.addEmptyDatasetField(valCount.index + 1)}"
+                                                               actionListener="#{fieldsOfType.addEmpty(valCount.index + 1)}"
                                                                update=":#{p:resolveClientIds('@id(fieldsOfTypeFragment)', view)}">
                                                     <span class="glyphicon glyphicon-plus no-text"/>
                                                     <o:skipValidators />
                                                 </p:commandLink>
                                                 <p:commandLink title="#{bundle.delete}"
                                                                styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsOfType.type.compound ? 'compound-field-btn' : ''}"
-                                                               rendered="#{isGeospatial and fieldsOfType.datasetFields.size() > 1}"
+                                                               rendered="#{isGeospatial and fieldsOfType.size() > 1}"
                                                                actionListener="#{fieldsOfType.removeDatasetField(valCount.index)}"
                                                                update=":#{p:resolveClientIds('@id(fieldsOfTypeFragment)', view)}"
                                                                onclick="DvJS.Geo.EditView.remove($(this).attr('data-map'))"
@@ -132,7 +132,7 @@
                                                 </p:commandLink>
                                                 <p:commandLink title="#{bundle.delete}"
                                                                styleClass="btn btn-default btn-sm bootstrap-button-tooltip #{fieldsOfType.type.compound ? 'compound-field-btn' : ''}"
-                                                               rendered="#{not isGeospatial and fieldsOfType.datasetFields.size() > 1}"
+                                                               rendered="#{not isGeospatial and fieldsOfType.size() > 1}"
                                                                actionListener="#{fieldsOfType.removeDatasetField(valCount.index)}"
                                                                update=":#{p:resolveClientIds('@id(fieldsOfTypeFragment)', view)}">
                                                     <span class="glyphicon glyphicon-minus no-text"/>
@@ -177,7 +177,7 @@
                                     <ui:fragment rendered="#{fieldsOfType.type.controlledVocabulary}">
                                         <ui:include src="datasetFieldForEditFragment.xhtml">
                                             <ui:param name="inputRenderer" value="#{inputRenderersByFieldType.get(fieldsOfType.type)}" />
-                                            <ui:param name="datasetField" value="#{fieldsOfType.datasetFields.get(0)}" />
+                                            <ui:param name="datasetField" value="#{fieldsOfType.get(0)}" />
                                             <ui:param name="hiddenLabel" value="true" />
                                             <ui:param name="labelFieldNumber" value="0" />
                                             <ui:param name="allBlockfields" value="#{metadataBlockVal.value}" />
