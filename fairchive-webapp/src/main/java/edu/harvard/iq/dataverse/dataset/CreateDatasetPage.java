@@ -411,21 +411,19 @@ public class CreateDatasetPage implements Serializable {
 		}
 	}
 	
-	private void copyFields(final DatasetFieldsOfType fieldByType, 
+	private void copyFields(final DatasetFieldsOfType fieldsOfType, 
 			final List<DatasetField> sourceFields, final Dataset sourceDataset) {
 		
-		final List<DatasetField> selectedCourceFields = sourceFields.stream().
-				filter(field -> field.isOfType(fieldByType.getType()))
+		final List<DatasetField> selectedSourceFields = sourceFields.stream().
+				filter(field -> field.isOfType(fieldsOfType.getType()))
 				.collect(toList());
 		
-		while(fieldByType.size() < selectedCourceFields.size()) {
-			fieldByType.addEmpty();
-		}
+		fieldsOfType.expandWithEmptyTo(selectedSourceFields.size());
 				
-		if(!selectedCourceFields.isEmpty()) {
-			for(int index = 0; index < fieldByType.size(); ++index) {
-				copyFieldValue(fieldByType.get(index),
-						singletonList(selectedCourceFields.get(index)), sourceDataset);
+		if(!selectedSourceFields.isEmpty()) {
+			for(int index = 0; index < fieldsOfType.size(); ++index) {
+				copyFieldValue(fieldsOfType.get(index),
+						singletonList(selectedSourceFields.get(index)), sourceDataset);
 			}
 		}
 	}

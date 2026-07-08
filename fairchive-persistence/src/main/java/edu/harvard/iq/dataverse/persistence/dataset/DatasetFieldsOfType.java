@@ -85,6 +85,12 @@ public final class DatasetFieldsOfType implements Iterable<DatasetField> {
         return field;
     }
     
+    public void expandWithEmptyTo(final int limit) {
+		while(size() < limit) {
+			addEmpty();
+		}
+    }
+    
     public DatasetField clearAndAddEmpty() {
     	this.fields.clear();
         return addEmpty();

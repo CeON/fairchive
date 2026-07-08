@@ -127,7 +127,6 @@ public class DatasetFieldUtil {
                             LinkedHashMap::new,
                             mapping(Function.identity(), toList())));
         
-        System.gc();
         fieldsByTypesMap.forEach((key, value) -> result.add(new DatasetFieldsOfType(key, value)));
         
         return result;
