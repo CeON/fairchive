@@ -36,12 +36,12 @@ public class IPv4Range extends IpAddressRange implements Serializable {
     /**
      * The most significant bits of {@code this} range's top address, i.e the first two numbers of the IP address
      */
-    BigInteger topAsLong;
+    private BigInteger topAsLong;
 
     /**
      * The least significant bits, i.e the last tow numbers of the IP address
      */
-    BigInteger bottomAsLong;
+    private BigInteger bottomAsLong;
 
     public IPv4Range() {
     }

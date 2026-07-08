@@ -119,7 +119,7 @@ public class IpGroup extends PersistedGlobalGroup {
 
     @Override
     public String toString() {
-        return "[IpGroup id:" + getId() + " ranges:" + getIpv4Ranges() + "," + getIpv6Ranges() + "]";
+        return "[IpGroup id:" + getId() + " ranges:" + getIpv4Ranges() + ',' + getIpv6Ranges() + ']';
     }
 
     private void updateOwnership(final Collection<? extends IpAddressRange> ranges) {

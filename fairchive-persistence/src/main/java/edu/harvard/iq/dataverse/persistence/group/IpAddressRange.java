@@ -73,7 +73,7 @@ public abstract class IpAddressRange {
 
     @Override
     public String toString() {
-        return "[IpAddressRange " + getTop() + "-" + getBottom() + ']';
+        return "[IpAddressRange " + getTop() + '-' + getBottom() + ']';
     }
 
     public IpGroup getOwner() {
