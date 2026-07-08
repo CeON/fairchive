@@ -3,6 +3,8 @@ package edu.harvard.iq.dataverse.dataset;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ProvCollectionEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.PublicInstall;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -50,7 +52,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
@@ -93,7 +95,7 @@ public class CreateDatasetPage implements Serializable {
     private List<Template> dataverseTemplates = new ArrayList<>();
     private Template selectedTemplate;
 
-    private Map<MetadataBlock, List<DatasetFieldsByType>> metadataBlocksForEdit = new HashMap<>();
+    private Map<MetadataBlock, List<DatasetFieldsOfType>> metadataBlocksForEdit = new HashMap<>();
     private Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType = new HashMap<>();
 
     private ImportersForView importers;
@@ -180,7 +182,7 @@ public class CreateDatasetPage implements Serializable {
         return this.selectedTemplate;
     }
 
-    public Map<MetadataBlock, List<DatasetFieldsByType>> getMetadataBlocksForEdit() {
+    public Map<MetadataBlock, List<DatasetFieldsOfType>> getMetadataBlocksForEdit() {
         return this.metadataBlocksForEdit;
     }
 
@@ -371,7 +373,7 @@ public class CreateDatasetPage implements Serializable {
         datasetFields = this.datasetFieldsInitializer.prepareDatasetFieldsForEdit(datasetFields, 
         		this.dataset.getOwner().getMetadataBlockRootDataverse());
 
-        if (this.session.isUserLoggedIn()) {
+        if (this.sourceDatasetId == null && this.session.isUserLoggedIn()) {
         	this.userDataFieldFiller.fillUserDataInDatasetFields(datasetFields, this.session.getAuthenticatedUser());
         }
 
@@ -383,40 +385,67 @@ public class CreateDatasetPage implements Serializable {
         if(this.sourceDatasetId != null) {
         	copyFieldValuesFromSourceDataset();
         }
-
     }
     
     private void copyFieldValuesFromSourceDataset() {
   	
-    	final List<DatasetField> sourceFields = this.datasetService.find(this.sourceDatasetId).
-    			getLatestVersionForCopy().getDatasetFieldsAll();
+    	final Dataset sourceDataset = this.datasetService.find(this.sourceDatasetId);
+    	final List<DatasetField> sourceFields = sourceDataset.getLatestVersionForCopy().
+    			getDatasetFieldsAll();
     	
-    	for(final List<DatasetFieldsByType> fieldsByType : this.metadataBlocksForEdit.values()) {
-    		for(final DatasetFieldsByType fieldByType : fieldsByType) {
-    			for(final DatasetField field : fieldByType.getDatasetFields()) {
-    				copyFieldValue(field, sourceFields);
-    			}
-    		}
+    	for(final List<DatasetFieldsOfType> fieldsOfType : this.metadataBlocksForEdit.values()) {
+    		for(final DatasetFieldsOfType fieldByType : fieldsOfType) {
+    			copyFields(fieldByType, sourceFields, sourceDataset);
+			}
     	}
     }
     
-    private static void copyFieldValue(final DatasetField target, 
-    		final List<DatasetField> sourceFields) {
-    	
-    	find(sourceFields, target.getDatasetFieldType()).ifPresent(source -> {
-			if(source.getFieldValue().isDefined()) {
-				target.setValue(source.getFieldValue().get());
+	private boolean allowedToCopySensitiveDataFrom(final DatasetFieldType fieldType, 
+			final Dataset sourceDataset) {
+
+		if (fieldType.isEmail()) {
+			return this.permissionsWrapper.canCurrentUserUpdateDataset(sourceDataset)
+					|| this.session.isSuperUserLoggedIn();
+		} else {
+			return true;
+		}
+	}
+	
+	private void copyFields(final DatasetFieldsOfType fieldsOfType, 
+			final List<DatasetField> sourceFields, final Dataset sourceDataset) {
+		
+		final List<DatasetField> selectedSourceFields = sourceFields.stream().
+				filter(field -> field.isOfType(fieldsOfType.getType()))
+				.collect(toList());
+		
+		fieldsOfType.expandWithEmptyTo(selectedSourceFields.size());
+				
+		if(!selectedSourceFields.isEmpty()) {
+			for(int index = 0; index < fieldsOfType.size(); ++index) {
+				copyFieldValue(fieldsOfType.get(index),
+						singletonList(selectedSourceFields.get(index)), sourceDataset);
 			}
-			if(! source.getControlledVocabularyValues().isEmpty()) {
-				target.setControlledVocabularyValues(source.getControlledVocabularyValues());
-			}
-			
-			if(target.getDatasetFieldType().isCompound()) {
-				for(final DatasetField childTarget : target.getChildren()) {
-					copyFieldValue(childTarget, source.getChildren());
+		}
+	}
+    
+    private void copyFieldValue(final DatasetField target, 
+    		final List<DatasetField> sourceFields, final Dataset sourceDataset) {
+    	if(allowedToCopySensitiveDataFrom(target.getDatasetFieldType(), sourceDataset)) {
+	    	find(sourceFields, target.getDatasetFieldType()).ifPresent(source -> {
+				if(source.getFieldValue().isDefined()) {
+					target.setValue(source.getFieldValue().get());
 				}
-			}
-		});
+				if(! source.getControlledVocabularyValues().isEmpty()) {
+					target.setControlledVocabularyValues(source.getControlledVocabularyValues());
+				}
+				
+				if(target.getDatasetFieldType().isCompound()) {
+					for(final DatasetField childTarget : target.getChildren()) {
+						copyFieldValue(childTarget, source.getChildren(), sourceDataset);
+					}
+				}
+			});
+    	}
     }
     
     private static Optional<DatasetField> find(final List<DatasetField> fields, 
@@ -464,11 +493,11 @@ public class CreateDatasetPage implements Serializable {
     
     public List<DatasetField> findCopySources(final String sourceId) {
         final List<DatasetField> sourceFields = new ArrayList<>();
-        for (final List<DatasetFieldsByType> datasetFieldsByTypeList : this.metadataBlocksForEdit.values()) {
-            for (final DatasetFieldsByType datasetFieldsByType : datasetFieldsByTypeList) {
-                for (final DatasetField datasetField : datasetFieldsByType.getDatasetFields()) {
-                    if (sourceId.equals(datasetField.getTypeName())) {
-                        sourceFields.add(datasetField);
+        for (final List<DatasetFieldsOfType> fieldsOfTypeList : this.metadataBlocksForEdit.values()) {
+            for (final DatasetFieldsOfType fieldsOfType : fieldsOfTypeList) {
+                for (final DatasetField field : fieldsOfType) {
+                    if (sourceId.equals(field.getTypeName())) {
+                        sourceFields.add(field);
                     }
                 }
             }

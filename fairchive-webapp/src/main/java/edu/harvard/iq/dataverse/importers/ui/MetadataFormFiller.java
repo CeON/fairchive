@@ -5,7 +5,7 @@ import edu.harvard.iq.dataverse.importers.ui.form.ProcessingType;
 import edu.harvard.iq.dataverse.importers.ui.form.ResultItem;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
@@ -34,13 +34,13 @@ public class MetadataFormFiller {
             switch (item.getProcessingType()) {
                 case OVERWRITE:
                 case MULTIPLE_OVERWRITE:
-                    processItem(item, this::clearAllAndCreateNew, this::setItemValue, this::overwriteVocabulary);
+                    processItem(item, DatasetFieldsOfType::clearAndAddEmpty, this::setItemValue, this::overwriteVocabulary);
                     break;
                 case MULTIPLE_CREATE_NEW:
                     processItem(item, this::createOrTakeEmptyField, this::setItemValue, this::overwriteVocabulary);
                     break;
                 case FILL_IF_EMPTY:
-                    processItem(item, this::takeLastOrCreate, this::setIfBlank, this::setVocabularyIfEmpty);
+                    processItem(item, DatasetFieldsOfType::getLast, this::setIfBlank, this::setVocabularyIfEmpty);
                     break;
                 default:
                     break;
@@ -51,11 +51,11 @@ public class MetadataFormFiller {
     // -------------------- PRIVATE --------------------
 
     private void processItem(ResultItem item,
-                             Function<DatasetFieldsByType, DatasetField> fieldProvider,
+                             Function<DatasetFieldsOfType, DatasetField> fieldProvider,
                              BiConsumer<DatasetField, ResultItem> fieldSetter,
                              BiConsumer<DatasetField, List<ControlledVocabularyValue>> vocabularySetter) {
-        DatasetFieldsByType fieldsByType = lookup.getLookup().get(item.getName());
-        DatasetField field = fieldProvider.apply(fieldsByType);
+        DatasetFieldsOfType fieldsOfType = lookup.getLookup().get(item.getName());
+        DatasetField field = fieldProvider.apply(fieldsOfType);
         switch (item.getItemType()) {
             case COMPOUND:
                 fillCompoundField(field, item, fieldSetter, vocabularySetter);
@@ -103,29 +103,15 @@ public class MetadataFormFiller {
                 .orElseThrow(() -> new IllegalStateException("Child field [" + name + "] not found!"));
     }
 
-    private DatasetField clearAllAndCreateNew(DatasetFieldsByType datasetFieldsByType) {
-        List<DatasetField> fields = datasetFieldsByType.getDatasetFields();
-        fields.clear();
-        return datasetFieldsByType.addAndReturnEmptyDatasetField(0);
-    }
-
-    private DatasetField takeLastOrCreate(DatasetFieldsByType datasetFieldsByType) {
-        List<DatasetField> fields = datasetFieldsByType.getDatasetFields();
-        return fields.isEmpty()
-                ? datasetFieldsByType.addAndReturnEmptyDatasetField(0)
-                : fields.get(fields.size() - 1);
-    }
-
-    private DatasetField createOrTakeEmptyField(DatasetFieldsByType datasetFieldsByType) {
-        List<DatasetField> fields = datasetFieldsByType.getDatasetFields();
-        if (fields.isEmpty()) {
-            return datasetFieldsByType.addAndReturnEmptyDatasetField(0);
+    private DatasetField createOrTakeEmptyField(DatasetFieldsOfType fieldsOfType) {
+        if (fieldsOfType.isEmpty()) {
+            return fieldsOfType.addEmpty(0);
         } else {
-            int index = fields.size() - 1;
-            DatasetField field = fields.get(index);
+            int index = fieldsOfType.size() - 1;
+            DatasetField field = fieldsOfType.get(index);
             return field.isEmpty()
                     ? field
-                    : datasetFieldsByType.addAndReturnEmptyDatasetField(index + 1);
+                    : fieldsOfType.addEmpty(index + 1);
         }
     }
 

@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.importers.ui;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import org.junit.jupiter.api.Test;
 
@@ -16,13 +16,13 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class MetadataFormLookupTest {
 
-    Supplier<Map<MetadataBlock, List<DatasetFieldsByType>>> metadataSupplier =
+    Supplier<Map<MetadataBlock, List<DatasetFieldsOfType>>> metadataSupplier =
             TestMetadataCreator::createTestMetadata;
 
     @Test
     public void shouldCreateProperParentLookup() {
         // given & when
-        Map<String, DatasetFieldsByType> lookup =
+        Map<String, DatasetFieldsOfType> lookup =
                 MetadataFormLookup.create(BLOCK_NAME, metadataSupplier).getLookup();
 
         // then

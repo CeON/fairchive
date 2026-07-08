@@ -5,7 +5,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import io.vavr.control.Option;
 
@@ -46,17 +46,16 @@ public class JsonDatasetFieldsPrinter {
         dsfFields.sort(Comparator.comparing(DatasetField::getDatasetFieldTypeDisplayOrder));
 
 
-        for (DatasetFieldsByType fieldsByType: DatasetFieldUtil.groupByType(dsfFields)) {
-            if (excludeEmailFields && FieldType.EMAIL.equals(fieldsByType.getDatasetFieldType().getFieldType())) {
+        for (DatasetFieldsOfType fieldsOfType: DatasetFieldUtil.groupByType(dsfFields)) {
+            if (excludeEmailFields && FieldType.EMAIL.equals(fieldsOfType.getType().getFieldType())) {
                 continue;
             }
 
-            DatasetFieldType dsfType = fieldsByType.getDatasetFieldType();
-            List<DatasetField> datasetFields = fieldsByType.getDatasetFields();
+            DatasetFieldType dsfType = fieldsOfType.getType();
 
             if (dsfType.isControlledVocabulary()) {
 
-                List<String> controlledVocabularyStrValues = datasetFields.stream()
+                List<String> controlledVocabularyStrValues = fieldsOfType.stream()
                     .flatMap(dsf -> dsf.getControlledVocabularyValues().stream())
                     .sorted(ControlledVocabularyValue.DisplayOrder)
                     .map(ControlledVocabularyValue::getStrValue)
@@ -69,7 +68,7 @@ public class JsonDatasetFieldsPrinter {
 
             } else if (dsfType.isPrimitive()) {
 
-                List<String> fieldValues = datasetFields.stream()
+                List<String> fieldValues = fieldsOfType.stream()
                     .map(dsf -> dsf.getFieldValue())
                     .filter(fieldValue -> fieldValue.isDefined())
                     .map(Option::get)
@@ -82,7 +81,7 @@ public class JsonDatasetFieldsPrinter {
 
             } else if (dsfType.isCompound()) {
 
-                List<JsonObject> fieldNodes = datasetFields.stream()
+                List<JsonObject> fieldNodes = fieldsOfType.stream()
                     .map(datasetField -> parseChildren(excludeEmailFields, datasetField))
                     .collect(toList());
 
