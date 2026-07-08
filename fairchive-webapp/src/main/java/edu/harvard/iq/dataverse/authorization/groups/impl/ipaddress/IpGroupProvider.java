@@ -1,15 +1,15 @@
 package edu.harvard.iq.dataverse.authorization.groups.impl.ipaddress;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import edu.harvard.iq.dataverse.authorization.groups.GroupProvider;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.group.IpAddress;
 import edu.harvard.iq.dataverse.persistence.group.IpGroup;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Creates {@link IpGroup}s.

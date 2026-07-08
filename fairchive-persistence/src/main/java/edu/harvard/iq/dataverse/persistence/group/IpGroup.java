@@ -1,5 +1,4 @@
 package edu.harvard.iq.dataverse.persistence.group;
-
 import static javax.persistence.CascadeType.ALL;
 
 import java.util.Collection;
@@ -8,17 +7,9 @@ import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 
 @SuppressWarnings("serial")
-@NamedQueries({
-    @NamedQuery(name = "IpGroup.findAll",
-            query = "SELECT g FROM IpGroup g"),
-    @NamedQuery(name = "IpGroup.findByPersistedGroupAlias",
-            query = "SELECT g FROM IpGroup g WHERE g.persistedGroupAlias=:persistedGroupAlias")
-})
 @Entity
 public class IpGroup extends PersistedGlobalGroup {
 

@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssigneeDisplayInfo;
 
 import javax.persistence.Column;
@@ -27,7 +28,7 @@ import java.io.Serializable;
 })
 @Entity
 @Table(indexes = {@Index(columnList = "dtype")})
-public abstract class PersistedGlobalGroup implements Group, Serializable {
+public abstract class PersistedGlobalGroup implements Group, JpaEntity<Long>, Serializable {
 
     @Id
     @GeneratedValue
@@ -54,7 +55,7 @@ public abstract class PersistedGlobalGroup implements Group, Serializable {
     }
 
     // -------------------- GETTERS --------------------
-
+    @Override
     public Long getId() {
         return this.id;
     }
