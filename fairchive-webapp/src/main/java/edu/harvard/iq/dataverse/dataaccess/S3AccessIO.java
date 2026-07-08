@@ -109,7 +109,7 @@ public class S3AccessIO<T extends DvObject> extends StorageIO<T> {
             return S3_STORAGE_IDENTIFIER_PREFIX + defaultBucketName + ":" + FileUtil.generateStorageIdentifier();
         } else {
             Dataset dataset = (Dataset) dvObject;
-            return S3_STORAGE_IDENTIFIER_PREFIX + dataset.getAuthority() + "/" + dataset.getIdentifier();
+            return S3_STORAGE_IDENTIFIER_PREFIX.concat(dataset.getGlobalId().getStoragePath());
         }
     }
 

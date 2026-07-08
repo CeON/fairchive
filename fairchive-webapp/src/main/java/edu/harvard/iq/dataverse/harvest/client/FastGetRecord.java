@@ -19,14 +19,11 @@
 */
 package edu.harvard.iq.dataverse.harvest.client;
 
-import org.xml.sax.SAXException;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
+import static org.apache.commons.io.FileUtils.deleteQuietly;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.TransformerException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,11 +36,20 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipInputStream;
 
-//import org.xml.sax.InputSource;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.TransformerException;
+
+import org.apache.http.entity.ContentType;
+import org.xml.sax.SAXException;
 
 /*
  * This is an optimized implementation of OAIPMH GetRecord method.
@@ -64,7 +70,7 @@ import java.util.zip.ZipInputStream;
  *
  */
 
-public class FastGetRecord {
+public class FastGetRecord implements AutoCloseable {
 
     private static final String DATAVERSE_EXTENDED_METADATA = "dataverse_json";
     private static final String XML_METADATA_TAG = "metadata";
@@ -106,6 +112,10 @@ public class FastGetRecord {
     public File getMetadataFile() {
         return savedMetadataFile;
     }
+    
+    public String getContent() throws IOException {	
+    	return new String(readAllBytes(this.savedMetadataFile.toPath()), UTF_8);
+    }
 
     public boolean isDeleted() {
         return this.recordDeleted;
@@ -117,17 +127,16 @@ public class FastGetRecord {
 
         xmlInputFactory = javax.xml.stream.XMLInputFactory.newInstance();
 
-        String requestURL = getRequestURL(baseURL, identifier, metadataPrefix);
+        final String requestURL = getRequestURL(baseURL, identifier, metadataPrefix);
 
-        InputStream in = null;
-        URL url = new URL(requestURL);
-        HttpURLConnection con = null;
         int responseCode = 0;
 
-        con = (HttpURLConnection) url.openConnection();
+        final HttpURLConnection con = (HttpURLConnection) new URL(requestURL).openConnection();
         con.setRequestProperty("User-Agent", "DataverseHarvester/3.0");
         con.setRequestProperty("Accept-Encoding",
                                "compress, gzip, identify");
+        con.setRequestProperty("Accept-Charset", "utf-8");
+        
         try {
             responseCode = con.getResponseCode();
             //logger.debug("responseCode=" + responseCode);
@@ -146,37 +155,21 @@ public class FastGetRecord {
 
         if (responseCode == 200) {
 
-            String contentEncoding = con.getHeaderField("Content-Encoding");
-            //logger.debug("contentEncoding=" + contentEncoding);
-
-            // support for the standard compress/gzip/deflate compression
-            // schemes:
-
-            if ("compress".equals(contentEncoding)) {
-                ZipInputStream zis = new ZipInputStream(con.getInputStream());
-                zis.getNextEntry();
-                in = zis;
-            } else if ("gzip".equals(contentEncoding)) {
-                in = new GZIPInputStream(con.getInputStream());
-            } else if ("deflate".equals(contentEncoding)) {
-                in = new InflaterInputStream(con.getInputStream());
-            } else {
-                in = con.getInputStream();
-            }
+            final InputStream in = openInputStream(con);
 
             // We are going to read the OAI header and SAX-parse it for the
             // error messages and other protocol information;
             // The metadata section we're going to simply save in a temporary
             // file, unparsed.
 
-            BufferedReader rd = new BufferedReader(new InputStreamReader(in));
+            Charset charset = ContentType.parse(con.getHeaderField("Content-Type")).getCharset();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(in, charset));
 
             String line = null;
             String oaiResponseHeader = "";
             boolean metadataFlag = false;
             boolean metadataWritten = false;
             boolean schemaChecked = false;
-            FileOutputStream tempFileStream = null;
             PrintWriter metadataOut = null;
 
             savedMetadataFile = File.createTempFile("meta", ".tmp");
@@ -208,11 +201,7 @@ public class FastGetRecord {
                         }
 
                         oaiResponseHeader = oaiResponseHeader.concat(lineCopy.replaceAll(XML_METADATA_TAG_OPEN + ".*", XML_METADATA_TAG_OPEN + XML_METADATA_TAG_CLOSE + XML_OAI_PMH_CLOSING_TAGS));
-                        tempFileStream = new FileOutputStream(savedMetadataFile);
-                        metadataOut = new PrintWriter(tempFileStream, true);
-
-                        //metadataOut.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"); /* ? */
-
+                        metadataOut = new PrintWriter(savedMetadataFile, "UTF-8");
                         metadataFlag = true;
                     } else if (line.matches(".*<" + XML_METADATA_TAG + " [^>]*>.*")) {
                         if (metadataPrefix.equals(DATAVERSE_EXTENDED_METADATA)) {
@@ -422,6 +411,23 @@ public class FastGetRecord {
         }
     }
 
+	private InputStream openInputStream(final HttpURLConnection con) 
+			throws IOException {
+		
+		switch(defaultString(con.getHeaderField("Content-Encoding"))) {
+		case "compress":
+		    final ZipInputStream zip = new ZipInputStream(con.getInputStream());
+		    zip.getNextEntry();
+		    return zip;
+		case "gzip":
+		    return new GZIPInputStream(con.getInputStream());
+		case "deflate":
+		    return new InflaterInputStream(con.getInputStream());
+		default:
+		    return con.getInputStream();
+		}
+	}
+
     /**
      * Construct the query portion of the http request
      * (borrowed from OCLC implementation)
@@ -625,5 +631,8 @@ public class FastGetRecord {
         return content.toString();
     }
 
-
+	@Override
+	public void close() throws Exception {
+		deleteQuietly(this.savedMetadataFile);
+	}
 }

@@ -36,7 +36,7 @@ public class HarvestingClientDao implements java.io.Serializable {
 
     public HarvestingClient findByNickname(String nickName) {
         try {
-            return em.createNamedQuery("HarvestingClient.findByNickname", HarvestingClient.class)
+            return em.createQuery("SELECT hc FROM HarvestingClient hc WHERE LOWER(hc.name)=:nickName", HarvestingClient.class)
                     .setParameter("nickName", nickName.toLowerCase())
                     .getSingleResult();
         } catch (NoResultException | NonUniqueResultException ex) {
