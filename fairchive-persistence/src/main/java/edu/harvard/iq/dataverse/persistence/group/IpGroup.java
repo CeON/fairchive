@@ -1,14 +1,16 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
+import static javax.persistence.CascadeType.ALL;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 
 @SuppressWarnings("serial")
 @NamedQueries({
@@ -22,19 +24,19 @@ public class IpGroup extends PersistedGlobalGroup {
 
     public final static String GROUP_TYPE = "ip";
     
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", cascade = ALL, orphanRemoval = true)
     private Set<IPv6Range> ipv6Ranges;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", cascade = ALL, orphanRemoval = true)
     private Set<IPv4Range> ipv4Ranges;
 
     public IpGroup() {
         super(GROUP_TYPE);
     }
 
-    public boolean containsAddress(IpAddress addr) {
-        for (IpAddressRange r : ((addr instanceof IPv4Address) ? ipv4Ranges : ipv6Ranges)) {
-            Boolean containment = r.contains(addr);
+    public boolean containsAddress(final IpAddress addr) {
+        for (IpAddressRange range : ((addr instanceof IPv4Address) ? this.ipv4Ranges : this.ipv6Ranges)) {
+            Boolean containment = range.contains(addr);
             if ((containment != null) && containment) {
                 return true;
             }
@@ -42,25 +44,25 @@ public class IpGroup extends PersistedGlobalGroup {
         return false;
     }
 
-    public <T extends IpAddressRange> T add(T range) {
-        if (ipv4Ranges == null) {
-            ipv4Ranges = new HashSet<>();
+    public <T extends IpAddressRange> T add(final T range) {
+        if (this.ipv4Ranges == null) {
+            this.ipv4Ranges = new HashSet<>();
         }
-        if (ipv6Ranges == null) {
-            ipv6Ranges = new HashSet<>();
+        if (this.ipv6Ranges == null) {
+            this.ipv6Ranges = new HashSet<>();
         }
 
         range.setOwner(this);
         if (range instanceof IPv4Range) {
-            ipv4Ranges.add((IPv4Range) range);
+            this.ipv4Ranges.add((IPv4Range) range);
         } else {
-            ipv6Ranges.add((IPv6Range) range);
+            this.ipv6Ranges.add((IPv6Range) range);
         }
         return range;
     }
 
-    public void remove(IpAddressRange range) {
-        ((range instanceof IPv4Range) ? ipv4Ranges : ipv6Ranges).remove(range);
+    public void remove(final IpAddressRange range) {
+        ((range instanceof IPv4Range) ? this.ipv4Ranges : this.ipv6Ranges).remove(range);
     }
 
     @Override
@@ -75,7 +77,7 @@ public class IpGroup extends PersistedGlobalGroup {
      * @return
      */
     public Set<IpAddressRange> getRanges() {
-        Set<IpAddressRange> ranges = new HashSet<>();
+        final Set<IpAddressRange> ranges = new HashSet<>();
         ranges.addAll(getIpv4Ranges());
         ranges.addAll(getIpv6Ranges());
         return ranges;
@@ -88,7 +90,7 @@ public class IpGroup extends PersistedGlobalGroup {
      * @see #getRanges()
      */
     public Set<IPv6Range> getIpv6Ranges() {
-        return ipv6Ranges;
+        return this.ipv6Ranges;
     }
 
     /**
@@ -96,9 +98,9 @@ public class IpGroup extends PersistedGlobalGroup {
      *
      * @param ipv6Ranges
      */
-    public void setIpv6Ranges(Set<IPv6Range> ipv6Ranges) {
-        this.ipv6Ranges = ipv6Ranges;
-        updateRangeOwnership(ipv6Ranges);
+    public void setIpv6Ranges(final Set<IPv6Range> ranges) {
+        this.ipv6Ranges = ranges;
+        updateOwnership(this.ipv6Ranges);
     }
 
     /**
@@ -108,38 +110,26 @@ public class IpGroup extends PersistedGlobalGroup {
      * @see #getRanges()
      */
     public Set<IPv4Range> getIpv4Ranges() {
-        return ipv4Ranges;
+        return this.ipv4Ranges;
     }
 
-    public void setIpv4Ranges(Set<IPv4Range> ipv4Ranges) {
-        this.ipv4Ranges = ipv4Ranges;
-        updateRangeOwnership(ipv4Ranges);
+    public void setIpv4Ranges(final Set<IPv4Range> ranges) {
+        this.ipv4Ranges = ranges;
+        updateOwnership(this.ipv4Ranges);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == null) {
-            return false;
+    public boolean equals(final Object o) {
+        if(o != null && o.getClass().equals(getClass())) {
+	        final IpGroup other = (IpGroup) o;
+	        return Objects.equals(getId(), other.getId())
+	        		&& Objects.equals(getDescription(), other.getDescription())
+	        		&& Objects.equals(getDisplayName(), other.getDisplayName())
+	        		&& Objects.equals(this.ipv4Ranges, other.ipv4Ranges) 
+	        		&& Objects.equals(this.ipv6Ranges, other.ipv6Ranges);
+        } else {
+        	return false;
         }
-        if (o == this) {
-            return true;
-        }
-        if (!(o instanceof IpGroup)) {
-            return false;
-        }
-
-        IpGroup other = (IpGroup) o;
-
-        if (!Objects.equals(getId(), other.getId())) {
-            return false;
-        }
-        if (!Objects.equals(getDescription(), other.getDescription())) {
-            return false;
-        }
-        if (!Objects.equals(getDisplayName(), other.getDisplayName())) {
-            return false;
-        }
-        return getRanges().equals(other.getRanges());
     }
 
     @Override
@@ -152,9 +142,7 @@ public class IpGroup extends PersistedGlobalGroup {
         return "[IpGroup id:" + getId() + " ranges:" + getIpv4Ranges() + "," + getIpv6Ranges() + "]";
     }
 
-    private void updateRangeOwnership(Collection<? extends IpAddressRange> ranges) {
-        for (IpAddressRange rng : ranges) {
-            rng.setOwner(this);
-        }
+    private void updateOwnership(final Collection<? extends IpAddressRange> ranges) {
+    	ranges.forEach(range -> range.setOwner(this));
     }
 }

@@ -17,11 +17,14 @@ public class RoleAssigneeDisplayInfo implements Serializable {
     private String affiliation;
     private String affiliationROR;
 
-    public RoleAssigneeDisplayInfo(String title, String emailAddress) {
+    public RoleAssigneeDisplayInfo(final String title, final String emailAddress) {
+    	
         this(title, emailAddress, null, null);
     }
 
-    public RoleAssigneeDisplayInfo(String title, String emailAddress, String anAffiliation, String affiliationROR) {
+    public RoleAssigneeDisplayInfo(final String title, final String emailAddress, 
+    		final String anAffiliation, final String affiliationROR) {
+    	
         this.title = title;
         this.emailAddress = emailAddress;
         this.affiliation = anAffiliation;
@@ -29,34 +32,34 @@ public class RoleAssigneeDisplayInfo implements Serializable {
     }
 
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public String getEmailAddress() {
-        return emailAddress;
+        return this.emailAddress;
     }
 
     public String getAffiliation() {
-        return affiliation;
+        return this.affiliation;
     }
 
     public String getAffiliationROR() {
-        return affiliationROR;
+        return this.affiliationROR;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(final String title) {
         this.title = title;
     }
 
-    public void setEmailAddress(String emailAddress) {
+    public void setEmailAddress(final String emailAddress) {
         this.emailAddress = emailAddress;
     }
 
-    public void setAffiliation(String affiliation) {
+    public void setAffiliation(final String affiliation) {
         this.affiliation = affiliation;
     }
 
-    public void setAffiliationROR(String affiliationROR) {
+    public void setAffiliationROR(final String affiliationROR) {
         this.affiliationROR = affiliationROR;
     }
 
@@ -68,31 +71,19 @@ public class RoleAssigneeDisplayInfo implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 89 * hash + Objects.hashCode(this.title);
-        return hash;
+        return Objects.hashCode(this.title);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof RoleAssigneeDisplayInfo)) {
-            return false;
-        }
-        final RoleAssigneeDisplayInfo other = (RoleAssigneeDisplayInfo) obj;
-        if (!Objects.equals(this.title, other.title)) {
-            return false;
-        }
-        if (!Objects.equals(this.emailAddress, other.emailAddress)) {
-            return false;
-        }
-        return Objects.equals(this.affiliation, other.affiliation)
-                && Objects.equals(this.affiliationROR, other.affiliationROR);
-    }
-
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj != null && obj.getClass().equals(getClass())) {
+			final RoleAssigneeDisplayInfo other = (RoleAssigneeDisplayInfo) obj;
+			return  Objects.equals(this.title, other.title)
+					&& Objects.equals(this.emailAddress, other.emailAddress)
+					&& Objects.equals(this.affiliation, other.affiliation)
+					&& Objects.equals(this.affiliationROR, other.affiliationROR);
+		} else {
+			return false;
+		}
+	}
 }

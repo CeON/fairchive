@@ -51,10 +51,7 @@ public abstract class IpAddressRange {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 17 * hash + Objects.hashCode(getTop());
-        hash = 17 * hash + Objects.hashCode(getBottom());
-        return hash;
+        return 17 * Objects.hashCode(getTop()) + Objects.hashCode(getBottom());
     }
 
     @Override
@@ -80,10 +77,10 @@ public abstract class IpAddressRange {
     }
 
     public IpGroup getOwner() {
-        return owner;
+        return this.owner;
     }
 
-    public void setOwner(IpGroup owner) {
+    public void setOwner(final IpGroup owner) {
         this.owner = owner;
     }
 
