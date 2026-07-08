@@ -14,7 +14,7 @@ import java.util.Objects;
 @MappedSuperclass
 public abstract class IpAddressRange {
 
-    public static IpAddressRange make(IpAddress bottom, IpAddress top) {
+    public static IpAddressRange make(final IpAddress bottom, final IpAddress top) {
         if (bottom instanceof IPv4Address && top instanceof IPv4Address) {
             return new IPv4Range((IPv4Address) bottom, (IPv4Address) top);
         } else if (bottom instanceof IPv6Address && top instanceof IPv6Address) {
@@ -24,8 +24,8 @@ public abstract class IpAddressRange {
         }
     }
 
-    public static IpAddressRange makeSingle(IpAddress ipa) {
-        return make(ipa, ipa);
+    public static IpAddressRange makeSingle(final IpAddress address) {
+        return make(address, address);
     }
 
     /**
@@ -40,7 +40,7 @@ public abstract class IpAddressRange {
      * @param anAddress The address whose inclusion we test
      * @return {@code Boolean.TRUE},{@code Boolean.FALSE}, or {@code null}.
      */
-    public abstract Boolean contains(IpAddress anAddress);
+    public abstract boolean contains(IpAddress anAddress);
 
     public abstract IpAddress getTop();
 

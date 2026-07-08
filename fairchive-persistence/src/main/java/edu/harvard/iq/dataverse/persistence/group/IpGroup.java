@@ -35,13 +35,9 @@ public class IpGroup extends PersistedGlobalGroup {
     }
 
     public boolean containsAddress(final IpAddress addr) {
-        for (IpAddressRange range : ((addr instanceof IPv4Address) ? this.ipv4Ranges : this.ipv6Ranges)) {
-            final Boolean contains = range.contains(addr);
-            if ((contains != null) && contains) {
-                return true;
-            }
-        }
-        return false;
+    	return (addr instanceof IPv4Address ? this.ipv4Ranges : this.ipv6Ranges)
+    			.stream()
+    			.anyMatch(range -> range.contains(addr));
     }
 
     public <T extends IpAddressRange> T add(final T range) {
