@@ -56,21 +56,21 @@ public abstract class PersistedGlobalGroup implements Group, Serializable {
     // -------------------- GETTERS --------------------
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public String getPersistedGroupAlias() {
-        return persistedGroupAlias;
+        return this.persistedGroupAlias;
     }
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return this.displayName;
     }
 
     @Override
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
     // -------------------- LOGIC --------------------
@@ -82,7 +82,7 @@ public abstract class PersistedGlobalGroup implements Group, Serializable {
 
     @Override
     public String getAlias() {
-        return groupProviderAlias + Group.PATH_SEPARATOR + persistedGroupAlias;
+        return this.groupProviderAlias + Group.PATH_SEPARATOR + this.persistedGroupAlias;
     }
 
     @Override

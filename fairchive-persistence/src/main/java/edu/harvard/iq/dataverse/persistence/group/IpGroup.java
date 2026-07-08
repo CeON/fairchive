@@ -25,10 +25,10 @@ public class IpGroup extends PersistedGlobalGroup {
     public final static String GROUP_TYPE = "ip";
     
     @OneToMany(mappedBy = "owner", cascade = ALL, orphanRemoval = true)
-    private Set<IPv6Range> ipv6Ranges;
+    private Set<IPv6Range> ipv6Ranges = new HashSet<>();
 
     @OneToMany(mappedBy = "owner", cascade = ALL, orphanRemoval = true)
-    private Set<IPv4Range> ipv4Ranges;
+    private Set<IPv4Range> ipv4Ranges = new HashSet<>();
 
     public IpGroup() {
         super(GROUP_TYPE);
@@ -36,8 +36,8 @@ public class IpGroup extends PersistedGlobalGroup {
 
     public boolean containsAddress(final IpAddress addr) {
         for (IpAddressRange range : ((addr instanceof IPv4Address) ? this.ipv4Ranges : this.ipv6Ranges)) {
-            Boolean containment = range.contains(addr);
-            if ((containment != null) && containment) {
+            final Boolean contains = range.contains(addr);
+            if ((contains != null) && contains) {
                 return true;
             }
         }
@@ -45,13 +45,6 @@ public class IpGroup extends PersistedGlobalGroup {
     }
 
     public <T extends IpAddressRange> T add(final T range) {
-        if (this.ipv4Ranges == null) {
-            this.ipv4Ranges = new HashSet<>();
-        }
-        if (this.ipv6Ranges == null) {
-            this.ipv6Ranges = new HashSet<>();
-        }
-
         range.setOwner(this);
         if (range instanceof IPv4Range) {
             this.ipv4Ranges.add((IPv4Range) range);
@@ -134,7 +127,7 @@ public class IpGroup extends PersistedGlobalGroup {
 
     @Override
     public int hashCode() {
-        return getId().hashCode();
+        return Objects.hashCode(getId());
     }
 
     @Override
