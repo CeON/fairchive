@@ -609,7 +609,8 @@ public class Datasets extends AbstractApiBean {
     	
     	final String publicationYear = new SimpleDateFormat("YYYY").format(datasetCreationTime);
     	final String now = new SimpleDateFormat("yyyyMMddHHmmss").format(Timestamp.from(now()));
-    	return "fairchive_files_"  + authorName + '_' + publicationYear + '_' + now + ".zip";
+    	return "fairchive_files_"  + authorName.replaceAll("[^a-zA-Z0-9]", "") + 
+    			'_' + publicationYear + '_' + now + ".zip";
     }
 
     @GET
