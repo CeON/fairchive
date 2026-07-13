@@ -101,7 +101,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
 
     public String init() {
         if (id != null) {
-            dvObject = dvObjectService.findDvObject(id);
+            dvObject = dvObjectService.findDvObject(id).orElse(null);
         } else {
             return permissionsWrapper.notFound();
         }

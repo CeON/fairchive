@@ -37,6 +37,7 @@ import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
+import edu.harvard.iq.dataverse.persistence.DvObjectRepository;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileRepository;
@@ -73,6 +74,8 @@ public class DataFileServiceBean implements Serializable {
     private DataFileRepository fileRepo;
     @Inject
     private FileMetadataRepository fileMetadataRepo;
+    @Inject
+    private DvObjectRepository dvObjectRepository;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -87,7 +90,7 @@ public class DataFileServiceBean implements Serializable {
 
     public DataFile findByGlobalId(final String globalId) {
         return (DataFile) this.dvObjectService.findByGlobalId(globalId, 
-        		DataFile.DATAFILE_DTYPE_STRING);
+        		DataFile.DATAFILE_DTYPE_STRING).orElse(null);
     }
 
     public Optional<DataFile> findReplacementFile(final Long previousFileId) {
@@ -432,7 +435,8 @@ public class DataFileServiceBean implements Serializable {
      *
      * @return {@code true} iff the global identifier is unique.
      */
-    public boolean isGlobalIdUnique(String userIdentifier, DataFile datafile, GlobalIdServiceBean idServiceBean) {
+    public boolean isGlobalIdUnique(String userIdentifier, DataFile datafile, 
+    		GlobalIdServiceBean idServiceBean) {
         String testAuthority = datafile.getAuthority() != null
                 ? datafile.getAuthority()
                 : settingsService.getValueForKey(Authority);
@@ -440,12 +444,8 @@ public class DataFileServiceBean implements Serializable {
                 ? datafile.getProtocol()
                 : settingsService.getValueForKey(Protocol);
 
-        boolean unique = em.createNamedQuery("DvObject.findByProtocolIdentifierAuthority")
-                      .setParameter("protocol", testProtocol)
-                      .setParameter("authority", testAuthority)
-                      .setParameter("identifier", userIdentifier)
-                      .getResultList().isEmpty();
-
+        boolean unique = ! this.dvObjectRepository.
+        		findByGlobalId(testProtocol, testAuthority, userIdentifier).isPresent();
         try {
             if (idServiceBean.alreadyExists(new GlobalId(testProtocol,
                     testAuthority, userIdentifier))) {

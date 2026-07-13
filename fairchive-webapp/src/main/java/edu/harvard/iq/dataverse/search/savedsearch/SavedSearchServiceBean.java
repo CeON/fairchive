@@ -165,7 +165,7 @@ public class SavedSearchServiceBean {
             hitInfo.add("name", solrSearchResult.getNameSort());
             hitInfo.add("dvObjectId", solrSearchResult.getEntityId());
 
-            DvObject dvObjectThatDefinitionPointWillLinkTo = dvObjectService.findDvObject(solrSearchResult.getEntityId());
+            DvObject dvObjectThatDefinitionPointWillLinkTo = dvObjectService.findDvObject(solrSearchResult.getEntityId()).orElse(null);
             if (dvObjectThatDefinitionPointWillLinkTo == null) {
                 hitInfo.add(resultString, "Could not find DvObject with id " + solrSearchResult.getEntityId());
                 infoPerHit.add(hitInfo);

@@ -1,5 +1,37 @@
 package edu.harvard.iq.dataverse.api;
 
+import static edu.harvard.iq.dataverse.common.NullSafeJsonBuilder.jsonObjectBuilder;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.solr.client.solrj.SolrServerException;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
@@ -46,34 +78,6 @@ import edu.harvard.iq.dataverse.search.response.FacetCategory;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
-import org.apache.solr.client.solrj.SolrServerException;
-
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static edu.harvard.iq.dataverse.common.NullSafeJsonBuilder.jsonObjectBuilder;
 
 @Path("admin/index")
 public class Index extends AbstractApiBean {
@@ -358,14 +362,14 @@ public class Index extends AbstractApiBean {
 
     @GET
     @Path("perms/{id}")
-    public Response indexPermissions(@PathParam("id") Long id) {
-        DvObject dvObject = dvObjectService.findDvObject(id);
-        if (dvObject == null) {
-            return error(Status.BAD_REQUEST, "Could not find DvObject based on id " + id);
+    public Response indexPermissions(@PathParam("id") Long id) {	
+        final Optional<DvObject> dvObject = dvObjectService.findDvObject(id);
+        if(dvObject.isPresent()) {
+            return ok(this.solrIndexService.indexPermissionsForOneDvObject(dvObject.get()).getMessage());
         } else {
-            IndexResponse indexResponse = solrIndexService.indexPermissionsForOneDvObject(dvObject);
-            return ok(indexResponse.getMessage());
+        	return error(BAD_REQUEST, "Could not find DvObject based on id " + id);
         }
+
     }
 
     @GET
@@ -609,11 +613,11 @@ public class Index extends AbstractApiBean {
             return error(Response.Status.UNAUTHORIZED, "Invalid apikey");
         }
 
-        DvObject dvObjectToLookUp = dvObjectService.findDvObject(dvObjectId);
-        if (dvObjectToLookUp == null) {
-            return error(Status.BAD_REQUEST, "Could not find DvObject based on id " + dvObjectId);
+        final Optional<DvObject> dvObjectToLookUp = dvObjectService.findDvObject(dvObjectId);
+        if (!dvObjectToLookUp.isPresent()) {
+            return error(BAD_REQUEST, "Could not find DvObject based on id " + dvObjectId);
         }
-        List<PermissionsSolrDoc> solrDocs = solrDocFactory.determinePermissionsDocsOnSelfOnly(dvObjectToLookUp);
+        List<PermissionsSolrDoc> solrDocs = solrDocFactory.determinePermissionsDocsOnSelfOnly(dvObjectToLookUp.get());
 
         JsonObjectBuilder data = Json.createObjectBuilder();
 
@@ -633,7 +637,7 @@ public class Index extends AbstractApiBean {
         }
         data.add("perms", permissionsData);
 
-        DvObject dvObject = dvObjectService.findDvObject(dvObjectId);
+        DvObject dvObject = dvObjectService.getDvObject(dvObjectId);
         NullSafeJsonBuilder timestamps = jsonObjectBuilder();
         timestamps.add(contentChanged, SearchUtil.getTimestampOrNull(dvObject.getModificationTime()));
         timestamps.add(contentIndexed, SearchUtil.getTimestampOrNull(dvObject.getIndexTime()));

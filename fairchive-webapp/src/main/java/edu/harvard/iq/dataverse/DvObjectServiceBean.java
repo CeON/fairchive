@@ -1,19 +1,11 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.DvObjectContainer;
-import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import org.ocpsoft.common.util.Strings;
+import static java.util.Collections.emptyList;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Logger.getLogger;
+import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
+import static org.apache.commons.lang3.StringUtils.join;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,15 +13,26 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.util.Collections.emptyList;
-import static java.util.logging.Level.FINE;
-import static java.util.logging.Logger.getLogger;
-import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
-import static org.apache.commons.lang3.StringUtils.join;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.ocpsoft.common.util.Strings;
+
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.DvObjectContainer;
+import edu.harvard.iq.dataverse.persistence.DvObjectRepository;
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 /**
  * Your goto bean for everything {@link DvObject}, that's not tied to any
@@ -43,6 +46,9 @@ public class DvObjectServiceBean implements java.io.Serializable {
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
+    
+    @Inject
+    private DvObjectRepository repository;
 
     private static final Logger logger = getLogger(DvObjectServiceBean.class.getCanonicalName());
 
@@ -52,80 +58,42 @@ public class DvObjectServiceBean implements java.io.Serializable {
      * {@link DvObject}.
      */
     public boolean hasData(DvObjectContainer dvoc) {
-        return em.createNamedQuery("DvObject.ownedObjectsById", Long.class)
-                .setParameter("id", dvoc.getId())
-                .getSingleResult() > 0;
+    	return this.repository.hasData(dvoc.getId());
+    }
+    public DvObject getDvObject(final Long id) {
+    	return this.repository.getById(id);
     }
 
-    public DvObject findDvObject(Long id) {
-        try {
-            return em.createNamedQuery("DvObject.findById", DvObject.class)
-                    .setParameter("id", id)
-                    .getSingleResult();
-        } catch (NoResultException | NonUniqueResultException ex) {
-            return null;
-        }
+    public Optional<DvObject> findDvObject(final Long id) {
+    	return this.repository.findById(id);
     }
 
     public List<DvObject> findAll() {
-        return em.createNamedQuery("DvObject.findAll", DvObject.class).getResultList();
+        return this.repository.findAll();
     }
 
-
-    public List<DvObject> findByOwnerId(Long ownerId) {
-        return em.createNamedQuery("DvObject.findByOwnerId", DvObject.class)
-                .setParameter("ownerId", ownerId)
-                .getResultList();
+    public List<DvObject> findByOwnerId(final Long id) {
+        return this.repository.findByOwnerId(id);
     }
 
-    // FIXME This type-by-string has to go, in favor of passing a class parameter.
-    public DvObject findByGlobalId(String globalIdString, String typeString) {
-        return findByGlobalId(globalIdString, typeString, false);
+    public Optional<DvObject> findByGlobalId(final String globalIdString, 
+    		final String type) {
+    	
+    	final GlobalId gid = new GlobalId(globalIdString);
+    	return this.repository.findByGlobalId(gid.getProtocol(),
+    			gid.getAuthority(), gid.getIdentifier(), type);
+    }
+    
+    public Optional<DvObject> findByAlternativeGlobalId(final String globalIdString, 
+    		final String type) {
+    	
+    	final GlobalId gid = new GlobalId(globalIdString);
+    	return this.repository.findByAlternativeGlobalId(gid.getProtocol(),
+    			gid.getAuthority(), gid.getIdentifier(), type);
     }
 
-    // FIXME This type-by-string has to go, in favor of passing a class parameter.
-    public DvObject findByGlobalId(String globalIdString, String typeString, Boolean altId) {
-
-        try {
-            GlobalId gid = new GlobalId(globalIdString);
-
-            DvObject foundDvObject = null;
-            try {
-                Query query;
-                if (altId) {
-                    query = em.createNamedQuery("DvObject.findByAlternativeGlobalId");
-                } else {
-                    query = em.createNamedQuery("DvObject.findByGlobalId");
-                }
-                query.setParameter("identifier", gid.getIdentifier());
-                query.setParameter("protocol", gid.getProtocol());
-                query.setParameter("authority", gid.getAuthority());
-                query.setParameter("dtype", typeString);
-                foundDvObject = (DvObject) query.getSingleResult();
-            } catch (javax.persistence.NoResultException e) {
-                // (set to .info, this can fill the log file with thousands of
-                // these messages during a large harvest run)
-                logger.fine("no dvObject found: " + globalIdString);
-                // DO nothing, just return null.
-                return null;
-            } catch (Exception ex) {
-                logger.info("Exception caught in findByGlobalId: " + ex.getLocalizedMessage());
-                return null;
-            }
-            return foundDvObject;
-
-        } catch (IllegalArgumentException e) {
-            logger.log(Level.INFO, "Invalid identifier: '" + globalIdString + "'.", e);
-            return null;
-        }
-    }
-
-    public List<DvObject> findByAuthenticatedUserId(AuthenticatedUser user) {
-        return em.createNamedQuery("DvObject.findByAuthenticatedUserId",
-                DvObject.class)
-                .setParameter("ownerId", user.getId())
-                .setParameter("releaseUserId", user.getId())
-                .getResultList();
+    public List<DvObject> findByAuthenticatedUserId(final AuthenticatedUser user) {
+    	return this.repository.findByAuthenticatedUserId(user.getId());
     }
 
     public DvObject updateContentIndexTime(DvObject dvObject) {
@@ -134,7 +102,7 @@ public class DvObjectServiceBean implements java.io.Serializable {
          * dvObject before we try to setIndexTime? See
          * https://github.com/IQSS/dataverse/commit/6ad0ebb272c8cb46368cb76784b55dbf33eea947
          */
-        DvObject dvObjectToModify = findDvObject(dvObject.getId());
+        DvObject dvObjectToModify = findDvObject(dvObject.getId()).get();
         dvObjectToModify.setIndexTime(new Timestamp(new Date().getTime()));
         DvObject savedDvObject = em.merge(dvObjectToModify);
         return savedDvObject;
@@ -243,17 +211,6 @@ public class DvObjectServiceBean implements java.io.Serializable {
 
         return em.createNativeQuery(qstr).getResultList();
 
-    }
-
-    /**
-     * Used to exclude Harvested Data from the Mydata page
-     *
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public List<Long> getAllHarvestedDataverseIds() {
-        return em.createNativeQuery("SELECT h.dataverse_id FROM harvestingclient h;")
-                .getResultList();
     }
 
     /**
