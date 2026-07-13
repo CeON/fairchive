@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.buttonaction;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -18,7 +18,7 @@ public class AddReplicationTextActionHandlerTest {
     private AddReplicationTextActionHandler addReplicationTextActionHandler = new AddReplicationTextActionHandler();
     
     @Mock
-    private List<DatasetFieldsByType> allBlockFields;
+    private List<DatasetFieldsOfType> allBlockFields;
     
     // -------------------- TESTS --------------------
     

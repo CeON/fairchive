@@ -42,4 +42,8 @@ public enum FieldType {
     public boolean isGeoName() {
         return this.equals(GEONAME);
     }
+    
+    public boolean isEmail() {
+    	return this.equals(EMAIL);
+    }
 }

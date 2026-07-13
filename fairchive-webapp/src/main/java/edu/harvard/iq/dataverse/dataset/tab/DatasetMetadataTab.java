@@ -24,7 +24,7 @@ import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
@@ -49,7 +49,7 @@ public class DatasetMetadataTab implements Serializable {
 
 	private Dataset dataset;
 	private boolean isDatasetLocked;
-	private Map<MetadataBlock, List<DatasetFieldsByType>> metadataBlocks;
+	private Map<MetadataBlock, List<DatasetFieldsOfType>> metadataBlocks;
 	private final TranslationDialog translationDialog = new TranslationDialog();
 	private Translator translator;
 
@@ -98,7 +98,7 @@ public class DatasetMetadataTab implements Serializable {
 	/**
 	 * Metadata blocks meant for view.
 	 */
-	public Map<MetadataBlock, List<DatasetFieldsByType>> getMetadataBlocks() {
+	public Map<MetadataBlock, List<DatasetFieldsOfType>> getMetadataBlocks() {
 		return metadataBlocks;
 	}
 
@@ -184,7 +184,7 @@ public class DatasetMetadataTab implements Serializable {
 			this.selectedLanguageCode = code;
 		}
 		
-		public List<Map.Entry<MetadataBlock, List<DatasetFieldsByType>>> getMetadataBlocks() {
+		public List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> getMetadataBlocks() {
 			return new ArrayList<>(getMetadataMap().entrySet());
 		}
 		
@@ -205,7 +205,7 @@ public class DatasetMetadataTab implements Serializable {
 			return DatasetMetadataTab.this.getDatasetGlobalIdString();
 		}
 
-		private Map<MetadataBlock, List<DatasetFieldsByType>> getMetadataMap() {
+		private Map<MetadataBlock, List<DatasetFieldsOfType>> getMetadataMap() {
 			if (this.selectedLanguageCode == null) {
 				return DatasetMetadataTab.this.metadataBlocks;
 			} else {
@@ -213,24 +213,24 @@ public class DatasetMetadataTab implements Serializable {
 			}
 		}
 
-		private Map<MetadataBlock, List<DatasetFieldsByType>> getTranslatedMetadataMap() {
-			final HashMap<MetadataBlock, List<DatasetFieldsByType>> result = new HashMap<>();
-			final Map<MetadataBlock, List<DatasetFieldsByType>> blocks = DatasetMetadataTab.this.metadataBlocks;
+		private Map<MetadataBlock, List<DatasetFieldsOfType>> getTranslatedMetadataMap() {
+			final HashMap<MetadataBlock, List<DatasetFieldsOfType>> result = new HashMap<>();
+			final Map<MetadataBlock, List<DatasetFieldsOfType>> blocks = DatasetMetadataTab.this.metadataBlocks;
 
 			for (final MetadataBlock block : blocks.keySet()) {
-				final List<DatasetFieldsByType> translated =  translateByType(blocks.get(block));
+				final List<DatasetFieldsOfType> translated =  translateByType(blocks.get(block));
 				result.put(block,  translated);
 			}
 
 			return result;
 		}
 
-		private List<DatasetFieldsByType> translateByType(List<DatasetFieldsByType> fieldsByType) {
-			final ArrayList<DatasetFieldsByType> result = new ArrayList<>(fieldsByType.size());
+		private List<DatasetFieldsOfType> translateByType(List<DatasetFieldsOfType> fieldsOfType) {
+			final ArrayList<DatasetFieldsOfType> result = new ArrayList<>(fieldsOfType.size());
 
-			for (final DatasetFieldsByType fieldByType : fieldsByType) {
-				final List<DatasetField> translated = translate(fieldByType.getDatasetFields());
-				result.add(new DatasetFieldsByType(fieldByType.getDatasetFieldType(), translated));
+			for (final DatasetFieldsOfType fieldByType : fieldsOfType) {
+				final List<DatasetField> translated = translate(fieldByType.getFields());
+				result.add(new DatasetFieldsOfType(fieldByType.getType(), translated));
 			}
 
 			return result;

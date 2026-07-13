@@ -144,7 +144,7 @@ public class TextInputFieldRendererFactoryTest {
         DatasetField datasetField = Mockito.mock(DatasetField.class);
         
         @SuppressWarnings("unchecked")
-        List<DatasetFieldsByType> allBlockFields = Mockito.mock(List.class);
+        List<DatasetFieldsOfType> allBlockFields = Mockito.mock(List.class);
         
         
         // when

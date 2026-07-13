@@ -14,7 +14,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.util.UIMessages;
@@ -71,7 +71,7 @@ public class EditDatasetMetadataPage implements Serializable {
 
     private Dataset dataset;
     private DatasetVersion workingVersion;
-    private Map<MetadataBlock, List<DatasetFieldsByType>> metadataBlocksForEdit;
+    private Map<MetadataBlock, List<DatasetFieldsOfType>> metadataBlocksForEdit;
     private Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType = new HashMap<>();
 
     private ImportersForView importers;
@@ -96,7 +96,7 @@ public class EditDatasetMetadataPage implements Serializable {
         return workingVersion;
     }
 
-    public Map<MetadataBlock, List<DatasetFieldsByType>> getMetadataBlocksForEdit() {
+    public Map<MetadataBlock, List<DatasetFieldsOfType>> getMetadataBlocksForEdit() {
         return metadataBlocksForEdit;
     }
 
@@ -176,11 +176,11 @@ public class EditDatasetMetadataPage implements Serializable {
 
     public List<DatasetField> findCopySources(String sourceId) {
         List<DatasetField> sourceFields = new ArrayList<>();
-        for (List<DatasetFieldsByType> datasetFieldsByTypeList : metadataBlocksForEdit.values()) {
-            for (DatasetFieldsByType datasetFieldsByType : datasetFieldsByTypeList) {
-                for (DatasetField datasetField : datasetFieldsByType.getDatasetFields()) {
-                    if (sourceId.equals(datasetField.getTypeName())) {
-                        sourceFields.add(datasetField);
+        for (List<DatasetFieldsOfType> fieldsOfTypeList : metadataBlocksForEdit.values()) {
+            for (DatasetFieldsOfType fieldsOfType : fieldsOfTypeList) {
+                for (DatasetField field : fieldsOfType) {
+                    if (sourceId.equals(field.getTypeName())) {
+                        sourceFields.add(field);
                     }
                 }
             }

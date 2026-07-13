@@ -2,7 +2,7 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.buttonaction;
 
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.TextInputFieldRenderer;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 
 import java.util.List;
 
@@ -27,5 +27,5 @@ public interface FieldButtonActionHandler {
      * @param allBlockFields - other fields from the same metadata block (can be used to
      *      obtain / change values )
      */
-    void handleAction(DatasetField datasetField, List<DatasetFieldsByType> allBlockFields);
+    void handleAction(DatasetField datasetField, List<DatasetFieldsOfType> allBlockFields);
 }

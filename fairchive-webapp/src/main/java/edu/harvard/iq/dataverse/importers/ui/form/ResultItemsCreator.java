@@ -4,7 +4,7 @@ import edu.harvard.iq.dataverse.importer.metadata.ResultField;
 import edu.harvard.iq.dataverse.importers.ui.MetadataFormLookup;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +34,7 @@ public class ResultItemsCreator {
 
     private ResultItem initializeItem(ResultItemWithFields itemWithFields) {
         ResultItem item = itemWithFields.resultItem;
-        DatasetFieldType fieldType = itemWithFields.fields.getDatasetFieldType();
+        DatasetFieldType fieldType = itemWithFields.fields.getType();
         item.setLocalizedName(fieldType.getLocaleTitle())
                 .setMultipleAllowed(fieldType.isAllowMultiples())
                 .setDisplayOrder(fieldType.getDisplayOrder())
@@ -115,15 +115,15 @@ public class ResultItemsCreator {
 
     private static class ResultItemWithFields {
         public final ResultItem resultItem;
-        public final DatasetFieldsByType fields;
+        public final DatasetFieldsOfType fields;
 
         public boolean isRecognized() {
             return fields != null;
         }
 
-        public ResultItemWithFields(ResultItem resultItem, DatasetFieldsByType fieldsByType) {
+        public ResultItemWithFields(ResultItem resultItem, DatasetFieldsOfType fieldsOfType) {
             this.resultItem = resultItem;
-            this.fields = fieldsByType;
+            this.fields = fieldsOfType;
         }
     }
 }

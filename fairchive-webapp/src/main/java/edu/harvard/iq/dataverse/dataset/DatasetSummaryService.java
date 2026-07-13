@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.dataset;
 
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 import javax.ejb.Stateless;
@@ -14,23 +14,23 @@ import java.util.Map;
 @Stateless
 public class DatasetSummaryService {
 
-    public List<DatasetFieldsByType> getDatasetSummaryFields(DatasetVersion datasetVersion, List<String> customFieldList) {
+    public List<DatasetFieldsOfType> getDatasetSummaryFields(DatasetVersion datasetVersion, List<String> customFieldList) {
 
-        Map<String, DatasetFieldsByType> allFieldsByType = DatasetFieldUtil.groupByType(datasetVersion.getFlatDatasetFields())
+        Map<String, DatasetFieldsOfType> allFieldsByType = DatasetFieldUtil.groupByType(datasetVersion.getFlatDatasetFields())
                 .stream()
                 .collect(HashMap::new,
-                        (map, fieldsByType) -> map.put(fieldsByType.getDatasetFieldType().getName(), fieldsByType),
+                        (map, fieldsOfType) -> map.put(fieldsOfType.getType().getName(), fieldsOfType),
                         (map1, map2) -> map1.putAll(map2));
 
-        List<DatasetFieldsByType> datasetFieldsByTypes = new ArrayList<>();
+        List<DatasetFieldsOfType> fieldsOfTypes = new ArrayList<>();
         
         for (String summaryField: customFieldList) {
             if (allFieldsByType.containsKey(summaryField)) {
-                datasetFieldsByTypes.add(allFieldsByType.get(summaryField));
+                fieldsOfTypes.add(allFieldsByType.get(summaryField));
             }
         }
 
-        return datasetFieldsByTypes;
+        return fieldsOfTypes;
     }
 
 }

@@ -16,7 +16,7 @@ import edu.harvard.iq.dataverse.importers.ui.form.ResultGroup;
 import edu.harvard.iq.dataverse.importers.ui.form.ResultGroupsCreator;
 import edu.harvard.iq.dataverse.importers.ui.form.ResultItem;
 import edu.harvard.iq.dataverse.importers.ui.form.ResultItemsCreator;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.JsfHelper;
@@ -117,7 +117,7 @@ public class ImporterForm {
     // -------------------- LOGIC --------------------
 
     public static ImporterForm createInitializedForm(MetadataImporter importer, Locale locale,
-                                                     Supplier<Map<MetadataBlock, List<DatasetFieldsByType>>> metadataSupplier) {
+                                                     Supplier<Map<MetadataBlock, List<DatasetFieldsOfType>>> metadataSupplier) {
         ImporterForm instance = new ImporterForm();
         instance.initializeForm(importer, locale,
                 MetadataFormLookup.create(importer.getMetadataBlockName(), metadataSupplier));
@@ -167,7 +167,7 @@ public class ImporterForm {
         }
     }
 
-    public void fillFormAndCleanUp(Map<MetadataBlock, List<DatasetFieldsByType>> metadata) {
+    public void fillFormAndCleanUp(Map<MetadataBlock, List<DatasetFieldsOfType>> metadata) {
         cleanUp();
         new MetadataFormFiller(lookup).fillForm(
                 new ResultGroupsCreator().prepareForFormFill(resultGroups)

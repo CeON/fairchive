@@ -6,7 +6,7 @@ import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -199,7 +199,7 @@ public class DatasetFieldsInitializerTest {
 
 
         // when
-        Map<MetadataBlock, List<DatasetFieldsByType>> retMetadataBlocks = datasetFieldsInitializer.groupAndUpdateFlagsForEdit(datasetFields, dataverse);
+        Map<MetadataBlock, List<DatasetFieldsOfType>> retMetadataBlocks = datasetFieldsInitializer.groupAndUpdateFlagsForEdit(datasetFields, dataverse);
 
         // then
         assertEquals(3, retMetadataBlocks.size());
@@ -232,19 +232,19 @@ public class DatasetFieldsInitializerTest {
                 .thenReturn(prepareHiddenFields(Lists.newArrayList(titleField.get())));
 
         //when
-        Map<MetadataBlock, List<DatasetFieldsByType>> updatedDsf = datasetFieldsInitializer.groupAndUpdateFlagsForEdit(datasetFields, dataverse);
+        Map<MetadataBlock, List<DatasetFieldsOfType>> updatedDsf = datasetFieldsInitializer.groupAndUpdateFlagsForEdit(datasetFields, dataverse);
 
-        Optional<DatasetFieldsByType> titleFields = updatedDsf.values().stream()
-                .flatMap(fieldsByTypes -> fieldsByTypes.stream())
-                .filter(fieldByType -> fieldByType.getDatasetFieldType().getName().equals("title"))
+        Optional<DatasetFieldsOfType> titleFields = updatedDsf.values().stream()
+                .flatMap(fieldsOfTypes -> fieldsOfTypes.stream())
+                .filter(fieldByType -> fieldByType.getType().getName().equals("title"))
                 .findAny();
 
         //then
         
         assertAll(
                 () -> assertEquals(1, updatedDsf.values().stream()
-                            .flatMap(fieldsByTypes -> fieldsByTypes.stream())
-                            .filter(DatasetFieldsByType::isInclude).count()),
+                            .flatMap(fieldsOfTypes -> fieldsOfTypes.stream())
+                            .filter(DatasetFieldsOfType::isInclude).count()),
                 
                 () -> assertTrue(titleFields.isPresent()),
                 () -> assertFalse(titleFields.get().isInclude()));

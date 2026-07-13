@@ -3,7 +3,7 @@ package edu.harvard.iq.dataverse.dataset.metadata.inputRenderer;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.buttonaction.FieldButtonActionHandler;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsByType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.InputRendererType;
 import io.vavr.control.Option;
 
@@ -94,7 +94,7 @@ public class TextInputFieldRenderer implements InputFieldRenderer {
         return BundleUtil.getStringFromBundle(actionButtonTextKey);
     }
 
-    public void executeButtonAction(DatasetField datasetField, List<DatasetFieldsByType> allBlockFields) {
+    public void executeButtonAction(DatasetField datasetField, List<DatasetFieldsOfType> allBlockFields) {
 
         actionButtonHandler.handleAction(datasetField, allBlockFields);
     }
