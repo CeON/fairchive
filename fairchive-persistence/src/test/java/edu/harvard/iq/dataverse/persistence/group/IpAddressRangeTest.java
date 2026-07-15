@@ -37,7 +37,7 @@ public class IpAddressRangeTest {
     @Test
     public void testIPv6NotApplicable() {
         IPv6Range sut = new IPv6Range(IPv6Address.valueOf("::10"), IPv6Address.valueOf("::1:1"));
-        testRange(null, sut,
+        testRange(Boolean.FALSE, sut,
                   IPv4Address.valueOf("1.2.3.4"));
     }
 
@@ -69,7 +69,7 @@ public class IpAddressRangeTest {
     @Test
     public void testIPv4NotApplicable() {
         IPv4Range sut = new IPv4Range(IPv4Address.valueOf("127.0.0.2"), IPv4Address.valueOf("127.0.1.10"));
-        testRange(null, sut,
+        testRange(Boolean.FALSE, sut,
                   IPv6Address.valueOf("::1")
         );
     }

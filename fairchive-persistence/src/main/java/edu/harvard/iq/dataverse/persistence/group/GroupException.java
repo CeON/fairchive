@@ -11,23 +11,24 @@ import javax.ejb.ApplicationException;
 @ApplicationException(rollback = true)
 public class GroupException extends RuntimeException {
 
-    private final Group theGroup;
+    private final Group group;
 
-    public GroupException(Group aGroup, String message) {
-        this(aGroup, message, null);
+    public GroupException(final Group group, final String message) {
+        this(group, message, null);
     }
 
-    public GroupException(Group aGroup, String message, Throwable cause) {
+    public GroupException(final Group group, final String message, 
+    		final Throwable cause) {
         super(message, cause);
-        theGroup = aGroup;
+        this.group = group;
     }
 
     public Group getGroup() {
-        return theGroup;
+        return this.group;
     }
 
     @Override
     public String toString() {
-        return super.toString() + "[ Group: " + getGroup() + "]";
+        return super.toString() + "[ Group: " + this.group + ']';
     }
 }

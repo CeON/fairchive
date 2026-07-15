@@ -36,19 +36,19 @@ public class IPv4Range extends IpAddressRange implements Serializable {
     /**
      * The most significant bits of {@code this} range's top address, i.e the first two numbers of the IP address
      */
-    BigInteger topAsLong;
+    private BigInteger topAsLong;
 
     /**
      * The least significant bits, i.e the last tow numbers of the IP address
      */
-    BigInteger bottomAsLong;
+    private BigInteger bottomAsLong;
 
     public IPv4Range() {
     }
 
-    public IPv4Range(IPv4Address bottom, IPv4Address top) {
-        topAsLong = top.toBigInteger();
-        bottomAsLong = bottom.toBigInteger();
+    public IPv4Range(final IPv4Address bottom, final IPv4Address top) {
+        this.topAsLong = top.toBigInteger();
+        this.bottomAsLong = bottom.toBigInteger();
     }
 
     @Override
@@ -56,8 +56,8 @@ public class IPv4Range extends IpAddressRange implements Serializable {
         return new IPv4Address(getTopAsLong());
     }
 
-    public void setTop(IPv4Address aNewTop) {
-        setTopAsLong(aNewTop.toBigInteger());
+    public void setTop(final IPv4Address address) {
+        setTopAsLong(address.toBigInteger());
     }
 
     @Override
@@ -65,36 +65,34 @@ public class IPv4Range extends IpAddressRange implements Serializable {
         return new IPv4Address(getBottomAsLong());
     }
 
-    public void setBottom(IPv4Address aNewBottom) {
-        setTopAsLong(aNewBottom.toBigInteger());
+    public void setBottom(final IPv4Address address) {
+        setBottomAsLong(address.toBigInteger());
     }
 
     public BigInteger getTopAsLong() {
-        return topAsLong;
+        return this.topAsLong;
     }
 
-    public void setTopAsLong(BigInteger topAsLong) {
-        this.topAsLong = topAsLong;
+    public void setTopAsLong(final BigInteger address) {
+        this.topAsLong = address;
     }
 
     public BigInteger getBottomAsLong() {
         return bottomAsLong;
     }
 
-    public void setBottomAsLong(BigInteger bottomAsLong) {
-        this.bottomAsLong = bottomAsLong;
+    public void setBottomAsLong(final BigInteger address) {
+        this.bottomAsLong = address;
     }
 
     @Override
-    public Boolean contains(IpAddress anAddress) {
-        if (anAddress == null) {
-            return null;
+    public boolean contains(IpAddress address) {
+        if (address instanceof IPv4Address) {
+            final IPv4Address ip4 = (IPv4Address) address;
+            return getBottom().compareTo(ip4) <= 0 && getTop().compareTo(ip4) >= 0;
+        } else {
+        	return false;
         }
-        if (anAddress instanceof IPv4Address) {
-            IPv4Address adr = (IPv4Address) anAddress;
-            return getBottom().compareTo(adr) <= 0 && getTop().compareTo(adr) >= 0;
-        }
-        return null;
     }
 
 }

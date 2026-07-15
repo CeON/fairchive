@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
-import edu.harvard.iq.dataverse.common.BundleUtil;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
 import edu.harvard.iq.dataverse.persistence.user.RoleAssigneeDisplayInfo;
 
 
@@ -29,7 +30,7 @@ public class AuthenticatedUsers implements Group {
 
     @Override
     public RoleAssigneeDisplayInfo getDisplayInfo() {
-        return new RoleAssigneeDisplayInfo(BundleUtil.getStringFromBundle("permission.anyoneWithAccount"), null);
+        return new RoleAssigneeDisplayInfo(getStringFromBundle("permission.anyoneWithAccount"), null);
     }
 
     @Override
@@ -49,7 +50,7 @@ public class AuthenticatedUsers implements Group {
 
     @Override
     public String toString() {
-        return "[AuthenticatedUsers " + getIdentifier() + "]";
+        return "Group authenticated-users";
     }
 
 

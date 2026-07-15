@@ -1,5 +1,15 @@
 package edu.harvard.iq.dataverse.authorization.groups.impl.ipaddress;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
@@ -7,15 +17,7 @@ import edu.harvard.iq.dataverse.persistence.group.IPv4Address;
 import edu.harvard.iq.dataverse.persistence.group.IPv6Address;
 import edu.harvard.iq.dataverse.persistence.group.IpAddress;
 import edu.harvard.iq.dataverse.persistence.group.IpGroup;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import edu.harvard.iq.dataverse.persistence.group.IpGroupRepository;
 
 /**
  * Provides CRUD tools to efficiently manage IP groups in a Java EE container.
@@ -27,6 +29,9 @@ public class IpGroupsServiceBean {
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     protected EntityManager em;
+    
+    @Inject 
+    private IpGroupRepository groupRepository;
 
     @EJB
     ActionLogServiceBean actionLogSvc;
@@ -50,7 +55,7 @@ public class IpGroupsServiceBean {
                 IpGroup existing = getByGroupName(grp.getPersistedGroupAlias());
                 if (existing == null) {
                     // new group
-                    em.persist(grp);
+                	this.groupRepository.save(grp);
                     actionLogSvc.log(alr);
                     return grp;
 
@@ -64,31 +69,25 @@ public class IpGroupsServiceBean {
                 }
             } else {
                 actionLogSvc.log(alr);
-                em.persist(grp);
+                this.groupRepository.save(grp);
                 return grp;
             }
         } else {
             actionLogSvc.log(alr.setActionSubType("ipUpdate"));
-            return em.merge(grp);
+            return this.groupRepository.save(grp);
         }
     }
 
-    public IpGroup get(long id) {
-        return em.find(IpGroup.class, id);
+    public IpGroup get(final long id) {
+        return this.groupRepository.findById(id).orElse(null);
     }
 
-    public IpGroup getByGroupName(String alias) {
-        try {
-            return em.createNamedQuery("IpGroup.findByPersistedGroupAlias", IpGroup.class)
-                    .setParameter("persistedGroupAlias", alias)
-                    .getSingleResult();
-        } catch (NoResultException nre) {
-            return null;
-        }
+    public IpGroup getByGroupName(final String alias) {
+    	return this.groupRepository.getByAlias(alias).orElse(null);
     }
 
     public List<IpGroup> findAll() {
-        return em.createNamedQuery("IpGroup.findAll", IpGroup.class).getResultList();
+        return this.groupRepository.findAll();
     }
 
     public Set<IpGroup> findAllIncludingIp(IpAddress ipa) {
@@ -125,7 +124,7 @@ public class IpGroupsServiceBean {
         ActionLogRecord alr = new ActionLogRecord(ActionLogRecord.ActionType.GlobalGroups, "ipDelete");
         alr.setInfo(grp.getIdentifier());
         if (roleAssigneeSvc.getAssignmentsFor(grp.getIdentifier()).isEmpty()) {
-            em.remove(grp);
+        	this.groupRepository.delete(grp);
             actionLogSvc.log(alr);
 
         } else {

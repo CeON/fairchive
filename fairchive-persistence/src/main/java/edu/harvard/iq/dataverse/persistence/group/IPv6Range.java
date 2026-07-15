@@ -39,7 +39,7 @@ public class IPv6Range extends IpAddressRange implements Serializable {
     long topA, topB, topC, topD;
     long bottomA, bottomB, bottomC, bottomD;
 
-    public IPv6Range(IPv6Address bottom, IPv6Address top) {
+    public IPv6Range(final IPv6Address bottom, final IPv6Address top) {
         setTop(top);
         setBottom(bottom);
     }
@@ -48,15 +48,13 @@ public class IPv6Range extends IpAddressRange implements Serializable {
     }
 
     @Override
-    public Boolean contains(IpAddress anAddress) {
-        if (anAddress == null) {
-            return null;
+    public boolean contains(final IpAddress address) {
+        if (address instanceof IPv6Address) {
+            final IPv6Address ip6 = (IPv6Address) address;
+            return getBottom().compareTo(ip6) <= 0 && getTop().compareTo(ip6) >= 0;
+        } else {
+        	return false;
         }
-        if (anAddress instanceof IPv6Address) {
-            IPv6Address adr = (IPv6Address) anAddress;
-            return getBottom().compareTo(adr) <= 0 && getTop().compareTo(adr) >= 0;
-        }
-        return null;
     }
 
     @Override
@@ -69,93 +67,91 @@ public class IPv6Range extends IpAddressRange implements Serializable {
         return new IPv6Address(new long[]{bottomA, bottomB, bottomC, bottomD});
     }
 
-    public final void setTop(IPv6Address t) {
-        long[] tArr = t.toLongArray();
-        topA = tArr[0];
-        topB = tArr[1];
-        topC = tArr[2];
-        topD = tArr[3];
+    public final void setTop(final IPv6Address address) {
+        final long[] tArr = address.toLongArray();
+        this.topA = tArr[0];
+        this.topB = tArr[1];
+        this.topC = tArr[2];
+        this.topD = tArr[3];
     }
 
-    public final void setBottom(IPv6Address b) {
-        long[] bArr = b.toLongArray();
-        bottomA = bArr[0];
-        bottomB = bArr[1];
-        bottomC = bArr[2];
-        bottomD = bArr[3];
+    public final void setBottom(IPv6Address address) {
+        final long[] bArr = address.toLongArray();
+        this.bottomA = bArr[0];
+        this.bottomB = bArr[1];
+        this.bottomC = bArr[2];
+        this.bottomD = bArr[3];
     }
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public long getTopA() {
-        return topA;
+        return this.topA;
     }
 
-    public void setTopA(long topA) {
+    public void setTopA(final long topA) {
         this.topA = topA;
     }
 
     public long getTopB() {
-        return topB;
+        return this.topB;
     }
 
-    public void setTopB(long topB) {
+    public void setTopB(final long topB) {
         this.topB = topB;
     }
 
     public long getTopC() {
-        return topC;
+        return this.topC;
     }
 
-    public void setTopC(long topC) {
+    public void setTopC(final long topC) {
         this.topC = topC;
     }
 
     public long getTopD() {
-        return topD;
+        return this.topD;
     }
 
-    public void setTopD(long topD) {
+    public void setTopD(final long topD) {
         this.topD = topD;
     }
 
     public long getBottomA() {
-        return bottomA;
+        return this.bottomA;
     }
 
-    public void setBottomA(long bottomA) {
+    public void setBottomA(final long bottomA) {
         this.bottomA = bottomA;
     }
 
     public long getBottomB() {
-        return bottomB;
+        return this.bottomB;
     }
 
-    public void setBottomB(long bottomB) {
+    public void setBottomB(final long bottomB) {
         this.bottomB = bottomB;
     }
 
     public long getBottomC() {
-        return bottomC;
+        return this.bottomC;
     }
 
-    public void setBottomC(long bottomC) {
+    public void setBottomC(final long bottomC) {
         this.bottomC = bottomC;
     }
 
     public long getBottomD() {
-        return bottomD;
+        return this.bottomD;
     }
 
-    public void setBottomD(long bottomD) {
+    public void setBottomD(final long bottomD) {
         this.bottomD = bottomD;
     }
-
-
 }
