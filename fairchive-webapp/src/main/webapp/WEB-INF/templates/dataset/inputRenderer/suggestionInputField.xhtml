@@ -31,7 +31,7 @@
             scrollHeight="#{inputRenderer.scrollHeight}"
             rendered="#{inputRenderer.suggestionDisplayType eq 'SIMPLE'}"
     >
-        <p:ajax process="@form:@id(fieldsByTypeFragment)" event="focus" />
+        <p:ajax process="@form:@id(fieldsOfTypeFragment)" event="focus" />
         #{suggestion.value}
     </p:autoComplete>
 
@@ -50,7 +50,7 @@
             pt:data-field-type="#{datasetField.datasetFieldType.name}"
             rendered="#{inputRenderer.suggestionDisplayType eq 'TWO_COLUMNS' and !datasetField.datasetFieldType.allowMultiples}"
     >
-        <p:ajax process="@form:@id(fieldsByTypeFragment)" event="focus" />
+        <p:ajax process="@form:@id(fieldsOfTypeFragment)" event="focus" />
 
         <p:column headerText="#{inputRenderer.valueHeaderText}">
             <h:outputText value="#{suggestion.value}"/>
@@ -82,7 +82,7 @@
             rendered="#{inputRenderer.suggestionDisplayType eq 'TWO_COLUMNS' and datasetField.datasetFieldType.allowMultiples}"
             data-field-id="#{datasetField.datasetFieldType.id}"
     >
-        <p:ajax process="@form:@id(fieldsByTypeFragment)" event="blur" />
+        <p:ajax process="@form:@id(fieldsOfTypeFragment)" event="blur" />
 
         <p:column headerText="#{inputRenderer.valueHeaderText}">
             <h:outputText value="#{datasetField.datasetFieldType.getLocaleVocab(suggestion.value)}" style="white-space: nowrap;"/>
