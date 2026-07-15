@@ -66,7 +66,7 @@ public class IPv4Range extends IpAddressRange implements Serializable {
     }
 
     public void setBottom(final IPv4Address address) {
-        setTopAsLong(address.toBigInteger());
+        setBottomAsLong(address.toBigInteger());
     }
 
     public BigInteger getTopAsLong() {
