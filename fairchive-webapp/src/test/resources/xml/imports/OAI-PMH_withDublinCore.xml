@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="/oai/oai2.xsl"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-07-16T10:24:37Z</responseDate>
+    <request verb="GetRecord"
+        identifier="mw:0_1029010432103244_ORD" metadataPrefix="oai_dc">https://mostwiedzy.pl/pl/oai-pmh/</request>
+    <GetRecord
+        xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
+        xmlns:datacite="http://datacite.org/schema/kernel-4">
+        <record
+            xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:dc="http://purl.org/dc/elements/1.1/"
+            xmlns:datacite="http://datacite.org/schema/kernel-4">
+            <header>
+                <identifier>mw:0_1029010432103244_ORD</identifier>
+                <datestamp>2020-12-17T16:55:34Z</datestamp>
+                <setSpec>openResearchData</setSpec>
+                <setSpec>openaire_data</setSpec>
+            </header>
+            <metadata
+                xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns:dc="http://purl.org/dc/elements/1.1/"
+                xmlns:datacite="http://datacite.org/schema/kernel-4">
+                <oai_dc:dc
+                    xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+                    xmlns:dc="http://purl.org/dc/elements/1.1/"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:type>Dataset</dc:type>
+                    <dc:title>3D point cloud as a representation of buildings: the
+                        Nanotechnology Center and the Auditorium Novum</dc:title>
+                    <dc:date>2019</dc:date>
+                    <dc:identifier>https://mostwiedzy.pl/pl/open-research-data/3d-point-cloud-as-a-representation-of-buildings-the-nanotechnology-center-and-the-auditorium-novum,1029010432103244-0
+                    </dc:identifier>
+                    <dc:identifier>doi:10.34808/rfxw-j124</dc:identifier>
+                    <dc:identifier>ord_id:0_1029010432103244_ORD</dc:identifier>
+                    <dc:identifier>mw:0_1029010432103244_ORD</dc:identifier>
+                    <dc:language>en</dc:language>
+                    <dc:description>The product presents the point cloud in the
+                        collection of a three-dimensional database in spatial order as the
+                        representations of the Nanotechnology Center and the Auditorium
+                        Novum buildings (located on the campus of the Gdańsk University of
+                        Technology) acquired in the laser scanning technology. According
+                        to its high accuracy and precision of data acquisition (about 1 mm
+                        at a distance of 10 m), this method finds its application in many
+                        areas of human life (i.e. medicine, architecture, agriculture or
+                        civil engineering). For data acquisition the Riegl VZ-400
+                        instrument was used and the data alignment was performed using
+                        least-squares method. The next step was bound to transform the
+                        dataset to the PL-ETRF2000 system zone 6 horizontal coordinates
+                        and PL-KRON86-NH for heights. To sum up the available on the
+                        website file presents a set of points in the .txt format showing
+                        horizontal and height coordinates as well as the intensity of the
+                        light beam reflection from the measured object.</dc:description>
+                    <dc:rights>https://creativecommons.org/licenses/by/4.0</dc:rights>
+                    <dc:publisher>Gdańsk University of Technology</dc:publisher>
+                    <dc:creator>Paweł Tysiąc</dc:creator>
+                    <dc:creator>Adam Inglot</dc:creator>
+                    <dc:creator>Katarzyna Bobkowska</dc:creator>
+                    <dc:subject>Dziedzina nauk inżynieryjno-technicznych</dc:subject>
+                    <dc:subject>architektura i urbanistyka</dc:subject>
+                    <dc:subject>gdańsk</dc:subject>
+                    <dc:subject>TLS</dc:subject>
+                    <dc:subject>laser scanning</dc:subject>
+                    <dc:subject>LiDAR</dc:subject>
+                    <dc:subject>point cloud</dc:subject>
+                </oai_dc:dc>
+                <oai_datacite
+                    xmlns="http://schema.datacite.org/oai/oai-1.1/"
+                    xmlns:datacite="http://datacite.org/schema/kernel-4"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://schema.datacite.org/oai/oai-1.1/ http://schema.datacite.org/oai/oai-1.1/oai.xsd">
+                    <schemaVersion>4</schemaVersion>
+                    <datacentreSymbol>MW.GDANSKTECH</datacentreSymbol>
+                    <payload>
+                        <datacite:resource
+                            xmlns="http://datacite.org/schema/kernel-4"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                            xsi:schemaLocation="http://datacite.org/schema/kernel-4 https://schema.datacite.org/meta/kernel-4.4/metadata.xsd">
+                            <identifier identifierType="DOI"
+                                schemeURI="https://doi.org/">10.34808/rfxw-j124</identifier>
+                            <alternateIdentifiers>
+                                <alternateIdentifier
+                                    alternateIdentifierType="ORD_ID">0_1029010432103244_ORD
+                                </alternateIdentifier>
+                            </alternateIdentifiers>
+                            <resourceType resourceTypeGeneral="Dataset">Dataset
+                            </resourceType>
+                            <titles>
+                                <title>3D point cloud as a representation of buildings: the
+                                    Nanotechnology Center and the Auditorium Novum</title>
+                            </titles>
+                            <creators>
+                                <creator>
+                                    <creatorName nameType="Personal">Tysiąc, Paweł</creatorName>
+                                    <givenName>Paweł</givenName>
+                                    <familyName>Tysiąc</familyName>
+                                    <nameIdentifier schemeURI="http://orcid.org/"
+                                        nameIdentifierScheme="ORCID">0000-0002-5017-4522</nameIdentifier>
+                                </creator>
+                                <creator>
+                                    <creatorName nameType="Personal">Inglot, Adam</creatorName>
+                                    <givenName>Adam</givenName>
+                                    <familyName>Inglot</familyName>
+                                    <nameIdentifier schemeURI="http://orcid.org/"
+                                        nameIdentifierScheme="ORCID">0000-0001-6053-6331</nameIdentifier>
+                                    <affiliation>Department of Geodesy</affiliation>
+                                </creator>
+                                <creator>
+                                    <creatorName nameType="Personal">Bobkowska, Katarzyna
+                                    </creatorName>
+                                    <givenName>Katarzyna</givenName>
+                                    <familyName>Bobkowska</familyName>
+                                    <nameIdentifier schemeURI="http://orcid.org/"
+                                        nameIdentifierScheme="ORCID">0000-0003-4968-3407</nameIdentifier>
+                                    <affiliation>Department of Geodesy</affiliation>
+                                </creator>
+                            </creators>
+                            <dates>
+                                <date dateType="Available">2020-12-17</date>
+                                <date dateType="Created">2020-01-30</date>
+                                <date dateType="Submitted">2019-10-29</date>
+                            </dates>
+                            <subjects>
+                                <subject>gdańsk</subject>
+                                <subject>TLS</subject>
+                                <subject>laser scanning</subject>
+                                <subject>LiDAR</subject>
+                                <subject>point cloud</subject>
+                            </subjects>
+                            <descriptions>
+                                <description descriptionType="Abstract">The product presents
+                                    the point cloud in the collection of a three-dimensional
+                                    database in spatial order as the representations of the
+                                    Nanotechnology Center and the Auditorium Novum buildings
+                                    (located on the campus of the Gdańsk University of Technology)
+                                    acquired in the laser scanning technology. According to its
+                                    high accuracy and precision of data acquisition (about 1 mm at
+                                    a distance of 10 m), this method finds its application in many
+                                    areas of human life (i.e. medicine, architecture, agriculture
+                                    or civil engineering). For data acquisition the Riegl VZ-400
+                                    instrument was used and the data alignment was performed using
+                                    least-squares method. The next step was bound to transform the
+                                    dataset to the PL-ETRF2000 system zone 6 horizontal coordinates
+                                    and PL-KRON86-NH for heights. To sum up the available on the
+                                    website file presents a set of points in the .txt format
+                                    showing horizontal and height coordinates as well as the
+                                    intensity of the light beam reflection from the measured
+                                    object.</description>
+                            </descriptions>
+                            <sizes>
+                                <size>1 GB</size>
+                            </sizes>
+                            <rightsList>
+                                <rights
+                                    rightsURI="https://creativecommons.org/licenses/by/4.0">CC BY</rights>
+                                <rights rightsURI="info:eu-repo/semantics/openAccess">Open Access</rights>
+                            </rightsList>
+                            <publicationYear>2019</publicationYear>
+                            <publisher>Gdańsk University of Technology</publisher>
+                        </datacite:resource>
+                    </payload>
+                </oai_datacite>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>
