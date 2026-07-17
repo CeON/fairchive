@@ -436,7 +436,9 @@ public class DatasetField implements Serializable, ValidatableField {
     }
     
     public boolean isVisibleThroughAnonymizedUrl() {
-        return this.datasetFieldType.isVisibleThroughAnonymizedUrl();
+        return isEmpty() 
+        		? false
+        		: this.datasetFieldType.isVisibleThroughAnonymizedUrl();
     }
 
     public DatasetField copy() {

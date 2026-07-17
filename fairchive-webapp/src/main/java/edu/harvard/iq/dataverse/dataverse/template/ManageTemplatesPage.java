@@ -1,40 +1,44 @@
 package edu.harvard.iq.dataverse.dataverse.template;
 
-import edu.harvard.iq.dataverse.DataverseDao;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+
+import javax.faces.event.AbortProcessingException;
+import javax.faces.event.AjaxBehaviorEvent;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
-import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldUtil;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.util.UIMessages;
 
-import javax.faces.event.AbortProcessingException;
-import javax.faces.event.AjaxBehaviorEvent;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-/**
- * @author skraffmiller
- */
 @SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class ManageTemplatesPage implements java.io.Serializable {
 
-    private DataverseDao dvService;
+    private DataverseRepository dataverseRepo;
     private PermissionsWrapper permissionsWrapper;
     private DatasetFieldsInitializer datasetFieldsInitializer;
     private TemplateService templateService;
+    private UIMessages ui;
 
     private List<Template> templatesForView = new LinkedList<>();
     private Dataverse dataverse;
@@ -44,6 +48,7 @@ public class ManageTemplatesPage implements java.io.Serializable {
 
     private Template selectedTemplate = null;
     private Map<MetadataBlock, List<DatasetFieldsOfType>> mdbForView;
+    private ViewTemplateDialog vieTemplateDialog = new ViewTemplateDialog(EMPTY, emptyList());
 
     // -------------------- CONSTRUCTORS --------------------
     @Deprecated
@@ -51,151 +56,218 @@ public class ManageTemplatesPage implements java.io.Serializable {
     }
 
     @Inject
-    public ManageTemplatesPage(DataverseDao dvService,
-                               PermissionsWrapper permissionsWrapper,
-                               DatasetFieldsInitializer datasetFieldsInitializer, TemplateService templateService) {
-        this.dvService = dvService;
+    public ManageTemplatesPage(final DataverseRepository dataverseRepo,
+                               final PermissionsWrapper permissionsWrapper,
+                               final DatasetFieldsInitializer datasetFieldsInitializer, 
+                               final TemplateService templateService,
+                               final UIMessages ui) {
+    	
+        this.dataverseRepo = dataverseRepo;
         this.permissionsWrapper = permissionsWrapper;
         this.datasetFieldsInitializer = datasetFieldsInitializer;
         this.templateService = templateService;
+        this.ui = ui;
     }
 
     // -------------------- GETTERS --------------------
 
     public List<Template> getTemplatesForView() {
-        return templatesForView;
+        return this.templatesForView;
     }
 
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
     }
 
     public Long getDataverseId() {
-        return dataverseId;
+        return this.dataverseId;
     }
 
     public Template getSelectedTemplate() {
-        return selectedTemplate;
+        return this.selectedTemplate;
     }
 
     public boolean isInheritTemplatesValue() {
-        return inheritTemplatesValue;
+        return this.inheritTemplatesValue;
     }
 
     public boolean isInheritTemplatesAllowed() {
-        return inheritTemplatesAllowed;
+        return this.inheritTemplatesAllowed;
     }
 
     public Map<MetadataBlock, List<DatasetFieldsOfType>> getMdbForView() {
-        return mdbForView;
+        return this.mdbForView;
     }
 
     // -------------------- LOGIC --------------------
 
     public String init() {
-        dataverse = dvService.find(dataverseId);
-        if (dataverse == null) {
-            return permissionsWrapper.notFound();
+    	
+        final Optional<Dataverse> dataverse = this.dataverseRepo.findById(this.dataverseId);
+        if(! dataverse.isPresent()) {
+        	return permissionsWrapper.notFound();
         }
-        if (!permissionsWrapper.canIssueCommand(dataverse, UpdateDataverseCommand.class)) {
-            return permissionsWrapper.notAuthorized();
-        }
-
-        if (dataverse.getOwner() != null && dataverse.getRootMetadataBlocks().equals(dataverse.getOwner().getRootMetadataBlocks())) {
-            setInheritTemplatesAllowed(true);
+    	this.dataverse = dataverse.get();
+        if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)) {
+            return this.permissionsWrapper.notAuthorized();
         }
 
-        setInheritTemplatesValue(!dataverse.isTemplateRoot());
-
-        if (inheritTemplatesValue && dataverse.getOwner() != null) {
-            templatesForView.addAll(dataverse.getParentTemplates());
+        if (this.dataverse.isNotRoot() && 
+        		this.dataverse.getRootMetadataBlocks().equals(this.dataverse.getOwner().getRootMetadataBlocks())) {
+            this.inheritTemplatesAllowed = true;
         }
 
-        templatesForView.addAll(dataverse.getTemplates());
+        this.inheritTemplatesValue = !this.dataverse.isTemplateRoot();
 
-        return StringUtils.EMPTY;
+        if (this.inheritTemplatesValue && this.dataverse.isNotRoot()) {
+            this.templatesForView.addAll(this.dataverse.getParentTemplates());
+        }
+
+        this.templatesForView.addAll(this.dataverse.getTemplates());
+
+        return EMPTY;
     }
 
 
-    public void makeDefault(Template templateIn) {
+    public void makeDefault(final Template template) {
 
-        templateService.makeTemplateDefaultForDataverse(dataverse, templateIn)
-                .onFailure(throwable -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("template.makeDefault.error"), ""))
-                .onSuccess(dataverse -> JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("template.makeDefault")));
+        this.templateService.makeTemplateDefaultForDataverse(this.dataverse, template)
+                .onFailure(throwable -> this.ui.addErrorMessage(getStringFromBundle("template.makeDefault.error")))
+                .onSuccess(dataverse -> this.ui.addSuccessMessage(getStringFromBundle("template.makeDefault")));
     }
 
     public void unselectDefault() {
 
-        templateService.removeDataverseDefaultTemplate(dataverse)
-                .onFailure(throwable -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("template.update.error"), ""))
-                .onSuccess(dataverse -> JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("template.unselectDefault")));
+        this.templateService.removeDataverseDefaultTemplate(this.dataverse)
+                .onFailure(throwable -> this.ui.addErrorMessage(getStringFromBundle("template.update.error")))
+                .onSuccess(dataverse -> this.ui.addSuccessMessage(getStringFromBundle("template.unselectDefault")));
     }
 
-    public String cloneTemplate(Template templateIn) {
-        return "/template.xhtml?id=" + templateIn.getId() + "&mode=CLONE&faces-redirect=true";
+    public String cloneTemplate(final Template template) {
+    	
+        return "/template.xhtml?id=" + template.getId() + "&mode=CLONE&faces-redirect=true";
     }
 
     public void deleteTemplate() {
-        templateService.deleteTemplate(dataverse, selectedTemplate)
-                .onFailure(throwable -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("template.delete.error"), ""))
+        this.templateService.deleteTemplate(this.dataverse, this.selectedTemplate)
+                .onFailure(throwable -> this.ui.addErrorMessage(getStringFromBundle("template.delete.error")))
                 .onSuccess(dataverse -> {
-                    JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("template.delete"));
-                    templatesForView.remove(selectedTemplate);
+                    this.ui.addSuccessMessage(getStringFromBundle("template.delete"));
+                    this.templatesForView.remove(this.selectedTemplate);
                 });
 
     }
 
-    public void viewSelectedTemplate(Template selectedTemplate) {
+    public void viewSelectedTemplate(final Template selectedTemplate) {
+    	
         this.selectedTemplate = selectedTemplate;
 
-        List<DatasetField> dsfForView = datasetFieldsInitializer.prepareDatasetFieldsForView(selectedTemplate.getDatasetFields(), true);
-        mdbForView = DatasetFieldUtil.groupByBlockAndType(dsfForView);
+        final List<DatasetField> dsfForView = this.datasetFieldsInitializer.
+        		prepareDatasetFieldsForView(selectedTemplate.getDatasetFields(), true);
+        this.mdbForView = DatasetFieldUtil.groupByBlockAndType(dsfForView);
+        this.vieTemplateDialog =  new ViewTemplateDialog(this.selectedTemplate.getName(), 
+        		new ArrayList<>(this.mdbForView.entrySet()));
     }
 
     /**
      * Updates dataverse regarding which templates it can use, since you can inherit templates from parent.
      */
-    public String updateTemplatesRoot(AjaxBehaviorEvent event) throws AbortProcessingException {
+    public String updateTemplatesRoot(final AjaxBehaviorEvent event) 
+    		throws AbortProcessingException {
 
-        if (dataverse.getOwner() != null) {
+        if (this.dataverse.isNotRoot()) {
+            this.templateService.updateTemplateInheritance(this.dataverse, isInheritTemplatesValue())
+                    .onSuccess(updatedDataverse -> this.dataverse = updatedDataverse);
 
-            templateService.updateTemplateInheritance(dataverse, isInheritTemplatesValue())
-                    .onSuccess(updatedDataverse -> dataverse = updatedDataverse);
-
-            if (inheritTemplatesValue) {
-                templatesForView.addAll(dataverse.getParentTemplates());
+            if (this.inheritTemplatesValue) {
+                this.templatesForView.addAll(this.dataverse.getParentTemplates());
             } else {
-                templatesForView.removeAll(dataverse.getParentTemplates());
+                this.templatesForView.removeAll(this.dataverse.getParentTemplates());
             }
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     public List<String> retrieveDataverseNamesWithDefaultTemplate() {
-        return templateService.retrieveDataverseNamesWithDefaultTemplate(selectedTemplate.getId());
+    	
+        return this.templateService.retrieveDataverseNamesWithDefaultTemplate(this.selectedTemplate.getId());
     }
 
-    public String editTemplateRedirect(Template template) {
+    public String editTemplateRedirect(final Template template) {
+    	
         return "/template.xhtml?id=" + template.getId() + "&mode=EDIT&faces-redirect=true";
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setDataverseId(Long dataverseId) {
-        this.dataverseId = dataverseId;
+    public void setDataverseId(final Long id) {
+    	
+        this.dataverseId = id;
     }
 
-    public void setInheritTemplatesValue(boolean inheritTemplatesValue) {
-        this.inheritTemplatesValue = inheritTemplatesValue;
+    public void setInheritTemplatesValue(final boolean value) {
+    	
+        this.inheritTemplatesValue = value;
     }
 
-    public void setInheritTemplatesAllowed(boolean inheritTemplatesAllowed) {
-        this.inheritTemplatesAllowed = inheritTemplatesAllowed;
+    public void setInheritTemplatesAllowed(final boolean allowed) {
+    	
+        this.inheritTemplatesAllowed = allowed;
     }
 
-    public void setSelectedTemplate(Template selectedTemplate) {
-        this.selectedTemplate = selectedTemplate;
+    public void setSelectedTemplate(final Template template) {
+    	
+        this.selectedTemplate = template;
+    }
+    
+    public ViewTemplateDialog getViewTemplateDialog() {
+    	
+    	return this.vieTemplateDialog;
     }
 
+    //--------------------------------------------------------------------------
+    public class ViewTemplateDialog {
+    	
+    	private final List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> blockList;
+    	private final String templateName;
+    	
+    	public ViewTemplateDialog(final String templateName, 
+    			final List<Entry<MetadataBlock, List<DatasetFieldsOfType>>> blockList) {
+    		
+    		this.templateName = templateName;
+    		this.blockList = blockList;
+		}
+
+		public List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> getMetadataBlocks() {
+    		return this.blockList;
+    	}
+    	
+    	public boolean shouldRenderBlock(final int index) {
+    		return true;
+    	}
+    	
+    	public boolean shouldRenderField(final int blockIndex, final int fieldOfTypeIndex) {
+    		return true;
+    	}
+    	
+    	public String getTemplateName() {
+    		return this.templateName;
+    	}
+    	
+    	public String getDatasetGlobalIdString() {
+    		
+    		return EMPTY;
+    	}
+    	
+    	public String getAlternativePersistentIdentifier() {
+    		
+    		return EMPTY;
+    	}
+    	
+    	public String getPublicationDate() {
+    		
+    		return EMPTY;
+    	}
+    }
 }

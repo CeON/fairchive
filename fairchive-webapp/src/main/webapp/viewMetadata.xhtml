@@ -9,12 +9,12 @@
                 xmlns:o="http://omnifaces.org/ui"
                 xmlns:jsf="http://xmlns.jcp.org/jsf">
 
-    <!--@elvariable id="metadataBlocks" type="java.util.List<edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock>"-->
     <!-- View Mode -->
     <div class="panel-group form-horizontal">
-        <ui:repeat value="#{metadataBlocks}"
-                   var="metadataBlockVal" varStatus="block">
-            <div jsf:rendered="#{!isViewedFromAnonymizedPrivateUrl or metadataBlockVal.key.isVisibleThroughAnonymizedUrl()}"
+        <ui:repeat value="#{bean.metadataBlocks}"
+                   var="metadataBlockVal" 
+                   varStatus="block">
+            <div jsf:rendered="#{bean.shouldRenderBlock(block.index)}"
                  class="panel panel-default">
                 <a id="clps#{block.index}" 
                    data-toggle="collapse" 
@@ -27,7 +27,7 @@
                 <div id="panelCollapse#{block.index}" class="collapse in">
                     <div class="panel-body metadata-panel-body">
                         <ui:fragment rendered="#{metadataBlockVal.key.name eq 'citation'}">
-                            <div jsf:rendered="#{!empty globalId}"
+                            <div jsf:rendered="#{!empty bean.datasetGlobalIdString}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">
                                     #{bundle['dataset.metadata.persistentId']}
@@ -39,10 +39,10 @@
                                           data-original-title="#{bundle['dataset.metadata.persistentId.tip']}"/>
                                 </div>
                                 <div class="col-sm-9 form-control-static">
-                                    <p class="text-block">#{globalId}</p>
+                                    <p class="text-block">#{bean.datasetGlobalIdString}</p>
                                 </div>
                             </div>
-                            <div jsf:rendered="#{!empty altPID}"
+                            <div jsf:rendered="#{!empty bean.alternativePersistentIdentifier}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">
                                     #{bundle['dataset.metadata.alternativePersistentId']}
@@ -54,10 +54,10 @@
                                           data-original-title="#{bundle['dataset.metadata.alternativePersistentId.tip']}"/>
                                 </div>
                                 <div class="col-sm-9 form-control-static">
-                                    <p class="text-block">#{altPID}</p>
+                                    <p class="text-block">#{bean.alternativePersistentIdentifier}</p>
                                 </div>
                             </div>
-                            <div jsf:rendered="#{!empty publicationDate}"
+                            <div jsf:rendered="#{!empty bean.publicationDate}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">
                                     #{bundle['dataset.metadata.publicationDate']}
@@ -69,14 +69,14 @@
                                           data-original-title="#{bundle['dataset.metadata.publicationDate.tip']}"/>
                                 </div>
                                 <div class="col-sm-9 form-control-static">
-                                    <p class="text-block">#{publicationDate}</p>
+                                    <p class="text-block">#{bean.publicationDate}</p>
                                 </div>
                             </div>
                         </ui:fragment>
                         <ui:repeat value="#{metadataBlockVal.value}" 
                                    var="fieldsOfType" 
                                    varStatus="fieldTypeIndex">
-                            <div jsf:rendered="#{!isViewedFromAnonymizedPrivateUrl or fieldsOfType.isVisibleThroughAnonymizedUrl()}"
+                            <div jsf:rendered="#{bean.shouldRenderField(block.index, fieldTypeIndex.index)}"
                                  class="form-group">
                                 <div class="col-sm-3 control-label section-title">
                                     <h:outputText value="#{fieldsOfType.type.localeTitle}" escape="false" />

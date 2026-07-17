@@ -66,7 +66,7 @@ public final class DatasetFieldsOfType implements Iterable<DatasetField> {
     }
     
     public boolean isVisibleThroughAnonymizedUrl() {
-        return this.type.isVisibleThroughAnonymizedUrl();
+    	return ! areAllFieldsEmptyForDisplay() && this.type.isVisibleThroughAnonymizedUrl();
     }
 
     // -------------------- LOGIC --------------------
@@ -121,6 +121,10 @@ public final class DatasetFieldsOfType implements Iterable<DatasetField> {
 
     public boolean areAllFieldsEmpty() {
         return this.fields.stream().allMatch(DatasetField::isEmpty);
+    }
+    
+    public boolean areAllFieldsEmptyForDisplay() {
+        return this.fields.stream().allMatch(DatasetField::isEmptyForDisplay);
     }
     
     public DatasetField get(final int index) {

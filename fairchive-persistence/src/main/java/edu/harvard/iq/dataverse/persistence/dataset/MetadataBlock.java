@@ -1,7 +1,15 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,15 +23,8 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
-import static javax.persistence.CascadeType.MERGE;
-import static javax.persistence.CascadeType.PERSIST;
-import static javax.persistence.CascadeType.REMOVE;
-import static javax.persistence.GenerationType.IDENTITY;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 /**
  * @author skraffmiller
@@ -84,7 +85,7 @@ public class MetadataBlock implements JpaEntity<Long>, Serializable {
 
     @OneToMany(mappedBy = "metadataBlock", cascade = {REMOVE, MERGE, PERSIST})
     @OrderBy("displayOrder")
-    private List<DatasetFieldType> datasetFieldTypes;
+    private List<DatasetFieldType> datasetFieldTypes = new ArrayList<>();;
 
     public List<DatasetFieldType> getDatasetFieldTypes() {
         return datasetFieldTypes;
