@@ -158,7 +158,7 @@ public class DatasetField implements Serializable, ValidatableField {
         return controlledVocabularyValues;
     }
     
-    private void addControlledVacabularyValue(final ControlledVocabularyValue value) {
+    private void addControlledVocabularyValue(final ControlledVocabularyValue value) {
     	if(! this.datasetFieldType.isAllowMultiples()) {
     		this.controlledVocabularyValues.clear();
     	}
@@ -447,7 +447,7 @@ public class DatasetField implements Serializable, ValidatableField {
     	final String sourceValue = source.getValue();
     	setValue(sourceValue);
         if(sourceValue != null && allowsControlledVocabulary()) {
-            addControlledVacabularyValue(this.datasetFieldType.getControlledVocabularyValue(sourceValue));
+            addControlledVocabularyValue(this.datasetFieldType.getControlledVocabularyValue(sourceValue));
         }
     }
     
@@ -464,7 +464,7 @@ public class DatasetField implements Serializable, ValidatableField {
 			getChildByName(to).ifPresent(child -> {
 				child.setValue(value);
 				if (value != null && child.allowsControlledVocabulary()) {
-					child.addControlledVacabularyValue(
+					child.addControlledVocabularyValue(
 							child.datasetFieldType.getControlledVocabularyValue(value));
 				}
 			});
