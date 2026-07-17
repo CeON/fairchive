@@ -108,12 +108,11 @@ public final class DatasetFieldsOfType implements Iterable<DatasetField> {
         this.fields.addAll(position, divided);
     }
 
-    public void copyValues(final List<DatasetField> sources, final String sourceName, int position) {
+    public void copyValues(final List<DatasetField> sources, 
+    		final String sourceName, int position) {
     	
     	final int totalRequiredLength = position + sources.size();
-    	while(totalRequiredLength > size()) {
-    		add(DatasetField.createNewEmptyChildDatasetField(this.type, null));
-    	}
+    	expandWithEmptyTo(totalRequiredLength);
     	
     	for (final DatasetField source : sources) {
     		this.fields.get(position++).copyChildValuesFrom(source);
