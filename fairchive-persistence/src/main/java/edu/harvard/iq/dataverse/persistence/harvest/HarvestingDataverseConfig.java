@@ -5,9 +5,13 @@
  */
 package edu.harvard.iq.dataverse.persistence.harvest;
 
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import static javax.persistence.CascadeType.MERGE;
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
 
-import javax.persistence.CascadeType;
+import java.io.Serializable;
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,7 +21,9 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.io.Serializable;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 /**
  * @author Leonid Andreev
@@ -27,20 +33,9 @@ import java.io.Serializable;
         , @Index(columnList = "harvesttype")
         , @Index(columnList = "harveststyle")
         , @Index(columnList = "harvestingurl")})
-public class HarvestingDataverseConfig implements Serializable {
+public class HarvestingDataverseConfig implements JpaEntity<Long>, Serializable {
     private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+    
     public static final String HARVEST_TYPE_OAI = "oai";
     public static final String HARVEST_TYPE_NESSTAR = "nesstar";
 
@@ -56,107 +51,105 @@ public class HarvestingDataverseConfig implements Serializable {
     public static final String REMOTE_ARCHIVE_URL_LEVEL_DATAVERSE = "dataverse";
     public static final String REMOTE_ARCHIVE_URL_LEVEL_DATASET = "dataset";
     public static final String REMOTE_ARCHIVE_URL_LEVEL_FILE = "file";
-
-    public HarvestingDataverseConfig() {
-        this.harvestType = HARVEST_TYPE_OAI; // default harvestType
-        this.harvestStyle = HARVEST_STYLE_DATAVERSE; // default harvestStyle
-    }
-
-
-    @OneToOne(cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    
+    @OneToOne(cascade = {REMOVE, MERGE, PERSIST})
     @JoinColumn(name = "dataverse_id")
     private Dataverse dataverse;
+    private String harvestType = HARVEST_TYPE_OAI; 
+    private String harvestStyle = HARVEST_STYLE_DATAVERSE; 
+    private String harvestingUrl;
+    private String archiveUrl;
+    @Column(columnDefinition = "TEXT")
+    private String archiveDescription;
+    private String harvestingSet;
+    
+    @Override
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(final Long id) {
+        this.id = id;
+    }
 
     public Dataverse getDataverse() {
         return this.dataverse;
     }
 
-    public void setDataverse(Dataverse dataverse) {
+    public void setDataverse(final Dataverse dataverse) {
         this.dataverse = dataverse;
     }
 
-    String harvestType;
-
     public String getHarvestType() {
-        return harvestType;
+        return this.harvestType;
     }
 
-    public void setHarvestType(String harvestType) {
-        this.harvestType = harvestType;
+    public void setHarvestType(final String type) {
+        this.harvestType = type;
     }
-
-    String harvestStyle;
 
     public String getHarvestStyle() {
-        return harvestStyle;
+        return this.harvestStyle;
     }
 
-    public void setHarvestStyle(String harvestStyle) {
-        this.harvestStyle = harvestStyle;
+    public void setHarvestStyle(final String style) {
+        this.harvestStyle = style;
     }
-
-    private String harvestingUrl;
 
     public String getHarvestingUrl() {
         return this.harvestingUrl;
     }
 
-    public void setHarvestingUrl(String harvestingUrl) {
-        this.harvestingUrl = harvestingUrl.trim();
+    public void setHarvestingUrl(final String url) {
+        this.harvestingUrl = url.trim();
     }
-
-    private String archiveUrl;
 
     public String getArchiveUrl() {
         return this.archiveUrl;
     }
 
-    public void setArchiveUrl(String archiveUrl) {
-        this.archiveUrl = archiveUrl;
+    public void setArchiveUrl(final String url) {
+        this.archiveUrl = url;
     }
-
-    @Column(columnDefinition = "TEXT")
-    private String archiveDescription;
 
     public String getArchiveDescription() {
         return this.archiveDescription;
     }
 
-    public void setArchiveDescription(String archiveDescription) {
-        this.archiveDescription = archiveDescription;
+    public void setArchiveDescription(final String description) {
+        this.archiveDescription = description;
     }
-
-    private String harvestingSet;
 
     public String getHarvestingSet() {
         return this.harvestingSet;
     }
 
-    public void setHarvestingSet(String harvestingSet) {
-        this.harvestingSet = harvestingSet;
+    public void setHarvestingSet(final String set) {
+        this.harvestingSet = set;
     }
-
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
+    public boolean equals(final Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof HarvestingDataverseConfig)) {
             return false;
         }
-        HarvestingDataverseConfig other = (HarvestingDataverseConfig) object;
-        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
+        final HarvestingDataverseConfig other = (HarvestingDataverseConfig) object;
+        return (this.id != null || other.id == null) 
+        		&& (this.id == null || this.id.equals(other.id));
     }
 
     @Override
     public String toString() {
         return "HarvestingDataverse[ id=" + id + " ]";
     }
-
 }
