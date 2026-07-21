@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse;
 import java.util.List;
 
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
@@ -13,6 +14,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabAlternate;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 
 /**
@@ -24,36 +26,31 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
+    @Inject
+    private DatasetFieldTypeRepository fieldTypeRepository;
 
-    private static final String NAME_QUERY = "SELECT dsfType from DatasetFieldType dsfType where dsfType.name= :fieldName";
-
-    public List<DatasetFieldType> findAllAdvancedSearchFieldTypesByMetadataBlockIds(List<Long> metadataBlockIds) {
-        return em.createNamedQuery("DatasetFieldType.findAdvancedSearchFieldsByMetadataBlocks", DatasetFieldType.class)
-                .setParameter("metadataBlockIds", metadataBlockIds)
-                .getResultList();
+    public List<DatasetFieldType> findAllAdvancedSearchFieldTypesByMetadataBlockIds(final List<Long> blockIds) {
+        return this.fieldTypeRepository.findAllAdvancedSearchFieldTypesByMetadataBlockIds(blockIds);
     }
 
     public List<DatasetFieldType> findAllFacetableFieldTypes() {
-        return em.createNamedQuery("DatasetFieldType.findAllFacetable", DatasetFieldType.class)
-                .getResultList();
+        return this.fieldTypeRepository.findAllFacetable();
     }
 
-    public List<DatasetFieldType> findFacetableFieldTypesByMetadataBlock(Long metadataBlockId) {
-        return em.createNamedQuery("DatasetFieldType.findFacetableByMetadataBlock", DatasetFieldType.class)
-                .setParameter("metadataBlockId", metadataBlockId)
-                .getResultList();
+    public List<DatasetFieldType> findFacetableFieldTypesByMetadataBlock(Long blockId) {
+        return this.fieldTypeRepository.findFacetableByMetadataBlock(blockId);
     }
 
     public List<DatasetFieldType> findAllRequiredFields() {
-        return em.createQuery("select object(o) from DatasetFieldType as o where o.required = true order by o.id", DatasetFieldType.class).getResultList();
+        return this.fieldTypeRepository.findAllRequired();
     }
 
     public List<DatasetFieldType> findAllOrderedById() {
-        return em.createQuery("select object(o) from DatasetFieldType as o order by o.id", DatasetFieldType.class).getResultList();
+        return this.fieldTypeRepository.findAllOrderedById();
     }
 
     public List<DatasetFieldType> findAllOrderedByName() {
-        return em.createQuery("select object(o) from DatasetFieldType as o order by o.name", DatasetFieldType.class).getResultList();
+        return this.fieldTypeRepository.findAllOrderedByName();
     }
 
     public DatasetFieldType find(Object pk) {
@@ -61,12 +58,7 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
     }
 
     public DatasetFieldType findByName(String name) {
-        try {
-            return (DatasetFieldType) em.createQuery(NAME_QUERY).setParameter("fieldName", name).getSingleResult();
-        } catch (NoResultException e) {
-            return null;
-        }
-
+    	return this.fieldTypeRepository.findByName(name).orElse(null);
     }
 
     /**
@@ -78,13 +70,7 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
      * @see #findByName(java.lang.String)
      */
     public DatasetFieldType findByNameOpt(String name) {
-        try {
-            return em.createNamedQuery("DatasetFieldType.findByName", DatasetFieldType.class)
-                    .setParameter("name", name)
-                    .getSingleResult();
-        } catch (NoResultException nre) {
-            return null;
-        }
+    	return this.fieldTypeRepository.findByName(name).orElse(null);
     }
 
     public ControlledVocabularyValue findControlledVocabularyValueByIdentifier(Object pk) {
@@ -166,8 +152,8 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
         return typedQuery.getSingleResult();
     }
 
-    public DatasetFieldType save(DatasetFieldType dsfType) {
-        return em.merge(dsfType);
+    public DatasetFieldType save(final DatasetFieldType type) {
+        return this.fieldTypeRepository.save(type);
     }
 
     public MetadataBlock save(MetadataBlock mdb) {
