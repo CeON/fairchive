@@ -1,19 +1,21 @@
 package edu.harvard.iq.dataverse.persistence.harvest;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
 
 public class OAIRecordRepositoryIT extends PersistenceArquillianDeployment {
 
@@ -98,7 +100,7 @@ public class OAIRecordRepositoryIT extends PersistenceArquillianDeployment {
     public void findByGlobalIds() {
         // when
         List<OAIRecord> oaiRecords = repository.findByGlobalIds(
-                Lists.newArrayList("global_id_1", "global_id_5", "global_id_10"));
+                asList("global_id_1", "global_id_5", "global_id_10"));
         // then
         assertThat(oaiRecords)
             .extracting(OAIRecord::getGlobalId, OAIRecord::getSetName)
@@ -109,6 +111,12 @@ public class OAIRecordRepositoryIT extends PersistenceArquillianDeployment {
                 tuple("global_id_5", ""),
                 tuple("global_id_5", "set_name_2")
             );
+    }
+    
+    @Test
+    public void finByGlobalIds_emptyList() {
+    	
+    	assertThat(this.repository.findByGlobalIds(emptyList())).isEmpty();
     }
 
     @Test
@@ -191,10 +199,11 @@ public class OAIRecordRepositoryIT extends PersistenceArquillianDeployment {
     @Test
     public void findEarliestDate() {
         // when
-        Date earliestDate = repository.findEarliestDate();
+        Date earliestDate = repository.findEarliestDate().get();
 
         // then
         assertThat(earliestDate).isEqualTo("2007-12-03T10:15:29.00Z");
+        
     }
 
     @Test
@@ -205,9 +214,6 @@ public class OAIRecordRepositoryIT extends PersistenceArquillianDeployment {
         }
 
         // when
-        Date earliestDate = repository.findEarliestDate();
-
-        // then
-        assertThat(earliestDate).isNull();
+        assertThat(repository.findEarliestDate()).isEmpty();
     }
 }

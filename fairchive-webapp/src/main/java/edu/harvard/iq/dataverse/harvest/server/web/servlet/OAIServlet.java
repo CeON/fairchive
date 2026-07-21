@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;
@@ -231,7 +232,7 @@ public class OAIServlet extends HttpServlet {
         String repositoryName = isEmpty(dataverseName) || "Root".equals(dataverseName) 
                 ? "Test Dataverse OAI Archive" 
                 : dataverseName + " Dataverse OAI Archive";
-        Date earliestDate = recordService.findEarliestDate();
+        Optional<Date> earliestDate = recordService.findEarliestDate();
 
         RepositoryConfiguration repositoryConfiguration = new RepositoryConfiguration()
                 .withRepositoryName(repositoryName)
@@ -244,7 +245,7 @@ public class OAIServlet extends HttpServlet {
                 .withMaxListIdentifiers(100)
                 .withMaxListRecords(100)
                 .withMaxListSets(100)
-                .withEarliestDate(earliestDate != null ? earliestDate : new Date())
+                .withEarliestDate(earliestDate.orElse(new Date()))
                 .withDescription(createDescription());
 
         return repositoryConfiguration;

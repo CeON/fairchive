@@ -1,14 +1,8 @@
 package edu.harvard.iq.dataverse.harvest.server;
 
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
-import edu.harvard.iq.dataverse.persistence.harvest.OAIRecord;
-import edu.harvard.iq.dataverse.persistence.harvest.OAIRecordRepository;
-import org.apache.commons.lang3.StringUtils;
+import static java.util.stream.Collectors.toMap;
+import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.inject.Inject;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
@@ -18,8 +12,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static java.util.stream.Collectors.toMap;
-import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
+
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.harvest.OAIRecord;
+import edu.harvard.iq.dataverse.persistence.harvest.OAIRecordRepository;
 
 /**
  * @author Leonid Andreev
@@ -108,7 +110,7 @@ public class OAIRecordServiceBean implements java.io.Serializable {
         return oaiRecordRepository.findBySetNameAndRemoved(setName, true);
     }
 
-    public Date findEarliestDate() {
+    public Optional<Date> findEarliestDate() {
         return oaiRecordRepository.findEarliestDate();
     }
 

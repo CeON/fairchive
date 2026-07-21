@@ -59,10 +59,10 @@ public class RorData implements JpaEntity<Long>, Serializable {
 
     public RorData() { }
 
-    public RorData(String rorId, String name, String countryName, 
-                   String countryCode, String website, String city,
-                   Set<String> nameAliases, Set<String> acronyms, 
-                   Set<RorLabel> labels) {
+    public RorData(final String rorId, final String name, final String countryName, 
+                   final String countryCode, final String website, final String city,
+                   final Set<String> nameAliases, final Set<String> acronyms, 
+                   final Set<RorLabel> labels) {
         this.rorId = rorId;
         this.name = name;
         this.countryName = countryName;
@@ -75,75 +75,74 @@ public class RorData implements JpaEntity<Long>, Serializable {
     }
 
     // -------------------- GETTERS --------------------
-
+    @Override
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public String getRorId() {
-        return rorId;
+        return this.rorId;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public String getCountryName() {
-        return countryName;
+        return this.countryName;
     }
 
     public String getCountryCode() {
-        return countryCode;
+        return this.countryCode;
     }
 
     public Set<String> getNameAliases() {
-        return nameAliases;
+        return this.nameAliases;
     }
 
     public Set<String> getAcronyms() {
-        return acronyms;
+        return this.acronyms;
     }
 
     public Set<RorLabel> getLabels() {
-        return labels;
+        return this.labels;
     }
 
     public String getWebsite() {
-        return website;
+        return this.website;
     }
 
     public String getCity() {
-        return city;
+        return this.city;
     }
 
     // -------------------- SETTERS --------------------
 
-    public RorData setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
-        return this;
     }
 
-    public void setRorId(String rorId) {
+    public void setRorId(final String rorId) {
         this.rorId = rorId;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
-    public void setCountryName(String countryName) {
-        this.countryName = countryName;
+    public void setCountryName(final String name) {
+        this.countryName = name;
     }
 
-    public void setCountryCode(String countryCode) {
-        this.countryCode = countryCode;
+    public void setCountryCode(final String code) {
+        this.countryCode = code;
     }
 
-    public void setWebsite(String website) {
+    public void setWebsite(final String website) {
         this.website = website;
     }
 
-    public void setCity(String city) {
+    public void setCity(final String city) {
         this.city = city;
     }
 }

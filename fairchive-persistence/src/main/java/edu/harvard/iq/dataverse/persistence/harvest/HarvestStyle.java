@@ -16,11 +16,11 @@ public enum HarvestStyle {
 
     final String description;
 
-    HarvestStyle(String description) {
+    HarvestStyle(final String description) {
         this.description = description;
     }
 
     public String getDescription() {
-        return description;
+        return this.description;
     }
 }

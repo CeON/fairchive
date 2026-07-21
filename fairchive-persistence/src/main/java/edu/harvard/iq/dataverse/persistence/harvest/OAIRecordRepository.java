@@ -1,15 +1,19 @@
 package edu.harvard.iq.dataverse.persistence.harvest;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import javax.ejb.Stateless;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Stateless
 public class OAIRecordRepository extends JpaRepository<Long, OAIRecord> {
@@ -22,62 +26,74 @@ public class OAIRecordRepository extends JpaRepository<Long, OAIRecord> {
 
     // -------------------- LOGIC --------------------
 
-    public List<OAIRecord> findBySetName(String setName) {
-        return createQuery("SELECT r from OAIRecord r where r.setName = :setName")
-            .setParameter("setName", setName)
+    public List<OAIRecord> findBySetName(final String name) {
+    	
+        return createQuery("SELECT r from OAIRecord r where r.setName = :name")
+            .setParameter("name", name)
             .getResultList();
     }
 
-    public List<OAIRecord> findBySetNameAndRemoved(String setName, boolean removed) {
-        return createQuery("SELECT r from OAIRecord r where r.setName = :setName and r.removed = :removed")
-            .setParameter("setName", setName)
+    public List<OAIRecord> findBySetNameAndRemoved(final String name, 
+    		final boolean removed) {
+    	
+        return createQuery(
+        	"SELECT r from OAIRecord r where r.setName = :name and r.removed = :removed")
+            .setParameter("name", name)
             .setParameter("removed", removed)
             .getResultList();
     }
 
-    public List<OAIRecord> findByGlobalId(String globalId) {
-        return createQuery("SELECT r from OAIRecord r where r.globalId = :globalId")
-                .setParameter("globalId", globalId)
+    public List<OAIRecord> findByGlobalId(final String id) {
+        return createQuery("SELECT r from OAIRecord r where r.globalId = :id")
+                .setParameter("id", id)
                 .getResultList();
     }
 
-    public List<OAIRecord> findByGlobalIds(List<String> globalIds) {
-        return createQuery("SELECT r from OAIRecord r where r.globalId in :globalIds")
-                .setParameter("globalIds", globalIds)
-                .getResultList();
+    public List<OAIRecord> findByGlobalIds(final List<String> ids) {
+    	
+    	if (ids.isEmpty()) {
+    	    return emptyList();
+    	} else {
+	        return createQuery("SELECT r from OAIRecord r where r.globalId in :ids")
+	                .setParameter("ids", ids)
+	                .getResultList();
+    	}
     }
 
-    public Date findEarliestDate() {
-        List<java.sql.Date> dates = em.createQuery("SELECT min(r.lastUpdateTime) FROM OAIRecord r", java.sql.Date.class)
+    public Optional<Date> findEarliestDate() {
+        final List<java.sql.Date> dates = this.em.createQuery(
+        		"SELECT min(r.lastUpdateTime) FROM OAIRecord r", java.sql.Date.class)
                 .getResultList();
-        return dates.isEmpty() ? null : dates.get(0);
+        return dates.isEmpty() ? Optional.empty() : Optional.ofNullable(dates.get(0));
     }
 
-    public List<OAIRecord> findBySetNameAndLastUpdateBetween(String setName, Date from, Date until) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+    public List<OAIRecord> findBySetNameAndLastUpdateBetween(final String setName, 
+    		final Date from, final Date until) {
+    	
+        final CriteriaBuilder builder = this.em.getCriteriaBuilder();
 
-        CriteriaQuery<OAIRecord> query = criteriaBuilder.createQuery(OAIRecord.class);
-        Root<OAIRecord> root = query.from(OAIRecord.class);
+        final CriteriaQuery<OAIRecord> query = builder.createQuery(OAIRecord.class);
+        final Root<OAIRecord> root = query.from(OAIRecord.class);
 
-        List<Predicate> predicates = new ArrayList<>();
-        predicates.add(criteriaBuilder.equal(root.get("setName"), setName));
+        final List<Predicate> predicates = new ArrayList<>();
+        predicates.add(builder.equal(root.get("setName"), setName));
 
         if (from != null) {
-            predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("lastUpdateTime"), from));
+            predicates.add(builder.greaterThanOrEqualTo(root.get("lastUpdateTime"), from));
         }
         if (until != null) {
-            predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("lastUpdateTime"), until));
+            predicates.add(builder.lessThanOrEqualTo(root.get("lastUpdateTime"), until));
         }
         query.select(root)
             .where(predicates.toArray(new Predicate[]{}))
-            .orderBy(criteriaBuilder.asc(root.get("globalId")));
+            .orderBy(builder.asc(root.get("globalId")));
 
-        return em.createQuery(query).getResultList();
+        return this.em.createQuery(query).getResultList();
     }
 
-    public void deleteBySetName(String setName) {
-        createQuery("delete from OAIRecord hs where hs.setName = :setName")
-            .setParameter("setName", setName)
+    public void deleteBySetName(final String name) {
+        createQuery("delete from OAIRecord hs where hs.setName = :name")
+            .setParameter("name", name)
             .executeUpdate();
     }
 }
