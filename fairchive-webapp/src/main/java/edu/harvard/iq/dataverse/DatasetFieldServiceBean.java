@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -12,7 +13,7 @@ import javax.persistence.TypedQuery;
 
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabAlternate;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValueRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
@@ -28,6 +29,8 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
     private EntityManager em;
     @Inject
     private DatasetFieldTypeRepository fieldTypeRepository;
+    @Inject 
+    private ControlledVocabularyValueRepository controlledVocabularyRepository;
 
     public List<DatasetFieldType> findAllAdvancedSearchFieldTypesByMetadataBlockIds(final List<Long> blockIds) {
         return this.fieldTypeRepository.findAllAdvancedSearchFieldTypesByMetadataBlockIds(blockIds);
@@ -53,11 +56,11 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
         return this.fieldTypeRepository.findAllOrderedByName();
     }
 
-    public DatasetFieldType find(Object pk) {
-        return em.find(DatasetFieldType.class, pk);
+    public DatasetFieldType find(final Long id) {
+        return this.fieldTypeRepository.findById(id).orElse(null);
     }
 
-    public DatasetFieldType findByName(String name) {
+    public DatasetFieldType findByName(final String name) {
     	return this.fieldTypeRepository.findByName(name).orElse(null);
     }
 
@@ -69,12 +72,12 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
      * @return the field type, or {@code null}
      * @see #findByName(java.lang.String)
      */
-    public DatasetFieldType findByNameOpt(String name) {
+    public DatasetFieldType findByNameOpt(final String name) {
     	return this.fieldTypeRepository.findByName(name).orElse(null);
     }
 
-    public ControlledVocabularyValue findControlledVocabularyValueByIdentifier(Object pk) {
-        return em.find(ControlledVocabularyValue.class, pk);
+    public ControlledVocabularyValue findControlledVocabularyValueByIdentifier(final Long id) {
+        return this.controlledVocabularyRepository.findById(id).orElse(null);
     }
 
     /**
@@ -85,14 +88,15 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
      * @param lenient  should we accept alternate spellings for value from mapping table
      * @return The ControlledVocabularyValue found or null.
      */
-    public ControlledVocabularyValue findControlledVocabularyValueByDatasetFieldTypeAndStrValue(DatasetFieldType dsft, String strValue, boolean lenient) {
-        TypedQuery<ControlledVocabularyValue> typedQuery = em.createQuery("SELECT OBJECT(o) FROM ControlledVocabularyValue AS o WHERE o.strValue = :strvalue AND o.datasetFieldType = :dsft", ControlledVocabularyValue.class);
-        typedQuery.setParameter("strvalue", strValue);
-        typedQuery.setParameter("dsft", dsft);
-        try {
-            ControlledVocabularyValue cvv = typedQuery.getSingleResult();
-            return cvv;
-        } catch (NoResultException | NonUniqueResultException ex) {
+    public ControlledVocabularyValue findControlledVocabularyValueByDatasetFieldTypeAndStrValue(
+    		DatasetFieldType dsft, String strValue, boolean lenient) {
+    	
+    	final Optional<ControlledVocabularyValue> result = this.controlledVocabularyRepository.
+    			findByFieldTypeAndStrValue(dsft, strValue);
+    	
+    	if(result.isPresent()) {
+    		return result.get();
+    	} else {
             if (lenient) {
                 // if the value isn't found, check in the list of alternate values for this datasetFieldType
                 TypedQuery<ControlledVocabAlternate> alternateQuery = em.createQuery("SELECT OBJECT(o) FROM ControlledVocabAlternate as o WHERE o.strValue = :strvalue AND o.datasetFieldType = :dsft", ControlledVocabAlternate.class);
@@ -133,23 +137,9 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
      *                   the provided DatasetFieldType.
      * @return The ControlledVocabularyValue found or null.
      */
-    public ControlledVocabularyValue findControlledVocabularyValueByDatasetFieldTypeAndIdentifier(DatasetFieldType dsft, String identifier) {
-        TypedQuery<ControlledVocabularyValue> typedQuery = em.createQuery("SELECT OBJECT(o) FROM ControlledVocabularyValue AS o WHERE o.identifier = :identifier AND o.datasetFieldType = :dsft", ControlledVocabularyValue.class);
-        typedQuery.setParameter("identifier", identifier);
-        typedQuery.setParameter("dsft", dsft);
-        try {
-            ControlledVocabularyValue cvv = typedQuery.getSingleResult();
-            return cvv;
-        } catch (NoResultException | NonUniqueResultException ex) {
-            return null;
-        }
-    }
-
-    // return singleton NA Controled Vocabulary Value
-    public ControlledVocabularyValue findNAControlledVocabularyValue() {
-        TypedQuery<ControlledVocabularyValue> typedQuery = em.createQuery("SELECT OBJECT(o) FROM ControlledVocabularyValue AS o WHERE o.datasetFieldType is null AND o.strValue = :strvalue", ControlledVocabularyValue.class);
-        typedQuery.setParameter("strvalue", DatasetField.NA_VALUE);
-        return typedQuery.getSingleResult();
+    public ControlledVocabularyValue findControlledVocabularyValueByDatasetFieldTypeAndIdentifier(
+    		final DatasetFieldType type, final String id) {
+        return this.controlledVocabularyRepository.findByFieldTypeAndIdentifier(type, id).orElse(null);
     }
 
     public DatasetFieldType save(final DatasetFieldType type) {
@@ -160,8 +150,8 @@ public class DatasetFieldServiceBean implements java.io.Serializable {
         return em.merge(mdb);
     }
 
-    public ControlledVocabularyValue save(ControlledVocabularyValue cvv) {
-        return em.merge(cvv);
+    public ControlledVocabularyValue save(final ControlledVocabularyValue value) {
+        return this.controlledVocabularyRepository.save(value);
     }
 
     public ControlledVocabAlternate save(ControlledVocabAlternate alt) {

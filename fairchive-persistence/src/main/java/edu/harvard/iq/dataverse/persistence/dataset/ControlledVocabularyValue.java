@@ -26,13 +26,15 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+
 /**
  * @author skraffmiller
  */
 @SuppressWarnings("serial")
 @Entity
 @Table(indexes = {@Index(columnList = "datasetfieldtype_id"), @Index(columnList = "displayorder")})
-public class ControlledVocabularyValue implements Serializable {
+public class ControlledVocabularyValue implements JpaEntity<Long>, Serializable {
 
     public static final Comparator<ControlledVocabularyValue> DisplayOrder
             = comparingInt(ControlledVocabularyValue::getDisplayOrder);
@@ -41,6 +43,7 @@ public class ControlledVocabularyValue implements Serializable {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
+    @Override
     public Long getId() {
         return this.id;
     }
