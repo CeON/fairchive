@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -41,6 +42,7 @@ public class OaiHandler {
     private Date fromDate;
     private ServiceProvider serviceProvider;
     private HarvestingClient harvestingClient;
+    private FastGetRecord.Factory getRecordFactory = FastGetRecord.newFactory();
 
     public OaiHandler(final String baseOaiUrl) throws OaiHandlerException {
         if (isEmpty(baseOaiUrl)) {
@@ -171,12 +173,14 @@ public class OaiHandler {
 
     }
 
-	public FastGetRecord getRecord(final String identifier) throws OaiHandlerException {
+	public FastGetRecord getRecord(final String identifier, final Logger logger) 
+			throws OaiHandlerException {
 		if (isEmpty(this.metadataPrefix)) {
 			throw new OaiHandlerException("Empty metadata prefix");
 		}
 		try {
-			return new FastGetRecord(this.baseOaiUrl, identifier, this.metadataPrefix);
+			return this.getRecordFactory.build(this.baseOaiUrl, identifier, 
+					this.metadataPrefix, logger);
 		} catch (final ParserConfigurationException | SAXException | 
 				TransformerException | IOException e) {
 			throw new OaiHandlerException(e);

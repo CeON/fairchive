@@ -85,7 +85,7 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
 	private void processRecord(final HarvesterResult result, final DataverseRequest request,
 			final Logger logger, final OaiHandler handler, final String identifier) {
 
-		try (final FastGetRecord record = handler.getRecord(identifier)) {
+		try (final FastGetRecord record = handler.getRecord(identifier, logger)) {
 			if (record.getErrorMessage() != null) {
 				throw new HarvestException(record.getErrorMessage());
 			}
