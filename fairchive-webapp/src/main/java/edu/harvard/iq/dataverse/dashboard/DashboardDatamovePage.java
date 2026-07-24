@@ -157,9 +157,9 @@ public class DashboardDatamovePage implements Serializable {
             }
         }
 
-        resetDatasetMoveFields();
         showDatasetsMovedMessage(successfulIds, failureMessages,
                 targetDataverse.getDisplayName());
+        resetDatasetMoveFields();
     }
 
     public void moveDataverse() {
