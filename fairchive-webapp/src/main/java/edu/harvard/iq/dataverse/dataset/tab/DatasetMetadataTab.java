@@ -113,7 +113,8 @@ public class DatasetMetadataTab implements Serializable {
 	
 	public boolean shouldRenderBlock(final int index) {
 		return isViewedFromAnonymizedPrivateUrl()
-			? isBlockVisibleThroughAnonymizedUrl(index)
+			? this.blockList.get(index).getValue().stream().
+					anyMatch(DatasetFieldsOfType::isVisibleThroughAnonymizedUrl)
 			:true;
 	}
 	
@@ -122,11 +123,6 @@ public class DatasetMetadataTab implements Serializable {
 			? this.blockList.get(blockIndex).getValue().
 				get(fieldOfTypeIndex).isVisibleThroughAnonymizedUrl()
 			: true;
-	}
-	
-	private boolean isBlockVisibleThroughAnonymizedUrl(final int blockIndex) {
-		return this.blockList.get(blockIndex).getValue().stream().
-				anyMatch(DatasetFieldsOfType::isVisibleThroughAnonymizedUrl);
 	}
 
 	public TranslationDialog getTranslationDialog() {
