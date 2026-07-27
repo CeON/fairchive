@@ -50,6 +50,7 @@ public class DatasetMetadataTab implements Serializable {
 	private Dataset dataset;
 	private boolean isDatasetLocked;
 	private Map<MetadataBlock, List<DatasetFieldsOfType>> metadataBlocks;
+	private List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> blockList;
 	private final TranslationDialog translationDialog = new TranslationDialog();
 	private Translator translator;
 
@@ -85,10 +86,18 @@ public class DatasetMetadataTab implements Serializable {
 	public Dataset getDataset() {
 		return dataset;
 	}
+	
+	public String getPublicationDate() {
+		return this.dataset.getPublicationDateFormattedYYYYMMDD();
+	}
 
 	public boolean isDatasetLocked() {
 		return isDatasetLocked;
 	}
+	
+    private boolean isViewedFromAnonymizedPrivateUrl() {
+        return this.session.isViewedFromAnonymizedPrivateUrl(this.dataset);
+    }
 
 	public String getDatasetGlobalIdString() {
 		return this.session.isViewedFromAnonymizedPrivateUrl(this.dataset) ? null
@@ -98,8 +107,22 @@ public class DatasetMetadataTab implements Serializable {
 	/**
 	 * Metadata blocks meant for view.
 	 */
-	public Map<MetadataBlock, List<DatasetFieldsOfType>> getMetadataBlocks() {
-		return metadataBlocks;
+	public List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> getMetadataBlocks() {
+		return this.blockList;
+	}
+	
+	public boolean shouldRenderBlock(final int index) {
+		return isViewedFromAnonymizedPrivateUrl()
+			? this.blockList.get(index).getValue().stream().
+					anyMatch(DatasetFieldsOfType::isVisibleThroughAnonymizedUrl)
+			:true;
+	}
+	
+	public boolean shouldRenderField(final int blockIndex, final int fieldOfTypeIndex) {
+		return isViewedFromAnonymizedPrivateUrl() 
+			? this.blockList.get(blockIndex).getValue().
+				get(fieldOfTypeIndex).isVisibleThroughAnonymizedUrl()
+			: true;
 	}
 
 	public TranslationDialog getTranslationDialog() {
@@ -120,6 +143,7 @@ public class DatasetMetadataTab implements Serializable {
 		List<DatasetField> datasetFields = datasetFieldsInitializer
 				.prepareDatasetFieldsForView(datasetVersion.getDatasetFields(), false);
 		this.metadataBlocks = DatasetFieldUtil.groupByBlockAndType(datasetFields);
+		this.blockList = new ArrayList<>(this.metadataBlocks.entrySet());
 		this.cloneDatasetDialog.setDataset(this.dataset);
 	}
 

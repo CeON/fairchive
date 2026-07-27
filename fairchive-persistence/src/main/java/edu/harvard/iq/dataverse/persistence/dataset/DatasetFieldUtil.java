@@ -1,19 +1,19 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
-
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Utility class with common operations on dataset fields
@@ -98,7 +98,7 @@ public class DatasetFieldUtil {
     }
 
     public static Map<MetadataBlock, List<DatasetField>> groupByBlock(List<DatasetField> datasetFields) {
-        Map<MetadataBlock, List<DatasetField>> metadataBlocks = new TreeMap<>(Comparator.comparingInt(MetadataBlock::getDisplayOrder)
+        Map<MetadataBlock, List<DatasetField>> metadataBlocks = new TreeMap<>(comparingInt(MetadataBlock::getDisplayOrder)
                                                                                       .thenComparingLong(MetadataBlock::getId));
 
         for (DatasetField dsf : datasetFields) {
@@ -132,7 +132,8 @@ public class DatasetFieldUtil {
         return result;
     }
     
-    public static List<DatasetField> flattenDatasetFieldsFromBlocks(Map<MetadataBlock, List<DatasetFieldsOfType>> fieldsByBlocksAndTypes) {
+    public static List<DatasetField> flattenDatasetFieldsFromBlocks(Map<MetadataBlock, 
+    		List<DatasetFieldsOfType>> fieldsByBlocksAndTypes) {
         
         return fieldsByBlocksAndTypes.entrySet().stream()
             .flatMap(blockAndFieldsByType -> blockAndFieldsByType.getValue().stream())

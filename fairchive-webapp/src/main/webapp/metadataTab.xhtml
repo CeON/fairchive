@@ -47,16 +47,7 @@
         </div>
     </div>
     <ui:include src="viewMetadata.xhtml">
-        <ui:param name="metadataBlocks"
-                  value="#{DatasetMetadataTab.metadataBlocks.entrySet().toArray()}"/>
-        <ui:param name="globalId" 
-                  value="#{DatasetMetadataTab.datasetGlobalIdString}"/>
-        <ui:param name="altPID" 
-                  value="#{DatasetMetadataTab.getAlternativePersistentIdentifier()}"/>
-        <ui:param name="publicationDate" 
-                  value="#{DatasetMetadataTab.dataset.publicationDateFormattedYYYYMMDD}"/>
-        <ui:param name="isViewedFromAnonymizedPrivateUrl" 
-                  value="#{DatasetPage.isViewedFromAnonymizedPrivateUrl()}"/>
+        <ui:param name="bean" value="#{DatasetMetadataTab}"/>
     </ui:include>
     
     <ui:fragment rendered="#{!DatasetPage.workingVersion.deaccessioned}">
