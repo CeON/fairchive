@@ -118,9 +118,10 @@ public class DatasetMetadataTab implements Serializable {
 	}
 	
 	public boolean shouldRenderField(final int blockIndex, final int fieldOfTypeIndex) {
-		return !isViewedFromAnonymizedPrivateUrl() ||
-				this.blockList.get(blockIndex).getValue().
-					get(fieldOfTypeIndex).isVisibleThroughAnonymizedUrl();
+		return isViewedFromAnonymizedPrivateUrl() 
+			? this.blockList.get(blockIndex).getValue().
+				get(fieldOfTypeIndex).isVisibleThroughAnonymizedUrl()
+			: true;
 	}
 	
 	private boolean isBlockVisibleThroughAnonymizedUrl(final int blockIndex) {

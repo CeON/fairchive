@@ -48,7 +48,7 @@ public class ManageTemplatesPage implements java.io.Serializable {
 
     private Template selectedTemplate = null;
     private Map<MetadataBlock, List<DatasetFieldsOfType>> mdbForView;
-    private ViewTemplateDialog vieTemplateDialog = new ViewTemplateDialog(EMPTY, emptyList());
+    private ViewTemplateDialog viewTemplateDialog = new ViewTemplateDialog(EMPTY, emptyList());
 
     // -------------------- CONSTRUCTORS --------------------
     @Deprecated
@@ -104,7 +104,7 @@ public class ManageTemplatesPage implements java.io.Serializable {
     public String init() {
     	
         final Optional<Dataverse> dataverse = this.dataverseRepo.findById(this.dataverseId);
-        if(! dataverse.isPresent()) {
+        if (!dataverse.isPresent()) {
         	return permissionsWrapper.notFound();
         }
     	this.dataverse = dataverse.get();
@@ -165,7 +165,7 @@ public class ManageTemplatesPage implements java.io.Serializable {
         final List<DatasetField> dsfForView = this.datasetFieldsInitializer.
         		prepareDatasetFieldsForView(selectedTemplate.getDatasetFields(), true);
         this.mdbForView = DatasetFieldUtil.groupByBlockAndType(dsfForView);
-        this.vieTemplateDialog =  new ViewTemplateDialog(this.selectedTemplate.getName(), 
+        this.viewTemplateDialog =  new ViewTemplateDialog(this.selectedTemplate.getName(), 
         		new ArrayList<>(this.mdbForView.entrySet()));
     }
 
@@ -223,7 +223,7 @@ public class ManageTemplatesPage implements java.io.Serializable {
     
     public ViewTemplateDialog getViewTemplateDialog() {
     	
-    	return this.vieTemplateDialog;
+    	return this.viewTemplateDialog;
     }
 
     //--------------------------------------------------------------------------
