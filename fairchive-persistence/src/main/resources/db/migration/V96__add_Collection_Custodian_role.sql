@@ -1,0 +1,2 @@
+INSERT INTO dataverserole (id, alias, description, name, permissionbits, owner_id) 
+    VALUES (10, 'collectionCustodian', 'Allows user to edit a collection, but not to publish it or to publish datasets deposited within this collection.', 'Collection Custodian', 2084, NULL);
