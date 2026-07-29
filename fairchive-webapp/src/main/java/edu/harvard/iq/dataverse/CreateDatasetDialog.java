@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowContactToCreateDataverseTip;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -19,7 +18,6 @@ import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.event.NodeExpandEvent;
 import org.primefaces.model.TreeNode;
 
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.search.dataverselookup.DataverseLookupService;
@@ -41,8 +39,7 @@ public class CreateDatasetDialog implements Serializable {
     private DataverseRepository dataverseRepo;
 
     private NodesInfo nodesInfo = new NodesInfo(emptyMap(), emptySet());
-    private TreeNode selectedNode;
-    private Dataset dataset;
+    protected TreeNode selectedNode;
 
     private String permissionFilterQuery;
     private String treeFilter;
@@ -134,13 +131,8 @@ public class CreateDatasetDialog implements Serializable {
     }
 
     public String createDataset() {
-    	final StringBuilder builder = new StringBuilder(65);
-        builder.append("/createDataset.xhtml?faces-redirect=true&ownerId=").
-        	append(((NodeData) this.selectedNode.getData()).getId());
-    	if(this.dataset != null) {
-    		builder.append("&sourceDatasetId=").append(this.dataset.getId());
-    	}
-    	return builder.toString();
+    	return "/createDataset.xhtml?faces-redirect=true&ownerId="
+        	+ ((NodeData) this.selectedNode.getData()).getId();
     }
 
     public String getSelectDataverseInfo() {
@@ -149,12 +141,6 @@ public class CreateDatasetDialog implements Serializable {
     
     public boolean displaySelectDataverseInfo() {
         return !getSelectDataverseInfo().isEmpty();
-    }
-    
-    public String getCreateButtonLabel() {
-    	return getStringFromBundle(this.dataset != null 
-	    			? "add.dataset.dialog.button.clone" 
-	    			: "add.dataset.dialog.button.create");
     }
 
     // -------------------- PRIVATE --------------------
@@ -177,9 +163,5 @@ public class CreateDatasetDialog implements Serializable {
 
     public void setTreeFilter(final String filter) {
         this.treeFilter = filter;
-    }
-    
-    public void setDataset(final Dataset dataset) {
-    	this.dataset = dataset;
     }
 }

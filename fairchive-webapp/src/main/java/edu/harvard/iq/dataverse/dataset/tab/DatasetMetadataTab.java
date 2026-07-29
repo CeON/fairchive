@@ -14,7 +14,7 @@ import javax.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 
-import edu.harvard.iq.dataverse.CreateDatasetDialog;
+import edu.harvard.iq.dataverse.CloneDatasetDialog;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsInitializer;
@@ -44,7 +44,7 @@ public class DatasetMetadataTab implements Serializable {
 	private DatasetFieldsInitializer datasetFieldsInitializer;
 	private DatasetService datasetService;
 	private DataverseSession session;
-	private CreateDatasetDialog cloneDatasetDialog;
+	private CloneDatasetDialog cloneDatasetDialog;
 	private SettingsServiceBean settings;
 
 	private Dataset dataset;
@@ -68,7 +68,7 @@ public class DatasetMetadataTab implements Serializable {
 			                  final DatasetFieldsInitializer datasetVersionUI,
 			                  final DatasetService datasetService, 
 			                  final Translator translator,
-			                  final CreateDatasetDialog cloneDatasetDialog,
+			                  final CloneDatasetDialog cloneDatasetDialog,
 			                  final SettingsServiceBean settings) {
 		this.permissionsWrapper = permissionsWrapper;
 		this.session = session;

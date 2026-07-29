@@ -9,25 +9,25 @@
     xmlns:dv="http://dataverse.org/facelets"
     xmlns:f="http://xmlns.jcp.org/jsf/core">
 <h:body>
-    <p:dialog id="createDataset" 
+    <p:dialog id="cloneDataset" 
               header="#{bundle['add.dataset.dialog.header']}" 
-              widgetVar="createDatasetDialog" 
+              widgetVar="cloneDatasetDialog" 
               modal="true">
         <div class="form-horizontal">
-            <o:form id="create-dataset-dialog">
-                <p jsf:rendered="#{CreateDatasetDialog.displaySelectDataverseInfo()}">#{CreateDatasetDialog.selectDataverseInfo}</p>
+            <o:form id="clone-dataset-dialog">
+                <p jsf:rendered="#{CloneDatasetDialog.displaySelectDataverseInfo()}">#{CloneDatasetDialog.selectDataverseInfo}</p>
                 <p>#{bundle['add.dataset.dialog.info']}</p>
                 <div class="form-group">
                     <div class="col-md-10">
                         <p:inputText id="treeFilter"
-                                     value="#{CreateDatasetDialog.treeFilter}"
+                                     value="#{CloneDatasetDialog.treeFilter}"
                                      placeholder="#{bundle['add.dataset.dialog.tree.filter']}"
                                      styleClass="full-width"
                                      size="50">
                             <p:ajax update="selectDvTree"
                                     event="keyup"
                                     delay="1000"
-                                    listener="#{CreateDatasetDialog.executeTreeFilter}" />
+                                    listener="#{CloneDatasetDialog.executeTreeFilter}" />
                         </p:inputText>
                     </div>
                     <div class="col-md-2">
@@ -42,17 +42,17 @@
                 <div class="form-group">
                     <div class="col-md-12">
                         <p:tree id="selectDvTree" 
-                                value="#{CreateDatasetDialog.rootNode}" 
+                                value="#{CloneDatasetDialog.rootNode}" 
                                 var="node"
                                 styleClass="no-border full-width"
                                 dynamic="true" 
                                 animate="true"
                                 selectionMode="single" 
-                                selection="#{CreateDatasetDialog.selectedNode}"
+                                selection="#{CloneDatasetDialog.selectedNode}"
                                 required="true"
                                 requiredMessage="#{bundle['add.dataset.dialog.tree.required']}">
                             <p:ajax event="expand" 
-                                    listener="#{CreateDatasetDialog.onNodeExpand}" />
+                                    listener="#{CloneDatasetDialog.onNodeExpand}" />
                             <p:treeNode>
                                 <h:outputText value="#{node.name}"/>
                             </p:treeNode>
@@ -63,12 +63,12 @@
                                    display="text"/>
                     </div>
                 </div>
-                <p jsf:rendered="#{CreateDatasetDialog.displayContactToCreateDataverseTip()}">
+                <p jsf:rendered="#{CloneDatasetDialog.displayContactToCreateDataverseTip()}">
                     <h:outputFormat value="#{bundle['add.dataset.dialog.createDataverse.tip']}" 
                                     escape="false">
                         <o:param>
                             <p:commandLink value="#{installationConfig.supportTeamName}"
-                                           oncomplete="PF('createDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" 
+                                           oncomplete="PF('cloneDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" 
                                            update=":contactDialog"
                                            actionListener="#{sendFeedbackDialog.resetWithSubject(bundle['add.dataset.dialog.createDataverse.message.subject'])}">
                                 <o:ignoreValidationFailed />
@@ -77,13 +77,14 @@
                     </h:outputFormat>
                 </p>
                 <div class="row button-block">
-                    <p:commandButton value="#{bundle['add.dataset.dialog.button.create']}"
-                                     action="#{CreateDatasetDialog.createDataset()}" 
+                    <p:commandButton value="#{bundle['add.dataset.dialog.button.clone']}" 
+                                     action="#{CloneDatasetDialog.cloneDataset()}" 
                                      update="@form"
+                                     process="@form"
                                      styleClass="btn btn-default btn-access"
-                                     oncomplete="if (args &amp;&amp; !args.validationFailed) PF('createDatasetDialog').hide();"/>
+                                     oncomplete="if (args &amp;&amp; !args.validationFailed) PF('cloneDatasetDialog').hide();"/>
                     <button type="button" 
-                            onclick="PF('createDatasetDialog').hide()" 
+                            onclick="PF('cloneDatasetDialog').hide()" 
                             class="btn btn-default" 
                             value="#{bundle.cancel}">
                         #{bundle.cancel}
