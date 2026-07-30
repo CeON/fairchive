@@ -56,7 +56,8 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
         EDITOR("editor"),
         CURATOR("curator"),
         MEMBER("member"),
-        DEPOSITOR("depositor");
+        DEPOSITOR("depositor"),
+    	COLLECTION_CUSTODIAN("collectionCustodian");
         
         private final String alias;
         
