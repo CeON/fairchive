@@ -8,90 +8,89 @@
     xmlns:o="http://omnifaces.org/ui"
     xmlns:dv="http://dataverse.org/facelets"
     xmlns:f="http://xmlns.jcp.org/jsf/core">
-<h:body>
     <p:dialog id="cloneDataset" 
               header="#{bundle['add.dataset.dialog.header']}" 
               widgetVar="cloneDatasetDialog" 
               modal="true">
-        <div class="form-horizontal">
-            <o:form id="clone-dataset-dialog">
-                <p jsf:rendered="#{CloneDatasetDialog.displaySelectDataverseInfo()}">#{CloneDatasetDialog.selectDataverseInfo}</p>
-                <p>#{bundle['add.dataset.dialog.info']}</p>
-                <div class="form-group">
-                    <div class="col-md-10">
-                        <p:inputText id="treeFilter"
-                                     value="#{CloneDatasetDialog.treeFilter}"
-                                     placeholder="#{bundle['add.dataset.dialog.tree.filter']}"
-                                     styleClass="full-width"
-                                     size="50">
-                            <p:ajax update="selectDvTree"
-                                    event="keyup"
-                                    delay="1000"
-                                    listener="#{CloneDatasetDialog.executeTreeFilter}" />
-                        </p:inputText>
-                    </div>
-                    <div class="col-md-2">
-                        <span class="glyphicon glyphicon-question-sign tooltip-icon"
-                              tabindex="0" 
-                              role="button"
-                              data-toggle="tooltip" 
-                              data-placement="auto right"
-                              data-original-title="#{bundle['add.dataset.dialog.select.tree.tooltip']}"/>
-                    </div>
+        <o:form id="cloneDatasetForm">
+            <p jsf:rendered="#{CloneDatasetDialog.displaySelectDataverseInfo()}">
+            #{CloneDatasetDialog.selectDataverseInfo}
+            </p>
+            <p:outputLabel for="selectDvTree"
+                           value="#{bundle['add.dataset.dialog.info']}"/>
+            <div class="form-group">
+                <div class="col-md-10">
+                    <p:inputText id="treeFilter"
+                                 value="#{CloneDatasetDialog.treeFilter}"
+                                 placeholder="#{bundle['add.dataset.dialog.tree.filter']}"
+                                 styleClass="full-width"
+                                 maxlength="50">
+                        <p:ajax process="@this"
+                                update="selectDvTree"
+                                event="keyup"
+                                delay="1000"
+                                listener="#{CloneDatasetDialog.executeTreeFilter}" />
+                    </p:inputText>
                 </div>
-                <div class="form-group">
-                    <div class="col-md-12">
-                        <p:tree id="selectDvTree" 
-                                value="#{CloneDatasetDialog.rootNode}" 
-                                var="node"
-                                styleClass="no-border full-width"
-                                dynamic="true" 
-                                animate="true"
-                                selectionMode="single" 
-                                selection="#{CloneDatasetDialog.selectedNode}"
-                                required="true"
-                                requiredMessage="#{bundle['add.dataset.dialog.tree.required']}">
-                            <p:ajax event="expand" 
-                                    listener="#{CloneDatasetDialog.onNodeExpand}" />
-                            <p:treeNode>
-                                <h:outputText value="#{node.name}"/>
-                            </p:treeNode>
-                        </p:tree>
-                        <p:message id="treeMsg" 
-                                   for="selectDvTree" 
-                                   styleClass="bg-danger text-danger" 
-                                   display="text"/>
-                    </div>
+                <div class="col-md-2">
+                    <span class="glyphicon glyphicon-question-sign tooltip-icon"
+                          tabindex="0" 
+                          role="button"
+                          data-toggle="tooltip" 
+                          data-placement="auto right"
+                          aria-label="#{bundle['add.dataset.dialog.select.tree.tooltip']}"
+                          title="#{bundle['add.dataset.dialog.select.tree.tooltip']}"/>
                 </div>
-                <p jsf:rendered="#{CloneDatasetDialog.displayContactToCreateDataverseTip()}">
-                    <h:outputFormat value="#{bundle['add.dataset.dialog.createDataverse.tip']}" 
-                                    escape="false">
-                        <o:param>
-                            <p:commandLink value="#{installationConfig.supportTeamName}"
-                                           oncomplete="PF('cloneDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" 
-                                           update=":contactDialog"
-                                           actionListener="#{sendFeedbackDialog.resetWithSubject(bundle['add.dataset.dialog.createDataverse.message.subject'])}">
-                                <o:ignoreValidationFailed />
-                            </p:commandLink>
-                        </o:param>
-                    </h:outputFormat>
-                </p>
-                <div class="row button-block">
-                    <p:commandButton value="#{bundle['add.dataset.dialog.button.clone']}" 
-                                     action="#{CloneDatasetDialog.cloneDataset()}" 
-                                     update="@form"
-                                     process="@form"
-                                     styleClass="btn btn-default btn-access"
-                                     oncomplete="if (args &amp;&amp; !args.validationFailed) PF('cloneDatasetDialog').hide();"/>
-                    <button type="button" 
-                            onclick="PF('cloneDatasetDialog').hide()" 
-                            class="btn btn-default" 
-                            value="#{bundle.cancel}">
-                        #{bundle.cancel}
-                    </button>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12">
+                    <p:tree id="selectDvTree" 
+                            value="#{CloneDatasetDialog.rootNode}" 
+                            var="node"
+                            styleClass="no-border full-width"
+                            dynamic="true" 
+                            animate="true"
+                            selectionMode="single" 
+                            selection="#{CloneDatasetDialog.selectedNode}"
+                            required="true"
+                            requiredMessage="#{bundle['add.dataset.dialog.tree.required']}">
+                        <p:ajax event="expand" 
+                                listener="#{CloneDatasetDialog.onNodeExpand}" />
+                        <p:treeNode>
+                            <h:outputText value="#{node.name}"/>
+                        </p:treeNode>
+                    </p:tree>
+                    <p:message id="treeMsg" 
+                               for="selectDvTree" 
+                               styleClass="bg-danger text-danger" 
+                               display="text"/>
                 </div>
-            </o:form>
-        </div>
+            </div>
+            <p jsf:rendered="#{CloneDatasetDialog.displayContactToCreateDataverseTip()}">
+                <h:outputFormat value="#{bundle['add.dataset.dialog.createDataverse.tip']}" 
+                                escape="false">
+                    <o:param>
+                        <p:commandLink value="#{installationConfig.supportTeamName}"
+                                       oncomplete="PF('cloneDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" 
+                                       update=":contactDialog"
+                                       actionListener="#{sendFeedbackDialog.resetWithSubject(bundle['add.dataset.dialog.createDataverse.message.subject'])}">
+                            <o:ignoreValidationFailed />
+                        </p:commandLink>
+                    </o:param>
+                </h:outputFormat>
+            </p>
+            <div class="row button-block">
+                <p:commandButton value="#{bundle['add.dataset.dialog.button.clone']}" 
+                                 action="#{CloneDatasetDialog.cloneDataset()}" 
+                                 update="treeMsg"
+                                 process="@form"
+                                 styleClass="btn btn-default btn-access"
+                                 oncomplete="if (args &amp;&amp; !args.validationFailed) PF('cloneDatasetDialog').hide();"/>
+                <p:commandButton type="button" 
+                                 onclick="PF('cloneDatasetDialog').hide()" 
+                                 styleClass="btn btn-default" 
+                                 value="#{bundle.cancel}"/>
+            </div>
+        </o:form>
     </p:dialog>
-</h:body>
 </html>
