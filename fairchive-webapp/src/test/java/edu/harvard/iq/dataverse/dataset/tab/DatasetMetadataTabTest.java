@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import edu.harvard.iq.dataverse.CreateDatasetDialog;
+import edu.harvard.iq.dataverse.CloneDatasetDialog;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.dataset.DatasetFieldsForViewTransformer;
@@ -81,7 +81,7 @@ public class DatasetMetadataTabTest {
 		DatasetFieldsInitializer initializer = new DatasetFieldsInitializer(null, 
 				new DatasetFieldsForViewTransformer());
 		
-		CreateDatasetDialog cloneDialog = new CreateDatasetDialog();
+		CloneDatasetDialog cloneDialog = new CloneDatasetDialog();
 		
 		this.tab = new DatasetMetadataTab(null,
 				this.session, null, null, initializer, 
