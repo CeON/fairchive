@@ -31,10 +31,12 @@ public class CloneDatasetDialog extends CreateDatasetDialog {
             final DataverseRepository dataverseRepo,
             final DataverseSession session, 
             final SystemConfig systemConfig, 
-            final SettingsServiceBean settingsService) {
+            final SettingsServiceBean settingsService,
+            final SendFeedbackDialog sendFeedbackDialog) {
     	
         super(solrTreeService, dataverseRequestService, dataverseLookupService,  
-        		dataverseRepo, session, systemConfig, settingsService);
+        		dataverseRepo, session, systemConfig, settingsService, 
+        		sendFeedbackDialog);
     }
 
     public String cloneDataset() {
@@ -46,4 +48,6 @@ public class CloneDatasetDialog extends CreateDatasetDialog {
     public void setDataset(final Dataset dataset) {
     	this.dataset = dataset;
     }
+    
+    
 }

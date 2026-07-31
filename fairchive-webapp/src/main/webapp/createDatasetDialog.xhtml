@@ -70,7 +70,7 @@
                             <p:commandLink value="#{installationConfig.supportTeamName}"
                                            oncomplete="PF('createDatasetDialog').hide(); primeFacesShowModal('contactForm', this);" 
                                            update=":contactDialog"
-                                           actionListener="#{sendFeedbackDialog.resetWithSubject(bundle['add.dataset.dialog.createDataverse.message.subject'])}">
+                                           actionListener="#{CreateDatasetDialog.sendFeedback()}">
                                 <o:ignoreValidationFailed />
                             </p:commandLink>
                         </o:param>

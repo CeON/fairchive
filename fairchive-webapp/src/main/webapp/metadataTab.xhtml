@@ -56,6 +56,9 @@
         </ui:include>
     </ui:fragment>
     
-    <ui:include src="cloneDatasetDialog.xhtml"/>
+    <ui:include src="cloneDatasetDialog.xhtml">
+        <ui:param name="dialog" value="#{CloneDatasetDialog}" />
+        <ui:param name="widgetVar" value="cloneDatasetDialog" />
+    </ui:include>
     
 </ui:composition>

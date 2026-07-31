@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowContactToCreateDataverseTip;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -48,6 +49,7 @@ public class CreateDatasetDialog implements Serializable {
     private DataverseSession session;
     private SystemConfig systemConfig;
     private SettingsServiceBean settingsService;
+    private SendFeedbackDialog sendFeedbackDialog;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -60,7 +62,8 @@ public class CreateDatasetDialog implements Serializable {
             final DataverseRepository dataverseRepo,
             final DataverseSession session, 
             final SystemConfig systemConfig, 
-            final SettingsServiceBean settingsService) {
+            final SettingsServiceBean settingsService,
+            final SendFeedbackDialog sendFeedbackDialog) {
     	
         this.solrTreeService = solrTreeService;
         this.dataverseRequestService = dataverseRequestService;
@@ -69,6 +72,7 @@ public class CreateDatasetDialog implements Serializable {
         this.session = session;
         this.systemConfig = systemConfig;
         this.settingsService = settingsService;
+        this.sendFeedbackDialog = sendFeedbackDialog;
     }
 
     // -------------------- GETTERS --------------------
@@ -141,6 +145,11 @@ public class CreateDatasetDialog implements Serializable {
     
     public boolean displaySelectDataverseInfo() {
         return !getSelectDataverseInfo().isEmpty();
+    }
+    
+    public void sendFeedback() {
+    	this.sendFeedbackDialog.resetWithSubject(
+    			getStringFromBundle("add.dataset.dialog.createDataverse.message.subject"));
     }
 
     // -------------------- PRIVATE --------------------
