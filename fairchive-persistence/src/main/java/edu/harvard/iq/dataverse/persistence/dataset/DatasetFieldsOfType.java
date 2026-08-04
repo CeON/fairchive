@@ -95,6 +95,10 @@ public final class DatasetFieldsOfType implements Iterable<DatasetField> {
     	this.fields.clear();
         return addEmpty();
     }
+
+    public void removeDatasetField(int position) {
+        fields.remove(position);
+    }
     
     public DatasetField getLast() {
         return this.fields.isEmpty()? addEmpty() : this.fields.get(size() - 1);
