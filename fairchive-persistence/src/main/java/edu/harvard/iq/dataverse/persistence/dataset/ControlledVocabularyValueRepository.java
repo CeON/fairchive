@@ -25,8 +25,8 @@ public class ControlledVocabularyValueRepository extends JpaRepository<Long, Con
     public Optional<ControlledVocabularyValue> findByFieldTypeAndStrValue(
     		final DatasetFieldType type, final String strValue) {
         return getSingleResult(createQuery(
-        		"SELECT OBJECT(o) FROM ControlledVocabularyValue AS o " + 
-        		"WHERE o.strValue = :value AND o.datasetFieldType = :type")
+        		"SELECT c FROM ControlledVocabularyValue c " + 
+        		"WHERE c.strValue = :value AND c.datasetFieldType = :type")
         .setParameter("value", strValue)
         .setParameter("type", type));
     }

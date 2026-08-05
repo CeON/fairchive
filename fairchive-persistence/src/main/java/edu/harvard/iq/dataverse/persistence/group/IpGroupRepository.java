@@ -27,7 +27,7 @@ public class IpGroupRepository extends JpaRepository<Long, IpGroup> implements S
     	
     	return createQuery(
     			"SELECT DISTINCT r.owner from IPv4Range r " + 
-    			" WHERE r.bottomAsLong<=:address AND r.topAsLong>=:address")
+    			" WHERE r.bottomAsLong <= :address AND r.topAsLong >= :address")
                 .setParameter("address", address)
                 .getResultList();
     }
@@ -36,14 +36,14 @@ public class IpGroupRepository extends JpaRepository<Long, IpGroup> implements S
     	return createQuery(
     			"SELECT DISTINCT r.owner FROM IPv6Range r " +
                 "WHERE " +
-                "( (r.topA>:a) " +
-                "or (r.topA=:a and r.topB>:b) " +
-                "or (r.topA=:a and r.topB=:b and r.topC>:c) " +
-                "or (r.topA=:a and r.topB=:b and r.topC=:c and r.topD>=:d))" +
-                " and ( (r.bottomA<:a) " +
-                "or (r.bottomA=:a and r.bottomB<:b) " +
-                "or (r.bottomA=:a and r.bottomB=:b and r.bottomC<:c) " +
-                "or (r.bottomA=:a and r.bottomB=:b and r.bottomC=:c and r.bottomD<=:d) )")
+                "( (r.topA > :a) " +
+                "or (r.topA = :a and r.topB > :b) " +
+                "or (r.topA = :a and r.topB = :b and r.topC > :c) " +
+                "or (r.topA = :a and r.topB = :b and r.topC = :c and r.topD >= :d))" +
+                " and ( (r.bottomA < :a) " +
+                "or (r.bottomA = :a and r.bottomB < :b) " +
+                "or (r.bottomA = :a and r.bottomB = :b and r.bottomC < :c) " +
+                "or (r.bottomA = :a and r.bottomB = :b and r.bottomC = :c and r.bottomD <= :d) )")
                 .setParameter("a", abcd[0])
                 .setParameter("b", abcd[1])
                 .setParameter("c", abcd[2])

@@ -22,6 +22,7 @@ package edu.harvard.iq.dataverse.persistence.harvest;
 import static javax.persistence.GenerationType.IDENTITY;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,8 +31,6 @@ import javax.persistence.Id;
 import javax.persistence.Version;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
-import com.google.common.base.Objects;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
