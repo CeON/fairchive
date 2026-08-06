@@ -42,8 +42,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
@@ -66,19 +64,6 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLev
  * @author Stephen Kraffmiller
  */
 @SuppressWarnings("serial")
-@NamedQueries({
-        @NamedQuery(name = "DatasetFieldType.findByName",
-                query = "SELECT dft FROM DatasetFieldType dft WHERE dft.name=:name"),
-        @NamedQuery(name = "DatasetFieldType.findAllFacetable",
-                query = "select dft from DatasetFieldType dft WHERE dft.facetable = true " +
-                        "and dft.title != '' order by dft.id"),
-        @NamedQuery(name = "DatasetFieldType.findFacetableByMetadataBlock",
-                query = "select dft from DatasetFieldType dft WHERE dft.facetable = true " +
-                        "and dft.title != '' and dft.metadataBlock.id = :metadataBlockId order by dft.id"),
-        @NamedQuery(name = "DatasetFieldType.findAdvancedSearchFieldsByMetadataBlocks",
-                query = "select dft from DatasetFieldType dft WHERE dft.advancedSearchFieldType = true " +
-                        "and dft.title != '' and dft.metadataBlock.id IN :metadataBlockIds order by dft.metadataBlock.id, dft.displayOrder")
-})
 @Entity
 @Table(indexes = {@Index(columnList = "metadatablock_id"), @Index(columnList = "parentdatasetfieldtype_id")})
 public class DatasetFieldType implements Serializable, Comparable<DatasetFieldType>, JpaEntity<Long> {
@@ -761,9 +746,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     // -------------------- hashCode & equals --------------------
 
     public int hashCode() {
-        int hash = 0;
-        hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     public boolean equals(Object object) {
@@ -771,7 +754,7 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
         if (!(object instanceof DatasetFieldType)) {
             return false;
         }
-        DatasetFieldType other = (DatasetFieldType) object;
+        final DatasetFieldType other = (DatasetFieldType) object;
         return Objects.equals(this.id, other.id);
     }
 

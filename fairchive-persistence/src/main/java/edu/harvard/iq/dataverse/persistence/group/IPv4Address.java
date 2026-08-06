@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
+import static java.lang.String.format;
+import static java.lang.System.arraycopy;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 
@@ -9,12 +12,12 @@ import java.util.Arrays;
 @SuppressWarnings("serial")
 public class IPv4Address extends IpAddress implements Comparable<IPv4Address> {
 
-    public static IPv4Address valueOf(String input) {
-        String[] comps = input.split("\\.");
+    public static IPv4Address valueOf(final String input) {
+        final String[] comps = input.split("\\.");
         if (comps.length != 4) {
             throw new IllegalArgumentException("IPv4Address string expected to be in xxx.xxx.xxx.xxx format (only 4 byte ipv4 addresses are supported)");
         }
-        short[] arr = new short[4];
+        final short[] arr = new short[4];
         for (int i = 0; i < 4; i++) {
             arr[i] = Short.parseShort(comps[i]);
         }
@@ -24,44 +27,44 @@ public class IPv4Address extends IpAddress implements Comparable<IPv4Address> {
     protected final short[] bytes = new short[4];
 
     public IPv4Address(short[] arr) {
-        System.arraycopy(arr, 0, bytes, 0, 4);
+        arraycopy(arr, 0, this.bytes, 0, 4);
     }
 
-    public IPv4Address(short a, short b, short c, short d) {
+    public IPv4Address(final short a, final short b, final short c, final short d) {
         this(new short[]{a, b, c, d});
     }
 
-    public IPv4Address(int a, int b, int c, int d) {
+    public IPv4Address(final int a, final int b, final int c, final int d) {
         this(new short[]{(short) a, (short) b, (short) c, (short) d});
     }
 
-    public IPv4Address(BigInteger bits) {
+    public IPv4Address(final BigInteger bits) {
         this(bits.longValue());
     }
 
-    public IPv4Address(long l) {
-        bytes[0] = (short) ((l >>> 24) & 0xFF);
-        bytes[1] = (short) ((l >>> 16) & 0xFF);
-        bytes[2] = (short) ((l >>> 8) & 0xFF);
-        bytes[3] = (short) (l & 0xFF);
+    public IPv4Address(final long l) {
+        this.bytes[0] = (short) ((l >>> 24) & 0xFF);
+        this.bytes[1] = (short) ((l >>> 16) & 0xFF);
+        this.bytes[2] = (short) ((l >>> 8) & 0xFF);
+        this.bytes[3] = (short) (l & 0xFF);
     }
 
     @Override
     public boolean isLocalhost() {
-        return Arrays.equals(new short[]{127, 0, 0, 1}, bytes);
+        return Arrays.equals(new short[]{127, 0, 0, 1}, this.bytes);
     }
 
     @Override
     public String toString() {
-        return String.format("%d.%d.%d.%d", get(0), get(1), get(2), get(3));
+        return format("%d.%d.%d.%d", get(0), get(1), get(2), get(3));
     }
 
     public short get(int idx) {
-        return bytes[idx];
+        return this.bytes[idx];
     }
 
     public short[] getBytes() {
-        return bytes;
+        return this.bytes;
     }
 
     public long toLong() {
@@ -69,23 +72,21 @@ public class IPv4Address extends IpAddress implements Comparable<IPv4Address> {
     }
 
     public BigInteger toBigInteger() {
-        BigInteger res = BigInteger.ZERO;
+        BigInteger result = BigInteger.ZERO;
         for (int i = 0; i < 3; i++) {
-            res = res.add(BigInteger.valueOf(get(i)))
+            result = result.add(BigInteger.valueOf(get(i)))
                     .shiftLeft(8);
         }
-        return res.add(BigInteger.valueOf(get(3)));
+        return result.add(BigInteger.valueOf(get(3)));
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 97 * hash + Arrays.hashCode(this.bytes);
-        return hash;
+        return Arrays.hashCode(this.bytes);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -97,10 +98,10 @@ public class IPv4Address extends IpAddress implements Comparable<IPv4Address> {
     }
 
     @Override
-    public int compareTo(IPv4Address o) {
+    public int compareTo(final IPv4Address other) {
         for (int i = 0; i < 4; i++) {
-            if (get(i) != o.get(i)) {
-                return get(i) - o.get(i);
+            if (get(i) != other.get(i)) {
+                return get(i) - other.get(i);
             }
         }
         return 0;

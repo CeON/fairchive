@@ -1,39 +1,18 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
 import java.io.Serializable;
+
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 
 /**
  * @author michael
  */
 @SuppressWarnings("serial")
 @Table(indexes = {@Index(columnList = "owner_id")})
-@NamedQueries({
-        @NamedQuery(name = "IPv6Range.findGroupsContainingABCD",
-                query = "SELECT DISTINCT r.owner FROM IPv6Range r "
-                        + "WHERE "
-                        + "(    (r.topA>:a) "
-                        + "or (r.topA=:a and r.topB>:b) "
-                        + "or (r.topA=:a and r.topB=:b and r.topC>:c) "
-                        + "or (r.topA=:a and r.topB=:b and r.topC=:c and r.topD>=:d))"
-                        + " and ( (r.bottomA<:a) "
-                        + "or (r.bottomA=:a and r.bottomB<:b) "
-                        + "or (r.bottomA=:a and r.bottomB=:b and r.bottomC<:c) "
-                        + "or (r.bottomA=:a and r.bottomB=:b and r.bottomC=:c and r.bottomD<=:d))"
-        )
-})
 @Entity
 public class IPv6Range extends IpAddressRange implements Serializable {
-
-    @Id
-    @GeneratedValue
-    Long id;
 
     // Low-level bit representation of the addresses.
     long topA, topB, topC, topD;

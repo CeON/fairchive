@@ -29,6 +29,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Leonid Andreev
@@ -58,7 +59,8 @@ public class OAIRecord implements Serializable, JpaEntity<Long> {
     protected OAIRecord() {
     }
 
-    public OAIRecord(String setName, String globalId, Date lastUpdateTime) {
+    public OAIRecord(final String setName, final String globalId, 
+    		final Date lastUpdateTime) {
         this.setName = setName;
         this.globalId = globalId;
         this.lastUpdateTime = lastUpdateTime;
@@ -67,40 +69,40 @@ public class OAIRecord implements Serializable, JpaEntity<Long> {
     // -------------------- GETTERS --------------------
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public String getSetName() {
-        return setName;
+        return this.setName;
     }
 
     public String getGlobalId() {
-        return globalId;
+        return this.globalId;
     }
 
     public Date getLastUpdateTime() {
-        return lastUpdateTime;
+        return this.lastUpdateTime;
     }
 
     public boolean isRemoved() {
-        return removed;
+        return this.removed;
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setSetName(String setName) {
-        this.setName = setName;
+    public void setSetName(final String name) {
+        this.setName = name;
     }
 
-    public void setGlobalId(String globalId) {
-        this.globalId = globalId;
+    public void setGlobalId(final String id) {
+        this.globalId = id;
     }
 
-    public void setLastUpdateTime(Date lastUpdateTime) {
-        this.lastUpdateTime = lastUpdateTime;
+    public void setLastUpdateTime(final Date time) {
+        this.lastUpdateTime = time;
     }
 
-    public void setRemoved(boolean removed) {
+    public void setRemoved(final boolean removed) {
         this.removed = removed;
     }
 
@@ -108,26 +110,24 @@ public class OAIRecord implements Serializable, JpaEntity<Long> {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
+    public boolean equals(final Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof OAIRecord)) {
             return false;
         }
-        OAIRecord other = (OAIRecord) object;
-        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
+        final OAIRecord other = (OAIRecord) object;
+        return (this.id != null || other.id == null) && 
+        		(this.id == null || this.id.equals(other.id));
     }
 
     // -------------------- toString --------------------
 
     @Override
     public String toString() {
-        return "OAIRecord[ id=" + id + " ]";
+        return "OAIRecord[ id=" + this.id + " ]";
     }
-
 }

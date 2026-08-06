@@ -18,15 +18,16 @@ public class OAISetRepository extends JpaRepository<Long, OAISet> {
 
     // -------------------- LOGIC --------------------
 
-    public Optional<OAISet> findBySpecName(String specName) {
-        return JpaRepository.getSingleResult(
-                createQuery("SELECT o FROM OAISet o WHERE o.spec = :specName")
-                    .setParameter("specName", specName));
+    public Optional<OAISet> findBySpecName(final String name) {
+        return getSingleResult(createQuery(
+        		"SELECT o FROM OAISet o WHERE o.spec = :name")
+                .setParameter("name", name));
     }
 
-    public List<OAISet> findAllBySpecNameNot(String specName) {
-        return createQuery("SELECT o FROM OAISet o WHERE o.spec != :specName ORDER BY o.spec")
-                    .setParameter("specName", specName)
-                    .getResultList();
+    public List<OAISet> findAllBySpecNameNot(final String name) {
+        return createQuery(
+        		"SELECT o FROM OAISet o WHERE o.spec != :name ORDER BY o.spec")
+                .setParameter("name", name)
+                .getResultList();
     }
 }

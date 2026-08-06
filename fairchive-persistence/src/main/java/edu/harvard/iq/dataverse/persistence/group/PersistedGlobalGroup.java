@@ -1,19 +1,17 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.user.RoleAssigneeDisplayInfo;
+import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import java.io.Serializable;
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.user.RoleAssigneeDisplayInfo;
 
 /**
  * Convenience base class for implementing groups that apply to the entire Dataverse
@@ -22,10 +20,6 @@ import java.io.Serializable;
  * @author michael
  */
 @SuppressWarnings("serial")
-@NamedQueries({
-        @NamedQuery(name = "PersistedGlobalGroup.persistedGroupAlias",
-                query = "SELECT g FROM PersistedGlobalGroup g WHERE g.persistedGroupAlias=:persistedGroupAlias")
-})
 @Entity
 @Table(indexes = {@Index(columnList = "dtype")})
 public abstract class PersistedGlobalGroup implements Group, JpaEntity<Long>, Serializable {

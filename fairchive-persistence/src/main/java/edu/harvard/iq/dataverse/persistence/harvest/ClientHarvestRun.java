@@ -104,7 +104,7 @@ public class ClientHarvestRun implements Serializable {
     }
 
     public void setSuccess() {
-        harvestResult = RunResultType.SUCCESS;
+        this.harvestResult = RunResultType.SUCCESS;
     }
 
     public boolean isFailed() {

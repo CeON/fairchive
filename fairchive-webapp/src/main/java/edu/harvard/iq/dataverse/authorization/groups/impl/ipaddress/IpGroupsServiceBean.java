@@ -7,8 +7,6 @@ import java.util.Set;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
@@ -26,9 +24,6 @@ import edu.harvard.iq.dataverse.persistence.group.IpGroupRepository;
  */
 @Stateless
 public class IpGroupsServiceBean {
-
-    @PersistenceContext(unitName = "VDCNet-ejbPU")
-    protected EntityManager em;
     
     @Inject 
     private IpGroupRepository groupRepository;
@@ -90,26 +85,16 @@ public class IpGroupsServiceBean {
         return this.groupRepository.findAll();
     }
 
-    public Set<IpGroup> findAllIncludingIp(IpAddress ipa) {
+    public Set<IpGroup> findAllIncludingIp(final IpAddress ipa) {
         if (ipa instanceof IPv4Address) {
-            IPv4Address ip4 = (IPv4Address) ipa;
-            List<IpGroup> groupList = em.createNamedQuery("IPv4Range.findGroupsContainingAddressAsLong", IpGroup.class)
-                    .setParameter("addressAsLong", ip4.toBigInteger()).getResultList();
-            return new HashSet<>(groupList);
-
+            final IPv4Address ip4 = (IPv4Address) ipa;
+            return new HashSet<>(this.groupRepository.findContainingV4Address(ip4.toBigInteger()));
         } else if (ipa instanceof IPv6Address) {
-            IPv6Address ip6 = (IPv6Address) ipa;
-            long[] ip6arr = ip6.toLongArray();
-            List<IpGroup> groupList = em.createNamedQuery("IPv6Range.findGroupsContainingABCD", IpGroup.class)
-                    .setParameter("a", ip6arr[0])
-                    .setParameter("b", ip6arr[1])
-                    .setParameter("c", ip6arr[2])
-                    .setParameter("d", ip6arr[3])
-                    .getResultList();
-            return new HashSet<>(groupList);
-
+            final IPv6Address ip6 = (IPv6Address) ipa;
+            return new HashSet<>(this.groupRepository.findContainingV6Address(ip6.toLongArray()));
         } else {
-            throw new IllegalArgumentException("Unknown IpAddress type: " + ipa.getClass() + " (for IpAddress:" + ipa + ")");
+            throw new IllegalArgumentException("Unknown IpAddress type: " + 
+            		ipa.getClass() + " (for IpAddress:" + ipa + ")");
         }
     }
 

@@ -1,25 +1,21 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import java.util.List;
 
 import javax.ejb.Singleton;
-import javax.persistence.TypedQuery;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Singleton
 public class SamlGroupRepository extends JpaRepository<Long, SamlGroup> {
-
-    // -------------------- CONSTRUCTORS --------------------
 
     public SamlGroupRepository() {
         super(SamlGroup.class);
     }
 
-    // -------------------- LOGIC --------------------
-
-    public List<SamlGroup> findByEntityId(String entityId) {
-        TypedQuery<SamlGroup> query = em.createNamedQuery("SamlGroup.findByEntityId", SamlGroup.class)
-                .setParameter("entityId", entityId);
-        return query.getResultList();
+    public List<SamlGroup> findByEntityId(final String id) {
+        return createQuery("SELECT g FROM SamlGroup g WHERE g.entityId = :id")
+                .setParameter("id", id)
+                .getResultList();
     }
 }

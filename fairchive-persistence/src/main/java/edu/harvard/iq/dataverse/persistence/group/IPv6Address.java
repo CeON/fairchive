@@ -19,34 +19,34 @@ public class IPv6Address extends IpAddress implements Comparable<IPv6Address> {
         if (in.contains("::")) {
             // expand the :: abbreviation
             int existingFields = 0;
-            for (String cmp : in.split(":")) {
+            for (final String cmp : in.split(":")) {
                 if (!cmp.trim().isEmpty()) {
                     existingFields++;
                 }
             }
 
-            int missingFieldCount = 8 - existingFields;
-            StringBuilder sb = new StringBuilder(in.startsWith("::") ? "" : ":");
+            final int missingFieldCount = 8 - existingFields;
+            final StringBuilder builder = new StringBuilder(in.startsWith("::") ? "" : ":");
             for (int i = 0; i < missingFieldCount; i++) {
-                sb.append("0:");
+                builder.append("0:");
             }
             if (in.endsWith("::")) {
-                sb.setLength(sb.length() - 1);
+                builder.setLength(builder.length() - 1);
             }
-            in = in.replace("::", sb.toString());
+            in = in.replace("::", builder.toString());
 
         }
 
         // Invariant: in is expanded (no "::" abbreviation)
-        String[] comps = in.split(":", -1);
+        final String[] comps = in.split(":", -1);
         if (comps.length != 8) {
             throw new IllegalArgumentException("IPv6 requires 8 words (or the usage of the :: abbreviation)");
         }
-        int[] words = new int[8];
+        final int[] words = new int[8];
 
         // Invariant: in is of the form "n:n:n:n:n:n:n:n", where n is hopefully a hex number.
         int wordIdx = 0;
-        for (String comp : comps) {
+        for (final String comp : comps) {
             try {
                 words[wordIdx++] = Integer.parseInt(comp, 16);
             } catch (NumberFormatException nfe) {
@@ -57,15 +57,15 @@ public class IPv6Address extends IpAddress implements Comparable<IPv6Address> {
         return new IPv6Address(words, false);
     }
 
-    public static IPv6Address valueOfMapped(String in) {
+    public static IPv6Address valueOfMapped(final String in) {
         // Split parts
-        int lastColon = in.lastIndexOf(":");
-        String ipv4Part = in.substring(lastColon + 1);
-        String ipv6Part = in.substring(0, lastColon + 1) + "0:0";
+        final int lastColon = in.lastIndexOf(":");
+        final String ipv4Part = in.substring(lastColon + 1);
+        final String ipv6Part = in.substring(0, lastColon + 1) + "0:0";
 
         // Parse
-        short[] ipv4bytes = IPv4Address.valueOf(ipv4Part).bytes;
-        int[] ipv6words = IPv6Address.valueOf(ipv6Part).words;
+        final short[] ipv4bytes = IPv4Address.valueOf(ipv4Part).bytes;
+        final int[] ipv6words = IPv6Address.valueOf(ipv6Part).words;
 
         // merge
         ipv6words[6] = (((int) ipv4bytes[0]) << 8) + ipv4bytes[1];
@@ -82,19 +82,19 @@ public class IPv6Address extends IpAddress implements Comparable<IPv6Address> {
      * @param words
      * @param dummy
      */
-    private IPv6Address(int[] words, boolean dummy) {
+    private IPv6Address(final int[] words, final boolean dummy) {
         this.words = words;
     }
 
-    public IPv6Address(int[] words) {
+    public IPv6Address(final int[] words) {
         if (words.length != 8) {
             throw new IllegalArgumentException("IPv6 address requires exactly 8 ints. Consider using the valueOf method to support abbreviations");
         }
         this.words = Arrays.copyOf(words, words.length);
     }
 
-    public IPv6Address(long[] longs) {
-        words = new int[]{
+    public IPv6Address(final long[] longs) {
+        this.words = new int[]{
                 (int) (longs[0] >>> 32),
                 (int) (longs[0] & 0xffffffffl),
                 (int) (longs[1] >>> 32),
@@ -106,33 +106,32 @@ public class IPv6Address extends IpAddress implements Comparable<IPv6Address> {
         };
     }
 
-    public IPv6Address(int w1, int w2, int w3, int w4, int w5, int w6, int w7, int w8) {
-        words = new int[]{w1, w2, w3, w4, w5, w6, w7, w8};
+    public IPv6Address(final int w1, final int w2, final int w3, final int w4, 
+    		final int w5, final int w6, final int w7, final int w8) {
+        this.words = new int[]{w1, w2, w3, w4, w5, w6, w7, w8};
     }
 
-    public int get(int idx) {
-        return words[idx];
+    public int get(final int idx) {
+        return this.words[idx];
     }
 
     public long[] toLongArray() {
-        long[] retVal = new long[4];
+        final long[] result = new long[4];
         for (int i = 0; i < 4; i++) {
-            retVal[i] = words[2 * i];
-            retVal[i] = (retVal[i] << 32);
-            retVal[i] = retVal[i] + words[2 * i + 1];
+            result[i] = this.words[2 * i];
+            result[i] = (result[i] << 32);
+            result[i] = result[i] + this.words[2 * i + 1];
         }
-        return retVal;
+        return result;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 89 * hash + Arrays.hashCode(this.words);
-        return hash;
+        return  Arrays.hashCode(this.words);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -145,24 +144,24 @@ public class IPv6Address extends IpAddress implements Comparable<IPv6Address> {
 
     @Override
     public boolean isLocalhost() {
-        return Arrays.equals(words, new int[]{0, 0, 0, 0, 0, 0, 0, 1});
+        return Arrays.equals(this.words, new int[]{0, 0, 0, 0, 0, 0, 0, 1});
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < words.length; i++) {
-            sb.append(Integer.toString(words[i], 16))
+        final StringBuilder result = new StringBuilder();
+        for (int i = 0; i < this.words.length; i++) {
+            result.append(Integer.toString(this.words[i], 16))
                     .append(i < 7 ? ":" : "");
         }
-        return sb.toString();
+        return result.toString();
     }
 
     @Override
-    public int compareTo(IPv6Address o) {
+    public int compareTo(final IPv6Address other) {
         for (int i = 0; i < 8; i++) {
-            if (get(i) != o.get(i)) {
-                return get(i) - o.get(i);
+            if (get(i) != other.get(i)) {
+                return get(i) - other.get(i);
             }
         }
         return 0;

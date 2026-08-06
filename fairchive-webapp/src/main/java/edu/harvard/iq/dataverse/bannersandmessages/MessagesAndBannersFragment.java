@@ -1,17 +1,17 @@
 package edu.harvard.iq.dataverse.bannersandmessages;
 
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.bannersandmessages.banners.BannerDAO;
 import edu.harvard.iq.dataverse.bannersandmessages.banners.dto.ImageWithLinkDto;
 import edu.harvard.iq.dataverse.bannersandmessages.messages.DataverseTextMessageServiceBean;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.ejb.EJB;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Responsible for displaying messages and banners across the dataverse.

@@ -19,17 +19,20 @@
  */
 package edu.harvard.iq.dataverse.persistence.harvest;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Version;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * @author Leonid Andreev
@@ -44,7 +47,7 @@ public class OAISet implements Serializable, JpaEntity<Long> {
     public static final String DEFAULT_SET_SPEC_NAME = "";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Version
@@ -55,8 +58,8 @@ public class OAISet implements Serializable, JpaEntity<Long> {
 
     @Column(columnDefinition = "TEXT", nullable = false, unique = true)
     @Size(max = 30, message = "{setspec.maxLength}")
-    @Pattern.List({@Pattern(regexp = "[a-zA-Z0-9\\_\\-]*", message = "{dataverse.nameIllegalCharacters}")})
-    //    @Pattern(regexp=".*\\D.*", message="{setspec.notNumber}")})
+    @Pattern.List({@Pattern(regexp = "[a-zA-Z0-9\\_\\-]*",
+    						message = "{dataverse.nameIllegalCharacters}")})
     private String spec;
 
     @Column(columnDefinition = "TEXT", nullable = false)
@@ -78,27 +81,27 @@ public class OAISet implements Serializable, JpaEntity<Long> {
     // -------------------- GETTERS --------------------
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public Long getVersion() {
-        return version;
+        return this.version;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public String getSpec() {
-        return spec;
+        return this.spec;
     }
 
     public String getDefinition() {
-        return definition;
+        return this.definition;
     }
 
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
     public boolean isUpdateInProgress() {
@@ -117,19 +120,19 @@ public class OAISet implements Serializable, JpaEntity<Long> {
 
     // -------------------- PRIVATE --------------------
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    public void setVersion(Long version) {
+    public void setVersion(final Long version) {
         this.version = version;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
-    public void setSpec(String spec) {
+    public void setSpec(final String spec) {
         this.spec = spec;
     }
 
@@ -137,42 +140,41 @@ public class OAISet implements Serializable, JpaEntity<Long> {
         this.definition = definition;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(final String description) {
         this.description = description;
     }
 
-    public void setUpdateInProgress(boolean updateInProgress) {
-        this.updateInProgress = updateInProgress;
+    public void setUpdateInProgress(final boolean inProgress) {
+        this.updateInProgress = inProgress;
     }
 
-    public void setDeleteInProgress(boolean deleteInProgress) {
-        this.deleted = deleteInProgress;
+    public void setDeleteInProgress(final boolean inProgress) {
+        this.deleted = inProgress;
     }
 
     // -------------------- hashCode & equals --------------------
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
+    public boolean equals(final Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof OAISet)) {
             return false;
         }
-        OAISet other = (OAISet) object;
-        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
+        final OAISet other = (OAISet) object;
+        return (this.id != null || other.id == null) 
+        		&& (this.id == null || this.id.equals(other.id));
     }
 
     // -------------------- toString --------------------
 
     @Override
     public String toString() {
-        return "OaiSet[ id=" + id + " ]";
+        return "OaiSet[ id=" + this.id + " ]";
     }
 
 }

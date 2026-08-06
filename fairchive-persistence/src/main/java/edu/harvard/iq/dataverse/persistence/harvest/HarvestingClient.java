@@ -99,6 +99,7 @@ public class HarvestingClient implements Serializable, JpaEntity<Long> {
     private boolean harvestingNow;
     private boolean deleted;
 
+    @Override
     public Long getId() {
         return this.id;
     }

@@ -1,7 +1,12 @@
 package edu.harvard.iq.dataverse.persistence.group;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+
 import java.util.Objects;
 
 /**
@@ -12,9 +17,18 @@ import java.util.Objects;
  * @author michael
  */
 @MappedSuperclass
-public abstract class IpAddressRange {
+public abstract class IpAddressRange implements JpaEntity<Long> {
+	
+    @Id
+    @GeneratedValue
+    protected Long id;
 
-    public static IpAddressRange make(final IpAddress bottom, final IpAddress top) {
+    @Override
+	public Long getId() {
+		return this.id;
+	}
+
+	public static IpAddressRange make(final IpAddress bottom, final IpAddress top) {
         if (bottom instanceof IPv4Address && top instanceof IPv4Address) {
             return new IPv4Range((IPv4Address) bottom, (IPv4Address) top);
         } else if (bottom instanceof IPv6Address && top instanceof IPv6Address) {
