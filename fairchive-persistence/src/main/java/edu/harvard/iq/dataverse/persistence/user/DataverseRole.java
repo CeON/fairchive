@@ -98,7 +98,7 @@ public class DataverseRole implements Serializable, JpaEntity<Long> {
     @Size(max = 255, message = "{role.desc.maxLength}")
     private String description;
 
-    @Size(max = 16, message = "{role.alias.maxLength}")
+    @Size(max = 32, message = "{role.alias.maxLength}")
     @Pattern(regexp = "[a-zA-Z0-9\\_\\-]+", message = "{role.alias.illegalCharacters}")
     @Column(nullable = false, unique = true)
     private String alias;
