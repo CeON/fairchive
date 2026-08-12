@@ -682,34 +682,18 @@ public class IndexServiceBean {
     // We are also less concerned with the diagnostics; if any of it fails,
     // we don't need to treat it as a fatal condition.
     public void deleteHarvestedDocuments(HarvestingClient harvestingClient) {
-        List<String> solrIdsOfDatasetsToDelete = new ArrayList<>();
-
-        // I am going to make multiple solrIndexService.deleteMultipleSolrIds() calls;
-        // one call for the list of datafiles in each dataset; then one more call to
-        // delete all the dataset documents.
-        // I'm *assuming* this is safer than to try and make one complete list of
-        // all the documents (datasets and datafiles), and then attempt to delete
-        // them all at once... (is there a limit??) The list can be huge - if the
-        // harvested archive is on the scale of Odum or ICPSR, with thousands of
-        // datasets and tens of thousands of files.
-        //
         for (Dataset harvestedDataset : harvestingClient.getHarvestedDatasets()) {
-            solrIdsOfDatasetsToDelete.add(solrDocIdentifierDataset + harvestedDataset.getId());
 
-            List<String> solrIdsOfDatafilesToDelete = new ArrayList<>();
+            List<String> solrIdsToDelete = new ArrayList<>();
             for (DataFile datafile : harvestedDataset.getFiles()) {
-                solrIdsOfDatafilesToDelete.add(solrDocIdentifierFile + datafile.getId());
+                solrIdsToDelete.add(solrDocIdentifierFile + datafile.getId());
             }
-            logger.fine("attempting to delete the following datafiles from the index: " + StringUtils.join(solrIdsOfDatafilesToDelete, ","));
-            IndexResponse resultOfAttemptToDeleteFiles = solrIndexService.deleteMultipleSolrIds(solrIdsOfDatafilesToDelete);
-            logger.fine("result of an attempted delete of the harvested files associated with the dataset " + harvestedDataset.getId() + ": " + resultOfAttemptToDeleteFiles);
+            solrIdsToDelete.add(solrDocIdentifierDataset + harvestedDataset.getId());
+            logger.fine("attempting to delete the following ids from the index: " + StringUtils.join(solrIdsToDelete, ","));
+            IndexResponse resultOfAttemptToDeleteDataset = solrIndexService.deleteMultipleSolrIds(solrIdsToDelete);
+            logger.fine("result of an attempted delete of the harvested dataset " + harvestedDataset.getId() + ": " + resultOfAttemptToDeleteDataset);
 
         }
-
-        logger.fine("attempting to delete the following datasets from the index: " + StringUtils.join(solrIdsOfDatasetsToDelete, ","));
-        IndexResponse resultOfAttemptToDeleteDatasets = solrIndexService.deleteMultipleSolrIds(solrIdsOfDatasetsToDelete);
-        logger.fine("result of attempt to delete harvested datasets associated with the client: " + resultOfAttemptToDeleteDatasets + "\n");
-
     }
 
     // Another convenience method, for deleting all the SOLR documents (dataset_
