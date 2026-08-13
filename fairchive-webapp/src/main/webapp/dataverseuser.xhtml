@@ -742,7 +742,8 @@
                                     <code class="language-html"
                                           data-lang="html">${ApiTokenPage.apiToken}</code>
                                  </pre>
-                                 <span class="btn" 
+                                 <span class="btn"
+                                      jsf:rendered="#{ApiTokenPage.checkForApiToken()}" 
                                       style="margin-top:-10px;"
                                       aria-label="#{bundle['apitoken.copy']}"
                                       tabindex="0"
