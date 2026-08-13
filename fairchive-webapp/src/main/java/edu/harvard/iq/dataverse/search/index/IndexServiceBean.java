@@ -36,6 +36,7 @@ import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
@@ -681,6 +682,7 @@ public class IndexServiceBean {
     // datasets and files - for example, harvested datasets are never Drafts, etc.
     // We are also less concerned with the diagnostics; if any of it fails,
     // we don't need to treat it as a fatal condition.
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void deleteHarvestedDocuments(HarvestingClient harvestingClient) {
         for (Dataset harvestedDataset : harvestingClient.getHarvestedDatasets()) {
 
