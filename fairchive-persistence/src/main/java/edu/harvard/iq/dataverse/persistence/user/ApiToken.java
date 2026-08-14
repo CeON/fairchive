@@ -12,6 +12,9 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+
+import static javax.persistence.GenerationType.IDENTITY;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 
@@ -26,7 +29,7 @@ import java.sql.Timestamp;
 public class ApiToken implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @NotNull
@@ -50,52 +53,52 @@ public class ApiToken implements Serializable {
     // -------------------- GETTERS --------------------
 
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public String getTokenString() {
-        return tokenString;
+        return this.tokenString;
     }
 
     public AuthenticatedUser getAuthenticatedUser() {
-        return authenticatedUser;
+        return this.authenticatedUser;
     }
 
     public boolean isDisabled() {
-        return disabled;
+        return this.disabled;
     }
 
     public Timestamp getCreateTime() {
-        return createTime;
+        return this.createTime;
     }
 
     public Timestamp getExpireTime() {
-        return expireTime;
+        return this.expireTime;
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    public void setTokenString(String aToken) {
-        this.tokenString = aToken;
+    public void setTokenString(final String token) {
+        this.tokenString = token;
     }
 
-    public void setAuthenticatedUser(AuthenticatedUser authenticatedUser) {
-        this.authenticatedUser = authenticatedUser;
+    public void setAuthenticatedUser(final AuthenticatedUser user) {
+        this.authenticatedUser = user;
     }
 
-    public void setDisabled(boolean disabled) {
+    public void setDisabled(final boolean disabled) {
         this.disabled = disabled;
     }
 
-    public void setCreateTime(Timestamp createTime) {
+    public void setCreateTime(final Timestamp createTime) {
         this.createTime = createTime;
     }
 
-    public void setExpireTime(Timestamp expireTime) {
+    public void setExpireTime(final Timestamp expireTime) {
         this.expireTime = expireTime;
     }
 }

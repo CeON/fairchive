@@ -459,6 +459,16 @@ public class AuthenticationServiceBean {
 
         return apiToken;
     }
+    
+    public void regenerateApiTokenForUser(final AuthenticatedUser user) {
+    	
+        ApiToken token = findApiTokenByUser(user);
+        if (token != null) {
+            removeApiToken(user);
+        } 
+        token = generateApiToken(user);
+        save(token);
+    }
 
     public AuthenticatedUser lookupUser(String apiToken) {
         ApiToken tkn = findApiToken(apiToken);
