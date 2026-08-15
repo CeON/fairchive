@@ -21,6 +21,7 @@ import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.passwordreset.PasswordResetServiceBean;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.user.ApiToken;
+import edu.harvard.iq.dataverse.persistence.user.ApiTokenRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserLookup;
@@ -53,7 +54,6 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -112,6 +112,9 @@ public class AuthenticationServiceBean {
 
     @Inject
     private SamlConfigurationService samlConfigurationService;
+    
+    @Inject
+    private ApiTokenRepository tokenRepository;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -394,43 +397,11 @@ public class AuthenticationServiceBean {
         return authenticationProviders.get(user.getAuthenticatedUserLookup().getAuthenticationProviderId());
     }
 
-    public ApiToken findApiToken(String token) {
-        try {
-            return em.createNamedQuery("ApiToken.findByTokenString", ApiToken.class)
-                    .setParameter("tokenString", token)
-                    .getSingleResult();
-        } catch (NoResultException ex) {
-            return null;
-        }
-    }
-
-    public ApiToken findApiTokenByUser(AuthenticatedUser au) {
-        if (au == null) {
-            return null;
-        }
-        TypedQuery<ApiToken> typedQuery = em.createNamedQuery("ApiToken.findByUser", ApiToken.class);
-        typedQuery.setParameter("user", au);
-        try {
-            return typedQuery.getSingleResult();
-        } catch (NoResultException | NonUniqueResultException ex) {
-            logger.log(Level.INFO, "When looking up API token for {0} caught {1}", new Object[]{au, ex});
-            return null;
-        }
-    }
-
-    public List<ApiToken> findAllApiTokensByUser(AuthenticatedUser user) {
+    public ApiToken findApiTokenByUser(final AuthenticatedUser user) {
         if (user == null) {
-            return Collections.emptyList();
+            return null;
         }
-        return em.createNamedQuery("ApiToken.findByUser", ApiToken.class)
-                .setParameter("user", user)
-                .getResultList();
-    }
-
-    public void deleteApiTokensByIds(List<Long> ids) {
-        em.createNamedQuery("ApiToken.deleteByIds")
-                .setParameter("ids", ids)
-                .executeUpdate();
+        return this.tokenRepository.findByUser(user).orElse(null);
     }
 
     // A method for generating a new API token;
@@ -471,22 +442,22 @@ public class AuthenticationServiceBean {
     }
 
     public AuthenticatedUser lookupUser(String apiToken) {
-        ApiToken tkn = findApiToken(apiToken);
-        if (tkn == null) {
+        ApiToken token = this.tokenRepository.findByToken(apiToken).orElse(null);
+        if (token == null) {
             return null;
         }
 
-        if (tkn.isDisabled()) {
+        if (token.isDisabled()) {
             return null;
         }
-        if (tkn.getExpireTime() != null) {
-            if (tkn.getExpireTime().before(Timestamp.valueOf(LocalDateTime.now(clock)))) {
-                em.remove(tkn);
+        if (token.getExpireTime() != null) {
+            if (token.getExpireTime().before(Timestamp.valueOf(LocalDateTime.now(clock)))) {
+            	this.tokenRepository.delete(token);
                 return null;
             }
         }
 
-        return tkn.getAuthenticatedUser();
+        return token.getAuthenticatedUser();
     }
 
     public AuthenticatedUser save(AuthenticatedUser user) {
