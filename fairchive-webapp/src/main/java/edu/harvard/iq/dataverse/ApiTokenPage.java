@@ -33,7 +33,7 @@ public class ApiTokenPage implements java.io.Serializable {
 		this.authenticationService = authenticationService;
 	}
 
-	public boolean checkForApiToken() {
+	public boolean hasApiToken() {
 		
         return this.session.isUserLoggedIn() &&
              this.authenticationService.findApiTokenByUser(

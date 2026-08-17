@@ -743,7 +743,7 @@
                                           data-lang="html">${ApiTokenPage.apiToken}</code>
                                  </pre>
                                  <span class="btn"
-                                      jsf:rendered="#{ApiTokenPage.checkForApiToken()}" 
+                                      jsf:rendered="#{ApiTokenPage.hasApiToken()}" 
                                       style="margin-top:-10px;"
                                       aria-label="#{bundle['apitoken.copy']}"
                                       tabindex="0"
@@ -767,7 +767,7 @@
                                 <button class="btn btn-default"
                                         jsf:action="#{ApiTokenPage.generate()}"
                                         jsf:rendered="#{!systemConfig.readonlyMode}">
-                                    #{ApiTokenPage.checkForApiToken() ? bundle['apitoken.regenerateBtn'] : bundle['apitoken.generateBtn']}                                </button>
+                                    #{ApiTokenPage.hasApiToken() ? bundle['apitoken.regenerateBtn'] : bundle['apitoken.generateBtn']}                                </button>
                             </div>
                         </p:tab>
                         <ui:remove>
