@@ -27,6 +27,7 @@ public class SolrSearchResult {
     private SearchObjectType type;
     private String htmlUrl;
     private String persistentUrl;
+    private String persistentId;
     private String downloadUrl;
     private String apiUrl;
     /**
@@ -196,7 +197,11 @@ public class SolrSearchResult {
         return persistentUrl;
     }
 
-    public String getDownloadUrl() {
+    public String getPersistentId() {
+		return persistentId;
+	}
+
+	public String getDownloadUrl() {
         return downloadUrl;
     }
 
@@ -378,7 +383,11 @@ public class SolrSearchResult {
         this.persistentUrl = persistentUrl;
     }
 
-    public void setDownloadUrl(String downloadUrl) {
+    public void setPersistentId(String persistentId) {
+		this.persistentId = persistentId;
+	}
+
+	public void setDownloadUrl(String downloadUrl) {
         this.downloadUrl = downloadUrl;
     }
 

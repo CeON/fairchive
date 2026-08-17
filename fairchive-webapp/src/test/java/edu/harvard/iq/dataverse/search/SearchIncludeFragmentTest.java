@@ -156,6 +156,8 @@ public class SearchIncludeFragmentTest {
         intendedResult.setEntityId(1L);
         intendedResult.setName("name1");
         intendedResult.setTitle("title1");
+        intendedResult.setPersistentId("id,1");
+        
         
         when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
                 any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
@@ -177,8 +179,8 @@ public class SearchIncludeFragmentTest {
 
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(2);
-        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Block1->def,Block1->compound->ghi");
-        assertThat(lines.get(1)).isEqualTo("id1,name1,title1,one,two");
+        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Persistent ID,Block1->def,Block1->compound->ghi");
+        assertThat(lines.get(1)).isEqualTo("id1,name1,title1,\"id,1\",one,two");
     }
 
     @Test
@@ -198,11 +200,11 @@ public class SearchIncludeFragmentTest {
         assertThat(file.getContentEncoding()).isEqualTo("utf-8");
         assertThat(file.getContentType()).isEqualTo("text/csv");
         assertThat(file.getName()).isEqualTo("searchResults.csv");
-        assertThat(file.getContentLength()).isEqualTo(52);
+        assertThat(file.getContentLength()).isEqualTo(66);
 
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(1);
-        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Block1->def,Block1->compound->ghi");
+        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Persistent ID,Block1->def,Block1->compound->ghi");
     }
 
     @Test

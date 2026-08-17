@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.search;
 
 import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,6 +51,7 @@ public final class CSVResultPrinter {
                     printer.print(result.getId());
                     printer.print(result.getName());
                     printer.print(result.getTitle());
+                    printer.print(defaultString(result.getPersistentId()));
                     if (result.isDataset()) {
                         printMetadata(printer, result);
                     }
@@ -71,6 +73,7 @@ public final class CSVResultPrinter {
         printer.print("Id");
         printer.print("Name");
         printer.print("Title");
+        printer.print("Persistent ID");
         for (final DatasetFieldType type : this.exportedFields) {
             if (type.getParentDatasetFieldType() != null) {
                 printer.print(type.getMetadataBlock().getName() + "->"
