@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 @SuppressWarnings("serial")
 @ViewScoped
 @Named("DatasetWidgetsPage")
@@ -115,12 +117,16 @@ public class DatasetWidgetsPage implements java.io.Serializable {
         this.datasetThumbnail = datasetThumbnail;
     }
 
-    public DataFile getDatasetFileThumbnailToSwitchTo() {
-        return datasetFileThumbnailToSwitchTo;
+    public String getDatasetFileThumbnailToSwitchTo() {
+        return datasetFileThumbnailToSwitchTo != null ? datasetFileThumbnailToSwitchTo.getId().toString() : EMPTY;
     }
 
-    public void setDatasetFileThumbnailToSwitchTo(DataFile datasetFileThumbnailToSwitchTo) {
-        this.datasetFileThumbnailToSwitchTo = datasetFileThumbnailToSwitchTo;
+    public void setDatasetFileThumbnailToSwitchTo(String datasetFileThumbnailToSwitchTo) {
+    	datasetThumbnails.forEach(datasetThumbnail -> {
+    		if (datasetThumbnail.getDataFile().getId().toString().equals(datasetFileThumbnailToSwitchTo)) {
+    			this.datasetFileThumbnailToSwitchTo = datasetThumbnail.getDataFile();
+    		}
+    	});
     }
 
     public void setDataFileAsThumbnail() {
