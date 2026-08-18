@@ -40,12 +40,11 @@ public class NewBannerPage implements Serializable {
     private final SettingsWrapper settingsWrapper;
 
     private Long dataverseId;
-
     private Dataverse dataverse;
     private final DataverseBanner banner = new DataverseBanner();
 	private Long bannerTemplateId;
 
-	@Inject
+    @Inject
     public NewBannerPage(final PermissionsWrapper permissionsWrapper,
             final DataverseRepository dataverseRepo,
             final BannerLimits bannerLimits,
