@@ -11,6 +11,7 @@
 <h:body>
     <f:metadata>
         <f:viewParam name="dataverseId" value="#{newBannerPage.dataverseId}"/>
+        <f:viewParam name="bannerTemplateId" value="#{newBannerPage.bannerTemplateId}"/>
         <f:viewAction action="#{newBannerPage.verifyAccess()}"/>
         <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(newBannerPage.dataverse)}"/>
         <f:viewAction action="#{dataverseHeaderFragment.addBreadcrumb
