@@ -40,10 +40,12 @@ public class NewBannerPage implements Serializable {
     private final SettingsWrapper settingsWrapper;
 
     private Long dataverseId;
+
     private Dataverse dataverse;
     private final DataverseBanner banner = new DataverseBanner();
+	private Long bannerTemplateId;
 
-    @Inject
+	@Inject
     public NewBannerPage(final PermissionsWrapper permissionsWrapper,
             final DataverseRepository dataverseRepo,
             final BannerLimits bannerLimits,
@@ -95,6 +97,25 @@ public class NewBannerPage implements Serializable {
     public void setDataverseId(final Long dataverseId) {
         this.dataverseId = dataverseId;
         this.dataverse = this.dataverseRepo.findById(this.dataverseId).orElse(null);
+    }
+    
+    public Long getBannerTemplateId() {
+		return bannerTemplateId;
+	}
+
+    public void setBannerTemplateId(Long bannerTemplateId) {
+        this.bannerTemplateId = bannerTemplateId;
+    	if (bannerTemplateId != null) {
+        	bannerRepo.findById(bannerTemplateId).ifPresent(template -> {
+        		this.banner.getLocalizedBanners().forEach(localizedBanner -> {
+        			template.getBannerFor(localizedBanner.getLocale()).ifPresent(templateLocalizedBanner -> {
+        				localizedBanner.setContentType(templateLocalizedBanner.getContentType());
+        				localizedBanner.setImage(templateLocalizedBanner.getImage());
+        				localizedBanner.setImageLink(templateLocalizedBanner.getImageLink());
+        			});
+        		});
+        	});
+        }
     }
 
     public Dataverse getDataverse() {
