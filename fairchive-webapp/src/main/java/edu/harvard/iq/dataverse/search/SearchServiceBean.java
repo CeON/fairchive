@@ -401,6 +401,7 @@ public class SearchServiceBean {
         String citation = getLocalizedValueWithFallback(solrDocument, SearchFields.DATASET_CITATION);
         String citationPlainHtml = getLocalizedValueWithFallback(solrDocument, SearchFields.DATASET_CITATION_HTML);
         String persistentUrl = (String) solrDocument.getFieldValue(SearchFields.PERSISTENT_URL);
+        String persistentId = (String) solrDocument.getFieldValue(SearchFields.DATASET_PERSISTENT_ID);
         String name = (String) solrDocument.getFieldValue(SearchFields.NAME);
         String nameSort = (String) solrDocument.getFieldValue(SearchFields.NAME_SORT);
         String title = (String) solrDocument.getFirstValue(titleSolrField);
@@ -456,6 +457,7 @@ public class SearchServiceBean {
         solrSearchResult.setEntityId(entityId);
         solrSearchResult.setIdentifier(identifier);
         solrSearchResult.setPersistentUrl(persistentUrl);
+        solrSearchResult.setPersistentId(persistentId);
         solrSearchResult.setType(type);
         solrSearchResult.setScore(score);
         solrSearchResult.setNameSort(nameSort);
