@@ -1,11 +1,12 @@
 package edu.harvard.iq.dataverse.mocks;
 
+import java.time.Clock;
+import java.util.Optional;
+
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.persistence.user.ApiToken;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.qualifiers.TestBean;
-
-import java.time.Clock;
 
 /**
  * @author madunlap
@@ -32,7 +33,7 @@ public class MockAuthenticationServiceBean extends AuthenticationServiceBean {
     }
 
     @Override
-    public ApiToken findApiTokenByUser(AuthenticatedUser au) {
-        return generateApiToken(au);
+    public Optional<ApiToken> findApiTokenByUser(AuthenticatedUser au) {
+        return Optional.of(generateApiToken(au));
     }
 }

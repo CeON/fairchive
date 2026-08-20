@@ -1,16 +1,15 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.user.ApiToken;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import org.omnifaces.cdi.ViewScoped;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 
-import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.sql.Timestamp;
-import java.util.Calendar;
+
+import org.omnifaces.cdi.ViewScoped;
+
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.persistence.user.ApiToken;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 /**
  * @todo Rename this to ApiTokenFragment? The separate page is being taken out
@@ -20,61 +19,45 @@ import java.util.Calendar;
 @ViewScoped
 @Named("ApiTokenPage")
 public class ApiTokenPage implements java.io.Serializable {
-
-
+	
+    private DataverseSession session;
+    private AuthenticationServiceBean authenticationService;
+        
+    public ApiTokenPage() {}
+    
     @Inject
-    DataverseSession session;
-    @EJB
-    AuthenticationServiceBean authSvc;
+    public ApiTokenPage(final DataverseSession session, 
+    					final AuthenticationServiceBean authenticationService) {
 
-    ApiToken apiToken;
+		this.session = session;
+		this.authenticationService = authenticationService;
+	}
 
-    public boolean checkForApiToken() {
-        if (session.isUserLoggedIn()) {
-            AuthenticatedUser au = (AuthenticatedUser) session.getUser();
-            apiToken = authSvc.findApiTokenByUser(au);
-            return apiToken != null;
-        }
-        return false;
+	public boolean hasApiToken() {
+		
+        return this.session.isUserLoggedIn() &&
+             this.authenticationService.findApiTokenByUser(
+            		 this.session.getAuthenticatedUser()) != null;
     }
 
     public String getApiToken() {
 
-        if (session.isUserLoggedIn()) {
-            AuthenticatedUser au = (AuthenticatedUser) session.getUser();
-            apiToken = authSvc.findApiTokenByUser(au);
-            if (apiToken != null) {
-                return apiToken.getTokenString();
-            } else {
-                return BundleUtil.getStringFromBundle("apitoken.notFound", au.getName());
-            }
+        if (this.session.isUserLoggedIn()) {
+            final AuthenticatedUser user = this.session.getAuthenticatedUser();
+            return this.authenticationService.findApiTokenByUser(user)
+            		.map(ApiToken::getTokenString)
+            		.orElse(getStringFromBundle("apitoken.notFound", user.getName()));
         } else {
             // It should be impossible to get here from the UI.
-            return "Only authenticated users can have API tokens.";
+            return getStringFromBundle("apitoken.noUser");
         }
-
     }
 
     public void generate() {
-        if (session.isUserLoggedIn()) {
-            AuthenticatedUser au = (AuthenticatedUser) session.getUser();
-
-            apiToken = authSvc.findApiTokenByUser(au);
-            if (apiToken != null) {
-                authSvc.removeApiToken(au);
-            }
-            /**
-             * @todo DRY! Stolen from BuiltinUsers API page
-             */
-            ApiToken newToken = new ApiToken();
-            newToken.setTokenString(java.util.UUID.randomUUID().toString());
-            newToken.setAuthenticatedUser(au);
-            Calendar c = Calendar.getInstance();
-            newToken.setCreateTime(new Timestamp(c.getTimeInMillis()));
-            c.roll(Calendar.YEAR, 1);
-            newToken.setExpireTime(new Timestamp(c.getTimeInMillis()));
-            authSvc.save(newToken);
-
+    	
+        if (this.session.isUserLoggedIn()) {
+        	this.authenticationService.regenerateApiTokenForUser(
+        			this.session.getAuthenticatedUser());
         }
     }
 }

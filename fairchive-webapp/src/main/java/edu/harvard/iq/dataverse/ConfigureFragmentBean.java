@@ -69,7 +69,7 @@ public class ConfigureFragmentBean implements java.io.Serializable {
         ApiToken apiToken = new ApiToken();
         User user = session.getUser();
         if (user instanceof AuthenticatedUser) {
-            apiToken = authService.findApiTokenByUser((AuthenticatedUser) user);
+            apiToken = authService.findApiTokenByUser((AuthenticatedUser) user).orElse(null);
         }
 
         return externalToolHandler.buildToolUrlWithQueryParams(tool, dataFile, apiToken, session.getLocaleCode());

@@ -25,7 +25,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionUser;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.SavedSearch;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
-import edu.harvard.iq.dataverse.persistence.user.ApiToken;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserLookup;
 import edu.harvard.iq.dataverse.persistence.user.BuiltinUser;
@@ -238,10 +237,8 @@ public class MergeInAccountService {
     }
 
     private void removeApiToken(AuthenticatedUser consumedAU) {
-        ApiToken toRemove = authenticationService.findApiTokenByUser(consumedAU);
-        if(null != toRemove) {
-            genericDao.remove(toRemove);
-        }
+        this.authenticationService.findApiTokenByUser(consumedAU)
+        	.ifPresent(this.genericDao::remove);
     }
 
     private void removeUser(AuthenticatedUser consumedAU) {

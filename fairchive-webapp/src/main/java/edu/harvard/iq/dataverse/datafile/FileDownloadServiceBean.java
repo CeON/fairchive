@@ -92,7 +92,7 @@ public class FileDownloadServiceBean implements java.io.Serializable {
         User user = session.getUser();
         if (user instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) user;
-            apiToken = authService.findApiTokenByUser(authenticatedUser);
+            apiToken = authService.findApiTokenByUser(authenticatedUser).orElse(null);
         }
         //For tools to get the dataset and datasetversion ids, we need a full DataFile object (not a findCheapAndEasy() copy)
         if (dataFile.getFileMetadata() == null) {

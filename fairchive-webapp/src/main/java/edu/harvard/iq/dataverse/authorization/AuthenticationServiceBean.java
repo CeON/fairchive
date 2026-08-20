@@ -1,5 +1,36 @@
 package edu.harvard.iq.dataverse.authorization;
 
+import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Singleton;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+
 import edu.harvard.iq.dataverse.UserServiceBean;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.authorization.exceptions.AuthenticationFailedException;
@@ -21,6 +52,7 @@ import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.passwordreset.PasswordResetServiceBean;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.user.ApiToken;
+import edu.harvard.iq.dataverse.persistence.user.ApiTokenRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserDisplayInfo;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserLookup;
@@ -33,36 +65,6 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.PasswordValidatorServiceBean;
 import io.vavr.control.Option;
-
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.ejb.Singleton;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-import java.sql.Timestamp;
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * The AuthenticationManager is responsible for registering and listing
@@ -112,6 +114,9 @@ public class AuthenticationServiceBean {
 
     @Inject
     private SamlConfigurationService samlConfigurationService;
+    
+    @Inject
+    private ApiTokenRepository tokenRepository;
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
@@ -258,10 +263,7 @@ public class AuthenticationServiceBean {
 
     public void removeApiToken(AuthenticatedUser user) {
         if (user != null) {
-            ApiToken apiToken = findApiTokenByUser(user);
-            if (apiToken != null) {
-                em.remove(apiToken);
-            }
+            findApiTokenByUser(user).ifPresent(this.tokenRepository::delete);
         }
     }
 
@@ -292,10 +294,7 @@ public class AuthenticationServiceBean {
         AuthenticatedUser user = em.find(AuthenticatedUser.class, pk);
 
         if (user != null) {
-            ApiToken apiToken = findApiTokenByUser(user);
-            if (apiToken != null) {
-                em.remove(apiToken);
-            }
+            findApiTokenByUser(user).ifPresent(this.tokenRepository::delete);
             ConfirmEmailData confirmEmailData = confirmEmailService.findSingleConfirmEmailDataByUser(user);
             if (confirmEmailData != null) {
                 // TODO This could probably be a cascade delete instead.
@@ -394,43 +393,8 @@ public class AuthenticationServiceBean {
         return authenticationProviders.get(user.getAuthenticatedUserLookup().getAuthenticationProviderId());
     }
 
-    public ApiToken findApiToken(String token) {
-        try {
-            return em.createNamedQuery("ApiToken.findByTokenString", ApiToken.class)
-                    .setParameter("tokenString", token)
-                    .getSingleResult();
-        } catch (NoResultException ex) {
-            return null;
-        }
-    }
-
-    public ApiToken findApiTokenByUser(AuthenticatedUser au) {
-        if (au == null) {
-            return null;
-        }
-        TypedQuery<ApiToken> typedQuery = em.createNamedQuery("ApiToken.findByUser", ApiToken.class);
-        typedQuery.setParameter("user", au);
-        try {
-            return typedQuery.getSingleResult();
-        } catch (NoResultException | NonUniqueResultException ex) {
-            logger.log(Level.INFO, "When looking up API token for {0} caught {1}", new Object[]{au, ex});
-            return null;
-        }
-    }
-
-    public List<ApiToken> findAllApiTokensByUser(AuthenticatedUser user) {
-        if (user == null) {
-            return Collections.emptyList();
-        }
-        return em.createNamedQuery("ApiToken.findByUser", ApiToken.class)
-                .setParameter("user", user)
-                .getResultList();
-    }
-
-    public void deleteApiTokensByIds(List<Long> ids) {
-        em.createNamedQuery("ApiToken.deleteByIds")
-                .setParameter("ids", ids)
-                .executeUpdate();
+    public Optional<ApiToken> findApiTokenByUser(final AuthenticatedUser user) {
+        return this.tokenRepository.findByUser(user);
     }
 
     // A method for generating a new API token;
@@ -459,24 +423,30 @@ public class AuthenticationServiceBean {
 
         return apiToken;
     }
+    
+    public void regenerateApiTokenForUser(final AuthenticatedUser user) {
+    	
+        findApiTokenByUser(user).ifPresent(this.tokenRepository::delete);
+        save(generateApiToken(user));
+    }
 
     public AuthenticatedUser lookupUser(String apiToken) {
-        ApiToken tkn = findApiToken(apiToken);
-        if (tkn == null) {
+        ApiToken token = this.tokenRepository.findByToken(apiToken).orElse(null);
+        if (token == null) {
             return null;
         }
 
-        if (tkn.isDisabled()) {
+        if (token.isDisabled()) {
             return null;
         }
-        if (tkn.getExpireTime() != null) {
-            if (tkn.getExpireTime().before(Timestamp.valueOf(LocalDateTime.now(clock)))) {
-                em.remove(tkn);
+        if (token.getExpireTime() != null) {
+            if (token.getExpireTime().before(Timestamp.valueOf(LocalDateTime.now(clock)))) {
+            	this.tokenRepository.delete(token);
                 return null;
             }
         }
 
-        return tkn.getAuthenticatedUser();
+        return token.getAuthenticatedUser();
     }
 
     public AuthenticatedUser save(AuthenticatedUser user) {
