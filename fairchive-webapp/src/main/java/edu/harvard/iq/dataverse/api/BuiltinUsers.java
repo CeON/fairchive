@@ -1,5 +1,27 @@
 package edu.harvard.iq.dataverse.api;
 
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang3.StringUtils;
+
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
 import edu.harvard.iq.dataverse.api.dto.AuthenticatedUserDTO;
@@ -15,25 +37,6 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.BuiltinUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * REST API bean for managing {@link BuiltinUser}s.
@@ -80,10 +83,10 @@ public class BuiltinUsers extends AbstractApiBean {
 
         AuthenticatedUser authUser = authSvc.lookupUser(BuiltinAuthenticationProvider.PROVIDER_ID, builtinUser.getUserName());
 
-        ApiToken token = authSvc.findApiTokenByUser(authUser);
+        final Optional<ApiToken> token = authSvc.findApiTokenByUser(authUser);
 
-        return token != null
-                ? ok(token.getTokenString())
+        return token.isPresent()
+                ? ok(token.get().getTokenString())
                 : notFound("User " + username + " does not have an API token");
     }
 

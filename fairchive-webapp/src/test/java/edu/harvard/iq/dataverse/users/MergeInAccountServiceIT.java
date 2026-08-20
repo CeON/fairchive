@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.users;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -129,7 +130,7 @@ public class MergeInAccountServiceIT extends WebappArquillianDeployment {
         assertNull(authenticationService.getAuthenticatedUser(consumed.getUserIdentifier()));
         assertNull(builtinUserService.findByUserName(consumed.getUserIdentifier()));
         assertNull(entityManager.find(AuthenticatedUserLookup.class, consumed.getAuthenticatedUserLookup().getId()));
-        assertNull(authenticationService.findApiTokenByUser(consumed));
+        assertFalse(authenticationService.findApiTokenByUser(consumed).isPresent());
         assertNull(oAuth2TokenDataService.get(consumed.getId(), "test-provider").orElse(null));
         assertNull(confirmEmailService.findSingleConfirmEmailDataByUser(consumed));
 

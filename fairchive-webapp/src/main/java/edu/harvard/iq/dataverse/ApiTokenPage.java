@@ -44,10 +44,9 @@ public class ApiTokenPage implements java.io.Serializable {
 
         if (this.session.isUserLoggedIn()) {
             final AuthenticatedUser user = this.session.getAuthenticatedUser();
-            final ApiToken token = this.authenticationService.findApiTokenByUser(user);
-            return token != null
-                ? token.getTokenString()
-                : getStringFromBundle("apitoken.notFound", user.getName());
+            return this.authenticationService.findApiTokenByUser(user)
+            		.map(ApiToken::getTokenString)
+            		.orElse(getStringFromBundle("apitoken.notFound", user.getName()));
         } else {
             // It should be impossible to get here from the UI.
             return getStringFromBundle("apitoken.noUser");
