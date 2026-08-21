@@ -46,8 +46,10 @@ public class ManagePermissionsService implements Serializable {
     }
 
     @Inject
-    public ManagePermissionsService(EjbDataverseEngine commandEngine, DataverseRequestServiceBean dvRequestService,
-                                    UserNotificationService userNotificationService, RoleAssigneeServiceBean roleAssigneeService) {
+    public ManagePermissionsService(final EjbDataverseEngine commandEngine, 
+    								final DataverseRequestServiceBean dvRequestService,
+                                    final UserNotificationService userNotificationService, 
+                                    final RoleAssigneeServiceBean roleAssigneeService) {
         this.commandEngine = commandEngine;
         this.dvRequestService = dvRequestService;
         this.userNotificationService = userNotificationService;
