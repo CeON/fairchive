@@ -51,7 +51,7 @@ public class SamlDataUpdateService {
         if (updateIssueIssue.isPresent()) {
             return Either.left(updateIssueIssue.get());
         }
-        AuthenticatedUser updatedUser = authenticationService.update(user);
+        AuthenticatedUser updatedUser = authenticationService.save(user);
         actionLog.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth, "updateUser")
                 .setInfo(user.getIdentifier()));
         return Either.right(updatedUser);

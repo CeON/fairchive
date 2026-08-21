@@ -254,11 +254,11 @@ public class AuthenticationServiceBean {
         return authenticationProviders.get(id);
     }
 
-    public AuthenticatedUser findByID(Object pk) {
-        if (pk == null) {
+    public AuthenticatedUser findByID(final Long id) {
+        if (id == null) {
             return null;
         }
-        return em.find(AuthenticatedUser.class, pk);
+        return this.userService.findById(id).orElse(null);
     }
 
     public void removeApiToken(AuthenticatedUser user) {
@@ -290,17 +290,16 @@ public class AuthenticationServiceBean {
      * Longer term, the intention is to have a "disableAuthenticatedUser"
      * method/command. See https://github.com/IQSS/dataverse/issues/2419
      */
-    public void deleteAuthenticatedUser(Object pk) {
-        AuthenticatedUser user = em.find(AuthenticatedUser.class, pk);
-
-        if (user != null) {
+    public void deleteAuthenticatedUser(final Long id) {
+        this.userService.findById(id).ifPresent(user -> {
             findApiTokenByUser(user).ifPresent(this.tokenRepository::delete);
             ConfirmEmailData confirmEmailData = confirmEmailService.findSingleConfirmEmailDataByUser(user);
             if (confirmEmailData != null) {
                 // TODO This could probably be a cascade delete instead.
                 em.remove(confirmEmailData);
             }
-            userNotificationRepository.findByUser(user.getId()).forEach(userNotificationRepository::mergeAndDelete);
+            userNotificationRepository.findByUser(user.getId()).
+            	forEach(userNotificationRepository::mergeAndDelete);
 
             AuthenticationProvider prv = lookupProvider(user);
             if (prv != null && prv.isUserDeletionAllowed()) {
@@ -310,9 +309,9 @@ public class AuthenticationServiceBean {
             actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth, "deleteUser")
                                      .setInfo(user.getUserIdentifier()));
             em.remove(user.getAuthenticatedUserLookup());
-            em.remove(user);
+            this.userService.delete(user);
 
-        }
+        });
     }
 
     public AuthenticatedUser getAuthenticatedUser(final String identifier) {
@@ -449,24 +448,16 @@ public class AuthenticationServiceBean {
         return token.getAuthenticatedUser();
     }
 
-    public AuthenticatedUser save(AuthenticatedUser user) {
-        em.persist(user);
-        em.flush();
-        return user;
+    public AuthenticatedUser save(final AuthenticatedUser user) {
+        return this.userService.save(user);
     }
 
-    public AuthenticatedUser update(AuthenticatedUser user) {
-        return em.merge(user);
+    public AuthenticatedUser update(final AuthenticatedUser user) {
+        return save(user);
     }
 
-    public ApiToken save(ApiToken aToken) {
-        if (aToken.getId() == null) {
-            em.persist(aToken);
-            return aToken;
-        } else {
-            return em.merge(aToken);
-
-        }
+    public ApiToken save(final ApiToken token) {
+        return this.tokenRepository.save(token);
     }
 
     /**
@@ -589,7 +580,7 @@ public class AuthenticationServiceBean {
         user.applyDisplayInfo(userDisplayInfo);
         actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth, "updateUser")
                                  .setInfo(user.getIdentifier()));
-        return update(user);
+        return save(user);
     }
 
     public AuthenticatedUser updateAuthenticatedUser(AuthenticatedUser user, AuthenticatedUserDisplayInfo userDisplayInfo,
