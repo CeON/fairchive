@@ -72,6 +72,12 @@ class CitationTestUtils {
         return datasetVersion;
     }
 
+    public DatasetVersion createATestDatasetVersionWithProducer(boolean affiliationPresent) throws ParseException {
+    	DatasetVersion datasetVersion = createATestDatasetVersion("Test", true);
+    	datasetVersion.getDatasetFields().add(createProducerField(affiliationPresent));
+    	return datasetVersion;
+    }
+
     public DatasetVersion createHarvestedTestDatasetVersion(String withTitle, boolean withAuthor) {
         try {
             DatasetVersion datasetVersion = createATestDatasetVersion(withTitle, withAuthor);
@@ -130,4 +136,20 @@ class CitationTestUtils {
     private DatasetField constructPrimitive(String fieldName, String value) {
         return create(fieldName, value, Collections.emptyList());
     }
+    
+    private DatasetField createProducerField(boolean withAffiliation) {
+        DatasetField producer = new DatasetField();
+        producer.setDatasetFieldType(new DatasetFieldType(DatasetFieldConstant.producer, FieldType.TEXT, false));
+        DatasetField producerName = constructPrimitive(DatasetFieldConstant.producerName, "Test Producer");
+        producerName.setDatasetFieldParent(producer);
+        producer.getDatasetFieldsChildren().add(producerName);
+        if (withAffiliation) {
+        	DatasetField producerAffiliation = constructPrimitive(DatasetFieldConstant.producerAffiliation, "Test Producer Affiliation");
+        	producerAffiliation.setDatasetFieldParent(producer);
+        	producer.getDatasetFieldsChildren().add(producerAffiliation);
+        }
+
+        return producer;
+    }
+
 }
