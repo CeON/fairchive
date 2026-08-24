@@ -41,6 +41,54 @@ class CitationDataExtractorTest {
     }
 
     @Test
+    @DisplayName("Should extract data for citation with producer name and affiliation")
+    void create_with_producer_with_affiliation() throws ParseException {
+
+        // given & when
+        CitationData citationData = dataExtractor.create(
+                utils.createATestDatasetVersionWithProducer(true), locale);
+
+        // then
+        assertThat(citationData.getAuthorsString()).isEqualTo("First Last");
+        assertThat(citationData.getFileTitle()).isNull();
+        assertThat(citationData.getPersistentId().asString()).isEqualTo("doi:10.5072/FK2/LK0D1H");
+        assertThat(citationData.getPublisher()).isEqualTo("LibraScholar");
+        assertThat(citationData.getTitle()).isEqualTo("Test");
+        assertThat(citationData.getVersion()).isEqualTo("V1");
+        assertThat(citationData.getYear()).isEqualTo("1955");
+        assertThat(citationData.getSpatialCoverages())
+                .containsExactlyInAnyOrder("Poland,Warsaw", "USA,New York,Albany,42°39′09″N 073°45′26″W");
+        assertThat(citationData.getProducers()).hasOnlyOneElementSatisfying(producer -> {
+        	   assertThat(producer.getName()).isEqualTo("Test Producer");
+        	   assertThat(producer.getAffiliation()).isEqualTo("Test Producer Affiliation");
+        });
+    }
+
+    @Test
+    @DisplayName("Should extract data for citation with producer name and empty affiliation")
+    void create_with_producer_with_no_affiliation() throws ParseException {
+
+        // given & when
+        CitationData citationData = dataExtractor.create(
+                utils.createATestDatasetVersionWithProducer(false), locale);
+
+        // then
+        assertThat(citationData.getAuthorsString()).isEqualTo("First Last");
+        assertThat(citationData.getFileTitle()).isNull();
+        assertThat(citationData.getPersistentId().asString()).isEqualTo("doi:10.5072/FK2/LK0D1H");
+        assertThat(citationData.getPublisher()).isEqualTo("LibraScholar");
+        assertThat(citationData.getTitle()).isEqualTo("Test");
+        assertThat(citationData.getVersion()).isEqualTo("V1");
+        assertThat(citationData.getYear()).isEqualTo("1955");
+        assertThat(citationData.getSpatialCoverages())
+                .containsExactlyInAnyOrder("Poland,Warsaw", "USA,New York,Albany,42°39′09″N 073°45′26″W");
+        assertThat(citationData.getProducers()).hasOnlyOneElementSatisfying(producer -> {
+        	   assertThat(producer.getName()).isEqualTo("Test Producer");
+        	   assertThat(producer.getAffiliation()).isEqualTo("");
+        });
+    }
+
+    @Test
     @DisplayName("Should extract data year for citation from harvested dataset, year from production date")
     void create_forHarvested_yearFromProductionData() throws ParseException {
 

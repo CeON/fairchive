@@ -183,7 +183,7 @@ public class CitationDataExtractor {
                     return name != null && !name.isEmptyForDisplay();
                 })
                 .map(e -> new CitationData.Producer(e.get(producerName).getValue(), 
-                		defaultString(e.get(producerAffiliation).getValue())))
+                		e.get(producerAffiliation) != null ? e.get(producerAffiliation).getValue() : EMPTY))
                 .collect(toList());
     }
 
