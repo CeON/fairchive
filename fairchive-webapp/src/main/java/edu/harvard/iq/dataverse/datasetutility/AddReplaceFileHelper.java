@@ -339,7 +339,7 @@ public class AddReplaceFileHelper {
         }
 
         msg("step_015_loadFileParams");
-        if (this.step_015_loadOptionalFileParams(optionalFileParams)) {
+        if (!this.step_015_loadOptionalFileParams(optionalFileParams)) {
             return false;
         }
 
