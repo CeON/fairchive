@@ -290,7 +290,7 @@ public class AddReplaceFileHelper {
                                                     newFileInputStream,
                                                     optionalFileParams);
 
-        if (!phase1Success) {
+        if (!phase1Success && initialFileList != null) {
             try {
                 for (DataFile dataFile:initialFileList) {
                      Path tempLocationPath = Paths.get(FileUtil.getFilesTempDirectory(),
