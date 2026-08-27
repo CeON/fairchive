@@ -84,7 +84,13 @@
                                       <div class="form-group">
                                           <p><strong>#{bundle['dataverse.permissions.Q2']}</strong></p>
                                           <p class="col-sm-offset-1 form-control-static">
-                                          #{managePermissionsPage.settingsTab.defaultContributorRole.labelWithDetails}
+                                          #{managePermissionsPage.settingsTab.defaultDatasetContributorRole.labelWithDetails}
+                                          </p>
+                                      </div>
+                                      <div class="form-group">
+                                          <p><strong>#{bundle['dataverse.permissions.Q3']}</strong></p>
+                                          <p class="col-sm-offset-1 form-control-static">
+                                          #{managePermissionsPage.settingsTab.defaultDataverseContributorRole.label}
                                           </p>
                                       </div>
                                   </div>
@@ -220,7 +226,7 @@
                                 <div class="margin-bottom text-right">
                                     <p:commandLink id="rolesAdd" 
                                                    styleClass="btn btn-default"
-                                                   rendered="#{managePermissionsPage.dvObject.instanceofDataverse and dataverseSession.user.superuser}"
+                                                   rendered="#{managePermissionsPage.displayRolesAddButton()}"
                                                    actionListener="#{managePermissionsPage.createNewRole()}"
                                                    oncomplete="primeFacesShowModal('roleForm', this);handleResizeDialog('rolesPermissionsDialog');"
                                                    update="@widgetVar(roleForm) :#{p:resolveClientId('rolesPermissionsForm:editRolePanel', view)}">
@@ -242,7 +248,7 @@
                                             <p:commandLink title="#{bundle['dataverse.permissions.roles.edit']}" 
                                                            styleClass="icon-inline-action bootstrap-button-tooltip"
                                                            ariaLabel="#{bundle['dataverse.permissions.roles.edit']} #{role.name}"
-                                                           rendered="#{!empty role.owner and managePermissionsPage.dvObject.instanceofDataverse and dataverseSession.user.superuser}"
+                                                           rendered="#{!empty role.owner and managePermissionsPage.displayRolesAddButton()}"
                                                            actionListener="#{managePermissionsPage.editRole(role.id)}"
                                                            oncomplete="primeFacesShowModal('roleForm', this);handleResizeDialog('rolesPermissionsDialog');"
                                                            update="@widgetVar(roleForm)">
@@ -252,7 +258,7 @@
                                             <p:commandLink title="#{bundle['dataverse.permissions.roles.copy']}" 
                                                            styleClass="icon-inline-action bootstrap-button-tooltip"
                                                            ariaLabel="#{bundle['dataverse.permissions.roles.copy']} #{role.name}"
-                                                           rendered="#{managePermissionsPage.dvObject.instanceofDataverse and dataverseSession.user.superuser}"
+                                                           rendered="#{managePermissionsPage.displayRolesAddButton()}"
                                                            actionListener="#{managePermissionsPage.cloneRole(role.id)}"
                                                            oncomplete="primeFacesShowModal('roleForm', this);handleResizeDialog('rolesPermissionsDialog');"
                                                            update="@widgetVar(roleForm)">
@@ -260,8 +266,8 @@
                                                 <o:skipValidators />
                                             </p:commandLink>
                                             <div>
-                                                <ui:repeat value="#{role.permissions().toArray()}" var="prm">
-                                                    <span class="label label-default">#{bundle['permission.'.concat(prm).concat('.label')]}</span>
+                                                <ui:repeat value="#{role.permissions().toArray()}" var="permission">
+                                                    <span class="label label-default">#{permission.displayName}</span>
                                                 </ui:repeat>
                                             </div>
                                         </div>

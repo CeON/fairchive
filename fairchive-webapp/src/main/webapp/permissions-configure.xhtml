@@ -30,17 +30,32 @@
 	    <fieldset class="form-group">
 	        <legend class="control-label">#{bundle['dataverse.permissions.Q2']}</legend>
 	        <p:selectOneRadio id="defaultRole" 
-	                          value="#{dialog.defaultContributorRoleIndex}" 
+	                          value="#{dialog.defaultDatasetContributorRoleIndex}" 
 	                          layout="grid" 
 	                          columns="1" 
 	                          styleClass="col-sm-offset-1 inline-labels">
 	                          
-	            <f:selectItems value="#{dialog.defaultContributorRoles}"
+	            <f:selectItems value="#{dialog.defaultDatasetContributorRoles}"
 	                           var="role"
-	                           itemValue="#{dialog.defaultContributorRoles.indexOf(role)}"
+	                           itemValue="#{dialog.defaultDatasetContributorRoles.indexOf(role)}"
 	                           itemLabel="#{role.labelWithDetails}" />              
 	        </p:selectOneRadio>
 	    </fieldset>
+	    
+	   <fieldset class="form-group">
+            <legend class="control-label">#{bundle['dataverse.permissions.Q3']}</legend>
+            <p:selectOneRadio id="defaultCollectionRole" 
+                              value="#{dialog.defaultDataverseContributorRoleIndex}" 
+                              layout="grid" 
+                              columns="1" 
+                              styleClass="col-sm-offset-1 inline-labels">
+                              
+                <f:selectItems value="#{dialog.defaultDataverseContributorRoles}"
+                               var="role"
+                               itemValue="#{dialog.defaultDataverseContributorRoles.indexOf(role)}"
+                               itemLabel="#{role.label}" />              
+            </p:selectOneRadio>
+        </fieldset>
 	    
 	    <div class="button-block">
 	        <p:commandButton id="saveButton" 

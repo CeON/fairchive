@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse.permission;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.ADMIN;
+import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.COLLECTION_CUSTODIAN;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.CURATOR;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.DEPOSITOR;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.DS_CONTRIBUTOR;
@@ -18,6 +20,7 @@ import java.util.Objects;
 import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
+import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
@@ -69,20 +72,27 @@ public final class DataverseDefaultSettingsTab {
     public final class PermissionsConfigureDialog {
     		
     	private int creatorRoleIndex;
-        private int defaultContributorRoleIndex;     
+        private int defaultDatasetContributorRoleIndex;     
+        private int defaultDataverseContributorRoleIndex;    
         
         public PermissionsConfigureDialog(final int creatorRoleIndex, 
-        		final int defaultContributorRoleIndex) {
+        		final int defaultDatasetContributorRoleIndex, 
+        		final int defaultDataverseContributorRoleIndex) {
 			this.creatorRoleIndex = creatorRoleIndex;
-			this.defaultContributorRoleIndex = defaultContributorRoleIndex;
+			this.defaultDatasetContributorRoleIndex = defaultDatasetContributorRoleIndex;
+			this.defaultDataverseContributorRoleIndex = defaultDataverseContributorRoleIndex;
 		}
 
 		public List<RoleOption> getCreatorRoles() {
         	return creatorRoles;
         }
 		
-		public List<RoleOption> getDefaultContributorRoles() {
-        	return defaultContributorRoles;
+		public List<RoleOption> getDefaultDatasetContributorRoles() {
+        	return defaultDatasetContributorRoles;
+        }
+		
+		public List<RoleOption> getDefaultDataverseContributorRoles() {
+        	return defaultDataverseContributorRoles;
         }
     	
         public int getCreatorRoleIndex() {
@@ -93,17 +103,30 @@ public final class DataverseDefaultSettingsTab {
             this.creatorRoleIndex = index;
         }
  
-		public int getDefaultContributorRoleIndex() {
-			return this.defaultContributorRoleIndex;
+		public int getDefaultDatasetContributorRoleIndex() {
+			return this.defaultDatasetContributorRoleIndex;
 		}
 
-		public void setDefaultContributorRoleIndex(final int index) {
-			this.defaultContributorRoleIndex = index;
+		public void setDefaultDatasetContributorRoleIndex(final int index) {
+			this.defaultDatasetContributorRoleIndex = index;
+		}
+		
+		public boolean displayDefaultDataverseContributorRoleSelection() {
+			return session.isSuperUserLoggedIn();
+		}
+		
+		public int getDefaultDataverseContributorRoleIndex() {
+			return this.defaultDataverseContributorRoleIndex;
+		}
+
+		public void setDefaultDataverseContributorRoleIndex(final int index) {
+			this.defaultDataverseContributorRoleIndex = index;
 		}
 		
 		public void save() {
 			saveConfiguration(creatorRoles.get(this.creatorRoleIndex),
-					defaultContributorRoles.get(this.defaultContributorRoleIndex));
+					defaultDatasetContributorRoles.get(this.defaultDatasetContributorRoleIndex),
+					defaultDataverseContributorRoles.get(this.defaultDataverseContributorRoleIndex));
 		}
     }
     //--------------------------------------------------------------------------
@@ -112,25 +135,31 @@ public final class DataverseDefaultSettingsTab {
     private final DataverseRoleServiceBean roleService;
     private final ManagePermissionsService permissionsService;
     private final RoleAssigneeServiceBean roleAssigneeService;
+    private final DataverseSession session;
     private final UIMessages ui;
     private final PermissionsConfigureDialog dialog; 
     private final Dataverse dataverse;
     private final Runnable configurationChangeListener;
     private final List<RoleOption> creatorRoles;
-    private final List<RoleOption> defaultContributorRoles = new ArrayList<>(4);
+    private final List<RoleOption> defaultDatasetContributorRoles = new ArrayList<>(4);
+    private final List<RoleOption> defaultDataverseContributorRoles;
 
     private RoleOption creatorRole;
-    private RoleOption defaultContributorRole;
+    private RoleOption defaultDatasetContributorRole;
+    private RoleOption defaultDataverseContributorRole;
     
     DataverseDefaultSettingsTab(final DataverseRoleServiceBean roleService, 
     		final ManagePermissionsService permissionsService,
     		final RoleAssigneeServiceBean roleAssigneeService,
-    		final UIMessages ui, final Dataverse dataverse, 
+    		final DataverseSession session,
+    		final UIMessages ui, 
+    		final Dataverse dataverse, 
     		final Runnable configurationChangListener) {
     	
     	this.roleService = roleService;
     	this.permissionsService = permissionsService;
     	this.roleAssigneeService = roleAssigneeService;
+    	this.session = session;
     	this.ui = ui;
 		this.dataverse = dataverse;
 		this.configurationChangeListener = configurationChangListener;
@@ -151,43 +180,60 @@ public final class DataverseDefaultSettingsTab {
 				? roleOptionByRole(this.creatorRoles, assignments.get(0).getRole())
 				: this.creatorRoles.get(0);
         
-		this.defaultContributorRoles.add(
+		this.defaultDatasetContributorRoles.add(
 				new RoleOption(this.roleService.findBuiltinRoleByAlias(EDITOR), 
 								getStringFromBundle("editor"),
 								getStringFromBundle("dataverse.permissions.Q2.answer.editor.description")));
-		this.defaultContributorRoles.add(
+		this.defaultDatasetContributorRoles.add(
 				new RoleOption(this.roleService.findBuiltinRoleByAlias(CURATOR), 
 								getStringFromBundle("curator"),
 								getStringFromBundle("dataverse.permissions.Q2.answer.curator.description")));
-		this.defaultContributorRoles.add(
+		this.defaultDatasetContributorRoles.add(
 				new RoleOption(this.roleService.findBuiltinRoleByAlias(DEPOSITOR), 
 								getStringFromBundle("depositor"),
 								getStringFromBundle("dataverse.permissions.Q2.answer.depositor.description")));
-		this.defaultContributorRoles.add(
+		this.defaultDatasetContributorRoles.add(
 				new RoleOption(null, 
 								getStringFromBundle("permission.default.contributor.role.none.name"),
 								getStringFromBundle("permission.default.contributor.role.none.description")));
-		final DataverseRole role = this.dataverse.getDefaultContributorRole();
+		final DataverseRole role = this.dataverse.getDefaultDatasetContributorRole();
 		if(isCustom(role)) {
-			this.defaultContributorRoles.add(3, 
+			this.defaultDatasetContributorRoles.add(3, 
 					new RoleOption(role,
 								escapeHtml4(role.getName()),
 								escapeHtml4(role.getDescription())));
 		}
 		
-		this.defaultContributorRole = roleOptionByRole(this.defaultContributorRoles, role);
+		this.defaultDatasetContributorRole = roleOptionByRole(this.defaultDatasetContributorRoles, role);
+		
+		this.defaultDataverseContributorRoles = asList(
+	            new RoleOption(this.roleService.findBuiltinRoleByAlias(ADMIN),
+	            				getStringFromBundle("dataverse.permissions.Q3.answer1"), ""),
+	            new RoleOption(this.roleService.findBuiltinRoleByAlias(COLLECTION_CUSTODIAN),
+	            				getStringFromBundle("dataverse.permissions.Q3.answer2"), ""));
+		
+		this.defaultDataverseContributorRole = 
+				this.dataverse.getDefaultDataverseContributorRole() != null
+					? roleOptionByRole(this.defaultDataverseContributorRoles, 
+							this.dataverse.getDefaultDataverseContributorRole())
+					: this.defaultDataverseContributorRoles.get(0);
         
         this.dialog = new PermissionsConfigureDialog( 
         	this.creatorRoles.indexOf(this.creatorRole),
-        	this.defaultContributorRoles.indexOf(this.defaultContributorRole));
+        	this.defaultDatasetContributorRoles.indexOf(this.defaultDatasetContributorRole),
+        	this.defaultDataverseContributorRoles.indexOf(this.defaultDataverseContributorRole));
 	}
 
     public RoleOption getCreatorRole() {
     	return this.creatorRole;
     }
     
-    public RoleOption getDefaultContributorRole() {
-        return this.defaultContributorRole;
+    public RoleOption getDefaultDatasetContributorRole() {
+        return this.defaultDatasetContributorRole;
+    }
+    
+    public RoleOption getDefaultDataverseContributorRole() {
+        return this.defaultDataverseContributorRole;
     }
     
     public PermissionsConfigureDialog getDialog() {
@@ -196,11 +242,14 @@ public final class DataverseDefaultSettingsTab {
     
     public void resetDialog() {
         this.dialog.setCreatorRoleIndex(this.creatorRoles.indexOf(this.creatorRole));
-        this.dialog.setDefaultContributorRoleIndex(this.defaultContributorRoles.indexOf(this.defaultContributorRole));
+        this.dialog.setDefaultDatasetContributorRoleIndex(
+        		this.defaultDatasetContributorRoles.indexOf(this.defaultDatasetContributorRole));
+        this.dialog.setDefaultDataverseContributorRoleIndex(
+        		this.defaultDataverseContributorRoles.indexOf(this.defaultDataverseContributorRole));
     }
     
     private boolean isCustom(final DataverseRole role) {
-    	return ! this.defaultContributorRoles
+    	return !this.defaultDatasetContributorRoles
     			.stream()
     			.map(RoleOption::getRole)
     			.anyMatch(r -> Objects.equals(r, role));
@@ -219,39 +268,66 @@ public final class DataverseDefaultSettingsTab {
     }
     
     private void saveConfiguration(final RoleOption selectedCreatorRole, 
-    		final RoleOption selectedDefaultContributorRole) {
+    		final RoleOption selectedDatasetContributorRole, 
+    		final RoleOption selectedDataverseContributorRole) {
     	
-        // Set role (if any) for authenticatedUsers
-        DataverseRole roleToAssign = selectedCreatorRole.getRole();
-
-        // then, check current contributor role
-        for (final RoleAssignment assignment : directRoleAssignmentsForObject()) {
-            if (assignment.getRole().isContributor()) {
-                if (assignment.getRole().equals(roleToAssign)) {
-                    roleToAssign = null; // found the role, so no need to assign
-                } else {
-                    removeRoleAssignment(assignment);
-                }
-            } 
-        }
-        // finally, assign role, if new
-        if (roleToAssign != null) {
-            assignRole(AuthenticatedUsers.get(), roleToAssign);
-        }
-
-        // set dataverse default contributor role
-        final DataverseRole role = selectedDefaultContributorRole.getRole();
-        setDefaultContributorRole(role);
-        
-		this.creatorRole = selectedCreatorRole;
-		this.defaultContributorRole = selectedDefaultContributorRole;
-
-        this.configurationChangeListener.run();
+    	try {
+	        // Set role (if any) for authenticatedUsers
+	        DataverseRole roleToAssign = selectedCreatorRole.getRole();
+	
+	        // then, check current contributor role
+	        for (final RoleAssignment assignment : directRoleAssignmentsForObject()) {
+	            if (assignment.getRole().isContributor()) {
+	                if (assignment.getRole().equals(roleToAssign)) {
+	                    roleToAssign = null; // found the role, so no need to assign
+	                } else {
+	                    removeRoleAssignment(assignment);
+	                }
+	            } 
+	        }
+	        // finally, assign role, if new
+	        if (roleToAssign != null) {
+	            assignRole(AuthenticatedUsers.get(), roleToAssign);
+	        }
+	
+	        setDefaultDatasetContributorRole(selectedDatasetContributorRole.getRole());
+	        
+	        if(this.session.isSuperUserLoggedIn()) {
+	        	setDefaultDataverseContributorRole(selectedDataverseContributorRole.getRole());
+	        	this.defaultDataverseContributorRole = selectedDataverseContributorRole;
+	        }
+	        
+			this.creatorRole = selectedCreatorRole;
+			this.defaultDatasetContributorRole = selectedDatasetContributorRole;
+	
+	        this.configurationChangeListener.run();
+    	} catch(final Exception e) {
+    		logger.warn("Permission modification failure.", e);
+    	}
     }
 
-	private void setDefaultContributorRole(final DataverseRole role) {
+	private void setDefaultDatasetContributorRole(final DataverseRole role) {
 		try {
-			this.permissionsService.setDataverseDefaultContributorRole(role, this.dataverse);
+			this.permissionsService.setDefaultDatasetContributorRole(role, this.dataverse);
+			this.ui.addFlashSuccessMessage(
+					getStringFromBundle("permission.defaultPermissionDataverseUpdated"));
+		} catch(final PermissionException e) {
+		    this.ui.addErrorMessage(
+		    		getStringFromBundle("permission.CannotAssigntDefaultPermissions"),
+		            getStringFromBundle("permission.permissionsMissing",
+		                    e.getMissingPermissions().toString()));
+		    throw e;
+		} catch(final CommandException e) {
+		    this.ui.addErrorMessage(
+		    		getStringFromBundle("permission.CannotAssigntDefaultPermissions"));
+		    logger.error("Error assigning default permissions: " + e.getMessage(), e);
+		    throw e;
+		}
+	}
+	
+	private void setDefaultDataverseContributorRole(final DataverseRole role) {
+		try {
+			this.permissionsService.setDefaultDataverseContributorRole(role, this.dataverse);
 			this.ui.addFlashSuccessMessage(
 					getStringFromBundle("permission.defaultPermissionDataverseUpdated"));
 		} catch(final PermissionException e) {
@@ -286,10 +362,12 @@ public final class DataverseDefaultSettingsTab {
                     getStringFromBundle("permission.roleNotAbleToBeAssigned"),
                     getStringFromBundle("permission.permissionsMissing",
                             e.getMissingPermissions().toString()));
+            throw e;
         } catch(final CommandException e) {
             this.ui.addErrorMessage(
             		getStringFromBundle("permission.roleNotAssignedFor", messageArgs));
             logger.error("Error assiging role: " + e.getMessage(), e);
+            throw e;
         }
     }
     
@@ -304,10 +382,12 @@ public final class DataverseDefaultSettingsTab {
     				getStringFromBundle("permission.roleNotAbleToBeRemoved"),
                     getStringFromBundle("permission.permissionsMissing",
                             e.getMissingPermissions().toString()));
+    		throw e;
     	} catch(final CommandException e) {
     		this.ui.addErrorMessage(
     				getStringFromBundle("permission.roleNotAbleToBeRemoved"));
             logger.error("Error removing role assignment: " + e.getMessage(), e);
+            throw e;
     	}
     }
     

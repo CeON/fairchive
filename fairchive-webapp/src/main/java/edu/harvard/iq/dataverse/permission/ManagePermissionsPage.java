@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseRoleServiceBean;
+import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
@@ -60,6 +61,8 @@ public class ManagePermissionsPage implements java.io.Serializable {
     private DataverseRequestServiceBean dvRequestService;
     private PermissionsWrapper permissionsWrapper;
     private ManagePermissionsService managePermissionsService;
+    private DataverseSession session;
+    
     private UIMessages ui;
     
     private DvObject dvObject;
@@ -79,6 +82,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
 			final DataverseRequestServiceBean dvRequestService, 
 			final PermissionsWrapper permissionsWrapper,
 			final ManagePermissionsService managePermissionsService, 
+			final DataverseSession session,
 			final UIMessages ui) {
 
 		this.dvObjectService = dvObjectService;
@@ -88,6 +92,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
 		this.dvRequestService = dvRequestService;
 		this.permissionsWrapper = permissionsWrapper;
 		this.managePermissionsService = managePermissionsService;
+		this.session = session;
 		this.ui = ui;
 	}
 
@@ -128,7 +133,7 @@ public class ManagePermissionsPage implements java.io.Serializable {
         
         if(this.dvObject.isInstanceofDataverse()) {
         	this.settingsTab = new DataverseDefaultSettingsTab(this.roleService, 
-        			this.managePermissionsService, this.roleAssigneeService, this.ui, 
+        			this.managePermissionsService, this.roleAssigneeService, this.session, this.ui, 
         			(Dataverse) this.dvObject, this::settingsChanged);
         	
         }
@@ -139,6 +144,10 @@ public class ManagePermissionsPage implements java.io.Serializable {
     
     public boolean displaySettingsTab() {
     	return this.settingsTab != null;
+    }
+    
+    public boolean displayRolesAddButton() {
+    	return this.dvObject.isInstanceofDataverse() && session.isSuperUserLoggedIn();
     }
     
     public DataverseDefaultSettingsTab getSettingsTab() {

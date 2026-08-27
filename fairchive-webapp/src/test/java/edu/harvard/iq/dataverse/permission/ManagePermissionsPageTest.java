@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.permission;
 
+import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.ADMIN;
+import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.COLLECTION_CUSTODIAN;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.CURATOR;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.DEPOSITOR;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.DS_CONTRIBUTOR;
@@ -7,6 +9,7 @@ import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRol
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.EDITOR;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.FULL_CONTRIBUTOR;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,10 +49,12 @@ import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.RoleAssigneeServiceBean;
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.persistence.group.AuthenticatedUsers;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRoleRepository;
@@ -73,7 +78,9 @@ public class ManagePermissionsPageTest {
 			newRole(4L, EDITOR.getAlias()),
 			newRole(5L, CURATOR.getAlias()),
 			newRole(6L, DEPOSITOR.getAlias()),
-			newRole(7L, "custom")
+			newRole(7L, "custom"),
+			newRole(8L, ADMIN.getAlias()),
+			newRole(9L, COLLECTION_CUSTODIAN.getAlias())
 			);
 
 	@Mock
@@ -140,7 +147,7 @@ public class ManagePermissionsPageTest {
 	
 		this.page = new ManagePermissionsPage(this.dvObjectService, roleService, 
 				this.roleAssigneeService, permissionService, requestService, 
-				permissionWrapper, this.permissionService, this.ui);
+				permissionWrapper, this.permissionService, this.session, this.ui);
 		
 		when(this.navigation.notAuthorized()).thenReturn("notAuthorized");
 		when(this.navigation.notFound()).thenReturn("notFound");
@@ -152,6 +159,9 @@ public class ManagePermissionsPageTest {
 		});
 		
 		when(this.roleAssigneeService.getRoleAssignee(any())).thenReturn(GuestUser.get());
+		
+		when(this.groupService.groupsFor(any(DataverseRequest.class), eq(this.dataverse))).
+			thenReturn(singleton(AuthenticatedUsers.get()));
 	}
 	
 	//--------------------------------------------------------------------------
@@ -219,14 +229,25 @@ public class ManagePermissionsPageTest {
 		
 		assertThat(this.page.displaySettingsTab()).isTrue();
 		assertThat(dialog.getCreatorRoles().get(0).getRole()).isNull();
-		assertThat(dialog.getCreatorRoles().get(1).getRole().getAlias()).isEqualTo(DV_CONTRIBUTOR.getAlias());
-		assertThat(dialog.getCreatorRoles().get(2).getRole().getAlias()).isEqualTo(DS_CONTRIBUTOR.getAlias());
-		assertThat(dialog.getCreatorRoles().get(3).getRole().getAlias()).isEqualTo(FULL_CONTRIBUTOR.getAlias());
+		assertThat(dialog.getCreatorRoles().get(1).getRole().getAlias()).
+			isEqualTo(DV_CONTRIBUTOR.getAlias());
+		assertThat(dialog.getCreatorRoles().get(2).getRole().getAlias()).
+			isEqualTo(DS_CONTRIBUTOR.getAlias());
+		assertThat(dialog.getCreatorRoles().get(3).getRole().getAlias()).
+			isEqualTo(FULL_CONTRIBUTOR.getAlias());
 		
-		assertThat(dialog.getDefaultContributorRoles().get(0).getRole().getAlias()).isEqualTo(EDITOR.getAlias());
-		assertThat(dialog.getDefaultContributorRoles().get(1).getRole().getAlias()).isEqualTo(CURATOR.getAlias());
-		assertThat(dialog.getDefaultContributorRoles().get(2).getRole().getAlias()).isEqualTo(DEPOSITOR.getAlias());
-		assertThat(dialog.getDefaultContributorRoles().get(3).getRole()).isNull();
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(0).getRole().getAlias()).
+			isEqualTo(EDITOR.getAlias());
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(1).getRole().getAlias()).
+			isEqualTo(CURATOR.getAlias());
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(2).getRole().getAlias()).
+			isEqualTo(DEPOSITOR.getAlias());
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(3).getRole()).isNull();
+		
+		assertThat(dialog.getDefaultDataverseContributorRoles().get(0).getRole().getAlias()).
+		isEqualTo(ADMIN.getAlias());
+		assertThat(dialog.getDefaultDataverseContributorRoles().get(1).getRole().getAlias()).
+		isEqualTo(COLLECTION_CUSTODIAN.getAlias());
 	}
 	
 	@Test
@@ -242,27 +263,36 @@ public class ManagePermissionsPageTest {
 				this.page.getSettingsTab().getDialog().getCreatorRoles().get(1);
 		
 		DataverseDefaultSettingsTab.RoleOption editor = 
-				this.page.getSettingsTab().getDialog().getDefaultContributorRoles().get(0);
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(0);
 		DataverseDefaultSettingsTab.RoleOption none = 
-				this.page.getSettingsTab().getDialog().getDefaultContributorRoles().get(3);
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(3);
+		
+		DataverseDefaultSettingsTab.RoleOption admin = 
+				this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoles().get(0);
+		DataverseDefaultSettingsTab.RoleOption custodian = 
+				this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoles().get(1);
 		
 		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(anyone);
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(none);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(none);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(admin);
 		
+		assertThat(this.page.getSettingsTab().getDialog().displayDefaultDataverseContributorRoleSelection()).isTrue();
 		assertThat(this.page.getSettingsTab().getDialog().getCreatorRoleIndex()).isEqualTo(0);
-		assertThat(this.page.getSettingsTab().getDialog().getDefaultContributorRoleIndex()).isEqualTo(3);
-		
+		assertThat(this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoleIndex()).isEqualTo(3);
+		assertThat(this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoleIndex()).isEqualTo(0);
 		
 		this.page.getSettingsTab().getDialog().setCreatorRoleIndex(1);
-		this.page.getSettingsTab().getDialog().setDefaultContributorRoleIndex(0);
+		this.page.getSettingsTab().getDialog().setDefaultDatasetContributorRoleIndex(0);
+		this.page.getSettingsTab().getDialog().setDefaultDataverseContributorRoleIndex(1);
 		
 		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(anyone);
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(none);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(none);
 		
 		this.page.getSettingsTab().getDialog().save();
 		
 		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(dvContributor);
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(custodian);
 
 		
 		verify(this.permissionService, times(1))
@@ -273,8 +303,12 @@ public class ManagePermissionsPageTest {
 			.removeRoleAssignmentWithNotification(any());
 		
 		verify(this.permissionService, times(1))
-			.setDataverseDefaultContributorRole(eq(editor.getRole()), 
+			.setDefaultDatasetContributorRole(eq(editor.getRole()), 
 					eq((Dataverse)this.page.getDvObject()));
+		
+		verify(this.permissionService, times(1))
+			.setDefaultDataverseContributorRole(eq(custodian.getRole()), 
+				eq((Dataverse)this.page.getDvObject()));
 	}
 	
 	@Test
@@ -287,7 +321,8 @@ public class ManagePermissionsPageTest {
 		when(this.roleAssignmentRepository.findByAssigneeIdentifier(anyString()))
 			.thenReturn(Collections.singletonList(assignment));
 			
-		this.dataverse.setDefaultContributorRole(getRole(EDITOR.getAlias()));
+		this.dataverse.setDefaultDatasetContributorRole(getRole(EDITOR.getAlias()));
+		this.dataverse.setDefaultDataverseContributorRole(getRole(COLLECTION_CUSTODIAN.getAlias()));
 		
 		this.page.setId(1L);
 		logIn(newUser(true));
@@ -301,27 +336,39 @@ public class ManagePermissionsPageTest {
 				this.page.getSettingsTab().getDialog().getCreatorRoles().get(3);
 		
 		DataverseDefaultSettingsTab.RoleOption editor = 
-				this.page.getSettingsTab().getDialog().getDefaultContributorRoles().get(0);
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(0);
 		DataverseDefaultSettingsTab.RoleOption none = 
-				this.page.getSettingsTab().getDialog().getDefaultContributorRoles().get(3);
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(3);
+		
+		DataverseDefaultSettingsTab.RoleOption admin = 
+				this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoles().get(0);
+		DataverseDefaultSettingsTab.RoleOption custodian = 
+				this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoles().get(1);
 		
 		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(fullContributor);
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(custodian);
 		
+		assertThat(this.page.getSettingsTab().getDialog().displayDefaultDataverseContributorRoleSelection()).isTrue();
 		assertThat(this.page.getSettingsTab().getDialog().getCreatorRoleIndex()).isEqualTo(3);
-		assertThat(this.page.getSettingsTab().getDialog().getDefaultContributorRoleIndex()).isEqualTo(0);
+		assertThat(this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoleIndex()).isEqualTo(0);
+		assertThat(this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoleIndex()).isEqualTo(1);
 		
 		
 		this.page.getSettingsTab().getDialog().setCreatorRoleIndex(0);
-		this.page.getSettingsTab().getDialog().setDefaultContributorRoleIndex(3);
+		this.page.getSettingsTab().getDialog().setDefaultDatasetContributorRoleIndex(3);
+		this.page.getSettingsTab().getDialog().setDefaultDataverseContributorRoleIndex(0);
+		
 		
 		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(fullContributor);
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(custodian);
 		
 		this.page.getSettingsTab().getDialog().save();
 		
 		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(anyone);
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(none);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(none);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(admin);
 
 		
 		verify(this.permissionService, times(0)).
@@ -331,14 +378,18 @@ public class ManagePermissionsPageTest {
 				argThat(a -> a.getRole().equals(getRole(FULL_CONTRIBUTOR.getAlias()))));
 		
 		verify(this.permissionService, times(1)).
-			setDataverseDefaultContributorRole(eq(null), 
+			setDefaultDatasetContributorRole(eq(null), 
+					eq((Dataverse)this.page.getDvObject()));
+		
+		verify(this.permissionService, times(1))
+			.setDefaultDataverseContributorRole(eq(admin.getRole()), 
 					eq((Dataverse)this.page.getDvObject()));
 	}
 	
 	@Test
 	public void settingsTab_properlyHandlesCustomPresetRole_AndUpdatesIt() {
 			
-		this.dataverse.setDefaultContributorRole(getRole("custom"));
+		this.dataverse.setDefaultDatasetContributorRole(getRole("custom"));
 		
 		this.page.setId(1L);
 		logIn(newUser(true));
@@ -348,31 +399,35 @@ public class ManagePermissionsPageTest {
 		
 		DataverseDefaultSettingsTab.PermissionsConfigureDialog dialog = this.page.getSettingsTab().getDialog();
 		
-		assertThat(dialog.getDefaultContributorRoles().get(0).getRole().getAlias()).isEqualTo(EDITOR.getAlias());
-		assertThat(dialog.getDefaultContributorRoles().get(1).getRole().getAlias()).isEqualTo(CURATOR.getAlias());
-		assertThat(dialog.getDefaultContributorRoles().get(2).getRole().getAlias()).isEqualTo(DEPOSITOR.getAlias());
-		assertThat(dialog.getDefaultContributorRoles().get(3).getRole().getAlias()).isEqualTo("custom");
-		assertThat(dialog.getDefaultContributorRoles().get(4).getRole()).isNull();
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(0).getRole().getAlias()).
+			isEqualTo(EDITOR.getAlias());
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(1).getRole().getAlias()).
+			isEqualTo(CURATOR.getAlias());
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(2).getRole().getAlias()).
+			isEqualTo(DEPOSITOR.getAlias());
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(3).getRole().getAlias()).
+			isEqualTo("custom");
+		assertThat(dialog.getDefaultDatasetContributorRoles().get(4).getRole()).isNull();
 		
 		DataverseDefaultSettingsTab.RoleOption custom = 
-				this.page.getSettingsTab().getDialog().getDefaultContributorRoles().get(3);
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(3);
 		DataverseDefaultSettingsTab.RoleOption none = 
-				this.page.getSettingsTab().getDialog().getDefaultContributorRoles().get(4);
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(4);
 		
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(custom);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(custom);
 		
-		assertThat(dialog.getDefaultContributorRoleIndex()).isEqualTo(3);
+		assertThat(dialog.getDefaultDatasetContributorRoleIndex()).isEqualTo(3);
 		
-		dialog.setDefaultContributorRoleIndex(4);
+		dialog.setDefaultDatasetContributorRoleIndex(4);
 		
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(custom);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(custom);
 		
 		dialog.save();
 		
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(none);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(none);
 		
 		verify(this.permissionService, times(1)).
-			setDataverseDefaultContributorRole(eq(null), 
+			setDefaultDatasetContributorRole(eq(null), 
 					eq((Dataverse)this.page.getDvObject()));
 	}
 	
@@ -386,7 +441,7 @@ public class ManagePermissionsPageTest {
 		when(this.roleAssignmentRepository.findByAssigneeIdentifier(anyString()))
 			.thenReturn(Collections.singletonList(assignment));
 			
-		this.dataverse.setDefaultContributorRole(getRole(EDITOR.getAlias()));
+		this.dataverse.setDefaultDatasetContributorRole(getRole(EDITOR.getAlias()));
 		
 		this.page.setId(1L);
 		logIn(newUser(true));
@@ -398,29 +453,108 @@ public class ManagePermissionsPageTest {
 				this.page.getSettingsTab().getDialog().getCreatorRoles().get(3);
 		
 		DataverseDefaultSettingsTab.RoleOption editor = 
-				this.page.getSettingsTab().getDialog().getDefaultContributorRoles().get(0);
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(0);
+		
+		DataverseDefaultSettingsTab.RoleOption admin = 
+				this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoles().get(0);
 		
 		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(fullContributor);
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(admin);
 		
 		assertThat(this.page.getSettingsTab().getDialog().getCreatorRoleIndex()).isEqualTo(3);
-		assertThat(this.page.getSettingsTab().getDialog().getDefaultContributorRoleIndex()).isEqualTo(0);
+		assertThat(this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoleIndex()).isEqualTo(0);
+		assertThat(this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoleIndex()).isEqualTo(0);
 		
 		// don't change anything
 		
 		this.page.getSettingsTab().getDialog().save();
 		
 		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(fullContributor);
-		assertThat(this.page.getSettingsTab().getDefaultContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(admin);
 
 		
 		verify(this.permissionService, times(0)).
 			assignRoleWithNotification(any(), any(), any());
 		verify(this.permissionService, times(0)).
 			removeRoleAssignmentWithNotification(any());
+	}
+	
+	@Test
+	public void settingsTab_doesNotUpdate_defaultDataverseContributorLole_ifSuperuserInNotLoggedIn() {
+	
+		final RoleAssignment assignment = new RoleAssignment();
+		assignment.setRole(getRole(FULL_CONTRIBUTOR.getAlias()));
+		assignment.getRole().addPermission(Permission.ManageDataversePermissions);
+		assignment.setDefinitionPoint(this.dataverse);
+		
+		when(this.roleAssignmentRepository.findByAssigneeIdentifier(anyString())).
+			thenReturn(singletonList(assignment));
+		
+		when(this.roleAssignmentRepository.findByAssigneeIdentifiersAndDefinitionPointIds(anyList(), anyList())).
+			thenReturn(singletonList(assignment));
+			
+		this.dataverse.setDefaultDatasetContributorRole(getRole(EDITOR.getAlias()));
+		this.dataverse.setDefaultDataverseContributorRole(getRole(COLLECTION_CUSTODIAN.getAlias()));
+		
+		this.page.setId(1L);
+		logIn(newUser(false)); // regular user
+		this.page.init();
+		
+		assertThat(this.page.displaySettingsTab()).isTrue();
+		
+		DataverseDefaultSettingsTab.RoleOption anyone = 
+				this.page.getSettingsTab().getDialog().getCreatorRoles().get(0);
+		DataverseDefaultSettingsTab.RoleOption fullContributor = 
+				this.page.getSettingsTab().getDialog().getCreatorRoles().get(3);
+		
+		DataverseDefaultSettingsTab.RoleOption editor = 
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(0);
+		DataverseDefaultSettingsTab.RoleOption none = 
+				this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoles().get(3);
+		
+		DataverseDefaultSettingsTab.RoleOption custodian = 
+				this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoles().get(1);
+		
+		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(fullContributor);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(custodian);
+		
+		assertThat(this.page.getSettingsTab().getDialog().displayDefaultDataverseContributorRoleSelection()).isFalse();
+		assertThat(this.page.getSettingsTab().getDialog().getCreatorRoleIndex()).isEqualTo(3);
+		assertThat(this.page.getSettingsTab().getDialog().getDefaultDatasetContributorRoleIndex()).isEqualTo(0);
+		assertThat(this.page.getSettingsTab().getDialog().getDefaultDataverseContributorRoleIndex()).isEqualTo(1);
+		
+		
+		this.page.getSettingsTab().getDialog().setCreatorRoleIndex(0);
+		this.page.getSettingsTab().getDialog().setDefaultDatasetContributorRoleIndex(3);
+		this.page.getSettingsTab().getDialog().setDefaultDataverseContributorRoleIndex(0);
+		
+		
+		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(fullContributor);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(editor);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(custodian);
+		
+		this.page.getSettingsTab().getDialog().save();
+		
+		assertThat(this.page.getSettingsTab().getCreatorRole()).isEqualTo(anyone);
+		assertThat(this.page.getSettingsTab().getDefaultDatasetContributorRole()).isEqualTo(none);
+		assertThat(this.page.getSettingsTab().getDefaultDataverseContributorRole()).isEqualTo(custodian);
+
 		
 		verify(this.permissionService, times(0)).
-			setDataverseDefaultContributorRole(any(), any());
+			assignRoleWithNotification(any(), any(), any());
+		verify(this.permissionService, times(1)).
+			removeRoleAssignmentWithNotification(
+				argThat(a -> a.getRole().equals(getRole(FULL_CONTRIBUTOR.getAlias()))));
+		
+		verify(this.permissionService, times(1)).
+			setDefaultDatasetContributorRole(eq(null), 
+					eq((Dataverse)this.page.getDvObject()));
+		
+		verify(this.permissionService, times(0))
+			.setDefaultDataverseContributorRole(any(), any());
 	}
 	
 	//--------------------------------------------------------------------------
@@ -447,7 +581,7 @@ public class ManagePermissionsPageTest {
 		return role;
 	}
 	
-	private static DataverseRole getRole(final String alias) {
+	private static DataverseRole getRole(final String alias) {	
 		return roles.stream()
 			.filter(role -> role.getAlias().equals(alias))
 			.findFirst()
