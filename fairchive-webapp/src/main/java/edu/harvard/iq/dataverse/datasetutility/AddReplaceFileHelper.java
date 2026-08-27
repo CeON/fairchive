@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.ocpsoft.common.util.Strings;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -180,6 +181,7 @@ public class AddReplaceFileHelper {
         // Initiate instance vars
         this.dataset = null;
         this.dvRequest = dvRequest;
+        this.initialFileList = Lists.newArrayList();
 
     }
 
