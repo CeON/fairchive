@@ -1,0 +1,1 @@
+ALTER TABLE datasetfieldtype ALTER COLUMN visiblethroughanonymizedurl SET DEFAULT false;
