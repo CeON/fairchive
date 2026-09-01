@@ -26,8 +26,6 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -49,22 +47,13 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookResponse;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
-/**
- * @author gdurand
- */
-@NamedQueries({
-        @NamedQuery(name = "DataFile.removeFromDatasetVersion",
-                query = "DELETE FROM FileMetadata f WHERE f.datasetVersion.id=:versionId and f.dataFile.id=:fileId"),
-        @NamedQuery(name = "DataFile.findDataFileByIdProtocolAuth",
-                query = "SELECT s FROM DataFile s WHERE s.identifier=:identifier AND s.protocol=:protocol AND s.authority=:authority")
-})
 @NamedNativeQueries({
-        @NamedNativeQuery(name = "Datafile.findDataForSolrResults2", query =
-                DataFile.FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE + "WHERE t0.ID IN (?, ?)"),
-        @NamedNativeQuery(name = "Datafile.findDataForSolrResults6", query =
-                DataFile.FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE + "WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"),
-        @NamedNativeQuery(name = "Datafile.findDataForSolrResults10", query =
-                DataFile.FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE + "WHERE t0.ID IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    @NamedNativeQuery(name = "Datafile.findDataForSolrResults2", query =
+            DataFile.FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE + "WHERE t0.ID IN (?, ?)"),
+    @NamedNativeQuery(name = "Datafile.findDataForSolrResults6", query =
+            DataFile.FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE + "WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"),
+    @NamedNativeQuery(name = "Datafile.findDataForSolrResults10", query =
+            DataFile.FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE + "WHERE t0.ID IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 })
 @Entity
 @Table(indexes = {@Index(columnList = "ingeststatus"),
@@ -81,7 +70,7 @@ public class DataFile extends DvObject implements Comparable<DataFile> {
     public static final char INGEST_STATUS_ERROR = 'D';
 
     public static final Long ROOT_DATAFILE_ID_DEFAULT = -1L;
-
+    
     static final String FIND_DATA_FOR_SOLR_RESULTS_QUERY_BASE =
             "SELECT t0.ID, t0.CREATEDATE, " +
             "t0.PUBLICATIONDATE, t0.PREVIEWIMAGEAVAILABLE, t0.STORAGEIDENTIFIER, t0.AUTHORITY, t0.PROTOCOL, t0.IDENTIFIER, " +

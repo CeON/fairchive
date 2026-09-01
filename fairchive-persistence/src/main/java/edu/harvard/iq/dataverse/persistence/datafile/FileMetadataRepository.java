@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +23,25 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
      * @param pageNumber page number that starts with 0 (important for calculation).
      * @return List of fileMetadata
      */
-    public List<FileMetadata> findFileMetadataByDatasetVersionId(final long versionId, 
-    		final int pageNumber, final int maxResults) {
+    public List<FileMetadata> findFileMetadataByDatasetVersionId(
+    		final long versionId, final int pageNumber, final int maxResults) {
         return createQuery(
         		 	"SELECT f FROM FileMetadata f JOIN f.datasetVersion v " +
         		 	"WHERE v.id = :dsvId ORDER BY f.displayOrder")
                  .setParameter("dsvId", versionId)
                  .setFirstResult(pageNumber * maxResults)
+                 .setMaxResults(maxResults)
+                 .getResultList();
+    }
+    
+    public List<FileMetadata> findFileMetadataByDatasetVersionId(
+    		final Long versionId, final int maxResults, 
+    		final String sortField, final String sortOrder) {
+        return createQuery(
+        		"select o from FileMetadata o " + 
+        		"where o.datasetVersion.id = :id order by o." + sortField + 
+        		' ' + sortOrder)
+                 .setParameter("id", versionId)
                  .setMaxResults(maxResults)
                  .getResultList();
     }
@@ -96,4 +110,25 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
 				.stream()
 				.findFirst();
 	}
+	
+    @SuppressWarnings("unchecked")
+    public List<Integer> findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
+    		final Long versionId, final String searchTerm, 
+    		final String sortField, final String sortOrder) {
+    	
+    	final StringBuilder query = new StringBuilder(150);
+    	query.append("select o.id from FileMetadata o where o.datasetVersion_id = ").
+    		append(versionId); 
+        if (isNotBlank(searchTerm)){
+        	final String term = searchTerm.toLowerCase();
+        	query.append(" and  (lower(o.label) like '%").
+        			append(term).
+                    append("%' or lower(o.description) like '%").
+                    append(term).append("%')");
+        }
+        query.append(" order by o.").append(sortField).append(' ').append(sortOrder);
+
+        return this.em.createNativeQuery(query.toString())
+                .getResultList();
+    }
 }
