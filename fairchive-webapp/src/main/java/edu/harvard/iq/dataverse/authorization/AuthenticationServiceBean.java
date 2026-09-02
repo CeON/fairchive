@@ -54,6 +54,7 @@ import edu.harvard.iq.dataverse.authorization.providers.oauth2.OAuth2Authenticat
 import edu.harvard.iq.dataverse.authorization.providers.oauth2.OIDCAuthenticationProviderFactory;
 import edu.harvard.iq.dataverse.authorization.providers.saml.SamlAuthenticationProviderFactory;
 import edu.harvard.iq.dataverse.authorization.providers.saml.SamlConfigurationService;
+import edu.harvard.iq.dataverse.authorization.providers.shib.ShibAuthenticationProvider;
 import edu.harvard.iq.dataverse.authorization.providers.shib.ShibAuthenticationProviderFactory;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.passwordreset.PasswordResetServiceBean;
@@ -585,7 +586,7 @@ public class AuthenticationServiceBean {
         em.persist(auusLookup);
         authenticatedUser.setAuthenticatedUserLookup(auusLookup);
 
-        if (BuiltinAuthenticationProvider.PROVIDER_ID.equals(auusLookup.getAuthenticationProviderId())) {
+        if (ShibAuthenticationProvider.PROVIDER_ID.equals(auusLookup.getAuthenticationProviderId())) {
             Timestamp emailConfirmedNow = Timestamp.valueOf(LocalDateTime.now(clock));
             // Email addresses for Shib users are confirmed by the Identity Provider.
             authenticatedUser.setEmailConfirmed(emailConfirmedNow);
