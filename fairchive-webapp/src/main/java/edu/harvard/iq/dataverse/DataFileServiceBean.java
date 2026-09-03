@@ -112,12 +112,11 @@ public class DataFileServiceBean implements Serializable {
         		sort.getSortField(), sort.getSortOrder().toString());
     }
 
-    public List<Integer> findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
-    		final Long versionId, final String searchTerm,
-    		final FileSortFieldAndOrder sort) {
+    public List<Long> findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
+    		final Long versionId, final String searchTerm) {
     	
     	return this.fileMetadataRepo.findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
-    			versionId, searchTerm, sort.getSortField(), sort.getSortOrder().toString());
+    			versionId, searchTerm);
     }
 
     public Optional<FileMetadata> findFileMetadataByDatasetVersionIdAndDataFileId(

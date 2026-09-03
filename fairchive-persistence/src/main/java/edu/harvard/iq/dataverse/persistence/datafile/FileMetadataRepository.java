@@ -111,24 +111,18 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
 				.findFirst();
 	}
 	
-    @SuppressWarnings("unchecked")
-    public List<Integer> findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
-    		final Long versionId, final String searchTerm, 
-    		final String sortField, final String sortOrder) {
-    	
-    	final StringBuilder query = new StringBuilder(150);
-    	query.append("select o.id from FileMetadata o where o.datasetVersion_id = ").
-    		append(versionId); 
-        if (isNotBlank(searchTerm)){
-        	final String term = searchTerm.toLowerCase();
-        	query.append(" and  (lower(o.label) like '%").
-        			append(term).
-                    append("%' or lower(o.description) like '%").
-                    append(term).append("%')");
-        }
-        query.append(" order by o.").append(sortField).append(' ').append(sortOrder);
-
-        return this.em.createNativeQuery(query.toString())
-                .getResultList();
+    public List<Long> findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
+    		final Long versionId, final String searchTerm) {
+    	if (isNotBlank(searchTerm)){	
+	        return this.em.createQuery(
+	        		"select o.id from FileMetadata o " +
+	        		"where o.datasetVersion_id = :id and  (lower(o.label) like :term " +
+	        				"or lower(o.description) like :term", Long.class)
+	        		.setParameter("id", versionId)
+	        		.setParameter("term", "%" + searchTerm.toLowerCase() + "%")
+	                .getResultList();
+    	} else {
+    		return findFileMetadataIdsByDatasetVersionId(versionId);
+    	}
     }
 }
