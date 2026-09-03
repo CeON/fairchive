@@ -1,9 +1,17 @@
 package edu.harvard.iq.dataverse;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +19,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -88,16 +95,20 @@ public class SolrSearchResultsService {
         MID(6, "6"),
         MIN(2, "2");
 
-        private int value;
-        private String querySuffix;
+        private final int value;
+        private final String querySuffix;
 
-        Size(int value, String querySuffix) {
+        Size(final int value, final String querySuffix) {
             this.value = value;
             this.querySuffix = querySuffix;
         }
 
-        public int value() { return value; }
-        public String querySuffix() { return querySuffix; }
+        public int value() { 
+        	return this.value; 
+        }
+        public String querySuffix() { 
+        	return this.querySuffix; 
+        }
     }
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
@@ -105,13 +116,13 @@ public class SolrSearchResultsService {
 
     // -------------------- LOGIC --------------------
 
-    public void populateDataverseSearchCard(Collection<SolrSearchResult> solrResults) {
-        Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getEntityId);
+    public void populateDataverseSearchCard(final Collection<SolrSearchResult> solrResults) {
+       final  Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getEntityId);
 
         Map<Long, Object[]> dataverses = callNamedNativeQueryWithIds(DATAVERSES_QUERY_BASE_NAME, ids).stream()
-                .collect(Collectors.toMap(r -> (Long) r[DATAVERSES_QUERY_ID], Function.identity(), (prev, next) -> next));
+                .collect(toMap(r -> (Long) r[DATAVERSES_QUERY_ID], identity(), (prev, next) -> next));
 
-        for (SolrSearchResult result : solrResults) {
+        for (final SolrSearchResult result : solrResults) {
             Object[] dataverseData;
             if (result.getEntityId() == null || (dataverseData = dataverses.get(result.getEntityId())) == null) {
                 continue;
@@ -122,20 +133,20 @@ public class SolrSearchResultsService {
         }
     }
 
-    public void populateDatasetSearchCard(Collection<SolrSearchResult> solrResults) {
-        Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getDatasetVersionId);
+    public void populateDatasetSearchCard(final Collection<SolrSearchResult> solrResults) {
+        final Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getDatasetVersionId);
 
-        Map<Integer, Object[]> datasets = callNamedNativeQueryWithIds(DATASETS_QUERY_BASE_NAME, ids).stream()
-                .collect(Collectors.toMap(r -> (Integer) r[DATASETS_QUERY_VERSION_ID], Function.identity(), (prev, next) -> next));
+        final Map<Integer, Object[]> datasets = callNamedNativeQueryWithIds(DATASETS_QUERY_BASE_NAME, ids).stream()
+                .collect(toMap(r -> (Integer) r[DATASETS_QUERY_VERSION_ID], identity(), (prev, next) -> next));
 
-        Set<Long> thumbnailIds = datasets.values().stream()
+        final Set<Long> thumbnailIds = datasets.values().stream()
                 .map(v -> (Long) v[DATASETS_QUERY_THUMBNAIL_ID])
                 .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
-        Map<Long, DataFile> thumbnails = findDatafiles(thumbnailIds);
+        final Map<Long, DataFile> thumbnails = findDatafiles(thumbnailIds);
 
-        for (SolrSearchResult result : solrResults) {
+        for (final SolrSearchResult result : solrResults) {
             Object[] datasetData;
             if (result.getDatasetVersionId() == null
                     || (datasetData = datasets.get(result.getDatasetVersionId().intValue())) == null) {
@@ -147,36 +158,38 @@ public class SolrSearchResultsService {
             setIfNotNull((String) datasetData[DATASETS_QUERY_DATAVERSE_ALIAS], result::setDataverseAlias);
             setIfNotNull(result.getDeaccessionReason(), result::setDescriptionNoSnippet);
 
-            Dataset entity = createAndFillDataset(result.getIdentifier(), datasetData, thumbnails);
+            final Dataset entity = createAndFillDataset(result.getIdentifier(), datasetData, thumbnails);
             result.setEntity(entity);
         }
     }
 
-    public void populateDatafileSearchCard(Collection<SolrSearchResult> solrResults) {
-        Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getEntityId);
-        Map<Long, DataFile> datafiles = findDatafiles(ids);
-        for (SolrSearchResult result : solrResults) {
-            DataFile datafile;
-            if ((datafile = datafiles.get(result.getEntityId())) != null) {
+    public void populateDatafileSearchCard(final Collection<SolrSearchResult> solrResults) {
+        final Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getEntityId);
+        final Map<Long, DataFile> datafiles = findDatafiles(ids);
+        for (final SolrSearchResult result : solrResults) {
+            final DataFile datafile = datafiles.get(result.getEntityId());
+            if (datafile != null) {
                 result.setEntity(datafile);
             }
         }
     }
 
-    public Map<Long, DataFile> findDatafiles(Collection<Long> ids) {
-        Collection<Object[]> rawFilesData = callNamedNativeQueryWithIds(DATAFILES_QUERY_BASE_NAME, ids);
-        Set<Integer> idsWithTags = rawFilesData.stream()
+    public Map<Long, DataFile> findDatafiles(final Collection<Long> ids) {
+        final Collection<Object[]> rawFilesData = callNamedNativeQueryWithIds(DATAFILES_QUERY_BASE_NAME, ids);
+        final Set<Integer> idsWithTags = rawFilesData.stream()
                 .filter(d -> MimeTypes.TSV.equalsIgnoreCase((String) d[DATAFILES_QUERY_FILE_CONTENTTYPE]))
                 .map(d -> (Integer) d[DATAFILES_QUERY_FILE_ID])
-                .collect(Collectors.toSet());
-        Map<Long, List<Integer>> datafileTags = callNamedNativeQueryWithIds(DATAFILETAGS_QUERY_BASE_NAME, idsWithTags).stream()
-                .collect(Collectors.groupingBy(d -> (Long) d[DATAFILETAGS_QUERY_DATAFILE_ID],
-                        Collectors.mapping(d -> (Integer) d[DATAFILETAGS_QUERY_TYPE], Collectors.toList())));
+                .collect(toSet());
+        final Map<Long, List<Integer>> datafileTags = 
+        		callNamedNativeQueryWithIds(DATAFILETAGS_QUERY_BASE_NAME, idsWithTags)
+        		.stream()
+                .collect(groupingBy(d -> (Long) d[DATAFILETAGS_QUERY_DATAFILE_ID],
+                        mapping(d -> (Integer) d[DATAFILETAGS_QUERY_TYPE], toList())));
         List<String> tagLabels = DataFileTag.listTags();
 
-        Map<Long, DataFile> datafiles = new HashMap<>();
-        for (Object[] fileData : rawFilesData) {
-            DataFile dataFile = createAndFillDataFile(fileData);
+        final Map<Long, DataFile> datafiles = new HashMap<>();
+        for (final Object[] fileData : rawFilesData) {
+            final DataFile dataFile = createAndFillDataFile(fileData);
             datafiles.put(dataFile.getId(), dataFile);
             fillTabularDataIfNeeded(dataFile, fileData, datafileTags, tagLabels);
         }
@@ -185,13 +198,14 @@ public class SolrSearchResultsService {
 
     // -------------------- PRIVATE --------------------
 
-    private <T, U> Set<U> extractNonNullValuesSet(Collection<T> source, Function<T, U> valueMapper) {
+    private <T, U> Set<U> extractNonNullValuesSet(
+    		final Collection<T> source, Function<T, U> valueMapper) {
         return source != null
                 ? source.stream()
                     .map(valueMapper)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toSet())
-                : Collections.emptySet();
+                    .collect(toSet())
+                : emptySet();
     }
 
     /**
@@ -210,25 +224,27 @@ public class SolrSearchResultsService {
      * a try as enabling the use of collections for IN in native queries would
      * be only a bit simpler.
      */
-    private Collection<Object[]> callNamedNativeQueryWithIds(String queryBaseName, Collection<? extends Number> ids) {
+    private Collection<Object[]> callNamedNativeQueryWithIds(final String queryBaseName, 
+    		final Collection<? extends Number> ids) {
         if (ids == null || ids.isEmpty()) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return ids.size() > Size.MAX.value()
                 ? ListUtils.partition(new ArrayList<>(ids), Size.MAX.value()).stream()
                 .map(l -> callSingleBatchForIds(queryBaseName, l))
                 .flatMap(Collection::stream)
-                .collect(Collectors.toList())
+                .collect(toList())
                 : callSingleBatchForIds(queryBaseName, ids);
     }
 
-    private Collection<Object[]> callSingleBatchForIds(String queryBaseName, Collection <? extends Number> ids) {
+    private Collection<Object[]> callSingleBatchForIds(final String queryBaseName, 
+    		final Collection <? extends Number> ids) {
         int size = ids.size();
-        Size selectedSize = size > Size.MID.value()
+        final Size selectedSize = size > Size.MID.value()
                 ? Size.MAX
                 : size > Size.MIN.value()
                     ? Size.MID : Size.MIN;
-        TypedQuery<Object[]> query = em.createNamedQuery(queryBaseName + selectedSize.querySuffix(), Object[].class);
+        final TypedQuery<Object[]> query = em.createNamedQuery(queryBaseName + selectedSize.querySuffix(), Object[].class);
         int count = 1;
         Number currentId = 0; // ids cannot be empty (as long as it's called from callNamedNativeQueryWithIds),
                               // so the value will be overwritten
@@ -243,33 +259,36 @@ public class SolrSearchResultsService {
         return query.getResultList();
     }
 
-    private <T> void setIfNotNull(T value, Consumer<T> setter) {
+    private <T> void setIfNotNull(final T value, Consumer<T> setter) {
         if (value != null) {
             setter.accept(value);
         }
     }
 
-    private Dataset createAndFillDataset(String identifier, Object[] datasetData, Map<Long, DataFile> thumbnails) {
-        Dataset entity = new Dataset();
-        GlobalId globalId = new GlobalId(identifier);
+    private Dataset createAndFillDataset(final String identifier, 
+    		final Object[] datasetData, final Map<Long, DataFile> thumbnails) {
+        final Dataset entity = new Dataset();
+        final GlobalId globalId = new GlobalId(identifier);
         entity.setProtocol(globalId.getProtocol());
         entity.setAuthority(globalId.getAuthority());
         entity.setIdentifier(globalId.getIdentifier());
         if (datasetData[DATASETS_QUERY_STORAGE_ID] != null) {
             entity.setStorageIdentifier(datasetData[DATASETS_QUERY_STORAGE_ID].toString());
         }
-        DataFile thumbnail;
-        Long thumbnailId = (Long) datasetData[DATASETS_QUERY_THUMBNAIL_ID];
-        if (thumbnailId != null && (thumbnail = thumbnails.get(thumbnailId)) != null) {
-            entity.setThumbnailFile(thumbnail);
+        final Long thumbnailId = (Long) datasetData[DATASETS_QUERY_THUMBNAIL_ID];
+        if (thumbnailId != null) {
+        	final DataFile thumbnail = thumbnails.get(thumbnailId);
+        	if(thumbnail != null) {
+        		entity.setThumbnailFile(thumbnail);
+        	}
         }
-        Boolean useGenericThumbnail = (Boolean) datasetData[DATASETS_QUERY_USE_GENERIC_THUMBNAIL];
+        final Boolean useGenericThumbnail = (Boolean) datasetData[DATASETS_QUERY_USE_GENERIC_THUMBNAIL];
         entity.setUseGenericThumbnail(useGenericThumbnail != null ? useGenericThumbnail : false);
         return entity;
     }
 
-    private DataFile createAndFillDataFile(Object[] fileData) {
-        DataFile dataFile = new DataFile();
+    private DataFile createAndFillDataFile(final Object[] fileData) {
+        final DataFile dataFile = new DataFile();
         dataFile.setMergeable(false);
         dataFile.setId(((Integer) fileData[DATAFILES_QUERY_FILE_ID]).longValue());
         dataFile.setCreateDate((Timestamp) fileData[DATAFILES_QUERY_FILE_CREATEDATE]);
@@ -283,20 +302,19 @@ public class SolrSearchResultsService {
             dataFile.setIngestStatus(ingestStatus.charAt(0));
         }
         setIfNotNull((String) fileData[DATAFILES_QUERY_FILE_CHECKSUMVALUE], dataFile::setChecksumValue);
-        String checksumType = (String) fileData[DATAFILES_QUERY_FILE_CHECKSUMTYPE];
+        final String checksumType = (String) fileData[DATAFILES_QUERY_FILE_CHECKSUMTYPE];
         if (checksumType != null) {
             try {
-                DataFile.ChecksumType type = DataFile.ChecksumType.valueOf(checksumType);
-                dataFile.setChecksumType(type);
-            } catch (IllegalArgumentException iae) {
-                logger.info(String.format("Cannot convert [%s] to ChecksumType", checksumType), iae);
+                dataFile.setChecksumType(DataFile.ChecksumType.valueOf(checksumType));
+            } catch (final IllegalArgumentException e) {
+                logger.info(String.format("Cannot convert [%s] to ChecksumType", checksumType), e);
             }
         }
         setIfNotNull((String) fileData[DATAFILES_QUERY_FILE_AUTHORITY], dataFile::setAuthority);
         setIfNotNull((String) fileData[DATAFILES_QUERY_FILE_PROTOCOL], dataFile::setProtocol);
         setIfNotNull((String) fileData[DATAFILES_QUERY_FILE_IDENTIFIER], dataFile::setIdentifier);
-        Dataset owner = new Dataset();
-        Integer ownerId = (Integer) fileData[DATAFILES_QUERY_DATASET_ID];
+        final Dataset owner = new Dataset();
+        final Integer ownerId = (Integer) fileData[DATAFILES_QUERY_DATASET_ID];
         if (ownerId != null) {
             owner.setId(ownerId.longValue());
         }
@@ -307,15 +325,16 @@ public class SolrSearchResultsService {
         return dataFile;
     }
 
-    private void fillTabularDataIfNeeded(DataFile dataFile, Object[] fileData,
-                                         Map<Long, List<Integer>> datafileTags, List<String> tagLabels) {
+    private void fillTabularDataIfNeeded(final DataFile dataFile, 
+    		final Object[] fileData, final Map<Long, List<Integer>> datafileTags, 
+    		final List<String> tagLabels) {
         if (dataFile.getContentType() == null
                 || (!MimeTypes.TSV.equalsIgnoreCase(dataFile.getContentType())
                 && !MimeTypes.TAB_SEPARATED_VALUES.equalsIgnoreCase(dataFile.getContentType()))) {
             return;
         }
-        DataTable dataTable = new DataTable();
-        Integer dataTableId = (Integer) fileData[DATAFILES_QUERY_DATATABLE_ID];
+        final DataTable dataTable = new DataTable();
+        final Integer dataTableId = (Integer) fileData[DATAFILES_QUERY_DATATABLE_ID];
         if (dataTableId != null) {
             dataTable.setId(dataTableId.longValue());
         }
@@ -324,10 +343,10 @@ public class SolrSearchResultsService {
         setIfNotNull((Long) fileData[DATAFILES_QUERY_DATATABLE_VARQUANTITY], dataTable::setVarQuantity);
         dataTable.setDataFile(dataFile);
         dataFile.setDataTable(dataTable);
-        List<Integer> tagIds;
-        if ((tagIds = datafileTags.get(dataFile.getId())) != null) {
-            for (Integer tagId : tagIds) {
-                DataFileTag tag = new DataFileTag();
+        final List<Integer> tagIds = datafileTags.get(dataFile.getId());
+        if (tagIds != null) {
+            for (final Integer tagId : tagIds) {
+                final DataFileTag tag = new DataFileTag();
                 tag.setTypeByLabel(tagLabels.get(tagId));
                 tag.setDataFile(dataFile);
                 dataFile.addTag(tag);

@@ -40,4 +40,13 @@ public class DataFileRepository extends JpaRepository<Long, DataFile> {
                 .setHint("eclipselink.QUERY_RESULTS_CACHE", "TRUE")
                 .getResultList();
     }
+    
+    public void deleteFromVersion(final Long versionId, final Long dataFileId) {
+        createQuery(
+        		"DELETE FROM FileMetadata f " +
+        		"WHERE f.datasetVersion.id=:versionId and f.dataFile.id=:fileId")
+          .setParameter("versionId", versionId)
+          .setParameter("fileId", dataFileId)
+          .executeUpdate();
+    }
 }

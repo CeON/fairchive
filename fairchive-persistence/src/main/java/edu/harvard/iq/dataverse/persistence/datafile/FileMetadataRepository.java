@@ -1,6 +1,9 @@
 package edu.harvard.iq.dataverse.persistence.datafile;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,13 +24,25 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
      * @param pageNumber page number that starts with 0 (important for calculation).
      * @return List of fileMetadata
      */
-    public List<FileMetadata> findFileMetadataByDatasetVersionId(final long versionId, 
-    		final int pageNumber, final int maxResults) {
+    public List<FileMetadata> findFileMetadataByDatasetVersionId(
+    		final long versionId, final int pageNumber, final int maxResults) {
         return createQuery(
         		 	"SELECT f FROM FileMetadata f JOIN f.datasetVersion v " +
         		 	"WHERE v.id = :dsvId ORDER BY f.displayOrder")
                  .setParameter("dsvId", versionId)
                  .setFirstResult(pageNumber * maxResults)
+                 .setMaxResults(maxResults)
+                 .getResultList();
+    }
+    
+    public List<FileMetadata> findFileMetadataByDatasetVersionId(
+    		final Long versionId, final int maxResults, 
+    		final String sortField, final String sortOrder) {
+        return createQuery(
+        		"select o from FileMetadata o " + 
+        		"where o.datasetVersion.id = :id order by o." + sortField + 
+        		' ' + sortOrder)
+                 .setParameter("id", versionId)
                  .setMaxResults(maxResults)
                  .getResultList();
     }
@@ -58,8 +73,8 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
     public List<Long> findFileMetadataIdsByDatasetVersionId(final long versionId) {
         return this.em.createQuery(
         			"SELECT f.id FROM FileMetadata f JOIN f.datasetVersion v " +
-                    "WHERE v.id = :dsvId", Long.class)
-                 .setParameter("dsvId", versionId)
+                    "WHERE v.id = :id", Long.class)
+                 .setParameter("id", versionId)
                  .getResultList();
     }
 
@@ -67,22 +82,30 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
      * Finds files with provided id's along with cache enabled.
      */
     public List<FileMetadata> findFileMetadata(final Collection<Long> ids) {
-        return createQuery(
-        			"SELECT f FROM FileMetadata f WHERE f.id IN :fileMetadatas")
-                 .setParameter("fileMetadatas", ids)
-                 .setHint("eclipselink.QUERY_RESULTS_CACHE", "TRUE")
-                 .getResultList();
+    	if(ids.isEmpty()) {
+    		return Collections.emptyList();
+    	} else {
+	        return createQuery(
+	        			"SELECT f FROM FileMetadata f WHERE f.id IN :fileMetadatas")
+	                 .setParameter("fileMetadatas", ids)
+	                 .setHint("eclipselink.QUERY_RESULTS_CACHE", "TRUE")
+	                 .getResultList();
+    	}
     }
 
     /**
      * Finds files which are restricted by license.
      */
     public List<FileMetadata> findRestrictedFileMetadata(final Collection<Long> ids) {
-        return createQuery(
-        			"SELECT f FROM FileMetadata f JOIN f.termsOfUse t " +
-                    "WHERE f.id IN :fileIds AND  t.restrictType != null")
-                 .setParameter("fileIds", ids)
-                 .getResultList();
+    	if(ids.isEmpty()) {
+    		return Collections.emptyList();
+    	} else {
+	        return createQuery(
+	        			"SELECT f FROM FileMetadata f JOIN f.termsOfUse t " +
+	                    "WHERE f.id IN :fileIds AND  t.restrictType != null")
+	                 .setParameter("fileIds", ids)
+	                 .getResultList();
+    	}
     }
     
 	public Optional<FileMetadata> findByDatasetVersionIdAndDataFileId(
@@ -96,4 +119,19 @@ public class FileMetadataRepository extends JpaRepository<Long, FileMetadata> {
 				.stream()
 				.findFirst();
 	}
+	
+    public List<Long> findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
+    		final Long versionId, final String searchTerm) {
+    	if (isNotBlank(searchTerm)){	
+	        return this.em.createQuery(
+	        		"select o.id from FileMetadata o " +
+	        		"where o.datasetVersion.id = :id and  (lower(o.label) like :term " +
+	        				"or lower(o.description) like :term)", Long.class)
+	        		.setParameter("id", versionId)
+	        		.setParameter("term", "%" + searchTerm.toLowerCase() + "%")
+	                .getResultList();
+    	} else {
+    		return findFileMetadataIdsByDatasetVersionId(versionId);
+    	}
+    }
 }

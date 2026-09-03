@@ -48,7 +48,6 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadataRepository;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
 
@@ -105,37 +104,19 @@ public class DataFileServiceBean implements Serializable {
         return this.fileRepo.findByFileMetadataIds(ids);
     }
 
-    public List<FileMetadata> findFileMetadataByDatasetVersionId(Long datasetVersionId, 
-            int maxResults, FileSortFieldAndOrder sortFieldAndOrder) {
-        maxResults = max(maxResults, 0);
-        String sortFieldString = sortFieldAndOrder.getSortField();
-        String sortOrderString = sortFieldAndOrder.getSortOrder() == SortOrder.desc ? "desc" : "asc";
-        String qr = "select o from FileMetadata o where o.datasetVersion.id = :datasetVersionId order by o." +
-                sortFieldString + " " + sortOrderString;
-        return em.createQuery(qr, FileMetadata.class)
-                 .setParameter("datasetVersionId", datasetVersionId)
-                 .setMaxResults(maxResults)
-                 .getResultList();
+    public List<FileMetadata> findFileMetadataByDatasetVersionId(
+    		final Long versionId,  final int maxResults, 
+    		final FileSortFieldAndOrder sort) {
+        return this.fileMetadataRepo.findFileMetadataByDatasetVersionId(
+        		versionId,  max(maxResults, 0), 
+        		sort.getSortField(), sort.getSortOrder().toString());
     }
 
-    @SuppressWarnings("unchecked")
-    public List<Integer> findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(Long datasetVersionId, String searchTerm,
-                                                                              FileSortFieldAndOrder sortFieldAndOrder) {
-        String searchClause = "";
-        if (searchTerm != null && !searchTerm.isEmpty()) {
-            searchClause = " and  (lower(o.label) like '%" 
-                    + searchTerm.toLowerCase() 
-                    + "%' or lower(o.description) like '%"
-                    + searchTerm.toLowerCase() + "%')";
-        }
-
-        // the createNativeQuary takes persistant entities, which Integer.class is not,
-        // which is causing the exception. Hence, this query does not need an Integer.class
-        // as the second parameter.
-        return em.createNativeQuery("select o.id from FileMetadata o where o.datasetVersion_id = " + datasetVersionId +
-                searchClause + " order by o." + sortFieldAndOrder.getSortField() + " " +
-                (sortFieldAndOrder.getSortOrder().toString()))
-                .getResultList();
+    public List<Long> findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
+    		final Long versionId, final String searchTerm) {
+    	
+    	return this.fileMetadataRepo.findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(
+    			versionId, searchTerm);
     }
 
     public Optional<FileMetadata> findFileMetadataByDatasetVersionIdAndDataFileId(
@@ -322,19 +303,18 @@ public class DataFileServiceBean implements Serializable {
         return save(dataFile);
     }
 
-    public void deleteFromVersion(DatasetVersion d, DataFile f) {
-        em.createNamedQuery("DataFile.removeFromDatasetVersion")
-          .setParameter("versionId", d.getId()).setParameter("fileId", f.getId())
-          .executeUpdate();
+    public void deleteFromVersion(final DatasetVersion version, final DataFile file) {    
+        this.fileRepo.deleteFromVersion(version.getId(), file.getId());
+        
     }
 
     /*
      Convenience methods for merging and removingindividual file metadatas,
      without touching the rest of the DataFile object:
     */
-    public void removeFileMetadata(FileMetadata fileMetadata) {
-        FileMetadata mergedFM = em.merge(fileMetadata);
-        em.remove(mergedFM);
+    public void removeFileMetadata(final FileMetadata fileMetadata) {
+        final FileMetadata merged = this.fileMetadataRepo.save(fileMetadata);
+        this.fileMetadataRepo.delete(merged);
     }
 
     // Same, for DataTables:
