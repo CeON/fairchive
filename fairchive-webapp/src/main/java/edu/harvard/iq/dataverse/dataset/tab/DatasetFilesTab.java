@@ -6,7 +6,6 @@ import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.CO
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.EXPLORE;
 import static edu.harvard.iq.dataverse.persistence.datafile.ExternalTool.Type.PREVIEW;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.DcmUpload;
-import static edu.harvard.iq.dataverse.search.SearchServiceBean.SortOrder.asc;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DefaultDateFormat;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addErrorMessage;
 import static edu.harvard.iq.dataverse.util.JsfHelper.addFlashErrorMessage;
@@ -86,7 +85,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.FileSortFieldAndOrder;
 import edu.harvard.iq.dataverse.util.PrimefacesUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
@@ -860,10 +858,8 @@ public class DatasetFilesTab implements Serializable {
     private Tuple2<List<FileMetadata>, List<Long>> selectFileMetadatasForDisplayWithPaging(String searchTerm) {
 
         List<Long> searchResultsIdList = datafileService
-                .findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(workingVersion.getId(), searchTerm,
-                        new FileSortFieldAndOrder(EMPTY, asc))
+                .findFileMetadataIdsByDatasetVersionIdLabelSearchTerm(workingVersion.getId(), searchTerm)
                 .stream()
-                .map(Integer::longValue)
                 .collect(toList());
 
         if (searchTerm != null && !searchTerm.isEmpty()) {
