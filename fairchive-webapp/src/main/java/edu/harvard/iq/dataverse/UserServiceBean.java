@@ -33,6 +33,14 @@ public class UserServiceBean {
     public AuthenticatedUser getById(long id) {
         return this.repo.getById(id);
     }
+    
+    public Optional<AuthenticatedUser> findById(final Long id) {
+    	return this.repo.findById(id);
+    }
+    
+    public void delete(final AuthenticatedUser user) {
+    	this.repo.delete(user);
+    }
 
     public AuthenticatedUser save(final AuthenticatedUser user) {
         if (user.getCreatedTime() == null) {

@@ -49,7 +49,7 @@ class SamlDataUpdateServiceTest {
         Either<SamlLoginIssue, AuthenticatedUser> result = service.updateUserIfNeeded(user, samlUserData);
 
         // then
-        Mockito.verify(authenticationService, Mockito.times(1)).update(user);
+        Mockito.verify(authenticationService, Mockito.times(1)).save(user);
         assertThat(result.isRight()).isTrue();
     }
 

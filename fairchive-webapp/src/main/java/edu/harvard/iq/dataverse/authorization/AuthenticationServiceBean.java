@@ -1,5 +1,13 @@
 package edu.harvard.iq.dataverse.authorization;
 
+import static edu.harvard.iq.dataverse.authorization.AuthenticationResponse.Status.BREAKOUT;
+import static edu.harvard.iq.dataverse.authorization.AuthenticationResponse.Status.SUCCESS;
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.Auth;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Logger.getLogger;
+
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -74,7 +82,7 @@ import io.vavr.control.Option;
  */
 @Singleton
 public class AuthenticationServiceBean {
-    private static final Logger logger = Logger.getLogger(AuthenticationServiceBean.class.getName());
+    private static final Logger logger = getLogger(AuthenticationServiceBean.class.getName());
 
     /**
      * Where all registered authentication providers live.
@@ -144,34 +152,38 @@ public class AuthenticationServiceBean {
             registerProviderFactory(new SamlAuthenticationProviderFactory(samlConfigurationService));
 
         } catch (AuthorizationSetupException ex) {
-            logger.log(Level.SEVERE, "Exception setting up the authentication provider factories: " + ex.getMessage(), ex);
+            logger.log(SEVERE, "Exception setting up the authentication provider factories: " +
+            		ex.getMessage(), ex);
         }
 
         // Now, load the providers.
-        em.createNamedQuery("AuthenticationProviderRow.findAllEnabled", AuthenticationProviderRow.class)
+        em.createNamedQuery("AuthenticationProviderRow.findAllEnabled", 
+        		AuthenticationProviderRow.class)
                 .getResultList().forEach((row) -> {
             try {
                 registerProvider(loadProvider(row));
 
             } catch (AuthenticationProviderFactoryNotFoundException e) {
-                logger.log(Level.SEVERE, "Cannot find authentication provider factory with alias '"
+                logger.log(SEVERE, "Cannot find authentication provider factory with alias '"
                         + e.getFactoryAlias() + "'", e);
 
             } catch (AuthorizationSetupException ex) {
-                logger.log(Level.SEVERE, "Exception setting up the authentication provider '" + row.getId() + "': "
-                        + ex.getMessage(), ex);
+                logger.log(SEVERE, "Exception setting up the authentication provider '" + 
+                		row.getId() + "': " + ex.getMessage(), ex);
             }
         });
     }
 
     public void registerProviderFactory(AuthenticationProviderFactory aFactory)
             throws AuthorizationSetupException {
+    	
         if (providerFactories.containsKey(aFactory.getAlias())) {
             throw new AuthorizationSetupException(
-                    "Duplicate alias " + aFactory.getAlias() + " for authentication provider factory.");
+                    "Duplicate alias " + aFactory.getAlias() + 
+                    " for authentication provider factory.");
         }
         providerFactories.put(aFactory.getAlias(), aFactory);
-        logger.log(Level.FINE, "Registered Authentication Provider Factory {0} as {1}",
+        logger.log(FINE, "Registered Authentication Provider Factory {0} as {1}",
                    new Object[]{aFactory.getInfo(), aFactory.getAlias()});
     }
 
@@ -185,6 +197,7 @@ public class AuthenticationServiceBean {
      */
     public AuthenticationProvider loadProvider(AuthenticationProviderRow aRow)
             throws AuthenticationProviderFactoryNotFoundException, AuthorizationSetupException {
+    	
         AuthenticationProviderFactory fact = getProviderFactory(aRow.getFactoryAlias());
 
         if (fact == null) {
@@ -195,12 +208,13 @@ public class AuthenticationServiceBean {
     }
 
     public void registerProvider(AuthenticationProvider aProvider) throws AuthorizationSetupException {
+    	
         if (authenticationProviders.containsKey(aProvider.getId())) {
             throw new AuthorizationSetupException(
                     "Duplicate id " + aProvider.getId() + " for authentication provider.");
         }
         authenticationProviders.put(aProvider.getId(), aProvider);
-        actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth, "registerProvider")
+        actionLogSvc.log(new ActionLogRecord(Auth, "registerProvider")
                                  .setInfo(aProvider.getId() + ":" + aProvider.getInfo().getTitle()));
         if (aProvider instanceof OAuth2AuthenticationProvider) {
             OAuth2AuthenticationProvider oauth2Provider = (OAuth2AuthenticationProvider) aProvider;
@@ -211,32 +225,37 @@ public class AuthenticationServiceBean {
     }
 
     public OAuth2AuthenticationProvider getOAuth2Provider(String id) {
+    	
         return oAuth2authenticationProviders.get(id);
     }
 
     public Set<OAuth2AuthenticationProvider> getOAuth2Providers() {
+    	
         return new HashSet<>(oAuth2authenticationProviders.values());
     }
 
     public void deregisterProvider(String id) {
         oAuth2authenticationProviders.remove(id);
         if (authenticationProviders.remove(id) != null) {
-            actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth, "deregisterProvider")
+            actionLogSvc.log(new ActionLogRecord(Auth, "deregisterProvider")
                                      .setInfo(id));
-            logger.log(Level.INFO, "Deregistered provider {0}", new Object[]{id});
-            logger.log(Level.INFO, "Providers left {0}", new Object[]{getAuthenticationProviderIds()});
+            logger.log(INFO, "Deregistered provider {0}", new Object[]{id});
+            logger.log(INFO, "Providers left {0}", new Object[]{getAuthenticationProviderIds()});
         }
     }
 
     public Set<String> getAuthenticationProviderIds() {
+    	
         return authenticationProviders.keySet();
     }
 
     public Collection<AuthenticationProvider> getAuthenticationProviders() {
+    	
         return authenticationProviders.values();
     }
 
     public <T extends AuthenticationProvider> Set<String> getAuthenticationProviderIdsOfType(Class<T> aClass) {
+    	
         Set<String> retVal = new TreeSet<>();
         for (Map.Entry<String, AuthenticationProvider> p : authenticationProviders.entrySet()) {
             if (aClass.isAssignableFrom(p.getValue().getClass())) {
@@ -247,28 +266,34 @@ public class AuthenticationServiceBean {
     }
 
     public AuthenticationProviderFactory getProviderFactory(String alias) {
+    	
         return providerFactories.get(alias);
     }
 
     public AuthenticationProvider getAuthenticationProvider(String id) {
+    	
         return authenticationProviders.get(id);
     }
 
-    public AuthenticatedUser findByID(Object pk) {
-        if (pk == null) {
+    public AuthenticatedUser findByID(final Long id) {
+    	
+        if (id == null) {
             return null;
         }
-        return em.find(AuthenticatedUser.class, pk);
+        return this.userService.findById(id).orElse(null);
     }
 
     public void removeApiToken(AuthenticatedUser user) {
+    	
         if (user != null) {
             findApiTokenByUser(user).ifPresent(this.tokenRepository::delete);
         }
     }
 
     public boolean isOrcidEnabled() {
-        return oAuth2authenticationProviders.values().stream().anyMatch(s -> s.getId().toLowerCase().contains("orcid"));
+    	
+        return oAuth2authenticationProviders.values().stream().
+        		anyMatch(s -> s.getId().toLowerCase().contains("orcid"));
     }
 
     /**
@@ -290,40 +315,43 @@ public class AuthenticationServiceBean {
      * Longer term, the intention is to have a "disableAuthenticatedUser"
      * method/command. See https://github.com/IQSS/dataverse/issues/2419
      */
-    public void deleteAuthenticatedUser(Object pk) {
-        AuthenticatedUser user = em.find(AuthenticatedUser.class, pk);
-
-        if (user != null) {
+    public void deleteAuthenticatedUser(final Long id) {
+    	
+        this.userService.findById(id).ifPresent(user -> {
             findApiTokenByUser(user).ifPresent(this.tokenRepository::delete);
             ConfirmEmailData confirmEmailData = confirmEmailService.findSingleConfirmEmailDataByUser(user);
             if (confirmEmailData != null) {
                 // TODO This could probably be a cascade delete instead.
                 em.remove(confirmEmailData);
             }
-            userNotificationRepository.findByUser(user.getId()).forEach(userNotificationRepository::mergeAndDelete);
+            userNotificationRepository.findByUser(user.getId()).
+            	forEach(userNotificationRepository::mergeAndDelete);
 
             AuthenticationProvider prv = lookupProvider(user);
             if (prv != null && prv.isUserDeletionAllowed()) {
                 prv.deleteUser(user.getAuthenticatedUserLookup().getPersistentUserId());
             }
 
-            actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth, "deleteUser")
+            actionLogSvc.log(new ActionLogRecord(Auth, "deleteUser")
                                      .setInfo(user.getUserIdentifier()));
             em.remove(user.getAuthenticatedUserLookup());
-            em.remove(user);
+            this.userService.delete(user);
 
-        }
+        });
     }
 
     public AuthenticatedUser getAuthenticatedUser(final String identifier) {
+    	
         return this.userService.findByIdentifier(identifier).orElse(null);
     }
 
     public AuthenticatedUser getAdminUser() {
+    	
         return this.userService.getAdmin();
     }
 
     public AuthenticatedUser getAuthenticatedUserByEmail(final String email) {
+    	
         return this.userService.findByEmail(email).orElse(null);
     }
 
@@ -338,16 +366,19 @@ public class AuthenticationServiceBean {
      */
     public AuthenticatedUser getUpdateAuthenticatedUser(String authenticationProviderId, AuthenticationRequest req)
             throws AuthenticationFailedException {
+    	
         AuthenticationProvider prv = getAuthenticationProvider(authenticationProviderId);
         if (prv == null) {
-            throw new IllegalArgumentException("No authentication provider listed under id " + authenticationProviderId);
+            throw new IllegalArgumentException("No authentication provider listed under id " + 
+            		authenticationProviderId);
         }
         if (!(prv instanceof CredentialsAuthenticationProvider)) {
-            throw new IllegalArgumentException(authenticationProviderId + " does not support credentials-based authentication.");
+            throw new IllegalArgumentException(authenticationProviderId + 
+            		" does not support credentials-based authentication.");
         }
         AuthenticationResponse resp = ((CredentialsAuthenticationProvider) prv).authenticate(req);
 
-        if (resp.getStatus() == AuthenticationResponse.Status.SUCCESS) {
+        if (resp.getStatus() == SUCCESS) {
             // yay! see if we already have this user.
             AuthenticatedUser user = lookupUser(authenticationProviderId, resp.getUserId());
 
@@ -358,10 +389,9 @@ public class AuthenticationServiceBean {
             if (user == null) {
                 throw new IllegalStateException("Authenticated user does not exist. The functionality to support creating "
                         + "one at this point in authentication has been removed.");
-                //return createAuthenticatedUser(
-                //        new UserRecordIdentifier(authenticationProviderId, resp.getUserId()), resp.getUserId(), resp.getUserDisplayInfo(), true );
             } else {
-                if (BuiltinAuthenticationProvider.PROVIDER_ID.equals(user.getAuthenticatedUserLookup().getAuthenticationProviderId())) {
+                if (BuiltinAuthenticationProvider.PROVIDER_ID.equals(
+                		user.getAuthenticatedUserLookup().getAuthenticationProviderId())) {
                     return user;
                 } else {
                     return updateAuthenticatedUser(user, resp.getUserDisplayInfo());
@@ -373,12 +403,15 @@ public class AuthenticationServiceBean {
     }
 
     public AuthenticatedUser lookupUser(UserRecordIdentifier id) {
+    	
         return lookupUser(id.repoId, id.userIdInRepo);
     }
 
     public AuthenticatedUser lookupUser(String authPrvId, String userPersistentId) {
+    	
         TypedQuery<AuthenticatedUserLookup> typedQuery = em.createNamedQuery(
-                "AuthenticatedUserLookup.findByAuthPrvID_PersUserId", AuthenticatedUserLookup.class);
+                "AuthenticatedUserLookup.findByAuthPrvID_PersUserId", 
+                AuthenticatedUserLookup.class);
         typedQuery.setParameter("authPrvId", authPrvId);
         typedQuery.setParameter("persUserId", userPersistentId);
         try {
@@ -390,10 +423,12 @@ public class AuthenticationServiceBean {
     }
 
     public AuthenticationProvider lookupProvider(AuthenticatedUser user) {
+    	
         return authenticationProviders.get(user.getAuthenticatedUserLookup().getAuthenticationProviderId());
     }
 
     public Optional<ApiToken> findApiTokenByUser(final AuthenticatedUser user) {
+    	
         return this.tokenRepository.findByUser(user);
     }
 
@@ -403,6 +438,7 @@ public class AuthenticationServiceBean {
     // lifecycles/valid for specific actions only, etc.
     // -- L.A. 4.0 beta12
     public ApiToken generateApiToken(AuthenticatedUser au) {
+    	
         ApiToken apiToken = new ApiToken();
         apiToken.setTokenString(java.util.UUID.randomUUID().toString());
         apiToken.setAuthenticatedUser(au);
@@ -412,14 +448,16 @@ public class AuthenticationServiceBean {
     }
 
     public ApiToken generateApiTokenForUser(AuthenticatedUser au) {
+    	
         if (au == null) {
             return null;
         }
 
         ApiToken apiToken = generateApiToken(au);
         save(apiToken);
-        actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth, "generateApiToken")
-                                 .setInfo("user:" + au.getIdentifier() + " token:" + apiToken.getTokenString()));
+        actionLogSvc.log(new ActionLogRecord(Auth, "generateApiToken")
+                                 .setInfo("user:" + au.getIdentifier() + 
+                                		 " token:" + apiToken.getTokenString()));
 
         return apiToken;
     }
@@ -431,6 +469,7 @@ public class AuthenticationServiceBean {
     }
 
     public AuthenticatedUser lookupUser(String apiToken) {
+    	
         ApiToken token = this.tokenRepository.findByToken(apiToken).orElse(null);
         if (token == null) {
             return null;
@@ -449,24 +488,19 @@ public class AuthenticationServiceBean {
         return token.getAuthenticatedUser();
     }
 
-    public AuthenticatedUser save(AuthenticatedUser user) {
-        em.persist(user);
-        em.flush();
-        return user;
+    public AuthenticatedUser save(final AuthenticatedUser user) {
+    	
+        return this.userService.save(user);
     }
 
-    public AuthenticatedUser update(AuthenticatedUser user) {
-        return em.merge(user);
+    public AuthenticatedUser update(final AuthenticatedUser user) {
+    	
+        return save(user);
     }
 
-    public ApiToken save(ApiToken aToken) {
-        if (aToken.getId() == null) {
-            em.persist(aToken);
-            return aToken;
-        } else {
-            return em.merge(aToken);
-
-        }
+    public ApiToken save(final ApiToken token) {
+    	
+        return this.tokenRepository.save(token);
     }
 
     /**
@@ -477,14 +511,17 @@ public class AuthenticationServiceBean {
      * @param persistentIdInProvider   Id of the user in the new provider
      * @return {@code true} iff the change was successful.
      */
-    public boolean updateProvider(AuthenticatedUser authenticatedUser, String authenticationProviderId, String persistentIdInProvider) {
+    public boolean updateProvider(AuthenticatedUser authenticatedUser, 
+    		String authenticationProviderId, String persistentIdInProvider) {
+    	
         try {
-            AuthenticatedUserLookup aul = em.createNamedQuery("AuthenticatedUserLookup.findByAuthUser", AuthenticatedUserLookup.class)
+            AuthenticatedUserLookup aul = em.createNamedQuery("AuthenticatedUserLookup.findByAuthUser",
+            		AuthenticatedUserLookup.class)
                     .setParameter("authUser", authenticatedUser)
                     .getSingleResult();
             aul.setAuthenticationProviderId(authenticationProviderId);
             aul.setPersistentUserId(persistentIdInProvider);
-            actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth,
+            actionLogSvc.log(new ActionLogRecord(Auth,
                                                  authenticatedUser.getIdentifier()
                                                          + " now associated with provider " + authenticationProviderId
                                                          + " id: " + persistentIdInProvider));
@@ -515,6 +552,7 @@ public class AuthenticationServiceBean {
                                                      String proposedAuthenticatedUserIdentifier,
                                                      AuthenticatedUserDisplayInfo userDisplayInfo,
                                                      boolean generateUniqueIdentifier) {
+    	
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         // set account creation time & initial login time (same timestamp)
         authenticatedUser.setCreatedTime(Timestamp.valueOf(LocalDateTime.now(clock)));
@@ -582,50 +620,60 @@ public class AuthenticationServiceBean {
      * @return {@code true} iff there's already a user by that username.
      */
     public boolean identifierExists(final String identifier) {
+    	
         return this.userService.countByIdentifier(identifier) > 0L;
     }
 
-    public AuthenticatedUser updateAuthenticatedUser(AuthenticatedUser user, AuthenticatedUserDisplayInfo userDisplayInfo) {
+    public AuthenticatedUser updateAuthenticatedUser(AuthenticatedUser user, 
+    		AuthenticatedUserDisplayInfo userDisplayInfo) {
+    	
         user.applyDisplayInfo(userDisplayInfo);
-        actionLogSvc.log(new ActionLogRecord(ActionLogRecord.ActionType.Auth, "updateUser")
+        actionLogSvc.log(new ActionLogRecord(Auth, "updateUser")
                                  .setInfo(user.getIdentifier()));
-        return update(user);
+        return save(user);
     }
 
-    public AuthenticatedUser updateAuthenticatedUser(AuthenticatedUser user, AuthenticatedUserDisplayInfo userDisplayInfo,
-                                                     Locale userNotificationsLanguage) {
+    public AuthenticatedUser updateAuthenticatedUser(AuthenticatedUser user,
+    		AuthenticatedUserDisplayInfo userDisplayInfo, Locale userNotificationsLanguage) {
+    	
         user.setNotificationsLanguage(userNotificationsLanguage);
         return updateAuthenticatedUser(user, userDisplayInfo);
     }
 
     public List<AuthenticatedUser> findAllAuthenticatedUsers() {
+    	
         return this.userService.findAll();
     }
 
     public List<AuthenticatedUser> findSuperUsers() {
+    	
         return this.userService.findSuperUsers();
     }
 
     public List <WorkflowComment> getWorkflowCommentsByAuthenticatedUser(AuthenticatedUser user){
-        TypedQuery<WorkflowComment> query = em.createQuery(
-                "SELECT wc FROM WorkflowComment wc WHERE wc.authenticatedUser.id = :auid", WorkflowComment.class);
-        query.setParameter("auid", user.getId());
-        return query.getResultList();
+        return em.createQuery(
+                "SELECT wc FROM WorkflowComment wc WHERE wc.authenticatedUser.id = :auid", 
+                WorkflowComment.class)
+        		.setParameter("auid", user.getId())
+        		.getResultList();
     }
 
     public Set<AuthenticationProviderFactory> listProviderFactories() {
+    	
         return new HashSet<>(providerFactories.values());
     }
 
-    public AuthenticatedUser convertBuiltInUserToRemoteUser(AuthenticatedUser builtInUserToConvert, String newProviderId,
-                                                            String newUserIdentifierInLookupTable) {
+    public AuthenticatedUser convertBuiltInUserToRemoteUser(
+    		AuthenticatedUser builtInUserToConvert, String newProviderId,
+            String newUserIdentifierInLookupTable) {
+    	
         logger.info("converting user " + builtInUserToConvert.getId() + " from builtin to remote");
         String builtInUserIdentifier = builtInUserToConvert.getIdentifier();
         logger.info("builtin user identifier: " + builtInUserIdentifier);
         TypedQuery<AuthenticatedUserLookup> typedQuery = em.createQuery(
                 "SELECT OBJECT(o) FROM AuthenticatedUserLookup AS o WHERE o.authenticatedUser = :auid",
-                AuthenticatedUserLookup.class);
-        typedQuery.setParameter("auid", builtInUserToConvert);
+                AuthenticatedUserLookup.class)
+        		.setParameter("auid", builtInUserToConvert);
         AuthenticatedUserLookup authuserLookup;
         try {
             authuserLookup = typedQuery.getSingleResult();
@@ -653,7 +701,8 @@ public class AuthenticationServiceBean {
             }
             em.remove(builtin);
         } else {
-            logger.warning("Couldn't delete builtin user because could not find it based on username " + builtinUsername);
+            logger.warning("Couldn't delete builtin user because could not find it based on username " + 
+            		builtinUsername);
         }
         return lookupUser(newProviderId, newUserIdentifierInLookupTable);
     }
@@ -667,16 +716,21 @@ public class AuthenticationServiceBean {
      * @throws java.lang.Exception You must catch and report back to the user (a
      *                             superuser) any Exceptions.
      */
-    public BuiltinUser convertRemoteToBuiltIn(Long idOfAuthUserToConvert, String newEmailAddress) throws Exception {
+    public BuiltinUser convertRemoteToBuiltIn(Long idOfAuthUserToConvert, 
+    		String newEmailAddress) throws Exception {
+    	
         AuthenticatedUser authenticatedUser = findByID(idOfAuthUserToConvert);
         if (authenticatedUser == null) {
             throw new Exception("User id " + idOfAuthUserToConvert + " not found.");
         }
         AuthenticatedUser existingUserWithSameEmail = getAuthenticatedUserByEmail(newEmailAddress);
         if (existingUserWithSameEmail != null) {
-            throw new Exception("User id " + idOfAuthUserToConvert + " (" + authenticatedUser.getIdentifier()
-                    + ") cannot be converted from remote to BuiltIn because the email address " + newEmailAddress
-                    + " is already in use by user id " + existingUserWithSameEmail.getId()
+            throw new Exception("User id " + idOfAuthUserToConvert + " (" 
+            		+ authenticatedUser.getIdentifier()
+                    + ") cannot be converted from remote to BuiltIn because the email address " 
+            		+ newEmailAddress
+                    + " is already in use by user id " 
+            		+ existingUserWithSameEmail.getId()
                     + " (" + existingUserWithSameEmail.getIdentifier() + ").");
         }
         BuiltinUser builtinUser = new BuiltinUser();
@@ -688,32 +742,41 @@ public class AuthenticationServiceBean {
         if (numViolations > 0) {
             StringBuilder logMsg = new StringBuilder();
             for (ConstraintViolation<?> violation : violations) {
-                logMsg.append(" Invalid value: <<<").append(violation.getInvalidValue()).append(">>> for ")
-                        .append(violation.getPropertyPath()).append(" at ").append(violation.getLeafBean())
+                logMsg.append(" Invalid value: <<<").append(violation.getInvalidValue())
+                		.append(">>> for ")
+                        .append(violation.getPropertyPath()).append(" at ")
+                        .append(violation.getLeafBean())
                         .append(" - ").append(violation.getMessage());
             }
-            throw new Exception("User id " + idOfAuthUserToConvert + " cannot be converted from remote to BuiltIn " +
-                    "because of constraint violations on the BuiltIn user that would be created: " + numViolations
-                    + ". Details: " + logMsg);
+            throw new Exception("User id " + idOfAuthUserToConvert + 
+            		" cannot be converted from remote to BuiltIn " +
+                    "because of constraint violations on the BuiltIn user that would be created: " + 
+            		numViolations + ". Details: " + logMsg);
         }
         try {
             builtinUser = builtinUserServiceBean.save(builtinUser);
         } catch (IllegalArgumentException ex) {
-            throw new Exception("User id " + idOfAuthUserToConvert + " cannot be converted from remote to BuiltIn " +
-                    "because of an IllegalArgumentException creating the row in the builtinuser table: " + ex);
+            throw new Exception("User id " + idOfAuthUserToConvert + 
+            		" cannot be converted from remote to BuiltIn " +
+                    "because of an IllegalArgumentException creating the row in the builtinuser table: " + 
+            		ex);
         }
         AuthenticatedUserLookup lookup = authenticatedUser.getAuthenticatedUserLookup();
         if (lookup == null) {
-            throw new Exception("User id " + idOfAuthUserToConvert + " does not have an 'authenticateduserlookup' row");
+            throw new Exception("User id " + idOfAuthUserToConvert + 
+            		" does not have an 'authenticateduserlookup' row");
         }
         String providerId = lookup.getAuthenticationProviderId();
         if (providerId == null) {
-            throw new Exception("User id " + idOfAuthUserToConvert + " provider id is null.");
+            throw new Exception("User id " + idOfAuthUserToConvert + 
+            		" provider id is null.");
         }
         String builtinProviderId = BuiltinAuthenticationProvider.PROVIDER_ID;
         if (providerId.equals(builtinProviderId)) {
-            throw new Exception("User id " + idOfAuthUserToConvert + " cannot be converted from remote to BuiltIn " +
-                    "because current provider id is '" + providerId + "' which is the same as '" + builtinProviderId
+            throw new Exception("User id " + idOfAuthUserToConvert + 
+            		" cannot be converted from remote to BuiltIn " +
+                    "because current provider id is '" + providerId + 
+                    "' which is the same as '" + builtinProviderId
                     + "'. This user is already a BuiltIn user.");
         }
         lookup.setAuthenticationProviderId(BuiltinAuthenticationProvider.PROVIDER_ID);
@@ -726,6 +789,7 @@ public class AuthenticationServiceBean {
     }
 
     public AuthenticatedUser canLogInAsBuiltinUser(String username, String password) {
+    	
         logger.fine("checking to see if " + username + " knows the password...");
         if (password == null) {
             logger.info("password was null");
@@ -740,10 +804,6 @@ public class AuthenticationServiceBean {
          */
         authReq.putCredential(BuiltinAuthenticationProvider.KEY_USERNAME_OR_EMAIL, username);
         authReq.putCredential(BuiltinAuthenticationProvider.KEY_PASSWORD, password);
-        /*
-         * @todo Should probably set IP address here.
-         */
-//        authReq.setIpAddress(session.getUser().getRequestMetadata().getIpAddress());
 
         String credentialsAuthProviderId = BuiltinAuthenticationProvider.PROVIDER_ID;
         try {
@@ -751,22 +811,27 @@ public class AuthenticationServiceBean {
             logger.fine("User authenticated:" + au.getEmail());
             return au;
         } catch (AuthenticationFailedException ex) {
-            logger.info("The username and/or password entered is invalid: " + ex.getResponse().getMessage());
-            if (AuthenticationResponse.Status.BREAKOUT.equals(ex.getResponse().getStatus())) {
+            logger.info("The username and/or password entered is invalid: " + 
+            		ex.getResponse().getMessage());
+            if (BREAKOUT.equals(ex.getResponse().getStatus())) {
                 /*
                  * Note that this "BREAKOUT" status creates PasswordResetData!
                  * We'll delete it just before blowing away the BuiltinUser in
                  * AuthenticationServiceBean.convertBuiltInUserToRemote
                  */
                 logger.info("AuthenticationFailedException caught in canLogInAsBuiltinUser: " +
-                        "The username and/or password entered is invalid: " + ex.getResponse().getMessage()
-                        + " - Maybe the user (" + username + ") hasn't upgraded their password? Checking the old password...");
+                        "The username and/or password entered is invalid: " + 
+                		ex.getResponse().getMessage() +
+                        " - Maybe the user (" + username + 
+                        ") hasn't upgraded their password? Checking the old password...");
                 BuiltinUser builtinUser = builtinUserServiceBean.findByUserName(username);
                 if (builtinUser != null) {
-                    boolean userAuthenticated = PasswordEncryption.getVersion(builtinUser.getPasswordEncryptionVersion())
+                    boolean userAuthenticated = PasswordEncryption.getVersion(
+                    		builtinUser.getPasswordEncryptionVersion())
                             .check(password, builtinUser.getEncryptedPassword());
                     if (userAuthenticated) {
-                        AuthenticatedUser authUser = lookupUser(BuiltinAuthenticationProvider.PROVIDER_ID, builtinUser.getUserName());
+                        AuthenticatedUser authUser = lookupUser(BuiltinAuthenticationProvider.PROVIDER_ID, 
+                        		builtinUser.getUserName());
                         if (authUser != null) {
                             return authUser;
                         } else {
@@ -800,14 +865,17 @@ public class AuthenticationServiceBean {
                         StackTraceElement stacktrace = cause.getStackTrace()[i];
                         if (stacktrace != null) {
                             int lineNumber = stacktrace.getLineNumber();
-                            String error = "at " + stacktrace.getClassName() + '.' + stacktrace.getMethodName()
-                                    + '(' + stacktrace.getFileName() + ':' + lineNumber + ") ";
+                            String error = "at " + stacktrace.getClassName() + 
+                            		'.' + stacktrace.getMethodName() +
+                                    '(' + stacktrace.getFileName() + ':' + 
+                                    lineNumber + ") ";
                             sb.append(error);
                         }
                     }
                 }
             }
-            logger.info("When trying to validate password, exception calling authSvc.authenticate: " + sb.toString());
+            logger.info("When trying to validate password, exception calling authSvc.authenticate: " + 
+            		sb.toString());
             return null;
         }
     }
