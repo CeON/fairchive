@@ -14,7 +14,7 @@ import java.util.List;
  * @author michael
  */
 @SuppressWarnings("serial")
-@RequiredPermissions(Permission.ManageDataversePermissions)
+@RequiredPermissions(Permission.ManageDataverse)
 public class ListRoleAssignments extends AbstractCommand<List<RoleAssignment>> {
 
     private final DvObject definitionPoint;

@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDatasetPermissions;
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDatasetPermissions;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataset;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDataset;
 
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
@@ -11,7 +11,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 
 @SuppressWarnings("serial")
-@RequiredPermissions(value = {ManageDatasetPermissions, ManageMinorDatasetPermissions}, 
+@RequiredPermissions(value = {ManageDataset, ManageMinorDataset}, 
                      isAllPermissionsRequired = false)
 public class GetPrivateUrlCommand extends AbstractCommand<PrivateUrl> {
 

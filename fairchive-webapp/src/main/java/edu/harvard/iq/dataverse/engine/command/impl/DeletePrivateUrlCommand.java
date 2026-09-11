@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDatasetPermissions;
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDatasetPermissions;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataset;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDataset;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 
 @SuppressWarnings("serial")
-@RequiredPermissions(value = {ManageDatasetPermissions, ManageMinorDatasetPermissions}, isAllPermissionsRequired = false)
+@RequiredPermissions(value = {ManageDataset, ManageMinorDataset}, isAllPermissionsRequired = false)
 public class DeletePrivateUrlCommand extends AbstractVoidCommand {
 
     private final Dataset dataset;

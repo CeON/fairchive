@@ -159,15 +159,15 @@ public class PermissionsWrapper implements Serializable {
         if (dv == null || (dv.getId() == null)) {
             return false;
         }
-        return permissionService.requestOn(dvRequestService.getDataverseRequest(), dv).has(Permission.ManageDataversePermissions);
+        return permissionService.requestOn(dvRequestService.getDataverseRequest(), dv).has(Permission.ManageDataverse);
     }
 
     public boolean canManageDatasetOrMinorDatasetPermissions(Dataset ds) {
         if (ds == null || (ds.getId() == null)) {
             return false;
         }
-        return permissionService.requestOn(dvRequestService.getDataverseRequest(), ds).has(Permission.ManageDatasetPermissions) ||
-                permissionService.requestOn(dvRequestService.getDataverseRequest(), ds).has(Permission.ManageMinorDatasetPermissions);
+        return permissionService.requestOn(dvRequestService.getDataverseRequest(), ds).has(Permission.ManageDataset) ||
+                permissionService.requestOn(dvRequestService.getDataverseRequest(), ds).has(Permission.ManageMinorDataset);
     }
 
     public boolean canViewUnpublishedDataset(Dataset dataset) {

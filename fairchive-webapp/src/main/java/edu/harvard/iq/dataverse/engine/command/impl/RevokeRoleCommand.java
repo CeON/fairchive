@@ -10,9 +10,9 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDatasetPermissions;
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataversePermissions;
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDatasetPermissions;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataset;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataverse;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDataset;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 
@@ -49,14 +49,14 @@ public class RevokeRoleCommand extends AbstractVoidCommand implements Serializab
         // for data file check permission on owning dataset
 
         if (toBeRevoked.getDefinitionPoint() instanceof Dataverse) {
-            return singletonMap("", singleton(ManageDataversePermissions));
+            return singletonMap("", singleton(ManageDataverse));
         }
         if (DataverseRolePermissionHelper.getRolesAllowedToBeAssignedByManageMinorDatasetPermissions()
                 .contains(toBeRevoked.getRole().getAlias())) {
-            return singletonMap("", ImmutableSet.of(ManageDatasetPermissions, ManageMinorDatasetPermissions));
+            return singletonMap("", ImmutableSet.of(ManageDataset, ManageMinorDataset));
         }
 
-        return singletonMap("", singleton(ManageDatasetPermissions));
+        return singletonMap("", singleton(ManageDataset));
     }
 
     @Override

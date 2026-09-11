@@ -485,7 +485,7 @@ public class ManagePermissionsPageTest {
 	
 		final RoleAssignment assignment = new RoleAssignment();
 		assignment.setRole(getRole(FULL_CONTRIBUTOR.getAlias()));
-		assignment.getRole().addPermission(Permission.ManageDataversePermissions);
+		assignment.getRole().addPermission(Permission.ManageDataverse);
 		assignment.setDefinitionPoint(this.dataverse);
 		
 		when(this.roleAssignmentRepository.findByAssigneeIdentifier(anyString())).
@@ -604,7 +604,7 @@ public class ManagePermissionsPageTest {
 		final DataverseRole role = new DataverseRole();
 		role.setId(1L);
 		role.setName("editRole");
-		role.addPermission(Permission.ManageDataversePermissions);
+		role.addPermission(Permission.ManageDataverse);
 		
 		assignment.setRole(role);
 		assignment.setAssigneeIdentifier(user.getIdentifier());

@@ -16,7 +16,7 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 
 @SuppressWarnings("serial")
-@RequiredPermissions(value = {Permission.ManageDatasetPermissions, Permission.ManageMinorDatasetPermissions}, isAllPermissionsRequired = false)
+@RequiredPermissions(value = {Permission.ManageDataset, Permission.ManageMinorDataset}, isAllPermissionsRequired = false)
 public class CreatePrivateUrlCommand extends AbstractCommand<PrivateUrl> {
 
     final Dataset dataset;

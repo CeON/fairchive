@@ -38,7 +38,7 @@ import java.util.logging.Logger;
 // since the current implementation is superuser only, we can ignore these permission
 // checks that would need to be revisited if regular users were able to use this
 @RequiredPermissionsMap({
-        @RequiredPermissions(dataverseName = "moved", value = {Permission.ManageDataversePermissions, Permission.EditDataverse}),
+        @RequiredPermissions(dataverseName = "moved", value = {Permission.ManageDataverse, Permission.EditDataverse}),
         @RequiredPermissions(dataverseName = "source", value = Permission.DeleteDataverse),
         @RequiredPermissions(dataverseName = "destination", value = Permission.AddDataverse)
 })

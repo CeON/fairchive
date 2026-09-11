@@ -332,7 +332,7 @@ public class MocksFactory {
         dvr.setName(name);
         dvr.setDescription(name + "  " + name + " " + name);
 
-        dvr.addPermission(Permission.ManageDatasetPermissions);
+        dvr.addPermission(Permission.ManageDataset);
         dvr.addPermission(Permission.EditDataset);
         dvr.addPermission(Permission.PublishDataset);
         dvr.addPermission(Permission.ViewUnpublishedDataset);

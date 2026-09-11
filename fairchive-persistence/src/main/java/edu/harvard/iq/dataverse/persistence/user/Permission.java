@@ -55,9 +55,9 @@ public enum Permission implements java.io.Serializable {
     //64
     EditDataset(true, true, Dataset.class),
     //128
-    ManageDataversePermissions(true, true, Dataverse.class),
+    ManageDataverse(true, true, Dataverse.class),
     //256
-    ManageDatasetPermissions(true, true, Dataset.class),
+    ManageDataset(true, true, Dataset.class),
     //512
     PublishDataverse(true, true, Dataverse.class),
     //1024
@@ -68,7 +68,7 @@ public enum Permission implements java.io.Serializable {
     //4096
     DeleteDatasetDraft(true, true, Dataset.class),
     //8192
-    ManageMinorDatasetPermissions(true, true, Dataset.class);
+    ManageMinorDataset(true, true, Dataset.class);
 	
     // lets's cache this for performance reasons
     private final static Permission[] values = values();
