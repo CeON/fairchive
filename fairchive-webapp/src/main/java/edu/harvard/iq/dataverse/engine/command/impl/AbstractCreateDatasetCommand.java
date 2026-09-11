@@ -130,7 +130,7 @@ public abstract class AbstractCreateDatasetCommand extends AbstractDatasetComman
 
     @Override
     public int hashCode() {
-        return 97 + Objects.hashCode(getDataset());
+        return Objects.hashCode(getDataset());
     }
 
     @Override
