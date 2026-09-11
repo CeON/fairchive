@@ -69,29 +69,31 @@ public interface Command<R> {
     static public Map<String, Set<Permission>> requiredPermissions(
     		final Class<? extends Command> cmdClass) {
     	
-        RequiredPermissions requiredPerms = cmdClass.getAnnotation(RequiredPermissions.class);
-        if (requiredPerms == null) {
-            // try for the permission map
-            RequiredPermissionsMap reqPermMap = cmdClass.getAnnotation(RequiredPermissionsMap.class);
-            if (reqPermMap == null) {
-                // No annotations here. Look up the class hierachy
-                Class superClass = cmdClass.getSuperclass();
+        final RequiredPermissions requiredPerms = 
+        		cmdClass.getAnnotation(RequiredPermissions.class);
+        if (requiredPerms != null) {
+            return singletonMap(requiredPerms.dataverseName(), 
+            		Permission.setOf(requiredPerms.value()));
+        } else {
+            final RequiredPermissionsMap requiredPermsMap = 
+            		cmdClass.getAnnotation(RequiredPermissionsMap.class);
+            if (requiredPermsMap != null) {
+                final Map<String, Set<Permission>> result = new TreeMap<>();
+                for (final RequiredPermissions rp : requiredPermsMap.value()) {
+                    result.put(rp.dataverseName(), Permission.setOf(rp.value()));
+                }
+                return result;
+            } else {
+                final Class superClass = cmdClass.getSuperclass();
                 if (superClass != null) {
                     return requiredPermissions(superClass);
                 } else {
-                    throw new IllegalArgumentException("Command class " + cmdClass.getCanonicalName()
-                                                               + ", and its superclasses, do not declare required permissions.");
+                    throw new IllegalArgumentException(
+                    		"Command class " + 
+                    		cmdClass.getCanonicalName() +
+                            ", and its superclasses, do not declare required permissions.");
                 }
             }
-            Map<String, Set<Permission>> retVal = new TreeMap<>();
-            for (RequiredPermissions rp : reqPermMap.value()) {
-                retVal.put(rp.dataverseName(), Permission.setOf(rp.value()));
-            }
-            return retVal;
-
-        } else {
-            Permission[] required = requiredPerms.value();
-            return singletonMap(requiredPerms.dataverseName(), Permission.setOf(required));
         }
     }
 }
