@@ -1,12 +1,14 @@
 package edu.harvard.iq.dataverse.engine.command;
 
 import static java.util.Collections.singletonMap;
+import static org.apache.commons.collections4.CollectionUtils.containsAny;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
+import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
@@ -18,6 +20,11 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
  */
 public interface Command<R> {
 
+	public interface PermissionsProvider {
+		Set<Permission> getFor(final DataverseRequest request, 
+	    		final DvObject object);
+	}
+	
     /**
      * Override this method to execute the actual command.
      *
@@ -66,7 +73,7 @@ public interface Command<R> {
      * not annotated.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    static public Map<String, Set<Permission>> requiredPermissions(
+    public static Map<String, Set<Permission>> requiredPermissions(
     		final Class<? extends Command> cmdClass) {
     	
         final RequiredPermissions requiredPerms = 
@@ -89,11 +96,43 @@ public interface Command<R> {
                     return requiredPermissions(superClass);
                 } else {
                     throw new IllegalArgumentException(
-                    		"Command class " + 
-                    		cmdClass.getCanonicalName() +
+                    		"Command class " + cmdClass.getSimpleName() +
                             ", and its superclasses, do not declare required permissions.");
                 }
             }
         }
     }
+    
+	default void verifyPermissions(final PermissionsProvider permissionProvider) {
+
+		final Map<String, Set<Permission>> requiredPermissionsMap = getRequiredPermissions();
+		final Map<String, DvObject> affectedObjects = getAffectedDvObjects();
+		
+		for (final Map.Entry<String, Set<Permission>> pair : requiredPermissionsMap.entrySet()) {
+		    final String objectName = pair.getKey();
+		    final DvObject object = affectedObjects.get(objectName);
+		    if (!affectedObjects.containsKey(objectName)) {
+		        throw new RuntimeException("Command instance " + 
+		        		getClass().getSimpleName() + 
+		        		" does not have a DvObject named '" + objectName + '\'');
+		    }
+
+		    final Set<Permission> granted = (object != null) 
+		    		? permissionProvider.getFor(getRequest(), object)
+		            : Permission.all();
+		    final Set<Permission> required = requiredPermissionsMap.get(objectName);
+
+		    if ((!isAllPermissionsRequired() && !containsAny(granted, required) ||
+		            (isAllPermissionsRequired() && !granted.containsAll(required)))) {
+		    	required.removeAll(granted);
+		        throw new PermissionException("Can't execute command " 
+		        		+ getClass().getSimpleName()
+	                    + ", because request " + getRequest()
+	                    + " is missing permissions " + required
+	                    + " on Object " + object.accept(DvObject.NamePrinter),
+	                    this, required, object);
+		    }
+		}
+
+	}
 }

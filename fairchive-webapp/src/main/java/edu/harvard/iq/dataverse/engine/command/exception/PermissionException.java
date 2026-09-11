@@ -16,26 +16,29 @@ import java.util.Set;
 public class PermissionException extends CommandException {
 
     private final Set<Permission> missingPermissions;
-    private final DvObject dvObject;
+    private final DvObject object;
 
-    public PermissionException(String message, Command<?> failedCommand, Set<Permission> missingPermissions, DvObject aDvObject) {
+    public PermissionException(final String message, final Command<?> failedCommand, 
+    		final Set<Permission> missingPermissions, final DvObject object) {
+    	
         super(message, failedCommand);
         this.missingPermissions = missingPermissions;
-        dvObject = aDvObject;
+        this.object = object;
     }
 
-    public PermissionException(String message, Set<Permission> missingPermissions, DvObject aDvObject) {
+    public PermissionException(final String message, 
+    		final Set<Permission> missingPermissions, final DvObject object) {
         super(message, null);
         this.missingPermissions = missingPermissions;
-        dvObject = aDvObject;
+        this.object = object;
     }
 
     public Set<Permission> getMissingPermissions() {
-        return missingPermissions;
+        return this.missingPermissions;
     }
 
     public DvObject getDvObject() {
-        return dvObject;
+        return this.object;
     }
 
 }

@@ -124,7 +124,7 @@ public class PermissionServiceBean {
 	        // Add permissions gained from ras
 	        final Set<RoleAssignee> assignees = new HashSet<>(this.groupService.groupsFor(request, object));
 	        assignees.add(user);
-	        for (RoleAssignment assignment : assignmentsFor(assignees, object)) {
+	        for (final RoleAssignment assignment : assignmentsFor(assignees, object)) {
 	            permissions.addAll(assignment.getRole().permissions());
 	        }
 	
