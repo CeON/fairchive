@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -353,7 +354,7 @@ public class PrivateUrlUtilTest {
         CreatePrivateUrlCommand createPrivateUrlCommand = new CreatePrivateUrlCommand(null, null, false);
         CommandException ex = new CommandException(null, createPrivateUrlCommand);
         List<String> strings = PrivateUrlUtil.getRequiredPermissions(ex);
-        assertEquals(Arrays.asList("ManageDatasetPermissions", "ManageMinorDatasetPermissions"), strings);
+        assertEquals(asList("ManageDataset", "ManageMinorDataset"), strings);
     }
 
 }

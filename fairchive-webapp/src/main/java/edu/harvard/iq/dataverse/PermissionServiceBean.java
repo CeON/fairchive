@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.engine.command.CommandHelper.CH;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.DcmUpload;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Ingest;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
@@ -562,7 +561,7 @@ public class PermissionServiceBean {
          * in the context of the current request.
          */
         public boolean canIssue(Class<? extends Command<?>> commandClass) {
-            Map<String, Set<Permission>> required = CH.permissionsRequired(commandClass);
+            Map<String, Set<Permission>> required = Command.requiredPermissions(commandClass);
             if (required.isEmpty() || required.get("") == null) {
                 logger.debug("IsUserAllowedOn: empty-true");
                 return true;

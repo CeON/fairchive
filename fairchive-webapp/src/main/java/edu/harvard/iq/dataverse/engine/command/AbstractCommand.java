@@ -1,15 +1,11 @@
 package edu.harvard.iq.dataverse.engine.command;
 
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.user.Permission;
-import edu.harvard.iq.dataverse.persistence.user.User;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-import static edu.harvard.iq.dataverse.engine.command.CommandHelper.CH;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.user.User;
 
 /**
  * Convenience class for implementing the {@link Command} interface.
@@ -71,16 +67,6 @@ public abstract class AbstractCommand<R> implements Command<R>, Serializable {
     @Override
     public DataverseRequest getRequest() {
         return this.request;
-    }
-
-    @Override
-    public Map<String, Set<Permission>> getRequiredPermissions() {
-        return CH.permissionsRequired(getClass());
-    }
-
-    @Override
-    public boolean isAllPermissionsRequired() {
-        return CH.isAllPermissionsRequired(getClass());
     }
 
     /**

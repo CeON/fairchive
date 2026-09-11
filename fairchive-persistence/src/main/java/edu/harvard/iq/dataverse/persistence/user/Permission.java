@@ -153,8 +153,16 @@ public enum Permission implements java.io.Serializable {
         return result;
     }
     
-    public static Set<Permission> setOf(final Permission p) {
-    	return EnumSet.of(p);
+    public static Set<Permission> setOf(final Permission permission) {
+    	return EnumSet.of(permission);
+    }
+    
+    public static Set<Permission> setOf(final Permission[] permissions) {
+    	final Set<Permission> result = empty();
+    	for(final Permission p : permissions) {
+    		result.add(p);
+    	}
+    	return result;
     }
     
     public static boolean requiresWrite(final Set<Permission> set) {
