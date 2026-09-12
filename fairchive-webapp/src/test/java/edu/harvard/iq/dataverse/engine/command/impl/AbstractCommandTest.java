@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.engine.command.impl;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.AddDataverse;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.DeleteDataverse;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataverse;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -61,20 +62,10 @@ public class AbstractCommandTest {
 	void noPermissionsResquired() {
 
 		Command<Dataverse> command = new NoPermissionsRequired();
-
-		try {
-			command.getRequiredPermissions();
-			fail();
-		} catch (final IllegalArgumentException e) {
-			assertThat(e.getMessage()).startsWith("Command class");
-		}
+		Map<String, Set<Permission>> required = command.getRequiredPermissions();
 		
-		try {
-			command.verifyPermissions((req, obj) -> Permission.empty());
-			fail();
-		} catch (final IllegalArgumentException e) {
-			assertThat(e.getMessage()).startsWith("Command class");
-		}
+		assertThat(required).hasSize(1);
+		assertThat(required.get("")).isEqualTo(Permission.none());
 	}
 	//--------------------------------------------------------------------------
 	@SuppressWarnings("serial")
@@ -92,7 +83,7 @@ public class AbstractCommandTest {
 		assertThat(required.get("")).isEqualTo(addDataverseSet);
 		
 		try {
-			command.verifyPermissions((req, obj) -> Permission.empty());
+			command.verifyPermissions((req, obj) -> Permission.none());
 			fail();
 		} catch (final PermissionException e) {
 			assertThat(e.getMessage()).startsWith("Can't execute command");
@@ -123,7 +114,7 @@ public class AbstractCommandTest {
 		assertThat(required.get("")).isEqualTo(addDeleteDataverseSet);
 		
 		try {
-			command.verifyPermissions((req, obj) -> Permission.empty());
+			command.verifyPermissions((req, obj) -> Permission.none());
 			fail();
 		} catch (final PermissionException e) {
 			assertThat(e.getMessage()).startsWith("Can't execute command");
@@ -140,6 +131,42 @@ public class AbstractCommandTest {
 			assertThat(e.getMessage()).contains("MultiplePermissionsRequired");
 			assertThat(e.getMessage()).contains("DeleteDataverse");
 		}
+		
+		assertDoesNotThrow(
+				() -> command.verifyPermissions((req, obj) -> addDeleteDataverseSet));
+		
+		assertDoesNotThrow(
+				() -> command.verifyPermissions((req, obj) -> addDeleteManageDataverseSet));
+	}
+	
+	//--------------------------------------------------------------------------
+	@SuppressWarnings("serial")
+	@RequiredPermissions (value = {AddDataverse, DeleteDataverse},
+						  strategy = atLeastOneRequired)
+	static class MultiplePermissionsOnlyOneRequired extends BaseCommand {
+	}
+
+	@Test
+	void multiplePermissionsOnlyOneRequired() {
+
+		Command<Dataverse> command = new MultiplePermissionsOnlyOneRequired();
+		Map<String, Set<Permission>> required = command.getRequiredPermissions();
+		
+		assertThat(required).hasSize(1);
+		assertThat(required.get("")).isEqualTo(addDeleteDataverseSet);
+		
+		try {
+			command.verifyPermissions((req, obj) -> Permission.none());
+			fail();
+		} catch (final PermissionException e) {
+			assertThat(e.getMessage()).startsWith("Can't execute command");
+			assertThat(e.getMessage()).contains("MultiplePermissionsOnlyOneRequired");
+			assertThat(e.getMessage()).contains("AddDataverse");
+			assertThat(e.getMessage()).contains("DeleteDataverse");
+		}
+		
+		assertDoesNotThrow(
+				() -> command.verifyPermissions((req, obj) -> addDataverseSet));
 		
 		assertDoesNotThrow(
 				() -> command.verifyPermissions((req, obj) -> addDeleteDataverseSet));
@@ -175,7 +202,7 @@ public class AbstractCommandTest {
 		assertThat(required.get("abc")).isEqualTo(deleteDataverseSet);
 		
 		try {
-			command.verifyPermissions((req, obj) -> Permission.empty());
+			command.verifyPermissions((req, obj) -> Permission.none());
 			fail();
 		} catch (final PermissionException e) {
 			assertThat(e.getMessage()).startsWith("Can't execute command");

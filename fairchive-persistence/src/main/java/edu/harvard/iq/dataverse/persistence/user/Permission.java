@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.persistence.user;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.util.Arrays.stream;
+import static java.util.Collections.disjoint;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -143,7 +144,7 @@ public enum Permission implements java.io.Serializable {
     	return readOnly ? readOnly() : all();
     }
     
-    public static Set<Permission> empty() {
+    public static Set<Permission> none() {
     	return EnumSet.noneOf(Permission.class);
     }
     
@@ -158,7 +159,7 @@ public enum Permission implements java.io.Serializable {
     }
     
     public static Set<Permission> setOf(final Permission[] permissions) {
-    	final Set<Permission> result = empty();
+    	final Set<Permission> result = none();
     	for(final Permission p : permissions) {
     		result.add(p);
     	}
@@ -171,5 +172,24 @@ public enum Permission implements java.io.Serializable {
     
     public static boolean requiresAuthenticatedUser(final Set<Permission> set) {
     	return set.stream().anyMatch(Permission::requiresAuthenticatedUser);
+    }
+    
+    public enum MatchStrategy {
+    	allRequired {
+    		@Override
+    		public boolean match(final Set<Permission> required, 
+    				final Set<Permission> granted) {
+    			return granted.containsAll(required);
+    		}
+    	}, atLeastOneRequired {
+    		@Override
+    		public boolean match(final Set<Permission> required, 
+    				final Set<Permission> granted) {
+    			return ! disjoint(granted, required);
+    		}
+    	};
+    	
+    	public abstract boolean match(final Set<Permission> required, 
+    			final Set<Permission> granted);
     }
 }

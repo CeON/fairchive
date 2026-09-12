@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
+
 import java.util.UUID;
 
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
@@ -16,7 +18,8 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 
 @SuppressWarnings("serial")
-@RequiredPermissions(value = {Permission.ManageDataset, Permission.ManageMinorDataset}, isAllPermissionsRequired = false)
+@RequiredPermissions(value = {Permission.ManageDataset, Permission.ManageMinorDataset}, 
+					 strategy = atLeastOneRequired)
 public class CreatePrivateUrlCommand extends AbstractCommand<PrivateUrl> {
 
     final Dataset dataset;

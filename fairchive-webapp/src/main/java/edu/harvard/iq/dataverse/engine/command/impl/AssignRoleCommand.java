@@ -8,6 +8,7 @@ import edu.harvard.iq.dataverse.authorization.DataverseRolePermissionHelper;
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -15,6 +16,8 @@ import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
+
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -26,8 +29,8 @@ import java.util.Set;
  *
  * @author michael
  */
-// no annotations here, since permissions are dynamically decided
 @SuppressWarnings("serial")
+@RequiredPermissions(strategy = atLeastOneRequired) //permissions are dynamically decided
 public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implements Serializable {
 
     private final DataverseRole role;
@@ -84,10 +87,5 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
     @Override
     public String describe() {
         return grantee + " has been given " + role + " on " + defPoint.accept(DvObject.NameIdPrinter);
-    }
-
-    @Override
-    public boolean isAllPermissionsRequired() {
-        return false;
     }
 }

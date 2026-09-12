@@ -1,11 +1,12 @@
 package edu.harvard.iq.dataverse.engine.command;
 
 import static java.util.Collections.singletonMap;
-import static org.apache.commons.collections4.CollectionUtils.containsAny;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
+import org.apache.commons.collections4.SetUtils;
 
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
@@ -56,11 +57,6 @@ public interface Command<R> {
     	return requiredPermissions(getClass());
     }
 
-    default boolean isAllPermissionsRequired() {
-        final RequiredPermissions required = getClass().getAnnotation(RequiredPermissions.class);
-        return required == null || required.isAllPermissionsRequired();
-    }
-
     String describe();
     
     /**
@@ -95,9 +91,7 @@ public interface Command<R> {
                 if (superClass != null) {
                     return requiredPermissions(superClass);
                 } else {
-                    throw new IllegalArgumentException(
-                    		"Command class " + cmdClass.getSimpleName() +
-                            ", and its superclasses, do not declare required permissions.");
+                    return singletonMap("", Permission.none());
                 }
             }
         }
@@ -121,18 +115,21 @@ public interface Command<R> {
 		    		? permissionProvider.getFor(getRequest(), object)
 		            : Permission.all();
 		    final Set<Permission> required = requiredPermissionsMap.get(objectName);
+		    
+		    final RequiredPermissions annotation = getClass().getAnnotation(RequiredPermissions.class);
+		    final Permission.MatchStrategy strategy = annotation != null
+		    		? annotation.strategy()
+		    		: Permission.MatchStrategy.allRequired;
 
-		    if ((!isAllPermissionsRequired() && !containsAny(granted, required) ||
-		            (isAllPermissionsRequired() && !granted.containsAll(required)))) {
-		    	required.removeAll(granted);
+		    if (! strategy.match(required, granted)) {
+		    	final Set<Permission> missing = SetUtils.difference(required, granted);
 		        throw new PermissionException("Can't execute command " 
 		        		+ getClass().getSimpleName()
 	                    + ", because request " + getRequest()
-	                    + " is missing permissions " + required
+	                    + " is missing permissions " + missing
 	                    + " on Object " + object.accept(DvObject.NamePrinter),
-	                    this, required, object);
+	                    this, missing, object);
 		    }
 		}
-
 	}
 }

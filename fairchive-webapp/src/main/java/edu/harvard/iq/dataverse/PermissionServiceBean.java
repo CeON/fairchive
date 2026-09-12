@@ -437,7 +437,7 @@ public class PermissionServiceBean {
     private Set<Permission> getInferredPermissions(DvObject dvObject) {
         return isPubliclyDownloadable(dvObject) 
         		? Permission.setOf(Permission.DownloadFile)
-        		: Permission.empty();
+        		: Permission.none();
     }
 
     /**

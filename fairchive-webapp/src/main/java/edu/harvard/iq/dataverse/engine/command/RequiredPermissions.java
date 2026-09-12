@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.engine.command;
 
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.allRequired;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -14,9 +15,9 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 @Target(TYPE)
 public @interface RequiredPermissions {
 	
-    Permission[] value();
-
-    boolean isAllPermissionsRequired() default true;
+    Permission[] value() default {};
 
     String dataverseName() default "";
+    
+    Permission.MatchStrategy strategy() default allRequired;
 }
