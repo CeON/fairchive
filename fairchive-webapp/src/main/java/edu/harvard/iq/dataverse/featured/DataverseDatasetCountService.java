@@ -56,7 +56,9 @@ public class DataverseDatasetCountService {
                 .addFilterQuery(SearchFields.PUBLICATION_STATUS + ":\"" + SearchPublicationStatus.PUBLISHED.getSolrValue() + "\"")
                 .setStart(0)
                 .setRows(0) // don't need data, just the facet counter's
-                .addFacetField(SearchFields.SUBTREE);
+                .addFacetField(SearchFields.SUBTREE)
+                // Solr caps facets at 100 terms by default; count every child
+                .setFacetLimit(-1);
 
         solrQuery.add(FacetParams.FACET_PREFIX, subtreePath);
 
