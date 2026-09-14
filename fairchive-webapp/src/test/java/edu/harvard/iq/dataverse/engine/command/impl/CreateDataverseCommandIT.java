@@ -144,6 +144,48 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 	
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
+	void subCollectionsHaveRoleAssignments_forModifiedOwner_andOrdinaryUser() throws Throwable {
+		
+		this.owner.setDefaultDataverseContributorRole(
+				this.rolesService.findBuiltinRoleByAlias(COLLECTION_CUSTODIAN));
+		
+		this.permissionsService.assignRoleWithNotification(
+				this.rolesService.findBuiltinRoleByAlias(ADMIN),
+				this.fileDownloader, this.owner);
+		
+		this.dataverseRepository.save(this.owner);
+		
+		this.session.logOut();
+		this.session.logIn(this.fileDownloader);
+		
+		CreateDataverseCommand command = new CreateDataverseCommand(this.dataverse, 
+				newRequest(), null, null);
+		
+		this.engine.submit(command);
+		
+		final List<RoleAssignment> assignedRoles = 
+				this.rolesService.directRoleAssignments(this.dataverse);
+		
+		assertThat(assignedRoles).hasSize(3);
+		assertThat(assignedRoles).anyMatch(
+				assignment -> assignment.getAssigneeIdentifier().equals("@dataverseAdmin")
+							&& assignment.getRole().getAlias().equals(COLLECTION_CUSTODIAN.getAlias()));
+		assertThat(assignedRoles).anyMatch(
+				assignment -> assignment.getAssigneeIdentifier().equals(":authenticated-users")
+							&& assignment.getRole().getAlias().equals(DS_CONTRIBUTOR.getAlias()));
+		assertThat(assignedRoles).anyMatch(
+				assignment -> assignment.getAssigneeIdentifier().equals("@filedownloader")
+							&& assignment.getRole().getAlias().equals(ADMIN.getAlias()));
+		
+		
+		assertThat(this.dataverse.getDefaultDatasetContributorRole().getAlias()).
+			isEqualTo(DEPOSITOR.getAlias());
+		assertThat(this.dataverse.getDefaultDataverseContributorRole().getAlias()).
+			isEqualTo(COLLECTION_CUSTODIAN.getAlias());
+	}
+	
+	@Test
+	@Transactional(TransactionMode.ROLLBACK)
 	void subCollectionsHaveNoAdminRolesAssigned_forNoCollectionCustodian() throws Throwable {
 
 		this.permissionsService.assignRoleWithNotification(

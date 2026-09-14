@@ -30,9 +30,9 @@ public class AbstractCommandTest {
 	private final static Set<Permission> addDataverseSet = Permission.setOf(AddDataverse);
 	private final static Set<Permission> deleteDataverseSet = Permission.setOf(DeleteDataverse);
 	private final static Set<Permission> addDeleteDataverseSet = 
-			Permission.setOf(new Permission[] {AddDataverse, DeleteDataverse});
+			Permission.setOf(AddDataverse, DeleteDataverse);
 	private final static Set<Permission> addDeleteManageDataverseSet = 
-			Permission.setOf(new Permission[] {AddDataverse, DeleteDataverse, ManageDataverse});
+			Permission.setOf(AddDataverse, DeleteDataverse, ManageDataverse);
 
 	@SuppressWarnings("serial")
 	static class BaseCommand extends AbstractCommand<Dataverse> {

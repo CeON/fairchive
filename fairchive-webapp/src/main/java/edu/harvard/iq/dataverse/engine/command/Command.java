@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.commons.collections4.SetUtils;
-
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.persistence.DvObject;
@@ -121,8 +119,8 @@ public interface Command<R> {
 		    		? annotation.strategy()
 		    		: Permission.MatchStrategy.allRequired;
 
-		    if (! strategy.match(required, granted)) {
-		    	final Set<Permission> missing = SetUtils.difference(required, granted);
+		    if (!required.isEmpty() && !strategy.match(required, granted)) {
+		    	final Set<Permission> missing = Permission.differenceBetween(required, granted);
 		        throw new PermissionException("Can't execute command " 
 		        		+ getClass().getSimpleName()
 	                    + ", because request " + getRequest()

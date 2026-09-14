@@ -25,6 +25,7 @@ import java.util.Set;
 
 import static edu.harvard.iq.dataverse.mocks.MockRequestFactory.makeRequest;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeDataset;
+import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -86,7 +87,7 @@ public class CreateDatasetVersionCommandTest {
         assertEquals(ds, dsvNew.getDataset());
         assertEquals(dsvNew, ds.getEditVersion());
         Map<DvObject, Set<Permission>> expected = new HashMap<>();
-        expected.put(ds, Collections.singleton(Permission.AddDataset));
+        expected.put(ds, singleton(Permission.AddDataset));
         assertEquals(expected, testEngine.getReqiredPermissionsForObjects());
     }
 

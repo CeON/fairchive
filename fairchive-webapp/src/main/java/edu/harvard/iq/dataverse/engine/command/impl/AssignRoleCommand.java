@@ -3,8 +3,18 @@
  */
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import com.google.common.collect.ImmutableSet;
-import edu.harvard.iq.dataverse.authorization.DataverseRolePermissionHelper;
+import static edu.harvard.iq.dataverse.authorization.DataverseRolePermissionHelper.getRolesAllowedToBeAssignedByManageMinorDatasetPermissions;
+import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.COLLECTION_CUSTODIAN;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataset;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataverse;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDataset;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
+import static java.util.Collections.singletonMap;
+
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Set;
+
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -16,13 +26,6 @@ import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
-
-import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
-
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Assign a in a dataverse to a user.
@@ -40,30 +43,38 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
     private final boolean anonymized;
 
     /**
-     * @param anAssignee      The user being granted the role
-     * @param aRole           the role being granted to the user
+     * @param assignee      The user being granted the role
+     * @param role           the role being granted to the user
      * @param assignmentPoint the dataverse on which the role is granted.
-     * @param aRequest
+     * @param request
      * @param privateUrlToken An optional token used by the Private Url feature.
      */
-    public AssignRoleCommand(RoleAssignee anAssignee, DataverseRole aRole, DvObject assignmentPoint, DataverseRequest aRequest, String privateUrlToken) {
-        this(anAssignee, aRole, assignmentPoint, aRequest, privateUrlToken, false);
+    public AssignRoleCommand(final RoleAssignee assignee, 
+    		final DataverseRole role, final DvObject assignmentPoint, 
+    		final DataverseRequest request, final String privateUrlToken) {
+    	
+        this(assignee, role, assignmentPoint, request, privateUrlToken, false);
     }
     
-    public AssignRoleCommand(RoleAssignee anAssignee, DataverseRole aRole, DvObject assignmentPoint, DataverseRequest aRequest, String privateUrlToken, boolean anonymized) {
+    public AssignRoleCommand(final RoleAssignee assignee, final DataverseRole role, 
+    		final DvObject assignmentPoint, final DataverseRequest request, 
+    		final String privateUrlToken, final boolean anonymized) {
+    	
         // for data file check permission on owning dataset
-        super(aRequest, assignmentPoint instanceof DataFile ? assignmentPoint.getOwner() : assignmentPoint);
-        role = aRole;
-        grantee = anAssignee;
+        super(request, assignmentPoint instanceof DataFile 
+        		? assignmentPoint.getOwner() : assignmentPoint);
+        this.role = role;
+        grantee = assignee;
         defPoint = assignmentPoint;
         this.privateUrlToken = privateUrlToken;
         this.anonymized = anonymized;
     }
 
     @Override
-    public RoleAssignment execute(CommandContext ctxt) {
+    public RoleAssignment execute(final CommandContext ctxt) {
         // TODO make sure the role is defined on the dataverse.
-        RoleAssignment roleAssignment = new RoleAssignment(role, grantee, defPoint, privateUrlToken, anonymized);
+        final RoleAssignment roleAssignment = new RoleAssignment(this.role, 
+        		this.grantee, this.defPoint, this.privateUrlToken, this.anonymized);
         return ctxt.roles().save(roleAssignment);
     }
 
@@ -71,21 +82,33 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
     public Map<String, Set<Permission>> getRequiredPermissions() {
         // for data file check permission on owning dataset
 
-        if (defPoint instanceof Dataverse) {
-            return Collections.singletonMap("", Collections.singleton(Permission.ManageDataverse));
+        if (this.defPoint instanceof Dataverse) {
+        	return singletonMap("", requiresManageDataversePermissions()
+        								? Permission.setOf(ManageDataverse)
+        								: Permission.none());
         }
 
-        if (DataverseRolePermissionHelper.getRolesAllowedToBeAssignedByManageMinorDatasetPermissions().contains(role.getAlias())) {
-            return Collections.singletonMap("",
-                                            ImmutableSet.of(Permission.ManageDataset, Permission.ManageMinorDataset));
+        if (getRolesAllowedToBeAssignedByManageMinorDatasetPermissions().contains(this.role.getAlias())) {
+            return singletonMap("", Permission.setOf(ManageDataset, ManageMinorDataset));
         }
 
-        return Collections.singletonMap("", Collections.singleton(Permission.ManageDataset));
+        return singletonMap("", Permission.setOf(ManageDataset));
 
     }
 
     @Override
     public String describe() {
-        return grantee + " has been given " + role + " on " + defPoint.accept(DvObject.NameIdPrinter);
+        return this.grantee + " has been given " + this.role + " on " + 
+        		this.defPoint.accept(DvObject.NameIdPrinter);
     }
+    
+	private boolean requiresManageDataversePermissions() {
+		if (this.defPoint.isRoot()) {
+			return true;
+		} else {
+			final Dataverse parent = (Dataverse) this.defPoint.getOwner();
+			return parent.getDefaultDataverseContributorRole() != null &&
+					!parent.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN);
+		}
+	}
 }

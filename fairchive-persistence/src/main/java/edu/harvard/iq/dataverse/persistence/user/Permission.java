@@ -5,6 +5,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.disjoint;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -158,11 +159,28 @@ public enum Permission implements java.io.Serializable {
     	return EnumSet.of(permission);
     }
     
+    public static Set<Permission> setOf(final Permission permission1, 
+    		final Permission permission2) {
+    	return EnumSet.of(permission1, permission2);
+    }
+    
+    public static Set<Permission> setOf(final Permission permission1, 
+    		final Permission permission2, final Permission permission3) {
+    	return EnumSet.of(permission1, permission2, permission3);
+    }
+    
     public static Set<Permission> setOf(final Permission[] permissions) {
     	final Set<Permission> result = none();
     	for(final Permission p : permissions) {
     		result.add(p);
     	}
+    	return result;
+    }
+    
+    public static Set<Permission> differenceBetween(final Set<Permission> required, 
+    		final Set<Permission> granted) {
+    	final HashSet<Permission> result = new HashSet<>(required);
+    	result.removeAll(granted);
     	return result;
     }
     
