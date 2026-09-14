@@ -34,6 +34,7 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
     private boolean canEditFeaturedDataverses;
     private DualListModel<Dataverse> featuredDataverses = new DualListModel<>(new ArrayList<>(), new ArrayList<>());
     private Dataverse dataverse;
+    private Dataverse.FeaturedDataversesSorting featuredDataversesSorting;
 
     // -------------------- GETTERS --------------------
 
@@ -46,7 +47,7 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
     }
 
     public Dataverse.FeaturedDataversesSorting getFeaturedDataversesSorting() {
-        return dataverse.getFeaturedDataversesSorting();
+        return featuredDataversesSorting;
     }
 
     // -------------------- LOGIC --------------------
@@ -59,16 +60,24 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
         }
     }
 
+    /**
+     * Rebuilds the whole dialog state from what is currently persisted, so that reopening it discards
+     * any sorting picked and then cancelled, and the shown order always matches the selected sorting.
+     */
     public void setupDialog() {
         List<Dataverse> featuredSource = featuredDataverseService.findFeaturableDataverses(dataverse.getId());
         List<Dataverse> featuredTarget = featuredDataverseService.findByDataverseId(dataverse.getId());
 
         featuredTarget.forEach(featuredDataverse -> featuredSource.remove(featuredDataverse));
 
-        featuredDataverses = new DualListModel<>(featuredSource, featuredTarget);
+        featuredDataversesSorting = dataverse.getFeaturedDataversesSorting();
+        featuredDataverses = new DualListModel<>(featuredSource,
+                featuredDataverseService.sortFeaturedDataverses(featuredTarget, featuredDataversesSorting));
     }
 
     public String saveFeaturedDataverse() {
+
+        dataverse.setFeaturedDataversesSorting(featuredDataversesSorting);
 
         Try.of(() -> dataverseService.saveFeaturedDataverse(dataverse, featuredDataverses.getTarget()))
                 .onSuccess(savedDataverse -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.feature.update")))
@@ -82,11 +91,11 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
 
     public void updateSort() {
         List<Dataverse> target = featuredDataverses.getTarget();
-        featuredDataverses.setTarget(featuredDataverseService.sortFeaturedDataverses(target, dataverse.getFeaturedDataversesSorting()));
+        featuredDataverses.setTarget(featuredDataverseService.sortFeaturedDataverses(target, featuredDataversesSorting));
     }
 
     public void manualReorder() {
-        dataverse.setFeaturedDataversesSorting(Dataverse.FeaturedDataversesSorting.BY_HAND);
+        featuredDataversesSorting = Dataverse.FeaturedDataversesSorting.BY_HAND;
     }
 
     // -------------------- SETTERS --------------------
@@ -96,6 +105,6 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
     }
 
     public void setFeaturedDataversesSorting(Dataverse.FeaturedDataversesSorting featuredDataversesSorting) {
-        this.dataverse.setFeaturedDataversesSorting(featuredDataversesSorting);
+        this.featuredDataversesSorting = featuredDataversesSorting;
     }
 }
