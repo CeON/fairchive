@@ -4,7 +4,6 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
 import static edu.harvard.iq.dataverse.authorization.DataverseRolePermissionHelper.getRolesAllowedToBeAssignedByManageMinorDatasetPermissions;
-import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.COLLECTION_CUSTODIAN;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataset;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataverse;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDataset;
@@ -83,9 +82,7 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
         // for data file check permission on owning dataset
 
         if (this.defPoint instanceof Dataverse) {
-        	return singletonMap("", requiresManageDataversePermissions()
-        								? Permission.setOf(ManageDataverse)
-        								: Permission.none());
+            return singletonMap("", Permission.setOf(ManageDataverse));
         }
 
         if (getRolesAllowedToBeAssignedByManageMinorDatasetPermissions().contains(this.role.getAlias())) {
@@ -98,17 +95,7 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
 
     @Override
     public String describe() {
-        return this.grantee + " has been given " + this.role + " on " + 
+        return this.grantee + " has been given " + this.role + " on " +
         		this.defPoint.accept(DvObject.NameIdPrinter);
     }
-    
-	private boolean requiresManageDataversePermissions() {
-		if (this.defPoint.isRoot()) {
-			return true;
-		} else {
-			final Dataverse parent = (Dataverse) this.defPoint.getOwner();
-			return parent.getDefaultDataverseContributorRole() != null &&
-					!parent.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN);
-		}
-	}
 }

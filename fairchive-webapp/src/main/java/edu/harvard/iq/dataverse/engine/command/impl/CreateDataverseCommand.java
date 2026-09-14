@@ -107,8 +107,8 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
         		managedDv.getCreator() , managedDv, privateUrlToken));
         
         if(this.created.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN)) {
-        	context.getManagePermissionsService().assignRoleWithNotification(
-        			role(context, DS_CONTRIBUTOR), AuthenticatedUsers.get(), managedDv);
+        	context.roles().save(new RoleAssignment(role(context, DS_CONTRIBUTOR),
+        			AuthenticatedUsers.get(), managedDv, privateUrlToken));
         }
         
         // Add additional role assignments if inheritance is set

@@ -154,21 +154,20 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 				this.fileDownloader, this.owner);
 		
 		this.dataverseRepository.save(this.owner);
-		
-		this.session.logOut();
-		this.session.logIn(this.fileDownloader);
-		
-		CreateDataverseCommand command = new CreateDataverseCommand(this.dataverse, 
-				newRequest(), null, null);
-		
+
+		// the command runs as filedownloader - an ordinary, non-superuser account,
+		// who holds admin on the owner and so may add a collection to it
+		CreateDataverseCommand command = new CreateDataverseCommand(this.dataverse,
+				newRequest(this.fileDownloader), null, null);
+
 		this.engine.submit(command);
-		
-		final List<RoleAssignment> assignedRoles = 
+
+		final List<RoleAssignment> assignedRoles =
 				this.rolesService.directRoleAssignments(this.dataverse);
-		
+
 		assertThat(assignedRoles).hasSize(3);
 		assertThat(assignedRoles).anyMatch(
-				assignment -> assignment.getAssigneeIdentifier().equals("@dataverseAdmin")
+				assignment -> assignment.getAssigneeIdentifier().equals("@filedownloader")
 							&& assignment.getRole().getAlias().equals(COLLECTION_CUSTODIAN.getAlias()));
 		assertThat(assignedRoles).anyMatch(
 				assignment -> assignment.getAssigneeIdentifier().equals(":authenticated-users")
@@ -176,8 +175,8 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 		assertThat(assignedRoles).anyMatch(
 				assignment -> assignment.getAssigneeIdentifier().equals("@filedownloader")
 							&& assignment.getRole().getAlias().equals(ADMIN.getAlias()));
-		
-		
+
+
 		assertThat(this.dataverse.getDefaultDatasetContributorRole().getAlias()).
 			isEqualTo(DEPOSITOR.getAlias());
 		assertThat(this.dataverse.getDefaultDataverseContributorRole().getAlias()).
@@ -214,8 +213,13 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 	}
 	
 	private DataverseRequest newRequest() {
-		
+
+		return newRequest(this.admin);
+	}
+
+	private DataverseRequest newRequest(final AuthenticatedUser user) {
+
 		final HttpServletRequest httpRequest = null;
-		return  new DataverseRequest(this.admin, httpRequest);
+		return  new DataverseRequest(user, httpRequest);
 	}
 }

@@ -50,7 +50,6 @@ import edu.harvard.iq.dataverse.globalid.HandlenetServiceBean;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
-import edu.harvard.iq.dataverse.permission.ManagePermissionsService;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
@@ -215,9 +214,6 @@ public class EjbDataverseEngine {
 
     @Inject
     GlobalIdServiceBeanResolver globalIdServiceBeanResolver;
-    
-    @Inject
-    ManagePermissionsService managePermissionsService;
 
     @Resource
     EJBContext ejbCtxt;
@@ -539,11 +535,6 @@ public class EjbDataverseEngine {
                 @Override
                 public GlobalIdServiceBeanResolver globalIdServiceBeanResolver() {
                     return globalIdServiceBeanResolver;
-                }
-                
-                @Override
-                public ManagePermissionsService getManagePermissionsService() {
-                	return managePermissionsService;
                 }
             };
         }
