@@ -63,36 +63,59 @@ public interface Command<R> {
      * the command's class with the {@link RequiredPermissions} annotation.
      *
      * @param cmdClass A class of command
-     * @return Set of permissions, or {@code null} if the command's class was
-     * not annotated.
+     * @return Set of permissions required to execute the command.
+     * @throws IllegalArgumentException if neither the command's class nor any of
+     * its superclasses declares required permissions. A command whose permissions
+     * are decided at runtime overrides {@link #getRequiredPermissions()} instead.
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings("rawtypes")
     public static Map<String, Set<Permission>> requiredPermissions(
     		final Class<? extends Command> cmdClass) {
-    	
-        final RequiredPermissions requiredPerms = 
-        		cmdClass.getAnnotation(RequiredPermissions.class);
-        if (requiredPerms != null) {
-            return singletonMap(requiredPerms.dataverseName(), 
-            		Permission.setOf(requiredPerms.value()));
-        } else {
-            final RequiredPermissionsMap requiredPermsMap = 
-            		cmdClass.getAnnotation(RequiredPermissionsMap.class);
-            if (requiredPermsMap != null) {
-                final Map<String, Set<Permission>> result = new TreeMap<>();
-                for (final RequiredPermissions rp : requiredPermsMap.value()) {
-                    result.put(rp.dataverseName(), Permission.setOf(rp.value()));
-                }
-                return result;
-            } else {
-                final Class superClass = cmdClass.getSuperclass();
-                if (superClass != null) {
-                    return requiredPermissions(superClass);
-                } else {
-                    return singletonMap("", Permission.none());
-                }
-            }
-        }
+
+    	for (Class<?> current = cmdClass; current != null; current = current.getSuperclass()) {
+	        final RequiredPermissions requiredPerms =
+	        		current.getAnnotation(RequiredPermissions.class);
+	        if (requiredPerms != null) {
+	            return singletonMap(requiredPerms.dataverseName(),
+	            		Permission.setOf(requiredPerms.value()));
+	        }
+	        final RequiredPermissionsMap requiredPermsMap =
+	        		current.getAnnotation(RequiredPermissionsMap.class);
+	        if (requiredPermsMap != null) {
+	            final Map<String, Set<Permission>> result = new TreeMap<>();
+	            for (final RequiredPermissions rp : requiredPermsMap.value()) {
+	                result.put(rp.dataverseName(), Permission.setOf(rp.value()));
+	            }
+	            return result;
+	        }
+    	}
+        // fail loudly rather than running the command unchecked
+        throw new IllegalArgumentException("Command class " + cmdClass.getCanonicalName()
+                + ", and its superclasses, do not declare required permissions.");
+    }
+
+    /**
+     * How the permissions returned by {@link #requiredPermissions(Class)} are matched
+     * against the ones granted. Declared by {@link RequiredPermissions#strategy()};
+     * looked up along the class hierarchy, exactly as the permissions themselves are,
+     * so that a subclass cannot silently fall back to a different strategy than the
+     * one its superclass declared.
+     *
+     * @param cmdClass A class of command
+     * @return the declared strategy, or {@link Permission.MatchStrategy#allRequired}
+     * when none is declared.
+     */
+    @SuppressWarnings("rawtypes")
+    public static Permission.MatchStrategy matchStrategy(final Class<? extends Command> cmdClass) {
+
+    	for (Class<?> current = cmdClass; current != null; current = current.getSuperclass()) {
+    		final RequiredPermissions requiredPerms =
+    				current.getAnnotation(RequiredPermissions.class);
+    		if (requiredPerms != null) {
+    			return requiredPerms.strategy();
+    		}
+    	}
+    	return Permission.MatchStrategy.allRequired;
     }
     
 	default void verifyPermissions(final PermissionsProvider permissionProvider) {
@@ -114,10 +137,7 @@ public interface Command<R> {
 		            : Permission.all();
 		    final Set<Permission> required = requiredPermissionsMap.get(objectName);
 		    
-		    final RequiredPermissions annotation = getClass().getAnnotation(RequiredPermissions.class);
-		    final Permission.MatchStrategy strategy = annotation != null
-		    		? annotation.strategy()
-		    		: Permission.MatchStrategy.allRequired;
+		    final Permission.MatchStrategy strategy = matchStrategy(getClass());
 
 		    if (!required.isEmpty() && !strategy.match(required, granted)) {
 		    	final Set<Permission> missing = Permission.differenceBetween(required, granted);

@@ -5,6 +5,7 @@ import static edu.harvard.iq.dataverse.persistence.user.Permission.DeleteDataver
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataverse;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -55,17 +56,20 @@ public class AbstractCommandTest {
 	}
 	//--------------------------------------------------------------------------
 	@SuppressWarnings("serial")
-	static class NoPermissionsRequired extends BaseCommand {
+	static class NoPermissionsDeclared extends BaseCommand {
 	}
 
 	@Test
-	void noPermissionsResquired() {
+	void getRequiredPermissions__throws_ifNoPermissionsDeclared() {
 
-		Command<Dataverse> command = new NoPermissionsRequired();
-		Map<String, Set<Permission>> required = command.getRequiredPermissions();
-		
-		assertThat(required).hasSize(1);
-		assertThat(required.get("")).isEqualTo(Permission.none());
+		// given
+		final Command<Dataverse> command = new NoPermissionsDeclared();
+
+		// when & then - an undeclared command must fail loudly, never run unchecked
+		assertThatThrownBy(() -> command.getRequiredPermissions())
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("NoPermissionsDeclared")
+			.hasMessageContaining("and its superclasses, do not declare required permissions");
 	}
 	//--------------------------------------------------------------------------
 	@SuppressWarnings("serial")
