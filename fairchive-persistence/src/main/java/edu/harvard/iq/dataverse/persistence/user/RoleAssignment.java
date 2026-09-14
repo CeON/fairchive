@@ -65,6 +65,15 @@ public class RoleAssignment implements java.io.Serializable, JpaEntity<Long> {
     public RoleAssignment() {
     }
 
+    /**
+     * An ordinary assignment, not made through the Private Url feature and so
+     * carrying no token.
+     */
+    public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee,
+            DvObject aDefinitionPoint) {
+        this(aRole, anAssignee, aDefinitionPoint, null, false);
+    }
+
     public RoleAssignment(DataverseRole aRole, RoleAssignee anAssignee,
             DvObject aDefinitionPoint, String privateUrlToken) {
         this(aRole, anAssignee, aDefinitionPoint, privateUrlToken, false);

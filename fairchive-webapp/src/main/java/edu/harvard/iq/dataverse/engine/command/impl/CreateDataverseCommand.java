@@ -101,14 +101,13 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
 
         // Save the dataverse
         final Dataverse managedDv = context.dataverses().save(this.created);
-        final String privateUrlToken = null;
 
-        context.roles().save(new RoleAssignment(this.created.getDefaultDataverseContributorRole(), 
-        		managedDv.getCreator() , managedDv, privateUrlToken));
+        context.roles().save(new RoleAssignment(this.created.getDefaultDataverseContributorRole(),
+        		managedDv.getCreator(), managedDv));
         
         if(this.created.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN)) {
         	context.roles().save(new RoleAssignment(role(context, DS_CONTRIBUTOR),
-        			AuthenticatedUsers.get(), managedDv, privateUrlToken));
+        			AuthenticatedUsers.get(), managedDv));
         }
         
         // Add additional role assignments if inheritance is set
@@ -129,13 +128,13 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
                         if (identifier.startsWith(AuthenticatedUser.IDENTIFIER_PREFIX)) {
                             identifier = identifier.substring(AuthenticatedUser.IDENTIFIER_PREFIX.length());
                             context.roles().save(new RoleAssignment(role.getRole(),
-                                                                 context.authentication().getAuthenticatedUser(identifier), managedDv, privateUrlToken));
+                                                                 context.authentication().getAuthenticatedUser(identifier), managedDv));
                         } else if (identifier.startsWith(Group.IDENTIFIER_PREFIX)) {
                             identifier = identifier.substring(Group.IDENTIFIER_PREFIX.length());
                             Group roleGroup = context.groups().getGroup(identifier);
                             if (roleGroup != null) {
                                 context.roles().save(new RoleAssignment(role.getRole(),
-                                                                     roleGroup, managedDv, privateUrlToken));
+                                                                     roleGroup, managedDv));
                             }
                         }
                     }
@@ -192,15 +191,10 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
             this.created.setDefaultDatasetContributorRole(role(context, EDITOR));
         }
         
-        if(this.created.getDefaultDataverseContributorRole() != null &&
-        		this.created.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN)) {
-        	this.created.setDefaultDataverseContributorRole(role(context, DEPOSITOR));
-        } else {
-        	this.created.setDefaultDataverseContributorRole(
-        			owner.getDefaultDataverseContributorRole() != null 
-        				? owner.getDefaultDataverseContributorRole()
-        				: role(context, ADMIN));
-        }
+        this.created.setDefaultDataverseContributorRole(
+        		owner.getDefaultDataverseContributorRole() != null
+        			? owner.getDefaultDataverseContributorRole()
+        			: role(context, ADMIN));
 	}
 	
 	private static DataverseRole role(final CommandContext context, 
