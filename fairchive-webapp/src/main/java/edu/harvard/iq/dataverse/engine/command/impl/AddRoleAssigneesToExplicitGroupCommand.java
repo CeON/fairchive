@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * @author michael
  */
 @SuppressWarnings("serial")
-@RequiredPermissions(Permission.ManageDataversePermissions)
+@RequiredPermissions(Permission.ManageDataverse)
 public class AddRoleAssigneesToExplicitGroupCommand extends AbstractCommand<ExplicitGroup> {
 
     private final Set<String> roleAssigneeIdentifiers;

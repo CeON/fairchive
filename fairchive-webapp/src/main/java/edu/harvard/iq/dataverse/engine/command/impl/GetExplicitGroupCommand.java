@@ -12,7 +12,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
  * @author michael
  */
 @SuppressWarnings("serial")
-@RequiredPermissions(Permission.ManageDataversePermissions)
+@RequiredPermissions(Permission.ManageDataverse)
 public class GetExplicitGroupCommand extends AbstractCommand<ExplicitGroup> {
 
     private final String groupAliasInOwner;

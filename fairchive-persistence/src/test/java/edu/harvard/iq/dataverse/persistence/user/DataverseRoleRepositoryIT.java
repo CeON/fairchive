@@ -93,9 +93,9 @@ public class DataverseRoleRepositoryIT extends PersistenceArquillianDeployment {
 		assertFalse(role.has(Permission.DeleteDatasetDraft));
 		assertFalse(role.has(Permission.DownloadFile));
 		assertFalse(role.has(Permission.EditDataset));
-		assertFalse(role.has(Permission.ManageDatasetPermissions));
-		assertFalse(role.has(Permission.ManageDataversePermissions));
-		assertFalse(role.has(Permission.ManageMinorDatasetPermissions));
+		assertFalse(role.has(Permission.ManageDataset));
+		assertFalse(role.has(Permission.ManageDataverse));
+		assertFalse(role.has(Permission.ManageMinorDataset));
 		assertFalse(role.has(Permission.PublishDataset));
 		assertFalse(role.has(Permission.PublishDataverse));
 		assertFalse(role.has(Permission.ViewUnpublishedDataset));

@@ -16,7 +16,7 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
  * @author michael
  */
 @SuppressWarnings("serial")
-@RequiredPermissions(Permission.ManageDataversePermissions)
+@RequiredPermissions(Permission.ManageDataverse)
 public class CreateExplicitGroupCommand extends AbstractCommand<ExplicitGroup> {
 
     public class GroupAliasExistsException extends CommandException {

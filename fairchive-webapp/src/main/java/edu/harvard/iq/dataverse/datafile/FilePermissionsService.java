@@ -180,8 +180,8 @@ public class FilePermissionsService {
     }
 
     public void sendRequestFileAccessNotification(Dataset dataset, Long fileId, AuthenticatedUser requestor) {
-        Stream<AuthenticatedUser> usersWithManageDsPerm = permissionService.getUsersWithPermissionOn(Permission.ManageDatasetPermissions, dataset).stream();
-        Stream<AuthenticatedUser> usersWithManageMinorDsPerm = permissionService.getUsersWithPermissionOn(Permission.ManageMinorDatasetPermissions, dataset).stream();
+        Stream<AuthenticatedUser> usersWithManageDsPerm = permissionService.getUsersWithPermissionOn(Permission.ManageDataset, dataset).stream();
+        Stream<AuthenticatedUser> usersWithManageMinorDsPerm = permissionService.getUsersWithPermissionOn(Permission.ManageMinorDataset, dataset).stream();
 
         Timestamp timestamp = new Timestamp(new Date().getTime());
         Map<String, String> parameters = new HashMap<>();
@@ -202,7 +202,7 @@ public class FilePermissionsService {
 
         // collect users with permissions to grant/reject access to file
         Set<AuthenticatedUser> usersToNotify = assignmentAndUsers.stream()
-                .filter(a -> a._1().hasAny(Permission.ManageDatasetPermissions, Permission.ManageMinorDatasetPermissions))
+                .filter(a -> a._1().hasAny(Permission.ManageDataset, Permission.ManageMinorDataset))
                 .flatMap(a -> a._2().stream())
                 .collect(Collectors.toSet());
 

@@ -2,7 +2,11 @@ package edu.harvard.iq.dataverse.persistence.user;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static java.util.Arrays.stream;
+import static java.util.Collections.disjoint;
 
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import edu.harvard.iq.dataverse.persistence.DvObject;
@@ -53,9 +57,9 @@ public enum Permission implements java.io.Serializable {
     //64
     EditDataset(true, true, Dataset.class),
     //128
-    ManageDataversePermissions(true, true, Dataverse.class),
+    ManageDataverse(true, true, Dataverse.class),
     //256
-    ManageDatasetPermissions(true, true, Dataset.class),
+    ManageDataset(true, true, Dataset.class),
     //512
     PublishDataverse(true, true, Dataverse.class),
     //1024
@@ -66,7 +70,7 @@ public enum Permission implements java.io.Serializable {
     //4096
     DeleteDatasetDraft(true, true, Dataset.class),
     //8192
-    ManageMinorDatasetPermissions(true, true, Dataset.class);
+    ManageMinorDataset(true, true, Dataset.class);
 	
     // lets's cache this for performance reasons
     private final static Permission[] values = values();
@@ -131,5 +135,79 @@ public enum Permission implements java.io.Serializable {
     
     public static Stream<Permission> streamFrom(final long bits) {
     	return stream(values).filter(p -> p.isIn(bits));
+    }
+    
+    public static Set<Permission> all() {
+    	return EnumSet.allOf(Permission.class);
+    }
+    
+    public static Set<Permission> all(final boolean readOnly) {
+    	return readOnly ? readOnly() : all();
+    }
+    
+    public static Set<Permission> none() {
+    	return EnumSet.noneOf(Permission.class);
+    }
+    
+    public static Set<Permission> readOnly() {
+    	final Set<Permission> result = all();
+        result.removeIf(Permission::requiresWrite);
+        return result;
+    }
+    
+    public static Set<Permission> setOf(final Permission permission) {
+    	return EnumSet.of(permission);
+    }
+    
+    public static Set<Permission> setOf(final Permission permission1, 
+    		final Permission permission2) {
+    	return EnumSet.of(permission1, permission2);
+    }
+    
+    public static Set<Permission> setOf(final Permission permission1, 
+    		final Permission permission2, final Permission permission3) {
+    	return EnumSet.of(permission1, permission2, permission3);
+    }
+    
+    public static Set<Permission> setOf(final Permission[] permissions) {
+    	final Set<Permission> result = none();
+    	for(final Permission p : permissions) {
+    		result.add(p);
+    	}
+    	return result;
+    }
+    
+    public static Set<Permission> differenceBetween(final Set<Permission> required, 
+    		final Set<Permission> granted) {
+    	final HashSet<Permission> result = new HashSet<>(required);
+    	result.removeAll(granted);
+    	return result;
+    }
+    
+    public static boolean requiresWrite(final Set<Permission> set) {
+    	return set.stream().anyMatch(Permission::requiresWrite);
+    }
+    
+    public static boolean requiresAuthenticatedUser(final Set<Permission> set) {
+    	return set.stream().anyMatch(Permission::requiresAuthenticatedUser);
+    }
+    
+    public enum MatchStrategy {
+    	allRequired {
+    		@Override
+    		public boolean match(final Set<Permission> required, 
+    				final Set<Permission> granted) {
+    			return granted.containsAll(required);
+    		}
+    	}, atLeastOneRequired {
+    		@Override
+    		public boolean match(final Set<Permission> required, 
+    				final Set<Permission> granted) {
+    			return ! disjoint(granted, required);
+    		}
+    	};
+    	
+    	public abstract boolean match(final Set<Permission> required, 
+    			final Set<Permission> granted);
     }
 }

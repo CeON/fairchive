@@ -39,13 +39,13 @@ public class PermissionTest {
     	assertThat(Permission.DownloadFile.bitValue()).isEqualTo(16L);	
     	assertThat(Permission.EditDataverse.bitValue()).isEqualTo(32L);
     	assertThat(Permission.EditDataset.bitValue()).isEqualTo(64L);
-    	assertThat(Permission.ManageDataversePermissions.bitValue()).isEqualTo(128L);
-    	assertThat(Permission.ManageDatasetPermissions.bitValue()).isEqualTo(256L);
+    	assertThat(Permission.ManageDataverse.bitValue()).isEqualTo(128L);
+    	assertThat(Permission.ManageDataset.bitValue()).isEqualTo(256L);
     	assertThat(Permission.PublishDataverse.bitValue()).isEqualTo(512L);  	
     	assertThat(Permission.PublishDataset.bitValue()).isEqualTo(1024L);
     	assertThat(Permission.DeleteDataverse.bitValue()).isEqualTo(2048L);
     	assertThat(Permission.DeleteDatasetDraft.bitValue()).isEqualTo(4096L);
-    	assertThat(Permission.ManageMinorDatasetPermissions.bitValue()).isEqualTo(8192L);
+    	assertThat(Permission.ManageMinorDataset.bitValue()).isEqualTo(8192L);
     }
     
     @Test

@@ -43,7 +43,7 @@ public class Roles extends AbstractApiBean {
         return response(() -> {
             final User user = findUserOrDie();
             final DataverseRole role = findRoleOrDie(id);
-            return (permissionSvc.userOn(user, role.getOwner()).has(Permission.ManageDataversePermissions))
+            return (permissionSvc.userOn(user, role.getOwner()).has(Permission.ManageDataverse))
                     ? ok(new DataverseRoleDTO.Converter().convert(role))
                     : permissionError("Permission required to view roles.");
         });

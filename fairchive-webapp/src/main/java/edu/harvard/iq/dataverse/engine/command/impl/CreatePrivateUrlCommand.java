@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
+
 import java.util.UUID;
 
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
@@ -16,7 +18,8 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 
 @SuppressWarnings("serial")
-@RequiredPermissions(value = {Permission.ManageDatasetPermissions, Permission.ManageMinorDatasetPermissions}, isAllPermissionsRequired = false)
+@RequiredPermissions(value = {Permission.ManageDataset, Permission.ManageMinorDataset}, 
+					 strategy = atLeastOneRequired)
 public class CreatePrivateUrlCommand extends AbstractCommand<PrivateUrl> {
 
     final Dataset dataset;
@@ -48,7 +51,7 @@ public class CreatePrivateUrlCommand extends AbstractCommand<PrivateUrl> {
         PrivateUrlUser privateUrlUser = new PrivateUrlUser(dataset.getId());
         DataverseRole memberRole = ctxt.roles().findBuiltinRoleByAlias(BuiltInRole.MEMBER);
         final String privateUrlToken = UUID.randomUUID().toString();
-        RoleAssignment roleAssignment = ctxt.engine().submit(new AssignRoleCommand(privateUrlUser, memberRole, dataset, getRequest(), privateUrlToken, this.anonymized));
+        RoleAssignment roleAssignment = ctxt.engine().submit(new AssignRoleCommand(privateUrlUser, memberRole, dataset, getRequest(), privateUrlToken, this.anonymized, false));
         PrivateUrl privateUrl = new PrivateUrl(roleAssignment, dataset, ctxt.systemConfig().getDataverseSiteUrl());
         return privateUrl;
     }

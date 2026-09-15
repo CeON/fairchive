@@ -299,8 +299,8 @@ public class ManagePermissionsPage implements java.io.Serializable {
                 for (DataverseRole role : roleService.availableRoles(dvObject.getOwner().getId())) {
                     for (Permission permission : role.permissions()) {
                         if (permission.appliesTo(Dataset.class) || permission.appliesTo(DataFile.class)) {
-                            if (isHasPermission(Permission.ManageMinorDatasetPermissions)
-                                    && isAllowedToManageRole(role) || isHasPermission(Permission.ManageDatasetPermissions)) {
+                            if (isHasPermission(Permission.ManageMinorDataset)
+                                    && isAllowedToManageRole(role) || isHasPermission(Permission.ManageDataset)) {
                                 roles.add(role);
                             }
                             break;

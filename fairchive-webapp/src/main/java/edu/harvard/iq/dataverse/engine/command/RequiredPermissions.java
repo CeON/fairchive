@@ -1,23 +1,23 @@
 package edu.harvard.iq.dataverse.engine.command;
 
-import edu.harvard.iq.dataverse.persistence.user.Permission;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.allRequired;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * @author michael
- */
+import edu.harvard.iq.dataverse.persistence.user.Permission;
+
 @Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Retention(RUNTIME)
+@Target(TYPE)
 public @interface RequiredPermissions {
-    Permission[] value();
+	
+    Permission[] value() default {};
 
-    boolean isAllPermissionsRequired() default true;
-
-    String dataverseName() default ""; // TODO change to "dvObjectName"
+    String dataverseName() default "";
+    
+    Permission.MatchStrategy strategy() default allRequired;
 }

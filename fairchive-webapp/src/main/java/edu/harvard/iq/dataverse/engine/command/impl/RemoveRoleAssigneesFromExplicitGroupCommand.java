@@ -13,7 +13,7 @@ import java.util.Set;
  * @author michael
  */
 @SuppressWarnings("serial")
-@RequiredPermissions(Permission.ManageDataversePermissions)
+@RequiredPermissions(Permission.ManageDataverse)
 public class RemoveRoleAssigneesFromExplicitGroupCommand extends AbstractCommand<ExplicitGroup> {
 
     private final Set<String> roleAssigneeIdentifiers;

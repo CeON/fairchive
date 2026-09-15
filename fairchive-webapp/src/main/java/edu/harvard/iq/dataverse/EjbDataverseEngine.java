@@ -1,5 +1,26 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.ActionType.Command;
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.Result.InternalError;
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.Result.OK;
+import static edu.harvard.iq.dataverse.persistence.ActionLogRecord.Result.PermissionError;
+import static java.util.logging.Level.SEVERE;
+import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
+
+import java.util.logging.Logger;
+
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.EJBContext;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+
 import edu.harvard.iq.dataverse.actionlogging.ActionLogServiceBean;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.authorization.groups.GroupServiceBean;
@@ -18,7 +39,6 @@ import edu.harvard.iq.dataverse.dataverse.template.TemplateDao;
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
-import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
@@ -30,10 +50,9 @@ import edu.harvard.iq.dataverse.globalid.HandlenetServiceBean;
 import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
+import edu.harvard.iq.dataverse.permission.ManagePermissionsService;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
-import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
-import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.search.SearchServiceBean;
 import edu.harvard.iq.dataverse.search.index.IndexBatchServiceBean;
@@ -45,27 +64,6 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.workflow.WorkflowServiceBean;
 import edu.harvard.iq.dataverse.workflow.execution.WorkflowExecutionFacade;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.SetUtils;
-
-import javax.annotation.Resource;
-import javax.ejb.EJB;
-import javax.ejb.EJBContext;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 
 /**
  * An EJB capable of executing {@link Command}s in a JEE environment.
@@ -217,6 +215,9 @@ public class EjbDataverseEngine {
 
     @Inject
     GlobalIdServiceBeanResolver globalIdServiceBeanResolver;
+    
+    @Inject
+    ManagePermissionsService managePermissionsService;
 
     @Resource
     EJBContext ejbCtxt;
@@ -226,83 +227,53 @@ public class EjbDataverseEngine {
     private CommandContext ctxt;
 
     @TransactionAttribute(REQUIRES_NEW)
-    public <R> R submitInNewTransaction(Command<R> aCommand)  {
+    public <R> R submitInNewTransaction(final Command<R> aCommand)  {
         return submit(aCommand);
     }
 
-    public <R> R submit(Command<R> aCommand)  {
+    public <R> R submit(final Command<R> command)  {
 
-        final ActionLogRecord logRec = new ActionLogRecord(ActionLogRecord.ActionType.Command, aCommand.getClass().getCanonicalName());
+        final ActionLogRecord logRecord = new ActionLogRecord(Command, 
+        		command.getClass().getCanonicalName());
+        logRecord.setUserIdentifier(command.getRequest().getUser().getIdentifier());
+        logRecord.setInfo(command.describe());
 
         try {
-            logRec.setUserIdentifier(aCommand.getRequest().getUser().getIdentifier());
-
-            // Check permissions - or throw an exception
-            Map<String, ? extends Set<Permission>> requiredMap = aCommand.getRequiredPermissions();
-            if (requiredMap == null) {
-                throw new RuntimeException("Command " + aCommand + " does not define required permissions.");
-            }
-
-            DataverseRequest dvReq = aCommand.getRequest();
-
-            Map<String, DvObject> affectedDvObjects = aCommand.getAffectedDvObjects();
-            logRec.setInfo(aCommand.describe());
-            for (Map.Entry<String, ? extends Set<Permission>> pair : requiredMap.entrySet()) {
-                String dvName = pair.getKey();
-                if (!affectedDvObjects.containsKey(dvName)) {
-                    throw new RuntimeException("Command instance " + aCommand + " does not have a DvObject named '" + dvName + "'");
-                }
-                DvObject dvo = affectedDvObjects.get(dvName);
-
-                Set<Permission> granted = (dvo != null) ? permissionService.permissionsFor(dvReq, dvo)
-                        : EnumSet.allOf(Permission.class);
-                Set<Permission> required = requiredMap.get(dvName);
-
-                if ((!aCommand.isAllPermissionsRequired() && !CollectionUtils.containsAny(granted, required) ||
-                        (aCommand.isAllPermissionsRequired() && !granted.containsAll(required)))) {
-                    Set<Permission> missingPermissions = SetUtils.difference(required, granted);
-                    logRec.setActionResult(ActionLogRecord.Result.PermissionError);
-                    /**
-                     * @todo Is there any harm in showing the "granted" set
-                     * since we already show "required"? It would help people
-                     * reason about the mismatch.
-                     */
-                    throw new PermissionException("Can't execute command " + aCommand
-                                                          + ", because request " + aCommand.getRequest()
-                                                          + " is missing permissions " + missingPermissions
-                                                          + " on Object " + dvo.accept(DvObject.NamePrinter),
-                                                  aCommand,
-                                                  missingPermissions, dvo);
-                }
-            }
+        	command.verifyPermissions(this.permissionService::permissionsFor);
             try {
-                return aCommand.execute(getContext());
-
-            } catch (EJBException ejbe) {
-                throw new CommandException("Command " + aCommand.toString() + " failed: " + ejbe.getMessage(), ejbe.getCausedByException(), aCommand);
+                return command.execute(getContext());
+            } catch (final EJBException ejbe) {
+                throw new CommandException("Command " + command.toString() + 
+                		" failed: " + ejbe.getMessage(), ejbe.getCausedByException(), 
+                		command);
             }
-        } catch (CommandException cmdEx) {
-            if (!(cmdEx instanceof PermissionException)) {
-                logRec.setActionResult(ActionLogRecord.Result.InternalError);
-            }
-            logRec.setInfo(logRec.getInfo() + " (" + cmdEx.getMessage() + ")");
-            throw cmdEx;
-        } catch (RuntimeException re) {
-            logRec.setActionResult(ActionLogRecord.Result.InternalError);
-            logRec.setInfo(logRec.getInfo() + " (" + re.getMessage() + ")");
+        } catch (final PermissionException e) {
+            logRecord.setActionResult(PermissionError);
+            logRecord.setInfo(logRecord.getInfo() + " (" + e.getMessage() + ')');
+            throw e;
+        } catch (final CommandException e) {
+            logRecord.setActionResult(InternalError);
+            logRecord.setInfo(logRecord.getInfo() + " (" + e.getMessage() + ')');
+            throw e;
+        } catch (final RuntimeException re) {
+            logRecord.setActionResult(InternalError);
+            logRecord.setInfo(logRecord.getInfo() + " (" + re.getMessage() + ')');
 
             Throwable cause = re;
             while (cause != null) {
                 if (cause instanceof ConstraintViolationException) {
-                    StringBuilder sb = new StringBuilder();
+                    final StringBuilder sb = new StringBuilder();
                     sb.append("Unexpected bean validation constraint exception:");
                     ConstraintViolationException constraintViolationException = (ConstraintViolationException) cause;
                     for (ConstraintViolation<?> violation : constraintViolationException.getConstraintViolations()) {
-                        sb.append(" Invalid value: <<<").append(violation.getInvalidValue()).append(">>> for ").append(violation.getPropertyPath()).append(" at ").append(violation.getLeafBean()).append(" - ").append(violation.getMessage());
+                        sb.append(" Invalid value: <<<").append(violation.getInvalidValue()).
+                        	append(">>> for ").append(violation.getPropertyPath()).
+                        	append(" at ").append(violation.getLeafBean()).
+                        	append(" - ").append(violation.getMessage());
                     }
-                    logger.log(Level.SEVERE, sb.toString());
+                    logger.log(SEVERE, sb.toString());
                     // set this more detailed info in action log
-                    logRec.setInfo(logRec.getInfo() + " (" + sb.toString() + ")");
+                    logRecord.setInfo(logRecord.getInfo() + " (" + sb.toString() + ')');
                 }
                 cause = cause.getCause();
             }
@@ -310,13 +281,13 @@ public class EjbDataverseEngine {
             throw re;
 
         } finally {
-            if (logRec.getActionResult() == null) {
-                logRec.setActionResult(ActionLogRecord.Result.OK);
+            if (logRecord.getActionResult() == null) {
+                logRecord.setActionResult(OK);
             } else {
                 ejbCtxt.setRollbackOnly();
             }
-            logRec.setEndTime(new java.util.Date());
-            logSvc.log(logRec);
+            logRecord.setEndTime(new java.util.Date());
+            logSvc.log(logRecord);
         }
 
     }
@@ -568,6 +539,11 @@ public class EjbDataverseEngine {
                 @Override
                 public GlobalIdServiceBeanResolver globalIdServiceBeanResolver() {
                     return globalIdServiceBeanResolver;
+                }
+                
+                @Override
+                public ManagePermissionsService getManagePermissionsService() {
+                	return managePermissionsService;
                 }
             };
         }

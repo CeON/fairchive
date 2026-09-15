@@ -130,7 +130,6 @@ public class ManagePermissionsPageTest {
 		this.session = new DataverseSession(this.logService, systemConfig);
 		this.requestService = new DataverseRequestServiceBean(
 				this.session, this.request);
-		this.requestService.setup();
 		
 		DataverseRoleServiceBean  roleService = new DataverseRoleServiceBean(
 				this.roleAssigneeService, this.permissionReindexEvent, 
@@ -486,7 +485,7 @@ public class ManagePermissionsPageTest {
 	
 		final RoleAssignment assignment = new RoleAssignment();
 		assignment.setRole(getRole(FULL_CONTRIBUTOR.getAlias()));
-		assignment.getRole().addPermission(Permission.ManageDataversePermissions);
+		assignment.getRole().addPermission(Permission.ManageDataverse);
 		assignment.setDefinitionPoint(this.dataverse);
 		
 		when(this.roleAssignmentRepository.findByAssigneeIdentifier(anyString())).
@@ -560,7 +559,6 @@ public class ManagePermissionsPageTest {
 	//--------------------------------------------------------------------------
 	private void logIn(final AuthenticatedUser user) {
 		this.session.logIn(user);
-		this.requestService.setup();
 	}
 	
 	private static Dataverse newDataverse() {
@@ -606,7 +604,7 @@ public class ManagePermissionsPageTest {
 		final DataverseRole role = new DataverseRole();
 		role.setId(1L);
 		role.setName("editRole");
-		role.addPermission(Permission.ManageDataversePermissions);
+		role.addPermission(Permission.ManageDataverse);
 		
 		assignment.setRole(role);
 		assignment.setAssigneeIdentifier(user.getIdentifier());

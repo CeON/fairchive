@@ -6,8 +6,8 @@ import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDatasetPermissions;
-import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataversePermissions;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataset;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataverse;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 
@@ -48,8 +48,8 @@ public class UpdatePermissionRootCommand extends AbstractCommand<Dataverse> {
     public Map<String, Set<Permission>> getRequiredPermissions() {
         // for data file check permission on owning dataset
         return singletonMap("", singleton(dvoc instanceof Dataverse 
-                                    ? ManageDataversePermissions
-                                    : ManageDatasetPermissions));
+                                    ? ManageDataverse
+                                    : ManageDataset));
     }
 
 }
