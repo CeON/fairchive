@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.permission;
 
+import static edu.harvard.iq.dataverse.persistence.user.NotificationType.ASSIGNROLE;
+import static java.util.logging.Level.SEVERE;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -38,7 +41,7 @@ public class ManagePermissionsService implements Serializable {
     private static final Logger logger = Logger.getLogger(ManagePermissionsService.class.getCanonicalName());
 
     private EjbDataverseEngine commandEngine;
-    private DataverseRequestServiceBean dvRequestService;
+    private DataverseRequestServiceBean requestService;
     private UserNotificationService userNotificationService;
     private RoleAssigneeServiceBean roleAssigneeService;
 
@@ -49,27 +52,39 @@ public class ManagePermissionsService implements Serializable {
 
     @Inject
     public ManagePermissionsService(final EjbDataverseEngine commandEngine, 
-    								final DataverseRequestServiceBean dvRequestService,
+    								final DataverseRequestServiceBean requestService,
                                     final UserNotificationService userNotificationService, 
                                     final RoleAssigneeServiceBean roleAssigneeService) {
         this.commandEngine = commandEngine;
-        this.dvRequestService = dvRequestService;
+        this.requestService = requestService;
         this.userNotificationService = userNotificationService;
         this.roleAssigneeService = roleAssigneeService;
     }
 
     // -------------------- LOGIC --------------------
 
-    public RoleAssignment assignRoleWithNotification(DataverseRole role, RoleAssignee roleAssignee, DvObject object) {
-            Try<RoleAssignment> assignRoleOperation = Try.of(() -> commandEngine.submit(new AssignRoleCommand(roleAssignee, role, object, dvRequestService.getDataverseRequest(), null)))
-                .onSuccess(roleAssignment -> {
-                    if (shouldUserBeNotified(role, object)) {
-                        notifyRoleChange(roleAssignee, object, NotificationType.ASSIGNROLE);
-                    }
-                })
-                .onFailure(throwable -> logger.log(Level.SEVERE, "Role assignment failed.", throwable));
-
-         return assignRoleOperation.get();
+    public RoleAssignment assignRoleWithNotification(final DataverseRole role, 
+    		final RoleAssignee assignee, final DvObject object) {
+    	
+    	return assignRoleWithNotification(role, assignee, object, false);
+    }
+    
+    public RoleAssignment assignRoleWithNotification(final DataverseRole role, 
+    		final RoleAssignee assignee, final DvObject object, final boolean skipPermissionsCheck) {
+    	
+    	try {
+	    	final RoleAssignment assignment = this.commandEngine.submit(
+	    			new AssignRoleCommand(assignee, role, object, 
+	    					this.requestService.getDataverseRequest(), null, 
+	    					false, skipPermissionsCheck));
+	    	 if (shouldUserBeNotified(role, object)) {
+	             notifyRoleChange(assignee, object, ASSIGNROLE);
+	         }
+	    	 return assignment;
+    	} catch (final Exception e) {
+    		logger.log(SEVERE, "Role assignment failed.", e);
+    		throw e;
+    	}
     }
 
     /***
@@ -79,19 +94,19 @@ public class ManagePermissionsService implements Serializable {
      * with a link that he cannot access.
      * Sending this notification will be postponed until the object is published.
      */
-    private boolean shouldUserBeNotified(DataverseRole role, DvObject object) {
+    private boolean shouldUserBeNotified(final DataverseRole role, final DvObject object) {
         if (object.isReleased()) {
             return true;
+        } else {
+	        return object.isInstanceofDataverse() 
+	            ? role.has(Permission.ViewUnpublishedDataverse)
+	        	: role.has(Permission.ViewUnpublishedDataset);
         }
-        if (object.isInstanceofDataverse()) {
-            return role.has(Permission.ViewUnpublishedDataverse);
-        }
-        return role.has(Permission.ViewUnpublishedDataset);
     }
 
 
     public Void removeRoleAssignmentWithNotification(RoleAssignment roleAssignment) {
-        Try<Void> removeOperation = Try.run(() -> commandEngine.submit(new RevokeRoleCommand(roleAssignment, dvRequestService.getDataverseRequest())))
+        Try<Void> removeOperation = Try.run(() -> commandEngine.submit(new RevokeRoleCommand(roleAssignment, requestService.getDataverseRequest())))
                 .onSuccess(Void -> {
                     RoleAssignee assignee = roleAssigneeService.getRoleAssignee(roleAssignment.getAssigneeIdentifier());
                     DvObject dvObject = roleAssignment.getDefinitionPoint();
@@ -103,21 +118,21 @@ public class ManagePermissionsService implements Serializable {
     }
 
     public DataverseRole saveOrUpdateRole(DataverseRole role) {
-        return commandEngine.submit(new CreateRoleCommand(role, dvRequestService.getDataverseRequest(), (Dataverse) role.getOwner()));
+        return commandEngine.submit(new CreateRoleCommand(role, requestService.getDataverseRequest(), (Dataverse) role.getOwner()));
     }
 
     public Dataverse setDefaultDatasetContributorRole(final DataverseRole role, 
     		final Dataverse dataverse) {
         return this.commandEngine.submit(
         		new UpdateDefaultDatasetContributorRoleCommand(role, 
-        				this.dvRequestService.getDataverseRequest(), dataverse));
+        				this.requestService.getDataverseRequest(), dataverse));
     }
     
     public Dataverse setDefaultDataverseContributorRole(final DataverseRole role, 
     		final Dataverse dataverse) {
         return this.commandEngine.submit(
         		new UpdateDefaultDataverseContributorRoleCommand(role, 
-        				this.dvRequestService.getDataverseRequest(), dataverse));
+        				this.requestService.getDataverseRequest(), dataverse));
     }
 
     // -------------------- PRIVATE ---------------------

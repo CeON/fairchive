@@ -4,7 +4,6 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
 import static edu.harvard.iq.dataverse.authorization.DataverseRolePermissionHelper.getRolesAllowedToBeAssignedByManageMinorDatasetPermissions;
-import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.COLLECTION_CUSTODIAN;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataset;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataverse;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageMinorDataset;
@@ -41,6 +40,7 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
     private final DvObject defPoint;
     private final String privateUrlToken;
     private final boolean anonymized;
+    private final boolean skipPermissionsCheck;
 
     /**
      * @param assignee      The user being granted the role
@@ -53,12 +53,13 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
     		final DataverseRole role, final DvObject assignmentPoint, 
     		final DataverseRequest request, final String privateUrlToken) {
     	
-        this(assignee, role, assignmentPoint, request, privateUrlToken, false);
+        this(assignee, role, assignmentPoint, request, privateUrlToken, false, false);
     }
     
     public AssignRoleCommand(final RoleAssignee assignee, final DataverseRole role, 
     		final DvObject assignmentPoint, final DataverseRequest request, 
-    		final String privateUrlToken, final boolean anonymized) {
+    		final String privateUrlToken, final boolean anonymized, 
+    		final  boolean skipPermissionsCheck) {
     	
         // for data file check permission on owning dataset
         super(request, assignmentPoint instanceof DataFile 
@@ -68,6 +69,7 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
         defPoint = assignmentPoint;
         this.privateUrlToken = privateUrlToken;
         this.anonymized = anonymized;
+        this.skipPermissionsCheck = skipPermissionsCheck;
     }
 
     @Override
@@ -83,9 +85,9 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
         // for data file check permission on owning dataset
 
         if (this.defPoint instanceof Dataverse) {
-        	return singletonMap("", requiresManageDataversePermissions()
-        								? Permission.setOf(ManageDataverse)
-        								: Permission.none());
+        	return singletonMap("", this.skipPermissionsCheck 
+        								? Permission.none()	
+        								: Permission.setOf(ManageDataverse));
         }
 
         if (getRolesAllowedToBeAssignedByManageMinorDatasetPermissions().contains(this.role.getAlias())) {
@@ -101,14 +103,4 @@ public class AssignRoleCommand extends AbstractCommand<RoleAssignment> implement
         return this.grantee + " has been given " + this.role + " on " + 
         		this.defPoint.accept(DvObject.NameIdPrinter);
     }
-    
-	private boolean requiresManageDataversePermissions() {
-		if (this.defPoint.isRoot()) {
-			return true;
-		} else {
-			final Dataverse parent = (Dataverse) this.defPoint.getOwner();
-			return parent.getDefaultDataverseContributorRole() != null &&
-					!parent.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN);
-		}
-	}
 }

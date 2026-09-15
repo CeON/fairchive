@@ -7,6 +7,7 @@ import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRol
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.DS_CONTRIBUTOR;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.EDITOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.engine.command.exception.PermissionException;
 import edu.harvard.iq.dataverse.permission.ManagePermissionsService;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
@@ -211,6 +213,45 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 			isEqualTo(EDITOR.getAlias());
 		assertThat(this.dataverse.getDefaultDataverseContributorRole().getAlias()).
 			isEqualTo(ADMIN.getAlias());
+	}
+	
+	@Test
+	@Transactional(TransactionMode.ROLLBACK)
+	void aRegularUser_cannotAssignOnselfAnyRoles_toSubCollections() throws Throwable {
+		
+		this.owner.setDefaultDataverseContributorRole(
+				this.rolesService.findBuiltinRoleByAlias(COLLECTION_CUSTODIAN));
+		
+		this.dataverseRepository.save(this.owner);
+		
+		this.session.logOut();
+		this.session.logIn(this.fileDownloader);
+		
+		CreateDataverseCommand command = new CreateDataverseCommand(this.dataverse, 
+				newRequest(), null, null);
+		
+		this.engine.submit(command);
+		
+		List<RoleAssignment> assignedRoles = 
+				this.rolesService.directRoleAssignments(this.dataverse);
+		
+		assertThat(assignedRoles).hasSize(2);
+		assertThat(assignedRoles).anyMatch(
+				assignment -> assignment.getAssigneeIdentifier().equals("@dataverseAdmin")
+							&& assignment.getRole().getAlias().equals(COLLECTION_CUSTODIAN.getAlias()));
+		assertThat(assignedRoles).anyMatch(
+				assignment -> assignment.getAssigneeIdentifier().equals(":authenticated-users")
+							&& assignment.getRole().getAlias().equals(DS_CONTRIBUTOR.getAlias()));
+		
+		try {
+			this.permissionsService.assignRoleWithNotification(
+					this.rolesService.findBuiltinRoleByAlias(ADMIN),
+					this.fileDownloader, this.dataverse);
+			fail("Assingning role shall be impossible.");
+		} catch(final PermissionException e) {
+			assertThat(e.getMessage()).contains("ManageDataverse");
+		}
+		
 	}
 	
 	private DataverseRequest newRequest() {

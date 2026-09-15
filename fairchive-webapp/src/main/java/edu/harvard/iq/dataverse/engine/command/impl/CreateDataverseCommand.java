@@ -107,8 +107,10 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
         		managedDv.getCreator() , managedDv, privateUrlToken));
         
         if(this.created.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN)) {
+        	final boolean skipPermissions = skipPermissionsCheck();
         	context.getManagePermissionsService().assignRoleWithNotification(
-        			role(context, DS_CONTRIBUTOR), AuthenticatedUsers.get(), managedDv);
+        			role(context, DS_CONTRIBUTOR), AuthenticatedUsers.get(), 
+        			managedDv, skipPermissions);
         }
         
         // Add additional role assignments if inheritance is set
@@ -207,6 +209,18 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
 			final DataverseRole.BuiltInRole alias) {
 		
 		return context.roles().findBuiltinRoleByAlias(alias);
+	}
+	
+	private boolean skipPermissionsCheck() {
+		if (this.created.isRoot()) {
+			return false;
+		} 
+		final Dataverse parent = (Dataverse) this.created.getOwner();
+		if(parent.getDefaultDataverseContributorRole() == null) {
+			return false;
+		}
+		return parent.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN);
+		
 	}
 
 }

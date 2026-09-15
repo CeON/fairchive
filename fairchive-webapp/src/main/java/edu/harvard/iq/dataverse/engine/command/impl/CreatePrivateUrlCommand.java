@@ -51,7 +51,7 @@ public class CreatePrivateUrlCommand extends AbstractCommand<PrivateUrl> {
         PrivateUrlUser privateUrlUser = new PrivateUrlUser(dataset.getId());
         DataverseRole memberRole = ctxt.roles().findBuiltinRoleByAlias(BuiltInRole.MEMBER);
         final String privateUrlToken = UUID.randomUUID().toString();
-        RoleAssignment roleAssignment = ctxt.engine().submit(new AssignRoleCommand(privateUrlUser, memberRole, dataset, getRequest(), privateUrlToken, this.anonymized));
+        RoleAssignment roleAssignment = ctxt.engine().submit(new AssignRoleCommand(privateUrlUser, memberRole, dataset, getRequest(), privateUrlToken, this.anonymized, false));
         PrivateUrl privateUrl = new PrivateUrl(roleAssignment, dataset, ctxt.systemConfig().getDataverseSiteUrl());
         return privateUrl;
     }
