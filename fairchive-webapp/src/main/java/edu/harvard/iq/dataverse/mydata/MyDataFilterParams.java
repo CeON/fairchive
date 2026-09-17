@@ -37,6 +37,7 @@ public class MyDataFilterParams {
     private List<String> dvObjectTypes;
     private List<String> publicationStatuses;
     private List<Long> roleIds;
+    private boolean allPublicationStatusesRequired;
 
     public static final String defaultSearchTerm = "*:*";
     private String searchTerm;
@@ -48,6 +49,11 @@ public class MyDataFilterParams {
 
     public MyDataFilterParams(DataverseRequest dataverseRequest, List<String> dvObjectTypes, List<String> publicationStatuses,
                               List<Long> roleIds, String searchTerm) {
+        this(dataverseRequest, dvObjectTypes, publicationStatuses, roleIds, searchTerm, false);
+    }
+
+    public MyDataFilterParams(DataverseRequest dataverseRequest, List<String> dvObjectTypes, List<String> publicationStatuses,
+                              List<Long> roleIds, String searchTerm, boolean allPublicationStatusesRequired) {
         if (dataverseRequest == null) {
             throw new NullPointerException("MyDataFilterParams constructor: dataverseRequest cannot be null ");
         }
@@ -64,6 +70,7 @@ public class MyDataFilterParams {
 
         this.roleIds = roleIds;
         this.searchTerm = StringUtils.isBlank(searchTerm) ? MyDataFilterParams.defaultSearchTerm : searchTerm;
+        this.allPublicationStatusesRequired = allPublicationStatusesRequired;
         checkParams();
     }
 
@@ -184,7 +191,10 @@ public class MyDataFilterParams {
                 .map(s -> String.format("\"%s\"", s))
                 .collect(Collectors.toList());
 
-        String valStr = StringUtils.join(solrPublicationStatuses, " OR ");
+        // Requiring every status only narrows a partial selection; with all of them selected nothing would match
+        String operator = allPublicationStatusesRequired && publicationStatuses.size() != allPublishedStates.size()
+                ? " AND " : " OR ";
+        String valStr = StringUtils.join(solrPublicationStatuses, operator);
         if (publicationStatuses.size() > 1) {
             valStr = "(" + valStr + ")";
         }

@@ -543,7 +543,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
         List<Long> roleIdsForFilters = roleFilters.isEmpty()
                 ? rolePermissionHelper.getRoleIdList() : rolePermissionHelper.findRolesIdsByNames(roleFilters);
         MyDataFilterParams filterParams = new MyDataFilterParams(requestWithSearchedUser, toMyDataFinderFormat(selectedTypes),
-                pub_states, roleIdsForFilters, searchTerm);
+                pub_states, roleIdsForFilters, searchTerm, true);
         if (filterParams.hasError()) {
             return filterParams.getErrorMessage().concat(filterParams.getErrorMessage());
         }
@@ -560,12 +560,6 @@ public class MyDataSearchFragment implements java.io.Serializable {
         if (filterQueries == null) {
             logger.fine("No ids found for this search");
             return MyData.MSG_NO_RESULTS_FOUND;
-        }
-        for (String filter : filterQueries) {
-            if (filter.contains(SearchFields.PUBLICATION_STATUS) && pub_states.size() != MyDataFilterParams.defaultPublishedStates.size()) {
-                filterQueries.add(filter.replace("OR", "AND"));
-                filterQueries.remove(filter);
-            }
         }
 
         // ---------------------------------
