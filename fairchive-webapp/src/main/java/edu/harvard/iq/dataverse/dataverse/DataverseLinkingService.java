@@ -1,5 +1,17 @@
 package edu.harvard.iq.dataverse.dataverse;
 
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
+import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
+
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.inject.Inject;
+
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.annotations.PermissionNeeded;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
@@ -12,18 +24,6 @@ import edu.harvard.iq.dataverse.persistence.dataverse.link.DataverseLinkingDatav
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.inject.Inject;
-
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import static java.util.stream.Collectors.toList;
-import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
-
 /**
  * @author skraffmiller
  */
@@ -32,7 +32,7 @@ import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
 public class DataverseLinkingService implements java.io.Serializable {
 
     @Inject
-    private DataverseLinkingDataverseRepository dataverseLinkingDataverseRepository;
+    private DataverseLinkingDataverseRepository repository;
     @Inject
     private IndexServiceBean indexService;
     @Inject
@@ -40,26 +40,29 @@ public class DataverseLinkingService implements java.io.Serializable {
 
     // -------------------- LOGIC --------------------
 
-    public List<Dataverse> findLinkedDataverses(Long linkingDataverseId) {
-        return dataverseLinkingDataverseRepository.findByLinkingDataverseId(linkingDataverseId).stream()
+    public List<Dataverse> findLinkedDataverses(final Long linkingDataverseId) {
+        return this.repository.findByLinkingDataverseId(linkingDataverseId).stream()
                 .map(DataverseLinkingDataverse::getDataverse)
                 .collect(toList());
     }
 
-    public List<Dataverse> findLinkingDataverses(Long dataverseId) {
-        return dataverseLinkingDataverseRepository.findByDataverseId(dataverseId).stream()
+    public List<Dataverse> findLinkingDataverses(final Long dataverseId) {
+        return this.repository.findByDataverseId(dataverseId).stream()
                 .map(DataverseLinkingDataverse::getLinkingDataverse)
                 .collect(toList());
     }
 
-    public DataverseLinkingDataverse findDataverseLinkingDataverse(Long dataverseId, Long linkingDataverseId) {
-        return dataverseLinkingDataverseRepository.findByDataverseIdAndLinkingDataverseId(dataverseId, linkingDataverseId)
+    public DataverseLinkingDataverse findDataverseLinkingDataverse(
+    		final Long dataverseId, final Long linkingDataverseId) {
+        return this.repository.findByDataverseIdAndLinkingDataverseId(dataverseId, 
+        		linkingDataverseId)
                 .orElse(null);
     }
 
-    public boolean alreadyLinked(Dataverse definitionPoint, Dataverse dataverseToLinkTo) {
-        return dataverseLinkingDataverseRepository.findByDataverseIdAndLinkingDataverseId(dataverseToLinkTo.getId(), definitionPoint.getId())
-                .isPresent();
+    public boolean alreadyLinked(final Dataverse definitionPoint, 
+    		final Dataverse dataverseToLinkTo) {
+        return this.repository.findByDataverseIdAndLinkingDataverseId(
+        		dataverseToLinkTo.getId(), definitionPoint.getId()).isPresent();
     }
 
     /**
@@ -69,11 +72,13 @@ public class DataverseLinkingService implements java.io.Serializable {
     @Restricted(@PermissionNeeded(needs = {Permission.PublishDataset}))
     @TransactionAttribute(REQUIRES_NEW)
     public DataverseLinkingDataverse saveLinkedDataverse(
-            @PermissionNeeded Dataverse dataverseToBeLinked, Dataverse dataverse) {
+            final @PermissionNeeded Dataverse dataverseToBeLinked, 
+            final Dataverse dataverse) {
 
-        if (!session.getUser().isSuperuser()) {
-            throw new PermissionException("Link Dataverse can only be called by superusers.",
-                                          Collections.singleton(Permission.PublishDataverse), dataverseToBeLinked);
+        if (!this.session.isSuperUserLoggedIn()) {
+            throw new PermissionException(
+            		"Link Dataverse can only be called by superusers.",
+                    singleton(Permission.PublishDataverse), dataverseToBeLinked);
         }
         if (dataverse.equals(dataverseToBeLinked)) {
             throw new IllegalCommandException("Can't link a dataverse to itself");
@@ -86,8 +91,8 @@ public class DataverseLinkingService implements java.io.Serializable {
         dataverseLinkingDataverse.setDataverse(dataverse);
         dataverseLinkingDataverse.setLinkingDataverse(dataverseToBeLinked);
         dataverseLinkingDataverse.setLinkCreateTime(new Timestamp(new Date().getTime()));
-        dataverseLinkingDataverse = dataverseLinkingDataverseRepository.save(dataverseLinkingDataverse);
-        indexService.indexDataverse(dataverse);
+        dataverseLinkingDataverse = this.repository.save(dataverseLinkingDataverse);
+        this.indexService.indexDataverse(dataverse);
         return dataverseLinkingDataverse;
     }
 }
