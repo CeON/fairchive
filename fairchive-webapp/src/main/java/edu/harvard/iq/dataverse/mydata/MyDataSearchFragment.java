@@ -561,12 +561,7 @@ public class MyDataSearchFragment implements java.io.Serializable {
             logger.fine("No ids found for this search");
             return MyData.MSG_NO_RESULTS_FOUND;
         }
-        for (String filter : filterQueries) {
-            if (filter.contains(SearchFields.PUBLICATION_STATUS) && pub_states.size() != MyDataFilterParams.defaultPublishedStates.size()) {
-                filterQueries.add(filter.replace("OR", "AND"));
-                filterQueries.remove(filter);
-            }
-        }
+        matchAllSelectedPublicationStatuses(filterQueries, pub_states);
 
         // ---------------------------------
         // (3) Make Solr Query
@@ -701,6 +696,22 @@ public class MyDataSearchFragment implements java.io.Serializable {
     }
 
     // -------------------- PRIVATE ---------------------
+
+    /**
+     * Narrows the publication status filter query so that it matches only
+     * objects having every selected status, as each selected facet is meant
+     * to narrow the results further. When all statuses are selected, the
+     * query is left matching any of them.
+     *
+     * @param filterQueries Solr filter queries, modified in place
+     * @param publicationStatuses the selected publication statuses
+     */
+    static void matchAllSelectedPublicationStatuses(List<String> filterQueries, List<String> publicationStatuses) {
+        if (publicationStatuses.size() != MyDataFilterParams.defaultPublishedStates.size()) {
+            filterQueries.replaceAll(filter -> filter.contains(SearchFields.PUBLICATION_STATUS)
+                    ? filter.replace(" OR ", " AND ") : filter);
+        }
+    }
 
     private List<String> toMyDataFinderFormat(SearchForTypes selectedTypes) {
         List<String> myDataFinderTypes = new ArrayList<>();
