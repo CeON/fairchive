@@ -1,28 +1,31 @@
 package edu.harvard.iq.dataverse.dataverse;
 
-import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
-import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import edu.harvard.iq.dataverse.util.JsfRedirectHelper;
-import io.vavr.control.Try;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.model.DualListModel;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Logger.getLogger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.model.DualListModel;
+
+import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.util.JsfHelper;
 
 @SuppressWarnings("serial")
 @ViewScoped
 @Named("FeaturedDataversesDialog")
 public class FeaturedDataversesDialog implements java.io.Serializable {
 
-    private static final Logger logger = Logger.getLogger(FeaturedDataversesDialog.class.getCanonicalName());
+    private static final Logger logger = getLogger(FeaturedDataversesDialog.class.getCanonicalName());
 
     @Inject
     private DataverseService dataverseService;
@@ -32,30 +35,42 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
     private PermissionsWrapper permissionWrapper;
     
     private boolean canEditFeaturedDataverses;
-    private DualListModel<Dataverse> featuredDataverses = new DualListModel<>(new ArrayList<>(), new ArrayList<>());
+    private DualListModel<Dataverse> featuredDataverses = 
+    		new DualListModel<>(new ArrayList<>(), new ArrayList<>());
     private Dataverse dataverse;
     private Dataverse.FeaturedDataversesSorting featuredDataversesSorting;
 
     // -------------------- GETTERS --------------------
 
     public boolean isCanEditFeaturedDataverses() {
-        return canEditFeaturedDataverses;
+        return this.canEditFeaturedDataverses;
     }
 
     public DualListModel<Dataverse> getFeaturedDataverses() {
-        return featuredDataverses;
+        return this.featuredDataverses;
     }
 
     public Dataverse.FeaturedDataversesSorting getFeaturedDataversesSorting() {
-        return featuredDataversesSorting;
+        return this.featuredDataversesSorting;
+    }
+    
+    public boolean displaySelectors() {
+    	return !this.featuredDataverses.getSource().isEmpty() 
+    			|| !this.featuredDataverses.getTarget().isEmpty();
+    }
+    
+    public boolean displayTip() {
+    	return this.featuredDataverses.getSource().isEmpty() 
+    			&& this.featuredDataverses.getTarget().isEmpty();
     }
 
     // -------------------- LOGIC --------------------
 
-    public void init(Dataverse dataverse) {
-        canEditFeaturedDataverses = permissionWrapper.canIssueUpdateDataverseCommand(dataverse);
+    public void init(final Dataverse dataverse) {
+        this.canEditFeaturedDataverses = this.permissionWrapper.
+        		canIssueUpdateDataverseCommand(dataverse);
         
-        if (canEditFeaturedDataverses) {
+        if (this.canEditFeaturedDataverses) {
             this.dataverse = dataverse;
         }
     }
@@ -65,46 +80,48 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
      * any sorting picked and then cancelled, and the shown order always matches the selected sorting.
      */
     public void setupDialog() {
-        List<Dataverse> featuredSource = featuredDataverseService.findFeaturableDataverses(dataverse.getId());
-        List<Dataverse> featuredTarget = featuredDataverseService.findByDataverseId(dataverse.getId());
+        final List<Dataverse> featuredSource = this.featuredDataverseService.
+        		findFeaturableDataverses(this.dataverse.getId());
+        final List<Dataverse> featuredTarget = this.featuredDataverseService.
+        		findByDataverseId(this.dataverse.getId());
 
         featuredTarget.forEach(featuredDataverse -> featuredSource.remove(featuredDataverse));
 
-        featuredDataversesSorting = dataverse.getFeaturedDataversesSorting();
-        featuredDataverses = new DualListModel<>(featuredSource,
-                featuredDataverseService.sortFeaturedDataverses(featuredTarget, featuredDataversesSorting));
+        this.featuredDataversesSorting = this.dataverse.getFeaturedDataversesSorting();
+        this.featuredDataverses = new DualListModel<>(featuredSource,
+                this.featuredDataverseService.sortFeaturedDataverses(featuredTarget, 
+                		this.featuredDataversesSorting));
     }
 
-    public String saveFeaturedDataverse() {
-
-        dataverse.setFeaturedDataversesSorting(featuredDataversesSorting);
-
-        Try.of(() -> dataverseService.saveFeaturedDataverse(dataverse, featuredDataverses.getTarget()))
-                .onSuccess(savedDataverse -> JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.feature.update")))
-                .onFailure(ex -> {
-                    logger.log(Level.SEVERE, "Unexpected Exception calling dataverse command", ex);
-                    JsfHelper.addFlashErrorMessage(BundleUtil.getStringFromBundle("dataverse.update.failure"), "");
-                });
-
-        return JsfRedirectHelper.redirectToDataverse(dataverse.getAlias());
-    }
+	public String saveFeaturedDataverse() {
+		try {
+			this.dataverse.setFeaturedDataversesSorting(this.featuredDataversesSorting);
+			this.dataverseService.saveFeaturedDataverse(this.dataverse, this.featuredDataverses.getTarget());
+			JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.feature.update"));
+		} catch (final Exception e) {
+			logger.log(SEVERE, "Unexpected Exception calling dataverse command", e);
+			JsfHelper.addFlashErrorMessage(getStringFromBundle("dataverse.update.failure"), "");
+		}
+		return redirectToDataverse(this.dataverse.getAlias());
+	}
 
     public void updateSort() {
-        List<Dataverse> target = featuredDataverses.getTarget();
-        featuredDataverses.setTarget(featuredDataverseService.sortFeaturedDataverses(target, featuredDataversesSorting));
+        List<Dataverse> target = this.featuredDataverses.getTarget();
+        this.featuredDataverses.setTarget(this.featuredDataverseService.sortFeaturedDataverses(target, 
+        		this.featuredDataversesSorting));
     }
 
     public void manualReorder() {
-        featuredDataversesSorting = Dataverse.FeaturedDataversesSorting.BY_HAND;
+        this.featuredDataversesSorting = Dataverse.FeaturedDataversesSorting.BY_HAND;
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setFeaturedDataverses(DualListModel<Dataverse> featuredDataverses) {
+    public void setFeaturedDataverses(final DualListModel<Dataverse> featuredDataverses) {
         this.featuredDataverses = featuredDataverses;
     }
 
-    public void setFeaturedDataversesSorting(Dataverse.FeaturedDataversesSorting featuredDataversesSorting) {
-        this.featuredDataversesSorting = featuredDataversesSorting;
+    public void setFeaturedDataversesSorting(final Dataverse.FeaturedDataversesSorting sorting) {
+        this.featuredDataversesSorting = sorting;
     }
 }
