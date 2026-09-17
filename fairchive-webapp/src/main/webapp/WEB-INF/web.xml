@@ -114,6 +114,8 @@
     <filter-mapping>
         <filter-name>noCache</filter-name>
         <servlet-name>Faces Servlet</servlet-name>
+        <servlet-name>HomepageServlet</servlet-name>
+        <url-pattern>/dataverse/*</url-pattern>
     </filter-mapping>
 
     <servlet>
