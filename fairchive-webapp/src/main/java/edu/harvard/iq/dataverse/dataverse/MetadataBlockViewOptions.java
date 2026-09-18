@@ -11,10 +11,10 @@ public class MetadataBlockViewOptions implements Serializable {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    private MetadataBlockViewOptions(Builder builder) {
-        showDatasetFieldTypes = builder.showDatasetFieldTypes;
-        editableDatasetFieldTypes = builder.editableDatasetFieldTypes;
-        selected = builder.selected;
+    private MetadataBlockViewOptions(final Builder builder) {
+        this.showDatasetFieldTypes = builder.showDatasetFieldTypes;
+        this.editableDatasetFieldTypes = builder.editableDatasetFieldTypes;
+        this.selected = builder.selected;
     }
 
     // -------------------- GETTERS --------------------
@@ -23,21 +23,21 @@ public class MetadataBlockViewOptions implements Serializable {
      * Indicates if the metadata fields should be visible (used when creating/editing dataverse).
      */
     public boolean isShowDatasetFieldTypes() {
-        return showDatasetFieldTypes;
+        return this.showDatasetFieldTypes;
     }
 
     /**
      * Indicates if you are able to edit metadata blocks fields to be (Optional/Required/Hidden).
      */
     public boolean isEditableDatasetFieldTypes() {
-        return editableDatasetFieldTypes;
+        return this.editableDatasetFieldTypes;
     }
 
     /**
      * Indicates if this metadata block is selected ( in order to mark the checkbox).
      */
     public boolean isSelected() {
-        return selected;
+        return this.selected;
     }
 
     public static Builder newBuilder() {
@@ -54,18 +54,18 @@ public class MetadataBlockViewOptions implements Serializable {
         private Builder() {
         }
 
-        public Builder showDatasetFieldTypes(boolean val) {
-            showDatasetFieldTypes = val;
+        public Builder showDatasetFieldTypes(boolean value) {
+            this.showDatasetFieldTypes = value;
             return this;
         }
 
-        public Builder editableDatasetFieldTypes(boolean val) {
-            editableDatasetFieldTypes = val;
+        public Builder editableDatasetFieldTypes(final boolean value) {
+            this.editableDatasetFieldTypes = value;
             return this;
         }
 
-        public Builder selected(boolean val) {
-            selected = val;
+        public Builder selected(final boolean value) {
+            this.selected = value;
             return this;
         }
 
@@ -76,7 +76,7 @@ public class MetadataBlockViewOptions implements Serializable {
 
     // -------------------- SETTERS --------------------
 
-    public void setSelected(boolean selected) {
+    public void setSelected(final boolean selected) {
         this.selected = selected;
     }
 }

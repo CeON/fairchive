@@ -1,12 +1,34 @@
 package edu.harvard.iq.dataverse.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
+import javax.faces.model.SelectItem;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.event.TransferEvent;
+import org.primefaces.model.DualListModel;
+
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseFacetServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.bannersandmessages.DataverseUtil;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
@@ -14,27 +36,11 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
+import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.event.TransferEvent;
-import org.primefaces.model.DualListModel;
-
-import javax.ejb.EJB;
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 @SuppressWarnings("serial")
 @ViewScoped
@@ -51,7 +57,7 @@ public class CreateEditDataversePage implements Serializable {
     private MetadataBlockService metadataBlockService;
 
     @EJB
-    private DataverseService metadataBlockSaveManager;
+    private DataverseService dataverseService;
 
     @Inject
     private PermissionsWrapper permissionsWrapper;
@@ -63,7 +69,7 @@ public class CreateEditDataversePage implements Serializable {
     private DataverseSession session;
 
     @Inject
-    private SettingsServiceBean settingsServiceBean;
+    private SettingsServiceBean settings;
 
     @Inject
     private SystemConfig systemConfig;
@@ -83,156 +89,219 @@ public class CreateEditDataversePage implements Serializable {
     // -------------------- GETTERS --------------------
 
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
     }
 
     public Long getDataverseId() {
-        return dataverseId;
+        return this.dataverseId;
     }
 
     public Long getOwnerId() {
-        return ownerId;
+        return this.ownerId;
     }
 
     public Long getFacetMetadataBlockId() {
-        return facetMetadataBlockId;
+        return this.facetMetadataBlockId;
     }
 
     public DualListModel<DatasetFieldType> getFacets() {
-        return facets;
+        return this.facets;
     }
 
-    public Set<MetadataBlock> getAllMetadataBlocks() {
-        return allMetadataBlocks;
-    }
-
-    public DataverseMetaBlockOptions getMdbOptions() {
-        return mdbOptions;
+    public List<MetadataBlock> getAllMetadataBlocks() {
+        return new ArrayList<>(this.allMetadataBlocks);
     }
 
     public String getDataverseOwnerAlias() {
-        return dataverseOwnerAlias;
+        return this.dataverseOwnerAlias;
     }
+    
+    public String getTitle() {
+    	return this.dataverse != null && this.dataverse.isNotNew()
+    			? getStringFromBundle("dataverse.edit.header") + " - " + this.dataverse.getName()
+    			: getStringFromBundle("newDataverse");
+    }
+    
+    public boolean isFacetPickListDisabled() {
+    	return !this.dataverse.isFacetRoot() && this.dataverse.isNotRoot();
+    }
+    
+    public boolean showFieldTypes(final MetadataBlock block) {
+    	return this.mdbOptions.isShowDatasetFieldTypes(block.getId());
+    }
+    
+    public boolean isSelectionDisabledFor(final MetadataBlock block, 
+    		final DatasetFieldType type) {
+    	return (!type.isHasParent() && (type.isHasRequiredChildren() || type.isRequired())) 
+                || !this.mdbOptions.getMdbViewOptions().get(block.getId()).isEditableDatasetFieldTypes()
+                || this.mdbOptions.isInheritMetaBlocksFromParent();
+    }
+    
+    public List<SelectItem> getSelectedDatasetFieldsOf(final DatasetFieldType type) {
+    	return this.mdbOptions.getDatasetFieldViewOptions().get(type.getId()).
+    			getSelectedDatasetFields();
+    }
+    
+    public boolean radioButtonsDisabledFor(final MetadataBlock block) {
+    	return !this.mdbOptions.isEditableDatasetFieldTypes(block.getId())
+                || this.mdbOptions.isInheritMetaBlocksFromParent();
+    }
+    
+    public boolean isEditableDatasetFieldTypes(final MetadataBlock block) {
+        return this.mdbOptions.isEditableDatasetFieldTypes(block.getId());
+    }
+    
+    /**
+     * Indicates if metadata blocks are inherited from parent dataverse or if they are being edited by user.
+     */
+    public boolean isInheritMetaBlocksFromParent() {
+        return this.mdbOptions.isInheritMetaBlocksFromParent();
+    }
+    
+    public void setInheritMetaBlocksFromParent(final boolean inherit) {
+        this.mdbOptions.setInheritMetaBlocksFromParent(inherit);
+    }
+    
+	public MetadataBlockViewOptions getBlockViewOptionsFor(final MetadataBlock block) {
+		return this.mdbOptions.getMdbViewOptions().get(block.getId());
+	}
+	
+	public DatasetFieldViewOptions getFieldTypeViewOptionsFor(final DatasetFieldType type) {
+		return this.mdbOptions.getDatasetFieldViewOptions().get(type.getId());
+	}
 
     // -------------------- LOGIC --------------------
 
     public String init() {
 
-        if (dataverseId == null) {
+        if (this.dataverseId == null) {
             return setupViewForDataverseCreation();
+        } else {
+        	return setupViewForDataverseEdit();
         }
-
-        return setupViewForDataverseEdit();
     }
 
-    public void validateAlias(FacesContext context, UIComponent toValidate, Object value) {
-        if (!StringUtils.isEmpty((String) value)) {
-            String alias = (String) value;
-
-            boolean aliasFound = false;
-            Dataverse dv = dataverseDao.findByAlias(alias);
-
-            if (dv != null && !dv.getId().equals(dataverse.getId())) {
-                aliasFound = true;
-            }
-            if (aliasFound) {
+    public void validateAlias(final FacesContext context, final 
+    		UIComponent toValidate, final Object value) {
+    	final String alias = (String) value;
+        if (isNotEmpty(alias)) {
+            final Dataverse dataverse = this.dataverseDao.findByAlias(alias);
+            if (dataverse != null && !dataverse.getId().equals(this.dataverse.getId())) {
                 ((UIInput) toValidate).setValid(false);
-                FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("dataverse.alias"), BundleUtil.getStringFromBundle("dataverse.alias.taken"));
+                final FacesMessage message = new FacesMessage(SEVERITY_ERROR, 
+                		getStringFromBundle("dataverse.alias"), 
+                		getStringFromBundle("dataverse.alias.taken"));
                 context.addMessage(toValidate.getClientId(context), message);
             }
         }
     }
 
-    public void refreshDatasetFieldTypes(Long mdbId, boolean editable, boolean fieldsVisible) {
-        metadataBlockService.refreshDatasetFieldTypes(mdbOptions, mdbId, editable, fieldsVisible);
+    public void refreshDatasetFieldTypes(final Long mdbId, final boolean editable, 
+    		final boolean fieldsVisible) {
+        this.metadataBlockService.refreshDatasetFieldTypes(this.mdbOptions, 
+        		mdbId, editable, fieldsVisible);
     }
-
+    
+    public boolean displayEditableDatasetFieldTypesLinkFor(final MetadataBlock block) {
+    	return !showFieldTypes(block)
+    			&& (this.mdbOptions.getMdbViewOptions().get(block.getId()).isSelected()
+    					|| block.isCitationMetaBlock())
+    			&& !isInheritMetaBlocksFromParent();
+    }
     
     /**
      * Changes metadata block view options in order to show editable dataset fields for given metadata block.
      */
-    public void showEditableDatasetFieldTypes(Long mdbId) {
-        metadataBlockService.prepareDatasetFieldsToBeEditable(mdbOptions, mdbId);
+    public void showEditableDatasetFieldTypes(final MetadataBlock block) {
+        this.metadataBlockService.prepareDatasetFieldsToBeEditable(this.mdbOptions, 
+        		block.getId());
+    }
+    
+    public boolean displayUnEditableDatasetFieldTypesLinkFor(final MetadataBlock block) {
+    	return ! showFieldTypes(block)
+                && (!this.mdbOptions.getMdbViewOptions().get(block.getId()).isSelected() ||
+                		isInheritMetaBlocksFromParent());
     }
 
     /**
      * Changes metadata block view options in order to show uneditable dataset fields for given metadata block.
      */
-    public void showUnEditableDatasetFieldTypes(Long mdbId) {
-        metadataBlockService.prepareDatasetFieldsToBeUnEditable(mdbOptions, mdbId);
+    public void showUnEditableDatasetFieldTypes(final MetadataBlock block) {
+        this.metadataBlockService.prepareDatasetFieldsToBeUnEditable(this.mdbOptions,
+        		block.getId());
     }
 
     /**
      * Changes metadata block view options in order to hide all dataset fields for given metadata block.
      */
-    public void hideDatasetFieldTypes(Long mdbId) {
-        metadataBlockService.prepareDatasetFieldsToBeHidden(mdbOptions, mdbId);
+    public void hideDatasetFieldTypes(final Long mdbId) {
+        this.metadataBlockService.prepareDatasetFieldsToBeHidden(this.mdbOptions, mdbId);
     }
 
     /**
      * Resets all view options for metadata blocks, dataset fields and sets metadata blocks to be inherited from parent.
      */
     public String resetToInherit() {
-        mdbOptions = parentRootMdbOptions.deepCopy();
-        mdbOptions.setInheritMetaBlocksFromParent(true);
-        dataverse.setMetadataBlockRoot(false);
-
-        return StringUtils.EMPTY;
+        this.mdbOptions = this.parentRootMdbOptions.deepCopy();
+        this.mdbOptions.setInheritMetaBlocksFromParent(true);
+        this.dataverse.setMetadataBlockRoot(false);
+        return EMPTY;
     }
 
     public boolean isInheritFacetFromParent() {
-        return !dataverse.isFacetRoot();
+        return !this.dataverse.isFacetRoot();
     }
 
     public void toggleFacetRoot() {
-        if (!dataverse.isFacetRoot()) {
+        if (!this.dataverse.isFacetRoot()) {
             initFacets();
         }
     }
 
     public boolean isUserCanChangeAllowMessageAndBanners() {
-        return session.getUser().isSuperuser();
+        return this.session.isSuperUserLoggedIn();
     }
 
     public String save() {
-        List<DataverseFieldTypeInputLevel> dftilForSave =
-                metadataBlockService.getDataverseFieldTypeInputLevelsToBeSaved(allMetadataBlocks, mdbOptions, dataverse);
+        final List<DataverseFieldTypeInputLevel> dftilForSave =
+                this.metadataBlockService.getDataverseFieldTypeInputLevelsToBeSaved(
+                		this.allMetadataBlocks, this.mdbOptions, this.dataverse);
 
-        if (dataverse.getId() == null) {
+        if (this.dataverse.isNew()) {
             return saveNewDataverse(dftilForSave);
+        } else {
+        	return saveEditedDataverse(dftilForSave);
         }
-
-        return saveEditedDataverse(dftilForSave);
-    }
-
-    public void refresh() {
-
     }
 
     public void changeFacetsMetadataBlock() {
-        if (facetMetadataBlockId == null) {
-            facets.setSource(datasetFieldService.findAllFacetableFieldTypes());
+        if (this.facetMetadataBlockId == null) {
+            this.facets.setSource(this.datasetFieldService.findAllFacetableFieldTypes());
         } else {
-            facets.setSource(datasetFieldService.findFacetableFieldTypesByMetadataBlock(facetMetadataBlockId));
+            this.facets.setSource(this.datasetFieldService.
+            		findFacetableFieldTypesByMetadataBlock(this.facetMetadataBlockId));
         }
 
-        facets.getSource().removeAll(facets.getTarget());
+        this.facets.getSource().removeAll(this.facets.getTarget());
     }
 
     /**
      * Refreshes dataset fields view options for given dataset field.
      */
-    public void refreshDatasetFieldsViewOptions(Long mdbId, long dsftId) {
-        metadataBlockService.refreshDatasetFieldsViewOptions(mdbId, dsftId, allMetadataBlocks, mdbOptions);
+    public void refreshDatasetFieldsViewOptions(final MetadataBlock block, 
+    		final DatasetFieldType type) {
+        this.metadataBlockService.refreshDatasetFieldsViewOptions(block.getId(), 
+        		type.getId(), this.allMetadataBlocks, this.mdbOptions);
     }
 
     /**
      * Makes metadata block selectable/editable since it is no longer inherited from parent dataverse.
      */
     public void makeMetadataBlocksSelectable() {
-        mdbOptions.setInheritMetaBlocksFromParent(false);
-        dataverse.setMetadataBlockRoot(true);
-        allMetadataBlocks = metadataBlockService.prepareMetaBlocksAndDatasetfields(dataverse, mdbOptions);
+        this.mdbOptions.setInheritMetaBlocksFromParent(false);
+        this.dataverse.setMetadataBlockRoot(true);
+        this.allMetadataBlocks = this.metadataBlockService.
+        		prepareMetaBlocksAndDatasetfields(this.dataverse, this.mdbOptions);
 
     }
 
@@ -243,143 +312,162 @@ public class CreateEditDataversePage implements Serializable {
         return returnRedirect();
     }
 
-    public void onFacetTransfer(TransferEvent event) {
-        for (Object item : event.getItems()) {
-            DatasetFieldType facet = (DatasetFieldType) item;
-            if (facetMetadataBlockId != null && !facetMetadataBlockId.equals(facet.getMetadataBlock().getId())) {
-                facets.getSource().remove(facet);
-            }
-        }
+    public void onFacetTransfer(final TransferEvent event) {
+    	if(this.facetMetadataBlockId != null) {
+	        for (final Object item : event.getItems()) {
+	            final DatasetFieldType facet = (DatasetFieldType) item;
+	            if (!this.facetMetadataBlockId.equals(facet.getMetadataBlock().getId())) {
+	                this.facets.getSource().remove(facet);
+	            }
+	        }
+    	}
     }
 
-    public String returnRedirect() {
-        return dataverse.getId() == null ? "/dataverse.xhtml?alias=" + dataverseOwnerAlias + "&faces-redirect=true" :
-                "/dataverse.xhtml?alias=" + dataverse.getAlias() + "&faces-redirect=true";
+    private String returnRedirect() {
+        return this.dataverse.isNew() 
+        		? "/dataverse.xhtml?alias=" + this.dataverseOwnerAlias + "&faces-redirect=true" 
+                : "/dataverse.xhtml?alias=" + this.dataverse.getAlias() + "&faces-redirect=true";
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setDataverse(Dataverse dataverse) {
+    public void setDataverse(final Dataverse dataverse) {
         this.dataverse = dataverse;
     }
 
-    public void setDataverseId(Long dataverseId) {
-        this.dataverseId = dataverseId;
+    public void setDataverseId(final Long id) {
+        this.dataverseId = id;
     }
 
-    public void setFacetMetadataBlockId(Long facetMetadataBlockId) {
-        this.facetMetadataBlockId = facetMetadataBlockId;
+    public void setFacetMetadataBlockId(final Long id) {
+        this.facetMetadataBlockId = id;
     }
 
-    public void setAllMetadataBlocks(Set<MetadataBlock> allMetadataBlocks) {
-        this.allMetadataBlocks = allMetadataBlocks;
+    public void setAllMetadataBlocks(final Set<MetadataBlock> blocks) {
+        this.allMetadataBlocks = blocks;
     }
 
-    public void setFacets(DualListModel<DatasetFieldType> facets) {
+    public void setFacets(final DualListModel<DatasetFieldType> facets) {
         this.facets = facets;
     }
 
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
+    public void setOwnerId(final Long id) {
+        this.ownerId = id;
     }
 
-    public void setInheritFacetFromParent(boolean inheritFacetFromParent) {
-        dataverse.setFacetRoot(!inheritFacetFromParent);
+    public void setInheritFacetFromParent(final boolean inheritFacetFromParent) {
+        this.dataverse.setFacetRoot(!inheritFacetFromParent);
     }
 
-    public void setDataverseOwnerAlias(String dataverseOwnerAlias) {
-        this.dataverseOwnerAlias = dataverseOwnerAlias;
+    public void setDataverseOwnerAlias(final String alias) {
+        this.dataverseOwnerAlias = alias;
     }
 
     // -------------------- PRIVATE --------------------
 
-    private String saveEditedDataverse(List<DataverseFieldTypeInputLevel> dftilForSave) {
-        Either<DataverseError, Dataverse> editResult = metadataBlockSaveManager.saveEditedDataverse(dftilForSave, dataverse, facets);
+    private String saveEditedDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {
+        final Either<DataverseError, Dataverse> editResult = 
+        		this.dataverseService.saveEditedDataverse(dftilForSave, 
+        				this.dataverse, this.facets);
 
         if (editResult.isLeft()) {
-            JsfHelper.addErrorMessage(editResult.getLeft().getErrorMsg(), "");
-            return StringUtils.EMPTY;
+            JsfHelper.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
+            return EMPTY;
+        } else {
+        	JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
+        	return returnRedirect();
         }
-
-        JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.update.success"));
-        return returnRedirect();
     }
 
-    private String saveNewDataverse(List<DataverseFieldTypeInputLevel> dftilForSave) {
-        Either<DataverseError, Dataverse> saveResult = metadataBlockSaveManager.saveNewDataverse(dftilForSave, dataverse, facets);
+    private String saveNewDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {
+        final Either<DataverseError, Dataverse> saveResult = 
+        		this.dataverseService.saveNewDataverse(dftilForSave, 
+        				this.dataverse, this.facets);
 
         if (saveResult.isLeft()) {
-            JsfHelper.addErrorMessage(saveResult.getLeft().getErrorMsg(), "");
-            return StringUtils.EMPTY;
+            JsfHelper.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
+            return EMPTY;
+        } else {
+        	showSuccessMessage();
+        	return "/dataverse.xhtml?alias=" + saveResult.get().getAlias() + 
+        			"&faces-redirect=true";
         }
-
-        showSuccessMessage();
-        return "/dataverse.xhtml?alias=" + saveResult.get().getAlias() + "&faces-redirect=true";
     }
 
     private void showSuccessMessage() {
-        JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.create.success",
-                                                                        systemConfig.getGuidesBaseUrl(this.session.getLocale()),
-                                                                        systemConfig.getGuidesVersion()));
+        JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
+                                         this.systemConfig.getGuidesBaseUrl(this.session.getLocale()),
+                                         this.systemConfig.getGuidesVersion()));
     }
 
     private String setupViewForDataverseEdit() {
-        dataverse = dataverseDao.find(dataverseId);
-        if (!permissionsWrapper.canIssueUpdateDataverseCommand(dataverse)) {
-            return permissionsWrapper.notAuthorized();
+        this.dataverse = this.dataverseDao.find(this.dataverseId);
+        if (this.dataverse == null) {
+            return this.permissionsWrapper.notFound();
         }
-
-        ownerId = dataverse.isNotRoot() ? dataverse.getOwner().getId() : null;
-        setupForGeneralInfoEdit();
-
-        return StringUtils.EMPTY;
+        if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)) {
+            return permissionsWrapper.notAuthorized();
+        } 
+    	this.ownerId = this.dataverse.getOwnerId();
+    	setupForGeneralInfoEdit();
+    	return EMPTY;
     }
 
     private String setupViewForDataverseCreation() {
-        dataverse = new Dataverse();
-        dataverse.setOwner(dataverseDao.find(ownerId));
+    	final Dataverse owner = this.dataverseDao.find(this.ownerId);
 
-        if (dataverse.isRoot()) {
-            return permissionsWrapper.notFound();
-        } else if (!permissionsWrapper.canIssueCreateDataverseCommand(dataverse.getOwner())) {
-            return permissionsWrapper.notAuthorized();
+    	if (owner == null) {
+    	    return this.permissionsWrapper.notFound();
+    	}
+        this.dataverse = new Dataverse();
+        this.dataverse.setOwner(owner);
+
+        if (!this.permissionsWrapper.canIssueCreateDataverseCommand(owner)) {
+            return this.permissionsWrapper.notAuthorized();
         }
 
         if (isPrefillEnabled()) {
-            dataverse.getDataverseContacts().add(new DataverseContact(dataverse, session.getUser().getDisplayInfo().getEmailAddress()));
-            dataverse.setAffiliation(session.getUser().getDisplayInfo().getAffiliation());
-            dataverse.setName(DataverseUtil.getSuggestedDataverseNameOnCreate(session.getUser()));
+        	final User user = this.session.getUser();
+            this.dataverse.getDataverseContacts().add(
+            		new DataverseContact(this.dataverse, user.getDisplayInfo().getEmailAddress()));
+            this.dataverse.setAffiliation(user.getDisplayInfo().getAffiliation());
+            this.dataverse.setName(Dataverse.getSuggestedNameOnCreate(user));
         } else {
-            dataverse.getDataverseContacts().add(new DataverseContact(dataverse, ""));
+            this.dataverse.getDataverseContacts().add(new DataverseContact(this.dataverse, EMPTY));
         }
 
         setupForGeneralInfoEdit();
-
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     private boolean isPrefillEnabled() {
-        return settingsServiceBean.isTrueForKey(SettingsServiceBean.Key.CollectionFormPrefillEnabled);
+        return this.settings.isTrueForKey(CollectionFormPrefillEnabled);
     }
 
     private void setupForGeneralInfoEdit() {
         initFacets();
-        allMetadataBlocks = metadataBlockService.prepareMetaBlocksAndDatasetfields(dataverse, mdbOptions);
+        this.allMetadataBlocks = this.metadataBlockService.
+        		prepareMetaBlocksAndDatasetfields(this.dataverse, this.mdbOptions);
 
-        metadataBlockService.prepareMetaBlocksAndDatasetfields(Option.of(dataverse.getOwner()).getOrElse(dataverse),
-                                                                        parentRootMdbOptions);
+        final Dataverse dataverse = this.dataverse.isRoot()
+        		? this.dataverse
+        		: this.dataverse.getOwner();
+        
+        this.metadataBlockService.prepareMetaBlocksAndDatasetfields(dataverse,
+        		this.parentRootMdbOptions);
     }
 
     private void initFacets() {
-        List<DatasetFieldType> facetsTarget = new ArrayList<>();
-        List<DatasetFieldType> facetsSource = new ArrayList<>(datasetFieldService.findAllFacetableFieldTypes());
-        List<DataverseFacet> facetsList = dataverseFacetService.findByDataverseId(dataverse.getFacetRootId());
-        for (DataverseFacet dvFacet : facetsList) {
-            DatasetFieldType dsfType = dvFacet.getDatasetFieldType();
-            facetsTarget.add(dsfType);
-            facetsSource.remove(dsfType);
+        final List<DatasetFieldType> facetsTarget = new ArrayList<>();
+        final List<DatasetFieldType> facetsSource = new ArrayList<>(
+        		this.datasetFieldService.findAllFacetableFieldTypes());
+        for (final DataverseFacet facet : this.dataverseFacetService.
+        		findByDataverseId(this.dataverse.getFacetRootId())) {
+            final DatasetFieldType type = facet.getDatasetFieldType();
+            facetsTarget.add(type);
+            facetsSource.remove(type);
         }
-        facets = new DualListModel<>(facetsSource, facetsTarget);
-        facetMetadataBlockId = null;
+        this.facets = new DualListModel<>(facetsSource, facetsTarget);
+        this.facetMetadataBlockId = null;
     }
 }

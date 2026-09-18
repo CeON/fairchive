@@ -12,7 +12,7 @@ public class DatasetFieldViewOptions implements Serializable {
     private boolean included;
     private List<SelectItem> selectedDatasetFields = new ArrayList<>();
 
-    public DatasetFieldViewOptions(boolean requiredField, boolean included) {
+    public DatasetFieldViewOptions(final boolean requiredField, final boolean included) {
         this.requiredField = requiredField;
         this.included = included;
     }
@@ -23,35 +23,35 @@ public class DatasetFieldViewOptions implements Serializable {
      * Indicates if this field is required, otherwise it is 'optional'.
      */
     public boolean isRequiredField() {
-        return requiredField;
+        return this.requiredField;
     }
 
     /**
      * Indicates if this field is included, otherwise it is 'hidden'.
      */
     public boolean isIncluded() {
-        return included;
+        return this.included;
     }
 
     /**
      * Returns boolean list of (Required/Optional) or (Hidden).
      */
     public List<SelectItem> getSelectedDatasetFields() {
-        return selectedDatasetFields;
+        return this.selectedDatasetFields;
     }
 
     // -------------------- SETTERS --------------------
 
 
-    public void setRequiredField(boolean requiredField) {
+    public void setRequiredField(final boolean requiredField) {
         this.requiredField = requiredField;
     }
 
-    public void setIncluded(boolean included) {
+    public void setIncluded(final boolean included) {
         this.included = included;
     }
 
-    public void setSelectedDatasetFields(List<SelectItem> selectedDatasetFields) {
-        this.selectedDatasetFields = selectedDatasetFields;
+    public void setSelectedDatasetFields(final List<SelectItem> fields) {
+        this.selectedDatasetFields = fields;
     }
 }

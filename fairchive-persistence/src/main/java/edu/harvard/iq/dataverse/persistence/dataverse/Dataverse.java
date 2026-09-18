@@ -8,6 +8,7 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.FetchType.LAZY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,6 +54,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.link.SavedSearch;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
+import edu.harvard.iq.dataverse.persistence.user.User;
 
 /**
  * @author gdurand
@@ -814,5 +816,9 @@ public class Dataverse extends DvObjectContainer {
 
     public void setFeaturedDataversesSorting(FeaturedDataversesSorting featuredDataversesSorting) {
         this.featuredDataversesSorting = featuredDataversesSorting;
+    }
+    
+    public static String getSuggestedNameOnCreate(final User user) {
+        return user.getDisplayInfo().getTitle() + SPACE + getStringFromBundle("dataverse");
     }
 }
