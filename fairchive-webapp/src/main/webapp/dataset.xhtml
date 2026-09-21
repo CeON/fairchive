@@ -641,6 +641,8 @@
                                             <ui:include src="viewMetadataField.xhtml">
                                                 <ui:param name="fieldsOfType" 
                                                           value="#{fieldsOfType}"/>
+                                                <ui:param name="isViewedFromAnonymizedPrivateUrl"
+                                                          value="#{DatasetPage.isViewedFromAnonymizedPrivateUrl()}"/>
                                             </ui:include>
                                         </div>
                                     </ui:repeat>
