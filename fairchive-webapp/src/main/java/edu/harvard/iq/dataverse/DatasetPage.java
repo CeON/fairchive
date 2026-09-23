@@ -1263,7 +1263,8 @@ public class DatasetPage implements Serializable {
     public List<DatasetFieldsOfType> getDatasetSummaryFields() {
         List<String> customFields = settingsService.getValueForKeyAsList(CustomDatasetSummaryFields);
 
-        return datasetSummaryService.getDatasetSummaryFields(workingVersion, customFields);
+        return datasetSummaryService.getDatasetSummaryFields(workingVersion, customFields,
+                isViewedFromAnonymizedPrivateUrl());
     }
 
     public String getKeywordsDisplaySummary() {

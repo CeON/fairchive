@@ -14,7 +14,16 @@ import java.util.Map;
 @Stateless
 public class DatasetSummaryService {
 
-    public List<DatasetFieldsOfType> getDatasetSummaryFields(DatasetVersion datasetVersion, List<String> customFieldList) {
+    /**
+     * Returns dataset fields to be shown in the dataset summary box, grouped
+     * by their type and ordered as in the given custom field list.
+     *
+     * @param anonymizedView if true, field types that are not visible through
+     *                       an anonymized private URL are left out.
+     */
+    public List<DatasetFieldsOfType> getDatasetSummaryFields(DatasetVersion datasetVersion,
+                                                             List<String> customFieldList,
+                                                             boolean anonymizedView) {
 
         Map<String, DatasetFieldsOfType> allFieldsByType = DatasetFieldUtil.groupByType(datasetVersion.getFlatDatasetFields())
                 .stream()
@@ -25,8 +34,9 @@ public class DatasetSummaryService {
         List<DatasetFieldsOfType> fieldsOfTypes = new ArrayList<>();
         
         for (String summaryField: customFieldList) {
-            if (allFieldsByType.containsKey(summaryField)) {
-                fieldsOfTypes.add(allFieldsByType.get(summaryField));
+            DatasetFieldsOfType fieldsOfType = allFieldsByType.get(summaryField);
+            if (fieldsOfType != null && (!anonymizedView || fieldsOfType.isVisibleThroughAnonymizedUrl())) {
+                fieldsOfTypes.add(fieldsOfType);
             }
         }
 
