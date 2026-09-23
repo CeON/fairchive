@@ -1,16 +1,18 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
-import edu.harvard.iq.dataverse.util.LruCache;
+import java.util.List;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacetRepository;
+import edu.harvard.iq.dataverse.util.LruCache;
 
 /**
  * @author xyang
@@ -25,6 +27,9 @@ public class DataverseFacetServiceBean implements java.io.Serializable {
 
     @PersistenceContext(unitName = "VDCNet-ejbPU")
     private EntityManager em;
+    
+    @Inject
+    private DataverseFacetRepository repository;
 
     @EJB
     DataverseDao dataverses;
@@ -54,21 +59,25 @@ public class DataverseFacetServiceBean implements java.io.Serializable {
 
     }
 
-    public DataverseFacet create(int displayOrder, DatasetFieldType fieldType, Dataverse ownerDv) {
-        DataverseFacet dataverseFacet = new DataverseFacet();
+//    public DataverseFacet create(int displayOrder, DatasetFieldType fieldType, Dataverse ownerDv) {
+//        DataverseFacet dataverseFacet = new DataverseFacet();
+//
+//        dataverseFacet.setDisplayOrder(displayOrder);
+//        dataverseFacet.setDatasetFieldType(fieldType);
+//        dataverseFacet.setDataverse(ownerDv);
+//
+//        ownerDv.getDataverseFacets().add(dataverseFacet);
+//        em.persist(dataverseFacet);
+//        return dataverseFacet;
+//    }
 
-        dataverseFacet.setDisplayOrder(displayOrder);
-        dataverseFacet.setDatasetFieldType(fieldType);
-        dataverseFacet.setDataverse(ownerDv);
-
-        ownerDv.getDataverseFacets().add(dataverseFacet);
-        em.persist(dataverseFacet);
-        return dataverseFacet;
-    }
-
-    public DataverseFacet create(int displayOrder, Long datasetFieldTypeId, Long dataverseId) {
-        return create(displayOrder, em.find(DatasetFieldType.class, datasetFieldTypeId),
-                      dataverses.find(dataverseId));
+//    public DataverseFacet create(int displayOrder, Long datasetFieldTypeId, Long dataverseId) {
+//        return create(displayOrder, em.find(DatasetFieldType.class, datasetFieldTypeId),
+//                      dataverses.find(dataverseId));
+//    }
+    
+    public void save(final DataverseFacet facet) {
+    	this.repository.save(facet);
     }
 
 }

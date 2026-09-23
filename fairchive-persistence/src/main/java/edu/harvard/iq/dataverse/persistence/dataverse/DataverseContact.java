@@ -1,108 +1,93 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.config.ValidateEmail;
-import org.hibernate.validator.constraints.NotBlank;
+import static java.util.Objects.requireNonNull;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import java.io.Serializable;
-import java.util.Objects;
+import javax.validation.constraints.NotBlank;
 
-/**
- * @author gdurand
- */
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.config.ValidateEmail;
+
 @Entity
-@Table(indexes = {@Index(columnList = "dataverse_id")
-        , @Index(columnList = "contactemail")
-        , @Index(columnList = "displayorder")})
-public class DataverseContact implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    public DataverseContact() {
-    }
-
-    public DataverseContact(Dataverse dv) {
-        this.dataverse = dv;
-    }
-
-    public DataverseContact(Dataverse dv, String contactEmail) {
-        this.dataverse = dv;
-        this.contactEmail = contactEmail;
-    }
+public class DataverseContact implements JpaEntity<Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
+    
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "version_id", nullable = false)
+    private DataverseVersion version;
+    
+    @NotBlank(message = "{user.invalidEmail}")
+    @ValidateEmail(message = "{user.invalidEmail}")
+    @Column(nullable = false)
+    private String email;
+    
+    @Column
+    private int displayOrder = 0;
+    
+    protected DataverseContact() {}
+    
+    DataverseContact(final DataverseVersion version, final String email) {
+    	this.version = requireNonNull(version);
+    	this.email = email;
+    }
 
+    @Override
     public Long getId() {
         return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
-
-    @ManyToOne
-    @JoinColumn(name = "dataverse_id")
-    private Dataverse dataverse;
-
-    @NotBlank(message = "{user.invalidEmail}")
-    @ValidateEmail(message = "{user.invalidEmail}")
-    @Column(nullable = false)
-    private String contactEmail;
-    private int displayOrder;
-
-    public Dataverse getDataverse() {
-        return dataverse;
+    
+    public DataverseVersion getVersion() {
+        return this.version;
     }
 
-    public void setDataverse(Dataverse dataverse) {
-        this.dataverse = dataverse;
+    public String getEmail() {
+        return this.email;
     }
 
-    public String getContactEmail() {
-        return contactEmail;
-    }
-
-    public void setContactEmail(String contactEmail) {
-        this.contactEmail = contactEmail;
+    public void setEmail(final String email) {
+        this.email = email;
     }
 
     public int getDisplayOrder() {
-        return displayOrder;
+        return this.displayOrder;
     }
 
-    public void setDisplayOrder(int displayOrder) {
-        this.displayOrder = displayOrder;
+    public void setDisplayOrder(final int order) {
+        this.displayOrder = order;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof DataverseContact)) {
-            return false;
-        }
-        DataverseContact other = (DataverseContact) object;
-        return !(!Objects.equals(this.id, other.id) && (this.id == null || !this.id.equals(other.id)));
+    public boolean equals(final Object object) {
+    	if(object != null && getClass().equals(object.getClass())) {
+            final DataverseContact other = (DataverseContact) object;
+            return Objects.equals(this.id, other.id);
+    	} else {
+    		return false;
+    	}
     }
 
     @Override
     public String toString() {
         return "DataverseContact[ id=" + id + " ]";
     }
-
 }

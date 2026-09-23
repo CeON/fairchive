@@ -1,0 +1,79 @@
+-- collection versions table
+
+CREATE TABLE dataverseversion (
+    id serial4 NOT NULL,
+    createtime timestamp NOT NULL,
+    name text NOT NULL,
+    alias text NOT NULL,
+    description text NULL,
+    additionaldescription text NULL,
+    dataversetype text NOT NULL,
+    state text NULL,
+    affiliation text NULL,
+    messagesbannersallowed bool not null default false,
+    dataverse_id int8 not null,
+    CONSTRAINT dataverseversion_alias_key UNIQUE (alias),
+    CONSTRAINT dataverseversion_pkey PRIMARY KEY (id),
+    CONSTRAINT unq_datverseversion_0 UNIQUE (dataverse_id, createtime),
+    CONSTRAINT fk_dataverseversion_id FOREIGN KEY (dataverse_id) REFERENCES dataverse(id)
+);
+
+-- assign version to every existing collection
+
+insert into dataverseversion (createtime, name, alias, description, 
+                              additionaldescription, dataversetype, state, affiliation, 
+                              dataverse_id)
+    select now(), name, alias, description, 
+       additional_description, dataversetype,'RELEASED', affiliation, 
+       id
+       from dataverse;
+       
+-- reassign contacts from collections to collection versions
+alter table dataversecontact add column version_id int8 references dataverseversion(id);
+
+UPDATE dataversecontact dc
+SET version_id = dv.id
+FROM dataverseversion dv
+WHERE dv.dataverse_id = dc.dataverse_id;
+
+alter table dataversecontact ALTER COLUMN displayorder SET default 0;
+alter table dataversecontact ALTER COLUMN version_id SET NOT NULL;
+alter table dataversecontact drop column dataverse_id;
+alter table dataversecontact rename contactemail to email;
+
+
+-- reassing facets from collections to collection versions
+alter table dataversefacet add column version_id int8 references dataverseversion(id);
+
+UPDATE dataversefacet df
+SET version_id = dv.id
+FROM dataverseversion dv
+WHERE dv.dataverse_id = df.dataverse_id;
+
+alter table dataversefacet ALTER COLUMN displayorder SET default 0;
+alter table dataversefacet ALTER COLUMN displayorder SET not null;
+alter table dataversefacet ALTER COLUMN version_id SET NOT NULL;
+alter table dataversefacet ALTER COLUMN datasetfieldtype_id SET NOT NULL;
+alter table dataversefacet drop column dataverse_id;
+
+-- reassing dataverse field type input levels from collections to collection versions
+alter table dataversefieldtypeinputlevel add column version_id int8 references dataverseversion(id);
+
+UPDATE dataversefieldtypeinputlevel dfil
+SET version_id = dv.id
+FROM dataverseversion dv
+WHERE dv.dataverse_id = dfil.dataverse_id;
+
+alter table dataversefieldtypeinputlevel ALTER COLUMN include SET default false;
+alter table dataversefieldtypeinputlevel ALTER COLUMN include SET not null;
+alter table dataversefieldtypeinputlevel ALTER COLUMN required SET default false;
+alter table dataversefieldtypeinputlevel ALTER COLUMN required SET not null;
+alter table dataversefieldtypeinputlevel ALTER COLUMN version_id SET NOT NULL;
+alter table dataversefieldtypeinputlevel drop column dataverse_id;
+
+
+
+
+
+
+

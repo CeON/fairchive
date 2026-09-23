@@ -52,6 +52,7 @@ import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.permission.ManagePermissionsService;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevelRepository;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.search.SearchServiceBean;
@@ -218,6 +219,9 @@ public class EjbDataverseEngine {
     
     @Inject
     ManagePermissionsService managePermissionsService;
+    
+    @Inject
+    DataverseFieldTypeInputLevelRepository dataverseFieldTypeInputLevelRepository;
 
     @Resource
     EJBContext ejbCtxt;
@@ -545,6 +549,13 @@ public class EjbDataverseEngine {
                 public ManagePermissionsService getManagePermissionsService() {
                 	return managePermissionsService;
                 }
+
+				@Override
+				public DataverseFieldTypeInputLevelRepository inputLevels() {
+					return dataverseFieldTypeInputLevelRepository;
+				}
+                
+                
             };
         }
 

@@ -1,98 +1,91 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import static java.util.Objects.requireNonNull;
+import static javax.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * @author gdurand
- */
-@NamedQueries({
-        @NamedQuery(name = "DataverseFacet.removeByOwnerId",
-                query = "DELETE FROM DataverseFacet f WHERE f.dataverse.id=:ownerId"),
-        @NamedQuery(name = "DataverseFacet.findByDataverseId",
-                query = "select f from DataverseFacet f where f.dataverse.id = :dataverseId order by f.displayOrder")
-})
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+
+//@NamedQueries({
+//        @NamedQuery(name = "DataverseFacet.removeByOwnerId",
+//                query = "DELETE FROM DataverseFacet f WHERE f.dataverse.id=:ownerId"),
+//        @NamedQuery(name = "DataverseFacet.findByDataverseId",
+//                query = "select f from DataverseFacet f where f.dataverse.id = :dataverseId order by f.displayOrder")
+//})
 
 @Entity
-@Table(indexes = {@Index(columnList = "dataverse_id")
-        , @Index(columnList = "datasetfieldtype_id")
-        , @Index(columnList = "displayorder")})
-public class DataverseFacet implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class DataverseFacet implements JpaEntity<Long> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "version_id", nullable = false)
+    private DataverseVersion version;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "datasetfieldtype_id", nullable = false)
+    private DatasetFieldType datasetFieldType;
+
+    @Column
+    private int displayOrder = 0;
+    
+    protected DataverseFacet() {}
+    
+    DataverseFacet(final DataverseVersion version, 
+    			   final DatasetFieldType datasetFieldType) {
+    	this.version = requireNonNull(version);
+    	this.datasetFieldType = requireNonNull(datasetFieldType);
+    }
+    
+    @Override
     public Long getId() {
         return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "dataverse_id")
-    private Dataverse dataverse;
-
-    @ManyToOne
-    @JoinColumn(name = "datasetfieldtype_id")
-    private DatasetFieldType datasetFieldType;
-
-
-    private int displayOrder;
-
-    public Dataverse getDataverse() {
-        return dataverse;
-    }
-
-    public void setDataverse(Dataverse dataverse) {
-        this.dataverse = dataverse;
+    public DataverseVersion getVersion() {
+        return this.version;
     }
 
     public DatasetFieldType getDatasetFieldType() {
-        return datasetFieldType;
-    }
-
-    public void setDatasetFieldType(DatasetFieldType datasetFieldType) {
-        this.datasetFieldType = datasetFieldType;
+        return this.datasetFieldType;
     }
 
     public int getDisplayOrder() {
-        return displayOrder;
+        return this.displayOrder;
     }
 
-    public void setDisplayOrder(int displayOrder) {
-        this.displayOrder = displayOrder;
+    public void setDisplayOrder(final int order) {
+        this.displayOrder = order;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof DataverseFacet)) {
-            return false;
-        }
-        DataverseFacet other = (DataverseFacet) object;
-        return !(!Objects.equals(this.id, other.id) && (this.id == null || !this.id.equals(other.id)));
+    public boolean equals(final Object object) {
+    	if(object != null && getClass().equals(object.getClass())) {
+            DataverseFacet other = (DataverseFacet) object;
+            return Objects.equals(this.id, other.id);
+    	} else {
+    		return false;
+    	}
     }
 
     @Override

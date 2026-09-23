@@ -143,18 +143,17 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof DataverseTheme)) {
-            return false;
-        }
-        DataverseTheme other = (DataverseTheme) object;
-        return !(!Objects.equals(this.id, other.id) && (this.id == null || !this.id.equals(other.id)));
+    public boolean equals(final Object object) {
+    	if(object != null && getClass().equals(object.getClass())) {
+    		final DataverseTheme other = (DataverseTheme) object;
+    		return Objects.equals(this.id, other.id);
+    	} else {
+    		return false;
+    	}
     }
 
     @Override
