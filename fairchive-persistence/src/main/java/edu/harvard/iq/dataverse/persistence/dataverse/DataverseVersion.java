@@ -26,6 +26,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Temporal;
 import javax.validation.constraints.NotNull;
@@ -98,6 +99,9 @@ public class DataverseVersion implements JpaEntity<Long> {
     
     @OneToMany(mappedBy = "version", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     private List<DataverseFieldTypeInputLevel> dataverseFieldTypeInputLevels = new ArrayList<>();
+    
+    @OneToOne(mappedBy = "version", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
+    private DataverseTheme theme;
   
     @ManyToOne(optional = false)
     @JoinColumn(name = "dataverse_id", nullable = false)
@@ -245,6 +249,15 @@ public class DataverseVersion implements JpaEntity<Long> {
 	
 	public void removeDataverseFieldTypeInputLevel(final int index) {
 		this.dataverseFieldTypeInputLevels.remove(index);
+	}
+
+	public DataverseTheme getTheme() {
+		return this.theme;
+	}
+
+	public void setTheme(final DataverseTheme theme) {
+		this.theme = theme;
+		theme.setVersion(this);
 	}
 
 	public boolean isMessagesBannersAllowed() {

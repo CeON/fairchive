@@ -5,6 +5,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 import java.io.Serializable;
 import java.util.Objects;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -41,16 +42,23 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     private ImageFormat logoFormat;
     @Enumerated(EnumType.STRING)
     private Alignment logoAlignment;
+    @Column
     private String logoBackgroundColor;
+    @Column
     private String logo;
+    @Column
     private String tagline;
+    @Column
     private String linkUrl;
+    @Column
     private String linkColor;
+    @Column
     private String textColor;
+    @Column
     private String backgroundColor;
     @OneToOne
-    @JoinColumn(name = "dataverse_id")
-    private Dataverse dataverse;
+    @JoinColumn(name = "version_id")
+    private DataverseVersion version;
     
     @Override
     public Long getId() {
@@ -133,15 +141,15 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
         this.backgroundColor = color;
     }
 
-    public Dataverse getDataverse() {
-        return this.dataverse;
-    }
+    public DataverseVersion getVersion() {
+		return this.version;
+	}
 
-    public void setDataverse(final Dataverse dataverse) {
-        this.dataverse = dataverse;
-    }
+	public void setVersion(final DataverseVersion version) {
+		this.version = version;
+	}
 
-    @Override
+	@Override
     public int hashCode() {
     	return Objects.hashCode(this.id);
     }
@@ -160,5 +168,4 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     public String toString() {
         return "DataverseTheme[ id=" + id + " ]";
     }
-
 }

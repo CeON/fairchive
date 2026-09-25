@@ -182,9 +182,9 @@ public class Dataverse extends DvObjectContainer {
 
     @Enumerated(EnumType.STRING)
     private FeaturedDataversesSorting featuredDataversesSorting;
-
-    @OneToOne(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
-    private DataverseTheme dataverseTheme;
+//
+//    @OneToOne(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
+//    private DataverseTheme dataverseTheme;
 
 //    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
 //    @OrderBy("displayOrder")
@@ -548,15 +548,15 @@ public class Dataverse extends DvObjectContainer {
         return getMetadataBlockRootDataverse().getId();
     }
 
-    public DataverseTheme getDataverseTheme() {
-        return getDataverseTheme(false);
-    }
+//    public DataverseTheme getDataverseTheme() {
+//        return getDataverseTheme(false);
+//    }
 
-    public DataverseTheme getDataverseTheme(final boolean returnActualDB) {
-        return returnActualDB || isThemeRoot() || isRoot()
-                ? this.dataverseTheme
-                : getOwner().getDataverseTheme();
-    }
+//    public DataverseTheme getDataverseTheme(final boolean returnActualDB) {
+//        return returnActualDB || isThemeRoot() || isRoot()
+//                ? this.dataverseTheme
+//                : getOwner().getDataverseTheme();
+//    }
 
     public String getGuestbookRootDataverseName() {
         Dataverse testDV = this;
@@ -622,9 +622,9 @@ public class Dataverse extends DvObjectContainer {
                 : getOwner().getId().toString();
     }
 
-    public void setDataverseTheme(DataverseTheme dataverseTheme) {
-        this.dataverseTheme = dataverseTheme;
-    }
+//    public void setDataverseTheme(DataverseTheme dataverseTheme) {
+//        this.dataverseTheme = dataverseTheme;
+//    }
 
     public void setMetadataBlocks(List<MetadataBlock> metadataBlocks) {
         this.metadataBlocks = metadataBlocks;

@@ -71,6 +71,16 @@ alter table dataversefieldtypeinputlevel ALTER COLUMN required SET not null;
 alter table dataversefieldtypeinputlevel ALTER COLUMN version_id SET NOT NULL;
 alter table dataversefieldtypeinputlevel drop column dataverse_id;
 
+-- reassing dataverse themes from collections to collection versions
+alter table dataversetheme add column version_id int8 references dataverseversion(id);
+
+UPDATE dataversetheme dt
+SET version_id = dv.id
+FROM dataverseversion dv
+WHERE dv.dataverse_id = dt.dataverse_id;
+
+
+alter table dataversetheme drop column dataverse_id;
 
 
 
