@@ -37,6 +37,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
@@ -275,6 +276,13 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 	void savingDataverse_works() throws Throwable {	
 		
 		try {
+			final DataverseTheme theme = new DataverseTheme();
+			theme.setBackgroundColor("#FFFFFF");
+			theme.setLinkColor("#CCCCCC");
+			
+			this.dataverse.getVersions().get(0).setTheme(theme);
+			theme.setVersion(this.dataverse.getVersions().get(0));
+			
 			CreateDataverseCommand command = new CreateDataverseCommand(this.dataverse, 
 					newRequest(), newFacetList(), newInputLevelList());
 			
@@ -328,6 +336,9 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 			assertThat(version.getDataverseFieldTypeInputLevels().get(1).getDatasetFieldType().getId()).isEqualTo(81L);
 			assertThat(version.getDataverseFieldTypeInputLevels().get(1).isInclude()).isTrue();
 			assertThat(version.getDataverseFieldTypeInputLevels().get(1).isRequired()).isFalse();
+			assertThat(version.getTheme().getBackgroundColor()).isEqualTo("#FFFFFF");
+			assertThat(version.getTheme().getLinkColor()).isEqualTo("#CCCCCC");
+			
 			
 			//adding and removing contacts works
 			
