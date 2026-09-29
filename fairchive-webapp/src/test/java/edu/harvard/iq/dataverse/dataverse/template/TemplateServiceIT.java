@@ -1,35 +1,39 @@
 package edu.harvard.iq.dataverse.dataverse.template;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.GenericDao;
-import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
-import edu.harvard.iq.dataverse.persistence.dataset.Template;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import io.vavr.control.Try;
+import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.JOURNALS;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.GenericDao;
+import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.persistence.dataset.Template;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import io.vavr.control.Try;
 
 @Transactional(TransactionMode.ROLLBACK)
 public class TemplateServiceIT extends WebappArquillianDeployment {
@@ -258,10 +262,11 @@ public class TemplateServiceIT extends WebappArquillianDeployment {
         dataverse.setOwner(dataverseDao.findRootDataverse());
         dataverse.setCreateDate(new Timestamp(new Date().getTime()));
         dataverse.setModificationTime(new Timestamp(new Date().getTime()));
-        dataverse.setDataverseContacts(prepareDataverseContact());
-        dataverse.setDataverseType(Dataverse.DataverseType.JOURNALS);
-        dataverse.setAlias(TEST_DATAVERSE_ALIAS);
-        dataverse.setName("test dataverse");
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.addContact("test@gmail.com");
+        version.setDataverseType(JOURNALS);
+        version.setAlias(TEST_DATAVERSE_ALIAS);
+        version.setName("test dataverse");
 
         return dataverse;
     }
@@ -272,15 +277,6 @@ public class TemplateServiceIT extends WebappArquillianDeployment {
         template.setCreateTime(new Timestamp(new Date().getTime()));
 
         return template;
-    }
-
-    private List<DataverseContact> prepareDataverseContact() {
-        DataverseContact dataverseContact = new DataverseContact();
-        dataverseContact.setContactEmail("test@gmail.com");
-
-        ArrayList<DataverseContact> contacts = new ArrayList<>();
-        contacts.add(dataverseContact);
-        return contacts;
     }
 
     private void createSessionUser() {

@@ -1,5 +1,28 @@
 package edu.harvard.iq.dataverse.util.json;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import javax.json.JsonArray;
+import javax.json.JsonNumber;
+import javax.json.JsonObject;
+import javax.json.JsonString;
+import javax.json.JsonValue;
+import javax.json.JsonValue.ValueType;
+
+import org.apache.commons.lang3.StringUtils;
+
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.api.dto.UningestRequestDTO;
 import edu.harvard.iq.dataverse.common.Util;
@@ -14,8 +37,8 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.group.IpAddress;
 import edu.harvard.iq.dataverse.persistence.group.IpAddressRange;
 import edu.harvard.iq.dataverse.persistence.group.IpGroup;
@@ -26,27 +49,6 @@ import edu.harvard.iq.dataverse.persistence.workflow.Workflow;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowStepData;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import io.vavr.control.Option;
-
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
-
-import org.apache.commons.lang3.StringUtils;
-
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Parses JSON objects into domain objects.
@@ -80,36 +82,30 @@ public class JsonParser {
      */
     public Dataverse parseDataverse(JsonObject jobj) throws JsonParseException {
         Dataverse dv = new Dataverse();
-        dv.setAlias(getMandatoryString(jobj, "alias"));
-        dv.setName(getMandatoryString(jobj, "name"));
-        dv.setDescription(jobj.getString("description", null));
+        DataverseVersion version = dv.addVersion(RELEASED);
+        version.setAlias(getMandatoryString(jobj, "alias"));
+        version.setName(getMandatoryString(jobj, "name"));
+        version.setDescription(jobj.getString("description", null));
         dv.setPermissionRoot(jobj.getBoolean("permissionRoot", false));
         dv.setFacetRoot(jobj.getBoolean("facetRoot", false));
-        dv.setAffiliation(jobj.getString("affiliation", null));
+        version.setAffiliation(jobj.getString("affiliation", null));
         if (jobj.containsKey("dataverseContacts")) {
-            JsonArray dvContacts = jobj.getJsonArray("dataverseContacts");
-            int i = 0;
-            List<DataverseContact> dvContactList = new LinkedList<>();
-            for (JsonValue jsv : dvContacts) {
-                DataverseContact dvc = new DataverseContact(dv);
-                dvc.setContactEmail(getMandatoryString((JsonObject) jsv, "contactEmail"));
-                dvc.setDisplayOrder(i++);
-                dvContactList.add(dvc);
+            int i = 0;         
+            for (JsonValue jsv : jobj.getJsonArray("dataverseContacts")) {
+            	version.addContact(getMandatoryString((JsonObject) jsv, "contactEmail")).
+            		setDisplayOrder(i++);
             }
-            dv.setDataverseContacts(dvContactList);
         }
 
         if (jobj.containsKey("theme")) {
             DataverseTheme theme = parseDataverseTheme(jobj.getJsonObject("theme"));
-            dv.setDataverseTheme(theme);
-            theme.setDataverse(dv);
+            version.setTheme(theme);
         }
 
-        dv.setDataverseType(Dataverse.DataverseType.UNCATEGORIZED); // default
         if (jobj.containsKey("dataverseType")) {
             for (Dataverse.DataverseType dvtype : Dataverse.DataverseType.values()) {
                 if (dvtype.name().equals(jobj.getString("dataverseType"))) {
-                    dv.setDataverseType(dvtype);
+                    version.setDataverseType(dvtype);
                 }
             }
         }

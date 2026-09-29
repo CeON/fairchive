@@ -614,6 +614,11 @@ public class Dataverse extends DvObjectContainer {
                 ? getId().toString()
                 : getOwner().getId().toString();
     }
+    
+    public DataverseTheme getDataverseTheme() {
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getTheme();
+    }
 
 //    public void setDataverseTheme(DataverseTheme dataverseTheme) {
 //        this.dataverseTheme = dataverseTheme;
@@ -622,6 +627,11 @@ public class Dataverse extends DvObjectContainer {
     public void setMetadataBlocks(List<MetadataBlock> metadataBlocks) {
         this.metadataBlocks = metadataBlocks;
     }
+    
+	public List<DataverseFieldTypeInputLevel> getDataverseFieldTypeInputLevels() {
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getDataverseFieldTypeInputLevels();
+	}
 
     public List<DatasetFieldType> getCitationDatasetFieldTypes() {
         return citationDatasetFieldTypes;
@@ -653,8 +663,8 @@ public class Dataverse extends DvObjectContainer {
 //    }
 
     public List<DataverseContact> getDataverseContacts() {
-    	throw new UnsupportedOperationException();
-//        return dataverseContacts;
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getContacts();
     }
 //
 //    public void setDataverseContacts(List<DataverseContact> dataverseContacts) {

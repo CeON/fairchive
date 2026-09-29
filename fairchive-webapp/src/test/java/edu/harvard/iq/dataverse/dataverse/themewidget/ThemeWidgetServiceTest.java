@@ -5,6 +5,8 @@ import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +18,7 @@ import org.mockito.quality.Strictness;
 
 import java.io.File;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -38,10 +41,12 @@ public class ThemeWidgetServiceTest {
     @BeforeEach
     public void setUp() {
         dataverse = new Dataverse();
-        dataverse.setName("testDv");
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.setName("testDv");
         dataverse.setId(1L);
 
-        when(commandEngine.submit(any(UpdateDataverseThemeCommand.class))).thenReturn(this.dataverse);
+        when(commandEngine.submit(any(UpdateDataverseThemeCommand.class))).
+        	thenReturn(this.dataverse);
     }
 
     @Test
@@ -59,7 +64,7 @@ public class ThemeWidgetServiceTest {
     @Test
     public void inheritThemeFromRoot() {
         // given
-        dataverse.setDataverseTheme(new DataverseTheme());
+        dataverse.getVersions().get(0).setTheme(new DataverseTheme());
 
         // when
         themeWidgetService.inheritThemeFromRoot(dataverse);

@@ -259,7 +259,7 @@ public class CreateDataverseCommandTest {
         dv.setCreator(creator);
         dv.setDefaultDatasetContributorRole(null);
         dv.setOwner(makeDataverse());
-        dv.setDataverseType(Dataverse.DataverseType.JOURNALS);
+        dv.getVersions().get(0).setDataverseType(Dataverse.DataverseType.JOURNALS);
         dv.setDefaultDatasetContributorRole(roles.findBuiltinRoleByAlias(CURATOR));
 
         final DataverseRequest request = makeRequest(creator);
@@ -297,7 +297,7 @@ public class CreateDataverseCommandTest {
         int i = 0;
         for (DataverseFacet df : createdFacets) {
             assertEquals(i, df.getDisplayOrder());
-            assertEquals(result, df.getDataverse());
+            assertEquals(result, df.getVersion().getDataverse());
             assertEquals(expectedFacets.get(i), df.getDatasetFieldType());
 
             i++;
@@ -305,7 +305,7 @@ public class CreateDataverseCommandTest {
 
         assertTrue(dftilsDeleted);
         for (DataverseFieldTypeInputLevel dftil : createdDftils) {
-            assertEquals(result, dftil.getDataverse());
+            assertEquals(result, dftil.getVersion().getDataverse());
         }
     }
 
@@ -328,14 +328,14 @@ public class CreateDataverseCommandTest {
 
         String alias = "alias";
         final Dataverse dvFirst = makeDataverse();
-        dvFirst.setAlias(alias);
+        dvFirst.getVersions().get(0).setAlias(alias);
         dvFirst.setOwner(makeDataverse());
         assertThrows(IllegalCommandException.class, () ->
                 engine.submit(new CreateDataverseCommand(dvFirst, makeRequest(), null, null)));
 
         final Dataverse dv = makeDataverse();
         dv.setOwner(makeDataverse());
-        dv.setAlias(alias);
+        dv.getVersions().get(0).setAlias(alias);
         assertThrows(IllegalCommandException.class, () ->
                 engine.submit(new CreateDataverseCommand(dv, makeRequest(), null, null)));
     }

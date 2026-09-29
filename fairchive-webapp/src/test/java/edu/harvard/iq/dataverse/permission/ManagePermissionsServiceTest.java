@@ -26,6 +26,7 @@ import org.mockito.quality.Strictness;
 
 import java.sql.Timestamp;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -57,7 +58,7 @@ public class ManagePermissionsServiceTest {
     @BeforeEach
     public void setUp() {
         dvObject.setId(1L);
-        dvObject.setName("testDv");
+        dvObject.addVersion(RELEASED).setName("testDv");
         roleAssignee.setId(1L);
         role.setId(1L);
         role.setName("testRole");

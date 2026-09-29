@@ -1,9 +1,22 @@
 package edu.harvard.iq.dataverse.dataverse;
 
-import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.arquillian.facesmock.FacesContextMocker;
-import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting.BY_DATASET_COUNT;
+import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting.BY_HAND;
+import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting.BY_NAME_ASC;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static java.util.Arrays.asList;
+import static java.util.Locale.ENGLISH;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.faces.context.FacesContext;
+import javax.faces.context.Flash;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,20 +25,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.faces.context.FacesContext;
-import javax.faces.context.Flash;
-import java.util.ArrayList;
-import java.util.List;
-
-import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting.BY_DATASET_COUNT;
-import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting.BY_HAND;
-import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting.BY_NAME_ASC;
-import static java.util.Arrays.asList;
-import static java.util.Locale.ENGLISH;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.arquillian.facesmock.FacesContextMocker;
+import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 @ExtendWith(MockitoExtension.class)
 class FeaturedDataversesDialogTest {
@@ -51,7 +54,7 @@ class FeaturedDataversesDialogTest {
     @BeforeEach
     void setUp() {
         dataverse.setId(DATAVERSE_ID);
-        dataverse.setAlias("root");
+        dataverse.addVersion(RELEASED).setAlias("root");
         dataverse.setFeaturedDataversesSorting(BY_NAME_ASC);
 
         when(permissionWrapper.canIssueUpdateDataverseCommand(dataverse)).thenReturn(true);
@@ -135,7 +138,7 @@ class FeaturedDataversesDialogTest {
 
     private Dataverse createFeaturable(String name) {
         Dataverse featurable = new Dataverse();
-        featurable.setName(name);
+        featurable.addVersion(RELEASED).setName(name);
         return featurable;
     }
 

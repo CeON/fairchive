@@ -19,6 +19,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
@@ -48,6 +49,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -368,8 +370,9 @@ public class MailMessageCreatorTest {
 
     private Dataverse createTestDataverse() {
         Dataverse dataverse = createRootDataverse("NICE DATAVERSE");
-        dataverse.setAlias("nicedataverse");
-        dataverse.setName("rootDataverseName");
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.setAlias("nicedataverse");
+        version.setName("rootDataverseName");
 
         return dataverse;
     }
@@ -455,8 +458,9 @@ public class MailMessageCreatorTest {
 
     private Dataverse createRootDataverse(String rootdvname) {
         Dataverse rootDataverse = new Dataverse();
-        rootDataverse.setAlias("root");
-        rootDataverse.setName(rootdvname);
+        DataverseVersion version = rootDataverse.addVersion(RELEASED);
+        version.setAlias("root");
+        version.setName(rootdvname);
         return rootDataverse;
     }
 

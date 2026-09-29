@@ -249,7 +249,7 @@ public class DataverseDTO {
             converted.setName(dataverse.getName());
             converted.setAffiliation(dataverse.getAffiliation());
             converted.setDataverseContacts(dataverse.getDataverseContacts().stream()
-                    .map(c -> new DataverseContactDTO(c.getDisplayOrder(), c.getContactEmail()))
+                    .map(c -> new DataverseContactDTO(c.getDisplayOrder(), c.getEmail()))
                     .collect(Collectors.toList()));
             converted.setPermissionRoot(dataverse.isPermissionRoot());
             converted.setDescription(dataverse.getDescription());

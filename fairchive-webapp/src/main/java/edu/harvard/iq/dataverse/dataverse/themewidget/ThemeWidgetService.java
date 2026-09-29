@@ -34,7 +34,8 @@ public class ThemeWidgetService {
     }
 
     public Dataverse inheritThemeFromRoot(Dataverse dataverse) {
-        dataverse.setDataverseTheme(null);
+    	//TODO: verify whether this is correct behavior
+        dataverse.getVersions().get(dataverse.getVersions().size() -1 ).setTheme(null);
 
         return commandEngine.submit(new UpdateDataverseThemeCommand(dataverse, null, dvRequestService.getDataverseRequest()));
     }

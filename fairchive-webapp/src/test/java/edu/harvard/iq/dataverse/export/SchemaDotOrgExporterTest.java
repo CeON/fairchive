@@ -1,5 +1,39 @@
 package edu.harvard.iq.dataverse.export;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.io.StringReader;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+
+import org.assertj.core.util.Lists;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.UnitTestUtils;
@@ -18,34 +52,6 @@ import edu.harvard.iq.dataverse.qualifiers.TestBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
-import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.*;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.StringReader;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * For docs see {@link SchemaDotOrgExporter}.
@@ -262,7 +268,7 @@ public class SchemaDotOrgExporterTest {
         dataset.setPublicationDate(new Timestamp(publicationDate.getTime()));
         version.setDataset(dataset);
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("LibraScholar");
+        dataverse.addVersion(RELEASED).setName("LibraScholar");
         dataset.setOwner(dataverse);
 
         FileMetadata fmd = MocksFactory.makeFileMetadata(10L, "README.md", 0);
@@ -375,7 +381,7 @@ public class SchemaDotOrgExporterTest {
         dataset.setPublicationDate(new Timestamp(publicationDate.getTime()));
         version.setDataset(dataset);
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("LibraScholar");
+        dataverse.addVersion(RELEASED).setName("LibraScholar");
         dataset.setOwner(dataverse);
 
         version.setFileMetadatas(Lists.emptyList());
@@ -415,7 +421,7 @@ public class SchemaDotOrgExporterTest {
         dataset.setPublicationDate(new Timestamp(publicationDate.getTime()));
         version.setDataset(dataset);
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("LibraScholar");
+        dataverse.addVersion(RELEASED).setName("LibraScholar");
         dataset.setOwner(dataverse);
 
         FileMetadata fmd = MocksFactory.makeFileMetadata(10L, "README.md", 0);
@@ -489,7 +495,7 @@ public class SchemaDotOrgExporterTest {
         dataset.setPublicationDate(new Timestamp(publicationDate.getTime()));
         version.setDataset(dataset);
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("LibraScholar");
+        dataverse.addVersion(RELEASED).setName("LibraScholar");
         dataset.setOwner(dataverse);
 
         FileMetadata fmd = MocksFactory.makeFileMetadata(10L, "README.md", 0);
@@ -559,7 +565,7 @@ public class SchemaDotOrgExporterTest {
         dataset.setPublicationDate(new Timestamp(publicationDate.getTime()));
         version.setDataset(dataset);
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("LibraScholar");
+        dataverse.addVersion(RELEASED).setName("LibraScholar");
         dataset.setOwner(dataverse);
 
         FileMetadata fmd = MocksFactory.makeFileMetadata(10L, "README.md", 0);
@@ -622,7 +628,7 @@ public class SchemaDotOrgExporterTest {
         dataset.setPublicationDate(new Timestamp(publicationDate.getTime()));
         version.setDataset(dataset);
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("LibraScholar");
+        dataverse.addVersion(RELEASED).setName("LibraScholar");
         dataset.setOwner(dataverse);
 
         FileMetadata fmd = MocksFactory.makeFileMetadata(10L, "README.md", 0);

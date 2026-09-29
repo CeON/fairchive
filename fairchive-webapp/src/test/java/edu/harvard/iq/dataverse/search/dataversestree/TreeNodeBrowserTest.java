@@ -1,19 +1,25 @@
 package edu.harvard.iq.dataverse.search.dataversestree;
 
-import com.google.common.collect.ImmutableMap;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.primefaces.model.TreeNode;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableMap;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 
 public class TreeNodeBrowserTest {
 
@@ -216,22 +222,29 @@ public class TreeNodeBrowserTest {
 
     private TreeNodeBrowser newTreeBrowser() {
         Dataverse root = new Dataverse();
+        DataverseVersion version = root.addVersion(RELEASED);
         root.setId(1L);
-        root.setName("Root");
+        version.setName("Root");
         NodesInfo info = new NodesInfo(
-                testData.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                        entry -> entry.getValue().getKey().isSelectable() ? NodePermission.SELECT : NodePermission.VIEW)),
+                testData.entrySet()
+                		.stream()
+                		.collect(toMap(Map.Entry::getKey,
+                				entry -> entry.getValue().getKey().isSelectable() 
+                				? NodePermission.SELECT 
+                				: NodePermission.VIEW)),
                 testData.entrySet().stream()
                         .filter(e -> e.getValue().getKey().isExpandable())
                         .map(Map.Entry::getKey)
-                        .collect(Collectors.toSet())
+                        .collect(toSet())
         );
         return new TreeNodeBrowser(root, info,
-                nodeId -> Optional.ofNullable(testData.get(nodeId)).map(Pair::getValue).filter(id -> id >= 0),
+                nodeId -> Optional.ofNullable(testData.get(nodeId))
+                		.map(Pair::getValue)
+                		.filter(id -> id >= 0),
                 nodeId -> testData.values().stream()
                         .filter(pair -> pair.getValue().equals(nodeId))
                         .map(Pair::getKey)
-                        .collect(Collectors.toList()));
+                        .collect(toList()));
     }
 
     private NodeData getNodeData(TreeNode node) {
@@ -258,16 +271,23 @@ public class TreeNodeBrowserTest {
     }
 
     private TreeNode getChildWithName(TreeNode node, String childNodeName) {
-        return node.getChildren().stream().filter(n -> getNodeData(n).getName().equals(childNodeName))
+        return node.getChildren()
+        		.stream()
+        		.filter(n -> getNodeData(n).getName().equals(childNodeName))
                 .findFirst()
                 .orElse(null);
     }
 
     private List<String> getChildrenNodeNames(TreeNode node) {
         if (node == null) {
-            return Collections.emptyList();
+            return emptyList();
+        } else {
+	        return node.getChildren()
+	        		.stream()
+	        		.map(this::getNodeData)
+	        		.map(NodeData::getName)
+	        		.collect(toList());
         }
-        return node.getChildren().stream().map(this::getNodeData).map(NodeData::getName).collect(Collectors.toList());
     }
 
     private void assertContainsOnlyPlaceholderChild(TreeNode node) {

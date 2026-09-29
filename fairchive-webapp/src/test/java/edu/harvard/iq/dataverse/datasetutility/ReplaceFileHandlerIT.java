@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.datasetutility;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static java.lang.System.currentTimeMillis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -12,7 +13,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -44,7 +44,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.license.LicenseRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 
@@ -191,18 +191,14 @@ public class ReplaceFileHandlerIT extends WebappArquillianDeployment {
     }
 
     private Dataverse fillDataverseWithRequiredData(Dataverse dataverse) {
-        dataverse.setName("TestDataverse");
-        dataverse.setAlias("TestDataverseAlias");
+    	DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.setName("TestDataverse");
+        version.setAlias("TestDataverseAlias");
         dataverse.setOwner(dataverseDao.findRootDataverse());
-        dataverse.setDataverseType(Dataverse.DataverseType.LABORATORY);
+        version.setDataverseType(Dataverse.DataverseType.LABORATORY);
         dataverse.setCreateDate(new Timestamp(currentTimeMillis()));
         dataverse.setModificationTime(new Timestamp(currentTimeMillis()));
-
-        DataverseContact dataverseContact = new DataverseContact();
-        dataverseContact.setContactEmail("testmail@test.com");
-        List<DataverseContact> dataverseContacts = new ArrayList<>();
-        dataverseContacts.add(dataverseContact);
-        dataverse.setDataverseContacts(dataverseContacts);
+        version.addContact("testmail@test.com");
 
         return dataverse;
     }

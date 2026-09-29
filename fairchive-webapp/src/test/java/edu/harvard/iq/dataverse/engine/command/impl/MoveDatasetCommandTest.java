@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticatedUser;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -81,31 +82,31 @@ public class MoveDatasetCommandTest {
 
 
         root = new Dataverse();
-        root.setName("root");
+        root.addVersion(RELEASED).setName("root");
         root.setId(1l);
         root.setPublicationDate(new Timestamp(new Date().getTime()));
 
         childA = new Dataverse();
-        childA.setName("childA");
+        childA.addVersion(RELEASED).setName("childA");
         childA.setId(2l);
         childA.setPublicationDate(new Timestamp(new Date().getTime()));
 
         childB = new Dataverse();
-        childB.setName("childB");
+        childB.addVersion(RELEASED).setName("childB");
         childB.setId(3l);
         childB.setPublicationDate(new Timestamp(new Date().getTime()));
 
         grandchildAA = new Dataverse();
-        grandchildAA.setName("grandchildAA");
+        grandchildAA.addVersion(RELEASED).setName("grandchildAA");
         grandchildAA.setId(4l);
         grandchildAA.setPublicationDate(new Timestamp(new Date().getTime()));
 
         childDraft = new Dataverse();
-        childDraft.setName("childDraft");
+        childDraft.addVersion(RELEASED).setName("childDraft");
         childDraft.setId(5l);
 
         grandchildBB = new Dataverse();
-        grandchildBB.setName("grandchildBB");
+        grandchildBB.addVersion(RELEASED).setName("grandchildBB");
         grandchildBB.setId(6l);
         grandchildBB.setPublicationDate(new Timestamp(new Date().getTime()));
 

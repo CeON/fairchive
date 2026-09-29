@@ -1,19 +1,22 @@
 package edu.harvard.iq.dataverse.dataverse;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.UserServiceBean;
-import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
-import edu.harvard.iq.dataverse.arquillian.facesmock.FacesContextMocker;
-import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
-import edu.harvard.iq.dataverse.error.DataverseError;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.GuestUser;
-import edu.harvard.iq.dataverse.search.SolrIndexCleaner;
-import io.vavr.control.Either;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static edu.harvard.iq.dataverse.search.DvObjectsSolrAssert.assertDataversePermSolrDocument;
+import static edu.harvard.iq.dataverse.search.DvObjectsSolrAssert.assertDataverseSolrDocument;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
+
+import javax.ejb.EJBTransactionRolledbackException;
+import javax.inject.Inject;
+
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocument;
@@ -24,22 +27,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.primefaces.model.DualListModel;
 
-import javax.ejb.EJBTransactionRolledbackException;
-import javax.inject.Inject;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.Lists;
 
-import static edu.harvard.iq.dataverse.search.DvObjectsSolrAssert.assertDataversePermSolrDocument;
-import static edu.harvard.iq.dataverse.search.DvObjectsSolrAssert.assertDataverseSolrDocument;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.UserServiceBean;
+import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.arquillian.facesmock.FacesContextMocker;
+import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
+import edu.harvard.iq.dataverse.error.DataverseError;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.GuestUser;
+import edu.harvard.iq.dataverse.search.SolrIndexCleaner;
+import io.vavr.control.Either;
 
 public class DataverseServiceIT extends WebappArquillianDeployment {
 
@@ -125,7 +127,7 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
         loginSessionWithSuperUser();
         Dataverse dataverse = dataverseDao.findRootDataverse();
         String oldDataverseName = dataverse.getName();
-        dataverse.setName("UPDATED DATAVERSE");
+        dataverse.getVersions().get(0).setName("UPDATED DATAVERSE");
 
         //when
         Either<DataverseError, Dataverse> updatedDataverse = dataverseService.saveEditedDataverse(Lists.newArrayList(), dataverse, new DualListModel<>());
@@ -221,24 +223,25 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
 
     private Dataverse prepareDataverse() {
         Dataverse dataverse = new Dataverse();
+        DataverseVersion version = dataverse.addVersion(RELEASED);
         dataverse.setMetadataBlockRoot(true);
         dataverse.setOwner(dataverseDao.findRootDataverse());
-        dataverse.setName("NICE DATAVERSE");
-        dataverse.setAlias("FIRSTDATAVERSE");
+        version.setName("NICE DATAVERSE");
+        version.setAlias("FIRSTDATAVERSE");
         dataverse.setFacetRoot(true);
-        dataverse.setDataverseType(Dataverse.DataverseType.JOURNALS);
-        dataverse.setDataverseContacts(prepareDataverseContact());
+        version.setDataverseType(Dataverse.DataverseType.JOURNALS);
+        version.addContact("test@gmail.com");
         dataverse.setAllowMessagesBanners(false);
 
         return dataverse;
     }
 
-    private List<DataverseContact> prepareDataverseContact() {
-        DataverseContact dataverseContact = new DataverseContact();
-        dataverseContact.setContactEmail("test@gmail.com");
-
-        ArrayList<DataverseContact> contacts = new ArrayList<>();
-        contacts.add(dataverseContact);
-        return contacts;
-    }
+//    private List<DataverseContact> prepareDataverseContact() {
+//        DataverseContact dataverseContact = new DataverseContact();
+//        dataverseContact.setContactEmail("test@gmail.com");
+//
+//        ArrayList<DataverseContact> contacts = new ArrayList<>();
+//        contacts.add(dataverseContact);
+//        return contacts;
+//    }
 }

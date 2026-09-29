@@ -258,7 +258,9 @@ public class DataverseVersion implements JpaEntity<Long> {
 
 	public void setTheme(final DataverseTheme theme) {
 		this.theme = theme;
-		theme.setVersion(this);
+		if(theme != null) {
+			theme.setVersion(this);
+		}
 	}
 
 	public boolean isMessagesBannersAllowed() {

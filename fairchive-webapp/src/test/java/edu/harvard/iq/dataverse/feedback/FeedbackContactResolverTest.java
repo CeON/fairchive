@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.feedback;
 
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeDataset;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -14,7 +15,7 @@ import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import io.vavr.control.Option;
 
 /**
@@ -28,10 +29,9 @@ public class FeedbackContactResolverTest {
     public void resolveDataverseContact() {
         // given
         Dataverse dataverse = new Dataverse();
-        List<DataverseContact> dataverseContacts = new ArrayList<>();
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact1@librascholar.edu"));
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact2@librascholar.edu"));
-        dataverse.setDataverseContacts(dataverseContacts);
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.addContact("dvContact1@librascholar.edu");
+        version.addContact("dvContact2@librascholar.edu");
 
         // when
         List<FeedbackContact> contacts = contactResolver.resolveDataverseContact(dataverse);
@@ -48,6 +48,7 @@ public class FeedbackContactResolverTest {
     public void resolveDataverseContact__no_contact() {
         // given
         Dataverse dataverse = new Dataverse();
+        DataverseVersion version = dataverse.addVersion(RELEASED);
 
         // when
         List<FeedbackContact> contacts = contactResolver.resolveDataverseContact(dataverse);
