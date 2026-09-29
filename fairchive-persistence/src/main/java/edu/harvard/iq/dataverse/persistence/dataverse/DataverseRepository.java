@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -67,32 +69,49 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
                 .getResultList();
     }
 
-    public Optional<Dataverse> findByAlias(String alias) {
-        return getSingleResult(createQuery(
-                        "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias)=:alias")
-                        .setParameter("alias", alias.toLowerCase()));
+    public Optional<Dataverse> findByAlias(final String alias) {
+//        return getSingleResult(createQuery(
+//                        "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias)=:alias")
+//                        .setParameter("alias", alias.toLowerCase()));
+        
+    	 return getSingleResult(createQuery(
+    	            "SELECT dv FROM Dataverse dv " +
+    	            "JOIN dv.versions v " +
+    	            "WHERE v.createTime = (" +
+    	            "    SELECT MAX(v2.createTime) " +
+    	            "    FROM DataverseVersion v2 " +
+    	            "    WHERE v2.dataverse = dv" +
+    	            ") " +
+    	            "AND v.state = :state " +
+    	            "AND LOWER(v.alias) = :alias")
+    	            .setParameter("alias", alias.toLowerCase())
+    	            .setParameter("state", RELEASED));
     }
 
     public List<Dataverse> findByAliasOrName(final String alias, final String name) {
-        return createQuery(
-                "SELECT dv FROM Dataverse dv " +
-                "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) "+
-                "order by dv.alias")
-                .setParameter("alias", "%" + alias.toLowerCase() + "%")
-                .setParameter("name", "%" + name.toLowerCase() + "%")
-                .getResultList();
+    	
+    	throw new UnsupportedOperationException();
+//        return createQuery(
+//                "SELECT dv FROM Dataverse dv " +
+//                "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) "+
+//                "order by dv.alias")
+//                .setParameter("alias", "%" + alias.toLowerCase() + "%")
+//                .setParameter("name", "%" + name.toLowerCase() + "%")
+//                .getResultList();
     }
 
     public List<Dataverse> findByAliasOrNameOrAffiliation(final String alias,
             final String name, final String affiliation) {
-        return createQuery(
-                "SELECT dv FROM Dataverse dv "+
-                "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) " +
-                 "order by dv.alias")
-                .setParameter("alias", alias.toLowerCase() + "%")
-                .setParameter("name", "%" + name.toLowerCase() + "%")
-                .setParameter("affiliation", "%" + affiliation.toLowerCase() + "%")
-                .getResultList();
+    	
+    	throw new UnsupportedOperationException();
+//        return createQuery(
+//                "SELECT dv FROM Dataverse dv "+
+//                "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) " +
+//                 "order by dv.alias")
+//                .setParameter("alias", alias.toLowerCase() + "%")
+//                .setParameter("name", "%" + name.toLowerCase() + "%")
+//                .setParameter("affiliation", "%" + affiliation.toLowerCase() + "%")
+//                .getResultList();
     }
 
     public Long countDataversesWithParent(final Long parentId) {

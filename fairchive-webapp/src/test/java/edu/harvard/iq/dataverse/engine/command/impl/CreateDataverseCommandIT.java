@@ -81,12 +81,10 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 		
 		this.dataverse = new Dataverse();
 		this.dataverse.setOwner(owner);
-		this.dataverse.setName("test1");
-		this.dataverse.setAlias(this.dataverse.getName());
 		this.dataverse.setDataverseType(DEPARTMENT);
 		final DataverseVersion version = this.dataverse.addVersion(RELEASED);
-		version.setName(this.dataverse.getName());
-		version.setAlias(this.dataverse.getName());
+		version.setName("test1");
+		version.setAlias("test1");
 		version.setCreateTime(new Date());
 		version.setDataverseType(this.dataverse.getDataverseType());
 		version.setDescription("description");

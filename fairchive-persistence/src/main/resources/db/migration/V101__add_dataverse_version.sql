@@ -27,7 +27,11 @@ insert into dataverseversion (createtime, name, alias, description,
        additional_description, dataversetype,'RELEASED', affiliation, 
        id
        from dataverse;
-       
+
+alter table dataverse drop column "name";       
+alter table dataverse drop column alias;       
+alter table dataverse drop column description;
+
 -- reassign contacts from collections to collection versions
 alter table dataversecontact add column version_id int8 references dataverseversion(id);
 

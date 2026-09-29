@@ -62,10 +62,10 @@ import edu.harvard.iq.dataverse.persistence.user.User;
  * @author gdurand
  * @author mbarsinai
  */
-@NamedQueries({
-        @NamedQuery(name = "Dataverse.filterByAlias", query = "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias) LIKE :alias order by dv.alias"),
-        @NamedQuery(name = "Dataverse.filterByAliasNameAffiliation", query = "SELECT dv FROM Dataverse dv WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) order by dv.alias")    
-})
+//@NamedQueries({
+//        @NamedQuery(name = "Dataverse.filterByAlias", query = "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias) LIKE :alias order by dv.alias"),
+//        @NamedQuery(name = "Dataverse.filterByAliasNameAffiliation", query = "SELECT dv FROM Dataverse dv WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) order by dv.alias")    
+//})
 @NamedNativeQueries({
         @NamedNativeQuery(name = "Dataverse.findDataForSolrResults2", query =
                 "SELECT t0.ID, t0.AFFILIATION, t0.ALIAS, t2.ALIAS " +
@@ -118,22 +118,22 @@ public class Dataverse extends DvObjectContainer {
 
     private static final long serialVersionUID = 1L;
 
-    @NotBlank(message = "{dataverse.name}")
-    @Column(nullable = false)
-    private String name;
+//    @NotBlank(message = "{dataverse.name}")
+//    @Column(nullable = false)
+//    private String name;
 
-    /**
-     * @todo add @Column(nullable = false) for the database to enforce non-null
-     */
-    @NotBlank(message = "{dataverse.alias}")
-    @Column(nullable = false, unique = true)
-    @Size(max = 100, message = "{dataverse.aliasLength}")
-    @Pattern.List({@Pattern(regexp = "[a-zA-Z0-9\\_\\-]*", message = "{dataverse.nameIllegalCharacters}"),
-            @Pattern(regexp = ".*\\D.*", message = "{dataverse.aliasNotnumber}")})
-    private String alias;
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+//    /**
+//     * @todo add @Column(nullable = false) for the database to enforce non-null
+//     */
+//    @NotBlank(message = "{dataverse.alias}")
+//    @Column(nullable = false, unique = true)
+//    @Size(max = 100, message = "{dataverse.aliasLength}")
+//    @Pattern.List({@Pattern(regexp = "[a-zA-Z0-9\\_\\-]*", message = "{dataverse.nameIllegalCharacters}"),
+//            @Pattern(regexp = ".*\\D.*", message = "{dataverse.aliasNotnumber}")})
+//    private String alias;
+//
+//    @Column(name = "description", columnDefinition = "TEXT")
+//    private String description;
 
     @Column(name = "additional_description", columnDefinition = "TEXT")
     private String additionalDescription;
@@ -659,9 +659,10 @@ public class Dataverse extends DvObjectContainer {
 //        this.dataverseFacets = dataverseFacets;
 //    }
 
-//    public List<DataverseContact> getDataverseContacts() {
+    public List<DataverseContact> getDataverseContacts() {
+    	throw new UnsupportedOperationException();
 //        return dataverseContacts;
-//    }
+    }
 //
 //    public void setDataverseContacts(List<DataverseContact> dataverseContacts) {
 //        this.dataverseContacts = dataverseContacts;
@@ -676,28 +677,31 @@ public class Dataverse extends DvObjectContainer {
 //    }
 
     public String getName() {
-        return name;
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getName();
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
+//
     public String getAlias() {
-        return alias;
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getAlias();
     }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
+//
+//    public void setAlias(String alias) {
+//        this.alias = alias;
+//    }
 
     public String getDescription() {
-        return description;
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getDescription();
     }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+//
+//    public void setDescription(String description) {
+//        this.description = description;
+//    }
 
     public String getAdditionalDescription() {
         return additionalDescription;
@@ -774,10 +778,10 @@ public class Dataverse extends DvObjectContainer {
         return Objects.equals(getId(), other.getId());
     }
 
-    @Override
-    protected String toStringExtras() {
-        return "name:" + getName();
-    }
+//    @Override
+//    protected String toStringExtras() {
+//        return "name:" + getName();
+//    }
 
     @Override
     public <T> T accept(Visitor<T> v) {
