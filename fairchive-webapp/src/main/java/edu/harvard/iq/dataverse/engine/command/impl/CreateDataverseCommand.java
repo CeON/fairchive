@@ -72,10 +72,6 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
                 throw new IllegalCommandException("Guest users cannot create a Dataverse.", this);
             }
         }
-
-        if (this.created.getDataverseType() == null) {
-            this.created.setDataverseType(UNCATEGORIZED);
-        }
         
         setDefaultContributorRoles(context);
 

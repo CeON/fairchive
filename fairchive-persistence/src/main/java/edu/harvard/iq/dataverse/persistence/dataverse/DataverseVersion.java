@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.persistence.dataverse;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.MarkupChecker.sanitizeBasicHTML;
 import static edu.harvard.iq.dataverse.common.MarkupChecker.stripAllTags;
+import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.UNCATEGORIZED;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static javax.persistence.CascadeType.MERGE;
@@ -75,7 +76,7 @@ public class DataverseVersion implements JpaEntity<Long> {
     @Enumerated(EnumType.STRING)
     @NotNull(message = "{dataverse.category}")
     @Column(nullable = false)
-    private DataverseType dataverseType;
+    private DataverseType dataverseType = UNCATEGORIZED;
     
     
 	@Column(nullable = false)

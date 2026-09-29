@@ -18,7 +18,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -29,18 +28,11 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 
-import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import edu.harvard.iq.dataverse.common.MarkupChecker;
@@ -135,13 +127,13 @@ public class Dataverse extends DvObjectContainer {
 //    @Column(name = "description", columnDefinition = "TEXT")
 //    private String description;
 
-    @Column(name = "additional_description", columnDefinition = "TEXT")
-    private String additionalDescription;
-
-    @Enumerated(EnumType.STRING)
-    @NotNull(message = "{dataverse.category}")
-    @Column(nullable = false)
-    private DataverseType dataverseType;
+//    @Column(name = "additional_description", columnDefinition = "TEXT")
+//    private String additionalDescription;
+//
+//    @Enumerated(EnumType.STRING)
+//    @NotNull(message = "{dataverse.category}")
+//    @Column(nullable = false)
+//    private DataverseType dataverseType;
     
     @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     @NotEmpty(message = "At least one version is required.")
@@ -248,15 +240,16 @@ public class Dataverse extends DvObjectContainer {
     private boolean guestbookRoot;
 
     public DataverseType getDataverseType() {
-        return dataverseType;
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getDataverseType();
     }
 
-    public void setDataverseType(DataverseType dataverseType) {
-        this.dataverseType = dataverseType;
-    }
+//    public void setDataverseType(DataverseType dataverseType) {
+//        this.dataverseType = dataverseType;
+//    }
 
     public String getFriendlyCategoryName() {
-        switch (this.dataverseType) {
+        switch (getDataverseType()) {
             case RESEARCHERS:
                 return getStringFromBundle("dataverse.type.selectTab.researcher");
             case RESEARCH_PROJECTS:
@@ -281,7 +274,7 @@ public class Dataverse extends DvObjectContainer {
     }
 
     private String getCategoryNameForIndex() {
-        switch (this.dataverseType) {
+        switch (getDataverseType()) {
             case RESEARCHERS:
                 return getStringFromBundleWithLocale("dataverse.type.selectTab.researcher", ENGLISH);
             case RESEARCH_PROJECTS:
@@ -704,12 +697,13 @@ public class Dataverse extends DvObjectContainer {
 //    }
 
     public String getAdditionalDescription() {
-        return additionalDescription;
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getAdditionalDescription();
     }
-
-    public void setAdditionalDescription(String additionalDescription) {
-        this.additionalDescription = additionalDescription;
-    }
+//
+//    public void setAdditionalDescription(String additionalDescription) {
+//        this.additionalDescription = additionalDescription;
+//    }
 
     public String getAffiliation() {
         return affiliation;
