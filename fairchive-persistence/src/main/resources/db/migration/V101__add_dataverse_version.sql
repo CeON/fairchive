@@ -33,6 +33,7 @@ alter table dataverse drop column alias;
 alter table dataverse drop column description;
 alter table dataverse drop column additional_description;
 alter table dataverse drop column dataversetype;
+alter table dataverse drop column affiliation;   
 
 -- reassign contacts from collections to collection versions
 alter table dataversecontact add column version_id int8 references dataverseversion(id);

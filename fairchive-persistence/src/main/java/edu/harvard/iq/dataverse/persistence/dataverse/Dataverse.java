@@ -149,7 +149,7 @@ public class Dataverse extends DvObjectContainer {
     @Transient
     private final String uncategorizedString = "Uncategorized";
     
-    private String affiliation;
+//    private String affiliation;
 
     // Note: We can't have "Remove" here, as there are role assignments that refer
     //       to this role. So, adding it would mean violating a forign key contstraint.
@@ -706,12 +706,13 @@ public class Dataverse extends DvObjectContainer {
 //    }
 
     public String getAffiliation() {
-        return affiliation;
+    	//TODO: verify if this behavior is correct
+    	return this.versions.get(this.versions.size()-1).getAffiliation();
     }
 
-    public void setAffiliation(String affiliation) {
-        this.affiliation = affiliation;
-    }
+//    public void setAffiliation(String affiliation) {
+//        this.affiliation = affiliation;
+//    }
 
     public boolean isMetadataBlockRoot() {
         return metadataBlockRoot;
