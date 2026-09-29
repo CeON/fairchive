@@ -112,7 +112,9 @@ public class DublinCoreExportUtil {
 
         writeTimeElements(xmlw, version, dcFlavor);
 
-        writeFullElementList(xmlw, dcFlavor.concat(":relation"), dto2PrimitiveList(version, DatasetFieldConstant.relatedDatasets));
+        writeFullElementList(xmlw, dcFlavor.concat(":relation"), extractChildValues(version,
+                DatasetFieldConstant.relatedDatasets,
+                DatasetFieldConstant.relatedDatasetCitation));
 
         writeFullElementList(xmlw, dcFlavor.concat(":type"), dto2PrimitiveList(version, DatasetFieldConstant.kindOfData));
 
@@ -151,7 +153,7 @@ public class DublinCoreExportUtil {
 
         writeContributorElement(xmlw, version, dcFlavor);
 
-        writeFullElement(xmlw, dcFlavor.concat(":relation"), extractChildValue(version,
+        writeFullElementList(xmlw, dcFlavor.concat(":relation"), extractChildValues(version,
                                                                                   DatasetFieldConstant.relatedDatasets,
                                                                                   DatasetFieldConstant.relatedDatasetCitation));
 
@@ -455,7 +457,7 @@ public class DublinCoreExportUtil {
         return null;
     }
 
-    private static String extractChildValue(DatasetVersionDTO datasetVersionDTO, 
+    private static List<String> extractChildValues(DatasetVersionDTO datasetVersionDTO, 
             String dsfParentName, String dsfChildName) {
         for (Map.Entry<String, MetadataBlockWithFieldsDTO> entry : datasetVersionDTO.getMetadataBlocks().entrySet()) {
             MetadataBlockWithFieldsDTO value = entry.getValue();
@@ -464,8 +466,7 @@ public class DublinCoreExportUtil {
                     return datasetFieldDTO.getMultipleCompound().stream().flatMap(Collection::stream)
                             .filter(field -> field.getTypeName().equals(dsfChildName))
                             .map(f -> (String) f.getValue())
-                            .findFirst()
-                            .orElse(null);
+                            .collect(Collectors.toList());
                 }
             }
         }
