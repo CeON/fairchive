@@ -22,7 +22,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -84,6 +87,43 @@ class DublinCoreExportUtilTest {
         assertThat(result).contains("<dcterms:language>Polish</dcterms:language>");
     }
 
+    @Test
+    @DisplayName("Should handle cases when there are multiple child values")
+    void datasetJson2dublincore__childValues() throws Exception {
+
+        // given
+    	DatasetFieldDTO field1 = DatasetFieldDTOFactory.createPrimitive("relatedDatasetCitation", "First relation");
+    	DatasetFieldDTO field2 = DatasetFieldDTOFactory.createPrimitive("relatedDatasetCitation", "Second relation");
+    	DatasetFieldDTO compound = DatasetFieldDTOFactory.createMultipleCompound("relatedDataset");
+    	List<Map<String, DatasetFieldDTO>> compoundValue = new ArrayList<>();
+    	compoundValue.add(Collections.singletonMap(field1.getTypeName(), field1));
+    	compoundValue.add(Collections.singletonMap(field2.getTypeName(), field2));
+    	compound.setValue(compoundValue);
+
+        MetadataBlockWithFieldsDTO metadataBlock = new MetadataBlockWithFieldsDTO();
+        metadataBlock.setDisplayName("Citation Metadata");
+        metadataBlock.setFields(Collections.singletonList(compound));
+
+        DatasetVersionDTO version = new DatasetVersionDTO();
+        version.setMetadataBlocks(Collections.singletonMap("citation", metadataBlock));
+
+        DatasetDTO dataset = new DatasetDTO();
+        dataset.setIdentifier("PCA2E3");
+        dataset.setProtocol("doi");
+        dataset.setAuthority("10.5072/FK2");
+        dataset.setDatasetVersion(version);
+
+        // when
+        OutputStream output = new ByteArrayOutputStream();
+        DublinCoreExportUtil.datasetJson2dublincore(dataset, output, DublinCoreExportUtil.DC_FLAVOR_DCTERMS);
+        String result = output.toString();
+
+        // then
+        assertThat(result).contains("<dcterms:relation>First relation</dcterms:relation><dcterms:relation>Second relation</dcterms:relation>");
+    }
+
+    
+    
     // -------------------- PRIVATE --------------------
 
     private String readFileFromResources(String path) throws URISyntaxException, IOException {
