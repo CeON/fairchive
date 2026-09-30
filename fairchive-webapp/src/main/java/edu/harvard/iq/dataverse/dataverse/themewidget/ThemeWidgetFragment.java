@@ -1,20 +1,21 @@
 package edu.harvard.iq.dataverse.dataverse.themewidget;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import io.vavr.control.Try;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.PrimeFaces;
-import org.primefaces.event.FileUploadEvent;
-import org.primefaces.model.file.UploadedFile;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.createFile;
+import static java.nio.file.Files.createTempDirectory;
+import static java.nio.file.Files.deleteIfExists;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.list;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.annotation.PreDestroy;
 import javax.ejb.EJB;
@@ -25,15 +26,23 @@ import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.PrimeFaces;
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.file.UploadedFile;
+
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
+import edu.harvard.iq.dataverse.util.JsfHelper;
+import io.vavr.control.Try;
 
 /**
  * @author ellenk
@@ -49,8 +58,8 @@ public class ThemeWidgetFragment implements java.io.Serializable {
     private static final Logger logger = Logger.getLogger(ThemeWidgetFragment.class.getCanonicalName());
 
 
-    private File tempDir;
-    private File uploadedFile;
+    private Path tempDir;
+    private Path uploadedFile;
     private Dataverse editDv = new Dataverse();
     private HtmlInputText linkUrlInput;
     private HtmlInputText taglineInput;
@@ -87,8 +96,8 @@ public class ThemeWidgetFragment implements java.io.Serializable {
 
     private void createTempDir() {
         try {
-            File tempRoot = Files.createDirectories(Paths.get("../docroot/logos/temp")).toFile();
-            tempDir = Files.createTempDirectory(tempRoot.toPath(), editDv.getId().toString()).toFile();
+            Path tempRoot = createDirectories(Paths.get("../docroot/logos/temp"));
+            this.tempDir = createTempDirectory(tempRoot, editDv.getId().toString());
         } catch (IOException e) {
             throw new RuntimeException("Error creating temp directory", e); // improve error handling
         }
@@ -100,15 +109,18 @@ public class ThemeWidgetFragment implements java.io.Serializable {
      */
     public void cleanupTempDirectory() {
         try {
-
-            if (tempDir != null) {
-                for (File f : tempDir.listFiles()) {
-                    Files.deleteIfExists(f.toPath());
-                }
-                Files.deleteIfExists(tempDir.toPath());
+            if (this.tempDir != null) {
+            	list(this.tempDir).forEach(file -> {
+            		try {
+            			deleteIfExists(file);
+            		} catch (final IOException e) {
+                        throw new RuntimeException("Error deleting temp directory", e); 
+                    }
+            	});
+                deleteIfExists(this.tempDir);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Error deleting temp directory", e); // improve error handling
+        } catch (final IOException e) {
+            throw new RuntimeException("Error deleting temp directory", e); 
         }
         uploadedFile = null;
         tempDir = null;
@@ -135,20 +147,10 @@ public class ThemeWidgetFragment implements java.io.Serializable {
             editDv.setThemeRoot(true);
         }
         if (editDv.getDataverseTheme() == null && editDv.isThemeRoot()) {
-            editDv.setDataverseTheme(initDataverseTheme());
+            editDv.getLatestVersion().setTheme( new DataverseTheme());
 
         }
         return null;
-    }
-
-    private DataverseTheme initDataverseTheme() {
-        DataverseTheme dvt = new DataverseTheme();
-        dvt.setLinkColor(DEFAULT_LINK_COLOR);
-        dvt.setLogoBackgroundColor(DEFAULT_LOGO_BACKGROUND_COLOR);
-        dvt.setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
-        dvt.setTextColor(DEFAULT_TEXT_COLOR);
-        dvt.setDataverse(editDv);
-        return dvt;
     }
 
     public Dataverse getEditDv() {
@@ -189,11 +191,7 @@ public class ThemeWidgetFragment implements java.io.Serializable {
 
 
     public String getTempDirName() {
-        if (tempDir != null) {
-            return tempDir.getName();
-        } else {
-            return null;
-        }
+        return this.tempDir != null ? this.tempDir.getFileName().toString() : null;
     }
 
     public boolean uploadExists() {
@@ -216,12 +214,12 @@ public class ThemeWidgetFragment implements java.io.Serializable {
         }
         UploadedFile uFile = event.getFile();
         try {
-            uploadedFile = new File(tempDir, uFile.getFileName());
-            if (!uploadedFile.exists()) {
-                uploadedFile.createNewFile();
+            uploadedFile = tempDir.resolve(uFile.getFileName());
+            if (!exists(uploadedFile)) {
+                createFile(uploadedFile);
             }
             logger.finer("created file");
-            Files.copy(uFile.getInputStream(), uploadedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(uFile.getInputStream(), uploadedFile, REPLACE_EXISTING);
             logger.finer("copied inputstream to file");
             editDv.getDataverseTheme().setLogo(uFile.getFileName());
 
@@ -251,7 +249,7 @@ public class ThemeWidgetFragment implements java.io.Serializable {
         editDv.setThemeRoot(!inherit);
         if (!inherit) {
             if (editDv.getDataverseTheme(true) == null) {
-                editDv.setDataverseTheme(initDataverseTheme());
+                editDv.getLatestVersion().setTheme(new DataverseTheme());
             }
         }
     }
@@ -276,7 +274,7 @@ public class ThemeWidgetFragment implements java.io.Serializable {
         Try<Dataverse> saveOperation;
 
         if (editDv.isThemeRoot()) {
-            saveOperation = Try.of(() -> themeWidgetService.saveOrUpdateUploadedTheme(editDv, uploadedFile));
+            saveOperation = Try.of(() -> themeWidgetService.saveOrUpdateUploadedTheme(editDv, uploadedFile.toFile()));
         } else {
             saveOperation = Try.of(() -> themeWidgetService.inheritThemeFromRoot(editDv))
                     .onSuccess(editedDataverse -> editDv = editedDataverse);

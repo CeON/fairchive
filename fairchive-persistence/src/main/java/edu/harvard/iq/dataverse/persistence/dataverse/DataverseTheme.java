@@ -25,6 +25,11 @@ import edu.harvard.iq.dataverse.persistence.JpaEntity;
 @Entity
 @Table(indexes = {@Index(columnList = "dataverse_id")})
 public class DataverseTheme implements Serializable, JpaEntity<Long> {
+	
+    public static final String DEFAULT_LOGO_BACKGROUND_COLOR = "FFFFFF";
+    public static final String DEFAULT_BACKGROUND_COLOR = "FFFFFF";
+    public static final String DEFAULT_LINK_COLOR = "428BCA";
+    public static final String DEFAULT_TEXT_COLOR = "888888";
 
     public enum ImageFormat {
         SQUARE, RECTANGLE
@@ -39,11 +44,11 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
     @Enumerated(EnumType.STRING)
-    private ImageFormat logoFormat;
+    private ImageFormat logoFormat = ImageFormat.SQUARE;
     @Enumerated(EnumType.STRING)
-    private Alignment logoAlignment;
+    private Alignment logoAlignment = Alignment.LEFT;
     @Column
-    private String logoBackgroundColor;
+    private String logoBackgroundColor = DEFAULT_BACKGROUND_COLOR;
     @Column
     private String logo;
     @Column
@@ -51,11 +56,11 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     @Column
     private String linkUrl;
     @Column
-    private String linkColor;
+    private String linkColor = DEFAULT_LINK_COLOR;
     @Column
-    private String textColor;
+    private String textColor = DEFAULT_TEXT_COLOR;
     @Column
-    private String backgroundColor;
+    private String backgroundColor = DEFAULT_BACKGROUND_COLOR;
     @OneToOne
     @JoinColumn(name = "version_id")
     private DataverseVersion version;

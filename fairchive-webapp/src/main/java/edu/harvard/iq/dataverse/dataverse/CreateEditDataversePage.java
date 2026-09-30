@@ -33,9 +33,9 @@ import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.JsfHelper;
@@ -428,12 +428,12 @@ public class CreateEditDataversePage implements Serializable {
 
         if (isPrefillEnabled()) {
         	final User user = this.session.getUser();
-            this.dataverse.getDataverseContacts().add(
-            		new DataverseContact(this.dataverse, user.getDisplayInfo().getEmailAddress()));
-            this.dataverse.setAffiliation(user.getDisplayInfo().getAffiliation());
-            this.dataverse.setName(Dataverse.getSuggestedNameOnCreate(user));
+        	final DataverseVersion version = this.dataverse.getLatestVersion();
+            version.addContact(user.getDisplayInfo().getEmailAddress());
+            version.setAffiliation(user.getDisplayInfo().getAffiliation());
+            version.setName(Dataverse.getSuggestedNameOnCreate(user));
         } else {
-            this.dataverse.getDataverseContacts().add(new DataverseContact(this.dataverse, EMPTY));
+            this.dataverse.getLatestVersion().addContact(EMPTY);
         }
 
         setupForGeneralInfoEdit();

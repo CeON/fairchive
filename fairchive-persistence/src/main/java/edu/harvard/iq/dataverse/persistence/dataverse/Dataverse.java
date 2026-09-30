@@ -616,8 +616,14 @@ public class Dataverse extends DvObjectContainer {
     }
     
     public DataverseTheme getDataverseTheme() {
-    	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getTheme();
+        return getDataverseTheme(false);
+    }
+
+    public DataverseTheme getDataverseTheme(final boolean returnActual) {
+        return returnActual || isThemeRoot() || isRoot()
+        		//TODO: verify if this behavior is correct
+                ? getLatestVersion().getTheme()
+                : getOwner().getDataverseTheme(returnActual);
     }
 
 //    public void setDataverseTheme(DataverseTheme dataverseTheme) {
@@ -664,7 +670,7 @@ public class Dataverse extends DvObjectContainer {
 
     public List<DataverseContact> getDataverseContacts() {
     	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getContacts();
+    	return getLatestVersion().getContacts();
     }
 //
 //    public void setDataverseContacts(List<DataverseContact> dataverseContacts) {
@@ -681,7 +687,7 @@ public class Dataverse extends DvObjectContainer {
 
     public String getName() {
     	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getName();
+    	return getLatestVersion().getName();
     }
 //
 //    public void setName(String name) {
@@ -690,7 +696,7 @@ public class Dataverse extends DvObjectContainer {
 //
     public String getAlias() {
     	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getAlias();
+    	return getLatestVersion().getAlias();
     }
 //
 //    public void setAlias(String alias) {
@@ -699,7 +705,7 @@ public class Dataverse extends DvObjectContainer {
 
     public String getDescription() {
     	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getDescription();
+    	return getLatestVersion().getDescription();
     }
 //
 //    public void setDescription(String description) {
@@ -708,7 +714,7 @@ public class Dataverse extends DvObjectContainer {
 
     public String getAdditionalDescription() {
     	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getAdditionalDescription();
+    	return getLatestVersion().getAdditionalDescription();
     }
 //
 //    public void setAdditionalDescription(String additionalDescription) {
@@ -717,7 +723,7 @@ public class Dataverse extends DvObjectContainer {
 
     public String getAffiliation() {
     	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getAffiliation();
+    	return getLatestVersion().getAffiliation();
     }
 
 //    public void setAffiliation(String affiliation) {
@@ -850,6 +856,10 @@ public class Dataverse extends DvObjectContainer {
 
 	public List<DataverseVersion> getVersions() {
 		return unmodifiableList(this.versions);
+	}
+	
+	public DataverseVersion getLatestVersion() {
+		return this.versions.get(this.versions.size()-1);
 	}
 	
 	public DataverseVersion addVersion(final DataverseVersion.State state) {

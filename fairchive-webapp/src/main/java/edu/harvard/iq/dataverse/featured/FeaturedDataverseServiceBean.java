@@ -13,12 +13,14 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFeaturedDataverse
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFeaturedDataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
@@ -91,14 +93,15 @@ public class FeaturedDataverseServiceBean {
             String logo = (String) result[3];
 
             Dataverse dataverse = new Dataverse();
+            DataverseVersion version = dataverse.addVersion(RELEASED);
             dataverse.setId(id);
-            dataverse.setAlias(alias);
-            dataverse.setName(name);
+            version.setAlias(alias);
+            version.setName(name);
 
             if (logo != null) {
                 DataverseTheme theme = new DataverseTheme();
                 theme.setLogo(logo);
-                dataverse.setDataverseTheme(theme);
+                version.setTheme(theme);
             }
 
             ret.add(dataverse);

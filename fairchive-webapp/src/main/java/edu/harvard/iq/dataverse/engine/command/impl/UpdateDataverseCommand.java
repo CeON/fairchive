@@ -1,18 +1,16 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Update an existing dataverse.
@@ -54,47 +52,49 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
 
     @Override
     public Dataverse execute(CommandContext ctxt)  {
-        DataverseType oldDvType = ctxt.dataverses().find(editedDv.getId()).getDataverseType();
-        String oldDvAlias = ctxt.dataverses().find(editedDv.getId()).getAlias();
-        String oldDvName = ctxt.dataverses().find(editedDv.getId()).getName();
-        Dataverse result = ctxt.dataverses().save(editedDv);
-
-        if (facetList != null) {
-            ctxt.facets().deleteFacetsFor(result);
-            int i = 0;
-            for (DatasetFieldType df : facetList) {
-                ctxt.facets().create(i++, df.getId(), result.getId());
-            }
-        }
-        if (featuredDataverseList != null) {
-            ctxt.featuredDataverses().deleteFeaturedDataversesFor(result);
-            int i = 0;
-            for (Dataverse dv : featuredDataverseList) {
-                ctxt.featuredDataverses().create(i++, dv.getId(), result.getId());
-            }
-        }
-        if (inputLevelList != null) {
-            ctxt.fieldTypeInputLevels().deleteFacetsFor(result);
-            for (DataverseFieldTypeInputLevel obj : inputLevelList) {
-                ctxt.fieldTypeInputLevels().create(obj);
-            }
-        }
-
-        ctxt.index().indexDataverse(result);
-
-        List<Dataverse> dvChildrenToUpdate = ctxt.dataverses().findByOwnerId(result.getId());
-        dvChildrenToUpdate.forEach(dvForUpdate -> ctxt.index().indexDataverse(dvForUpdate));
-
-        //When these values are changed we need to reindex all children datasets
-        //This check is not recursive as all the values just report the immediate parent
-        //
-        //This runs async to not slow down editing --MAD 4.9.4
-        if (!oldDvType.equals(editedDv.getDataverseType())
-                || !oldDvName.equals(editedDv.getName())
-                || !oldDvAlias.equals(editedDv.getAlias())) {
-            List<Dataset> datasets = ctxt.datasetService().findByOwnerId(editedDv.getId());
-            ctxt.index().asyncIndexDatasetList(datasets, true);
-        }
-        return result;
+    	
+    	throw new UnsupportedOperationException();
+//        DataverseType oldDvType = ctxt.dataverses().find(editedDv.getId()).getDataverseType();
+//        String oldDvAlias = ctxt.dataverses().find(editedDv.getId()).getAlias();
+//        String oldDvName = ctxt.dataverses().find(editedDv.getId()).getName();
+//        Dataverse result = ctxt.dataverses().save(editedDv);
+//
+//        if (facetList != null) {
+//            ctxt.facets().deleteFacetsFor(result);
+//            int i = 0;
+//            for (DatasetFieldType df : facetList) {
+//                ctxt.facets().create(i++, df.getId(), result.getId());
+//            }
+//        }
+//        if (featuredDataverseList != null) {
+//            ctxt.featuredDataverses().deleteFeaturedDataversesFor(result);
+//            int i = 0;
+//            for (Dataverse dv : featuredDataverseList) {
+//                ctxt.featuredDataverses().create(i++, dv.getId(), result.getId());
+//            }
+//        }
+//        if (inputLevelList != null) {
+//            ctxt.fieldTypeInputLevels().deleteFacetsFor(result);
+//            for (DataverseFieldTypeInputLevel obj : inputLevelList) {
+//                ctxt.fieldTypeInputLevels().create(obj);
+//            }
+//        }
+//
+//        ctxt.index().indexDataverse(result);
+//
+//        List<Dataverse> dvChildrenToUpdate = ctxt.dataverses().findByOwnerId(result.getId());
+//        dvChildrenToUpdate.forEach(dvForUpdate -> ctxt.index().indexDataverse(dvForUpdate));
+//
+//        //When these values are changed we need to reindex all children datasets
+//        //This check is not recursive as all the values just report the immediate parent
+//        //
+//        //This runs async to not slow down editing --MAD 4.9.4
+//        if (!oldDvType.equals(editedDv.getDataverseType())
+//                || !oldDvName.equals(editedDv.getName())
+//                || !oldDvAlias.equals(editedDv.getAlias())) {
+//            List<Dataset> datasets = ctxt.datasetService().findByOwnerId(editedDv.getId());
+//            ctxt.index().asyncIndexDatasetList(datasets, true);
+//        }
+//        return result;
     }
 }

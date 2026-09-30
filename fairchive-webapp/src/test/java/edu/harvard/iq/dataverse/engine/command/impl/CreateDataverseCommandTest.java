@@ -149,15 +149,15 @@ public class CreateDataverseCommandTest {
 
     @SuppressWarnings("serial")
     DataverseFacetServiceBean facets = new DataverseFacetServiceBean() {
-        @Override
-        public DataverseFacet create(int displayOrder, DatasetFieldType fieldType, Dataverse ownerDv) {
-            DataverseFacet df = new DataverseFacet();
-            df.setDatasetFieldType(fieldType);
-            df.setDataverse(ownerDv);
-            df.setDisplayOrder(displayOrder);
-            createdFacets.add(df);
-            return df;
-        }
+//        @Override
+//        public DataverseFacet create(int displayOrder, DatasetFieldType fieldType, Dataverse ownerDv) {
+//            DataverseFacet df = new DataverseFacet();
+//            df.setDatasetFieldType(fieldType);
+//            df.setDataverse(ownerDv);
+//            df.setDisplayOrder(displayOrder);
+//            createdFacets.add(df);
+//            return df;
+//        }
 
 
         @Override

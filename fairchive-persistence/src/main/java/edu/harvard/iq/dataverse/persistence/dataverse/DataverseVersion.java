@@ -43,7 +43,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
 
 @Entity
 public class DataverseVersion implements JpaEntity<Long> {
-	
+
     public enum State {
         DRAFT, RELEASED;
     }
@@ -212,7 +212,12 @@ public class DataverseVersion implements JpaEntity<Long> {
 		return unmodifiableList(this.contacts);
 	}
 	
-	public DataverseContact addContact(final String email) {
+	public DataverseContact addContact(final String email) {		
+		if(this.contacts.size() == 1 && this.contacts.get(0).getEmail().isEmpty()) {
+			final DataverseContact contact  = this.contacts.get(0);
+			contact.setEmail(email);
+			return contact;
+		} 
 		final DataverseContact contact = new DataverseContact(this, email);
 		this.contacts.add(contact);
 		return contact;

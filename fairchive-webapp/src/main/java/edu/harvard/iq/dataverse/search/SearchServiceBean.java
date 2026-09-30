@@ -252,7 +252,7 @@ public class SearchServiceBean {
 
         if (dataverses != null) {
             for (Dataverse dataverse : dataverses) {
-                for (DataverseFacet dataverseFacet : dataverse.getDataverseFacets()) {
+                for (DataverseFacet dataverseFacet : dataverse.getLatestVersion().getFacets()) {
                     SolrField dsfSolrField = SolrField.of(dataverseFacet.getDatasetFieldType());
                     solrQuery.addFacetField(dsfSolrField.getNameFacetable());
                 }

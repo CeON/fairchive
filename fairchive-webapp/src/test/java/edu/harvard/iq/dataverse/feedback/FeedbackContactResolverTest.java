@@ -23,7 +23,7 @@ import io.vavr.control.Option;
  */
 public class FeedbackContactResolverTest {
 
-    private FeedbackContactResolver contactResolver = new FeedbackContactResolver();
+    private final FeedbackContactResolver contactResolver = new FeedbackContactResolver();
 
     @Test
     public void resolveDataverseContact() {
@@ -34,7 +34,8 @@ public class FeedbackContactResolverTest {
         version.addContact("dvContact2@librascholar.edu");
 
         // when
-        List<FeedbackContact> contacts = contactResolver.resolveDataverseContact(dataverse);
+        List<FeedbackContact> contacts = this.contactResolver.
+        		resolveDataverseContact(dataverse);
 
         // them
         assertThat(contacts).hasSize(2)
@@ -48,10 +49,11 @@ public class FeedbackContactResolverTest {
     public void resolveDataverseContact__no_contact() {
         // given
         Dataverse dataverse = new Dataverse();
-        DataverseVersion version = dataverse.addVersion(RELEASED);
+        dataverse.addVersion(RELEASED);
 
         // when
-        List<FeedbackContact> contacts = contactResolver.resolveDataverseContact(dataverse);
+        List<FeedbackContact> contacts = this.contactResolver.
+        		resolveDataverseContact(dataverse);
 
         // them
         assertThat(contacts).isEmpty();
@@ -73,7 +75,8 @@ public class FeedbackContactResolverTest {
         dataset.getLatestVersion().setDatasetFields(fields);
 
         // when
-        List<FeedbackContact> contacts = contactResolver.resolveDatasetContact(dataset);
+        List<FeedbackContact> contacts = this.contactResolver.
+        		resolveDatasetContact(dataset);
 
         // them
         assertThat(contacts).hasSize(2)
@@ -95,7 +98,8 @@ public class FeedbackContactResolverTest {
         dataset.getLatestVersion().setDatasetFields(fields);
 
         // when
-        List<FeedbackContact> contacts = contactResolver.resolveDatasetContact(dataset);
+        List<FeedbackContact> contacts = this.contactResolver.
+        		resolveDatasetContact(dataset);
 
         // them
         assertThat(contacts).isEmpty();
@@ -113,7 +117,8 @@ public class FeedbackContactResolverTest {
         dataset.getLatestVersion().setDatasetFields(fields);
 
         // when
-        List<FeedbackContact> contacts = contactResolver.resolveDatasetContact(dataset);
+        List<FeedbackContact> contacts = this.contactResolver.
+        		resolveDatasetContact(dataset);
 
         // them
         assertThat(contacts).isEmpty();

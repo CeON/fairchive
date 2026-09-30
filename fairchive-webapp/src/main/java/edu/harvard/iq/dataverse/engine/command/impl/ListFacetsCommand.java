@@ -24,21 +24,21 @@ import java.util.Set;
 @SuppressWarnings("serial")
 public class ListFacetsCommand extends AbstractCommand<List<DataverseFacet>> {
 
-    private final Dataverse dv;
+    private final Dataverse dataverse;
 
-    public ListFacetsCommand(DataverseRequest aRequest, Dataverse aDataverse) {
-        super(aRequest, aDataverse);
-        dv = aDataverse;
+    public ListFacetsCommand(final DataverseRequest request, final Dataverse dataverse) {
+        super(request, dataverse);
+        this.dataverse = dataverse;
     }
 
     @Override
-    public List<DataverseFacet> execute(CommandContext ctxt)  {
-        return dv.getDataverseFacets();
+    public List<DataverseFacet> execute(final CommandContext context)  {
+        return this.dataverse.getLatestVersion().getFacets();
     }
 
     @Override
     public Map<String, Set<Permission>> getRequiredPermissions() {
-        return singletonMap("", dv.isReleased() 
+        return singletonMap("", this.dataverse.isReleased() 
                                 ? emptySet()
                                 : singleton(Permission.ViewUnpublishedDataverse));
     }

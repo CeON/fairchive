@@ -417,7 +417,7 @@ public class MetadataBlockService {
     	
         final DataverseFieldTypeInputLevel result = new DataverseFieldTypeInputLevel();
         result.setDatasetFieldType(type);
-        result.setDataverse(dataverse);
+        result.setVersion(dataverse.getLatestVersion());
         result.setRequired(isRequired);
         result.setInclude(isIncluded);
         return result;

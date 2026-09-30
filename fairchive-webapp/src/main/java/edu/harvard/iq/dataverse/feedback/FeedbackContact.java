@@ -12,12 +12,11 @@ public class FeedbackContact {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    public FeedbackContact(String email) {
-        this.name = null;
-        this.email = email;
+    public FeedbackContact(final String email) {
+        this(null, email);
     }
 
-    public FeedbackContact(String name, String email) {
+    public FeedbackContact(final String name, String email) {
         this.name = name;
         this.email = email;
     }
@@ -25,11 +24,10 @@ public class FeedbackContact {
     // -------------------- GETTERS --------------------
 
     public Option<String> getName() {
-        return Option.of(name);
+        return Option.of(this.name);
     }
 
     public String getEmail() {
-        return email;
+        return this.email;
     }
-
 }

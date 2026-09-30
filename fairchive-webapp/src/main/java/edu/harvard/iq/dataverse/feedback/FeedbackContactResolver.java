@@ -34,8 +34,10 @@ public class FeedbackContactResolver implements Serializable {
     public List<FeedbackContact> resolveDataverseContact(Dataverse dataverse) {
         List<FeedbackContact> dataverseContacts = new ArrayList<>();
         for (DataverseContact dc : dataverse.getDataverseContacts()) {
-            FeedbackContact dataverseContact = new FeedbackContact(dc.getEmail());
-            dataverseContacts.add(dataverseContact);
+        	if(! dc.getEmail().isEmpty()) {
+        		FeedbackContact dataverseContact = new FeedbackContact(dc.getEmail());
+        		dataverseContacts.add(dataverseContact);
+        	}
         }
         return dataverseContacts;
     }
