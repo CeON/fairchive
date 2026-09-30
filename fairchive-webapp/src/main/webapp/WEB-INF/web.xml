@@ -180,6 +180,11 @@
     <listener>
         <listener-class>edu.harvard.iq.dataverse.DataverseSessionConfigListener</listener-class>
     </listener>
+    <!-- Without it, CMYK JPEG files get no thumbnails or previews -->
+    <listener>
+        <display-name>ImageIO service provider loader/unloader</display-name>
+        <listener-class>com.twelvemonkeys.servlet.image.IIOProviderContextListener</listener-class>
+    </listener>
     <!-- web fonts -->
     <mime-mapping>
         <extension>eot</extension>
