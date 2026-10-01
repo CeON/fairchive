@@ -636,7 +636,7 @@ public class Dataverse extends DvObjectContainer {
     
 	public List<DataverseFieldTypeInputLevel> getDataverseFieldTypeInputLevels() {
     	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getDataverseFieldTypeInputLevels();
+    	return getLatestVersion().getDataverseFieldTypeInputLevels();
 	}
 
     public List<DatasetFieldType> getCitationDatasetFieldTypes() {

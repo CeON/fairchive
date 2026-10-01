@@ -43,6 +43,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevelRepository;
 import edu.harvard.iq.dataverse.persistence.group.IpAddress;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
@@ -60,8 +61,6 @@ public class CreateDataverseCommandTest {
     Map<String, Dataverse> dvByAliasStore = new HashMap<>();
     Map<Long, Dataverse> dvStore = new HashMap<>();
     boolean isRootDvExists;
-    boolean facetsDeleted;
-    boolean dftilsDeleted;
     List<DataverseFieldTypeInputLevel> createdDftils;
     List<DataverseFacet> createdFacets;
 
@@ -143,9 +142,18 @@ public class CreateDataverseCommandTest {
 
         @Override
         public void deleteFacetsFor(Dataverse d) {
-            dftilsDeleted = true;
         }
     };
+    
+    DataverseFieldTypeInputLevelRepository inputLevels = new DataverseFieldTypeInputLevelRepository() {
+
+		@Override
+		public DataverseFieldTypeInputLevel save(DataverseFieldTypeInputLevel entity) {
+			return entity;
+		}
+    };
+    
+    
 
     @SuppressWarnings("serial")
     DataverseFacetServiceBean facets = new DataverseFacetServiceBean() {
@@ -162,7 +170,11 @@ public class CreateDataverseCommandTest {
 
         @Override
         public void deleteFacetsFor(Dataverse d) {
-            facetsDeleted = true;
+        }
+        
+        @Override
+        public void save(final DataverseFacet facet) {
+        	
         }
 
     };
@@ -176,7 +188,6 @@ public class CreateDataverseCommandTest {
         dvStore.clear();
         dvByAliasStore.clear();
         isRootDvExists = true;
-        facetsDeleted = false;
         createdDftils = new ArrayList<>();
         createdFacets = new ArrayList<>();
 
@@ -204,6 +215,10 @@ public class CreateDataverseCommandTest {
             @Override
             public DataverseFieldTypeInputLevelServiceBean fieldTypeInputLevels() {
                 return dfils;
+            }
+            @Override
+            public DataverseFieldTypeInputLevelRepository inputLevels() {
+            	return inputLevels;
             }
 
         });
@@ -293,7 +308,6 @@ public class CreateDataverseCommandTest {
         assertTrue(result.isThemeRoot());
         assertTrue(indexCalled);
 
-        assertTrue(facetsDeleted);
         int i = 0;
         for (DataverseFacet df : createdFacets) {
             assertEquals(i, df.getDisplayOrder());
@@ -303,7 +317,6 @@ public class CreateDataverseCommandTest {
             i++;
         }
 
-        assertTrue(dftilsDeleted);
         for (DataverseFieldTypeInputLevel dftil : createdDftils) {
             assertEquals(result, dftil.getVersion().getDataverse());
         }

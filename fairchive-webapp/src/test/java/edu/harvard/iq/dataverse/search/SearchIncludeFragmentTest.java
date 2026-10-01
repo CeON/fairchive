@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.search;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.search.query.SearchObjectType.DATASETS;
 import static java.util.Arrays.asList;
 import static org.apache.commons.io.IOUtils.readLines;
@@ -82,6 +83,8 @@ public class SearchIncludeFragmentTest {
 
     @BeforeEach
     public void setUp() {
+    	
+    	this.dataverse.addVersion(RELEASED);
 
         this.fragment.request = this.request;
         this.fragment.searchService = this.searchService;

@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.AddDataverse;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.DeleteDataverse;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.ManageDataverse;
@@ -39,13 +40,13 @@ public class AbstractCommandTest {
 
 		BaseCommand() {
 			super(new DataverseRequest(GuestUser.get(), 
-					IpAddress.valueOf("0.0.0.0")), new Dataverse());
+					IpAddress.valueOf("0.0.0.0")), newDataverse());
 		}
 		
 		BaseCommand(final String name1, final String name2) {
 			super(new DataverseRequest(GuestUser.get(), 
-					IpAddress.valueOf("0.0.0.0")), dv(name1, new Dataverse()), 
-					dv(name2, new Dataverse()));
+					IpAddress.valueOf("0.0.0.0")), dv(name1, newDataverse()), 
+					dv(name2, newDataverse()));
 		}
 
 		@Override
@@ -227,5 +228,11 @@ public class AbstractCommandTest {
 			assertThat(e.getMessage()).contains("MultinamedPermissionsRequired");
 			assertThat(e.getMessage()).contains("does not have a DvObject named 'abc'");
 		}
+	}
+	
+	private static Dataverse newDataverse() {
+		final Dataverse dataverse = new Dataverse();
+		dataverse.addVersion(RELEASED);
+		return dataverse;
 	}
 }

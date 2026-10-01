@@ -1,5 +1,25 @@
 package edu.harvard.iq.dataverse.export.datacite;
 
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.export.RelatedIdentifierTypeConstants;
 import edu.harvard.iq.dataverse.export.datacite.DataCiteResource.Affiliation;
@@ -19,18 +39,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetAuthor;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import io.vavr.Tuple;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
 
 public class DataCiteResourceCreator {
 
@@ -42,14 +50,14 @@ public class DataCiteResourceCreator {
 
         resource.setIdentifier(extractIdentifier(identifier));
         resource.setCreators(extractCreators(dataset));
-        resource.setTitles(Collections.singletonList(dvObject.getDisplayName()));
+        resource.setTitles(singletonList(dvObject.getDisplayName()));
 
         String publisher = dataset.getLatestVersion().getRootDataverseNameForCitation();
-        resource.setPublisher(StringUtils.isEmpty(publisher) ? ":unav" : publisher);
+        resource.setPublisher(isEmpty(publisher) ? ":unav" : publisher);
 
         // Can't use "UNKNOWN" here because DataCite will respond with "[facet 'pattern']
         // the value 'unknown' is not accepted by the pattern '[\d]{4}'"
-        resource.setPublicationYear(StringUtils.isEmpty(publicationYear) ? "9999" : publicationYear);
+        resource.setPublicationYear(isEmpty(publicationYear) ? "9999" : publicationYear);
         resource.setRelatedIdentifiers(extractRelatedIdentifiers(dvObject));
 
         resource.setDescriptions(extractDescription(dvObject));
@@ -75,13 +83,12 @@ public class DataCiteResourceCreator {
         List<DatasetAuthor> authors = dataset.getLatestVersion().getDatasetAuthors();
         return authors.stream()
                 .map(this::extractCreator)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private Creator extractCreator(DatasetAuthor author) {
         Creator creator = new Creator(author.getName().getDisplayValue());
-        if (StringUtils.isNotBlank(author.getIdType())
-                && StringUtils.isNotBlank(author.getIdValue())) {
+        if (isNotBlank(author.getIdType())  && isNotBlank(author.getIdValue())) {
             NameIdentifier nameIdentifier;
             switch (author.getIdType()) {
                 case "ORCID":
@@ -123,12 +130,12 @@ public class DataCiteResourceCreator {
                 identifiers.addAll(dataset.getFiles().stream()
                         .filter(f -> StringUtils.isNotEmpty(f.getGlobalId().asString()))
                         .map(f -> new RelatedIdentifier(f.getGlobalId().asString(),  "HasPart"))
-                        .collect(Collectors.toList()));
+                        .collect(toList()));
             }
             return identifiers;
         } else if (dvObject.isInstanceofDataFile()) {
             DataFile dataFile = (DataFile) dvObject;
-            return Collections.singletonList(
+            return singletonList(
                     new RelatedIdentifier(dataFile.getOwner().getGlobalId().asString(), "IsPartOf"));
         }
         return Collections.emptyList();
@@ -148,7 +155,7 @@ public class DataCiteResourceCreator {
                     .toArray(String[]::new);
             String relatedIdType = fields[RelatedIdFields.RELATED_ID_TYPE.ordinal()];
             String relationType = fields[RelatedIdFields.RELATION_TYPE.ordinal()];
-            if (StringUtils.isBlank(relatedIdType) || StringUtils.isBlank(relationType)) {
+            if (isBlank(relatedIdType) || isBlank(relationType)) {
                 continue;
             }
             if (RelatedIdentifierTypeConstants.ALTERNATIVE_TO_MAIN_ID_TYPE_INDEX.containsKey(relatedIdType)) {
@@ -175,12 +182,12 @@ public class DataCiteResourceCreator {
         if (dvObject.isInstanceofDataset()) {
             Dataset dataset = getDataset(dvObject);
             String description = unescapeHtml4(dataset.getLatestVersion().getDescriptionPlainText());
-            return Collections.singletonList(new Description(description));
+            return singletonList(new Description(description));
         } else if (dvObject.isInstanceofDataFile()) {
             String fileDescription = unescapeHtml4(((DataFile) dvObject).getDescription());
-            return Collections.singletonList(new Description(fileDescription != null ? fileDescription : ""));
+            return singletonList(new Description(fileDescription != null ? fileDescription : ""));
         }
-        return Collections.emptyList();
+        return emptyList();
     }
 
     private List<Contributor> extractContributors(Dataset dataset) {
@@ -203,12 +210,12 @@ public class DataCiteResourceCreator {
                         t._2 != null ? t._2.getFieldValue().getOrElse(StringUtils.EMPTY) : StringUtils.EMPTY))
                 .map(t -> new Contributor(ContributorType.ContactPerson, t._1,
                         StringUtils.isNotEmpty(t._2) ? new Affiliation(t._2) : null))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private List<Contributor> extractDatasetProducersAsContributors(Dataset dataset) {
         return dataset.getLatestVersion().extractFieldWithSubfields(DatasetFieldConstant.producer,
-                Arrays.asList(DatasetFieldConstant.producerName, DatasetFieldConstant.producerAffiliation))
+                asList(DatasetFieldConstant.producerName, DatasetFieldConstant.producerAffiliation))
                 .stream()
                 .filter(e -> {
                     DatasetField name = e.get(DatasetFieldConstant.producerName);
@@ -219,19 +226,19 @@ public class DataCiteResourceCreator {
                         t._2 != null ? t._2.getFieldValue().getOrElse(StringUtils.EMPTY) : StringUtils.EMPTY))
                 .map(t -> new Contributor(ContributorType.Producer, t._1,
                         StringUtils.isNotEmpty(t._2) ? new Affiliation(t._2) : null))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private List<FundingReference> extractFundingReferences(Dataset dataset) {
         DatasetVersion version = dataset.getLatestVersion();
         return version.extractFieldWithSubfields(DatasetFieldConstant.grantNumber,
-                Arrays.asList(DatasetFieldConstant.grantNumberAgency, DatasetFieldConstant.grantNumberAgencyShortName,
+                asList(DatasetFieldConstant.grantNumberAgency, DatasetFieldConstant.grantNumberAgencyShortName,
                         DatasetFieldConstant.grantNumberAgencyIdentifier, DatasetFieldConstant.grantNumberProgram,
                         DatasetFieldConstant.grantNumberValue))
                 .stream()
                 .map(this::extractFundingReference)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private FundingReference extractFundingReference(Map<String, DatasetField> fieldMap) {
@@ -278,7 +285,7 @@ public class DataCiteResourceCreator {
         // -------------------- LOGIC --------------------
 
         public static Stream<String> getSuffixes() {
-            return Arrays.stream(values())
+            return stream(values())
                     .map(RelatedIdFields::suffix);
         }
     }
