@@ -59,18 +59,87 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 //        @NamedQuery(name = "Dataverse.filterByAliasNameAffiliation", query = "SELECT dv FROM Dataverse dv WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) order by dv.alias")    
 //})
 @NamedNativeQueries({
-        @NamedNativeQuery(name = "Dataverse.findDataForSolrResults2", query =
-                "SELECT t0.ID, t0.AFFILIATION, t0.ALIAS, t2.ALIAS " +
-                "FROM DATAVERSE t0 JOIN DVOBJECT t1 ON t0.ID = t1.ID LEFT JOIN DATAVERSE t2 ON t1.OWNER_ID = t2.ID " +
-                "WHERE t0.ID IN (?, ?)"),
-        @NamedNativeQuery(name = "Dataverse.findDataForSolrResults6", query =
-                "SELECT t0.ID, t0.AFFILIATION, t0.ALIAS, t2.ALIAS " +
-                "FROM DATAVERSE t0 JOIN DVOBJECT t1 ON t0.ID = t1.ID LEFT JOIN DATAVERSE t2 ON t1.OWNER_ID = t2.ID " +
-                "WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"),
-        @NamedNativeQuery(name = "Dataverse.findDataForSolrResults10", query =
-                "SELECT t0.ID, t0.AFFILIATION, t0.ALIAS, t2.ALIAS " +
-                "FROM DATAVERSE t0 JOIN DVOBJECT t1 ON t0.ID = t1.ID LEFT JOIN DATAVERSE t2 ON t1.OWNER_ID = t2.ID " +
-                "WHERE t0.ID IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	@NamedNativeQuery(
+		    name = "Dataverse.findDataForSolrResults2",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       dv1.AFFILIATION, " +
+		        "       dv1.ALIAS, " +
+		        "       dv2.ALIAS " +
+		        "FROM DATAVERSE t0 " +
+		        "JOIN DVOBJECT t1 ON t0.ID = t1.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT v1.AFFILIATION, v1.ALIAS " +
+		        "    FROM DATAVERSEVERSION v1 " +
+		        "    WHERE v1.DATAVERSE_ID = t0.ID " +
+		        "      AND v1.STATE = 'RELEASED' " +
+		        "    ORDER BY v1.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv1 ON TRUE " +
+		        "LEFT JOIN LATERAL ( " +
+		        "    SELECT v2.ALIAS " +
+		        "    FROM DATAVERSEVERSION v2 " +
+		        "    WHERE v2.DATAVERSE_ID = t1.OWNER_ID " +
+		        "      AND v2.STATE = 'RELEASED' " +
+		        "    ORDER BY v2.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv2 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?)"
+		),
+	@NamedNativeQuery(
+		    name = "Dataverse.findDataForSolrResults6",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       dv1.AFFILIATION, " +
+		        "       dv1.ALIAS, " +
+		        "       dv2.ALIAS " +
+		        "FROM DATAVERSE t0 " +
+		        "JOIN DVOBJECT t1 ON t0.ID = t1.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT v1.AFFILIATION, v1.ALIAS " +
+		        "    FROM DATAVERSEVERSION v1 " +
+		        "    WHERE v1.DATAVERSE_ID = t0.ID " +
+		        "      AND v1.STATE = 'RELEASED' " +
+		        "    ORDER BY v1.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv1 ON TRUE " +
+		        "LEFT JOIN LATERAL ( " +
+		        "    SELECT v2.ALIAS " +
+		        "    FROM DATAVERSEVERSION v2 " +
+		        "    WHERE v2.DATAVERSE_ID = t1.OWNER_ID " +
+		        "      AND v2.STATE = 'RELEASED' " +
+		        "    ORDER BY v2.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv2 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"
+		),
+	@NamedNativeQuery(
+		    name = "Dataverse.findDataForSolrResults10",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       dv1.AFFILIATION, " +
+		        "       dv1.ALIAS, " +
+		        "       dv2.ALIAS " +
+		        "FROM DATAVERSE t0 " +
+		        "JOIN DVOBJECT t1 ON t0.ID = t1.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT v1.AFFILIATION, v1.ALIAS " +
+		        "    FROM DATAVERSEVERSION v1 " +
+		        "    WHERE v1.DATAVERSE_ID = t0.ID " +
+		        "      AND v1.STATE = 'RELEASED' " +
+		        "    ORDER BY v1.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv1 ON TRUE " +
+		        "LEFT JOIN LATERAL ( " +
+		        "    SELECT v2.ALIAS " +
+		        "    FROM DATAVERSEVERSION v2 " +
+		        "    WHERE v2.DATAVERSE_ID = t1.OWNER_ID " +
+		        "      AND v2.STATE = 'RELEASED' " +
+		        "    ORDER BY v2.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv2 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		)
 })
 @Entity
 @Table(indexes = {@Index(columnList = "defaultcontributorrole_id")
