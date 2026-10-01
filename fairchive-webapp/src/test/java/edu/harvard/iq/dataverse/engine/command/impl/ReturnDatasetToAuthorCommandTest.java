@@ -10,6 +10,7 @@ import edu.harvard.iq.dataverse.engine.TestDataverseEngine;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.notification.NotificationParameter;
+import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -26,24 +27,39 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ReturnDatasetToAuthorCommandTest {
 
     private Dataset dataset;
     private DataverseRequest dataverseRequest;
     private TestDataverseEngine testEngine;
+    private UserNotificationService notificationService = mock(UserNotificationService.class);
+    private List<AuthenticatedUser> usersWithEditDataset = new ArrayList<>();
 
     private static final String TEST_MAIL="test@reply.to";
 
@@ -126,10 +142,15 @@ public class ReturnDatasetToAuthorCommandTest {
                 return new PermissionServiceBean() {
                     @Override
                     public List<AuthenticatedUser> getUsersWithPermissionOn(Permission permission, DvObject dvObject) {
-                        // We only need permissions for notifications, which we are testing in InReviewWorkflowIT.
-                        return Collections.emptyList();
+                        return permission == Permission.EditDataset
+                                ? new ArrayList<>(usersWithEditDataset) : new ArrayList<>();
                     }
                 };
+            }
+
+            @Override
+            public UserNotificationService notifications() {
+                return notificationService;
             }
         });
     }
@@ -182,7 +203,50 @@ public class ReturnDatasetToAuthorCommandTest {
         assertNotNull(updatedDataset);
     }
 
+    @ParameterizedTest
+    @MethodSource("authorsAndSendCopy")
+    public void execute__sendCopyOnlyWithFirstNotification(int authorsCount, String sendCopy,
+                                                           List<String> expectedSendCopy) throws CommandException {
+        // given
+        IntStream.range(0, authorsCount)
+                .mapToObj(i -> MocksFactory.makeAuthenticatedUser("Author", "No" + i))
+                .forEach(usersWithEditDataset::add);
+        Map<String, String> params = createParams("Update Your Files", TEST_MAIL);
+        params.put(NotificationParameter.SEND_COPY.key(), sendCopy);
+        lockDatasetForReview();
+
+        // when
+        testEngine.submit(new ReturnDatasetToAuthorCommand(dataverseRequest, dataset, params));
+
+        // then
+        assertThat(captureNotificationParameters(authorsCount))
+                .extracting(p -> p.get(NotificationParameter.SEND_COPY.key()))
+                .containsExactlyElementsOf(expectedSendCopy);
+    }
+
+    private static Stream<Arguments> authorsAndSendCopy() {
+        return Stream.of(
+                Arguments.of(0, "true", Collections.emptyList()),
+                Arguments.of(1, "true", Collections.singletonList("true")),
+                Arguments.of(3, "true", Arrays.asList("true", null, null)),
+                Arguments.of(3, "false", Arrays.asList("false", null, null)));
+    }
+
     // -------------------- PRIVATE --------------------
+
+    private void lockDatasetForReview() throws CommandException {
+        dataset.getLatestVersion().setVersionState(DatasetVersion.VersionState.DRAFT);
+        testEngine.submit(new AddLockCommand(dataverseRequest, dataset,
+                new DatasetLock(DatasetLock.Reason.InReview, dataverseRequest.getAuthenticatedUser())));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, String>> captureNotificationParameters(int expectedNotifications) {
+        ArgumentCaptor<Map<String, String>> parameters = ArgumentCaptor.forClass(Map.class);
+        verify(notificationService, times(expectedNotifications))
+                .sendNotificationWithEmail(any(), any(), any(), any(), any(), parameters.capture());
+        return parameters.getAllValues();
+    }
 
     private Map<String, String> createParams(String message, String replyTo) {
         Map<String, String> params = new HashMap<>();
