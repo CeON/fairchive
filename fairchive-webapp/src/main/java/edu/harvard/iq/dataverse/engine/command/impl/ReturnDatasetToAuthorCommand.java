@@ -74,11 +74,26 @@ public class ReturnDatasetToAuthorCommand extends AbstractDatasetCommand<Dataset
         List<AuthenticatedUser> reviewers = ctxt.permissions().getUsersWithPermissionOn(Permission.PublishDataset, savedDataset);
         List<AuthenticatedUser> authors = ctxt.permissions().getUsersWithPermissionOn(Permission.EditDataset, savedDataset);
         authors.removeAll(reviewers);
+        if (authors.isEmpty()) {
+            return;
+        }
 
         Map<String, String> parameters = new HashMap<>(notificationParams);
         parameters.put(NotificationParameter.REQUESTOR_ID.key(), String.valueOf(authenticatedUser.getId()));
-        authors.forEach(a -> ctxt.notifications()
-                .sendNotificationWithEmail(a, getTimestamp(), NotificationType.RETURNEDDS,
-                    savedDataset.getLatestVersion().getId(), NotificationObjectType.DATASET_VERSION, parameters));
+
+        // The copy for the reply-to address is sent along with the e-mail
+        // of a notification that asks for it, so only one of them may.
+        Map<String, String> parametersWithoutCopy = new HashMap<>(parameters);
+        parametersWithoutCopy.remove(NotificationParameter.SEND_COPY.key());
+
+        notifyAuthor(ctxt, savedDataset, authors.get(0), parameters);
+        authors.subList(1, authors.size())
+                .forEach(author -> notifyAuthor(ctxt, savedDataset, author, parametersWithoutCopy));
+    }
+
+    private void notifyAuthor(CommandContext ctxt, Dataset savedDataset, AuthenticatedUser author,
+                              Map<String, String> parameters) {
+        ctxt.notifications().sendNotificationWithEmail(author, getTimestamp(), NotificationType.RETURNEDDS,
+                savedDataset.getLatestVersion().getId(), NotificationObjectType.DATASET_VERSION, parameters);
     }
 }
