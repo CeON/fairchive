@@ -20,17 +20,17 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
 
     // -------------------- LOGIC --------------------
 
-    public List<Dataverse> findPublishedByOwnerId(final Long ownerId) {
+    public List<Dataverse> findPublishedByOwnerId(final Long id) {
         return createQuery(
-                "select d from Dataverse d where d.owner.id =:ownerId and d.publicationDate is not null order by d.name")
-                .setParameter("ownerId", ownerId)
+                "select d from Dataverse d where d.owner.id =:id and d.publicationDate is not null")
+                .setParameter("id", id)
                 .getResultList();
     }
 
-    public List<Dataverse> findByOwnerId(final Long ownerId) {
+    public List<Dataverse> findByOwnerId(final Long id) {
         return createQuery(
-                "select object(o) from Dataverse as o where o.owner.id =:ownerId order by o.name")
-                .setParameter("ownerId", ownerId)
+                "select d from Dataverse d where d.owner.id =:id")
+                .setParameter("id", id)
                 .getResultList();
     }
 
