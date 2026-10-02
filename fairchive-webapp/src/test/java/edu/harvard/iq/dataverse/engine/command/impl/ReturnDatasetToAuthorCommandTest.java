@@ -35,8 +35,6 @@ import org.mockito.ArgumentCaptor;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +42,9 @@ import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -226,10 +227,10 @@ public class ReturnDatasetToAuthorCommandTest {
 
     private static Stream<Arguments> authorsAndSendCopy() {
         return Stream.of(
-                Arguments.of(0, "true", Collections.emptyList()),
-                Arguments.of(1, "true", Collections.singletonList("true")),
-                Arguments.of(3, "true", Arrays.asList("true", null, null)),
-                Arguments.of(3, "false", Arrays.asList("false", null, null)));
+                Arguments.of(0, "true", emptyList()),
+                Arguments.of(1, "true", singletonList("true")),
+                Arguments.of(3, "true", asList("true", null, null)),
+                Arguments.of(3, "false", asList("false", null, null)));
     }
 
     // -------------------- PRIVATE --------------------
