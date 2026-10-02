@@ -40,13 +40,15 @@ public class ResetPasswordCommand extends AbstractCommand<AuthenticatedUser> imp
         }
 
         try {
-            BuiltinUser builtinuser = ctxt.builtinUsers().findByUserName(targetUser.getUserIdentifier());
+            BuiltinUser builtinUser = ctxt.builtinUsers().findByUserName(targetUser.getUserIdentifier());
         	
-        	String newHashedPass = PasswordEncryption.get().encrypt(RandomStringUtils.randomAscii(20));
+        	if (builtinUser != null) {
+        		String newHashedPass = PasswordEncryption.get().encrypt(RandomStringUtils.randomAscii(20));
         	
-            int latestVersionNumber = PasswordEncryption.getLatestVersionNumber();
-            builtinuser.updateEncryptedPassword(newHashedPass, latestVersionNumber);
-            ctxt.builtinUsers().save(builtinuser);
+        		int latestVersionNumber = PasswordEncryption.getLatestVersionNumber();
+        		builtinUser.updateEncryptedPassword(newHashedPass, latestVersionNumber);
+        		ctxt.builtinUsers().save(builtinUser);
+        	}
 
             return targetUser;
 
