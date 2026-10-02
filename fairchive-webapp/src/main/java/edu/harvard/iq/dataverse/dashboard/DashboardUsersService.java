@@ -4,6 +4,7 @@ import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.UserServiceBean;
 import edu.harvard.iq.dataverse.engine.command.impl.GrantSuperuserStatusCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.ResetPasswordCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.RevokeAllRolesCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.RevokeSuperuserStatusCommand;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
@@ -54,6 +55,14 @@ public class DashboardUsersService {
         logger.fine("Revoking all roles for user: " + dbUser.getIdentifier());
 
         return commandEngine.submit(new RevokeAllRolesCommand(dbUser, dvRequestService.getDataverseRequest()));
+    }
+
+    public AuthenticatedUser resetUserPassword(Long userId) {
+        AuthenticatedUser dbUser = userServiceBean.getById(userId);
+
+        logger.fine("Reset password for user: " + dbUser.getIdentifier());
+
+        return commandEngine.submit(new ResetPasswordCommand(dbUser, dvRequestService.getDataverseRequest()));
     }
 
     // -------------------- PRIVATE ---------------------

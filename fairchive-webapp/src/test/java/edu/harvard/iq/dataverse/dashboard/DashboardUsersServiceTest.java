@@ -5,6 +5,7 @@ import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.UserServiceBean;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.GrantSuperuserStatusCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.ResetPasswordCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.RevokeAllRolesCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.RevokeSuperuserStatusCommand;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
@@ -43,6 +44,7 @@ public class DashboardUsersServiceTest {
         when(engineService.submit(any(GrantSuperuserStatusCommand.class))).thenReturn(new AuthenticatedUser());
         when(engineService.submit(any(RevokeSuperuserStatusCommand.class))).thenReturn(new AuthenticatedUser());
         when(engineService.submit(any(RevokeAllRolesCommand.class))).thenReturn(new AuthenticatedUser());
+        when(engineService.submit(any(ResetPasswordCommand.class))).thenReturn(new AuthenticatedUser());
         when(userServiceBean.getById(anyLong())).thenReturn(testUser);
     }
 
@@ -86,6 +88,19 @@ public class DashboardUsersServiceTest {
         verify(engineService, times(1)).submit(any(RevokeSuperuserStatusCommand.class));
     }
 
+    @Test
+    public void testPasswordReset() {
+        // given
+        AuthenticatedUser user = createTestUser();
+
+        // when
+        dashboardUsersService.resetUserPassword(user.getId());
+
+        // then
+        verify(engineService, times(1)).submit(any(ResetPasswordCommand.class));
+    	
+    }
+    
     // -------------------- PRIVATE ---------------------
 
     private AuthenticatedUser createTestUser() {

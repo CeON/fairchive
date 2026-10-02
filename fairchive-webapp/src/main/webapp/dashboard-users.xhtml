@@ -137,7 +137,7 @@
                                 />
                             </p:selectBooleanCheckbox>
                         </p:column>
-                        <p:column width="8%" headerText="#{bundle['dashboard.list_users.tbl_header.action']}" class="text-center align-middle">
+                        <p:column width="10%" headerText="#{bundle['dashboard.list_users.tbl_header.action']}" class="text-center align-middle">
                             <p:commandLink type="button"
                                            styleClass="btn btn-default bootstrap-button-tooltip"
                                            title="#{bundle['dashboard.list_users.tbl_header.action.button']}"
@@ -145,6 +145,14 @@
                                            actionListener="#{DashboardUsersPage.setSelectedUserInfo(user)}"
                                            oncomplete="primeFacesShowModal('userMoreInfoDialog', this);">
                                 <span style="text-align: center" class="glyphicon glyphicon-eye-open"/>
+                            </p:commandLink>
+                            <p:commandLink type="button"
+                                           styleClass="btn btn-default bootstrap-button-tooltip"
+                                           title="#{bundle['dashboard.list_users.tbl_header.resetPassword.button']}"
+                                           update=":dashboardUsersForm:resetPasswordConfirm"
+                                           actionListener="#{DashboardUsersPage.setSelectedUserInfo(user)}"
+                                           oncomplete="primeFacesShowModal('resetPasswordConfirm', this);">
+                                <span style="text-align: center" class="glyphicon glyphicon-ban-circle"/>
                             </p:commandLink>
                         </p:column>
 
@@ -205,6 +213,33 @@
                             <p:commandButton styleClass="btn btn-default"
                                              value="#{bundle.no}"
                                              onclick="PF('removeRolesConfirm').hide();"
+                                             type="button"/>
+                        </div>
+                    </p:dialog>
+
+                    <p:dialog id="resetPasswordConfirm"
+                              header="#{bundle['dashboard.list_users.resetPassword.header']}"
+                              widgetVar="resetPasswordConfirm">
+                        <p class="text-warning">
+                            <span class="glyphicon glyphicon-warning-sign"/>
+                            <h:outputFormat value=" #{bundle['dashboard.list_users.resetPassword.confirmationText']}">
+                                <f:param value="#{DashboardUsersPage.selectedUserInfo.identifier}"/>
+                                <f:param value="#{DashboardUsersPage.selectedUserInfo.name}"/>
+                            </h:outputFormat>
+                        </p>
+                        <div class="button-block">
+                            <p:commandButton styleClass="btn btn-default"
+                                             value="#{bundle['dashboard.list_users.resetPassword.confirm']}">
+                                <p:ajax event="click"
+                                        process="@this"
+                                        listener="#{DashboardUsersPage.resetUserPassword()}"
+                                        oncomplete="PF('resetPasswordConfirm').hide();"
+                                        update=":messagePanel"
+                                />
+                            </p:commandButton>
+                            <p:commandButton styleClass="btn btn-default"
+                                             value="#{bundle.no}"
+                                             onclick="PF('resetPasswordConfirm').hide();"
                                              type="button"/>
                         </div>
                     </p:dialog>
