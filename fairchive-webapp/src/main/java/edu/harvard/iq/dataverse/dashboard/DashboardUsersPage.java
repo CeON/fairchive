@@ -108,6 +108,19 @@ public class DashboardUsersPage implements java.io.Serializable {
                 .onFailure(throwable -> logger.log(Level.SEVERE, "Revoking all roles failed for user: " + selectedUserInfo.getIdentifier(), throwable));
     }
 
+    public void resetUserPassword() {
+        if (selectedUserInfo != null) {
+            Try.of(() -> dashboardUsersService.resetUserPassword(Long.parseLong(selectedUserInfo.getId())))
+                .onSuccess(user -> JsfHelper.addSuccessMessage(BundleUtil.getStringFromBundle("dashboard.list_users.resetPassword.message.success",
+                    selectedUserInfo.getIdentifier())))
+                .onFailure(throwable -> JsfHelper.addErrorMessage(BundleUtil.getStringFromBundle("dashboard.list_users.resetPassword.message.failure",
+                    selectedUserInfo.getIdentifier())))
+                .onFailure(throwable -> logger.log(Level.SEVERE, "Reset password failed for user: " + selectedUserInfo.getIdentifier(), throwable));
+        } else {
+            logger.warning("selectedUserPersistent is null.  AuthenticatedUser not found for id: ");
+        }
+    }
+   
     public String getConfirmRemoveRolesMessage() {
         if (selectedUserInfo != null) {
             return BundleUtil.getStringFromBundle("dashboard.list_users.tbl_header.roles.removeAll.confirmationText", selectedUserInfo.getIdentifier());
