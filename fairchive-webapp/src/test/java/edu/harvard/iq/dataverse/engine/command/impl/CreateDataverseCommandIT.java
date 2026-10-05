@@ -277,6 +277,7 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 			final DataverseTheme theme = new DataverseTheme();
 			theme.setBackgroundColor("#FFFFFF");
 			theme.setLinkColor("#CCCCCC");
+			theme.setLogo("logo");
 			
 			this.dataverse.getVersions().get(0).setTheme(theme);
 			theme.setVersion(this.dataverse.getVersions().get(0));
@@ -336,7 +337,7 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 			assertThat(version.getDataverseFieldTypeInputLevels().get(1).isRequired()).isFalse();
 			assertThat(version.getTheme().getBackgroundColor()).isEqualTo("#FFFFFF");
 			assertThat(version.getTheme().getLinkColor()).isEqualTo("#CCCCCC");
-			
+			assertThat(version.getTheme().getLogo()).isEqualTo("logo");
 			
 			//adding and removing contacts works
 			
