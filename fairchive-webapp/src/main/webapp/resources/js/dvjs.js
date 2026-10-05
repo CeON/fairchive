@@ -30,6 +30,19 @@ function initDvJS() {
     const TILE_LAYER_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const TILE_LAYER_COPYRIGHT = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
+    // The MapTiler map is only a background for the Leaflet one, which is the one the user operates.
+    // Its own controls must stay off: they would end up below Leaflet layers, partly within reach on
+    // the map edge, and using them moves the background alone, away from the shapes drawn on it.
+    function createMaptilerLayer(key) {
+      return L.maptiler.maptilerLayer({
+        maxZoom: MAX_ZOOM,
+        apiKey: document.getElementById(key).getAttribute('data-tile-api-key'),
+        style: L.maptiler.MapStyle.STREETS,
+        navigationControl: false,
+        geolocateControl: false
+      });
+    }
+
     // Initialize JSTS geometry factory
     var geoFactory = new jsts.geom.GeometryFactory();
 
@@ -98,9 +111,7 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(leafMap);
       } else {
-        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, 
-                                  apiKey: document.getElementById(key).getAttribute('data-tile-api-key'), 
-                                  style: L.maptiler.MapStyle.STREETS, }).addTo(leafMap);
+        createMaptilerLayer(key).addTo(leafMap);
       }
     }
 
@@ -164,9 +175,7 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       } else {
-        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, 
-                                  apiKey: document.getElementById(key).getAttribute('data-tile-api-key'),
-                                  style: L.maptiler.MapStyle.STREETS}).addTo(map);
+        createMaptilerLayer(key).addTo(map);
       }
       this.updateMap(key);
     }
@@ -710,9 +719,7 @@ function initDvJS() {
         L.tileLayer(TILE_LAYER_URL, 
                     { maxZoom: MAX_ZOOM, attribution: TILE_LAYER_COPYRIGHT }).addTo(map);
       } else {
-        L.maptiler.maptilerLayer({maxZoom: MAX_ZOOM, apiKey: 
-                                  document.getElementById(key).getAttribute('data-tile-api-key'),
-                                  style: L.maptiler.MapStyle.STREETS, }).addTo(map);
+        createMaptilerLayer(key).addTo(map);
       }
     }
 
