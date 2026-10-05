@@ -737,6 +737,12 @@ public class Dataverse extends DvObjectContainer {
                 ? getId()
                 : getOwner().getFacetRootId();
     }
+    
+    public Dataverse getFacetRoot() {
+        return isFacetRoot() || isRoot()
+                ? this
+                : getOwner().getFacetRoot();
+    }
 
 //    public void setDataverseFacets(List<DataverseFacet> dataverseFacets) {
 //        this.dataverseFacets = dataverseFacets;

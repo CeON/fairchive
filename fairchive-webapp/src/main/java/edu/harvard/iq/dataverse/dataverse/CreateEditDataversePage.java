@@ -461,8 +461,9 @@ public class CreateEditDataversePage implements Serializable {
         final List<DatasetFieldType> facetsTarget = new ArrayList<>();
         final List<DatasetFieldType> facetsSource = new ArrayList<>(
         		this.datasetFieldService.findAllFacetableFieldTypes());
-        for (final DataverseFacet facet : this.dataverseFacetService.
-        		findByDataverseId(this.dataverse.getFacetRootId())) {
+//        for (final DataverseFacet facet : this.dataverseFacetService.
+//        		findByDataverseId(this.dataverse.getFacetRootId())) {
+        for (final DataverseFacet facet : this.dataverse.getFacetRoot().getLatestVersion().getFacets()) {
             final DatasetFieldType type = facet.getDatasetFieldType();
             facetsTarget.add(type);
             facetsSource.remove(type);
