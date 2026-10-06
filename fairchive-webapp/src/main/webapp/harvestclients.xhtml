@@ -420,9 +420,9 @@
                                                      styleClass="form-control"
                                                      value="#{harvestingClientsPage.newOaiSet}"/>
                                         <p class="help-block" 
-                                           jsf:rendered="#{harvestingClientsPage.createMode and (harvestingClientsPage.skipOaiSets or !empty harvestingClientsPage.oaiSetsSelectItems)}">#{bundle['harvestclients.newClientDialog.oaiSets.helptext']}</p>
+                                           jsf:rendered="#{harvestingClientsPage.displayOaiSetsHelpText()}">#{bundle['harvestclients.newClientDialog.oaiSets.helptext']}</p>
                                         <p class="help-block" 
-                                           jsf:rendered="#{harvestingClientsPage.createMode and !harvestingClientsPage.skipOaiSets and empty harvestingClientsPage.oaiSetsSelectItems}">#{bundle['harvestclients.newClientDialog.oaiSets.helptext.noset']}</p>
+                                           jsf:rendered="#{harvestingClientsPage.displayNoOaiSetsHelpText()}">#{bundle['harvestclients.newClientDialog.oaiSets.helptext.noset']}</p>
                                     </div>
                                 </div>
 

@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.harvest.client;
 import edu.harvard.iq.dataverse.arquillian.facesmock.FacesContextMocker;
 import edu.harvard.iq.dataverse.harvest.client.HarvestingClientsPage.PageMode;
 import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandler;
+import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandlerException;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.junit.jupiter.api.AfterEach;
@@ -15,10 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Locale;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -45,7 +47,7 @@ public class HarvestingClientsPageTest {
         };
         page.setNewHarvestingUrl(SERVER_URL);
         when(oaiHandler.listMetadataFormats())
-                .thenReturn(Collections.singletonList(new MetadataFormat().withMetadataPrefix("oai_dc")));
+                .thenReturn(singletonList(new MetadataFormat().withMetadataPrefix("oai_dc")));
     }
 
     @AfterEach
@@ -61,7 +63,7 @@ public class HarvestingClientsPageTest {
     public void validateServerUrlOAI__newClient() throws Exception {
         // given
         page.setPageMode(PageMode.CREATE);
-        when(oaiHandler.listSets()).thenReturn(Arrays.asList("setA", "setB"));
+        when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
 
         // when
         boolean valid = page.validateServerUrlOAI();
@@ -76,7 +78,7 @@ public class HarvestingClientsPageTest {
     public void validateServerUrlOAI__editedClientWithSet() throws Exception {
         // given
         page.editClient(harvestingClient("setB"));
-        when(oaiHandler.listSets()).thenReturn(Arrays.asList("setA", "setB"));
+        when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
 
         // when
         boolean valid = page.validateServerUrlOAI();
@@ -92,7 +94,7 @@ public class HarvestingClientsPageTest {
     public void validateServerUrlOAI__editedClientWithoutSet() throws Exception {
         // given
         page.editClient(harvestingClient(null));
-        when(oaiHandler.listSets()).thenReturn(Arrays.asList("setA", "setB"));
+        when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
 
         // when
         boolean valid = page.validateServerUrlOAI();
@@ -158,7 +160,7 @@ public class HarvestingClientsPageTest {
         page.setNewClientUrlInputField(mock(UIInput.class));
         page.setPageMode(PageMode.CREATE);
         page.setSkipOaiSets(true);
-        when(oaiHandler.listMetadataFormats()).thenReturn(Collections.emptyList());
+        when(oaiHandler.listMetadataFormats()).thenReturn(emptyList());
 
         // when
         boolean valid = page.validateServerUrlOAI();
@@ -167,6 +169,90 @@ public class HarvestingClientsPageTest {
         assertThat(valid).isFalse();
         assertThat(page.getOaiSetsSelectItems()).isNull();
         verify(oaiHandler, never()).listSets();
+    }
+
+    @Test
+    public void displayOaiSetsHelpText__newClientOfServerWithSets() throws Exception {
+        // given
+        page.setPageMode(PageMode.CREATE);
+        when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
+        page.validateServerUrlOAI();
+
+        // when
+        boolean displayed = page.displayOaiSetsHelpText();
+
+        // then
+        assertThat(displayed).isTrue();
+    }
+
+    @Test
+    public void displayOaiSetsHelpText__newClient_skipOaiSets() throws Exception {
+        // given
+        page.setPageMode(PageMode.CREATE);
+        page.setSkipOaiSets(true);
+        page.validateServerUrlOAI();
+
+        // when
+        boolean displayed = page.displayOaiSetsHelpText();
+
+        // then
+        assertThat(displayed).isTrue();
+    }
+
+    @Test
+    public void displayOaiSetsHelpText__editedClient() throws Exception {
+        // given
+        page.editClient(harvestingClient("setB"));
+        when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
+        page.validateServerUrlOAI();
+
+        // when
+        boolean displayed = page.displayOaiSetsHelpText();
+
+        // then
+        assertThat(displayed).isFalse();
+    }
+
+    @Test
+    public void displayNoOaiSetsHelpText__newClientOfServerFailingToListSets() throws Exception {
+        // given
+        page.setPageMode(PageMode.CREATE);
+        when(oaiHandler.listSets()).thenThrow(new OaiHandlerException("ListSets failed"));
+        page.validateServerUrlOAI();
+
+        // when
+        boolean displayed = page.displayNoOaiSetsHelpText();
+
+        // then
+        assertThat(displayed).isTrue();
+    }
+
+    @Test
+    public void displayNoOaiSetsHelpText__newClient_skipOaiSets() throws Exception {
+        // given
+        page.setPageMode(PageMode.CREATE);
+        page.setSkipOaiSets(true);
+        page.validateServerUrlOAI();
+
+        // when
+        boolean displayed = page.displayNoOaiSetsHelpText();
+
+        // then
+        assertThat(displayed).isFalse();
+    }
+
+    @Test
+    public void displayNoOaiSetsHelpText__editedClient() throws Exception {
+        // given
+        page.editClient(harvestingClient(null));
+        when(oaiHandler.listSets()).thenReturn(emptyList());
+        page.validateServerUrlOAI();
+
+        // when
+        boolean displayed = page.displayNoOaiSetsHelpText();
+
+        // then
+        assertThat(displayed).isFalse();
     }
 
     // -------------------- PRIVATE --------------------

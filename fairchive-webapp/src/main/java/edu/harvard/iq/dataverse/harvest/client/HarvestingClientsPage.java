@@ -1,12 +1,12 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static java.util.Collections.singletonList;
 import static java.util.logging.Level.WARNING;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -538,11 +538,10 @@ public class HarvestingClientsPage implements java.io.Serializable {
                     // an edited client keeps the set it already has as the only one to select,
                     // otherwise saving it would silently clear that set:
                     String storedSet = isEditMode() ? getSelectedClient().getHarvestingSet() : null;
-                    createOaiSetsSelectItems(Collections.singletonList(storedSet));
+                    createOaiSetsSelectItems(singletonList(storedSet));
                 } else {
                     try {
-                        List<String> sets = oaiHandler.listSets();
-                        createOaiSetsSelectItems(sets);
+                        createOaiSetsSelectItems(oaiHandler.listSets());
                     } catch (Exception ex) {
                         //success = false;
                         // ok - we'll try and live without sets for now...
@@ -741,6 +740,22 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
     public void setSkipOaiSets(boolean skipOaiSets) {
         this.skipOaiSets = skipOaiSets;
+    }
+
+    /**
+     * Returns true if a new client is to be told that selecting no set
+     * harvests the default set of the server.
+     */
+    public boolean displayOaiSetsHelpText() {
+        return isCreateMode() && (skipOaiSets || hasOaiSets());
+    }
+
+    /**
+     * Returns true if a new client is to be told that the server offers
+     * no named sets, which is also the case if listing them has failed.
+     */
+    public boolean displayNoOaiSetsHelpText() {
+        return isCreateMode() && !skipOaiSets && !hasOaiSets();
     }
 
     public String getNewMetadataFormat() {
@@ -1033,6 +1048,10 @@ public class HarvestingClientsPage implements java.io.Serializable {
     }
 
     // -------------------- PRIVATE ---------------------
+
+    private boolean hasOaiSets() {
+        return oaiSetsSelectItems != null && !oaiSetsSelectItems.isEmpty();
+    }
 
     private void handleCreateHarvestingClientFailure(Throwable throwable) {
         if(throwable instanceof CommandException) {
