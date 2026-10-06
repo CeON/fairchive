@@ -223,6 +223,12 @@ public class DataverseVersion implements JpaEntity<Long> {
 		return contact;
 	}
 	
+	public DataverseContact addContact(final int index) {		
+		final DataverseContact contact = new DataverseContact(this, EMPTY);
+		this.contacts.add(index, contact);
+		return contact;
+	}
+	
 	public void removeContact(final int index) {
 	    if (this.contacts.size() <= 1) {
 	        throw new IllegalStateException("A DataverseVersion must have at least one contact.");

@@ -15,7 +15,6 @@
 <ui:composition template="/dataverse_template.xhtml">
     <ui:param name="page" value="#{CreateEditDataversePage}"/>
     <ui:param name="pageTitle" value="#{page.title}"/>
-    <ui:param name="dataverse" value="#{page.dataverse}"/>
     <ui:define name="body">
         <f:metadata>
             <f:viewParam name="dataverseId" 
@@ -27,11 +26,11 @@
             <f:viewAction action="#{CreateEditDataversePage.init}"/>
             <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(CreateEditDataversePage.dataverse)}"/>
             <o:viewAction action="#{dataverseHeaderFragment.addBreadcrumb(bundle['dataverse.edit.header'])}" 
-                          if="#{CreateEditDataversePage.dataverse.isNotNew()}" />
+                          if="#{CreateEditDataversePage.isDataverseNotNew()}" />
         </f:metadata>
 
         <h2 style="margin-top: 0;" 
-            jsf:rendered="#{page.dataverse.isNotNew()}">
+            jsf:rendered="#{page.isDataverseNotNew()}">
             #{bundle['dataverse.edit.header']}
         </h2>
                 
@@ -64,7 +63,7 @@
                     <div class="col-sm-9 form-col-container">
                         <p:inputText id="name"
                                      styleClass="form-control"
-                                     value="#{page.dataverse.name}"
+                                     value="#{page.name}"
                                      required="true"
                                      requiredMessage="#{validationMessages['dataverse.name']}" />
                         <p:message for="name" display="text"/>
@@ -86,7 +85,7 @@
                     <div class="col-sm-9 form-col-container">
                         <p:inputText id="affiliation" 
                                      styleClass="form-control"
-                                     value="#{page.dataverse.affiliation}"/>
+                                     value="#{page.affiliation}"/>
                         <p:message for="affiliation" display="text"/>
                     </div>
                 </div>
@@ -115,7 +114,7 @@
                         <p:inputText id="identifier"
                                      styleClass="form-control"
                                      validator="#{page.validateAlias}"
-                                     value="#{page.dataverse.alias}"
+                                     value="#{page.alias}"
                                      required="true"
                                      requiredMessage="#{validationMessages['dataverse.alias']}"/>
                         <p:message for="identifier" display="text"/>
@@ -141,7 +140,7 @@
                     <div class="col-sm-9 form-col-container">
                         <p:selectOneMenu id="dataverseCategory" 
                                          styleClass="form-control"
-                                         value="#{page.dataverse.dataverseType}"
+                                         value="#{page.type}"
                                          required="true"
                                          requiredMessage="#{validationMessages['dataverse.category']}">
                             <f:selectItem id="dvSelect"
@@ -197,7 +196,7 @@
                         <div class="col-sm-9 form-col-container">
                             <ui:include src="/WEB-INF/templates/textEditor.xhtml">
                                 <ui:param name="editorValue" 
-                                          value="#{page.dataverse.description}" />
+                                          value="#{page.description}" />
                                 <ui:param name="editorAriaLabel" 
                                           value="#{bundle['description']}" />
                                 <ui:param name="editorWatermark" 
@@ -224,7 +223,7 @@
                                       data-original-title="#{bundle['dataverse.email.title']}"/>
                             </div>
                             <div class="col-sm-9 form-col-container edit-compound-field">
-                                <ui:repeat value="#{page.dataverse.dataverseContacts}"
+                                <ui:repeat value="#{page.contacts}"
                                            var="contacts"
                                            varStatus="valCount">
                                     <div class="form-group">
@@ -249,15 +248,15 @@
                                             <p:commandLink
                                                     styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
                                                     title="#{bundle['dataverse.email.add']}"
-                                                    actionListener="#{page.dataverse.addDataverseContact(valCount.index + 1)}">
+                                                    actionListener="#{page.addContact(valCount.index + 1)}">
                                                 <o:skipValidators />
                                                 <h:outputText styleClass="glyphicon glyphicon-plus no-text"/>
                                             </p:commandLink>
                                             <p:commandLink
                                                     styleClass="btn btn-default btn-sm bootstrap-button-tooltip"
                                                     title="#{bundle['dataverse.email.delete']}"
-                                                    rendered="#{page.dataverse.dataverseContacts.size() > 1}"
-                                                    actionListener="#{page.dataverse.removeDataverseContact(valCount.index)}">
+                                                    rendered="#{page.contacts.size() > 1}"
+                                                    actionListener="#{page.removeContact(valCount.index)}">
                                                 <o:skipValidators />
                                                 <h:outputText styleClass="glyphicon glyphicon-minus no-text"/>
                                             </p:commandLink>
@@ -284,7 +283,7 @@
                               data-original-title="#{bundle['dataverse.extraDescription.title']}"/>
                     </div>
                     <div class="col-sm-9 form-col-container">
-                        <p:inputTextarea value="#{page.dataverse.additionalDescription}"
+                        <p:inputTextarea value="#{page.additionalDescription}"
                                          id="textbox"
                                          rows="5"
                                          cols="60"
@@ -307,7 +306,7 @@
                          class="col-md-3 col-md-24-3 control-label section-title">#{bundle['dataverse.metadataElements']}</div>
                     <div class="col-md-9 col-md-24-21">
                         <p class="help-block">#{bundle['dataverse.metadataElements.tip']}</p>
-                        <label jsf:rendered="#{page.dataverse.isNotRoot()}"
+                        <label jsf:rendered="#{page.isDataverseNotRoot()}"
                                class="metadata-blocks-default">
                             <h:selectBooleanCheckbox id="metadataRoot" 
                                                      styleClass="metadata-blocks-default fancy-checkbox"
@@ -315,7 +314,7 @@
                                                      onclick="updateMetadata(this);"/>
                             <span>
                                 <h:outputFormat value="#{bundle['dataverse.metadataElements.from.tip']}">
-                                    <f:param value="#{page.dataverse.metadataParentRootDataverseName}"/>
+                                    <f:param value="#{page.metadataParentRootDataverseName}"/>
                                 </h:outputFormat>
                             </span>
                         </label>
@@ -486,7 +485,7 @@
                         <p class="help-block">#{bundle['dataverse.facetPickList.tip']}</p>
 
                         <label class="metadata-blocks-default"
-                               jsf:rendered="#{page.dataverse.isNotRoot()}">
+                               jsf:rendered="#{page.isDataverseNotRoot()}">
                             <h:selectBooleanCheckbox id="facetsRoot" 
                                                      styleClass="facets-blocks-default fancy-checkbox"
                                                      value="#{page.inheritFacetFromParent}">
@@ -495,7 +494,7 @@
                             </h:selectBooleanCheckbox>
                             <span>
                             <h:outputFormat value="#{bundle['dataverse.facetPickList.facetsFromHost.text']}">
-                                <f:param value="#{page.dataverse.facetRootDataverseName}"/>
+                                <f:param value="#{page.facetRootDataverseName}"/>
                             </h:outputFormat>
                             </span>
                         </label>
@@ -558,7 +557,7 @@
                     <label class="metadata-blocks-default">
                         <h:selectBooleanCheckbox id="dvAllowMessagesBanners" 
                                                  styleClass="metadata-blocks-default fancy-checkbox"
-                                                 value="#{page.dataverse.allowMessagesBanners}"/>
+                                                 value="#{page.messagesBannersAllowed}"/>
                         <span>#{bundle['dataverse.config.allow.messages.banners.check']}</span>
                     </label>
                 </div>
@@ -568,6 +567,13 @@
                 <p:commandButton id="save" 
                                  value="#{bundle.save}"
                                  action="#{page.save()}" 
+                                 update="@form">
+                    <f:ajax onerror="window.scrollTo(0, 0)"/>
+                </p:commandButton>
+                <p:commandButton rendered="#{page.canUserPublishCollection()}"
+                                 id="saveAndPublish" 
+                                 value="#{bundle.saveAndPublish}"
+                                 action="#{page.saveAndPublish()}" 
                                  update="@form">
                     <f:ajax onerror="window.scrollTo(0, 0)"/>
                 </p:commandButton>

@@ -948,6 +948,13 @@ public class Dataverse extends DvObjectContainer {
 		return version;
 	}
 	
+	public DataverseVersion addVersion(final DataverseVersion version) {
+		if(getLatestVersion() != version) {
+			this.versions.add(version);
+		}
+		return version;
+	}
+	
 	public Optional<DataverseVersion> getLatestVersion(final DataverseVersion.State state) {
 		// assumes versions are sorted ascending by creation time 
 		for(int index = this.versions.size() -1; index >= 0; --index) {

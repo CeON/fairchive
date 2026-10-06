@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.DRAFT;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -26,13 +28,14 @@ import org.primefaces.model.DualListModel;
 
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseFacetServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
@@ -63,9 +66,6 @@ public class CreateEditDataversePage implements Serializable {
     private PermissionsWrapper permissionsWrapper;
 
     @Inject
-    private DataverseFacetServiceBean dataverseFacetService;
-
-    @Inject
     private DataverseSession session;
 
     @Inject
@@ -79,6 +79,7 @@ public class CreateEditDataversePage implements Serializable {
     private String dataverseOwnerAlias;
 
     private Dataverse dataverse;
+    private DataverseVersion version;
     private Long facetMetadataBlockId;
     private Set<MetadataBlock> allMetadataBlocks;
     private DualListModel<DatasetFieldType> facets = new DualListModel<>(new ArrayList<>(), new ArrayList<>());
@@ -87,6 +88,88 @@ public class CreateEditDataversePage implements Serializable {
     private DataverseMetaBlockOptions parentRootMdbOptions = new DataverseMetaBlockOptions();
 
     // -------------------- GETTERS --------------------
+    
+    public String getTitle() {
+    	return this.dataverse != null && this.dataverse.isNotNew()
+    			? getStringFromBundle("dataverse.edit.header") + " - " + this.dataverse.getName()
+    			: getStringFromBundle("newDataverse");
+    }
+    
+    public boolean isDataverseNotNew() {
+    	return this.dataverse.isNotNew();
+    }
+    
+    public boolean isDataverseNotRoot() {
+    	return this.dataverse.isNotRoot();
+    }
+    
+    public String getName() {
+    	return this.version.getName();
+    }
+    
+    public void setName(final String name) {
+    	this.version.setName(name);
+    }
+    
+    public String getAffiliation() {
+    	return this.version.getAffiliation();
+    }
+    
+    public void setAffiliation(final String affiliation) {
+    	this.version.setAffiliation(affiliation);
+    }
+    
+    public String getAlias() {
+    	return this.version.getAlias();
+    }
+    
+    public void setAlias(final String alias) {
+    	this.version.setAlias(alias);
+    }
+    
+    public DataverseType getType() {
+        return this.version.getDataverseType();
+    }
+    
+    public void setType(final DataverseType type) {
+    	this.version.setDataverseType(type);
+    }
+    
+    public String getDescription() {
+    	return this.version.getDescription();
+    }
+    
+    public void setDescription(final String description) {
+    	this.version.setDescription(description);
+    }
+    
+    public List<DataverseContact> getContacts() {
+    	return this.version.getContacts();
+    }
+    
+    public void addContact(final int index) {
+    	this.version.addContact(index);
+    }
+
+    public void removeContact(final int index) {
+    	this.version.removeContact(index);
+    }
+    
+    public String getAdditionalDescription() {
+    	return this.version.getAdditionalDescription();
+    }
+    
+    public void setAdditionalDescription(final String description) {
+    	this.version.setAdditionalDescription(description);
+    }
+    
+    public String getMetadataParentRootDataverseName() {
+        return this.dataverse.getMetadataParentRootDataverseName();
+    }
+    
+    public String getFacetRootDataverseName() {
+        return this.dataverse.getFacetRootDataverseName();
+    }
 
     public Dataverse getDataverse() {
         return this.dataverse;
@@ -116,14 +199,16 @@ public class CreateEditDataversePage implements Serializable {
         return this.dataverseOwnerAlias;
     }
     
-    public String getTitle() {
-    	return this.dataverse != null && this.dataverse.isNotNew()
-    			? getStringFromBundle("dataverse.edit.header") + " - " + this.dataverse.getName()
-    			: getStringFromBundle("newDataverse");
-    }
-    
     public boolean isFacetPickListDisabled() {
     	return !this.dataverse.isFacetRoot() && this.dataverse.isNotRoot();
+    }
+    
+    public boolean isMessagesBannersAllowed() {
+        return this.version.isMessagesBannersAllowed();
+    }
+
+    public void setMessagesBannersAllowed(final boolean allowed) {
+        this.version.setMessagesBannersAllowed(allowed);
     }
     
     public boolean showFieldTypes(final MetadataBlock block) {
@@ -273,6 +358,11 @@ public class CreateEditDataversePage implements Serializable {
         	return saveEditedDataverse(dftilForSave);
         }
     }
+    
+    public String saveAndPublish() {
+    	this.dataverse.getLatestVersion().setState(RELEASED);
+    	return save();
+    }
 
     public void changeFacetsMetadataBlock() {
         if (this.facetMetadataBlockId == null) {
@@ -324,9 +414,8 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     private String returnRedirect() {
-        return this.dataverse.isNew() 
-        		? "/dataverse.xhtml?alias=" + this.dataverseOwnerAlias + "&faces-redirect=true" 
-                : "/dataverse.xhtml?alias=" + this.dataverse.getAlias() + "&faces-redirect=true";
+    	return "/dataverse.xhtml?faces-redirect=true&alias=".concat(
+    			this.dataverse.isNew() ? this.dataverseOwnerAlias : this.dataverse.getAlias());
     }
 
     // -------------------- SETTERS --------------------
@@ -366,6 +455,8 @@ public class CreateEditDataversePage implements Serializable {
     // -------------------- PRIVATE --------------------
 
     private String saveEditedDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {
+    	
+    	this.dataverse.addVersion(this.version);
         final Either<DataverseError, Dataverse> editResult = 
         		this.dataverseService.saveEditedDataverse(dftilForSave, 
         				this.dataverse, this.facets);
@@ -380,6 +471,8 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     private String saveNewDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {
+    	
+    	this.dataverse.addVersion(this.version);
         final Either<DataverseError, Dataverse> saveResult = 
         		this.dataverseService.saveNewDataverse(dftilForSave, 
         				this.dataverse, this.facets);
@@ -408,6 +501,9 @@ public class CreateEditDataversePage implements Serializable {
         if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)) {
             return permissionsWrapper.notAuthorized();
         } 
+        this.version = this.dataverse.getLatestVersion().getState().equals(DRAFT)
+        		? this.dataverse.getLatestVersion()
+        		: new DataverseVersion(this.dataverse, DRAFT);
     	this.ownerId = this.dataverse.getOwnerId();
     	setupForGeneralInfoEdit();
     	return EMPTY;
@@ -421,6 +517,7 @@ public class CreateEditDataversePage implements Serializable {
     	}
         this.dataverse = new Dataverse();
         this.dataverse.setOwner(owner);
+        this.version = new DataverseVersion(this.dataverse, DRAFT);
 
         if (!this.permissionsWrapper.canIssueCreateDataverseCommand(owner)) {
             return this.permissionsWrapper.notAuthorized();
@@ -461,8 +558,6 @@ public class CreateEditDataversePage implements Serializable {
         final List<DatasetFieldType> facetsTarget = new ArrayList<>();
         final List<DatasetFieldType> facetsSource = new ArrayList<>(
         		this.datasetFieldService.findAllFacetableFieldTypes());
-//        for (final DataverseFacet facet : this.dataverseFacetService.
-//        		findByDataverseId(this.dataverse.getFacetRootId())) {
         for (final DataverseFacet facet : this.dataverse.getFacetRoot().getLatestVersion().getFacets()) {
             final DatasetFieldType type = facet.getDatasetFieldType();
             facetsTarget.add(type);
@@ -470,5 +565,9 @@ public class CreateEditDataversePage implements Serializable {
         }
         this.facets = new DualListModel<>(facetsSource, facetsTarget);
         this.facetMetadataBlockId = null;
+    }
+    
+    public boolean canUserPublishCollection() {
+    	return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse.getOwner());
     }
 }
