@@ -30,6 +30,7 @@ import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
@@ -258,12 +259,81 @@ public class CreateEditDataversePage implements Serializable {
     // -------------------- LOGIC --------------------
 
     public String init() {
-
         if (this.dataverseId == null) {
-            return setupViewForDataverseCreation();
+            return initForCreation();
         } else {
-        	return setupViewForDataverseEdit();
+        	return initForEdition();
         }
+    }
+    
+    private String initForCreation() {
+    	final Dataverse owner = this.dataverseDao.find(this.ownerId);
+
+    	if (owner == null) {
+    	    return this.permissionsWrapper.notFound();
+    	}
+    	
+        if (!this.permissionsWrapper.canIssueCreateDataverseCommand(owner)) {
+            return this.permissionsWrapper.notAuthorized();
+        }
+        
+        this.dataverse = new Dataverse();
+        this.dataverse.setOwner(owner);
+        this.version = new DataverseVersion(this.dataverse, DRAFT);
+
+        if (isPrefillEnabled()) {
+        	final User user = this.session.getUser();
+            this.version.addContact(user.getDisplayInfo().getEmailAddress());
+            this.version.setAffiliation(user.getDisplayInfo().getAffiliation());
+            this.version.setName(Dataverse.getSuggestedNameOnCreate(user));
+        } 
+
+        initFacets();
+        initMetadataBlocks();
+        return EMPTY;
+    }
+    
+    private String initForEdition() {
+        this.dataverse = this.dataverseDao.find(this.dataverseId);
+        if (this.dataverse == null) {
+            return this.permissionsWrapper.notFound();
+        }
+        if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)) {
+            return permissionsWrapper.notAuthorized();
+        } 
+        this.version = this.dataverse.getLatestVersion().getState().equals(DRAFT)
+        		? this.dataverse.getLatestVersion()
+        		: new DataverseVersion(this.dataverse, DRAFT);
+    	this.ownerId = this.dataverse.getOwnerId();
+    	initFacets();
+    	initMetadataBlocks();
+    	return EMPTY;
+    }
+    
+    private void initMetadataBlocks() {
+    	
+        this.allMetadataBlocks = this.metadataBlockService.
+        		prepareMetaBlocksAndDatasetfields(this.dataverse, this.mdbOptions);
+
+        final Dataverse dataverse = this.dataverse.isRoot()
+        		? this.dataverse
+        		: this.dataverse.getOwner();
+        
+        this.metadataBlockService.prepareMetaBlocksAndDatasetfields(dataverse,
+        		this.parentRootMdbOptions);
+    }
+
+    private void initFacets() {
+        final List<DatasetFieldType> facetsTarget = new ArrayList<>();
+        final List<DatasetFieldType> facetsSource = 
+        		this.datasetFieldService.findAllFacetableFieldTypes();
+        for (final DataverseFacet facet : this.version.getFacets()) {
+            final DatasetFieldType type = facet.getDatasetFieldType();
+            facetsTarget.add(type);
+            facetsSource.remove(type);
+        }
+        this.facets = new DualListModel<>(facetsSource, facetsTarget);
+        this.facetMetadataBlockId = null;
     }
 
     public void validateAlias(final FacesContext context, final 
@@ -346,22 +416,63 @@ public class CreateEditDataversePage implements Serializable {
     public boolean isUserCanChangeAllowMessageAndBanners() {
         return this.session.isSuperUserLoggedIn();
     }
+    
+    
+    public String saveAndRelease() {
+    	this.version.setState(RELEASED);
+    	return save();
+    }
 
     public String save() {
-        final List<DataverseFieldTypeInputLevel> dftilForSave =
-                this.metadataBlockService.getDataverseFieldTypeInputLevelsToBeSaved(
-                		this.allMetadataBlocks, this.mdbOptions, this.dataverse);
+//    	if(session.isUserLoggedIn()) {
+	        final List<DataverseFieldTypeInputLevel> dftilForSave =
+	                this.metadataBlockService.getDataverseFieldTypeInputLevelsToBeSaved(
+	                		this.allMetadataBlocks, this.mdbOptions, this.dataverse);
+	
+	        if (this.dataverse.isNew()) {
+	            return saveNewDataverse(dftilForSave);
+	        } else {
+	        	return saveEditedDataverse(dftilForSave);
+	        }
+//    	} else {
+//    		JsfHelper.addErrorMessage(getStringFromBundle("dataverse.create.authenticatedUsersOnly"));
+//    		return EMPTY;
+//    	}
+    }   
+    
+    private String saveEditedDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {
+    	
+    	this.dataverse.addVersion(this.version);
+        final Either<DataverseError, Dataverse> editResult = 
+        		this.dataverseService.saveEditedDataverse(dftilForSave, 
+        				this.dataverse, this.facets);
 
-        if (this.dataverse.isNew()) {
-            return saveNewDataverse(dftilForSave);
+        if (editResult.isLeft()) {
+            JsfHelper.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
+            return EMPTY;
         } else {
-        	return saveEditedDataverse(dftilForSave);
+        	JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
+        	return returnRedirect();
         }
     }
-    
-    public String saveAndPublish() {
-    	this.dataverse.getLatestVersion().setState(RELEASED);
-    	return save();
+
+    private String saveNewDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {
+    	
+    	this.dataverse.addVersion(this.version);
+        final Either<DataverseError, Dataverse> saveResult = 
+        		this.dataverseService.saveNewDataverse(dftilForSave, 
+        				this.dataverse, this.facets);
+
+        if (saveResult.isLeft()) {
+            JsfHelper.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
+            return EMPTY;
+        } else {
+            JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
+                    this.systemConfig.getGuidesBaseUrl(this.session.getLocale()),
+                    this.systemConfig.getGuidesVersion()));
+        	return "/dataverse.xhtml?faces-redirect=true&alias=".
+        			concat(saveResult.get().getAlias());
+        }
     }
 
     public void changeFacetsMetadataBlock() {
@@ -454,117 +565,9 @@ public class CreateEditDataversePage implements Serializable {
 
     // -------------------- PRIVATE --------------------
 
-    private String saveEditedDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {
-    	
-    	this.dataverse.addVersion(this.version);
-        final Either<DataverseError, Dataverse> editResult = 
-        		this.dataverseService.saveEditedDataverse(dftilForSave, 
-        				this.dataverse, this.facets);
-
-        if (editResult.isLeft()) {
-            JsfHelper.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
-            return EMPTY;
-        } else {
-        	JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
-        	return returnRedirect();
-        }
-    }
-
-    private String saveNewDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {
-    	
-    	this.dataverse.addVersion(this.version);
-        final Either<DataverseError, Dataverse> saveResult = 
-        		this.dataverseService.saveNewDataverse(dftilForSave, 
-        				this.dataverse, this.facets);
-
-        if (saveResult.isLeft()) {
-            JsfHelper.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
-            return EMPTY;
-        } else {
-        	showSuccessMessage();
-        	return "/dataverse.xhtml?alias=" + saveResult.get().getAlias() + 
-        			"&faces-redirect=true";
-        }
-    }
-
-    private void showSuccessMessage() {
-        JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
-                                         this.systemConfig.getGuidesBaseUrl(this.session.getLocale()),
-                                         this.systemConfig.getGuidesVersion()));
-    }
-
-    private String setupViewForDataverseEdit() {
-        this.dataverse = this.dataverseDao.find(this.dataverseId);
-        if (this.dataverse == null) {
-            return this.permissionsWrapper.notFound();
-        }
-        if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)) {
-            return permissionsWrapper.notAuthorized();
-        } 
-        this.version = this.dataverse.getLatestVersion().getState().equals(DRAFT)
-        		? this.dataverse.getLatestVersion()
-        		: new DataverseVersion(this.dataverse, DRAFT);
-    	this.ownerId = this.dataverse.getOwnerId();
-    	setupForGeneralInfoEdit();
-    	return EMPTY;
-    }
-
-    private String setupViewForDataverseCreation() {
-    	final Dataverse owner = this.dataverseDao.find(this.ownerId);
-
-    	if (owner == null) {
-    	    return this.permissionsWrapper.notFound();
-    	}
-        this.dataverse = new Dataverse();
-        this.dataverse.setOwner(owner);
-        this.version = new DataverseVersion(this.dataverse, DRAFT);
-
-        if (!this.permissionsWrapper.canIssueCreateDataverseCommand(owner)) {
-            return this.permissionsWrapper.notAuthorized();
-        }
-
-        if (isPrefillEnabled()) {
-        	final User user = this.session.getUser();
-        	final DataverseVersion version = this.dataverse.getLatestVersion();
-            version.addContact(user.getDisplayInfo().getEmailAddress());
-            version.setAffiliation(user.getDisplayInfo().getAffiliation());
-            version.setName(Dataverse.getSuggestedNameOnCreate(user));
-        } else {
-            this.dataverse.getLatestVersion().addContact(EMPTY);
-        }
-
-        setupForGeneralInfoEdit();
-        return EMPTY;
-    }
 
     private boolean isPrefillEnabled() {
         return this.settings.isTrueForKey(CollectionFormPrefillEnabled);
-    }
-
-    private void setupForGeneralInfoEdit() {
-        initFacets();
-        this.allMetadataBlocks = this.metadataBlockService.
-        		prepareMetaBlocksAndDatasetfields(this.dataverse, this.mdbOptions);
-
-        final Dataverse dataverse = this.dataverse.isRoot()
-        		? this.dataverse
-        		: this.dataverse.getOwner();
-        
-        this.metadataBlockService.prepareMetaBlocksAndDatasetfields(dataverse,
-        		this.parentRootMdbOptions);
-    }
-
-    private void initFacets() {
-        final List<DatasetFieldType> facetsTarget = new ArrayList<>();
-        final List<DatasetFieldType> facetsSource = new ArrayList<>(
-        		this.datasetFieldService.findAllFacetableFieldTypes());
-        for (final DataverseFacet facet : this.dataverse.getFacetRoot().getLatestVersion().getFacets()) {
-            final DatasetFieldType type = facet.getDatasetFieldType();
-            facetsTarget.add(type);
-            facetsSource.remove(type);
-        }
-        this.facets = new DualListModel<>(facetsSource, facetsTarget);
-        this.facetMetadataBlockId = null;
     }
     
     public boolean canUserPublishCollection() {

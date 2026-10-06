@@ -572,8 +572,8 @@
                 </p:commandButton>
                 <p:commandButton rendered="#{page.canUserPublishCollection()}"
                                  id="saveAndPublish" 
-                                 value="#{bundle.saveAndPublish}"
-                                 action="#{page.saveAndPublish()}" 
+                                 value="#{bundle.saveAndRelease}"
+                                 action="#{page.saveAndRelease()}" 
                                  update="@form">
                     <f:ajax onerror="window.scrollTo(0, 0)"/>
                 </p:commandButton>

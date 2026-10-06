@@ -949,7 +949,9 @@ public class Dataverse extends DvObjectContainer {
 	}
 	
 	public DataverseVersion addVersion(final DataverseVersion version) {
-		if(getLatestVersion() != version) {
+		if(this.versions.isEmpty()) {
+			this.versions.add(version);
+		} else if(getLatestVersion() != version) {
 			this.versions.add(version);
 		}
 		return version;

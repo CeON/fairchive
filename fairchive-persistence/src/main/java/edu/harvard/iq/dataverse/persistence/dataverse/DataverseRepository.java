@@ -80,12 +80,9 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
     	            "WHERE v.createTime = (" +
     	            "    SELECT MAX(v2.createTime) " +
     	            "    FROM DataverseVersion v2 " +
-    	            "    WHERE v2.dataverse = dv" +
-    	            ") " +
-    	            "AND v.state = :state " +
+    	            "    WHERE v2.dataverse = dv) " +
     	            "AND LOWER(v.alias) = :alias")
-    	            .setParameter("alias", alias.toLowerCase())
-    	            .setParameter("state", RELEASED));
+    	            .setParameter("alias", alias.toLowerCase()));
     }
 
     public List<Dataverse> findByAliasOrName(final String alias, final String name) {
