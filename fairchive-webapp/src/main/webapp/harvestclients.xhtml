@@ -296,6 +296,24 @@
                                     </div>
                                 </div>
 
+                                <!-- lets the user skip fetching the sets of a server offering too many of them: -->
+                                <div class="form-group">
+                                    <label for="skipOaiSets" 
+                                           class="col-sm-2 control-label">
+                                        #{bundle['harvestclients.newClientDialog.skipOaiSets']} 
+                                        <span class="glyphicon glyphicon-question-sign tooltip-icon" 
+                                              tabindex="0" 
+                                              role="button"
+                                              data-toggle="tooltip" 
+                                              data-placement="auto right" 
+                                              data-original-title="#{bundle['harvestclients.newClientDialog.skipOaiSets.tip']}"/>
+                                    </label>
+                                    <div class="col-sm-9">
+                                        <h:selectBooleanCheckbox id="skipOaiSets" 
+                                                                 value="#{harvestingClientsPage.skipOaiSets}"/>
+                                    </div>
+                                </div>
+
                                 <!-- dataverse to which the harvesting configuration is being added: -->
                                 <div class="form-group" 
                                      jsf:rendered="#{harvestingClientsPage.createMode}">
@@ -402,9 +420,9 @@
                                                      styleClass="form-control"
                                                      value="#{harvestingClientsPage.newOaiSet}"/>
                                         <p class="help-block" 
-                                           jsf:rendered="#{harvestingClientsPage.createMode and !empty harvestingClientsPage.oaiSetsSelectItems}">#{bundle['harvestclients.newClientDialog.oaiSets.helptext']}</p>
+                                           jsf:rendered="#{harvestingClientsPage.createMode and (harvestingClientsPage.skipOaiSets or !empty harvestingClientsPage.oaiSetsSelectItems)}">#{bundle['harvestclients.newClientDialog.oaiSets.helptext']}</p>
                                         <p class="help-block" 
-                                           jsf:rendered="#{harvestingClientsPage.createMode and empty harvestingClientsPage.oaiSetsSelectItems}">#{bundle['harvestclients.newClientDialog.oaiSets.helptext.noset']}</p>
+                                           jsf:rendered="#{harvestingClientsPage.createMode and !harvestingClientsPage.skipOaiSets and empty harvestingClientsPage.oaiSetsSelectItems}">#{bundle['harvestclients.newClientDialog.oaiSets.helptext.noset']}</p>
                                     </div>
                                 </div>
 

@@ -6,6 +6,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +34,7 @@ import edu.harvard.iq.dataverse.api.imports.HarvestImporterType;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandler;
+import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandlerException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
@@ -255,6 +257,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         this.newOaiSet = !isEmpty(harvestingClient.getHarvestingSet()) 
                             ? harvestingClient.getHarvestingSet() 
                             : "none";
+        this.skipOaiSets = false;
         this.newMetadataFormat = harvestingClient.getMetadataPrefix();
         this.newHarvestingStyle = harvestingClient.getHarvestStyle();
 
@@ -494,7 +497,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
     public boolean validateServerUrlOAI() throws Exception {
         if (!isEmpty(getNewHarvestingUrl())) {
 
-            OaiHandler oaiHandler = new OaiHandler(getNewHarvestingUrl());
+            OaiHandler oaiHandler = createOaiHandler(getNewHarvestingUrl());
             boolean success = true;
             String message = null;
 
@@ -531,21 +534,25 @@ public class HarvestingClientsPage implements java.io.Serializable {
             // And if that worked, the list of sets provided:
 
             if (success) {
-                try {
-                    List<String> sets = oaiHandler.listSets();
-                    createOaiSetsSelectItems(sets);
-                } catch (Exception ex) {
-                    //success = false; 
-                    // ok - we'll try and live without sets for now... 
-                    // (since listMetadataFormats has succeeded earlier, may 
-                    // be safe to assume that this OAI server is at least 
-                    // somewhat functioning...)
-                    // (XOAI ListSets buggy as well?)
-                    logger.log(WARNING, "Failed to execute ListSets." , ex);
+                if (skipOaiSets) {
+                    // an edited client keeps the set it already has as the only one to select,
+                    // otherwise saving it would silently clear that set:
+                    String storedSet = isEditMode() ? getSelectedClient().getHarvestingSet() : null;
+                    createOaiSetsSelectItems(Collections.singletonList(storedSet));
+                } else {
+                    try {
+                        List<String> sets = oaiHandler.listSets();
+                        createOaiSetsSelectItems(sets);
+                    } catch (Exception ex) {
+                        //success = false;
+                        // ok - we'll try and live without sets for now...
+                        // (since listMetadataFormats has succeeded earlier, may
+                        // be safe to assume that this OAI server is at least
+                        // somewhat functioning...)
+                        // (XOAI ListSets buggy as well?)
+                        logger.log(WARNING, "Failed to execute ListSets." , ex);
+                    }
                 }
-            }
-
-            if (success) {
                 return true;
             }
 
@@ -563,6 +570,13 @@ public class HarvestingClientsPage implements java.io.Serializable {
                                                              + ": " 
                                                              + getStringFromBundle("harvestclients.newClientDialog.url.required")));
         return false;
+    }
+
+    /**
+     * Creates the handler used to query the OAI server; overridden in tests.
+     */
+    OaiHandler createOaiHandler(String harvestingUrl) throws OaiHandlerException {
+        return new OaiHandler(harvestingUrl);
     }
 
     public void validateInitialSettings() throws Exception {
@@ -626,6 +640,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
     private String newHarvestingUrl = "";
     private boolean initialSettingsValidated = false;
     private String newOaiSet = "";
+    private boolean skipOaiSets = false;
     private String newMetadataFormat = "";
     private HarvestStyle newHarvestingStyle;
 
@@ -649,6 +664,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         this.newHarvestingUrl = "";
         this.initialSettingsValidated = false;
         this.newOaiSet = "";
+        this.skipOaiSets = false;
         this.newMetadataFormat = "";
         this.newHarvestingStyle = HarvestStyle.DATAVERSE;
 
@@ -713,6 +729,18 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
     public void setNewOaiSet(String newOaiSet) {
         this.newOaiSet = newOaiSet;
+    }
+
+    /**
+     * Returns true if the list of sets is not to be fetched from
+     * the OAI server, so that no set can be selected.
+     */
+    public boolean isSkipOaiSets() {
+        return skipOaiSets;
+    }
+
+    public void setSkipOaiSets(boolean skipOaiSets) {
+        this.skipOaiSets = skipOaiSets;
     }
 
     public String getNewMetadataFormat() {
