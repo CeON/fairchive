@@ -1,0 +1,24 @@
+<resource xmlns="http://datacite.org/schema/kernel-4" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4/metadata.xsd">
+    <identifier identifierType="Handle">https://hdl.handle.net/20.500.12345/678</identifier>
+    <creators>
+        <creator>
+            <creatorName>Kowalski, Jan</creatorName>
+            <nameIdentifier nameIdentifierScheme="ORCID">https://orcid.org/0000-0002-1825-0097</nameIdentifier>
+        </creator>
+    </creators>
+    <titles>
+        <title titleType="Subtitle">A subtitle</title>
+        <title>Main title</title>
+    </titles>
+    <publisher>:unav</publisher>
+    <publicationYear>9999</publicationYear>
+    <relatedIdentifiers>
+        <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf"/>
+    </relatedIdentifiers>
+    <fundingReferences>
+        <fundingReference>
+            <funderName>Other Agency</funderName>
+            <funderIdentifier funderIdentifierType="Crossref Funder ID">https://doi.org/10.13039/501100000780</funderIdentifier>
+        </fundingReference>
+    </fundingReferences>
+</resource>

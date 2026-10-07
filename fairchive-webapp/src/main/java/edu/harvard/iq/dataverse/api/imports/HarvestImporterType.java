@@ -31,6 +31,13 @@ public enum HarvestImporterType {
 		protected boolean matches(final MetadataFormat format) {
 			return "dataverse_json".equals(format.getMetadataPrefix());
 		}
+	},
+	DATACITE {
+		protected boolean matches(final MetadataFormat format) {
+			// Matched on prefix: oai.datacite.org declares a placeholder
+			// namespace for this format. "oai_datacite" is another format.
+			return "datacite".equalsIgnoreCase(format.getMetadataPrefix());
+		}
 	};
 
 	protected abstract boolean matches(final MetadataFormat metadataFormat);

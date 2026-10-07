@@ -1,0 +1,6 @@
+<resource xmlns="http://datacite.org/schema/kernel-4">
+    <identifier identifierType="URL">https://example.org/record/1</identifier>
+    <titles>
+        <title>Without a persistent identifier</title>
+    </titles>
+</resource>
