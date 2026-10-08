@@ -693,6 +693,11 @@ public class Dataverse extends DvObjectContainer {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().getAffiliation();
     }
+    
+    public boolean isDraft() {
+    	//TODO: verify if this behavior is correct
+    	return getLatestVersion().isDraft();
+    }
 
     public boolean isMetadataBlockRoot() {
         return metadataBlockRoot;

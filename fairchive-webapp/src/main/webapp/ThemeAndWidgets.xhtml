@@ -11,16 +11,16 @@
 
     <h:body>
         <ui:composition template="/dataverse_template.xhtml">
-            <ui:param name="pageTitle" value="#{bundle['dataverse.option.themeAndWidgets']} - #{themeWidgetFragment.editDv.name}"/>
-            <ui:param name="dataverse" value="#{themeWidgetFragment.editDv}"/>  
+            <ui:param name="pageTitle" value="#{bundle['dataverse.option.themeAndWidgets']} - #{themeWidgetFragment.dataverse.name}"/>
+            <ui:param name="dataverse" value="#{themeWidgetFragment.dataverse}"/>  
            
             <ui:param name="showMessagePanel" value="#{true}"/>
             <ui:define name="body">
                 <f:metadata>
-                    <f:viewParam name="id" value="#{themeWidgetFragment.editDv.id}"/>
+                    <f:viewParam name="id" value="#{themeWidgetFragment.dataverse.id}"/>
                     <f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}"/>
-                    <f:viewAction action="#{themeWidgetFragment.initEditDv}"/>
-                    <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(themeWidgetFragment.editDv, bundle['dataverse.option.themeAndWidgets'])}"/>
+                    <f:viewAction action="#{themeWidgetFragment.init}"/>
+                    <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(themeWidgetFragment.dataverse, bundle['dataverse.option.themeAndWidgets'])}"/>
                 </f:metadata>
                 <h:form id="themeWidgetsForm">
                     <ui:include src="themeAndWidgetsFragment.xhtml"/>

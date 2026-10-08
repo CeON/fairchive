@@ -358,23 +358,23 @@ public class SystemConfig {
                 DEFAULT_AUTHENTICATED_SESSION_TIMEOUT_MINUTES);
     }
     
-    private String getValueForKey(final Key key) {
+    public String getValueForKey(final Key key) {
         return this.settings.getValueForKey(key);
     }
     
-    private boolean isTrueForKey(final Key key) {
+    public boolean isTrueForKey(final Key key) {
         return this.settings.isTrueForKey(key);
     }
     
-    private Integer getValueForKeyAsInt(final Key key) {
+    public Integer getValueForKeyAsInt(final Key key) {
         return this.settings.getValueForKeyAsInt(key);
     }
     
-    private Long getValueForKeyAsLong(final Key key) {
+    public Long getValueForKeyAsLong(final Key key) {
         return this.settings.getValueForKeyAsLong(key);
     }
     
-    private Integer getValueForKeyAsInt(final Key key, final Integer defaultValue) {
+    public Integer getValueForKeyAsInt(final Key key, final Integer defaultValue) {
         return this.settings.getValueForKeyAsInt(key, defaultValue);
     }
 

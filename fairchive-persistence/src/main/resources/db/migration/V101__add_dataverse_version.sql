@@ -12,7 +12,6 @@ CREATE TABLE dataverseversion (
     affiliation text NULL,
     messagesbannersallowed bool not null default false,
     dataverse_id int8 not null,
-    CONSTRAINT dataverseversion_alias_key UNIQUE (alias),
     CONSTRAINT dataverseversion_pkey PRIMARY KEY (id),
     CONSTRAINT unq_datverseversion_0 UNIQUE (dataverse_id, createtime),
     CONSTRAINT fk_dataverseversion_id FOREIGN KEY (dataverse_id) REFERENCES dataverse(id)
