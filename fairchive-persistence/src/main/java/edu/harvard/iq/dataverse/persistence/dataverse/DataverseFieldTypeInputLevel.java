@@ -46,6 +46,15 @@ public class DataverseFieldTypeInputLevel implements JpaEntity<Long>, Serializab
     private DatasetFieldType datasetFieldType;
     private boolean include;
     private boolean required;
+    
+    public DataverseFieldTypeInputLevel createNewFor(final DataverseVersion version) {
+    	final DataverseFieldTypeInputLevel result = new DataverseFieldTypeInputLevel();
+    	result.version = version;
+    	result.datasetFieldType = this.datasetFieldType;
+    	result.include = this.include;
+    	result.required = this.required;
+    	return result;
+    }
 
     @Override
     public Long getId() {

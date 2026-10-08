@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.DRAFT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
@@ -30,7 +29,6 @@ import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
@@ -279,7 +277,7 @@ public class CreateEditDataversePage implements Serializable {
         
         this.dataverse = new Dataverse();
         this.dataverse.setOwner(owner);
-        this.version = new DataverseVersion(this.dataverse, DRAFT);
+        this.version = this.dataverse.getEditableVersion();
 
         if (isPrefillEnabled()) {
         	final User user = this.session.getUser();
@@ -301,9 +299,7 @@ public class CreateEditDataversePage implements Serializable {
         if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)) {
             return permissionsWrapper.notAuthorized();
         } 
-        this.version = this.dataverse.getLatestVersion().getState().equals(DRAFT)
-        		? this.dataverse.getLatestVersion()
-        		: new DataverseVersion(this.dataverse, DRAFT);
+        this.version = this.dataverse.getEditableVersion();
     	this.ownerId = this.dataverse.getOwnerId();
     	initFacets();
     	initMetadataBlocks();
@@ -424,7 +420,7 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public String save() {
-//    	if(session.isUserLoggedIn()) {
+    	if(session.isUserLoggedIn()) {
 	        final List<DataverseFieldTypeInputLevel> dftilForSave =
 	                this.metadataBlockService.getDataverseFieldTypeInputLevelsToBeSaved(
 	                		this.allMetadataBlocks, this.mdbOptions, this.dataverse);
@@ -434,10 +430,10 @@ public class CreateEditDataversePage implements Serializable {
 	        } else {
 	        	return saveEditedDataverse(dftilForSave);
 	        }
-//    	} else {
-//    		JsfHelper.addErrorMessage(getStringFromBundle("dataverse.create.authenticatedUsersOnly"));
-//    		return EMPTY;
-//    	}
+    	} else {
+    		JsfHelper.addErrorMessage(getStringFromBundle("dataverse.create.authenticatedUsersOnly"));
+    		return EMPTY;
+    	}
     }   
     
     private String saveEditedDataverse(final List<DataverseFieldTypeInputLevel> dftilForSave) {

@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.persistence.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.DRAFT;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Locale.ENGLISH;
@@ -86,10 +87,6 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 		        ") dv2 ON TRUE " +
 		        "WHERE t0.ID IN (?, ?)"
 		),
-//        @NamedNativeQuery(name = "Dataverse.findDataForSolrResults6", query =
-//                "SELECT t0.ID, t0.AFFILIATION, t0.ALIAS, t2.ALIAS " +
-//                "FROM DATAVERSE t0 JOIN DVOBJECT t1 ON t0.ID = t1.ID LEFT JOIN DATAVERSE t2 ON t1.OWNER_ID = t2.ID " +
-//                "WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"),
 	@NamedNativeQuery(
 		    name = "Dataverse.findDataForSolrResults6",
 		    query =
@@ -183,31 +180,6 @@ public class Dataverse extends DvObjectContainer {
     }
 
     private static final long serialVersionUID = 1L;
-
-//    @NotBlank(message = "{dataverse.name}")
-//    @Column(nullable = false)
-//    private String name;
-
-//    /**
-//     * @todo add @Column(nullable = false) for the database to enforce non-null
-//     */
-//    @NotBlank(message = "{dataverse.alias}")
-//    @Column(nullable = false, unique = true)
-//    @Size(max = 100, message = "{dataverse.aliasLength}")
-//    @Pattern.List({@Pattern(regexp = "[a-zA-Z0-9\\_\\-]*", message = "{dataverse.nameIllegalCharacters}"),
-//            @Pattern(regexp = ".*\\D.*", message = "{dataverse.aliasNotnumber}")})
-//    private String alias;
-//
-//    @Column(name = "description", columnDefinition = "TEXT")
-//    private String description;
-
-//    @Column(name = "additional_description", columnDefinition = "TEXT")
-//    private String additionalDescription;
-//
-//    @Enumerated(EnumType.STRING)
-//    @NotNull(message = "{dataverse.category}")
-//    @Column(nullable = false)
-//    private DataverseType dataverseType;
     
     @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     @NotEmpty(message = "At least one version is required.")
@@ -222,8 +194,6 @@ public class Dataverse extends DvObjectContainer {
     
     @Transient
     private final String uncategorizedString = "Uncategorized";
-    
-//    private String affiliation;
 
     // Note: We can't have "Remove" here, as there are role assignments that refer
     //       to this role. So, adding it would mean violating a forign key contstraint.
@@ -248,22 +218,10 @@ public class Dataverse extends DvObjectContainer {
 
     @Enumerated(EnumType.STRING)
     private FeaturedDataversesSorting featuredDataversesSorting;
-//
-//    @OneToOne(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
-//    private DataverseTheme dataverseTheme;
-
-//    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
-//    @OrderBy("displayOrder")
-//    @NotEmpty(message = "At least one contact is required.")
-//    private List<DataverseContact> dataverseContacts = new ArrayList<>();
 
     @ManyToMany(cascade = {MERGE})
     @OrderBy("displayOrder")
     private List<MetadataBlock> metadataBlocks = new ArrayList<>();
-
-//    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
-//    @OrderBy("displayOrder")
-//    private List<DataverseFacet> dataverseFacets = new ArrayList<>();
 
     @ManyToMany(cascade = {MERGE})
     @JoinTable(name = "dataverse_citationDatasetFieldTypes",
@@ -279,9 +237,6 @@ public class Dataverse extends DvObjectContainer {
 
     @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST})
     private List<DataverseFeaturedDataverse> dataverseFeaturedDataverses;
-//    
-//    @OneToMany(mappedBy = "dataverse")
-//    private List<DataverseFieldTypeInputLevel> dataverseFieldTypeInputLevels = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(nullable = true)
@@ -315,12 +270,8 @@ public class Dataverse extends DvObjectContainer {
 
     public DataverseType getDataverseType() {
     	//TODO: verify if this behavior is correct
-    	return this.versions.get(this.versions.size()-1).getDataverseType();
+    	return getLatestVersion().getDataverseType();
     }
-
-//    public void setDataverseType(DataverseType dataverseType) {
-//        this.dataverseType = dataverseType;
-//    }
 
     public String getFriendlyCategoryName() {
         switch (getDataverseType()) {
@@ -524,16 +475,6 @@ public class Dataverse extends DvObjectContainer {
         this.guestbookRoot = guestbookRoot;
     }
 
-
-//    public void setDataverseFieldTypeInputLevels(List<DataverseFieldTypeInputLevel> dataverseFieldTypeInputLevels) {
-//        this.dataverseFieldTypeInputLevels = dataverseFieldTypeInputLevels;
-//    }
-//
-//    public List<DataverseFieldTypeInputLevel> getDataverseFieldTypeInputLevels() {
-//        return dataverseFieldTypeInputLevels;
-//    }
-
-
     public Template getDefaultTemplate() {
         return defaultTemplate;
     }
@@ -615,16 +556,6 @@ public class Dataverse extends DvObjectContainer {
         return getMetadataBlockRootDataverse().getId();
     }
 
-//    public DataverseTheme getDataverseTheme() {
-//        return getDataverseTheme(false);
-//    }
-
-//    public DataverseTheme getDataverseTheme(final boolean returnActualDB) {
-//        return returnActualDB || isThemeRoot() || isRoot()
-//                ? this.dataverseTheme
-//                : getOwner().getDataverseTheme();
-//    }
-
     public String getGuestbookRootDataverseName() {
         Dataverse testDV = this;
         String retName = "Parent";
@@ -700,10 +631,6 @@ public class Dataverse extends DvObjectContainer {
                 : getOwner().getDataverseTheme(returnActual);
     }
 
-//    public void setDataverseTheme(DataverseTheme dataverseTheme) {
-//        this.dataverseTheme = dataverseTheme;
-//    }
-
     public void setMetadataBlocks(List<MetadataBlock> metadataBlocks) {
         this.metadataBlocks = metadataBlocks;
     }
@@ -721,17 +648,6 @@ public class Dataverse extends DvObjectContainer {
         this.citationDatasetFieldTypes = citationDatasetFieldTypes;
     }
 
-
-//    public List<DataverseFacet> getDataverseFacets() {
-//        return getDataverseFacets(false);
-//    }
-
-//    public List<DataverseFacet> getDataverseFacets(final boolean returnActualDB) {
-//        return returnActualDB || isFacetRoot() || isRoot()
-//                ? this.dataverseFacets
-//                : getOwner().getDataverseFacets();
-//    }
-
     public Long getFacetRootId() {
         return isFacetRoot() || isRoot()
                 ? getId()
@@ -744,71 +660,35 @@ public class Dataverse extends DvObjectContainer {
                 : getOwner().getFacetRoot();
     }
 
-//    public void setDataverseFacets(List<DataverseFacet> dataverseFacets) {
-//        this.dataverseFacets = dataverseFacets;
-//    }
-
     public List<DataverseContact> getDataverseContacts() {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().getContacts();
     }
-//
-//    public void setDataverseContacts(List<DataverseContact> dataverseContacts) {
-//        this.dataverseContacts = dataverseContacts;
-//    }
-
-//    public void addDataverseContact(int index) {
-//        dataverseContacts.add(index, new DataverseContact(this));
-//    }
-//
-//    public void removeDataverseContact(int index) {
-//        dataverseContacts.remove(index);
-//    }
 
     public String getName() {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().getName();
     }
-//
-//    public void setName(String name) {
-//        this.name = name;
-//    }
-//
+
     public String getAlias() {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().getAlias();
     }
-//
-//    public void setAlias(String alias) {
-//        this.alias = alias;
-//    }
 
     public String getDescription() {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().getDescription();
     }
-//
-//    public void setDescription(String description) {
-//        this.description = description;
-//    }
 
     public String getAdditionalDescription() {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().getAdditionalDescription();
     }
-//
-//    public void setAdditionalDescription(String additionalDescription) {
-//        this.additionalDescription = additionalDescription;
-//    }
 
     public String getAffiliation() {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().getAffiliation();
     }
-
-//    public void setAffiliation(String affiliation) {
-//        this.affiliation = affiliation;
-//    }
 
     public boolean isMetadataBlockRoot() {
         return metadataBlockRoot;
@@ -869,11 +749,6 @@ public class Dataverse extends DvObjectContainer {
         return Objects.equals(getId(), other.getId());
     }
 
-//    @Override
-//    protected String toStringExtras() {
-//        return "name:" + getName();
-//    }
-
     @Override
     public <T> T accept(Visitor<T> v) {
         return v.visit(this);
@@ -893,10 +768,10 @@ public class Dataverse extends DvObjectContainer {
 
     @Override
     public boolean isPermissionRoot() {
-        return permissionRoot;
+        return this.permissionRoot;
     }
 
-    public void setPermissionRoot(boolean permissionRoot) {
+    public void setPermissionRoot(final boolean permissionRoot) {
         this.permissionRoot = permissionRoot;
     }
 
@@ -912,7 +787,7 @@ public class Dataverse extends DvObjectContainer {
     }
 
     public boolean isAllowMessagesBanners() {
-        return allowMessagesBanners;
+        return this.allowMessagesBanners;
     }
 
     public void setAllowMessagesBanners(boolean allowMessagesBanners) {
@@ -935,11 +810,21 @@ public class Dataverse extends DvObjectContainer {
     }
 
 	public List<DataverseVersion> getVersions() {
+		if(this.versions.isEmpty()) {
+			addVersion(DRAFT);
+		}
 		return unmodifiableList(this.versions);
 	}
 	
 	public DataverseVersion getLatestVersion() {
-		return this.versions.get(this.versions.size()-1);
+		return this.versions.isEmpty()
+			 ? addVersion(DRAFT)
+			 : this.versions.get(this.versions.size()-1);
+	}
+	
+	public DataverseVersion getEditableVersion() {
+		final DataverseVersion latest = getLatestVersion();
+        return latest.isDraft() ? latest : latest.createNewDraft();
 	}
 	
 	public DataverseVersion addVersion(final DataverseVersion.State state) {
@@ -958,6 +843,9 @@ public class Dataverse extends DvObjectContainer {
 	}
 	
 	public Optional<DataverseVersion> getLatestVersion(final DataverseVersion.State state) {
+		if(this.versions.isEmpty()) {
+			addVersion(DRAFT);
+		}
 		// assumes versions are sorted ascending by creation time 
 		for(int index = this.versions.size() -1; index >= 0; --index) {
 			final DataverseVersion version = this.versions.get(index);

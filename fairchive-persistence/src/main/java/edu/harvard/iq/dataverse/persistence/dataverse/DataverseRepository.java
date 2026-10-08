@@ -1,7 +1,5 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
-import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
-
 import java.util.List;
 import java.util.Optional;
 

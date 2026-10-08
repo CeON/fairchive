@@ -65,6 +65,21 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     @JoinColumn(name = "version_id")
     private DataverseVersion version;
     
+    public DataverseTheme createNewFor(final DataverseVersion version) {
+    	final DataverseTheme result = new DataverseTheme();
+    	result.backgroundColor = this.backgroundColor;
+    	result.linkColor = this.linkColor;
+    	result.linkUrl = this.linkUrl;
+    	result.logo = this.logo;
+    	result.logoAlignment = this.logoAlignment;
+    	result.logoBackgroundColor = this.logoBackgroundColor;
+    	result.logoFormat = this.logoFormat;
+    	result.tagline = this.tagline;
+    	result.textColor = this.textColor;
+    	result.version = version;
+    	return result;
+    }
+    
     @Override
     public Long getId() {
         return this.id;

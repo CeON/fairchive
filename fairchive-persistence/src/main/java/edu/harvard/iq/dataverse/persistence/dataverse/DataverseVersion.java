@@ -121,6 +121,24 @@ public class DataverseVersion implements JpaEntity<Long> {
     	addContact(EMPTY);
     }
     
+    public DataverseVersion createNewDraft() {
+    	final DataverseVersion result = new DataverseVersion(this.dataverse, State.DRAFT);
+    	result.additionalDescription = this.additionalDescription;
+    	result.affiliation = this.affiliation;
+    	result.alias = this.alias;
+    	this.contacts.forEach(
+    			contact -> result.contacts.add(new DataverseContact(result, contact.getEmail())));
+    	this.dataverseFieldTypeInputLevels.forEach(
+    			level -> result.dataverseFieldTypeInputLevels.add(level.createNewFor(result)));
+    	result.dataverseType = this.dataverseType;
+    	result.description = this.description;
+    	this.facets.forEach(facet -> result.facets.add(facet.createNewFor(result)));
+    	result.messagesBannersAllowed = this.messagesBannersAllowed;
+    	result.name = this.name;
+    	result.theme = this.theme.createNewFor(result);
+    	return result;
+    }
+    
     @Override
     public Long getId() {
 		return this.id;

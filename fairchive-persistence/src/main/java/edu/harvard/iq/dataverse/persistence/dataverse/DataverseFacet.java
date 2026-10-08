@@ -48,6 +48,12 @@ public class DataverseFacet implements JpaEntity<Long> {
     	this.datasetFieldType = requireNonNull(datasetFieldType);
     }
     
+    public DataverseFacet createNewFor(final DataverseVersion version) {
+    	final DataverseFacet result = new DataverseFacet(version, this.datasetFieldType);
+    	result.displayOrder = this.displayOrder;
+    	return result;
+    }
+    
     @Override
     public Long getId() {
         return this.id;
