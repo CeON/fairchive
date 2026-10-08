@@ -39,6 +39,7 @@ import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.permission.ManagePermissionsService;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevelRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersionRepository;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.search.SearchServiceBean;
@@ -309,6 +310,11 @@ public class TestCommandContext implements CommandContext {
 
 	@Override
 	public DataverseFieldTypeInputLevelRepository inputLevels() {
+		return null;
+	}
+	
+	@Override
+	public DataverseVersionRepository dataverseVersions() {
 		return null;
 	}
 }

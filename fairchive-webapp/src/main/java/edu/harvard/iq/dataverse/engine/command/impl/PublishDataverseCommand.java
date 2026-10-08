@@ -11,6 +11,8 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -20,39 +22,41 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
 
     private final Dataverse dataverse;
 
-    public PublishDataverseCommand(DataverseRequest aRequest, Dataverse dataverse) {
+    public PublishDataverseCommand(final DataverseRequest aRequest, 
+    		final Dataverse dataverse) {
         super(aRequest, dataverse);
         this.dataverse = dataverse;
     }
 
     @Override
-    public Dataverse execute(CommandContext ctxt)  {
-        if (dataverse.isReleased()) {
+    public Dataverse execute(final CommandContext context)  {
+        if (this.dataverse.isReleased() && ! this.dataverse.hasDraft()) {
             throw new IllegalCommandException("Dataverse " + 
-                        dataverse.getAlias() + " has already been published.", this);
+                        this.dataverse.getAlias() + 
+                        " has already been published.", this);
         }
 
-        Dataverse parent = dataverse.getOwner();
+        Dataverse parent = this.dataverse.getOwner();
         // root dataverse doesn't have a parent
-        if (parent != null) {
-            if (!parent.isReleased()) {
-                throw new IllegalCommandException("Dataverse " + dataverse.getAlias() 
-                    + " may not be published because its host dataverse (" 
-                        + parent.getAlias() + ") has not been published.", this);
-            }
+        if (parent != null && !parent.isReleased()) {
+            throw new IllegalCommandException("Dataverse " + dataverse.getAlias() 
+                + " may not be published because its host dataverse (" 
+                    + parent.getAlias() + ") has not been published.", this);
         }
 
         //Before setting dataverse to released send notifications to users with download file
-        sendAssignRoleNotifications(ctxt);
+        sendAssignRoleNotifications(context);
 
-        dataverse.setPublicationDate(new Timestamp(new Date().getTime()));
-        dataverse.setReleaseUser((AuthenticatedUser) getUser());
-        Dataverse savedDataverse = ctxt.dataverses().save(dataverse);
+        this.dataverse.setPublicationDate(new Timestamp(new Date().getTime()));
+        this.dataverse.setReleaseUser((AuthenticatedUser) getUser());
+        this.dataverse.getLatestVersion().setState(RELEASED);
+        context.dataverseVersions().save(this.dataverse.getLatestVersion());
+        Dataverse savedDataverse = context.dataverses().save(this.dataverse);
         /**
          * @todo consider also
          * ctxt.solrIndex().indexPermissionsOnSelfAndChildren(savedDataverse.getId());
          */
-        ctxt.solrIndex().indexPermissionsForOneDvObject(savedDataverse);
+        context.solrIndex().indexPermissionsForOneDvObject(savedDataverse);
         return savedDataverse;
     }
 

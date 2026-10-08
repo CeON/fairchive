@@ -466,6 +466,10 @@ public class Dataverse extends DvObjectContainer {
         return retList;
 
     }
+    @Override
+    public boolean canBeReleased() {
+    	return (!isReleased() || hasDraft()) && (isRoot() || getOwner().isReleased());
+    }
 
     public boolean isGuestbookRoot() {
         return guestbookRoot;
@@ -854,5 +858,9 @@ public class Dataverse extends DvObjectContainer {
 			}
 		}
 		return Optional.empty();
+	}
+	
+	public boolean hasDraft() {
+		return getLatestVersion().isDraft();
 	}
 }
