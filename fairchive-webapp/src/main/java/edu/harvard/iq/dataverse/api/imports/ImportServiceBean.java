@@ -69,6 +69,8 @@ public class ImportServiceBean {
     
     private DublinCoreReader dublinCoreReader;
 
+    private final DataCiteReader dataCiteReader = new DataCiteReader();
+
     @PostConstruct
     public void setUp() {
     	this.dublinCoreReader = new DublinCoreReader(this.typeRepository::findByName);
@@ -125,6 +127,9 @@ public class ImportServiceBean {
         		  logger.warning("error processing\n" + xml);
         		  throw new ImportException(xml, e);
         	  }
+        } else if (importType == HarvestImporterType.DATACITE) {
+            final DatasetDTO dsDTO = this.dataCiteReader.read(new StringReader(xml));
+            return importDatasetDTOJson(request, client, identifier, toJson(dsDTO));
         } else if (importType == HarvestImporterType.DATAVERSE_JSON) {
             // This is Dataverse metadata already formatted in JSON.
             // Simply read it into a string, and pass to the final import further down:

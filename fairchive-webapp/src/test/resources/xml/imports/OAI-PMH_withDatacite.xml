@@ -1,0 +1,82 @@
+<?xml version="1.0" ?><?xml-stylesheet type="text/xsl" href="/static/oaitohtml.xsl"?><OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-10-06T09:09:09Z</responseDate>
+  <request verb="GetRecord" metadataPrefix="datacite" identifier="doi:10.5281/zenodo.193686">https://oai.datacite.org/oai</request>
+  <GetRecord>
+    <record>
+      <header>
+        <identifier>doi:10.5281/zenodo.193686</identifier>
+        <datestamp>2026-10-05T18:58:56Z</datestamp>
+        <setSpec>CERN</setSpec>
+        <setSpec>CERN.ZENODO</setSpec>
+      </header>
+      <metadata>
+        <resource xmlns="http://datacite.org/schema/kernel-4" xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4/metadata.xsd">
+  <identifier identifierType="DOI">10.5281/ZENODO.193686</identifier>
+  <creators>
+    <creator>
+      <creatorName nameType="Personal">Zhang, Su-Jiong</creatorName>
+      <givenName>Su-Jiong</givenName>
+      <familyName>Zhang</familyName>
+      <affiliation>Institute of Forest Protection, Zhejiang Forestry University, Lin'an, Zhejiang 311300, China</affiliation>
+    </creator>
+    <creator>
+      <creatorName nameType="Personal">Wu, Hong</creatorName>
+      <givenName>Hong</givenName>
+      <familyName>Wu</familyName>
+      <affiliation>wuh8977@sohu.com</affiliation>
+    </creator>
+    <creator>
+      <creatorName nameType="Personal">Huang, Junhao</creatorName>
+      <givenName>Junhao</givenName>
+      <familyName>Huang</familyName>
+      <affiliation>Institute of Forest Protection, Zhejiang Forestry University, Lin'an, Zhejiang 311300, China</affiliation>
+    </creator>
+  </creators>
+  <titles>
+    <title>FIGURE 1 in The genus Zygoneura Meigen in China, with descriptions of three new species (Diptera, Sciaridae)</title>
+  </titles>
+  <publisher>Zenodo</publisher>
+  <publicationYear>2010</publicationYear>
+  <resourceType resourceTypeGeneral="Image">Figure</resourceType>
+  <subjects>
+    <subject>Biodiversity</subject>
+    <subject>Taxonomy</subject>
+    <subject>Animalia</subject>
+    <subject>Arthropoda</subject>
+    <subject>Insecta</subject>
+    <subject>Diptera</subject>
+    <subject>Sciaridae</subject>
+    <subject>Zygoneura</subject>
+  </subjects>
+  <dates>
+    <date dateType="Issued">2010-02-24</date>
+  </dates>
+  <alternateIdentifiers>
+    <alternateIdentifier alternateIdentifierType="oai">oai:zenodo.org:193686</alternateIdentifier>
+  </alternateIdentifiers>
+  <relatedIdentifiers>
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsPartOf" resourceTypeGeneral="JournalArticle">10.5281/zenodo.193685</relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="URL" relationType="IsPartOf" resourceTypeGeneral="JournalArticle">http://publication.plazi.org/id/663AFF8AFFACFFB1132EEC6FF17DFFE6</relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsCitedBy" resourceTypeGeneral="Text">10.5281/zenodo.6198192</relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="URL" relationType="IsCitedBy" resourceTypeGeneral="Text">http://treatment.plazi.org/id/9A0387F2FFADFFB013B9ECB2F4E1FA6A</relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsCitedBy" resourceTypeGeneral="Text">10.5281/zenodo.6198194</relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="URL" relationType="IsCitedBy" resourceTypeGeneral="Text">http://treatment.plazi.org/id/9A0387F2FFADFFB013B9E9B0F2E0F85E</relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsCitedBy" resourceTypeGeneral="Text">10.5281/zenodo.6198208</relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="URL" relationType="IsCitedBy" resourceTypeGeneral="Text">http://treatment.plazi.org/id/9A0387F2FFAFFFB213B9EE62F2C1FABA</relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="DOI" relationType="IsVersionOf"/>
+  </relatedIdentifiers>
+  <sizes/>
+  <formats/>
+  <version/>
+  <rightsList>
+    <rights rightsIdentifier="notspecified">License Not Specified</rights>
+  </rightsList>
+  <descriptions>
+    <description descriptionType="Abstract">FIGURE 1. Zygoneura (Pharetratula) disparilis Zhang &amp; Wu, sp. nov., male. A, 4th flagellomere, lateral view; B, palpus, lateral view; C, apex of front tibia, prolateral view; D, wing, dorsal view; E, part of hypopygium, ventral view; F, left gonostyle, ventral view. Scale 0.05 mm for C, 0.50 mm for D, 0.10 mm for the others.</description>
+    <description descriptionType="Other">Published as part of Zhang, Su-Jiong, Wu, Hong &amp; Huang, Junhao, 2010, The genus Zygoneura Meigen in China, with descriptions of three new species (Diptera, Sciaridae), pp. 40-48 in Zootaxa 2368 on page 42, DOI: 10.5281/zenodo.193685</description>
+  </descriptions>
+</resource>
+      </metadata>
+    </record>
+  </GetRecord>
+</OAI-PMH>

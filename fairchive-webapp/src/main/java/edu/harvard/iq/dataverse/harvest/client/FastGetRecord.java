@@ -19,6 +19,8 @@
 */
 package edu.harvard.iq.dataverse.harvest.client;
 
+import static java.lang.Character.isLetter;
+import static java.lang.Character.isWhitespace;
 import static java.lang.Math.min;
 import static java.net.HttpURLConnection.HTTP_UNAVAILABLE;
 import static javax.xml.stream.XMLStreamConstants.CDATA;
@@ -174,19 +176,23 @@ public class FastGetRecord implements AutoCloseable {
 			return;
 		}
 		
-		final String metadataEntryPrefix = "<".concat(metadataPrefix);
-		final int metadataEntryIndex = this.buffer.indexOf(metadataEntryPrefix, metadataBlockIndex);
+		// The record is the first element of the metadata block, whatever
+		// its name: it need not be named after the prefix (<resource> is
+		// served as "datacite", <codeBook> as "oai_ddi"), and the prefix
+		// may just as well start the names of its children.
+		final int metadataEntryIndex = findFirstElement(metadataBlockIndex);
 		if(metadataEntryIndex == -1) {
-			this.errorMessage = "Entry tag with prefix '" + metadataPrefix + 
-					"' not found.";
+			this.errorMessage = "No record of format '" + metadataPrefix +
+					"' found in <metadata>.";
 			return;
 		}
-		
-		final String metadataExitPrefix = "</".concat(metadataPrefix);
-		int metadataExitIndex = this.buffer.indexOf(metadataExitPrefix, 
-				metadataEntryIndex);
-		if(metadataExitIndex == -1) {
-			this.errorMessage = "Exit tag with prefix '" + metadataPrefix + 
+
+		final String metadataEntryName = readElementName(metadataEntryIndex);
+		int metadataExitIndex = this.buffer.lastIndexOf(
+				"</".concat(metadataEntryName),
+				this.buffer.indexOf("</metadata", metadataEntryIndex));
+		if(metadataExitIndex < metadataEntryIndex) {
+			this.errorMessage = "Exit tag of '" + metadataEntryName +
 					"' not found.";
 			return;
 		}
@@ -206,6 +212,35 @@ public class FastGetRecord implements AutoCloseable {
 		        this.errorMessage = "Malformed GetRecord response: " + this.buffer;
 		    }
 		}
+	}
+
+	/**
+	 * @return index of the first element inside the metadata block starting
+	 *         at the given index, or -1 if the block is empty
+	 */
+	private int findFirstElement(final int metadataBlockIndex) {
+		
+		final int metadataBlockEnd = this.buffer.indexOf("</metadata", metadataBlockIndex);
+		int index = this.buffer.indexOf(">", metadataBlockIndex);
+		while(index != -1 && index < metadataBlockEnd) {
+			index = this.buffer.indexOf("<", index + 1);
+			if(index != -1 && index < metadataBlockEnd
+					&& isLetter(this.buffer.charAt(index + 1))) {
+				return index;
+			}
+		}
+		return -1;
+	}
+	
+	private String readElementName(final int elementIndex) {
+		
+		int end = elementIndex + 1;
+		while(!isWhitespace(this.buffer.charAt(end)) 
+				&& this.buffer.charAt(end) != '>' 
+				&& this.buffer.charAt(end) != '/') {
+			++end;
+		}
+		return this.buffer.substring(elementIndex + 1, end);
 	}
 
 	private InputStream openInputStream(final HttpURLConnection con) 

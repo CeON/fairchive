@@ -1,0 +1,49 @@
+<resource xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4/metadata.xsd"
+          xmlns="http://datacite.org/schema/kernel-4"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <identifier identifierType="DOI">10.5072/FK2/05NAR1</identifier>
+    <creators>
+        <creator>
+            <creatorName>Kowalski, Jan</creatorName>
+            <nameIdentifier schemeURI="https://orcid.org/" nameIdentifierScheme="ORCID">0000-0002-1825-0097</nameIdentifier>
+            <affiliation affiliationIdentifier="https://ror.org/039bjqg32" affiliationIdentifierScheme="ROR">University of Warsaw</affiliation>
+        </creator>
+        <creator>
+            <creatorName>Nowak, Anna</creatorName>
+        </creator>
+    </creators>
+    <titles>
+        <title>Export test</title>
+    </titles>
+    <publisher>Root</publisher>
+    <publicationYear>2019</publicationYear>
+    <resourceType resourceTypeGeneral="Dataset"/>
+    <relatedIdentifiers>
+        <relatedIdentifier relationType="IsCitedBy" relatedIdentifierType="DOI">10.1000/182</relatedIdentifier>
+        <relatedIdentifier relationType="References" relatedIdentifierType="URL">https://example.org/material</relatedIdentifier>
+        <relatedIdentifier relationType="HasPart" relatedIdentifierType="DOI">doi:10.5072/FK2/05NAR1/ABCDEF</relatedIdentifier>
+    </relatedIdentifiers>
+    <descriptions>
+        <description descriptionType="Abstract">EXPORT</description>
+    </descriptions>
+    <contributors>
+        <contributor contributorType="ContactPerson">
+            <contributorName>Admin, Dataverse</contributorName>
+            <affiliation>Dataverse.org</affiliation>
+        </contributor>
+        <contributor contributorType="Producer">
+            <contributorName>ICM</contributorName>
+            <affiliation>University of Warsaw</affiliation>
+        </contributor>
+        <contributor contributorType="Editor">
+            <contributorName>Ignored, Editor</contributorName>
+        </contributor>
+    </contributors>
+    <fundingReferences>
+        <fundingReference>
+            <funderName>Grant Agency</funderName>
+            <funderIdentifier funderIdentifierType="ROR">https://ror.org/00e0c0q64</funderIdentifier>
+            <awardNumber>grant-123</awardNumber>
+        </fundingReference>
+    </fundingReferences>
+</resource>
