@@ -10,9 +10,9 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
-import javax.ejb.EJB;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
@@ -26,7 +26,6 @@ import org.primefaces.event.TransferEvent;
 import org.primefaces.model.DualListModel;
 
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
-import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.error.DataverseError;
@@ -39,7 +38,6 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.User;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.control.Either;
@@ -49,29 +47,12 @@ import io.vavr.control.Either;
 @Named("CreateEditDataversePage")
 public class CreateEditDataversePage implements Serializable {
 
-    @EJB
-    private DataverseDao dataverseDao;
-
-    @EJB
     private DatasetFieldServiceBean datasetFieldService;
-
-    @EJB
     private MetadataBlockService metadataBlockService;
-
-    @EJB
     private DataverseService dataverseService;
-
-    @Inject
     private PermissionsWrapper permissionsWrapper;
-
-    @Inject
     private DataverseSession session;
-
-    @Inject
-    private SettingsServiceBean settings;
-
-    @Inject
-    private SystemConfig systemConfig;
+    private SystemConfig config;
 
     private Long dataverseId;
     private Long ownerId;
@@ -86,6 +67,25 @@ public class CreateEditDataversePage implements Serializable {
     private DataverseMetaBlockOptions mdbOptions = new DataverseMetaBlockOptions();
     private DataverseMetaBlockOptions parentRootMdbOptions = new DataverseMetaBlockOptions();
 
+    
+    public CreateEditDataversePage() {}
+    @Inject
+    public CreateEditDataversePage(final DataverseService dataverseService,
+    							   final DatasetFieldServiceBean datasetFieldService,
+    							   final MetadataBlockService metadataBlockService,
+    							   final PermissionsWrapper permissionsWrapper,
+    							   final DataverseSession session,
+    							   final SystemConfig config) {
+    	this.dataverseService = dataverseService;
+    	this.datasetFieldService = datasetFieldService;
+    	this.metadataBlockService = metadataBlockService;
+    	this.permissionsWrapper = permissionsWrapper;
+    	this.session = session;
+    	this.config = config;
+    	
+    }
+    
+    
     // -------------------- GETTERS --------------------
     
     public String getTitle() {
@@ -265,18 +265,18 @@ public class CreateEditDataversePage implements Serializable {
     }
     
     private String initForCreation() {
-    	final Dataverse owner = this.dataverseDao.find(this.ownerId);
+    	final Optional<Dataverse> owner = this.dataverseService.findById(this.ownerId);
 
-    	if (owner == null) {
+    	if (!owner.isPresent()) {
     	    return this.permissionsWrapper.notFound();
     	}
     	
-        if (!this.permissionsWrapper.canIssueCreateDataverseCommand(owner)) {
+        if (!this.permissionsWrapper.canIssueCreateDataverseCommand(owner.get())) {
             return this.permissionsWrapper.notAuthorized();
         }
         
         this.dataverse = new Dataverse();
-        this.dataverse.setOwner(owner);
+        this.dataverse.setOwner(owner.get());
         this.version = this.dataverse.getEditableVersion();
 
         if (isPrefillEnabled()) {
@@ -292,13 +292,17 @@ public class CreateEditDataversePage implements Serializable {
     }
     
     private String initForEdition() {
-        this.dataverse = this.dataverseDao.find(this.dataverseId);
-        if (this.dataverse == null) {
+    	final Optional<Dataverse> dataverse = this.dataverseService.findById(this.dataverseId);
+    	
+        if (! dataverse.isPresent()) {
             return this.permissionsWrapper.notFound();
         }
-        if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(this.dataverse)) {
+      
+        if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(dataverse.get())) {
             return permissionsWrapper.notAuthorized();
         } 
+        
+        this.dataverse = dataverse.get();
         this.version = this.dataverse.getEditableVersion();
     	this.ownerId = this.dataverse.getOwnerId();
     	initFacets();
@@ -336,14 +340,16 @@ public class CreateEditDataversePage implements Serializable {
     		UIComponent toValidate, final Object value) {
     	final String alias = (String) value;
         if (isNotEmpty(alias)) {
-            final Dataverse dataverse = this.dataverseDao.findByAlias(alias);
-            if (dataverse != null && !dataverse.getId().equals(this.dataverse.getId())) {
-                ((UIInput) toValidate).setValid(false);
-                final FacesMessage message = new FacesMessage(SEVERITY_ERROR, 
-                		getStringFromBundle("dataverse.alias"), 
-                		getStringFromBundle("dataverse.alias.taken"));
-                context.addMessage(toValidate.getClientId(context), message);
-            }
+            this.dataverseService.findByAlias(alias)
+            	.map(Dataverse::getId)
+            	.filter(this.dataverse.getId()::equals)
+            	.ifPresent(d -> {
+            		 ((UIInput) toValidate).setValid(false);
+                     final FacesMessage message = new FacesMessage(SEVERITY_ERROR, 
+                     		getStringFromBundle("dataverse.alias"), 
+                     		getStringFromBundle("dataverse.alias.taken"));
+                     context.addMessage(toValidate.getClientId(context), message);
+            	});
         }
     }
 
@@ -464,8 +470,8 @@ public class CreateEditDataversePage implements Serializable {
             return EMPTY;
         } else {
             JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
-                    this.systemConfig.getGuidesBaseUrl(this.session.getLocale()),
-                    this.systemConfig.getGuidesVersion()));
+                    this.config.getGuidesBaseUrl(this.session.getLocale()),
+                    this.config.getGuidesVersion()));
         	return "/dataverse.xhtml?faces-redirect=true&alias=".
         			concat(saveResult.get().getAlias());
         }
@@ -563,7 +569,7 @@ public class CreateEditDataversePage implements Serializable {
 
 
     private boolean isPrefillEnabled() {
-        return this.settings.isTrueForKey(CollectionFormPrefillEnabled);
+        return this.config.isTrueForKey(CollectionFormPrefillEnabled);
     }
     
     public boolean canUserPublishCollection() {

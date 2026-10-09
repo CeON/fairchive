@@ -4,6 +4,7 @@ import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +31,7 @@ import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import io.vavr.control.Either;
@@ -50,9 +52,20 @@ public class DataverseService {
 
     @Inject
     private UserNotificationService userNotificationService;
+    
+    @Inject
+    private DataverseRepository repository;
 
     // -------------------- LOGIC --------------------
-
+    
+    public Optional<Dataverse> findById(final Long id) {
+    	return this.repository.findById(id);
+    }
+    
+    public Optional<Dataverse> findByAlias(final String alias) {
+    	return this.repository.findByAlias(alias);
+    }
+    
     public Either<DataverseError, Dataverse> saveNewDataverse(Collection<DataverseFieldTypeInputLevel> dftilToBeSaved,
                                                               Dataverse dataverse,
                                                               DualListModel<DatasetFieldType> facets) {

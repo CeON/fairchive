@@ -1,7 +1,7 @@
 -- collection versions table
 
 CREATE TABLE dataverseversion (
-    id serial4 NOT NULL,
+    id serial4 primary key,
     createtime timestamp NOT NULL,
     name text NOT NULL,
     alias text NOT NULL,
@@ -86,9 +86,3 @@ WHERE dv.dataverse_id = dt.dataverse_id;
 
 
 alter table dataversetheme drop column dataverse_id;
-
-
-
-
-
-

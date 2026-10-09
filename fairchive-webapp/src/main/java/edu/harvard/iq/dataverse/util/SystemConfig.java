@@ -99,7 +99,6 @@ public class SystemConfig {
      */
     public static final String FILES_DIRECTORY = "dataverse.files.directory";
 
-    @Inject
     private SettingsServiceBean settings;
     
     private String commitId = "";
@@ -109,6 +108,7 @@ public class SystemConfig {
         
     }
     
+    @Inject
     public SystemConfig(final SettingsServiceBean settings) {
         this.settings = settings;
     }
