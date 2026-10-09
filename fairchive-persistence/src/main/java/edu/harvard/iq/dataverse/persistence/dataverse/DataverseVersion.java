@@ -135,7 +135,7 @@ public class DataverseVersion implements JpaEntity<Long> {
     	this.facets.forEach(facet -> result.facets.add(facet.createNewFor(result)));
     	result.messagesBannersAllowed = this.messagesBannersAllowed;
     	result.name = this.name;
-    	result.theme = this.theme.createNewFor(result);
+    	result.theme = this.theme != null ? this.theme.createNewFor(result) : null;
     	return result;
     }
     
