@@ -268,6 +268,10 @@ public class DataverseVersion implements JpaEntity<Long> {
 		this.contacts.remove(index);
 	}
 	
+	public void clearFacets() {
+		this.facets.clear();
+	}
+	
 	public List<DataverseFieldTypeInputLevel> getDataverseFieldTypeInputLevels() {
 		return unmodifiableList(this.dataverseFieldTypeInputLevels);
 	}

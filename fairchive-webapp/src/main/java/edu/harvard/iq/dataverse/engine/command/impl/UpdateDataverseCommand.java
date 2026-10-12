@@ -82,6 +82,7 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
     
 	private void addFacets(final CommandContext context) {
         final DataverseVersion version = this.dataverse.getLatestVersion();
+        version.clearFacets();
         for(int index = 0; index < this.facets.size(); ++index) {
         	final DataverseFacet facet = version.addFacet(this.facets.get(index));
         	facet.setDisplayOrder(index);

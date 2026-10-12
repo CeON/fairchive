@@ -38,8 +38,8 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.User;
-import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+import edu.harvard.iq.dataverse.util.UIMessages;
 import io.vavr.control.Either;
 
 @SuppressWarnings("serial")
@@ -53,6 +53,7 @@ public class CreateEditDataversePage implements Serializable {
     private PermissionsWrapper permissionsWrapper;
     private DataverseSession session;
     private SystemConfig config;
+    private UIMessages ui;
 
     private Long dataverseId;
     private Long ownerId;
@@ -75,14 +76,15 @@ public class CreateEditDataversePage implements Serializable {
     							   final MetadataBlockService metadataBlockService,
     							   final PermissionsWrapper permissionsWrapper,
     							   final DataverseSession session,
-    							   final SystemConfig config) {
+    							   final SystemConfig config,
+    							   final UIMessages ui) {
     	this.dataverseService = dataverseService;
     	this.datasetFieldService = datasetFieldService;
     	this.metadataBlockService = metadataBlockService;
     	this.permissionsWrapper = permissionsWrapper;
     	this.session = session;
     	this.config = config;
-    	
+    	this.ui = ui;
     }
     
     
@@ -421,8 +423,12 @@ public class CreateEditDataversePage implements Serializable {
     
     
     public String saveAndRelease() {
-    	this.version.setState(RELEASED);
-    	return save();
+    	if(canUserPublishCollection()) {
+    		this.version.setState(RELEASED);
+    		return save();
+    	} else {
+    		return this.permissionsWrapper.notAuthorized();
+    	}
     }
 
     public String save() {
@@ -437,7 +443,7 @@ public class CreateEditDataversePage implements Serializable {
 	        	return saveEditedDataverse(dftilForSave);
 	        }
     	} else {
-    		JsfHelper.addErrorMessage(getStringFromBundle("dataverse.create.authenticatedUsersOnly"));
+    		this.ui.addErrorMessage(getStringFromBundle("dataverse.create.authenticatedUsersOnly"));
     		return EMPTY;
     	}
     }   
@@ -450,10 +456,10 @@ public class CreateEditDataversePage implements Serializable {
         				this.dataverse, this.facets);
 
         if (editResult.isLeft()) {
-            JsfHelper.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
+            this.ui.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
             return EMPTY;
         } else {
-        	JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
+        	this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
         	return returnRedirect();
         }
     }
@@ -466,10 +472,10 @@ public class CreateEditDataversePage implements Serializable {
         				this.dataverse, this.facets);
 
         if (saveResult.isLeft()) {
-            JsfHelper.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
+            this.ui.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
             return EMPTY;
         } else {
-            JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
+            this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
                     this.config.getGuidesBaseUrl(this.session.getLocale()),
                     this.config.getGuidesVersion()));
         	return "/dataverse.xhtml?faces-redirect=true&alias=".
