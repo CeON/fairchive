@@ -1,10 +1,12 @@
 package edu.harvard.iq.dataverse.api.imports;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.removeStartIgnoreCase;
 import static org.w3c.dom.Node.ELEMENT_NODE;
+import static edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -16,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,7 +37,6 @@ import edu.harvard.iq.dataverse.api.dto.DatasetVersionDTO;
 import edu.harvard.iq.dataverse.api.dto.MetadataBlockWithFieldsDTO;
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 
 /**
  * Reads a DataCite (kernel-4) <code>resource</code> element into a
@@ -52,8 +53,8 @@ final class DataCiteReader {
     private static final String UNKNOWN_PUBLICATION_YEAR = "9999";
     private static final String RELATION_OF_FILES = "HasPart";
     private static final String ROR = "ROR";
-    private static final Set<String> SUPPORTED_NAME_IDENTIFIER_SCHEMES =
-            new HashSet<>(asList("ORCID", "ISNI", "LCNA"));
+    private static final List<String> SUPPORTED_NAME_IDENTIFIER_SCHEMES =
+            asList("ORCID", "ISNI", "LCNA");
     private static final List<String> DOI_PREFIXES =
             asList("doi:", "https://doi.org/", "http://doi.org/", "https://dx.doi.org/", "http://dx.doi.org/");
     private static final List<String> HANDLE_PREFIXES =
@@ -95,14 +96,14 @@ final class DataCiteReader {
 
         DatasetDTO dataset = new DatasetDTO();
         readIdentifier(resource, dataset);
-        text(child(resource, "publicationYear"))
+        child(resource, "publicationYear").flatMap(this::text)
                 .filter(year -> year.matches("\\d{4}") && !UNKNOWN_PUBLICATION_YEAR.equals(year))
                 .ifPresent(year -> dataset.setPublicationDate(year + "-01-01"));
 
         Map<String, MetadataBlockWithFieldsDTO> blocks = new HashMap<>();
         blocks.put("citation", readCitationBlock(resource));
         DatasetVersionDTO version = new DatasetVersionDTO();
-        version.setVersionState(DatasetVersion.VersionState.RELEASED.name());
+        version.setVersionState(RELEASED.name());
         version.setMetadataBlocks(blocks);
         dataset.setDatasetVersion(version);
         return dataset;
@@ -111,16 +112,15 @@ final class DataCiteReader {
     // -------------------- PRIVATE --------------------
 
     private Element parse(Reader xml) throws ImportException {
-        Element root;
         try {
-            root = this.factory.newDocumentBuilder().parse(new InputSource(xml)).getDocumentElement();
+            Element root = this.factory.newDocumentBuilder().parse(new InputSource(xml)).getDocumentElement();
+            if (!"resource".equals(localName(root))) {
+                throw new ImportException("Unsupported xml format. Root element is not 'resource'.");
+            }
+            return root;
         } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new ImportException("Failed to parse DataCite XML record: " + e.getMessage(), e);
         }
-        if (!"resource".equals(localName(root))) {
-            throw new ImportException("Unsupported xml format. Root element is not 'resource'.");
-        }
-        return root;
     }
 
     private MetadataBlockWithFieldsDTO readCitationBlock(Element resource) {
@@ -146,16 +146,16 @@ final class DataCiteReader {
     }
 
     private void readIdentifier(Element resource, DatasetDTO dataset) throws ImportException {
-        String value = text(child(resource, "identifier")).orElse("");
+        String value = child(resource, "identifier").flatMap(this::text).orElse("");
         String doi = removePrefix(value, DOI_PREFIXES);
         String handle = removePrefix(value, HANDLE_PREFIXES);
         String type = child(resource, "identifier").map(e -> e.getAttribute("identifierType")).orElse("");
 
-        if (doi.startsWith("10.") && doi.indexOf('/') > 0) {
+        if (isDoi(doi)) {
             dataset.setProtocol(GlobalId.DOI_PROTOCOL);
             dataset.setAuthority(doi.substring(0, doi.indexOf('/')));
             dataset.setIdentifier(doi.substring(doi.indexOf('/') + 1));
-        } else if (handle.indexOf('/') > 0 && (handle.length() < value.length() || "Handle".equalsIgnoreCase(type))) {
+        } else if (isHandle(handle, value, type)) {
             dataset.setProtocol(GlobalId.HDL_PROTOCOL);
             dataset.setAuthority(handle.substring(0, handle.indexOf('/')));
             dataset.setIdentifier(handle.substring(handle.indexOf('/') + 1));
@@ -164,34 +164,45 @@ final class DataCiteReader {
         }
     }
 
+    private static boolean isDoi(String identifier) {
+        return identifier.startsWith("10.") && identifier.indexOf('/') > 0;
+    }
+
+    /**
+     * A value is taken for a Handle only if something says it is one: it
+     * came with a Handle prefix, or the record declares that identifier type.
+     */
+    private static boolean isHandle(String withoutPrefix, String identifier, String identifierType) {
+        return withoutPrefix.indexOf('/') > 0
+                && (withoutPrefix.length() < identifier.length() || "Handle".equalsIgnoreCase(identifierType));
+    }
+
     private Optional<String> readTitle(Element resource) {
         List<Element> titles = grandchildren(resource, "titles", "title");
-        Optional<String> mainTitle = titles.stream()
-                .filter(title -> isBlank(title.getAttribute("titleType")))
-                .map(title -> text(Optional.of(title)))
+        // The main title has no type; any other title is the fallback.
+        return Stream.concat(
+                        titles.stream().filter(title -> isBlank(title.getAttribute("titleType"))),
+                        titles.stream())
+                .map(this::text)
                 .filter(Optional::isPresent).map(Optional::get)
                 .findFirst();
-        return mainTitle.isPresent()
-                ? mainTitle
-                : titles.stream().map(title -> text(Optional.of(title)))
-                        .filter(Optional::isPresent).map(Optional::get).findFirst();
     }
 
     private Set<DatasetFieldDTO> readAuthor(Element creator) {
         Set<DatasetFieldDTO> author = new HashSet<>();
-        add(author, DatasetFieldConstant.authorName, text(child(creator, "creatorName")));
+        add(author, DatasetFieldConstant.authorName, child(creator, "creatorName").flatMap(this::text));
 
         children(creator, "nameIdentifier").stream()
                 .filter(id -> SUPPORTED_NAME_IDENTIFIER_SCHEMES.contains(id.getAttribute("nameIdentifierScheme")))
-                .filter(id -> text(Optional.of(id)).isPresent())
+                .filter(id -> text(id).isPresent())
                 .findFirst()
                 .ifPresent(id -> {
                     addVocabulary(author, DatasetFieldConstant.authorIdType, Optional.of(id.getAttribute("nameIdentifierScheme")));
-                    add(author, DatasetFieldConstant.authorIdValue, text(Optional.of(id)).map(this::withoutResolverUrl));
+                    add(author, DatasetFieldConstant.authorIdValue, text(id).map(this::withoutResolverUrl));
                 });
 
         child(creator, "affiliation").ifPresent(affiliation -> {
-            add(author, DatasetFieldConstant.authorAffiliation, text(Optional.of(affiliation)));
+            add(author, DatasetFieldConstant.authorAffiliation, text(affiliation));
             if (ROR.equalsIgnoreCase(affiliation.getAttribute("affiliationIdentifierScheme"))) {
                 add(author, DatasetFieldConstant.authorAffiliationIdentifier,
                         Optional.of(affiliation.getAttribute("affiliationIdentifier")));
@@ -202,7 +213,7 @@ final class DataCiteReader {
 
     private Set<DatasetFieldDTO> readRelatedMaterial(Element relatedIdentifier) {
         Set<DatasetFieldDTO> material = new HashSet<>();
-        Optional<String> id = text(Optional.of(relatedIdentifier));
+        Optional<String> id = text(relatedIdentifier);
         String idType = relatedIdentifier.getAttribute("relatedIdentifierType");
         String relationType = relatedIdentifier.getAttribute("relationType");
         // The exporter lists the files of a dataset as its parts. They are
@@ -228,37 +239,37 @@ final class DataCiteReader {
 
     private Set<DatasetFieldDTO> readDescription(Element description) {
         Set<DatasetFieldDTO> fields = new HashSet<>();
-        add(fields, DatasetFieldConstant.descriptionText, text(Optional.of(description)));
+        add(fields, DatasetFieldConstant.descriptionText, text(description));
         return fields;
     }
 
     private List<Element> contributors(Element resource, String contributorType) {
         return grandchildren(resource, "contributors", "contributor").stream()
                 .filter(contributor -> contributorType.equals(contributor.getAttribute("contributorType")))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private Set<DatasetFieldDTO> readContributor(Element contributor, String nameType, String affiliationType) {
         Set<DatasetFieldDTO> fields = new HashSet<>();
-        Optional<String> name = text(child(contributor, "contributorName"));
+        Optional<String> name = child(contributor, "contributorName").flatMap(this::text);
         if (name.isPresent()) {
             add(fields, nameType, name);
-            add(fields, affiliationType, text(child(contributor, "affiliation")));
+            add(fields, affiliationType, child(contributor, "affiliation").flatMap(this::text));
         }
         return fields;
     }
 
     private Set<DatasetFieldDTO> readGrant(Element fundingReference) {
         Set<DatasetFieldDTO> grant = new HashSet<>();
-        Optional<String> funderName = text(child(fundingReference, "funderName"));
+        Optional<String> funderName = child(fundingReference, "funderName").flatMap(this::text);
         if (!funderName.isPresent()) {
             return grant;
         }
         add(grant, DatasetFieldConstant.grantNumberAgency, funderName);
         child(fundingReference, "funderIdentifier")
                 .filter(id -> ROR.equalsIgnoreCase(id.getAttribute("funderIdentifierType")))
-                .ifPresent(id -> add(grant, DatasetFieldConstant.grantNumberAgencyIdentifier, text(Optional.of(id))));
-        add(grant, DatasetFieldConstant.grantNumberValue, text(child(fundingReference, "awardNumber")));
+                .ifPresent(id -> add(grant, DatasetFieldConstant.grantNumberAgencyIdentifier, text(id)));
+        add(grant, DatasetFieldConstant.grantNumberValue, child(fundingReference, "awardNumber").flatMap(this::text));
         return grant;
     }
 
@@ -302,11 +313,11 @@ final class DataCiteReader {
         return elements.stream()
                 .map(mapper)
                 .filter(fields -> !fields.isEmpty())
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private Optional<String> text(Optional<Element> element) {
-        return element.map(Element::getTextContent)
+    private Optional<String> text(Element element) {
+        return Optional.ofNullable(element.getTextContent())
                 .map(String::trim)
                 .filter(text -> !text.isEmpty());
     }
