@@ -15,6 +15,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -136,6 +137,33 @@ class ImportServiceBeanTest {
         Assertions.assertThat(checkIfContainsNotPersistedDataField(parentField.getDatasetFieldsChildren(), childInvalidField))
                  .isFalse();
         
+    }
+
+    @Test
+    void doImportHarvestedDataset__dataciteXml() throws Exception {
+        // given
+        Dataset dataset = createDatasetWithInvalidFields();
+        String xml = "<resource xmlns=\"http://datacite.org/schema/kernel-4\">"
+                + "<identifier identifierType=\"DOI\">10.5072/FK2/TEST123</identifier>"
+                + "<titles><title>Harvested title</title></titles>"
+                + "</resource>";
+        ArgumentCaptor<String> json = ArgumentCaptor.forClass(String.class);
+        when(harvestedJsonParser.parseDataset(json.capture())).thenReturn(dataset);
+        when(datasetService.findByGlobalId(anyString())).thenReturn(null);
+        when(engineSvc.submit(any(CreateHarvestedDatasetCommand.class))).thenReturn(dataset);
+
+        // when
+        Dataset result = importServiceBean.doImportHarvestedDataset(dataverseRequest, harvestingClient,
+                harvestIdentifier, HarvestImporterType.DATACITE, xml);
+
+        // then
+        Assertions.assertThat(result).isSameAs(dataset);
+        Assertions.assertThat(result.getHarvestedFrom()).isSameAs(harvestingClient);
+        Assertions.assertThat(result.getHarvestIdentifier()).isEqualTo(harvestIdentifier);
+        Assertions.assertThat(json.getValue())
+                .contains("\"authority\": \"10.5072\"")
+                .contains("\"identifier\": \"FK2/TEST123\"")
+                .contains("Harvested title");
     }
 
     private Dataset createDatasetWithInvalidFields() {

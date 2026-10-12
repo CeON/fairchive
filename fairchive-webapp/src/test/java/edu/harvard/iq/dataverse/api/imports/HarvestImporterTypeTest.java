@@ -79,6 +79,28 @@ public class HarvestImporterTypeTest {
 	}
 	
 	@Test
+	void resolve__datacitePrefixInUpperCase() {
+		
+		assertThat(resolve(
+				new MetadataFormat()
+				.withMetadataPrefix("DATACITE")
+				.withMetadataNamespace("http://datacite.org/schema/kernel-4")
+				.withSchema("http://schema.datacite.org/meta/kernel-4/metadata.xsd"))).
+			contains(HarvestImporterType.DATACITE);
+	}
+	
+	@Test
+	void resolve__datacitePrefixWithPlaceholderNamespace() {
+		
+		assertThat(resolve(
+				new MetadataFormat()
+				.withMetadataPrefix("datacite")
+				.withMetadataNamespace("http://datacite.org/schema/nonexistant")
+				.withSchema("http://schema.datacite.org/meta/nonexistant/nonexistant.xsd"))).
+			contains(HarvestImporterType.DATACITE);
+	}
+	
+	@Test
 	void resolveImporterType_returns_EmptyOptional_forUnknownMetadata() {
 		
 		assertThat(resolve(
@@ -115,7 +137,7 @@ public class HarvestImporterTypeTest {
         List<MetadataFormat> filtered = filterSupported(allFormats);
 
         assertThat(filtered.stream().map(MetadataFormat::getMetadataPrefix).collect(toList()))
-                .containsExactlyInAnyOrder("oai_dc", "DDI", "oai_ddi", "dataverse_json");
+                .containsExactlyInAnyOrder("oai_dc", "DDI", "oai_ddi", "dataverse_json", "DATACITE");
     }
 
     @Test

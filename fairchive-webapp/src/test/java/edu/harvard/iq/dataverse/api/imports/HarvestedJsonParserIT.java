@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.api.imports;
 
+import com.google.gson.GsonBuilder;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -17,11 +18,14 @@ import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -280,5 +284,26 @@ public class HarvestedJsonParserIT extends WebappArquillianDeployment {
         assertThat(collectorTrainingField)
                 .extracting(DatasetField::getValue)
                 .containsExactlyInAnyOrder("collectorTraining single value passed as multi");
+    }
+
+    @Test
+    public void parseDataset__vocabularyValuesReadFromDatacite() throws Exception {
+        //given
+        final String harvestedDataset;
+        try (Reader xml = new InputStreamReader(
+                HarvestedJsonParserIT.class.getResourceAsStream("/xml/imports/datacite.xml"), UTF_8)) {
+            harvestedDataset = new GsonBuilder().create().toJson(new DataCiteReader().read(xml));
+        }
+
+        //when
+        final Dataset dataset = harvestedJsonParser.parseDataset(harvestedDataset);
+
+        //then
+        assertThat(dataset.getVersions().get(0).getDatasetFields())
+                .filteredOn(field -> field.getTypeName().equals("author") || field.getTypeName().equals("relatedMaterial"))
+                .flatExtracting(DatasetField::getDatasetFieldsChildren)
+                .flatExtracting(DatasetField::getControlledVocabularyValues)
+                .extracting(ControlledVocabularyValue::getStrValue)
+                .containsExactlyInAnyOrder("ORCID", "doi", "IsCitedBy", "url", "References");
     }
 }
