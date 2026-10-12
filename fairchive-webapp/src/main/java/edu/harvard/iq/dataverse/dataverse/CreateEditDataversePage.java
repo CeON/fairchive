@@ -343,8 +343,7 @@ public class CreateEditDataversePage implements Serializable {
     	final String alias = (String) value;
         if (isNotEmpty(alias)) {
             this.dataverseService.findByAlias(alias)
-            	.map(Dataverse::getId)
-            	.filter(this.dataverse.getId()::equals)
+            	.filter(this::isNotCurrentDataverse)
             	.ifPresent(d -> {
             		 ((UIInput) toValidate).setValid(false);
                      final FacesMessage message = new FacesMessage(SEVERITY_ERROR, 
@@ -353,6 +352,12 @@ public class CreateEditDataversePage implements Serializable {
                      context.addMessage(toValidate.getClientId(context), message);
             	});
         }
+    }
+    
+    private boolean isNotCurrentDataverse(final Dataverse found) {
+    	return this.dataverse.isNew()
+    		? true
+    		: !this.dataverse.getId().equals(found.getId());
     }
 
     public void refreshDatasetFieldTypes(final Long mdbId, final boolean editable, 
@@ -408,7 +413,7 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public boolean isInheritFacetFromParent() {
-        return !this.dataverse.isFacetRoot();
+        return !this.version.isFacetRoot();
     }
 
     public void toggleFacetRoot() {
@@ -563,8 +568,8 @@ public class CreateEditDataversePage implements Serializable {
         this.ownerId = id;
     }
 
-    public void setInheritFacetFromParent(final boolean inheritFacetFromParent) {
-        this.dataverse.setFacetRoot(!inheritFacetFromParent);
+    public void setInheritFacetFromParent(final boolean inherit) {
+        this.version.setFacetRoot(!inherit);
     }
 
     public void setDataverseOwnerAlias(final String alias) {

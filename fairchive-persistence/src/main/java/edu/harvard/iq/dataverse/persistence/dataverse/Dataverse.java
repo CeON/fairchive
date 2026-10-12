@@ -35,7 +35,6 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import edu.harvard.iq.dataverse.common.MarkupChecker;
@@ -211,7 +210,6 @@ public class Dataverse extends DvObjectContainer {
     private DataverseRole defaultDataverseContributorRole;
     
     private boolean metadataBlockRoot;
-    private boolean facetRoot;
     // By default, themeRoot should be true, as new dataverses should start with the default theme
     private boolean themeRoot = true;
     private boolean templateRoot;
@@ -700,6 +698,11 @@ public class Dataverse extends DvObjectContainer {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().isDraft();
     }
+    
+    public boolean isFacetRoot() {
+    	//TODO: verify if this behavior is correct
+    	return getLatestVersion().isFacetRoot();
+    }
 
     public boolean isMetadataBlockRoot() {
         return metadataBlockRoot;
@@ -708,15 +711,6 @@ public class Dataverse extends DvObjectContainer {
     public void setMetadataBlockRoot(boolean metadataBlockRoot) {
         this.metadataBlockRoot = metadataBlockRoot;
     }
-
-    public boolean isFacetRoot() {
-        return facetRoot;
-    }
-
-    public void setFacetRoot(boolean facetRoot) {
-        this.facetRoot = facetRoot;
-    }
-
 
     public void addRole(final DataverseRole role) {
         role.setOwner(this);

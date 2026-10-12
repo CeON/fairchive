@@ -11,6 +11,7 @@ CREATE TABLE dataverseversion (
     state text NULL,
     affiliation text NULL,
     messagesbannersallowed bool not null default false,
+    facetroot bool not null default false,
     dataverse_id int8 not null,
     CONSTRAINT unq_datverseversion_0 UNIQUE (dataverse_id, createtime),
     CONSTRAINT fk_dataverseversion_id FOREIGN KEY (dataverse_id) REFERENCES dataverse(id)
@@ -20,10 +21,10 @@ CREATE TABLE dataverseversion (
 
 insert into dataverseversion (createtime, name, alias, description, 
                               additionaldescription, dataversetype, state, affiliation, 
-                              dataverse_id)
+                              facetroot, dataverse_id)
     select now(), name, alias, description, 
        additional_description, dataversetype,'RELEASED', affiliation, 
-       id
+       facetroot, id
        from dataverse;
 
 alter table dataverse drop column "name";       
@@ -32,6 +33,8 @@ alter table dataverse drop column description;
 alter table dataverse drop column additional_description;
 alter table dataverse drop column dataversetype;
 alter table dataverse drop column affiliation;   
+alter table dataverse drop column facetroot;   
+
 
 -- reassign contacts from collections to collection versions
 alter table dataversecontact add column version_id int8 references dataverseversion(id);

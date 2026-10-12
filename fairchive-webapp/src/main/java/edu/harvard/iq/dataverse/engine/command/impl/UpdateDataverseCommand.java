@@ -86,7 +86,7 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
         for(int index = 0; index < this.facets.size(); ++index) {
         	final DataverseFacet facet = version.addFacet(this.facets.get(index));
         	facet.setDisplayOrder(index);
-        	context.facets().save(facet);
+        	//context.facets().save(facet);
         }
 	}
 	

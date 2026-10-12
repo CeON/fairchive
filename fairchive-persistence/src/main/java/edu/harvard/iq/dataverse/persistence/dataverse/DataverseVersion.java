@@ -97,6 +97,8 @@ public class DataverseVersion implements JpaEntity<Long> {
     @OneToMany(mappedBy = "version", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     @OrderBy("displayOrder")
     private List<DataverseFacet> facets = new ArrayList<>();
+    @Column
+    private boolean facetRoot = false;
     
     @OneToMany(mappedBy = "version", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     private List<DataverseFieldTypeInputLevel> dataverseFieldTypeInputLevels = new ArrayList<>();
@@ -132,6 +134,7 @@ public class DataverseVersion implements JpaEntity<Long> {
     	result.dataverseType = this.dataverseType;
     	result.description = this.description;
     	this.facets.forEach(facet -> result.facets.add(facet.createNewFor(result)));
+    	result.facetRoot = this.facetRoot;
     	result.messagesBannersAllowed = this.messagesBannersAllowed;
     	result.name = this.name;
     	result.theme = this.theme != null ? this.theme.createNewFor(result) : null;
@@ -265,6 +268,14 @@ public class DataverseVersion implements JpaEntity<Long> {
 	public void clearFacets() {
 		this.facets.clear();
 	}
+	
+    public boolean isFacetRoot() {
+        return this.facetRoot;
+    }
+
+    public void setFacetRoot(final boolean facetRoot) {
+        this.facetRoot = facetRoot;
+    }
 	
 	public List<DataverseFieldTypeInputLevel> getDataverseFieldTypeInputLevels() {
 		return unmodifiableList(this.dataverseFieldTypeInputLevels);
