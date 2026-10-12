@@ -10,6 +10,7 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.FetchType.LAZY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import edu.harvard.iq.dataverse.common.MarkupChecker;
@@ -838,6 +840,7 @@ public class Dataverse extends DvObjectContainer {
 	
 	public DataverseVersion addVersion(final DataverseVersion.State state) {
 		final DataverseVersion version = new DataverseVersion(this, state);
+		version.addContact(EMPTY);
 		this.versions.add(version);
 		return version;
 	}

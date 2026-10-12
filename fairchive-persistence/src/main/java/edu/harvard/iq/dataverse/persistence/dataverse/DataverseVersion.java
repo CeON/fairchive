@@ -118,7 +118,6 @@ public class DataverseVersion implements JpaEntity<Long> {
     	this.dataverse = requireNonNull(dataverse);
     	this.createTime = new Date();
     	this.state = state;
-    	addContact(EMPTY);
     }
     
     public DataverseVersion createNewDraft() {
@@ -231,11 +230,6 @@ public class DataverseVersion implements JpaEntity<Long> {
 	}
 	
 	public DataverseContact addContact(final String email) {		
-		if(this.contacts.size() == 1 && this.contacts.get(0).getEmail().isEmpty()) {
-			final DataverseContact contact  = this.contacts.get(0);
-			contact.setEmail(email);
-			return contact;
-		} 
 		final DataverseContact contact = new DataverseContact(this, email);
 		this.contacts.add(contact);
 		return contact;
