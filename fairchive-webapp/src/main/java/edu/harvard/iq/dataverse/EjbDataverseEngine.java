@@ -35,7 +35,7 @@ import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.DownloadDatasetLogDao;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
-import edu.harvard.iq.dataverse.dataverse.template.TemplateDao;
+import edu.harvard.iq.dataverse.dataverse.template.TemplateService;
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
@@ -123,7 +123,7 @@ public class EjbDataverseEngine {
     DataFileServiceBean dataFileService;
 
     @EJB
-    TemplateDao templateDao;
+    TemplateService templateService;
 
     @EJB
     SavedSearchServiceBean savedSearchService;
@@ -390,8 +390,8 @@ public class EjbDataverseEngine {
                 }
 
                 @Override
-                public TemplateDao templates() {
-                    return templateDao;
+                public TemplateService templates() {
+                    return templateService;
                 }
 
                 @Override

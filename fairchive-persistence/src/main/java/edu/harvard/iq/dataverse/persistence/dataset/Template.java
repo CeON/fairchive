@@ -29,6 +29,7 @@ import javax.validation.constraints.Size;
 import org.eclipse.persistence.annotations.Customizer;
 import org.hibernate.validator.constraints.NotBlank;
 
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.config.EntityCustomizer;
 import edu.harvard.iq.dataverse.persistence.config.annotations.CustomizeSelectionQuery;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -40,7 +41,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 @Entity
 @Table(indexes = {@Index(columnList = "dataverse_id")})
 @Customizer(EntityCustomizer.class)
-public class Template implements Serializable {
+public class Template implements JpaEntity<Long>, Serializable {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -72,52 +73,49 @@ public class Template implements Serializable {
 
     public Template() { }
 
-    public Template(Dataverse dataverseIn) {
-        dataverse = dataverseIn;
+    public Template(final Dataverse dataverseIn) {
+        this.dataverse = dataverseIn;
     }
 
     // -------------------- GETTERS --------------------
-
+    @Override
     public Long getId() {
         return this.id;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public Long getUsageCount() {
-        return usageCount;
+        return this.usageCount;
     }
 
     public Date getCreateTime() {
-        return createTime;
+        return this.createTime;
     }
 
     public String getCreateDate() {
-        return new SimpleDateFormat("MMMM d, yyyy").format(createTime);
+        return new SimpleDateFormat("MMMM d, yyyy").format(this.createTime);
     }
 
     public List<DatasetField> getDatasetFields() {
-        return datasetFields;
+        return this.datasetFields;
     }
 
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
     }
 
     // -------------------- LOGIC --------------------
 
-    public Template cloneNewTemplate(Template source) {
-        Template newTemplate = new Template();
-
+    public Template cloneNewTemplate(final Template source) {
+        final Template result = new Template(this.dataverse);
         // if the latest version has values get them copied over
         if (source.getDatasetFields() != null && !source.getDatasetFields().isEmpty()) {
-            newTemplate.setDatasetFields(DatasetFieldUtil.copyDatasetFields(source.getDatasetFields()));
+            result.setDatasetFields(DatasetFieldUtil.copyDatasetFields(source.getDatasetFields()));
         }
-        newTemplate.setDataverse(dataverse);
-
-        return newTemplate;
+        return result;
     }
 
     public Template cloneNewTemplate() {
@@ -126,31 +124,29 @@ public class Template implements Serializable {
 
     // -------------------- SETTERS --------------------
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
-    public void setUsageCount(Long usageCount) {
+    public void setUsageCount(final Long usageCount) {
         this.usageCount = usageCount;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(final Date createTime) {
         this.createTime = createTime;
     }
 
-    public void setDataverse(Dataverse dataverse) {
+    public void setDataverse(final Dataverse dataverse) {
         this.dataverse = dataverse;
     }
 
-    public void setDatasetFields(List<DatasetField> datasetFields) {
-        for (DatasetField dsf : datasetFields) {
-            dsf.setTemplate(this);
-        }
-        this.datasetFields = datasetFields;
+    public void setDatasetFields(final List<DatasetField> fields) {
+    	fields.forEach(field -> field.setTemplate(this));
+        this.datasetFields = fields;
     }
 
     // -------------------- hashCode & equals --------------------

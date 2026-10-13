@@ -26,7 +26,7 @@ import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.DownloadDatasetLogDao;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
-import edu.harvard.iq.dataverse.dataverse.template.TemplateDao;
+import edu.harvard.iq.dataverse.dataverse.template.TemplateService;
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
@@ -106,7 +106,7 @@ public interface CommandContext {
 
     DataFileServiceBean files();
 
-    TemplateDao templates();
+    TemplateService templates();
 
     SavedSearchServiceBean savedSearches();
 

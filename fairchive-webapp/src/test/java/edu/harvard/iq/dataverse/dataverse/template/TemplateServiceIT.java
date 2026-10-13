@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -99,7 +98,7 @@ public class TemplateServiceIT extends WebappArquillianDeployment {
         Dataverse dataverse = dataverseDao.findByAlias(TEST_DATAVERSE_ALIAS);
         Template template = prepareTemplate();
         template.setDataverse(dataverse);
-        dataverse.setTemplates(Collections.singletonList(template));
+        dataverse.setTemplates(Lists.newArrayList(template));
 
         em.persist(template);
 

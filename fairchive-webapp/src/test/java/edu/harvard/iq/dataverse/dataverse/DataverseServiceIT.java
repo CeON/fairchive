@@ -228,7 +228,7 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
         dataverse.setOwner(dataverseDao.findRootDataverse());
         version.setName("NICE DATAVERSE");
         version.setAlias("FIRSTDATAVERSE");
-        dataverse.setFacetRoot(true);
+        version.setFacetRoot(true);
         version.setDataverseType(Dataverse.DataverseType.JOURNALS);
         version.addContact("test@gmail.com");
         dataverse.setAllowMessagesBanners(false);

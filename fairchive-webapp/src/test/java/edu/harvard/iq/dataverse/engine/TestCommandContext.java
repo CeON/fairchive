@@ -26,7 +26,7 @@ import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.DownloadDatasetLogDao;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
-import edu.harvard.iq.dataverse.dataverse.template.TemplateDao;
+import edu.harvard.iq.dataverse.dataverse.template.TemplateService;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
@@ -144,7 +144,7 @@ public class TestCommandContext implements CommandContext {
     }
 
     @Override
-    public TemplateDao templates() {
+    public TemplateService templates() {
         return null;
     }
 
