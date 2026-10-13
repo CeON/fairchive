@@ -1,9 +1,12 @@
 package edu.harvard.iq.dataverse.featured;
 
-import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
-import edu.harvard.iq.dataverse.search.SolrIndexCleaner;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.inject.Inject;
+
 import org.apache.solr.client.solrj.SolrServerException;
 import org.assertj.core.util.Lists;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
@@ -11,11 +14,10 @@ import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.search.SolrIndexCleaner;
 
 @Transactional(TransactionMode.ROLLBACK)
 public class FeaturedDataverseServiceBeanIT extends WebappArquillianDeployment {

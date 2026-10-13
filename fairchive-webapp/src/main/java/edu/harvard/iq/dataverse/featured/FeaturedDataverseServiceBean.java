@@ -6,6 +6,7 @@
 
 package edu.harvard.iq.dataverse.featured;
 
+import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
@@ -62,9 +63,9 @@ public class FeaturedDataverseServiceBean {
 
     public List<Dataverse> sortFeaturedDataverses(List<Dataverse> featuredDataverses, FeaturedDataversesSorting sorting) {
         if (sorting == FeaturedDataversesSorting.BY_NAME_ASC) {
-            return featuredDataverses.stream().sorted(comparing(Dataverse::getName)).collect(toList());
+            return featuredDataverses.stream().sorted(comparing(Dataverse::getName, CASE_INSENSITIVE_ORDER)).collect(toList());
         } else if (sorting == FeaturedDataversesSorting.BY_NAME_DESC) {
-            return featuredDataverses.stream().sorted(comparing(Dataverse::getName).reversed()).collect(toList());
+            return featuredDataverses.stream().sorted(comparing(Dataverse::getName, CASE_INSENSITIVE_ORDER).reversed()).collect(toList());
         } else if (sorting == FeaturedDataversesSorting.BY_DATASET_COUNT) {
             return orderByDatasetCount(featuredDataverses);
         } else {
