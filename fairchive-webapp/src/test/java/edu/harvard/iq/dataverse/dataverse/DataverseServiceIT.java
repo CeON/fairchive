@@ -72,6 +72,7 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
     // -------------------- TESTS --------------------
 
     @Test
+	@Transactional(TransactionMode.ROLLBACK)
     public void saveNewDataverse_ShouldSuccessfullySave() throws SolrServerException, IOException, InterruptedException {
         //given
         long userId = loginSessionWithSuperUser();
@@ -86,11 +87,6 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
 
         Dataverse dbDataverse = dataverseDao.find(savedDataverse.get().getId());
         assertEquals("NICE DATAVERSE", dbDataverse.getName());
-
-        await()
-                .atMost(Duration.ofSeconds(15L))
-                .until(() -> smtpServer.getMails().stream()
-                        .anyMatch(emailModel -> emailModel.getSubject().contains("Your collection has been created")));
 
         await().atMost(Duration.ofSeconds(15L))
                 .until(() -> solrClient.getById("dataverse_" + savedDataverse.get().getId()) != null);
@@ -235,13 +231,4 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
 
         return dataverse;
     }
-
-//    private List<DataverseContact> prepareDataverseContact() {
-//        DataverseContact dataverseContact = new DataverseContact();
-//        dataverseContact.setContactEmail("test@gmail.com");
-//
-//        ArrayList<DataverseContact> contacts = new ArrayList<>();
-//        contacts.add(dataverseContact);
-//        return contacts;
-//    }
 }

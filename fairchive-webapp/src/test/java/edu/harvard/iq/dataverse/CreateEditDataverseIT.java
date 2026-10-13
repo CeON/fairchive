@@ -24,7 +24,7 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
 
 @Transactional(TransactionMode.ROLLBACK)
-public class CreateEditDataversePageIT extends WebappArquillianDeployment {
+public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	
 	@Inject
     private DatasetFieldServiceBean datasetFieldService;
@@ -130,7 +130,7 @@ public class CreateEditDataversePageIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.getFacets().get(0).getDatasetFieldType().getName()).
 			isEqualTo("authorName");
 		
-		//TODO: verify what gets indexed by solr
+		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
 	
 	@Test
@@ -202,7 +202,7 @@ public class CreateEditDataversePageIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.getFacets().get(0).getDatasetFieldType().getName()).
 			isEqualTo("authorName");
 		
-		//TODO: verify what gets indexed by solr
+		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
 	
 	@Test
@@ -290,7 +290,7 @@ public class CreateEditDataversePageIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.getFacets().get(0).getDatasetFieldType().getName()).
 			isEqualTo("authorName");
 		
-		//TODO: verify what gets indexed by solr
+		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
 	
 	@Test
@@ -396,7 +396,7 @@ public class CreateEditDataversePageIT extends WebappArquillianDeployment {
 		assertThat(latestVersion.getFacets().get(0).getDatasetFieldType().getName()).
 			isEqualTo("authorName");
 		
-		//TODO: verify what gets indexed by solr
+		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
 	
 	private void loginUserById(final Long id) {
