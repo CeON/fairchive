@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 
+import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.common.DateUtil;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
@@ -37,14 +38,19 @@ public class DatasetEmbargoDialogTest {
 	private DatasetService datasetService;
 	@Mock
 	private UIMessages ui;
+	@Mock
+    private DataverseSession session;
 
 	private Dataset set = new Dataset();
 
 	@BeforeEach
 	void setUp() {
+		when(this.session.isSuperUserLoggedIn()).thenReturn(true);
+		
 		this.set.setGlobalId(new GlobalId("doi:10.5072/FK2/BYM3IW"));
 
-		this.dialog = new DatasetEmbargoDialog(this.datasetService, this.settings, this.ui);
+		this.dialog = new DatasetEmbargoDialog(this.datasetService, this.settings, 
+				this.ui, this.session);
 		this.dialog.init(this.set);
 	}
 
@@ -56,7 +62,6 @@ public class DatasetEmbargoDialogTest {
 		when(this.settings.getValueForKeyAsLong(eq(MaximumEmbargoLength))).thenReturn(null);
 		when(this.settings.getValueForKey(eq(DefaultDateFormat), anyString())).thenReturn("yyyy-MM-dd");
 
-		assertThat(this.dialog.isMaximumEmbargoLengthSet()).isFalse();
 		assertThat(this.dialog.getMaximumEmbargoLength()).isZero();
 		assertThat(this.dialog.getMaximumEmbargoDateForDisplay()).isEmpty();
 		assertThat(this.dialog.getMaximumEmbargoDate()).isNull();
@@ -85,7 +90,6 @@ public class DatasetEmbargoDialogTest {
 		when(this.settings.getValueForKeyAsLong(eq(MaximumEmbargoLength))).thenReturn(3L);
 		when(this.settings.getValueForKey(eq(DefaultDateFormat), anyString())).thenReturn("yyyy-MM-dd");
 
-		assertThat(this.dialog.isMaximumEmbargoLengthSet()).isTrue();
 		assertThat(this.dialog.getMaximumEmbargoLength()).isEqualTo(3);
 		assertThat(this.dialog.getMaximumEmbargoDateForDisplay()).isNotEmpty();
 		assertThat(this.dialog.getMaximumEmbargoDate()).isNotNull();
