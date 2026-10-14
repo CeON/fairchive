@@ -18,13 +18,12 @@
                          oncomplete="primeFacesShowModal('setEmbargoConfirmation', this);" />
 
         <p:outputPanel id="embargoContentPanel">
-            <p:autoUpdate />
             <p:dialog id="SetEmbargo" 
                       styleClass="smallPopUp" 
                       header="#{bundle['dataset.embargo.header']}"
                       widgetVar="setEmbargoConfirmation"
-                      rendered="#{datasetEmbargoDialog.renderEmbargoDialog}" 
-                      modal="true">
+                      modal="true"
+                      dynamic="true">
                 <p:fragment id="setEmbargoPanel">
                     <p class="help-block">
                         <h:outputFormat value="#{bundle['dataset.embargo.description.message']}"
@@ -104,29 +103,6 @@
                                          update="setEmbargoPanel, embargoDatePicker"
                                          resetValues="true" />
                     </div>
-                    <script type="text/javascript">
-                    // Move input to the correct place and make it usable
-
-                        $(document).ready(function() {
-                            var datePickerInput = $("#datasetForm\\:embargoDatePicker_input");
-                            var calendar = (PF("embargoDatePickerCalendar") ? PF("embargoDatePickerCalendar") : PF("embargoDatePickerMaxLimitedCalendar"));
-
-                            if (calendar) {
-                                datePickerInput.val($.datepicker.formatDate("yy-mm-dd", calendar.getDate()));
-                            }
-
-                            if (datePickerInput.length  > 0) {
-                                datePickerInput.attr("type", "text")
-                                atePickerInput.insertAfter($("label[for*=embargoDatePicker_input]").next());
-
-                                datePickerInput.on("input", function() {
-                                    if (calendar) {
-                                        calendar.setDate(this.value);
-                                    }
-                                });
-                            }
-                        });
-                    </script>
                 </p:fragment>
             </p:dialog>
         </p:outputPanel>
