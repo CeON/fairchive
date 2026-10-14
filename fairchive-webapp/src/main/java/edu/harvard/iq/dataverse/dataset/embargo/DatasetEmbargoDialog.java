@@ -38,7 +38,6 @@ public class DatasetEmbargoDialog implements Serializable {
 
     private Dataset dataset;
 
-    private boolean renderEmbargoDialog = false;
     private Date currentEmbargoDate;
 
     private DatasetService datasetService;
@@ -58,14 +57,6 @@ public class DatasetEmbargoDialog implements Serializable {
     }
 
     // -------------------- GETTERS --------------------
-
-    public boolean isRenderEmbargoDialog() {
-        return this.renderEmbargoDialog;
-    }
-    
-    public void setRenderEmbargoDialog(final boolean renderEmbargoPopup) {
-        this.renderEmbargoDialog = renderEmbargoPopup;
-    }
 
     public Date getCurrentEmbargoDate() {
         return this.currentEmbargoDate;
@@ -120,7 +111,6 @@ public class DatasetEmbargoDialog implements Serializable {
      */
     public void reloadAndRenderDialog() {
         initCurrentEmbargo();
-        this.renderEmbargoDialog = true;
     }
 
     public void initCurrentEmbargo() {
