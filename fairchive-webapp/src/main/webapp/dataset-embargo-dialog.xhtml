@@ -9,10 +9,10 @@
      xmlns:jsf="http://xmlns.jcp.org/jsf"
      xmlns:dv="http://dataverse.org/facelets">
 
-<p:dialog id="SetEmbargo" 
+<p:dialog id="setEmbargo" 
           styleClass="smallPopUp" 
           header="#{bundle['dataset.embargo.header']}"
-          widgetVar="setEmbargoConfirmation"
+          widgetVar="setEmbargo"
           modal="true"
           dynamic="true">
     <h:form id="embargoForm">
@@ -67,18 +67,18 @@
                              update="embargoForm,:messagePanel"
                              rendered="#{datasetEmbargoDialog.userAbleToSetOrUpdateEmbargo}"
                              oncomplete="if (args &amp;&amp; !args.validationFailed) {
-                                            PF('setEmbargoConfirmation').hide();
+                                            PF('setEmbargo').hide();
                                          } else {
                                             #{datasetEmbargoDialog.initCurrentEmbargo()};
                                          }" />
             <p:commandButton value="#{bundle['dataset.embargo.lift.button']}"
-                             onclick="PF('setEmbargoConfirmation').hide();
+                             onclick="PF('setEmbargo').hide();
                                       PF('removeEmbargoConfirmation').show()"
                              rendered="#{datasetEmbargoDialog.userAbleToLiftEmbargo}" 
-                             update="embargoForm"/>
+                             type="button"/>
             <p:commandButton styleClass="btn btn-default"
                              value="#{bundle.close}"
-                             onclick="PF('setEmbargoConfirmation').hide();"
+                             onclick="PF('setEmbargo').hide();"
                              update="embargoForm, embargoDatePicker"
                              resetValues="true" />
         </div>
@@ -109,7 +109,7 @@
                              onclick="PF('removeEmbargoConfirmation').hide();" />
             <p:commandButton value="#{bundle.cancel}"
                              onclick="PF('removeEmbargoConfirmation').hide();
-                                      PF('setEmbargoConfirmation').show();"
+                                      PF('setEmbargo').show();"
                              type="button" />
         </div>
     </h:form>

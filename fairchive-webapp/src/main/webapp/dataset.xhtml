@@ -420,7 +420,7 @@
                                             <li>
                                                 <p:commandLink id="setEmbargoLink"
                                                                action="#{datasetEmbargoDialog.init(DatasetPage.dataset)}"
-                                                               oncomplete="primeFacesShowModal('setEmbargoConfirmation', this);"
+                                                               oncomplete="primeFacesShowModal('setEmbargo', this);"
                                                                value="#{bundle['dataset.editBtn.itemLabel.embargo']}"/>
                                             </li>
                                             <li jsf:rendered="#{DatasetPage.hasAnythingToUningest()}">
