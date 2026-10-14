@@ -45,7 +45,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	private NavigationWrapper navigationWrapper;
     private PermissionsWrapper permissionsWrapper;
     private UIMessages ui;
-	private CreateEditDataversePage page;
+	private CreateEditDataversePage createEditPage;
 	
 	@BeforeEach
 	void setUp() {
@@ -56,7 +56,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				this.requestService, this.navigationWrapper);
 		this.ui = Mockito.mock(UIMessages.class);
 		
-		this.page = newPage();
+		this.createEditPage = newPage();
 		
 		this.session.setLocaleCode("EN");
 		loginUserById(1L); // admin
@@ -66,24 +66,24 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	@Transactional(TransactionMode.ROLLBACK)
 	void createNewDataverseDraft() {
 		
-		this.page.setOwnerId(1L);
-		this.page.init();
+		this.createEditPage.setOwnerId(1L);
+		this.createEditPage.init();
 		
-		assertThat(this.page.getTitle()).isEqualTo("New Collection");
-		assertThat(this.page.getName()).isEmpty();
-		assertThat(this.page.getAlias()).isEmpty();
-		assertThat(this.page.getDescription()).isNull();
-		assertThat(this.page.getAdditionalDescription()).isNull();
-		assertThat(this.page.getAffiliation()).isNull();
-		assertThat(this.page.getType()).isEqualTo(UNCATEGORIZED);
-		assertThat(this.page.isInheritFacetFromParent()).isTrue();
-		assertThat(this.page.isInheritMetaBlocksFromParent()).isTrue();
-		assertThat(this.page.isMessagesBannersAllowed()).isFalse();
-		assertThat(this.page.canUserPublishCollection()).isTrue();
-		assertThat(this.page.getFacets().getSource()).isNotEmpty();
-		assertThat(this.page.getFacets().getTarget()).isEmpty();
+		assertThat(this.createEditPage.getTitle()).isEqualTo("New Collection");
+		assertThat(this.createEditPage.getName()).isEmpty();
+		assertThat(this.createEditPage.getAlias()).isEmpty();
+		assertThat(this.createEditPage.getDescription()).isNull();
+		assertThat(this.createEditPage.getAdditionalDescription()).isNull();
+		assertThat(this.createEditPage.getAffiliation()).isNull();
+		assertThat(this.createEditPage.getType()).isEqualTo(UNCATEGORIZED);
+		assertThat(this.createEditPage.isInheritFacetFromParent()).isTrue();
+		assertThat(this.createEditPage.isInheritMetaBlocksFromParent()).isTrue();
+		assertThat(this.createEditPage.isMessagesBannersAllowed()).isFalse();
+		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
+		assertThat(this.createEditPage.getFacets().getSource()).isNotEmpty();
+		assertThat(this.createEditPage.getFacets().getTarget()).isEmpty();
 		
-		Dataverse dataverse = this.page.getDataverse();
+		Dataverse dataverse = this.createEditPage.getDataverse();
 		
 		assertThat(dataverse.isNew()).isTrue();
 		assertThat(dataverse.getOwner().getId()).isEqualTo(1L);
@@ -97,16 +97,16 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.getContacts()).hasSize(1);
 		assertThat(version.getContacts().get(0).getEmail()).isEmpty();
 		
-		this.page.setName("name1");
-		this.page.setAlias("alias1");
-		this.page.setAffiliation("affiliation1");
-		this.page.setType(LABORATORY);
-		this.page.getContacts().get(0).setEmail("user@email.com");
-		this.page.setInheritFacetFromParent(false);
-		this.page.getFacets().getTarget().add(this.page.getFacets().getSource().get(0));
-		this.page.setMessagesBannersAllowed(true);
+		this.createEditPage.setName("name1");
+		this.createEditPage.setAlias("alias1");
+		this.createEditPage.setAffiliation("affiliation1");
+		this.createEditPage.setType(LABORATORY);
+		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.getFacets().getTarget().add(this.createEditPage.getFacets().getSource().get(0));
+		this.createEditPage.setMessagesBannersAllowed(true);
 		
-		assertThat(this.page.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
+		assertThat(this.createEditPage.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
 		
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
@@ -137,24 +137,24 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	@Transactional(TransactionMode.ROLLBACK)
 	void createNewDataverseReleased() {
 		
-		this.page.setOwnerId(1L);
-		this.page.init();
+		this.createEditPage.setOwnerId(1L);
+		this.createEditPage.init();
 		
-		assertThat(this.page.getTitle()).isEqualTo("New Collection");
-		assertThat(this.page.getName()).isEmpty();
-		assertThat(this.page.getAlias()).isEmpty();
-		assertThat(this.page.getDescription()).isNull();
-		assertThat(this.page.getAdditionalDescription()).isNull();
-		assertThat(this.page.getAffiliation()).isNull();
-		assertThat(this.page.getType()).isEqualTo(UNCATEGORIZED);
-		assertThat(this.page.isInheritFacetFromParent()).isTrue();
-		assertThat(this.page.isInheritMetaBlocksFromParent()).isTrue();
-		assertThat(this.page.isMessagesBannersAllowed()).isFalse();
-		assertThat(this.page.canUserPublishCollection()).isTrue();
-		assertThat(this.page.getFacets().getSource()).isNotEmpty();
-		assertThat(this.page.getFacets().getTarget()).isEmpty();
+		assertThat(this.createEditPage.getTitle()).isEqualTo("New Collection");
+		assertThat(this.createEditPage.getName()).isEmpty();
+		assertThat(this.createEditPage.getAlias()).isEmpty();
+		assertThat(this.createEditPage.getDescription()).isNull();
+		assertThat(this.createEditPage.getAdditionalDescription()).isNull();
+		assertThat(this.createEditPage.getAffiliation()).isNull();
+		assertThat(this.createEditPage.getType()).isEqualTo(UNCATEGORIZED);
+		assertThat(this.createEditPage.isInheritFacetFromParent()).isTrue();
+		assertThat(this.createEditPage.isInheritMetaBlocksFromParent()).isTrue();
+		assertThat(this.createEditPage.isMessagesBannersAllowed()).isFalse();
+		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
+		assertThat(this.createEditPage.getFacets().getSource()).isNotEmpty();
+		assertThat(this.createEditPage.getFacets().getTarget()).isEmpty();
 		
-		Dataverse dataverse = this.page.getDataverse();
+		Dataverse dataverse = this.createEditPage.getDataverse();
 		
 		assertThat(dataverse.isNew()).isTrue();
 		assertThat(dataverse.getOwner().getId()).isEqualTo(1L);
@@ -169,16 +169,16 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.getContacts()).hasSize(1);
 		assertThat(version.getContacts().get(0).getEmail()).isEmpty();
 		
-		this.page.setName("name1");
-		this.page.setAlias("alias1");
-		this.page.setAffiliation("affiliation1");
-		this.page.setType(LABORATORY);
-		this.page.getContacts().get(0).setEmail("user@email.com");
-		this.page.setInheritFacetFromParent(false);
-		this.page.getFacets().getTarget().add(this.page.getFacets().getSource().get(0));
-		this.page.setMessagesBannersAllowed(true);
+		this.createEditPage.setName("name1");
+		this.createEditPage.setAlias("alias1");
+		this.createEditPage.setAffiliation("affiliation1");
+		this.createEditPage.setType(LABORATORY);
+		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.getFacets().getTarget().add(this.createEditPage.getFacets().getSource().get(0));
+		this.createEditPage.setMessagesBannersAllowed(true);
 		
-		assertThat(this.page.saveAndRelease()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
+		assertThat(this.createEditPage.saveAndRelease()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
 		
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
@@ -209,39 +209,39 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	@Transactional(TransactionMode.ROLLBACK)
 	void editDataverseDraft() {
 		
-		this.page.setOwnerId(1L);
-		this.page.init();
-		this.page.setName("name1");
-		this.page.setAlias("alias1");
-		this.page.setAffiliation("affiliation1");
-		this.page.setType(LABORATORY);
-		this.page.getContacts().get(0).setEmail("user@email.com");
-		this.page.setInheritFacetFromParent(false);
-		this.page.getFacets().getTarget().add(this.page.getFacets().getSource().get(0));
-		this.page.setMessagesBannersAllowed(true);
-		this.page.save();
-		Dataverse dataverse = this.page.getDataverse();
+		this.createEditPage.setOwnerId(1L);
+		this.createEditPage.init();
+		this.createEditPage.setName("name1");
+		this.createEditPage.setAlias("alias1");
+		this.createEditPage.setAffiliation("affiliation1");
+		this.createEditPage.setType(LABORATORY);
+		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.getFacets().getTarget().add(this.createEditPage.getFacets().getSource().get(0));
+		this.createEditPage.setMessagesBannersAllowed(true);
+		this.createEditPage.save();
+		Dataverse dataverse = this.createEditPage.getDataverse();
 		
-		this.page = newPage();
-		this.page.setDataverseId(dataverse.getId());
-		this.page.init();
+		this.createEditPage = newPage();
+		this.createEditPage.setDataverseId(dataverse.getId());
+		this.createEditPage.init();
 		
-		assertThat(this.page.getTitle()).isEqualTo("Edit Collection - name1");
-		assertThat(this.page.getName()).isEqualTo("name1");
-		assertThat(this.page.getAlias()).isEqualTo("alias1");
-		assertThat(this.page.getDescription()).isNull();
-		assertThat(this.page.getAdditionalDescription()).isNull();
-		assertThat(this.page.getAffiliation()).isEqualTo("affiliation1");
-		assertThat(this.page.getType()).isEqualTo(LABORATORY);
-		assertThat(this.page.isInheritFacetFromParent()).isFalse();
-		assertThat(this.page.isInheritMetaBlocksFromParent()).isTrue();
-		assertThat(this.page.isMessagesBannersAllowed()).isTrue();
-		assertThat(this.page.canUserPublishCollection()).isTrue();
-		assertThat(this.page.getFacets().getSource()).isNotEmpty();
-		assertThat(this.page.getFacets().getTarget()).hasSize(1);
-		assertThat(this.page.getFacets().getTarget().get(0).getName()).isEqualTo("authorName");
+		assertThat(this.createEditPage.getTitle()).isEqualTo("Edit Collection - name1");
+		assertThat(this.createEditPage.getName()).isEqualTo("name1");
+		assertThat(this.createEditPage.getAlias()).isEqualTo("alias1");
+		assertThat(this.createEditPage.getDescription()).isNull();
+		assertThat(this.createEditPage.getAdditionalDescription()).isNull();
+		assertThat(this.createEditPage.getAffiliation()).isEqualTo("affiliation1");
+		assertThat(this.createEditPage.getType()).isEqualTo(LABORATORY);
+		assertThat(this.createEditPage.isInheritFacetFromParent()).isFalse();
+		assertThat(this.createEditPage.isInheritMetaBlocksFromParent()).isTrue();
+		assertThat(this.createEditPage.isMessagesBannersAllowed()).isTrue();
+		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
+		assertThat(this.createEditPage.getFacets().getSource()).isNotEmpty();
+		assertThat(this.createEditPage.getFacets().getTarget()).hasSize(1);
+		assertThat(this.createEditPage.getFacets().getTarget().get(0).getName()).isEqualTo("authorName");
 		
-		dataverse = this.page.getDataverse();
+		dataverse = this.createEditPage.getDataverse();
 		
 		assertThat(dataverse.isNew()).isFalse();
 		assertThat(dataverse.getOwner().getId()).isEqualTo(1L);
@@ -255,17 +255,17 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.getContacts()).hasSize(1);
 		assertThat(version.getContacts().get(0).getEmail()).isNotEmpty();
 		
-		this.page.setName("name2");
-		this.page.setAlias("alias2");
-		this.page.setAffiliation("affiliation2");
-		this.page.setType(DEPARTMENT);
-		this.page.addContact(1);
-		this.page.getContacts().get(1).setEmail("admin@email.com");
-		this.page.setInheritFacetFromParent(false);
-		this.page.setMessagesBannersAllowed(true);
+		this.createEditPage.setName("name2");
+		this.createEditPage.setAlias("alias2");
+		this.createEditPage.setAffiliation("affiliation2");
+		this.createEditPage.setType(DEPARTMENT);
+		this.createEditPage.addContact(1);
+		this.createEditPage.getContacts().get(1).setEmail("admin@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.setMessagesBannersAllowed(true);
 		
 		
-		assertThat(this.page.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias2");
+		assertThat(this.createEditPage.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias2");
 		
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
@@ -297,39 +297,39 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	@Transactional(TransactionMode.ROLLBACK)
 	void editDataverseRelease() {
 		
-		this.page.setOwnerId(1L);
-		this.page.init();
-		this.page.setName("name1");
-		this.page.setAlias("alias1");
-		this.page.setAffiliation("affiliation1");
-		this.page.setType(LABORATORY);
-		this.page.getContacts().get(0).setEmail("user@email.com");
-		this.page.setInheritFacetFromParent(false);
-		this.page.getFacets().getTarget().add(this.page.getFacets().getSource().get(0));
-		this.page.setMessagesBannersAllowed(true);
-		this.page.saveAndRelease();
-		Dataverse dataverse = this.page.getDataverse();
+		this.createEditPage.setOwnerId(1L);
+		this.createEditPage.init();
+		this.createEditPage.setName("name1");
+		this.createEditPage.setAlias("alias1");
+		this.createEditPage.setAffiliation("affiliation1");
+		this.createEditPage.setType(LABORATORY);
+		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.getFacets().getTarget().add(this.createEditPage.getFacets().getSource().get(0));
+		this.createEditPage.setMessagesBannersAllowed(true);
+		this.createEditPage.saveAndRelease();
+		Dataverse dataverse = this.createEditPage.getDataverse();
 		
-		this.page = newPage();
-		this.page.setDataverseId(dataverse.getId());
-		this.page.init();
+		this.createEditPage = newPage();
+		this.createEditPage.setDataverseId(dataverse.getId());
+		this.createEditPage.init();
 		
-		assertThat(this.page.getTitle()).isEqualTo("Edit Collection - name1");
-		assertThat(this.page.getName()).isEqualTo("name1");
-		assertThat(this.page.getAlias()).isEqualTo("alias1");
-		assertThat(this.page.getDescription()).isNull();
-		assertThat(this.page.getAdditionalDescription()).isNull();
-		assertThat(this.page.getAffiliation()).isEqualTo("affiliation1");
-		assertThat(this.page.getType()).isEqualTo(LABORATORY);
-		assertThat(this.page.isInheritFacetFromParent()).isFalse();
-		assertThat(this.page.isInheritMetaBlocksFromParent()).isTrue();
-		assertThat(this.page.isMessagesBannersAllowed()).isTrue();
-		assertThat(this.page.canUserPublishCollection()).isTrue();
-		assertThat(this.page.getFacets().getSource()).isNotEmpty();
-		assertThat(this.page.getFacets().getTarget()).hasSize(1);
-		assertThat(this.page.getFacets().getTarget().get(0).getName()).isEqualTo("authorName");
+		assertThat(this.createEditPage.getTitle()).isEqualTo("Edit Collection - name1");
+		assertThat(this.createEditPage.getName()).isEqualTo("name1");
+		assertThat(this.createEditPage.getAlias()).isEqualTo("alias1");
+		assertThat(this.createEditPage.getDescription()).isNull();
+		assertThat(this.createEditPage.getAdditionalDescription()).isNull();
+		assertThat(this.createEditPage.getAffiliation()).isEqualTo("affiliation1");
+		assertThat(this.createEditPage.getType()).isEqualTo(LABORATORY);
+		assertThat(this.createEditPage.isInheritFacetFromParent()).isFalse();
+		assertThat(this.createEditPage.isInheritMetaBlocksFromParent()).isTrue();
+		assertThat(this.createEditPage.isMessagesBannersAllowed()).isTrue();
+		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
+		assertThat(this.createEditPage.getFacets().getSource()).isNotEmpty();
+		assertThat(this.createEditPage.getFacets().getTarget()).hasSize(1);
+		assertThat(this.createEditPage.getFacets().getTarget().get(0).getName()).isEqualTo("authorName");
 		
-		dataverse = this.page.getDataverse();
+		dataverse = this.createEditPage.getDataverse();
 		
 		assertThat(dataverse.isNew()).isFalse();
 		assertThat(dataverse.getOwner().getId()).isEqualTo(1L);
@@ -343,17 +343,17 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.getContacts()).hasSize(1);
 		assertThat(version.getContacts().get(0).getEmail()).isNotEmpty();
 		
-		this.page.setName("name2");
-		this.page.setAlias("alias2");
-		this.page.setAffiliation("affiliation2");
-		this.page.setType(DEPARTMENT);
-		this.page.addContact(1);
-		this.page.getContacts().get(1).setEmail("admin@email.com");
-		this.page.setInheritFacetFromParent(false);
-		this.page.setMessagesBannersAllowed(true);
+		this.createEditPage.setName("name2");
+		this.createEditPage.setAlias("alias2");
+		this.createEditPage.setAffiliation("affiliation2");
+		this.createEditPage.setType(DEPARTMENT);
+		this.createEditPage.addContact(1);
+		this.createEditPage.getContacts().get(1).setEmail("admin@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.setMessagesBannersAllowed(true);
 		
 		
-		assertThat(this.page.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias2");
+		assertThat(this.createEditPage.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias2");
 		
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
