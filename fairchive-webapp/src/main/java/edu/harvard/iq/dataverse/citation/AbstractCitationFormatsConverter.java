@@ -21,6 +21,8 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
     // -------------------- INNER CLASSES --------------------
 
     protected static final class CitationBuilder {
+        private static final String DEFAULT_DELIMITER = ", ";
+
         private final boolean escapeHtml;
         private final StringBuilder citation = new StringBuilder();
         private final List<Token> partElements = new ArrayList<>();
@@ -65,22 +67,27 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
         }
 
         public CitationBuilder endPart() {
-            return endPart(", ");
+            return endPart(DEFAULT_DELIMITER);
         }
 
-        public CitationBuilder endPartEmpty() {
-            return endPart(EMPTY);
-        }
-
-        public CitationBuilder endPart(String delimiter) {
+        /**
+         * Ends the current part, writing {@code precedingDelimiter} between
+         * the citation so far and this part. The part is skipped when any of
+         * its values is blank, and then no delimiter is written, so the
+         * citation never begins or ends with one, whichever parts are
+         * skipped.
+         */
+        public CitationBuilder endPart(String precedingDelimiter) {
             if (partElements.stream()
                     .filter(t -> Token.Type.DATA == t.type)
                     .map(t -> t.value)
                     .allMatch(StringUtils::isNotBlank)) {
+                if (citation.length() > 0) {
+                    citation.append(precedingDelimiter);
+                }
                 citation.append(partElements.stream()
                         .map(t -> t.value)
-                        .collect(joining()))
-                        .append(delimiter);
+                        .collect(joining()));
             }
             partElements.clear();
             return this;

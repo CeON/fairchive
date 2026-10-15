@@ -41,22 +41,22 @@ public class StandardCitationFormatsConverter extends AbstractCitationFormatsCon
         citation.value(data.getAuthorsString()).endPart()
                 .rawValue(data.getYear()).endPart();
         if (data.getFileTitle() != null && data.isDirect()) {
-            citation.add("\"").value(data.getFileTitle()).endPart("\", ")
-                    .add("<i>").value(data.getTitle()).endPart("</i>, ");
+            citation.add("\"").value(data.getFileTitle()).add("\"").endPart()
+                    .add("<i>").value(data.getTitle()).add("</i>").endPart();
         } else {
-            citation.add("\"").value(data.getTitle()).endPart("\", ");
+            citation.add("\"").value(data.getTitle()).add("\"").endPart();
         }
         String pid = Optional.ofNullable(data.getPersistentId())
                 .map(GlobalId::toURL)
                 .map(URL::toString)
                 .orElse(StringUtils.EMPTY);
 
-        citation.urlValue(pid, pid).endPartEmpty()
-                .add(", ").value(data.getPublisher()).endPartEmpty()
-                .add(", ").rawValue(data.getVersion()).endPartEmpty();
+        citation.urlValue(pid, pid).endPart()
+                .value(data.getPublisher()).endPart()
+                .rawValue(data.getVersion()).endPart();
 
         if (!data.isDirect()) {
-            citation.add("; ").value(data.getFileTitle()).endPart(" [fileName]");
+            citation.value(data.getFileTitle()).add(" [fileName]").endPart("; ");
         }
         return citation.toString();
     }
