@@ -21,6 +21,7 @@ import javax.inject.Named;
 import org.omnifaces.cdi.ViewScoped;
 import org.slf4j.Logger;
 
+import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
@@ -38,34 +39,27 @@ public class DatasetEmbargoDialog implements Serializable {
 
     private Dataset dataset;
 
-    private boolean renderEmbargoDialog = false;
     private Date currentEmbargoDate;
 
-    private DatasetService datasetService;
-    
+    private DatasetService datasetService;  
     private SettingsServiceBean settings;
     private UIMessages ui;
+    private DataverseSession session;
 
 
     // -------------------- CONSTRUCTORS --------------------
     @Inject
     public DatasetEmbargoDialog(final DatasetService datasetService,
     		                    final SettingsServiceBean settings,
-    		                    final UIMessages ui) {
+    		                    final UIMessages ui,
+    		                    final DataverseSession session) {
     	this.datasetService = datasetService;
     	this.settings = settings;
     	this.ui = ui;
+    	this.session = session;
     }
 
     // -------------------- GETTERS --------------------
-
-    public boolean isRenderEmbargoDialog() {
-        return this.renderEmbargoDialog;
-    }
-    
-    public void setRenderEmbargoDialog(final boolean renderEmbargoPopup) {
-        this.renderEmbargoDialog = renderEmbargoPopup;
-    }
 
     public Date getCurrentEmbargoDate() {
         return this.currentEmbargoDate;
@@ -83,7 +77,7 @@ public class DatasetEmbargoDialog implements Serializable {
     	return this.currentEmbargoDate != null;
     }
     
-    public boolean isMaximumEmbargoLengthSet() {
+    private boolean isMaximumEmbargoLengthSet() {
         return getMaximumEmbargoLength() > 0;
     }
 
@@ -108,23 +102,33 @@ public class DatasetEmbargoDialog implements Serializable {
     public String getDefaultDateFormat() {
     	return this.settings.getValueForKey(DefaultDateFormat, "yyyy-MM-dd");
     }
+    
+    public boolean isUserAbleToLiftEmbargo() {
+        return this.dataset.hasActiveEmbargo();
+    }
+    
+    public boolean isUserAbleToSetOrUpdateEmbargo() {
+        return !this.dataset.hasEverBeenPublished() || 
+        		this.session.isSuperUserLoggedIn();
+    }
+    
+    public boolean hasDatasetEverBeenPublished() {
+    	return this.dataset.hasEverBeenPublished();
+    }
+    
+    public boolean displayMaxEmbargoMessage() {
+    	return isUserAbleToSetOrUpdateEmbargo() && isMaximumEmbargoLengthSet();
+    }
 
     // -------------------- LOGIC --------------------
 
     public void init(final Dataset dataset) {
         this.dataset = dataset;
-    }
-
-    /**
-     * Loads current embargo date and causes deaccession dialog to render
-     */
-    public void reloadAndRenderDialog() {
         initCurrentEmbargo();
-        this.renderEmbargoDialog = true;
     }
 
     public void initCurrentEmbargo() {
-        this.currentEmbargoDate = this.dataset.getEmbargoDate().getOrNull();
+        this.currentEmbargoDate = this.dataset.getEmbargoDate().getOrElse(getTomorrowsDate());
     }
     
 
