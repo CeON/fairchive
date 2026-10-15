@@ -7,6 +7,7 @@ import edu.harvard.iq.dataverse.license.TermsOfUseFactory;
 import edu.harvard.iq.dataverse.license.TermsOfUseFormMapper;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile.ChecksumType;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile.IngestType;
 import edu.harvard.iq.dataverse.persistence.datafile.ingest.IngestError;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
@@ -103,7 +104,27 @@ public class DataFileCreatorTest {
         assertThat(datafiles).hasSize(1);
         assertThat(datafiles).element(0).extracting(DataFile::getContentType).isEqualTo(expectedContentType);
     }
-    
+
+    @ParameterizedTest
+    @CsvSource({
+        "text/csv, TAB",
+        "text/tab-separated-values, TAB",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, TAB",
+        "application/x-spss-sav, TAB",
+        "image/jpeg, NON",
+        "application/pdf, NON"})
+    void createDataFiles_shouldIngestOnlyTabularFilesByDefault(String contentType, IngestType expectedIngestType) throws IOException {
+        // given
+        when(settingsService.getValueForKeyAsLong(Key.MaxFileUploadSizeInBytes)).thenReturn(1024L);
+        when(settingsService.getValueForKey(Key.FileFixityChecksumAlgorithm)).thenReturn("MD5");
+        when(fileTypeDetector.determineFileType(any(), any())).thenReturn(contentType);
+        // when
+        List<DataFile> datafiles = dataFileCreator.createDataFiles(new ByteArrayInputStream(new byte[0]), "filename", contentType, emptyFileParams);
+        // then
+        assertThat(datafiles).hasSize(1);
+        assertThat(datafiles).element(0).extracting(DataFile::getIngestType).isEqualTo(expectedIngestType);
+    }
+
     @Test
     void createDataFiles_shouldThrowExceptionOnVirusInfectedFile() throws IOException {
         // given
