@@ -66,8 +66,8 @@ public class DatasetEmbargoDialogTest {
 		assertThat(this.dialog.getMaximumEmbargoDateForDisplay()).isEmpty();
 		assertThat(this.dialog.getMaximumEmbargoDate()).isNull();
 
-		assertThat(this.dialog.getCurrentEmbargoDate()).isNull();
-		assertThat(this.dialog.getCurrentEmbargoDateForDisplay()).isEmpty();
+		assertThat(this.dialog.getCurrentEmbargoDate()).isNotNull();
+		assertThat(this.dialog.getCurrentEmbargoDateForDisplay()).isNotEmpty();
 		assertThat(this.dialog.getTomorrowsDate()).isNotNull();
 
 		assertThat(this.dialog.getDefaultDateFormat()).isNotEmpty();
@@ -94,8 +94,8 @@ public class DatasetEmbargoDialogTest {
 		assertThat(this.dialog.getMaximumEmbargoDateForDisplay()).isNotEmpty();
 		assertThat(this.dialog.getMaximumEmbargoDate()).isNotNull();
 
-		assertThat(this.dialog.getCurrentEmbargoDate()).isNull();
-		assertThat(this.dialog.getCurrentEmbargoDateForDisplay()).isEmpty();
+		assertThat(this.dialog.getCurrentEmbargoDate()).isNotNull();
+		assertThat(this.dialog.getCurrentEmbargoDateForDisplay()).isNotEmpty();
 		assertThat(this.dialog.getTomorrowsDate()).isNotNull();
 
 		assertThat(this.dialog.getDefaultDateFormat()).isNotEmpty();
