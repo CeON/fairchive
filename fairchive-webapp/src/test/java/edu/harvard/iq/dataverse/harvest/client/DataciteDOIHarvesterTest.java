@@ -29,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -87,6 +86,7 @@ public class DataciteDOIHarvesterTest {
     @Test
     public void harvest__delete() throws ImportException {
         // given
+        when(importService.doDeleteHarvestedDataset(any(), any(), any())).thenReturn(true);
         DataciteHarvesterParams params = new DataciteHarvesterParams();
         params.setDoiRemove(DOI_REPO);
         DataverseRequest dataverseRequest = dataverseRequest();
@@ -102,6 +102,21 @@ public class DataciteDOIHarvesterTest {
         assertThat(result.getNumHarvested()).isEqualTo(0);
         assertThat(result.getNumDeleted()).isEqualTo(5);
         assertThat(result.getNumFailed()).isEqualTo(0);
+    }
+
+    @Test
+    public void harvest__deleteOfNotHarvestedDataset() throws ImportException {
+        // given
+        when(importService.doDeleteHarvestedDataset(any(), any(), any())).thenReturn(false);
+        DataciteHarvesterParams params = new DataciteHarvesterParams();
+        params.setDoiRemove(DOI_REPO);
+
+        // when
+        HarvesterResult result = dataciteDOIHarvester.harvest(dataverseRequest(), harvestingClient, Logger.getLogger("test"), params);
+
+        // then
+        assertThat(result.getNumDeleted()).isEqualTo(0);
+        assertThat(result.getNumFailed()).isEqualTo(5);
     }
 
     @Test
@@ -121,7 +136,7 @@ public class DataciteDOIHarvesterTest {
         }
 
         for (DataciteHarvesterParams.DOIValue f : delSuccess) {
-            doNothing().when(importService).doDeleteHarvestedDataset(any(), any(), eq(f.getFull()));
+            when(importService.doDeleteHarvestedDataset(any(), any(), eq(f.getFull()))).thenReturn(true);
         }
 
         for (DataciteHarvesterParams.DOIValue f : delFail) {

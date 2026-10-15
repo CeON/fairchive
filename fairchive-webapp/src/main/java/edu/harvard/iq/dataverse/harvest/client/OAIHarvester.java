@@ -90,10 +90,15 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
 				throw new HarvestException(record.getErrorMessage());
 			}
 			if (record.isDeleted()) {
-				logger.info("Deleting harvesting dataset for ".concat(identifier));
-				this.importService.doDeleteHarvestedDataset(request, 
-						handler.getHarvestingClient(), identifier);
-				result.incrementDeleted();
+				// a record deleted at the source before it was ever harvested
+				// leaves nothing to delete here
+				if (this.importService.doDeleteHarvestedDataset(request, 
+						handler.getHarvestingClient(), identifier)) {
+					logger.info("Deleted harvested dataset for ".concat(identifier));
+					result.incrementDeleted();
+				} else {
+					logger.info("Skipping deleted record never harvested: ".concat(identifier));
+				}
 			} else {
 				this.importService.doImportHarvestedDataset(request, 
 						handler.getHarvestingClient(), identifier,

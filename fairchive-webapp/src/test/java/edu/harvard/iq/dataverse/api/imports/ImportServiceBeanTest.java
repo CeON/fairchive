@@ -4,6 +4,8 @@ import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import edu.harvard.iq.dataverse.EjbDataverseEngine;
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateHarvestedDatasetCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.DeleteDatasetCommand;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
@@ -32,6 +35,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
+import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
 
@@ -55,6 +59,9 @@ class ImportServiceBeanTest {
     
     @Mock
     private DatasetFieldTypeRepository typeRepository;
+
+    @Mock
+    private IndexServiceBean indexService;
 
     @InjectMocks
     private ImportServiceBean importServiceBean;
@@ -137,6 +144,37 @@ class ImportServiceBeanTest {
         Assertions.assertThat(checkIfContainsNotPersistedDataField(parentField.getDatasetFieldsChildren(), childInvalidField))
                  .isFalse();
         
+    }
+
+    @Test
+    void doDeleteHarvestedDataset() throws Exception {
+        // given
+        Dataset dataset = createDatasetWithInvalidFields();
+        when(datasetService.getDatasetByHarvestInfo(dataverse, harvestIdentifier)).thenReturn(dataset);
+        when(em.merge(dataset)).thenReturn(dataset);
+
+        // when
+        boolean deleted = importServiceBean.doDeleteHarvestedDataset(
+                dataverseRequest, harvestingClient, harvestIdentifier);
+
+        // then
+        Assertions.assertThat(deleted).isTrue();
+        verify(indexService).deleteHarvestedDocuments(dataset);
+        verify(engineSvc).submit(any(DeleteDatasetCommand.class));
+    }
+
+    @Test
+    void doDeleteHarvestedDataset__notHarvestedDataset() throws Exception {
+        // given
+        when(datasetService.getDatasetByHarvestInfo(dataverse, harvestIdentifier)).thenReturn(null);
+
+        // when
+        boolean deleted = importServiceBean.doDeleteHarvestedDataset(
+                dataverseRequest, harvestingClient, harvestIdentifier);
+
+        // then
+        Assertions.assertThat(deleted).isFalse();
+        verifyNoInteractions(indexService, engineSvc);
     }
 
     @Test

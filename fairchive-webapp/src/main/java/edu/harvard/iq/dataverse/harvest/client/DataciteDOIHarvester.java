@@ -76,7 +76,9 @@ public class DataciteDOIHarvester implements Harvester<DataciteHarvesterParams> 
 
     private void removeDOI(HarvesterResult rs, DataverseRequest dataverseRequest, HarvestingClient harvestingClient, Logger hdLogger, DataciteHarvesterParams.DOIValue doi) {
         try {
-            importService.doDeleteHarvestedDataset(dataverseRequest, harvestingClient, doi.getFull());
+            if (!importService.doDeleteHarvestedDataset(dataverseRequest, harvestingClient, doi.getFull())) {
+                throw new ImportException("No dataset found for " + doi.getFull() + ", skipping delete.");
+            }
             rs.incrementDeleted();
         } catch (Exception e) {
             rs.incrementFailed();

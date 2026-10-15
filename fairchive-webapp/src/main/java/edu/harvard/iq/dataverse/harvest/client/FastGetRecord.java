@@ -23,6 +23,7 @@ import static java.lang.Character.isLetter;
 import static java.lang.Character.isWhitespace;
 import static java.lang.Math.min;
 import static java.net.HttpURLConnection.HTTP_UNAVAILABLE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.xml.stream.XMLStreamConstants.CDATA;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.COMMENT;
@@ -32,6 +33,7 @@ import static javax.xml.stream.XMLStreamConstants.ENTITY_REFERENCE;
 import static javax.xml.stream.XMLStreamConstants.PROCESSING_INSTRUCTION;
 import static javax.xml.stream.XMLStreamConstants.SPACE;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import java.io.BufferedReader;
@@ -170,6 +172,23 @@ public class FastGetRecord implements AutoCloseable {
 		
 		IOUtils.copy(rd, this.buffer);
 		
+		// The header goes first: a deleted record has no <metadata> at all,
+		// and a "dataverse_json" one has an empty <metadata> that only
+		// points to the place the record is downloaded from.
+		try {
+			processOAIheader(
+					xmlInputFactory.createXMLStreamReader(new StringBuilderReader(this.buffer)),
+					metadataPrefix.equals(DATAVERSE_EXTENDED_METADATA));
+		} catch (XMLStreamException ex) {
+			if (this.errorMessage == null) {
+				this.errorMessage = "Malformed GetRecord response: " + this.buffer;
+			}
+			return;
+		}
+		if(this.recordDeleted || this.content != null) {
+			return;
+		}
+		
 		final int metadataBlockIndex = this.buffer.indexOf("<metadata");
 		if(metadataBlockIndex == -1) {
 			this.errorMessage = "<metadata> tag not found.";
@@ -202,16 +221,6 @@ public class FastGetRecord implements AutoCloseable {
 		}
 		
 		this.content = this.buffer.substring(metadataEntryIndex, metadataExitIndex + 1);
-		
-		try {
-			final XMLStreamReader xmlr = xmlInputFactory.createXMLStreamReader(new StringBuilderReader(this.buffer));
-		    processOAIheader(xmlr, metadataPrefix.equals(DATAVERSE_EXTENDED_METADATA));
-
-		} catch (XMLStreamException ex) {
-		    if (this.errorMessage == null) {
-		        this.errorMessage = "Malformed GetRecord response: " + this.buffer;
-		    }
-		}
 	}
 
 	/**
@@ -394,10 +403,13 @@ public class FastGetRecord implements AutoCloseable {
 
 
         if (responseCode == 200) {
-        	final Charset charset = ContentType.parse(con.getHeaderField("Content-Type")).getCharset();
+        	// JSON is served without a charset, and is UTF-8 by definition
+        	final Charset charset = defaultIfNull(
+        			ContentType.parse(con.getHeaderField("Content-Type")).getCharset(), UTF_8);
             try(final InputStream in = openInputStream(con)) {
             	this.content = IOUtils.toString(in, charset);
             }
+            return;
         }
 
         throw new IOException("Failed to download extended metadata.");
