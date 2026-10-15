@@ -210,6 +210,15 @@
                                             <h:outputText value="#{bundle['dataverse.option.themeAndWidgets']}"/>
                                         </h:link>
                                     </li>
+                                    <li role="none">
+                                        <h:link outcome="widgets" 
+                                               id="widgetsOpts" 
+                                               pt:role="menuitem">
+                                            <f:param name="id" 
+                                                     value="#{DataversePage.dataverse.id}"/>
+                                            <h:outputText value="#{bundle['dataverse.widgets.title']}"/>
+                                        </h:link>
+                                    </li>
                                     <ui:fragment
                                             rendered="#{permissionsWrapper.canManagePermissions(DataversePage.dataverse)}">
                                         <li role="none">

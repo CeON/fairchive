@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+      xmlns:jsf="http://xmlns.jcp.org/jsf">
+
+<h:body>
+    <ui:composition template="/dataverse_template.xhtml">
+        <ui:param name="pageTitle" value="#{widgetsPage.title}"/>
+       
+        <ui:define name="body">
+            <f:metadata>
+                <f:viewParam name="id" value="#{widgetsPage.dataverseId}"/>
+                <f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}"/>
+                <f:viewAction action="#{widgetsPage.init}"/>
+                <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(widgetsPage.dataverse, bundle['dataverse.widgets.title'])}"/>
+            </f:metadata>
+
+        <div jsf:rendered="#{not widgetsPage.dataverseReleased}"
+             id="no-widgets-message"
+             class="panel panel-default">
+            <div class="panel-body">
+                <span class="help-block h3">#{bundle['dataverse.widgets.notPublished.why.header']}</span>
+                <ul>
+                    <li>#{bundle['dataverse.widgets.notPublished.why.reason1']}</li>
+                    <li>#{bundle['dataverse.widgets.notPublished.why.reason2']}</li>
+                </ul>
+                <span class="help-block h3">#{bundle['dataverse.widgets.notPublished.how.header']}</span>
+                <ul>
+                    <li><h:outputText
+                            value="#{bundle['dataverse.widgets.notPublished.how.tip1']}"
+                            escape="false" /></li>
+                    <li><h:outputText
+                            value="#{bundle['dataverse.widgets.notPublished.how.tip2']}"
+                            escape="false" /></li>
+                    <li><h:outputFormat
+                            value="#{bundle['dataverse.widgets.notPublished.how.tip3']}"
+                            escape="false">
+                            <f:param value="#{widgetsPage.guidesBaseUrl}" />
+                            <f:param value="#{widgetsPage.guidesVersion}" />
+                        </h:outputFormat></li>
+                </ul>
+                <p>
+                    <h:outputFormat
+                        value="#{bundle['dataverse.widgets.notPublished.getStarted']}"
+                        escape="false">
+                        <f:param value="#{widgetsPage.guidesBaseUrl}" />
+                        <f:param value="#{widgetsPage.guidesVersion}" />
+                    </h:outputFormat>
+                </p>
+            </div>
+        </div>
+
+        <div jsf:rendered="#{widgetsPage.dataverseReleased}">
+            <p class="help-block">
+                <span class="glyphicon glyphicon-info-sign" />
+                <h:outputFormat value=" #{bundle['dataverse.widgets.tip']}"
+                                escape="false">
+                    <f:param value="#{widgetsPage.guidesBaseUrl}" />
+                    <f:param value="#{widgetsPage.guidesVersion}" />
+                </h:outputFormat>
+            </p>
+            <div>
+                <h5>#{bundle['dataverse.widgets.searchBox.txt']}</h5>
+                <p class="help-block">#{bundle['dataverse.widgets.searchBox.tip']}</p>
+            </div>
+            <div>
+                <textarea rows="3"
+                          cols="54"
+                          class="form-control"
+                          readonly="readonly">#{widgetsPage.searchText}</textarea>
+            </div>
+            <div>
+                <h5>#{bundle['dataverse.widgets.dataverseListing.txt']}</h5>
+                <p class="help-block">#{bundle['dataverse.widgets.dataverseListing.tip']}</p>
+            </div>
+            <div>
+                <textarea rows="3"
+                          cols="54"
+                          class="form-control"
+                          readonly="readonly">#{widgetsPage.listingText}</textarea>
+            </div>
+            <div class="button-block">
+                <p:commandButton class="btn btn-default button-cancel"
+                                 action="#{widgetsPage.cancel()}"
+                                 immediate="true"
+                                 id="widgetsDone"
+                                 value="#{bundle.done}" />
+            </div>
+        </div>
+        </ui:define>
+    </ui:composition>
+</h:body>
+</html>
