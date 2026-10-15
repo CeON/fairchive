@@ -11,10 +11,9 @@ import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 /**
@@ -81,19 +80,17 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
     }
     
 	private void addFacets(final CommandContext context) {
-        final DataverseVersion version = this.dataverse.getLatestVersion();
-        version.clearFacets();
+		this.dataverse.clearFacets();
         for(int index = 0; index < this.facets.size(); ++index) {
-        	final DataverseFacet facet = version.addFacet(this.facets.get(index));
+        	final DataverseFacet facet = this.dataverse.addFacet(this.facets.get(index));
         	facet.setDisplayOrder(index);
         	//context.facets().save(facet);
         }
 	}
 	
 	private void addDataverseFieldTypeInputLevels(final CommandContext context) {
-		final DataverseVersion version = this.dataverse.getLatestVersion();
 		for(final DataverseFieldTypeInputLevel level : this.inputLevels) {
-			version.addDataverseFieldTypeInputLevel(level);
+			this.dataverse.addDataverseFieldTypeInputLevel(level);
 			context.inputLevels().save(level);
 		}
 	}

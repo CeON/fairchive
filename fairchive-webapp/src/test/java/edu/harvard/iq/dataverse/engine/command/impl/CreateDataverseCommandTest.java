@@ -311,14 +311,14 @@ public class CreateDataverseCommandTest {
         int i = 0;
         for (DataverseFacet df : createdFacets) {
             assertEquals(i, df.getDisplayOrder());
-            assertEquals(result, df.getVersion().getDataverse());
+            assertEquals(result, df.getDataverse());
             assertEquals(expectedFacets.get(i), df.getDatasetFieldType());
 
             i++;
         }
 
         for (DataverseFieldTypeInputLevel dftil : createdDftils) {
-            assertEquals(result, dftil.getVersion().getDataverse());
+            assertEquals(result, dftil.getDataverse());
         }
     }
 

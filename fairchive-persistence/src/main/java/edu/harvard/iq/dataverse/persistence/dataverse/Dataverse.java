@@ -208,7 +208,7 @@ public class Dataverse extends DvObjectContainer {
     @ManyToOne
     @JoinColumn(nullable = true)
     private DataverseRole defaultDataverseContributorRole;
-    
+    private boolean facetRoot;
     private boolean metadataBlockRoot;
     // By default, themeRoot should be true, as new dataverses should start with the default theme
     private boolean themeRoot = true;
@@ -265,6 +265,13 @@ public class Dataverse extends DvObjectContainer {
     
     @OneToMany(mappedBy = "dataverse", cascade = {MERGE, REMOVE})
     private List<HarvestingClient> harvestingClientConfigs;
+    
+    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
+    @OrderBy("displayOrder")
+    private List<DataverseFacet> facets = new ArrayList<>();
+  
+    @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
+    private List<DataverseFieldTypeInputLevel> dataverseFieldTypeInputLevels = new ArrayList<>();
 
     private boolean guestbookRoot;
 
@@ -638,11 +645,6 @@ public class Dataverse extends DvObjectContainer {
     public void setMetadataBlocks(List<MetadataBlock> metadataBlocks) {
         this.metadataBlocks = metadataBlocks;
     }
-    
-	public List<DataverseFieldTypeInputLevel> getDataverseFieldTypeInputLevels() {
-    	//TODO: verify if this behavior is correct
-    	return getLatestVersion().getDataverseFieldTypeInputLevels();
-	}
 
     public List<DatasetFieldType> getCitationDatasetFieldTypes() {
         return citationDatasetFieldTypes;
@@ -698,15 +700,49 @@ public class Dataverse extends DvObjectContainer {
     	//TODO: verify if this behavior is correct
     	return getLatestVersion().isDraft();
     }
-    
-    public boolean isFacetRoot() {
-    	//TODO: verify if this behavior is correct
-    	return getLatestVersion().isFacetRoot();
-    }
 
     public boolean isMetadataBlockRoot() {
         return metadataBlockRoot;
     }
+    
+    public boolean isFacetRoot() {
+        return facetRoot;
+    }
+
+    public void setFacetRoot(boolean facetRoot) {
+        this.facetRoot = facetRoot;
+    }
+    
+	public List<DataverseFacet> getFacets() {
+		return unmodifiableList(this.facets);
+	}
+	
+	public DataverseFacet addFacet(final DatasetFieldType type) {
+		final DataverseFacet facet = new DataverseFacet(this, type);
+		this.facets.add(facet);
+		return facet;
+	}
+	
+	public void removeFacet(final int index) {
+		this.facets.remove(index);
+	}
+	
+	public void clearFacets() {
+		this.facets.clear();
+	}
+	
+	public List<DataverseFieldTypeInputLevel> getDataverseFieldTypeInputLevels() {
+		return unmodifiableList(this.dataverseFieldTypeInputLevels);
+	}
+	
+	public void addDataverseFieldTypeInputLevel(final DataverseFieldTypeInputLevel level) {
+		this.dataverseFieldTypeInputLevels.add(level);
+		level.setDataverse(this);
+	}
+	
+	public void removeDataverseFieldTypeInputLevel(final int index) {
+		this.dataverseFieldTypeInputLevels.remove(index);
+	}
 
     public void setMetadataBlockRoot(boolean metadataBlockRoot) {
         this.metadataBlockRoot = metadataBlockRoot;

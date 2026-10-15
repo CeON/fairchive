@@ -33,7 +33,7 @@ public class ListFacetsCommand extends AbstractCommand<List<DataverseFacet>> {
 
     @Override
     public List<DataverseFacet> execute(final CommandContext context)  {
-        return this.dataverse.getLatestVersion().getFacets();
+        return this.dataverse.getFacets();
     }
 
     @Override

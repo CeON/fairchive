@@ -329,7 +329,7 @@ public class CreateEditDataversePage implements Serializable {
         final List<DatasetFieldType> facetsTarget = new ArrayList<>();
         final List<DatasetFieldType> facetsSource = 
         		this.datasetFieldService.findAllFacetableFieldTypes();
-        for (final DataverseFacet facet : this.version.getFacets()) {
+        for (final DataverseFacet facet : this.dataverse.getFacets()) {
             final DatasetFieldType type = facet.getDatasetFieldType();
             facetsTarget.add(type);
             facetsSource.remove(type);
@@ -413,7 +413,7 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public boolean isInheritFacetFromParent() {
-        return !this.version.isFacetRoot();
+        return !this.dataverse.isFacetRoot();
     }
 
     public void toggleFacetRoot() {
@@ -569,7 +569,7 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public void setInheritFacetFromParent(final boolean inherit) {
-        this.version.setFacetRoot(!inherit);
+        this.dataverse.setFacetRoot(!inherit);
     }
 
     public void setDataverseOwnerAlias(final String alias) {

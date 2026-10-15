@@ -289,10 +289,10 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 			
 			assertThat(this.dataverse.getId()).isNotNull();
 			assertThat(this.dataverse.getVersions().get(0).getId()).isNotNull();
-			assertThat(this.dataverse.getVersions().get(0).getFacets().get(0).getId()).isNotNull();
-			assertThat(this.dataverse.getVersions().get(0).getFacets().get(1).getId()).isNotNull();
-			assertThat(this.dataverse.getVersions().get(0).getDataverseFieldTypeInputLevels().get(0).getId()).isNotNull();
-			assertThat(this.dataverse.getVersions().get(0).getDataverseFieldTypeInputLevels().get(1).getId()).isNotNull();
+			assertThat(this.dataverse.getFacets().get(0).getId()).isNotNull();
+			assertThat(this.dataverse.getFacets().get(1).getId()).isNotNull();
+			assertThat(this.dataverse.getDataverseFieldTypeInputLevels().get(0).getId()).isNotNull();
+			assertThat(this.dataverse.getDataverseFieldTypeInputLevels().get(1).getId()).isNotNull();
 			
 			this.dataverseRepository.clear();
 			
@@ -305,6 +305,18 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 			assertThat(stored.getAlias()).isEqualTo("test1");
 			assertThat(stored.getDataverseType()).isEqualTo(DEPARTMENT);
 			assertThat(stored.getVersions()).hasSize(1);
+			assertThat(stored.getFacets()).hasSize(2);
+			assertThat(stored.getFacets().get(0).getDatasetFieldType().getId()).isEqualTo(21L);
+			assertThat(stored.getFacets().get(0).getDisplayOrder()).isEqualTo(0);
+			assertThat(stored.getFacets().get(1).getDatasetFieldType().getId()).isEqualTo(81L);
+			assertThat(stored.getFacets().get(1).getDisplayOrder()).isEqualTo(1);
+			assertThat(stored.getDataverseFieldTypeInputLevels()).hasSize(2);
+			assertThat(stored.getDataverseFieldTypeInputLevels().get(0).getDatasetFieldType().getId()).isEqualTo(21L);
+			assertThat(stored.getDataverseFieldTypeInputLevels().get(0).isInclude()).isFalse();
+			assertThat(stored.getDataverseFieldTypeInputLevels().get(0).isRequired()).isTrue();
+			assertThat(stored.getDataverseFieldTypeInputLevels().get(1).getDatasetFieldType().getId()).isEqualTo(81L);
+			assertThat(stored.getDataverseFieldTypeInputLevels().get(1).isInclude()).isTrue();
+			assertThat(stored.getDataverseFieldTypeInputLevels().get(1).isRequired()).isFalse();
 			
 			DataverseVersion version = stored.getVersions().get(0);
 			Date now = new Date();
@@ -323,18 +335,6 @@ public class CreateDataverseCommandIT  extends WebappArquillianDeployment {
 			assertThat(version.getContacts()).hasSize(1);
 			assertThat(version.getContacts().get(0).getEmail()).isEqualTo("abc@mail.com");
 			assertThat(version.isMessagesBannersAllowed()).isTrue();
-			assertThat(version.getFacets()).hasSize(2);
-			assertThat(version.getFacets().get(0).getDatasetFieldType().getId()).isEqualTo(21L);
-			assertThat(version.getFacets().get(0).getDisplayOrder()).isEqualTo(0);
-			assertThat(version.getFacets().get(1).getDatasetFieldType().getId()).isEqualTo(81L);
-			assertThat(version.getFacets().get(1).getDisplayOrder()).isEqualTo(1);
-			assertThat(version.getDataverseFieldTypeInputLevels()).hasSize(2);
-			assertThat(version.getDataverseFieldTypeInputLevels().get(0).getDatasetFieldType().getId()).isEqualTo(21L);
-			assertThat(version.getDataverseFieldTypeInputLevels().get(0).isInclude()).isFalse();
-			assertThat(version.getDataverseFieldTypeInputLevels().get(0).isRequired()).isTrue();
-			assertThat(version.getDataverseFieldTypeInputLevels().get(1).getDatasetFieldType().getId()).isEqualTo(81L);
-			assertThat(version.getDataverseFieldTypeInputLevels().get(1).isInclude()).isTrue();
-			assertThat(version.getDataverseFieldTypeInputLevels().get(1).isRequired()).isFalse();
 			assertThat(version.getTheme().getBackgroundColor()).isEqualTo("#FFFFFF");
 			assertThat(version.getTheme().getLinkColor()).isEqualTo("#CCCCCC");
 			assertThat(version.getTheme().getLogo()).isEqualTo("logo");

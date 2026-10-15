@@ -115,6 +115,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getVersions()).hasSize(1);
 		assertThat(stored.isDraft()).isTrue();
 		assertThat(stored.isFacetRoot()).isTrue();
+		assertThat(stored.getFacets()).hasSize(1);
+		assertThat(stored.getFacets().get(0).getDatasetFieldType().getName()).
+			isEqualTo("authorName");
 		
 		DataverseVersion storedVersion = dataverse.getLatestVersion();
 		
@@ -126,9 +129,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.isMessagesBannersAllowed()).isTrue();
 		assertThat(storedVersion.getContacts()).hasSize(1);
 		assertThat(storedVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
-		assertThat(storedVersion.getFacets()).hasSize(1);
-		assertThat(storedVersion.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
@@ -187,6 +187,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getVersions()).hasSize(1);
 		assertThat(stored.isDraft()).isFalse();
 		assertThat(stored.isFacetRoot()).isTrue();
+		assertThat(stored.getFacets()).hasSize(1);
+		assertThat(stored.getFacets().get(0).getDatasetFieldType().getName()).
+			isEqualTo("authorName");
 		
 		DataverseVersion storedVersion = dataverse.getLatestVersion();
 		
@@ -198,9 +201,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.isMessagesBannersAllowed()).isTrue();
 		assertThat(storedVersion.getContacts()).hasSize(1);
 		assertThat(storedVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
-		assertThat(storedVersion.getFacets()).hasSize(1);
-		assertThat(storedVersion.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
@@ -274,6 +274,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getVersions()).hasSize(1);
 		assertThat(stored.isDraft()).isTrue();
 		assertThat(stored.isFacetRoot()).isTrue();
+		assertThat(stored.getFacets()).hasSize(1);
+		assertThat(stored.getFacets().get(0).getDatasetFieldType().getName()).
+			isEqualTo("authorName");
 		
 		DataverseVersion storedVersion = dataverse.getLatestVersion();
 		
@@ -286,9 +289,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.getContacts()).hasSize(2);
 		assertThat(storedVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
 		assertThat(storedVersion.getContacts().get(1).getEmail()).isEqualTo("admin@email.com");
-		assertThat(storedVersion.getFacets()).hasSize(1);
-		assertThat(storedVersion.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
@@ -365,6 +365,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getVersions()).hasSize(2);
 		assertThat(stored.getVersions().get(0).isReleased()).isTrue();
 		assertThat(stored.getVersions().get(1).isDraft()).isTrue();
+		assertThat(stored.getFacets()).hasSize(1);
+		assertThat(stored.getFacets().get(0).getDatasetFieldType().getName()).
+			isEqualTo("authorName");
 		
 		DataverseVersion releasedVersion = dataverse.getVersions().get(0);
 		
@@ -376,25 +379,18 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(releasedVersion.isMessagesBannersAllowed()).isTrue();
 		assertThat(releasedVersion.getContacts()).hasSize(1);
 		assertThat(releasedVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
-		assertThat(releasedVersion.getFacets()).hasSize(1);
-		assertThat(releasedVersion.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
-		
 		
 		DataverseVersion latestVersion = dataverse.getLatestVersion();
 		
 		assertThat(latestVersion.isDraft()).isTrue();
 		assertThat(latestVersion.getName()).isEqualTo("name2");
 		assertThat(latestVersion.getAlias()).isEqualTo("alias2");
-		assertThat(latestVersion.getAffiliation()).isEqualTo("affiliation2");
+		assertThat(latestVersion.getAffiliation()).isEqualTo("affiliation2");	
 		assertThat(latestVersion.getDataverseType()).isEqualTo(DEPARTMENT);
 		assertThat(latestVersion.isMessagesBannersAllowed()).isTrue();
 		assertThat(latestVersion.getContacts()).hasSize(2);
 		assertThat(latestVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
 		assertThat(latestVersion.getContacts().get(1).getEmail()).isEqualTo("admin@email.com");
-		assertThat(latestVersion.getFacets()).hasSize(1);
-		assertThat(latestVersion.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}

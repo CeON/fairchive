@@ -30,8 +30,8 @@ public class DataverseFacet implements JpaEntity<Long> {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "version_id", nullable = false)
-    private DataverseVersion version;
+    @JoinColumn(name = "dataverse_id", nullable = false)
+    private Dataverse dataverse;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "datasetfieldtype_id", nullable = false)
@@ -42,14 +42,14 @@ public class DataverseFacet implements JpaEntity<Long> {
     
     protected DataverseFacet() {}
     
-    DataverseFacet(final DataverseVersion version, 
+    DataverseFacet(final Dataverse dataverse, 
     			   final DatasetFieldType datasetFieldType) {
-    	this.version = requireNonNull(version);
+    	this.dataverse = requireNonNull(dataverse);
     	this.datasetFieldType = requireNonNull(datasetFieldType);
     }
     
-    public DataverseFacet createNewFor(final DataverseVersion version) {
-    	final DataverseFacet result = new DataverseFacet(version, this.datasetFieldType);
+    public DataverseFacet createNewFor(final Dataverse dataverse) {
+    	final DataverseFacet result = new DataverseFacet(dataverse, this.datasetFieldType);
     	result.displayOrder = this.displayOrder;
     	return result;
     }
@@ -63,8 +63,8 @@ public class DataverseFacet implements JpaEntity<Long> {
         this.id = id;
     }
 
-    public DataverseVersion getVersion() {
-        return this.version;
+    public Dataverse getDataverse() {
+        return this.dataverse;
     }
 
     public DatasetFieldType getDatasetFieldType() {
@@ -98,6 +98,5 @@ public class DataverseFacet implements JpaEntity<Long> {
     public String toString() {
         return "DataverseFacet[ id=" + id + " ]";
     }
-
 }
 

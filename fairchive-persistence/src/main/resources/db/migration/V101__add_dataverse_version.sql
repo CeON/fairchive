@@ -11,7 +11,6 @@ CREATE TABLE dataverseversion (
     state text NULL,
     affiliation text NULL,
     messagesbannersallowed bool not null default false,
-    facetroot bool not null default false,
     dataverse_id int8 not null,
     CONSTRAINT unq_datverseversion_0 UNIQUE (dataverse_id, createtime),
     CONSTRAINT fk_dataverseversion_id FOREIGN KEY (dataverse_id) REFERENCES dataverse(id)
@@ -21,10 +20,10 @@ CREATE TABLE dataverseversion (
 
 insert into dataverseversion (createtime, name, alias, description, 
                               additionaldescription, dataversetype, state, affiliation, 
-                              facetroot, dataverse_id)
+                              dataverse_id)
     select now(), name, alias, description, 
        additional_description, dataversetype,'RELEASED', affiliation, 
-       facetroot, id
+       id
        from dataverse;
 
 alter table dataverse drop column "name";       
@@ -33,7 +32,6 @@ alter table dataverse drop column description;
 alter table dataverse drop column additional_description;
 alter table dataverse drop column dataversetype;
 alter table dataverse drop column affiliation;   
-alter table dataverse drop column facetroot;   
 
 
 -- reassign contacts from collections to collection versions
@@ -50,34 +48,17 @@ alter table dataversecontact drop column dataverse_id;
 alter table dataversecontact rename contactemail to email;
 
 
--- reassing facets from collections to collection versions
-alter table dataversefacet add column version_id int8 references dataverseversion(id);
-
-UPDATE dataversefacet df
-SET version_id = dv.id
-FROM dataverseversion dv
-WHERE dv.dataverse_id = df.dataverse_id;
-
+-- tigthen definition fo facet
 alter table dataversefacet ALTER COLUMN displayorder SET default 0;
 alter table dataversefacet ALTER COLUMN displayorder SET not null;
-alter table dataversefacet ALTER COLUMN version_id SET NOT NULL;
 alter table dataversefacet ALTER COLUMN datasetfieldtype_id SET NOT NULL;
-alter table dataversefacet drop column dataverse_id;
 
--- reassing dataverse field type input levels from collections to collection versions
-alter table dataversefieldtypeinputlevel add column version_id int8 references dataverseversion(id);
-
-UPDATE dataversefieldtypeinputlevel dfil
-SET version_id = dv.id
-FROM dataverseversion dv
-WHERE dv.dataverse_id = dfil.dataverse_id;
+-- tighten dataverse field type input levels definition
 
 alter table dataversefieldtypeinputlevel ALTER COLUMN include SET default false;
 alter table dataversefieldtypeinputlevel ALTER COLUMN include SET not null;
 alter table dataversefieldtypeinputlevel ALTER COLUMN required SET default false;
 alter table dataversefieldtypeinputlevel ALTER COLUMN required SET not null;
-alter table dataversefieldtypeinputlevel ALTER COLUMN version_id SET NOT NULL;
-alter table dataversefieldtypeinputlevel drop column dataverse_id;
 
 -- reassing dataverse themes from collections to collection versions
 alter table dataversetheme add column version_id int8 references dataverseversion(id);

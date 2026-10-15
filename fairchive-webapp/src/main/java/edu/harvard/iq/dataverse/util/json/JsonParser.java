@@ -87,7 +87,7 @@ public class JsonParser {
         version.setName(getMandatoryString(jobj, "name"));
         version.setDescription(jobj.getString("description", null));
         dv.setPermissionRoot(jobj.getBoolean("permissionRoot", false));
-        version.setFacetRoot(jobj.getBoolean("facetRoot", false));
+        dv.setFacetRoot(jobj.getBoolean("facetRoot", false));
         version.setAffiliation(jobj.getString("affiliation", null));
         if (jobj.containsKey("dataverseContacts")) {
             int i = 0;         

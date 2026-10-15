@@ -38,7 +38,6 @@ import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
 
 @Entity
@@ -94,14 +93,7 @@ public class DataverseVersion implements JpaEntity<Long> {
     @Column
     private boolean messagesBannersAllowed;
     
-    @OneToMany(mappedBy = "version", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
-    @OrderBy("displayOrder")
-    private List<DataverseFacet> facets = new ArrayList<>();
-    @Column
-    private boolean facetRoot = false;
-    
-    @OneToMany(mappedBy = "version", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
-    private List<DataverseFieldTypeInputLevel> dataverseFieldTypeInputLevels = new ArrayList<>();
+
     
     @OneToOne(mappedBy = "version", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     private DataverseTheme theme;
@@ -129,12 +121,8 @@ public class DataverseVersion implements JpaEntity<Long> {
     	result.alias = this.alias;
     	this.contacts.forEach(
     			contact -> result.contacts.add(new DataverseContact(result, contact.getEmail())));
-    	this.dataverseFieldTypeInputLevels.forEach(
-    			level -> result.dataverseFieldTypeInputLevels.add(level.createNewFor(result)));
     	result.dataverseType = this.dataverseType;
     	result.description = this.description;
-    	this.facets.forEach(facet -> result.facets.add(facet.createNewFor(result)));
-    	result.facetRoot = this.facetRoot;
     	result.messagesBannersAllowed = this.messagesBannersAllowed;
     	result.name = this.name;
     	result.theme = this.theme != null ? this.theme.createNewFor(result) : null;
@@ -255,45 +243,6 @@ public class DataverseVersion implements JpaEntity<Long> {
 	        throw new IllegalStateException("A DataverseVersion must have at least one contact.");
 	    }
 		this.contacts.remove(index);
-	}
-	
-	public List<DataverseFacet> getFacets() {
-		return unmodifiableList(this.facets);
-	}
-	
-	public DataverseFacet addFacet(final DatasetFieldType type) {
-		final DataverseFacet facet = new DataverseFacet(this, type);
-		this.facets.add(facet);
-		return facet;
-	}
-	
-	public void removeFacet(final int index) {
-		this.contacts.remove(index);
-	}
-	
-	public void clearFacets() {
-		this.facets.clear();
-	}
-	
-    public boolean isFacetRoot() {
-        return this.facetRoot;
-    }
-
-    public void setFacetRoot(final boolean facetRoot) {
-        this.facetRoot = facetRoot;
-    }
-	
-	public List<DataverseFieldTypeInputLevel> getDataverseFieldTypeInputLevels() {
-		return unmodifiableList(this.dataverseFieldTypeInputLevels);
-	}
-	
-	public void addDataverseFieldTypeInputLevel(final DataverseFieldTypeInputLevel level) {
-		this.dataverseFieldTypeInputLevels.add(level);
-		level.setVersion(this);
-	}
-	
-	public void removeDataverseFieldTypeInputLevel(final int index) {
-		this.dataverseFieldTypeInputLevels.remove(index);
 	}
 
 	public DataverseTheme getTheme() {

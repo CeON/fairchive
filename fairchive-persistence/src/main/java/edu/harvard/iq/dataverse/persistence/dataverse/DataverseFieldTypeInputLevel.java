@@ -39,17 +39,17 @@ public class DataverseFieldTypeInputLevel implements JpaEntity<Long>, Serializab
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name = "version_id", nullable = false)
-    private DataverseVersion version;
+    @JoinColumn(name = "dataverse_id", nullable = false)
+    private Dataverse dataverse;
     @ManyToOne
     @JoinColumn(name = "datasetfieldtype_id", nullable = false)
     private DatasetFieldType datasetFieldType;
     private boolean include;
     private boolean required;
     
-    public DataverseFieldTypeInputLevel createNewFor(final DataverseVersion version) {
+    public DataverseFieldTypeInputLevel createNewFor(final Dataverse dataverse) {
     	final DataverseFieldTypeInputLevel result = new DataverseFieldTypeInputLevel();
-    	result.version = version;
+    	result.dataverse = dataverse;
     	result.datasetFieldType = this.datasetFieldType;
     	result.include = this.include;
     	result.required = this.required;
@@ -70,12 +70,12 @@ public class DataverseFieldTypeInputLevel implements JpaEntity<Long>, Serializab
     	return Objects.hash(this.id);
     }
     
-    public DataverseVersion getVersion() {
-        return this.version;
+    public Dataverse getDataverse() {
+        return this.dataverse;
     }
     
-    public void setVersion(final DataverseVersion version) {
-		this.version = version;
+    public void setDataverse(final Dataverse dataverse) {
+		this.dataverse = dataverse;
 	}
 
 	public DatasetFieldType getDatasetFieldType() {
@@ -116,5 +116,4 @@ public class DataverseFieldTypeInputLevel implements JpaEntity<Long>, Serializab
     public String toString() {
         return "DataverseFieldTypeInputLevel[ id=" + id + " ]";
     }
-
 }
