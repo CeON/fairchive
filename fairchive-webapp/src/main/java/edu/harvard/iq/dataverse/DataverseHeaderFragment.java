@@ -134,13 +134,22 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     public boolean shouldShowAddDatasetButton() {
-        return !systemConfig.isReadonlyMode() &&
+        return !systemConfig.isReadonlyMode() && !systemConfig.isAggregatorMode() &&
                 (!dataverseSession.isUserLoggedIn() 
                         || !confirmEmailService.hasEffectivelyUnconfirmedMail(dataverseSession.getUser()));
     }
 
     public boolean shouldShowLoginRedirect() {
         return !dataverseSession.isUserLoggedIn();
+    }
+
+    /**
+     * Returns {@code true} if the "Sign In/Sign Up" link should be rendered
+     * in the header: for a guest, unless the instance works as an aggregator.
+     * The login page itself stays accessible in either case.
+     */
+    public boolean displayLoginLink() {
+        return !dataverseSession.isUserLoggedIn() && !systemConfig.isAggregatorMode();
     }
 
     public void initBreadcrumbsForFileMetadata(FileMetadata fmd, String subPage) {

@@ -93,7 +93,9 @@ public class DataversePage {
     }
     
     public boolean displayMetrics() {
-    	return this.dataverse.isRoot() && !this.sysConfig.isRsyncOnly();
+        return !this.sysConfig.isAggregatorMode()
+                && this.dataverse.isRoot()
+                && !this.sysConfig.isRsyncOnly();
     }
     
 	public boolean displayEditPublishButtons() {

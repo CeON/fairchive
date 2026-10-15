@@ -342,7 +342,7 @@
                                     </ul>
                                 </h:form>
                             </li>
-                            <ui:fragment rendered="#{!dataverseSession.user.authenticated}">
+                            <ui:fragment rendered="#{dataverseHeaderFragment.displayLoginLink()}">
                                 <li>
                                     <h:outputLink value="/loginpage.xhtml?#{loginRedirectPage}">
                                         #{dataverseHeaderFragment.signupAllowed ? bundle['header.loginOrSignUp'] : bundle['login']}

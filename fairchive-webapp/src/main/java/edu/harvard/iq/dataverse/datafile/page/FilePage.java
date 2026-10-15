@@ -408,7 +408,8 @@ public class FilePage implements java.io.Serializable {
     
     
     public boolean displayMetrics() {
-        return !(this.fileMetadata.getDataFile().isFilePackage() ||
+        return !(this.systemConfig.isAggregatorMode() ||
+                this.fileMetadata.getDataFile().isFilePackage() ||
                 isDatasetDeaccesioned());
     }
     

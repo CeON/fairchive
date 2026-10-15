@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.util;
 
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AggregatorMode;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowSignUp;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DownloadMethods;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ReadonlyMode;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SiteUrl;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -199,5 +202,38 @@ class SystemConfigTest {
 
         assertThat(this.config.getThumbnailSizeLimitImage()).isEqualTo(2L);
         assertThat(this.config.getThumbnailSizeLimitPDF()).isEqualTo(3L);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void isAggregatorMode(boolean settingValue) {
+        // given
+        when(this.settings.isTrueForKey(AggregatorMode)).thenReturn(settingValue);
+
+        // when
+        boolean aggregatorMode = this.config.isAggregatorMode();
+
+        // then
+        assertThat(aggregatorMode).isEqualTo(settingValue);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "true, false, false, true",
+            "false, false, false, false",
+            "true, true, false, false",
+            "true, false, true, false",
+    })
+    void isSignupAllowed(boolean allowSignUp, boolean readonlyMode, boolean aggregatorMode, boolean result) {
+        // given
+        when(this.settings.isTrueForKey(AllowSignUp)).thenReturn(allowSignUp);
+        when(this.settings.isTrueForKey(ReadonlyMode)).thenReturn(readonlyMode);
+        when(this.settings.isTrueForKey(AggregatorMode)).thenReturn(aggregatorMode);
+
+        // when
+        boolean signupAllowed = this.config.isSignupAllowed();
+
+        // then
+        assertThat(signupAllowed).isEqualTo(result);
     }
 }

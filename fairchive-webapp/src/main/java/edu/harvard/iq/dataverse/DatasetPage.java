@@ -488,7 +488,8 @@ public class DatasetPage implements Serializable {
     }
     
     public boolean displayMetricsBlock() {
-        return !(this.settingsWrapper.isRsyncDownload() 
+        return !(this.systemConfig.isAggregatorMode()
+                || this.settingsWrapper.isRsyncDownload() 
                 || this.workingVersion.isDeaccessioned());
     }
     

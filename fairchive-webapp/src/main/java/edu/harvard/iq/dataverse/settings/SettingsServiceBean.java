@@ -858,7 +858,15 @@ public class SettingsServiceBean {
          */
         FillDefaultTermsOfUseUsingExistingFiles,
     	
-    	EnableDatasetCloning;
+        EnableDatasetCloning,
+
+        /**
+         * If {@code true}, the instance works as a metadata aggregator rather
+         * than a repository: UI elements for depositing data, the login link
+         * and download metrics are hidden, and signing up is disabled
+         * regardless of {@link #AllowSignUp}. Defaults to {@code false}.
+         */
+        AggregatorMode;
 
         @Override
         public String toString() {
