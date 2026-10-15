@@ -128,7 +128,7 @@ public class DatasetEmbargoDialog implements Serializable {
     }
 
     public void initCurrentEmbargo() {
-        this.currentEmbargoDate = this.dataset.getEmbargoDate().getOrNull();
+        this.currentEmbargoDate = this.dataset.getEmbargoDate().getOrElse(getTomorrowsDate());
     }
     
 
