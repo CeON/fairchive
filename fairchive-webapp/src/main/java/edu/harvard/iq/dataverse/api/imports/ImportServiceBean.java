@@ -139,8 +139,14 @@ public class ImportServiceBean {
         }
     }
 
+    /**
+     * Deletes the dataset harvested by the given client under the given
+     * identifier.
+     *
+     * @return false if there is no such dataset, so nothing was deleted
+     */
     @TransactionAttribute(REQUIRES_NEW)
-    public void doDeleteHarvestedDataset(final DataverseRequest request, 
+    public boolean doDeleteHarvestedDataset(final DataverseRequest request, 
     		final HarvestingClient client, final String identifier) throws ImportException {
     	
         final Dataset dataset = this.datasetService.getDatasetByHarvestInfo(client.getDataverse(), identifier);
@@ -160,10 +166,9 @@ public class ImportServiceBean {
             dataset.setFiles(null);
             Dataset merged = em.merge(dataset);
             this.engineSvc.submit(new DeleteDatasetCommand(request, merged));
-        } else {
-            throw new ImportException("No dataset found for " + identifier + 
-            		", skipping delete. ");
+            return true;
         }
+        return false;
     }
 
     private Dataset importDatasetDTOJson(final DataverseRequest request, 
