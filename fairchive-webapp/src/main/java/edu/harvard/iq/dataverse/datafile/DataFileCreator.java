@@ -414,6 +414,9 @@ public class DataFileCreator {
 
         final Timestamp now = new Timestamp(currentTimeMillis());
         DataFile datafile = new DataFile(contentType);
+        // Tabular data is ingested unless the uploader opts out;
+        // text recognition of images stays opt-in.
+        datafile.setIncludedInIngest(datafile.isIngestableAsTabular());
         datafile.setCreateDate(now);
         datafile.setModificationTime(now);
         /**
