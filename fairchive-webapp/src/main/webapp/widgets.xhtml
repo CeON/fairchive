@@ -10,7 +10,7 @@
 <h:body>
     <ui:composition template="/dataverse_template.xhtml">
         <ui:param name="pageTitle" value="#{widgetsPage.title}"/>
-       
+        <ui:param name="page" value="#{widgetsPage}"/>
         <ui:define name="body">
             <f:metadata>
                 <f:viewParam name="id" value="#{widgetsPage.dataverseId}"/>
@@ -19,10 +19,7 @@
                 <f:viewAction action="#{dataverseHeaderFragment.initBreadcrumbs(widgetsPage.dataverse, bundle['dataverse.widgets.title'])}"/>
             </f:metadata>
 
-        <div jsf:rendered="#{not widgetsPage.dataverseReleased}"
-             id="no-widgets-message"
-             class="panel panel-default">
-            <div class="panel-body">
+            <ui:fragment rendered="#{not page.dataverseReleased}">
                 <span class="help-block h3">#{bundle['dataverse.widgets.notPublished.why.header']}</span>
                 <ul>
                     <li>#{bundle['dataverse.widgets.notPublished.why.reason1']}</li>
@@ -39,58 +36,49 @@
                     <li><h:outputFormat
                             value="#{bundle['dataverse.widgets.notPublished.how.tip3']}"
                             escape="false">
-                            <f:param value="#{widgetsPage.guidesBaseUrl}" />
-                            <f:param value="#{widgetsPage.guidesVersion}" />
+                            <f:param value="#{page.guidesBaseUrl}" />
+                            <f:param value="#{page.guidesVersion}" />
                         </h:outputFormat></li>
                 </ul>
                 <p>
                     <h:outputFormat
                         value="#{bundle['dataverse.widgets.notPublished.getStarted']}"
                         escape="false">
-                        <f:param value="#{widgetsPage.guidesBaseUrl}" />
-                        <f:param value="#{widgetsPage.guidesVersion}" />
+                        <f:param value="#{page.guidesBaseUrl}" />
+                        <f:param value="#{page.guidesVersion}" />
                     </h:outputFormat>
                 </p>
-            </div>
-        </div>
-
-        <div jsf:rendered="#{widgetsPage.dataverseReleased}">
-            <p class="help-block">
-                <span class="glyphicon glyphicon-info-sign" />
-                <h:outputFormat value=" #{bundle['dataverse.widgets.tip']}"
-                                escape="false">
-                    <f:param value="#{widgetsPage.guidesBaseUrl}" />
-                    <f:param value="#{widgetsPage.guidesVersion}" />
-                </h:outputFormat>
-            </p>
-            <div>
-                <h5>#{bundle['dataverse.widgets.searchBox.txt']}</h5>
-                <p class="help-block">#{bundle['dataverse.widgets.searchBox.tip']}</p>
-            </div>
-            <div>
-                <textarea rows="3"
-                          cols="54"
-                          class="form-control"
-                          readonly="readonly">#{widgetsPage.searchText}</textarea>
-            </div>
-            <div>
-                <h5>#{bundle['dataverse.widgets.dataverseListing.txt']}</h5>
-                <p class="help-block">#{bundle['dataverse.widgets.dataverseListing.tip']}</p>
-            </div>
-            <div>
-                <textarea rows="3"
-                          cols="54"
-                          class="form-control"
-                          readonly="readonly">#{widgetsPage.listingText}</textarea>
-            </div>
-            <div class="button-block">
-                <p:commandButton class="btn btn-default button-cancel"
-                                 action="#{widgetsPage.cancel()}"
-                                 immediate="true"
-                                 id="widgetsDone"
-                                 value="#{bundle.done}" />
-            </div>
-        </div>
+            </ui:fragment>
+	        <ui:fragment rendered="#{page.dataverseReleased}">
+	            <p class="help-block">
+	                <span class="glyphicon glyphicon-info-sign" />
+	                <h:outputFormat value=" #{bundle['dataverse.widgets.tip']}"
+	                                escape="false">
+	                    <f:param value="#{page.guidesBaseUrl}" />
+	                    <f:param value="#{page.guidesVersion}" />
+	                </h:outputFormat>
+	            </p>
+	            <h5>#{bundle['dataverse.widgets.searchBox.txt']}</h5>
+	            <p class="help-block">#{bundle['dataverse.widgets.searchBox.tip']}</p>
+	            <textarea rows="3"
+	                      cols="54"
+	                      class="form-control"
+	                      readonly="readonly">#{page.searchText}</textarea>
+	
+	            <h5>#{bundle['dataverse.widgets.dataverseListing.txt']}</h5>
+	            <p class="help-block">#{bundle['dataverse.widgets.dataverseListing.tip']}</p>
+	            <textarea rows="3"
+	                      cols="54"
+	                      class="form-control"
+	                      readonly="readonly">#{page.listingText}</textarea>
+	            <div class="button-block">
+	                <p:commandButton class="btn btn-default button-cancel"
+	                                 action="#{page.cancel()}"
+	                                 immediate="true"
+	                                 id="widgetsDone"
+	                                 value="#{bundle.done}" />
+	            </div>
+	        </ui:fragment>
         </ui:define>
     </ui:composition>
 </h:body>
