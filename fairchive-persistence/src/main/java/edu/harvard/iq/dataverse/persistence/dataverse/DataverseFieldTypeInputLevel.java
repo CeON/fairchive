@@ -101,6 +101,10 @@ public class DataverseFieldTypeInputLevel implements JpaEntity<Long>, Serializab
     public void setRequired(final boolean required) {
         this.required = required;
     }
+    
+    public boolean hasTheSameFieldTypeAs(final DataverseFieldTypeInputLevel other) {
+    	return this.datasetFieldType.equals(other.datasetFieldType);
+    }
 
     @Override
     public boolean equals(final Object object) {
@@ -114,6 +118,9 @@ public class DataverseFieldTypeInputLevel implements JpaEntity<Long>, Serializab
 
     @Override
     public String toString() {
-        return "DataverseFieldTypeInputLevel[ id=" + id + " ]";
+        return "DataverseFieldTypeInputLevel[ id=" + id + 
+        		" fieldType=" + this.datasetFieldType + 
+        		" required=" + this.required +
+        		" ]";
     }
 }

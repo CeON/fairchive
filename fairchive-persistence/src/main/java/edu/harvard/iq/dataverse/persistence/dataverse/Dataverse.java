@@ -15,6 +15,7 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -742,6 +743,22 @@ public class Dataverse extends DvObjectContainer {
 	
 	public void removeDataverseFieldTypeInputLevel(final int index) {
 		this.dataverseFieldTypeInputLevels.remove(index);
+	}
+	
+	public void joinDataverseFieldTypeInputLevels(final List<DataverseFieldTypeInputLevel> levels) {
+		
+		this.dataverseFieldTypeInputLevels.removeIf(
+				l1 -> ! levels.stream().anyMatch(l2 -> l1.hasTheSameFieldTypeAs(l1)));
+		
+		for(final DataverseFieldTypeInputLevel level : levels) {
+			if(! this.dataverseFieldTypeInputLevels.stream().anyMatch(l -> level.hasTheSameFieldTypeAs(l))){
+				this.dataverseFieldTypeInputLevels.add(level);
+			}
+		}
+	}
+	
+	public void clearDataverseFieldTypeInputLevels() {
+		this.dataverseFieldTypeInputLevels.clear();
 	}
 
     public void setMetadataBlockRoot(boolean metadataBlockRoot) {

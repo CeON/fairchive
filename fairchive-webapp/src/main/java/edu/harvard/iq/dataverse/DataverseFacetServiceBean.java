@@ -9,6 +9,7 @@ import javax.inject.Named;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacetRepository;
@@ -59,22 +60,18 @@ public class DataverseFacetServiceBean implements java.io.Serializable {
 
     }
 
-//    public DataverseFacet create(int displayOrder, DatasetFieldType fieldType, Dataverse ownerDv) {
-//        DataverseFacet dataverseFacet = new DataverseFacet();
-//
-//        dataverseFacet.setDisplayOrder(displayOrder);
-//        dataverseFacet.setDatasetFieldType(fieldType);
-//        dataverseFacet.setDataverse(ownerDv);
-//
-//        ownerDv.getDataverseFacets().add(dataverseFacet);
-//        em.persist(dataverseFacet);
-//        return dataverseFacet;
-//    }
+    public DataverseFacet create(final int displayOrder, final DatasetFieldType fieldType, 
+    		final Dataverse dataverse) {
+        final DataverseFacet facet = dataverse.addFacet(fieldType);
+        facet.setDisplayOrder(displayOrder);
+        em.persist(facet);
+        return facet;
+    }
 
-//    public DataverseFacet create(int displayOrder, Long datasetFieldTypeId, Long dataverseId) {
-//        return create(displayOrder, em.find(DatasetFieldType.class, datasetFieldTypeId),
-//                      dataverses.find(dataverseId));
-//    }
+    public DataverseFacet create(int displayOrder, Long datasetFieldTypeId, Long dataverseId) {
+        return create(displayOrder, em.find(DatasetFieldType.class, datasetFieldTypeId),
+                      dataverses.find(dataverseId));
+    }
     
     public void save(final DataverseFacet facet) {
     	this.repository.save(facet);
