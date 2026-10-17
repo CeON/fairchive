@@ -47,7 +47,7 @@ public class DataverseFieldTypeInputLevelRepository extends JpaRepository<Long, 
         		.setParameter("fieldTypeId", fieldTypeId));
     }
     
-    public void deleteFacetsFor(final Long dataverseId) {
+    public void deleteFor(final Long dataverseId) {
         createQuery(
         		"DELETE FROM DataverseFieldTypeInputLevel f WHERE f.dataverse.id=:id")
                 .setParameter("id", dataverseId)

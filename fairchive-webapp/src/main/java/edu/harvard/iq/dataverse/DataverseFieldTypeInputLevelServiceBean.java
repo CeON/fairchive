@@ -46,8 +46,8 @@ public class DataverseFieldTypeInputLevelServiceBean {
     			dataverseId, fieldTypeId).orElse(null);
     }
 
-    public void deleteFacetsFor(final Dataverse dataverse) {
-    	this.repository.deleteFacetsFor(dataverse.getId());
+    public void deleteFor(final Dataverse dataverse) {
+    	this.repository.deleteFor(dataverse.getId());
         cache.invalidate(dataverse.getId());
     }
 
