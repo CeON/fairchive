@@ -141,7 +141,7 @@ public class CreateDataverseCommandTest {
         }
 
         @Override
-        public void deleteFacetsFor(Dataverse d) {
+        public void deleteFor(Dataverse d) {
         }
     };
     

@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse;
 
-import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.LABORATORY;
 import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.DEPARTMENT;
+import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.LABORATORY;
 import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.UNCATEGORIZED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +16,6 @@ import org.mockito.Mockito;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.dataverse.CreateEditDataversePage;
 import edu.harvard.iq.dataverse.dataverse.DataverseService;
-import edu.harvard.iq.dataverse.dataverse.MetadataBlockService;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
@@ -26,10 +25,6 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 @Transactional(TransactionMode.ROLLBACK)
 public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	
-	@Inject
-    private DatasetFieldServiceBean datasetFieldService;
-	@Inject
-    private MetadataBlockService metadataBlockService;
 	@Inject
     private DataverseService dataverseService;
 	@Inject
@@ -77,11 +72,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.getAffiliation()).isNull();
 		assertThat(this.createEditPage.getType()).isEqualTo(UNCATEGORIZED);
 		assertThat(this.createEditPage.isInheritFacetFromParent()).isTrue();
-		assertThat(this.createEditPage.isInheritMetaBlocksFromParent()).isTrue();
 		assertThat(this.createEditPage.isMessagesBannersAllowed()).isFalse();
 		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
-		assertThat(this.createEditPage.getFacets().getSource()).isNotEmpty();
-		assertThat(this.createEditPage.getFacets().getTarget()).isEmpty();
 		
 		Dataverse dataverse = this.createEditPage.getDataverse();
 		
@@ -89,7 +81,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.getOwner().getId()).isEqualTo(1L);
 		assertThat(dataverse.getVersions()).hasSize(1);
 		assertThat(dataverse.isDraft()).isTrue();
-		assertThat(dataverse.isFacetRoot()).isFalse();
 		
 		DataverseVersion version = dataverse.getLatestVersion();
 		
@@ -103,7 +94,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.setType(LABORATORY);
 		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
 		this.createEditPage.setInheritFacetFromParent(false);
-		this.createEditPage.getFacets().getTarget().add(this.createEditPage.getFacets().getSource().get(0));
 		this.createEditPage.setMessagesBannersAllowed(true);
 		
 		assertThat(this.createEditPage.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
@@ -114,10 +104,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getOwner().getId()).isEqualTo(1L);
 		assertThat(stored.getVersions()).hasSize(1);
 		assertThat(stored.isDraft()).isTrue();
-		assertThat(stored.isFacetRoot()).isTrue();
-		assertThat(stored.getFacets()).hasSize(1);
-		assertThat(stored.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
 		
 		DataverseVersion storedVersion = dataverse.getLatestVersion();
 		
@@ -148,11 +134,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.getAffiliation()).isNull();
 		assertThat(this.createEditPage.getType()).isEqualTo(UNCATEGORIZED);
 		assertThat(this.createEditPage.isInheritFacetFromParent()).isTrue();
-		assertThat(this.createEditPage.isInheritMetaBlocksFromParent()).isTrue();
 		assertThat(this.createEditPage.isMessagesBannersAllowed()).isFalse();
 		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
-		assertThat(this.createEditPage.getFacets().getSource()).isNotEmpty();
-		assertThat(this.createEditPage.getFacets().getTarget()).isEmpty();
 		
 		Dataverse dataverse = this.createEditPage.getDataverse();
 		
@@ -160,8 +143,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.getOwner().getId()).isEqualTo(1L);
 		assertThat(dataverse.getVersions()).hasSize(1);
 		assertThat(dataverse.isDraft()).isTrue();
-		assertThat(dataverse.isFacetRoot()).isFalse();
-		
 		
 		DataverseVersion version = dataverse.getLatestVersion();
 		
@@ -175,7 +156,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.setType(LABORATORY);
 		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
 		this.createEditPage.setInheritFacetFromParent(false);
-		this.createEditPage.getFacets().getTarget().add(this.createEditPage.getFacets().getSource().get(0));
 		this.createEditPage.setMessagesBannersAllowed(true);
 		
 		assertThat(this.createEditPage.saveAndRelease()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
@@ -186,10 +166,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getOwner().getId()).isEqualTo(1L);
 		assertThat(stored.getVersions()).hasSize(1);
 		assertThat(stored.isDraft()).isFalse();
-		assertThat(stored.isFacetRoot()).isTrue();
-		assertThat(stored.getFacets()).hasSize(1);
-		assertThat(stored.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
 		
 		DataverseVersion storedVersion = dataverse.getLatestVersion();
 		
@@ -217,7 +193,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.setType(LABORATORY);
 		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
 		this.createEditPage.setInheritFacetFromParent(false);
-		this.createEditPage.getFacets().getTarget().add(this.createEditPage.getFacets().getSource().get(0));
 		this.createEditPage.setMessagesBannersAllowed(true);
 		this.createEditPage.save();
 		Dataverse dataverse = this.createEditPage.getDataverse();
@@ -234,12 +209,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.getAffiliation()).isEqualTo("affiliation1");
 		assertThat(this.createEditPage.getType()).isEqualTo(LABORATORY);
 		assertThat(this.createEditPage.isInheritFacetFromParent()).isFalse();
-		assertThat(this.createEditPage.isInheritMetaBlocksFromParent()).isTrue();
 		assertThat(this.createEditPage.isMessagesBannersAllowed()).isTrue();
 		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
-		assertThat(this.createEditPage.getFacets().getSource()).isNotEmpty();
-		assertThat(this.createEditPage.getFacets().getTarget()).hasSize(1);
-		assertThat(this.createEditPage.getFacets().getTarget().get(0).getName()).isEqualTo("authorName");
 		
 		dataverse = this.createEditPage.getDataverse();
 		
@@ -247,7 +218,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.getOwner().getId()).isEqualTo(1L);
 		assertThat(dataverse.getVersions()).hasSize(1);
 		assertThat(dataverse.isDraft()).isTrue();
-		assertThat(dataverse.isFacetRoot()).isTrue();
 		
 		DataverseVersion version = dataverse.getLatestVersion();
 		
@@ -274,9 +244,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getVersions()).hasSize(1);
 		assertThat(stored.isDraft()).isTrue();
 		assertThat(stored.isFacetRoot()).isTrue();
-		assertThat(stored.getFacets()).hasSize(1);
-		assertThat(stored.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
 		
 		DataverseVersion storedVersion = dataverse.getLatestVersion();
 		
@@ -305,7 +272,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.setType(LABORATORY);
 		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
 		this.createEditPage.setInheritFacetFromParent(false);
-		this.createEditPage.getFacets().getTarget().add(this.createEditPage.getFacets().getSource().get(0));
 		this.createEditPage.setMessagesBannersAllowed(true);
 		this.createEditPage.saveAndRelease();
 		Dataverse dataverse = this.createEditPage.getDataverse();
@@ -322,12 +288,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.getAffiliation()).isEqualTo("affiliation1");
 		assertThat(this.createEditPage.getType()).isEqualTo(LABORATORY);
 		assertThat(this.createEditPage.isInheritFacetFromParent()).isFalse();
-		assertThat(this.createEditPage.isInheritMetaBlocksFromParent()).isTrue();
 		assertThat(this.createEditPage.isMessagesBannersAllowed()).isTrue();
 		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
-		assertThat(this.createEditPage.getFacets().getSource()).isNotEmpty();
-		assertThat(this.createEditPage.getFacets().getTarget()).hasSize(1);
-		assertThat(this.createEditPage.getFacets().getTarget().get(0).getName()).isEqualTo("authorName");
 		
 		dataverse = this.createEditPage.getDataverse();
 		
@@ -335,7 +297,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.getOwner().getId()).isEqualTo(1L);
 		//second version will be added after saving - so wer're looking at previous one
 		assertThat(dataverse.getVersions()).hasSize(1); 
-		assertThat(dataverse.isFacetRoot()).isTrue();
 		
 		DataverseVersion version = dataverse.getLatestVersion();
 		
@@ -365,9 +326,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getVersions()).hasSize(2);
 		assertThat(stored.getVersions().get(0).isReleased()).isTrue();
 		assertThat(stored.getVersions().get(1).isDraft()).isTrue();
-		assertThat(stored.getFacets()).hasSize(1);
-		assertThat(stored.getFacets().get(0).getDatasetFieldType().getName()).
-			isEqualTo("authorName");
 		
 		DataverseVersion releasedVersion = dataverse.getVersions().get(0);
 		
@@ -402,7 +360,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	
 	private CreateEditDataversePage newPage() {
 		return new CreateEditDataversePage(this.dataverseService, 
-				this.datasetFieldService, this.metadataBlockService, 
 				this.permissionsWrapper, this.session, this.config, this.ui);
 	}
 }
