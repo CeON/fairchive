@@ -1,9 +1,7 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,10 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -222,28 +216,6 @@ public class MetadataPage implements Serializable {
         }
         this.facets = new DualListModel<>(facetsSource, facetsTarget);
         this.facetMetadataBlockId = null;
-    }
-
-    public void validateAlias(final FacesContext context, final 
-    		UIComponent toValidate, final Object value) {
-    	final String alias = (String) value;
-        if (isNotEmpty(alias)) {
-            this.dataverseService.findByAlias(alias)
-            	.filter(this::isNotCurrentDataverse)
-            	.ifPresent(d -> {
-            		 ((UIInput) toValidate).setValid(false);
-                     final FacesMessage message = new FacesMessage(SEVERITY_ERROR, 
-                     		getStringFromBundle("dataverse.alias"), 
-                     		getStringFromBundle("dataverse.alias.taken"));
-                     context.addMessage(toValidate.getClientId(context), message);
-            	});
-        }
-    }
-    
-    private boolean isNotCurrentDataverse(final Dataverse found) {
-    	return this.dataverse.isNew()
-    		? true
-    		: !this.dataverse.getId().equals(found.getId());
     }
 
     public void refreshDatasetFieldTypes(final Long mdbId, final boolean editable, 
