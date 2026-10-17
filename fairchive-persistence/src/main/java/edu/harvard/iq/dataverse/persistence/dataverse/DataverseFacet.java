@@ -11,18 +11,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-
-@NamedQueries({
-        @NamedQuery(name = "DataverseFacet.removeByOwnerId",
-                query = "DELETE FROM DataverseFacet f WHERE f.dataverse.id=:ownerId"),
-        @NamedQuery(name = "DataverseFacet.findByDataverseId",
-                query = "select f from DataverseFacet f where f.dataverse.id = :dataverseId order by f.displayOrder")
-})
 
 @Entity
 public class DataverseFacet implements JpaEntity<Long> {

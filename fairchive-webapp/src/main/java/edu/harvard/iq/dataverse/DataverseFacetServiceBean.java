@@ -35,36 +35,32 @@ public class DataverseFacetServiceBean implements java.io.Serializable {
     @EJB
     DataverseDao dataverses;
 
-    public List<DataverseFacet> findByDataverseId(Long dataverseId) {
-        List<DataverseFacet> res = cache.get(dataverseId);
-
+    public List<DataverseFacet> findByDataverseId(final Long id) {
+        List<DataverseFacet> res = cache.get(id);
+        
         if (res == null) {
-            res = em.createNamedQuery("DataverseFacet.findByDataverseId", DataverseFacet.class)
-                    .setParameter("dataverseId", dataverseId).getResultList();
-            cache.put(dataverseId, res);
+            res = this.repository.findByDataverseId(id);
+            cache.put(id, res);
         }
 
         return res;
     }
 
-    public void delete(DataverseFacet dataverseFacet) {
-        em.remove(em.merge(dataverseFacet));
+    public void delete(final DataverseFacet facet) {
+    	this.repository.delete(this.repository.save(facet));
         cache.invalidate();
     }
 
-    public void deleteFacetsFor(Dataverse d) {
-        em.createNamedQuery("DataverseFacet.removeByOwnerId")
-                .setParameter("ownerId", d.getId())
-                .executeUpdate();
-        cache.invalidate(d.getId());
-
+    public void deleteFacetsFor(final Dataverse dataverse) {
+        this.repository.deleteFor(dataverse.getId());
+        cache.invalidate(dataverse.getId());
     }
 
     public DataverseFacet create(final int displayOrder, final DatasetFieldType fieldType, 
     		final Dataverse dataverse) {
         final DataverseFacet facet = dataverse.addFacet(fieldType);
         facet.setDisplayOrder(displayOrder);
-        em.persist(facet);
+        this.repository.save(facet);
         return facet;
     }
 
@@ -76,6 +72,5 @@ public class DataverseFacetServiceBean implements java.io.Serializable {
     public void save(final DataverseFacet facet) {
     	this.repository.save(facet);
     }
-
 }
 
