@@ -297,22 +297,22 @@
             <hr class="margin-top-half margin-bottom-half"/>
 
             <!-- Messages and Banners Panel -->
-            <p:panel id="editMessagesBanners"
-                     styleClass="panelLayoutBlock row"
-                     rendered="#{page.userCanChangeAllowMessageAndBanners}"
-                     widgetVar="allowMessagesBanners">
-                <div class="col-md-3 col-md-24-3 control-label section-title">
+            <div jsf:rendered="#{page.userCanChangeAllowMessageAndBanners}"
+                 class="row">
+                <div class="col-md-6 form-group form-col-container">
                     #{bundle['dataverse.config.allow.messages.banners']}
                 </div>
                 <div class="col-md-9 col-md-24-21">
                     <label class="metadata-blocks-default">
-                        <h:selectBooleanCheckbox id="dvAllowMessagesBanners" 
-                                                 styleClass="metadata-blocks-default fancy-checkbox"
+                        <h:selectBooleanCheckbox id="allowMessagesBanners" 
+                                                 styleClass="fancy-checkbox"
                                                  value="#{page.messagesBannersAllowed}"/>
                         <span>#{bundle['dataverse.config.allow.messages.banners.check']}</span>
                     </label>
                 </div>
-           <hr class="margin-top-half margin-bottom-half"/>
+             </div>
+             
+             <hr class="margin-top-half margin-bottom-half"/>
            
                  <!-- Dataverse Theme Panel -->
                 <p:panel id="themePanel">
@@ -606,8 +606,6 @@
                         </div>
                     </div>
                 </ui:fragment>
-            </p:panel>
-                
             </p:panel>
 
             <div class="button-block">
