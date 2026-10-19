@@ -11,6 +11,7 @@ import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
 import edu.harvard.iq.dataverse.api.dto.AuthenticatedUserDTO;
 import edu.harvard.iq.dataverse.citation.CitationFactory;
 import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.common.DataverseClock;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.dataaccess.OptionalAccessService;
@@ -48,6 +49,7 @@ import edu.harvard.iq.dataverse.persistence.user.RoleAssignee;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 import edu.harvard.iq.dataverse.worldmapauth.WorldMapTokenServiceBean;
 import io.vavr.control.Try;
@@ -463,6 +465,7 @@ public class Access extends AbstractApiBean {
         User apiTokenUser = getApiTokenUserWithGuestFallbackOnInvalidToken(); //for use in adding gb records if necessary
 
         final boolean sendOriginalFormat = isOriginalFormatRequested(uriInfo.getQueryParameters());
+        final String rootDataverseName = dataverseDao.getRootDataverseName();
 
         StreamingOutput stream = (OutputStream outputStream) -> {
             String[] fileIdParams = fileIds.split(",");
@@ -501,8 +504,12 @@ public class Access extends AbstractApiBean {
                         // This is the first file we can serve - so we now know that we are going to be able
                         // to produce some output.
                         zipperWrapper.init(outputStream);
-                        response.setHeader("Content-disposition", "attachment; filename=\"dataverse_files.zip\"");
-                        response.setHeader("Content-Type", "application/zip; name=\"dataverse_files.zip\"");
+                        String zipFileName = FileUtil.createDatasetFilesZipFileName(rootDataverseName,
+                                FileUtil.zipFileAuthorName(releasedOrLatestVersion(file.getOwner()),
+                                        isViewedFromAnonymizedPrivateUrl(apiTokenUser, file.getOwner())),
+                                file.getOwner().getCreateDate().toLocalDateTime(), DataverseClock.now());
+                        response.setHeader("Content-disposition", "attachment; filename=\"" + zipFileName + '"');
+                        response.setHeader("Content-Type", "application/zip; name=\"" + zipFileName + '"');
                     }
 
                     long size = computeFileSize(file, sendOriginalFormat);
@@ -568,6 +575,13 @@ public class Access extends AbstractApiBean {
                 .filter("format"::equals)
                 .map(queryParameters::getFirst)
                 .anyMatch("original"::equals);
+    }
+
+    // The released version, so that a name of an archive with published files does not reveal
+    // metadata of a draft; the latest one when nothing is released yet.
+    private static DatasetVersion releasedOrLatestVersion(Dataset dataset) {
+        return Optional.ofNullable(dataset.getReleasedVersion())
+                .orElseGet(dataset::getLatestVersion);
     }
 
     private long computeFileSize(DataFile file, boolean getOriginal) throws IOException {

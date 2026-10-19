@@ -1,20 +1,31 @@
 package edu.harvard.iq.dataverse.util;
 
+import static edu.harvard.iq.dataverse.persistence.dataset.FieldType.TEXT;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.persistence.MocksFactory;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.RestrictType;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetAuthor;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
@@ -145,5 +156,78 @@ public class FileUtilTest {
         assertEquals(".RData", FileUtil.generateOriginalExtension("application/x-rlang-transport"));
         assertEquals(".csv", FileUtil.generateOriginalExtension("text/csv"));
         assertEquals(".xlsx", FileUtil.generateOriginalExtension("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+    }
+
+    @Test
+    public void createDatasetFilesZipFileName() {
+        // given
+        LocalDateTime creationTime = LocalDateTime.of(2024, 12, 30, 10, 0, 0);
+        LocalDateTime downloadTime = LocalDateTime.of(2026, 10, 15, 9, 52, 49);
+
+        // when
+        String fileName = FileUtil.createDatasetFilesZipFileName("RepOD", "Kowalski, Jan", creationTime, downloadTime);
+
+        // then
+        assertThat(fileName).isEqualTo("RepOD_files_KowalskiJan_2024_20261015095249.zip");
+    }
+
+    @Test
+    public void createDatasetFilesZipFileName__repositoryNameWithSpecialCharacters() {
+        // given
+        LocalDateTime time = LocalDateTime.of(2026, 10, 15, 9, 52, 49);
+
+        // when
+        String fileName = FileUtil.createDatasetFilesZipFileName("MX-RDR \u0141\u00f3d\u017a_1", "Author", time, time);
+
+        // then
+        assertThat(fileName).isEqualTo("MX_RDR___d__1_files_Author_2026_20261015095249.zip");
+    }
+
+    @Test
+    public void zipFileAuthorName() {
+        // given
+        DatasetVersion datasetVersion = mock(DatasetVersion.class);
+        when(datasetVersion.getDatasetAuthors()).thenReturn(asList(author("Kowalski, Jan"), author("Nowak, Anna")));
+
+        // when
+        String authorName = FileUtil.zipFileAuthorName(datasetVersion, false);
+
+        // then
+        assertThat(authorName).isEqualTo("Kowalski, Jan");
+    }
+
+    @Test
+    public void zipFileAuthorName__noAuthors() {
+        // given
+        DatasetVersion datasetVersion = mock(DatasetVersion.class);
+        when(datasetVersion.getDatasetAuthors()).thenReturn(emptyList());
+
+        // when
+        String authorName = FileUtil.zipFileAuthorName(datasetVersion, false);
+
+        // then
+        assertThat(authorName).isEqualTo("Unknown");
+    }
+
+    @Test
+    public void zipFileAuthorName__viewedFromAnonymizedPrivateUrl() {
+        // given
+        DatasetVersion datasetVersion = mock(DatasetVersion.class);
+        when(datasetVersion.getDatasetAuthors()).thenReturn(asList(author("Kowalski, Jan")));
+
+        // when
+        String authorName = FileUtil.zipFileAuthorName(datasetVersion, true);
+
+        // then
+        assertThat(authorName).isEqualTo("Anonymized");
+    }
+
+    private static DatasetAuthor author(String name) {
+        DatasetField nameField = new DatasetField();
+        nameField.setDatasetFieldType(new DatasetFieldType(DatasetFieldConstant.authorName, TEXT, false));
+        nameField.setFieldValue(name);
+        DatasetAuthor author = new DatasetAuthor();
+        author.setName(nameField);
+        return author;
     }
 }

@@ -76,6 +76,16 @@ public class PrivateUrlUser implements User {
         return this.datasetId == object.getId();
     }
 
+    /**
+     * @return true if the given user is the user of an anonymized private URL
+     * of the given object, which must not reveal its authors
+     */
+    public static boolean isAnonymizedViewerOf(final User user, final DvObject object) {
+        return user instanceof PrivateUrlUser
+                && ((PrivateUrlUser) user).isAnonymized()
+                && ((PrivateUrlUser) user).isAllowedToView(object);
+    }
+
     @Override
     public RoleAssigneeDisplayInfo getDisplayInfo() {
         return new RoleAssigneeDisplayInfo(

@@ -1,11 +1,9 @@
 package edu.harvard.iq.dataverse.api;
 
-import static java.time.Instant.now;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,6 +85,7 @@ import edu.harvard.iq.dataverse.api.dto.UningestableItemDTO;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.batch.jobs.importer.ImportMode;
 import edu.harvard.iq.dataverse.common.BundleUtil;
+import edu.harvard.iq.dataverse.common.DataverseClock;
 import edu.harvard.iq.dataverse.datacapturemodule.ScriptRequestResponse;
 import edu.harvard.iq.dataverse.datafile.DataFileCreator;
 import edu.harvard.iq.dataverse.datafile.file.FileDownloadAPIHandler;
@@ -164,6 +163,7 @@ import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
 import edu.harvard.iq.dataverse.search.index.IndexServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.EjbUtil;
+import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import io.vavr.control.Try;
@@ -561,7 +561,7 @@ public class Datasets extends AbstractApiBean {
                                .get();
 
         String finalVersionId = versionId;
-        String author = EMPTY;
+        String author;
         Timestamp publicationTime;
         
         if (!versionId.matches("[0-9]+")) {
@@ -570,11 +570,7 @@ public class Datasets extends AbstractApiBean {
                 Dataset dataset = findDatasetOrDie(datasetId);
                 publicationTime = dataset.getCreateDate();
                 DatasetVersion datasetVersion = getDatasetVersionOrDie(dataverseRequest, versionId, dataset);
-                author = datasetVersion.getDatasetAuthors()
-                	    .stream()
-                	    .findFirst()
-                	    .map(a -> a.getName().getRawValue())
-                	    .orElse("Unknown");
+                author = FileUtil.zipFileAuthorName(datasetVersion, isViewedFromAnonymizedPrivateUrl(apiTokenUser, dataset));
                 finalVersionId = datasetVersion.getId().toString();
             } catch (WrappedResponse wr) {
                 return wr.getResponse();
@@ -583,7 +579,11 @@ public class Datasets extends AbstractApiBean {
         	try {
                 Dataset dataset = findDatasetOrDie(datasetId);
                 publicationTime = dataset.getCreateDate();
-                author = getAuthorName(versionId);
+                author = datasetVersionService.findById(Long.valueOf(versionId))
+                        .map(datasetVersion -> FileUtil.zipFileAuthorName(datasetVersion,
+                                isViewedFromAnonymizedPrivateUrl(apiTokenUser, dataset)))
+                        .orElseThrow(() -> new WrappedResponse(notFound(
+                                String.format("Dataset version %s of dataset %d not found", versionId, dataset.getId()))));
             } catch (WrappedResponse wr) {
                 return wr.getResponse();
             }
@@ -591,28 +591,15 @@ public class Datasets extends AbstractApiBean {
 
         boolean originalFormatRequested = isOriginalFormatRequested(uriInfo.getQueryParameters());
 
-        response.setHeader("Content-disposition", "attachment; filename=\"" + createFileName(author, publicationTime) + '"');
-        response.setHeader("Content-Type", "application/zip; name=\"" + createFileName(author, publicationTime) + '"');
+        String zipFileName = FileUtil.createDatasetFilesZipFileName(dataverseDao.getRootDataverseName(), author,
+                publicationTime.toLocalDateTime(), DataverseClock.now());
+        response.setHeader("Content-disposition", "attachment; filename=\"" + zipFileName + '"');
+        response.setHeader("Content-Type", "application/zip; name=\"" + zipFileName + '"');
 
         StreamingOutput fileStream = fileDownloadAPIHandler.downloadFiles(apiTokenUser, finalVersionId, originalFormatRequested, gbrecs);
         return Response.ok(fileStream).build();
     }
     
-    private String getAuthorName(final String versionId) {
-    	return this.datasetVersionService.findById(Long.valueOf(versionId))
-        		.map(version -> version.getDatasetAuthors().get(0).getName().
-        				getFieldValue().map(name -> name.replace(' ', '_')).getOrElse(EMPTY))
-        		.orElse(EMPTY);
-    }
-    
-    private String createFileName(final String authorName, final Timestamp datasetCreationTime) {
-    	
-    	final String publicationYear = new SimpleDateFormat("YYYY").format(datasetCreationTime);
-    	final String now = new SimpleDateFormat("yyyyMMddHHmmss").format(Timestamp.from(now()));
-    	return "fairchive_files_"  + authorName.replaceAll("[^a-zA-Z0-9]", "") + 
-    			'_' + publicationYear + '_' + now + ".zip";
-    }
-
     @GET
     @Path("{id}/versions/{versionId}/files/urls")
     @Produces({"text/csv"})
