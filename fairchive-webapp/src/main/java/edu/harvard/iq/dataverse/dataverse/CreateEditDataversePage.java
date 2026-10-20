@@ -570,8 +570,6 @@ public class CreateEditDataversePage implements Serializable {
     	}
     }   
     
-
-    
     private String saveEditedDataverse() {
     	this.dataverse.addVersion(this.version);
         final Either<DataverseError, Dataverse> editResult = 
