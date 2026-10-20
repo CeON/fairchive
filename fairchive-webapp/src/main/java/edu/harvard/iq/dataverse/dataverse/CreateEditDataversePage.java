@@ -482,7 +482,7 @@ public class CreateEditDataversePage implements Serializable {
      */
 
     public void handleImageFileUpload(final FileUploadEvent event) {
-
+    	System.out.println("!================================== handleImageFileUpload");
         if (this.tempDir == null) {
             createTempDir();
         }
