@@ -504,9 +504,9 @@ public class Access extends AbstractApiBean {
                         // This is the first file we can serve - so we now know that we are going to be able
                         // to produce some output.
                         zipperWrapper.init(outputStream);
-                        String zipFileName = FileUtil.createDatasetFilesZipFileName(rootDataverseName,
-                                FileUtil.zipFileAuthorName(releasedOrLatestVersion(file.getOwner()),
-                                        isViewedFromAnonymizedPrivateUrl(apiTokenUser, file.getOwner())),
+                        String authorName = FileUtil.zipFileAuthorName(releasedOrLatestVersion(file.getOwner()),
+                                isViewedFromAnonymizedPrivateUrl(apiTokenUser, file.getOwner()));
+                        String zipFileName = FileUtil.createDatasetFilesZipFileName(rootDataverseName, authorName,
                                 file.getOwner().getCreateDate().toLocalDateTime(), DataverseClock.now());
                         response.setHeader("Content-disposition", "attachment; filename=\"" + zipFileName + '"');
                         response.setHeader("Content-Type", "application/zip; name=\"" + zipFileName + '"');
