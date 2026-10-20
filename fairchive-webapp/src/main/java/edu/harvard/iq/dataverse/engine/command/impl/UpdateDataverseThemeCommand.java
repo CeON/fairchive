@@ -8,11 +8,12 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
+import static java.nio.file.Files.copy;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.delete;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 /**
@@ -24,10 +25,10 @@ import java.nio.file.Paths;
 @RequiredPermissions(Permission.EditDataverse)
 public class UpdateDataverseThemeCommand extends AbstractCommand<Dataverse> {
     private final Dataverse editedDv;
-    private final File uploadedFile;
+    private final Path uploadedFile;
     private final Path logoPath = Paths.get("../docroot/logos");
 
-    public UpdateDataverseThemeCommand(Dataverse editedDv, File uploadedFile, 
+    public UpdateDataverseThemeCommand(Dataverse editedDv, Path uploadedFile, 
             DataverseRequest aRequest) {
         super(aRequest, editedDv);
         this.uploadedFile = uploadedFile;
@@ -46,27 +47,27 @@ public class UpdateDataverseThemeCommand extends AbstractCommand<Dataverse> {
     public Dataverse execute(CommandContext ctxt) {
         // Get current dataverse, so we can delete current logo file if necessary
         Dataverse currentDv = ctxt.dataverses().find(editedDv.getId());
-        File logoFileDir = new File(logoPath.toFile(), editedDv.getId().toString());
-        File currentFile = null;
+        Path logoFileDir = logoPath.resolve(editedDv.getId().toString());
+        Path currentFile = null;
         if (currentDv.getDataverseTheme() != null 
                 && currentDv.getDataverseTheme().getLogo() != null) {
-            currentFile = new File(logoFileDir, currentDv.getDataverseTheme().getLogo());
+            currentFile = logoFileDir.resolve(currentDv.getDataverseTheme().getLogo());
         }
         try {
             // If edited logo field is empty, and a logoFile currently exists, delete it
             if (editedDv.getDataverseTheme() == null 
                     || editedDv.getDataverseTheme().getLogo() == null) {
                 if (currentFile != null) {
-                    currentFile.delete();
+                	delete(currentFile);
                 }
             } // If edited logo file isn't empty,and uploaded File exists, delete currentFile and copy uploaded file from temp dir to logos dir
             else if (uploadedFile != null) {
-                File newFile = new File(logoFileDir, editedDv.getDataverseTheme().getLogo());
+                Path newFile = logoFileDir.resolve(editedDv.getDataverseTheme().getLogo());
                 if (currentFile != null) {
-                    currentFile.delete();
+                	delete(currentFile);
                 }
-                logoFileDir.mkdirs();
-                Files.copy(uploadedFile.toPath(), newFile.toPath(), REPLACE_EXISTING);
+                createDirectories(logoFileDir);
+                copy(uploadedFile, newFile, REPLACE_EXISTING);
             }
             // save updated dataverse to db
             return ctxt.dataverses().save(editedDv);

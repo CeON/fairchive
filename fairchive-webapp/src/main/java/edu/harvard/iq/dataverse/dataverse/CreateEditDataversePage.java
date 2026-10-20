@@ -549,8 +549,6 @@ public class CreateEditDataversePage implements Serializable {
     
     
     public String saveAndRelease() {
-    	System.out.println("!====================================== save & release");
-    	
     	if(canUserPublishCollection()) {
     		this.version.setState(RELEASED);
     		return save();
@@ -560,8 +558,6 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public String save() {
-    	System.out.println("!====================================== save");
-    	
     	if(session.isUserLoggedIn()) {
 	        if (this.dataverse.isNew()) {
 	            return saveNewDataverse();
@@ -577,20 +573,30 @@ public class CreateEditDataversePage implements Serializable {
 
     
     private String saveEditedDataverse() {
-    	
     	this.dataverse.addVersion(this.version);
         final Either<DataverseError, Dataverse> editResult = 
         		this.dataverseService.saveEditedDataverse(emptyList(), 
         				this.dataverse, new DualListModel<DatasetFieldType>());
-
-      //  saveTheme();
-        
         if (editResult.isLeft()) {
             this.ui.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
             return EMPTY;
         } else {
-        	this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
-        	return returnRedirect();
+        	try {
+    	        if (this.dataverse.isThemeRoot()) {
+    	            this.themeWidgetService.
+    	            		saveOrUpdateUploadedTheme(this.dataverse, this.uploadedFile);
+    	        } else {
+    	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
+    	        }
+	        	this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
+	        	return returnRedirect();
+        	} catch(final Exception e) {
+                this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
+                        				  getStringFromBundle("dataverse.theme.failure"));
+                return null;
+            } finally {
+            	this.cleanupTempDirectory();
+            }
         }
     }
 
@@ -600,45 +606,33 @@ public class CreateEditDataversePage implements Serializable {
         final Either<DataverseError, Dataverse> saveResult = 
         		this.dataverseService.saveNewDataverse(emptyList(), 
         				this.dataverse, new DualListModel<DatasetFieldType>());
-        
-       // saveTheme();
 
         if (saveResult.isLeft()) {
             this.ui.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
             return EMPTY;
         } else {
-            this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
-                    this.config.getGuidesBaseUrl(this.session.getLocale()),
-                    this.config.getGuidesVersion()));
-        	return "/dataverse.xhtml?faces-redirect=true&alias=".
-        			concat(saveResult.get().getAlias());
-        }
-    }
-    
-    private String saveTheme() {
-        try {
-        	this.dataverse.addVersion(this.version);
-	        if (this.dataverse.isThemeRoot()) {
-	            this.themeWidgetService.
-	            		saveOrUpdateUploadedTheme(this.dataverse, this.uploadedFile.toFile());
-	        } else {
-	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
-	        }
-	        this.dataverseService.saveEditedDataverse(this.dataverse);
-            this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.theme.success"));
-            return "/dataverse.xhtml?faces-redirect=true&alias=".
-            		concat(dataverse.getAlias());
-        } catch(final Exception e) {
-            this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
-                    				  getStringFromBundle("dataverse.theme.failure"));
-            return null;
-        } finally {
-        	this.cleanupTempDirectory();
+            try {
+    	        if (this.dataverse.isThemeRoot()) {
+    	            this.themeWidgetService.
+    	            		saveOrUpdateUploadedTheme(this.dataverse, this.uploadedFile);
+    	        } else {
+    	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
+    	        }
+                this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
+                        this.config.getGuidesBaseUrl(this.session.getLocale()),
+                        this.config.getGuidesVersion()));
+            	return returnRedirect();
+            } catch(final Exception e) {
+                this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
+                        				  getStringFromBundle("dataverse.theme.failure"));
+                return null;
+            } finally {
+            	this.cleanupTempDirectory();
+            }
         }
     }
 
     public String cancel() {
-    	System.out.println("!====================================== cancel");
         return returnRedirect();
     }
 

@@ -317,7 +317,7 @@
              <hr class="margin-top-half margin-bottom-half"/>
            
                  <!-- Dataverse Theme Panel -->
-          <!--       <p:panel id="themePanel">
+             <p:panel id="themePanel">
                 <p:autoUpdate />
                 <div class="row form-horizontal">
                     <div class="form-group"
@@ -607,21 +607,21 @@
                         </div>
                     </div>
                 </ui:fragment>
-            </p:panel> -->
+            </p:panel>
 
             <div class="button-block">
                 <p:commandButton id="save" 
                                  value="#{bundle.save}"
                                  action="#{page.save()}" 
-                                 update="@form">
-                    <f:ajax onerror="window.scrollTo(0, 0)"/>
+                                 update="@form"
+                                 onerror="window.scrollTo(0, 0)">
                 </p:commandButton>
                 <p:commandButton rendered="#{page.canUserPublishCollection()}"
                                  id="saveAndPublish" 
                                  value="#{bundle.saveAndRelease}"
                                  action="#{page.saveAndRelease()}" 
-                                 update="@form">
-                    <f:ajax onerror="window.scrollTo(0, 0)"/>
+                                 update="@form"
+                                 onerror="window.scrollTo(0, 0)">
                 </p:commandButton>
                 <p:commandButton id="cancel" 
                                  value="#{bundle.cancel}"
