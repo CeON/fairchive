@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.dataverse.CreateEditDataversePage;
 import edu.harvard.iq.dataverse.dataverse.DataverseService;
+import edu.harvard.iq.dataverse.dataverse.themewidget.ThemeWidgetService;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
@@ -27,6 +28,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	
 	@Inject
     private DataverseService dataverseService;
+	@Inject
+	private ThemeWidgetService themeWidgetService;
 	@Inject
 	private PermissionServiceBean permissionService;
 	@Inject
@@ -359,7 +362,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	}
 	
 	private CreateEditDataversePage newPage() {
-		return new CreateEditDataversePage(this.dataverseService, 
+		return new CreateEditDataversePage(this.dataverseService, this.themeWidgetService,
 				this.permissionsWrapper, this.session, this.config, this.ui);
 	}
 }

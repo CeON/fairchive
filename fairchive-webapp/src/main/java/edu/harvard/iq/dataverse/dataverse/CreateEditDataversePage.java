@@ -249,7 +249,8 @@ public class CreateEditDataversePage implements Serializable {
     }
     
     public boolean isLogoPresent() {
-    	return isNotEmpty(this.version.getTheme().getLogo());
+    	boolean result = isNotEmpty(this.version.getTheme().getLogo());
+    	return result;
     }
     
     public String getLogoPath() {
@@ -548,6 +549,8 @@ public class CreateEditDataversePage implements Serializable {
     
     
     public String saveAndRelease() {
+    	System.out.println("!====================================== save & release");
+    	
     	if(canUserPublishCollection()) {
     		this.version.setState(RELEASED);
     		return save();
@@ -557,6 +560,8 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public String save() {
+    	System.out.println("!====================================== save");
+    	
     	if(session.isUserLoggedIn()) {
 	        if (this.dataverse.isNew()) {
 	            return saveNewDataverse();
@@ -569,6 +574,8 @@ public class CreateEditDataversePage implements Serializable {
     	}
     }   
     
+
+    
     private String saveEditedDataverse() {
     	
     	this.dataverse.addVersion(this.version);
@@ -576,7 +583,7 @@ public class CreateEditDataversePage implements Serializable {
         		this.dataverseService.saveEditedDataverse(emptyList(), 
         				this.dataverse, new DualListModel<DatasetFieldType>());
 
-        saveTheme();
+      //  saveTheme();
         
         if (editResult.isLeft()) {
             this.ui.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
@@ -594,7 +601,7 @@ public class CreateEditDataversePage implements Serializable {
         		this.dataverseService.saveNewDataverse(emptyList(), 
         				this.dataverse, new DualListModel<DatasetFieldType>());
         
-        saveTheme();
+       // saveTheme();
 
         if (saveResult.isLeft()) {
             this.ui.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
@@ -619,7 +626,7 @@ public class CreateEditDataversePage implements Serializable {
 	        }
 	        this.dataverseService.saveEditedDataverse(this.dataverse);
             this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.theme.success"));
-            return "dataverse.xhtml?faces-redirect=true&alias=".
+            return "/dataverse.xhtml?faces-redirect=true&alias=".
             		concat(dataverse.getAlias());
         } catch(final Exception e) {
             this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
@@ -631,6 +638,7 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public String cancel() {
+    	System.out.println("!====================================== cancel");
         return returnRedirect();
     }
 

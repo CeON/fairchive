@@ -7,7 +7,7 @@
       xmlns:jsf="http://xmlns.jcp.org/jsf"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
-
+      
     <!--@elvariable id="facet" type="edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType"-->
 
 <f:view locale="#{dataverseSession.localeCode}"/>
@@ -34,7 +34,9 @@
             #{bundle['dataverse.edit.header']}
         </h2>
                 
-        <h:form id="createEditDataverseForm">
+                
+        <h:form id="createEditDataverseForm"
+                enctype="multipart/form-data">
             <p:focus context="createEditDataverseForm" 
                      rendered="#{facesContext.validationFailed}" />
             <div class="form-group row col-sm-12">
@@ -315,7 +317,7 @@
              <hr class="margin-top-half margin-bottom-half"/>
            
                  <!-- Dataverse Theme Panel -->
-                <p:panel id="themePanel">
+          <!--       <p:panel id="themePanel">
                 <p:autoUpdate />
                 <div class="row form-horizontal">
                     <div class="form-group"
@@ -362,10 +364,25 @@
                         </label>
                         <div class="col-xs-12 col-sm-9">
                             <p class="help-block">#{bundle['dataverse.theme.logo.tip']}</p>
-                            <p:panelGrid
-                                rendered="#{page.logoPresent}"
-                                columns="2" styleClass="noBorders"
-                                columnClasses="text-center,uploadNewLogo">
+                            <p:panelGrid rendered="#{not page.logoPresent}"
+                                         columns="2"
+                                         styleClass="noBorders">
+                                <p:fileUpload id="uploadlogo"
+                                    invalidFileMessage="#{bundle['dataverse.theme.logo.image.invalidMsg']}"
+                                    sizeLimit="#{page.uploadLogoSizeLimit}"
+                                    accept=".jpg,.jpeg,.png,.gif"
+                                    allowTypes="/(\.|\/)(jpg|jpeg|png|gif)$/"
+                                    update=":createEditDataverseForm:themePanel"
+                                    dragDropSupport="true"
+                                    auto="true"
+                                    multiple="false"
+                                    listener="#{page.handleImageFileUpload}"
+                                    label="#{bundle['dataverse.theme.logo.image.uploadImgFile']}" />
+                            </p:panelGrid>
+                            <p:panelGrid rendered="#{page.logoPresent}"
+                                         columns="2"
+                                         styleClass="noBorders"
+                                         columnClasses="text-center,uploadNewLogo">
                                 <p:column>
                                     <p>
                                         <img class="logoPreview"
@@ -387,22 +404,6 @@
                                     multiple="false"
                                     listener="#{page.handleImageFileUpload}"
                                     label="#{bundle['dataverse.theme.logo.image.upload']}" />
-                            </p:panelGrid>
-                            <p:panelGrid
-                                rendered="#{not page.logoPresent}"
-                                columns="2"
-                                styleClass="noBorders">
-                                <p:fileUpload id="uploadlogo"
-                                    invalidFileMessage="#{bundle['dataverse.theme.logo.image.invalidMsg']}"
-                                    sizeLimit="#{page.uploadLogoSizeLimit}"
-                                    accept=".jpg,.jpeg,.png,.gif"
-                                    allowTypes="/(\.|\/)(jpg|jpeg|png|gif)$/"
-                                    update=":createEditDataverseForm:themePanel"
-                                    dragDropSupport="true"
-                                    auto="true"
-                                    multiple="false"
-                                    listener="#{page.handleImageFileUpload}"
-                                    label="#{bundle['dataverse.theme.logo.image.uploadImgFile']}" />
                             </p:panelGrid>
                             <ui:fragment
                                 rendered="#{page.logoPresent}">
@@ -606,7 +607,7 @@
                         </div>
                     </div>
                 </ui:fragment>
-            </p:panel>
+            </p:panel> -->
 
             <div class="button-block">
                 <p:commandButton id="save" 
