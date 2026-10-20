@@ -374,7 +374,7 @@ public class ThemeWidgetFragment implements java.io.Serializable {
         	this.dataverse.addVersion(this.version);
 	        if (this.dataverse.isThemeRoot()) {
 	            this.themeWidgetService.
-	            		saveOrUpdateUploadedTheme(this.dataverse, this.uploadedFile.toFile());
+	            		saveOrUpdateUploadedTheme(this.dataverse, this.uploadedFile);
 	        } else {
 	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
 	        }

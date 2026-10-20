@@ -55,7 +55,7 @@ public class ThemeWidgetServiceTest {
         File file = new File (getClass().getClassLoader()
                 .getResource("images/banner.png").getFile());
         // when
-        themeWidgetService.saveOrUpdateUploadedTheme(dataverse, file);
+        themeWidgetService.saveOrUpdateUploadedTheme(dataverse, file.toPath());
 
         // then
         verify(commandEngine, times(1)).submit(any(UpdateDataverseThemeCommand.class));
