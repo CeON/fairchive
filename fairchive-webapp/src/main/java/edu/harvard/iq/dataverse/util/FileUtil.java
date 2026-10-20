@@ -45,6 +45,8 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -463,6 +465,45 @@ public class FileUtil implements java.io.Serializable {
         }
 
         return EMPTY;
+    }
+
+    /**
+     * Builds the name of a ZIP archive with files of a dataset, used both for
+     * all files of a version and for the files selected by the user:
+     * {@code <repository>_files_<author>_<year>_<timestamp>.zip}.
+     * In the repository name every character other than an ASCII letter,
+     * a digit or an underscore is replaced by an underscore ("MX-RDR" becomes
+     * "MX_RDR"); from the author name such characters are removed.
+     *
+     * @param repositoryName name of the root collection
+     * @param authorName name of the first author of the dataset
+     * @param datasetCreationTime its year goes into the name
+     * @param downloadTime the moment of the download, as a timestamp
+     * @return the file name
+     */
+    public static String createDatasetFilesZipFileName(String repositoryName, String authorName,
+                                                       LocalDateTime datasetCreationTime, LocalDateTime downloadTime) {
+        return repositoryName.replaceAll("[^a-zA-Z0-9_]", "_")
+                + "_files_" + authorName.replaceAll("[^a-zA-Z0-9]", EMPTY)
+                + '_' + datasetCreationTime.getYear()
+                + '_' + downloadTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                + ".zip";
+    }
+
+    /**
+     * @return the name of the first author of the given version, to go into
+     * the name of a ZIP archive with its files, or "Unknown" when it has none;
+     * "Anonymized" when the dataset is viewed through an anonymized private
+     * URL, which hides the authors
+     */
+    public static String zipFileAuthorName(DatasetVersion datasetVersion, boolean viewedFromAnonymizedPrivateUrl) {
+        if (viewedFromAnonymizedPrivateUrl) {
+            return "Anonymized";
+        }
+        return datasetVersion.getDatasetAuthors().stream()
+                .findFirst()
+                .map(author -> author.getName().getRawValue())
+                .orElse("Unknown");
     }
 
     public static byte[] getFileFromResources(String path) {

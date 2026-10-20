@@ -1,5 +1,9 @@
 package edu.harvard.iq.dataverse.api;
 
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.user.GuestUser;
+import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
 import edu.harvard.iq.dataverse.util.MockResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,10 +21,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AbstractApiBeanTest {
 
@@ -69,6 +76,52 @@ public class AbstractApiBeanTest {
         }
         logger.info(sw.toString());
         assertEquals(message, jsonObject.getJsonObject("data").getString("message"));
+    }
+
+    @Test
+    public void isViewedFromAnonymizedPrivateUrl__apiTokenOfAnonymizedPrivateUrl() {
+        // given
+        Dataset dataset = dataset(7L);
+        sut.session = mock(DataverseSession.class);
+
+        // when
+        boolean anonymized = sut.isViewedFromAnonymizedPrivateUrl(new PrivateUrlUser(7L, true), dataset);
+
+        // then
+        assertThat(anonymized).isTrue();
+    }
+
+    @Test
+    public void isViewedFromAnonymizedPrivateUrl__sessionOfAnonymizedPrivateUrl() {
+        // given
+        Dataset dataset = dataset(7L);
+        sut.session = mock(DataverseSession.class);
+        when(sut.session.isViewedFromAnonymizedPrivateUrl(dataset)).thenReturn(true);
+
+        // when
+        boolean anonymized = sut.isViewedFromAnonymizedPrivateUrl(GuestUser.get(), dataset);
+
+        // then
+        assertThat(anonymized).isTrue();
+    }
+
+    @Test
+    public void isViewedFromAnonymizedPrivateUrl__neither() {
+        // given
+        Dataset dataset = dataset(7L);
+        sut.session = mock(DataverseSession.class);
+
+        // when
+        boolean anonymized = sut.isViewedFromAnonymizedPrivateUrl(new PrivateUrlUser(7L, false), dataset);
+
+        // then
+        assertThat(anonymized).isFalse();
+    }
+
+    private static Dataset dataset(Long id) {
+        Dataset dataset = new Dataset();
+        dataset.setId(id);
+        return dataset;
     }
 
     /**

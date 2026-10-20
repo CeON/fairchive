@@ -54,6 +54,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.GetDraftVersionIfExists;
 import edu.harvard.iq.dataverse.engine.command.impl.GetLatestAccessibleDatasetVersionCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.GetLatestPublishedDatasetVersionCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.GetSpecificPublishedDatasetVersionCommand;
+import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
@@ -342,6 +343,16 @@ public abstract class AbstractApiBean {
                     logger.fine("Session is null. Assuming guest user");
                     return GuestUser.get();
                 });
+    }
+
+    /**
+     * @return true if the dataset is viewed through an anonymized private URL,
+     * either with its token as the API key of the request or opened earlier in
+     * the session
+     */
+    protected boolean isViewedFromAnonymizedPrivateUrl(User apiTokenUser, DvObject dataset) {
+        return PrivateUrlUser.isAnonymizedViewerOf(apiTokenUser, dataset)
+                || session.isViewedFromAnonymizedPrivateUrl(dataset);
     }
 
     protected Dataverse findDataverseOrDie(String dvIdtf) throws WrappedResponse {
