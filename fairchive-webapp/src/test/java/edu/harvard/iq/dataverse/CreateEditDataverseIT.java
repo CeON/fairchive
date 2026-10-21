@@ -3,15 +3,29 @@ package edu.harvard.iq.dataverse;
 import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.DEPARTMENT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.LABORATORY;
 import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.UNCATEGORIZED;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFAULT_BACKGROUND_COLOR;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFAULT_LINK_COLOR;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFAULT_TEXT_COLOR;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment.LEFT;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat.SQUARE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.inject.Inject;
 
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.file.UploadedFile;
+
+import com.ocpsoft.pretty.faces.util.NullComponent;
 
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.dataverse.CreateEditDataversePage;
@@ -26,6 +40,8 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 @Transactional(TransactionMode.ROLLBACK)
 public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	
+	private final static String logoFileName = "example_no_text.jpg";
+	
 	@Inject
     private DataverseService dataverseService;
 	@Inject
@@ -38,21 +54,31 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
     private SystemConfig config;
 	@Inject
 	private AuthenticatedUserRepository userRepository;
+    @Inject
+    private TempLogoStorageManager storageManager;
 	
 	private DataverseRequestServiceBean requestService;
 	private NavigationWrapper navigationWrapper;
     private PermissionsWrapper permissionsWrapper;
-    private UIMessages ui;
+    private UIMessages ui = Mockito.mock(UIMessages.class);
 	private CreateEditDataversePage createEditPage;
 	
+	private UploadedFile uploadedFile = Mockito.mock(UploadedFile.class);
+	private InputStream fileContent;
+	
+	private 
+	
 	@BeforeEach
-	void setUp() {
+	void setUp() throws IOException {
+		
+		when(this.uploadedFile.getFileName()).thenReturn(logoFileName);
+		when(this.uploadedFile.getInputStream()).then(invocation -> 
+				this.fileContent = this.getClass().getResourceAsStream("/images/".concat(logoFileName)));
 		
 		this.requestService = new DataverseRequestServiceBean(this.session, null);
 		this.navigationWrapper = Mockito.mock(NavigationWrapper.class);
 		this.permissionsWrapper = new PermissionsWrapper(this.permissionService, 
 				this.requestService, this.navigationWrapper);
-		this.ui = Mockito.mock(UIMessages.class);
 		
 		this.createEditPage = newPage();
 		
@@ -60,9 +86,16 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		loginUserById(1L); // admin
 	}
 	
+	@AfterEach
+	void clean() throws IOException {
+		if(this.fileContent != null) {
+			this.fileContent.close();
+		}
+	}
+	
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
-	void createNewDataverseDraft() {
+	void createNewDataverseDraft() throws IOException {
 		
 		this.createEditPage.setOwnerId(1L);
 		this.createEditPage.init();
@@ -77,6 +110,18 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.isInheritFacetFromParent()).isTrue();
 		assertThat(this.createEditPage.isMessagesBannersAllowed()).isFalse();
 		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
+		assertThat(this.createEditPage.getInheritCustomization()).isFalse();
+		assertThat(this.createEditPage.getBackgroundColor()).isEqualTo(DEFAULT_BACKGROUND_COLOR);
+		assertThat(this.createEditPage.getLinkColor()).isEqualTo(DEFAULT_LINK_COLOR);
+		assertThat(this.createEditPage.getTextColor()).isEqualTo(DEFAULT_TEXT_COLOR);
+		assertThat(this.createEditPage.isLogoPresent()).isFalse();
+		assertThat(this.createEditPage.getLogo()).isNull();
+		assertThat(this.createEditPage.getLogoPath()).isEmpty();
+		assertThat(this.createEditPage.getLogoAlignment()).isEqualTo(LEFT);
+		assertThat(this.createEditPage.getLogoFormat()).isEqualTo(SQUARE);
+		assertThat(this.createEditPage.getLinkUrl()).isNull();
+		assertThat(this.createEditPage.getTagline()).isNull();
+		
 		
 		Dataverse dataverse = this.createEditPage.getDataverse();
 		
@@ -90,6 +135,17 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.isDraft()).isTrue();
 		assertThat(version.getContacts()).hasSize(1);
 		assertThat(version.getContacts().get(0).getEmail()).isEmpty();
+		assertThat(version.getTheme()).isNotNull();
+		assertThat(version.getTheme().getBackgroundColor()).isEqualTo(DEFAULT_BACKGROUND_COLOR);
+		assertThat(version.getTheme().getLinkColor()).isEqualTo(DEFAULT_LINK_COLOR);
+		assertThat(version.getTheme().getTextColor()).isEqualTo(DEFAULT_TEXT_COLOR);
+		assertThat(version.getTheme().getLinkUrl()).isNull();
+		assertThat(version.getTheme().getLogo()).isNull();
+		assertThat(version.getTheme().getLogoAlignment()).isEqualTo(LEFT);
+		assertThat(version.getTheme().getLogoFormat()).isEqualTo(SQUARE);
+		assertThat(version.getTheme().getTagline()).isNull();
+		assertThat(version.getTheme().getVersion()).isSameAs(version);
+		
 		
 		this.createEditPage.setName("name1");
 		this.createEditPage.setAlias("alias1");
@@ -98,8 +154,21 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
 		this.createEditPage.setInheritFacetFromParent(false);
 		this.createEditPage.setMessagesBannersAllowed(true);
+		this.createEditPage.setBackgroundColor("BBBBBB");
+		this.createEditPage.setLinkColor("CCCCCC");
+		this.createEditPage.setTextColor("DDDDDD");
+		this.createEditPage.setLinkUrl("http://google.com");
+		this.createEditPage.setTagline("tagline");
 		
-		assertThat(this.createEditPage.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
+		this.createEditPage.handleImageFileUpload(
+				new FileUploadEvent(new NullComponent(), this.uploadedFile));
+		
+		assertThat(this.createEditPage.isLogoPresent()).isTrue();
+		assertThat(this.createEditPage.getLogo()).isEqualTo(logoFileName);
+		
+		
+		assertThat(this.createEditPage.save()).
+			isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
 		
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
@@ -118,6 +187,12 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.isMessagesBannersAllowed()).isTrue();
 		assertThat(storedVersion.getContacts()).hasSize(1);
 		assertThat(storedVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
+		assertThat(storedVersion.getTheme().getBackgroundColor()).isEqualTo("BBBBBB");
+		assertThat(storedVersion.getTheme().getLinkColor()).isEqualTo("CCCCCC");
+		assertThat(storedVersion.getTheme().getTextColor()).isEqualTo("DDDDDD");
+		assertThat(storedVersion.getTheme().getLinkUrl()).isEqualTo("http://google.com");
+		assertThat(storedVersion.getTheme().getTagline()).isEqualTo("tagline");
+		assertThat(storedVersion.getTheme().getLogo()).isEqualTo(logoFileName);
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
@@ -139,6 +214,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.isInheritFacetFromParent()).isTrue();
 		assertThat(this.createEditPage.isMessagesBannersAllowed()).isFalse();
 		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
+		assertThat(this.createEditPage.getInheritCustomization()).isFalse();
 		
 		Dataverse dataverse = this.createEditPage.getDataverse();
 		
@@ -214,6 +290,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.isInheritFacetFromParent()).isFalse();
 		assertThat(this.createEditPage.isMessagesBannersAllowed()).isTrue();
 		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
+		assertThat(this.createEditPage.getInheritCustomization()).isFalse();
 		
 		dataverse = this.createEditPage.getDataverse();
 		
@@ -293,6 +370,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.isInheritFacetFromParent()).isFalse();
 		assertThat(this.createEditPage.isMessagesBannersAllowed()).isTrue();
 		assertThat(this.createEditPage.canUserPublishCollection()).isTrue();
+		assertThat(this.createEditPage.getInheritCustomization()).isFalse();
 		
 		dataverse = this.createEditPage.getDataverse();
 		
@@ -363,6 +441,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	
 	private CreateEditDataversePage newPage() {
 		return new CreateEditDataversePage(this.dataverseService, this.themeWidgetService,
-				this.permissionsWrapper, this.session, this.config, this.ui);
+				this.permissionsWrapper, this.session, this.config,
+				this.storageManager, this.ui);
 	}
 }

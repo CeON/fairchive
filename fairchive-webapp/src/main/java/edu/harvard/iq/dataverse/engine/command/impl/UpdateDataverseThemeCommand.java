@@ -1,14 +1,13 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.deleteIfExists;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import edu.harvard.iq.dataverse.TempLogoStorageManager;
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -25,13 +24,13 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 @RequiredPermissions(Permission.EditDataverse)
 public class UpdateDataverseThemeCommand extends AbstractCommand<Dataverse> {
     private final Dataverse editedDv;
-    private final Path uploadedFile;
+    private final TempLogoStorageManager.Storage storage;
     private final Path logoPath = Paths.get("../docroot/logos");
 
-    public UpdateDataverseThemeCommand(Dataverse editedDv, Path uploadedFile, 
+    public UpdateDataverseThemeCommand(Dataverse editedDv, TempLogoStorageManager.Storage storage, 
             DataverseRequest aRequest) {
         super(aRequest, editedDv);
-        this.uploadedFile = uploadedFile;
+        this.storage = storage;
         this.editedDv = editedDv;
 
     }
@@ -61,13 +60,10 @@ public class UpdateDataverseThemeCommand extends AbstractCommand<Dataverse> {
                 	deleteIfExists(currentFile);
                 }
             } // If edited logo file isn't empty,and uploaded File exists, delete currentFile and copy uploaded file from temp dir to logos dir
-            else if (uploadedFile != null) {
+            else if (this.storage != null) {
                 Path newFile = logoFileDir.resolve(editedDv.getDataverseTheme().getLogo());
-                if (currentFile != null) {
-                	deleteIfExists(currentFile);
-                }
                 createDirectories(logoFileDir);
-                copy(uploadedFile, newFile, REPLACE_EXISTING);
+                this.storage.copyIfExists(editedDv.getDataverseTheme().getLogo(), newFile);
             }
             // save updated dataverse to db
             return ctxt.dataverses().save(editedDv);
@@ -76,7 +72,6 @@ public class UpdateDataverseThemeCommand extends AbstractCommand<Dataverse> {
             throw new CommandException("Error saving logo file", e, this); // improve error handling
 
         }
-
     }
 
 }

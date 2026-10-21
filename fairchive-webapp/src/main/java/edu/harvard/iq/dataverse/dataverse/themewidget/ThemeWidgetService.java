@@ -7,6 +7,7 @@ import javax.inject.Inject;
 
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
+import edu.harvard.iq.dataverse.TempLogoStorageManager;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
@@ -30,8 +31,8 @@ public class ThemeWidgetService {
 
     // -------------------- LOGIC --------------------
 
-    public Dataverse saveOrUpdateUploadedTheme(Dataverse dataverse, Path themeFile) {
-        return commandEngine.submit(new UpdateDataverseThemeCommand(dataverse, themeFile, dvRequestService.getDataverseRequest()));
+    public Dataverse saveOrUpdateUploadedTheme(Dataverse dataverse, TempLogoStorageManager.Storage storage) {
+        return commandEngine.submit(new UpdateDataverseThemeCommand(dataverse, storage, dvRequestService.getDataverseRequest()));
     }
 
     public Dataverse inheritThemeFromRoot(Dataverse dataverse) {

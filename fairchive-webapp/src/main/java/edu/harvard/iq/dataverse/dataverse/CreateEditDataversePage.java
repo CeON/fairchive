@@ -4,16 +4,9 @@ import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DisableRootDataverseTheme;
-import static java.nio.file.Files.copy;
-import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.createFile;
-import static java.nio.file.Files.createTempDirectory;
-import static java.nio.file.Files.deleteIfExists;
-import static java.nio.file.Files.exists;
-import static java.nio.file.Files.list;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.Collections.emptyList;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -22,12 +15,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.PreDestroy;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
@@ -45,6 +35,7 @@ import org.primefaces.model.file.UploadedFile;
 
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.TempLogoStorageManager;
 import edu.harvard.iq.dataverse.dataverse.themewidget.ThemeWidgetService;
 import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
@@ -70,6 +61,7 @@ public class CreateEditDataversePage implements Serializable {
     private PermissionsWrapper permissionsWrapper;
     private DataverseSession session;
     private SystemConfig config;
+    private TempLogoStorageManager tempLogoStorageManager;
     private UIMessages ui;
 
     private Long dataverseId;
@@ -79,10 +71,9 @@ public class CreateEditDataversePage implements Serializable {
     private Dataverse dataverse;
     private DataverseVersion version;
     
-    private Path tempDir;
-    private Path uploadedFile;
     private HtmlInputText linkUrlInput;
     private HtmlInputText taglineInput;
+    private TempLogoStorageManager.Storage storage;
     
     public CreateEditDataversePage() {}
     @Inject
@@ -91,12 +82,14 @@ public class CreateEditDataversePage implements Serializable {
     							   final PermissionsWrapper permissionsWrapper,
     							   final DataverseSession session,
     							   final SystemConfig config,
+    							   final TempLogoStorageManager tempLogoStorageManager,
     							   final UIMessages ui) {
     	this.dataverseService = dataverseService;
     	this.themeWidgetService = themeWidgetService;
     	this.permissionsWrapper = permissionsWrapper;
     	this.session = session;
     	this.config = config;
+    	this.tempLogoStorageManager = tempLogoStorageManager;
     	this.ui = ui;
     }
     
@@ -249,14 +242,17 @@ public class CreateEditDataversePage implements Serializable {
     }
     
     public boolean isLogoPresent() {
-    	boolean result = isNotEmpty(this.version.getTheme().getLogo());
-    	return result;
+    	return isNotEmpty(this.version.getTheme().getLogo());
     }
     
     public String getLogoPath() {
-    	return this.uploadedFile != null
-    		? "/logos/temp/" + getTempDirName() + '/' + getLogo()
-    		: "/logos/" + this.dataverse.getId() + '/' + getLogo();
+    	if(isLogoPresent()) {
+	    	return this.storage != null
+	    		? "/logos/temp/" + this.storage.getName() + '/' + getLogo()
+	    		: "/logos/" + this.dataverse.getId() + '/' + getLogo();
+    	} else {
+    		return EMPTY;
+    	}
     }
 
     public void setLogo(final String logo) {
@@ -329,38 +325,6 @@ public class CreateEditDataversePage implements Serializable {
     
     public boolean isDataverseReleased() {
     	return this.dataverse.isReleased();
-    }
-
-    private void createTempDir() {
-        try {
-            final Path tempRoot = createDirectories(Paths.get("../docroot/logos/temp"));
-            this.tempDir = createTempDirectory(tempRoot, this.dataverse.getId().toString());
-        } catch (final IOException e) {
-            throw new RuntimeException("Error creating temp directory", e);
-        }
-    }
-
-    @PreDestroy
-    /**
-     *  Cleanup by deleting temp directory and uploaded files  
-     */
-    public void cleanupTempDirectory() {
-        try {
-            if (this.tempDir != null) {
-            	list(this.tempDir).forEach(file -> {
-            		try {
-            			deleteIfExists(file);
-            		} catch (final IOException e) {
-                        throw new RuntimeException("Error deleting temp directory", e); 
-                    }
-            	});
-                deleteIfExists(this.tempDir);
-            }
-        } catch (final IOException e) {
-            throw new RuntimeException("Error deleting temp directory", e); 
-        }
-        this.uploadedFile = null;
-        this.tempDir = null;
     }
 
     // -------------------- LOGIC --------------------
@@ -481,32 +445,24 @@ public class CreateEditDataversePage implements Serializable {
      * @param event
      */
 
-    public void handleImageFileUpload(final FileUploadEvent event) {
-    	System.out.println("!================================== handleImageFileUpload");
-        if (this.tempDir == null) {
-            createTempDir();
-        }
-        final UploadedFile uFile = event.getFile();
-        try {
-            this.uploadedFile = this.tempDir.resolve(uFile.getFileName());
-            if (!exists(this.uploadedFile)) {
-                createFile(this.uploadedFile);
-            }
-            copy(uFile.getInputStream(), this.uploadedFile, REPLACE_EXISTING);
-            setLogo(uFile.getFileName());
+	public void handleImageFileUpload(final FileUploadEvent event) throws IOException {
+		System.out.println("!================================== handleImageFileUpload");
+		if (this.storage == null) {
+			this.storage = this.tempLogoStorageManager.createStorageFor(this.dataverse);
+		}
+		final UploadedFile file = event.getFile();
+		storage.saveFrom(file.getFileName(), file.getInputStream());
+		setLogo(file.getFileName());
+	}
 
-        } catch (final IOException e) {
-            throw new RuntimeException("Error uploading logo file", e); // improve error handling
-        }
-    }
-
-    public void removeLogo() {
+    public void removeLogo() throws IOException {
         setLogo(null);
-        this.cleanupTempDirectory();
+        closeQuietly(this.storage);
+        this.storage = null;
     }
 
     public boolean getInheritCustomization() {
-        return this.dataverse == null || !this.dataverse.getThemeRoot();
+        return !this.dataverse.getThemeRoot();
     }
 
     public void setInheritCustomization(final boolean inherit) {
@@ -526,10 +482,6 @@ public class CreateEditDataversePage implements Serializable {
         return this.dataverse.isRoot()
             ? !this.config.isTrueForKey(DisableRootDataverseTheme)
             : true;
-    }
-
-    private String getTempDirName() {
-        return this.tempDir != null ? this.tempDir.getFileName().toString().replace("\\", "/") : null;
     }
     
     private boolean isNotCurrentDataverse(final Dataverse found) {
@@ -581,7 +533,7 @@ public class CreateEditDataversePage implements Serializable {
         	try {
     	        if (this.dataverse.isThemeRoot()) {
     	            this.themeWidgetService.
-    	            		saveOrUpdateUploadedTheme(this.dataverse, this.uploadedFile);
+    	            		saveOrUpdateUploadedTheme(this.dataverse, this.storage);
     	        } else {
     	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
     	        }
@@ -590,9 +542,10 @@ public class CreateEditDataversePage implements Serializable {
         	} catch(final Exception e) {
                 this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
                         				  getStringFromBundle("dataverse.theme.failure"));
-                return null;
+                return EMPTY;
             } finally {
-            	this.cleanupTempDirectory();
+                closeQuietly(this.storage);
+                this.storage = null;
             }
         }
     }
@@ -611,7 +564,7 @@ public class CreateEditDataversePage implements Serializable {
             try {
     	        if (this.dataverse.isThemeRoot()) {
     	            this.themeWidgetService.
-    	            		saveOrUpdateUploadedTheme(this.dataverse, this.uploadedFile);
+    	            		saveOrUpdateUploadedTheme(this.dataverse, this.storage);
     	        } else {
     	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
     	        }
@@ -622,9 +575,10 @@ public class CreateEditDataversePage implements Serializable {
             } catch(final Exception e) {
                 this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
                         				  getStringFromBundle("dataverse.theme.failure"));
-                return null;
+                return EMPTY;
             } finally {
-            	this.cleanupTempDirectory();
+                closeQuietly(this.storage);
+                this.storage = null;
             }
         }
     }
