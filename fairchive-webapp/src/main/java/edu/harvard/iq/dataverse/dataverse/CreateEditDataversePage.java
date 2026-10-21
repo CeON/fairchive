@@ -493,7 +493,7 @@ public class CreateEditDataversePage implements Serializable {
                 createFile(this.uploadedFile);
             }
             copy(uFile.getInputStream(), this.uploadedFile, REPLACE_EXISTING);
-            this.dataverse.getDataverseTheme().setLogo(uFile.getFileName());
+            setLogo(uFile.getFileName());
 
         } catch (final IOException e) {
             throw new RuntimeException("Error uploading logo file", e); // improve error handling
@@ -501,9 +501,8 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public void removeLogo() {
-        this.dataverse.getDataverseTheme().setLogo(null);
+        setLogo(null);
         this.cleanupTempDirectory();
-
     }
 
     public boolean getInheritCustomization() {

@@ -1,5 +1,14 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import static java.nio.file.Files.copy;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.deleteIfExists;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -7,15 +16,6 @@ import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-
-import static java.nio.file.Files.copy;
-import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.delete;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 /**
  * Update an existing dataverse.
  *
@@ -58,13 +58,13 @@ public class UpdateDataverseThemeCommand extends AbstractCommand<Dataverse> {
             if (editedDv.getDataverseTheme() == null 
                     || editedDv.getDataverseTheme().getLogo() == null) {
                 if (currentFile != null) {
-                	delete(currentFile);
+                	deleteIfExists(currentFile);
                 }
             } // If edited logo file isn't empty,and uploaded File exists, delete currentFile and copy uploaded file from temp dir to logos dir
             else if (uploadedFile != null) {
                 Path newFile = logoFileDir.resolve(editedDv.getDataverseTheme().getLogo());
                 if (currentFile != null) {
-                	delete(currentFile);
+                	deleteIfExists(currentFile);
                 }
                 createDirectories(logoFileDir);
                 copy(uploadedFile, newFile, REPLACE_EXISTING);
