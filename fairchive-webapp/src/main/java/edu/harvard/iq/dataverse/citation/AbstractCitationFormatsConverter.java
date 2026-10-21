@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -78,16 +77,13 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
          * skipped.
          */
         public CitationBuilder endPart(String precedingDelimiter) {
-            if (partElements.stream()
-                    .filter(t -> Token.Type.DATA == t.type)
-                    .map(t -> t.value)
-                    .allMatch(StringUtils::isNotBlank)) {
+            if (hasAllValues(partElements)) {
                 if (citation.length() > 0) {
                     citation.append(precedingDelimiter);
                 }
-                citation.append(partElements.stream()
-                        .map(t -> t.value)
-                        .collect(joining()));
+                partElements.stream()
+                        .map(Token::getValue)
+                        .forEach(citation::append);
             }
             partElements.clear();
             return this;
@@ -97,6 +93,15 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
             return citation.toString();
         }
 
+        // -------------------- PRIVATE --------------------
+
+        private static boolean hasAllValues(List<Token> partElements) {
+            return partElements.stream()
+                    .filter(Token::isData)
+                    .map(Token::getValue)
+                    .allMatch(StringUtils::isNotBlank);
+        }
+
         private static class Token {
             public final String value;
             public final Type type;
@@ -104,6 +109,14 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
             public Token(String value, Type type) {
                 this.value = value;
                 this.type = type;
+            }
+
+            public String getValue() {
+                return value;
+            }
+
+            public boolean isData() {
+                return Type.DATA == type;
             }
 
             enum Type {
