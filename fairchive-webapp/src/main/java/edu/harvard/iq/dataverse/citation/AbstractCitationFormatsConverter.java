@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -21,6 +20,8 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
     // -------------------- INNER CLASSES --------------------
 
     protected static final class CitationBuilder {
+        private static final String DEFAULT_DELIMITER = ", ";
+
         private final boolean escapeHtml;
         private final StringBuilder citation = new StringBuilder();
         private final List<Token> partElements = new ArrayList<>();
@@ -65,22 +66,24 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
         }
 
         public CitationBuilder endPart() {
-            return endPart(", ");
+            return endPart(DEFAULT_DELIMITER);
         }
 
-        public CitationBuilder endPartEmpty() {
-            return endPart(EMPTY);
-        }
-
-        public CitationBuilder endPart(String delimiter) {
-            if (partElements.stream()
-                    .filter(t -> Token.Type.DATA == t.type)
-                    .map(t -> t.value)
-                    .allMatch(StringUtils::isNotBlank)) {
-                citation.append(partElements.stream()
-                        .map(t -> t.value)
-                        .collect(joining()))
-                        .append(delimiter);
+        /**
+         * Ends the current part, writing {@code precedingDelimiter} between
+         * the citation so far and this part. The part is skipped when any of
+         * its values is blank, and then no delimiter is written, so the
+         * citation never begins or ends with one, whichever parts are
+         * skipped.
+         */
+        public CitationBuilder endPart(String precedingDelimiter) {
+            if (hasAllValues(partElements)) {
+                if (citation.length() > 0) {
+                    citation.append(precedingDelimiter);
+                }
+                partElements.stream()
+                        .map(Token::getValue)
+                        .forEach(citation::append);
             }
             partElements.clear();
             return this;
@@ -90,6 +93,15 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
             return citation.toString();
         }
 
+        // -------------------- PRIVATE --------------------
+
+        private static boolean hasAllValues(List<Token> partElements) {
+            return partElements.stream()
+                    .filter(Token::isData)
+                    .map(Token::getValue)
+                    .allMatch(StringUtils::isNotBlank);
+        }
+
         private static class Token {
             public final String value;
             public final Type type;
@@ -97,6 +109,14 @@ public abstract class AbstractCitationFormatsConverter implements CitationFormat
             public Token(String value, Type type) {
                 this.value = value;
                 this.type = type;
+            }
+
+            public String getValue() {
+                return value;
+            }
+
+            public boolean isData() {
+                return Type.DATA == type;
             }
 
             enum Type {

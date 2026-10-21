@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.text.ParseException;
 import java.util.Locale;
 
+import static edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle.DEFAULT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -582,5 +583,77 @@ class StandardCitationFormatsConverterTest {
         // then
         assertThat(citation).isEqualTo(
                 "1955, <a href=\"https://doi.org/10.5072/FK2/LK0D1H\" target=\"_blank\">https://doi.org/10.5072/FK2/LK0D1H</a>");
+    }
+
+    @Test
+    @DisplayName("Should not end citation with a comma for harvested data without persistent id")
+    void toString__harvested_withoutPersistentId() {
+
+        // given
+        DatasetVersion datasetVersion = utils.createHarvestedTestDatasetVersion("Dataset Title", true);
+        datasetVersion.getDataset().getHarvestedFrom().setHarvestStyle(DEFAULT);
+        CitationData citationData = dataExtractor.create(datasetVersion, locale);
+
+        // when
+        String citation = converter.toString(citationData, TEST_LOCALE, false);
+
+        // then
+        assertThat(citation).isEqualTo("First Last, 1955, \"Dataset Title\"");
+    }
+
+    @Test
+    @DisplayName("Should not leave an empty part in citation without persistent id")
+    void toString__withoutPersistentId_withPublisherAndVersion() {
+
+        // given
+        CitationData citationData = new CitationData()
+                .setYear("1955")
+                .setTitle("Dataset Title")
+                .setPublisher("LibraScholar")
+                .setVersion("V1");
+        citationData.getAuthors().add("First Last");
+
+        // when
+        String citation = converter.toString(citationData, TEST_LOCALE, false);
+
+        // then
+        assertThat(citation).isEqualTo("First Last, 1955, \"Dataset Title\", LibraScholar, V1");
+    }
+
+    @Test
+    @DisplayName("Should create citation of a file of a dataset without persistent id")
+    void toString__notDirectFile_withoutPersistentId() {
+
+        // given
+        CitationData citationData = new CitationData()
+                .setYear("1955")
+                .setTitle("Dataset Title")
+                .setFileTitle("data.csv");
+        citationData.getAuthors().add("First Last");
+
+        // when
+        String citation = converter.toString(citationData, TEST_LOCALE, false);
+
+        // then
+        assertThat(citation).isEqualTo("First Last, 1955, \"Dataset Title\"; data.csv [fileName]");
+    }
+
+    @Test
+    @DisplayName("Should create direct citation of a file without persistent id")
+    void toString__directFile_withoutPersistentId() {
+
+        // given
+        CitationData citationData = new CitationData()
+                .setDirect(true)
+                .setYear("1955")
+                .setTitle("Dataset Title")
+                .setFileTitle("data.csv");
+        citationData.getAuthors().add("First Last");
+
+        // when
+        String citation = converter.toString(citationData, TEST_LOCALE, false);
+
+        // then
+        assertThat(citation).isEqualTo("First Last, 1955, \"data.csv\", <i>Dataset Title</i>");
     }
 }
