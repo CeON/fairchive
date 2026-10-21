@@ -52,6 +52,7 @@ public final class CSVResultPrinter {
                     printer.print(result.getName());
                     printer.print(result.getTitle());
                     printer.print(defaultString(result.getPersistentId()));
+                    printer.print(defaultString(result.getCitation()));
                     if (result.isDataset()) {
                         printMetadata(printer, result);
                     }
@@ -74,6 +75,7 @@ public final class CSVResultPrinter {
         printer.print("Name");
         printer.print("Title");
         printer.print("Persistent ID");
+        printer.print("Citation");
         for (final DatasetFieldType type : this.exportedFields) {
             if (type.getParentDatasetFieldType() != null) {
                 printer.print(type.getMetadataBlock().getName() + "->"

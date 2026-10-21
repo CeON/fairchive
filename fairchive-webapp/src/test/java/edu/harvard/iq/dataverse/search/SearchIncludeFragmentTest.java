@@ -1,7 +1,9 @@
 package edu.harvard.iq.dataverse.search;
 
 import static edu.harvard.iq.dataverse.search.query.SearchObjectType.DATASETS;
+import static edu.harvard.iq.dataverse.search.query.SearchObjectType.DATAVERSES;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.io.IOUtils.readLines;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -157,6 +159,7 @@ public class SearchIncludeFragmentTest {
         intendedResult.setName("name1");
         intendedResult.setTitle("title1");
         intendedResult.setPersistentId("id,1");
+        intendedResult.setCitation("Author, 2026, \"title1\", https://doi.org/10.5072/FK2/ABC, Root");
         
         
         when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
@@ -179,8 +182,34 @@ public class SearchIncludeFragmentTest {
 
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(2);
-        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Persistent ID,Block1->def,Block1->compound->ghi");
-        assertThat(lines.get(1)).isEqualTo("id1,name1,title1,\"id,1\",one,two");
+        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Persistent ID,Citation,Block1->def,Block1->compound->ghi");
+        assertThat(lines.get(1)).isEqualTo("id1,name1,title1,\"id,1\","
+                + "\"Author, 2026, \"\"title1\"\", https://doi.org/10.5072/FK2/ABC, Root\",one,two");
+    }
+
+    @Test
+    public void getSearchResultsFile__resultWithoutCitation() throws Exception {
+        // given
+        SolrSearchResult dataverseResult = new SolrSearchResult();
+        dataverseResult.setType(DATAVERSES);
+        dataverseResult.setId("dataverse_2");
+        dataverseResult.setEntityId(2L);
+        dataverseResult.setName("name2");
+        dataverseResult.setTitle("title2");
+
+        when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
+                any(), anyInt(), anyInt(), anyBoolean())).thenReturn(responseOf());
+        when(this.searchService.search(any(SolrQuery.class))).thenReturn(singletonList(dataverseResult));
+        when(this.metadataBlockRepo.findSystemMetadataBlocks())
+                .thenReturn(asList(this.metaBlock));
+        this.fragment.search();
+
+        // when
+        StreamedContent file = this.fragment.getSearchResultsFile();
+
+        // then
+        List<String> lines = readLines(file.getStream(), "utf-8");
+        assertThat(lines.get(1)).isEqualTo("dataverse_2,name2,title2,,");
     }
 
     @Test
@@ -200,11 +229,11 @@ public class SearchIncludeFragmentTest {
         assertThat(file.getContentEncoding()).isEqualTo("utf-8");
         assertThat(file.getContentType()).isEqualTo("text/csv");
         assertThat(file.getName()).isEqualTo("searchResults.csv");
-        assertThat(file.getContentLength()).isEqualTo(66);
+        assertThat(file.getContentLength()).isEqualTo(75);
 
         List<String> lines = readLines(file.getStream(), "utf-8");
         assertThat(lines.size()).isEqualTo(1);
-        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Persistent ID,Block1->def,Block1->compound->ghi");
+        assertThat(lines.get(0)).isEqualTo(BOM + "Id,Name,Title,Persistent ID,Citation,Block1->def,Block1->compound->ghi");
     }
 
     @Test
