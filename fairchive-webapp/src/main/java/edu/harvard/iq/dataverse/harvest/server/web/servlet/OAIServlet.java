@@ -5,13 +5,9 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SystemEm
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.dspace.xoai.dataprovider.model.MetadataFormat.metadataFormat;
-import static org.dspace.xoai.model.oaipmh.OAIPMH.NAMESPACE_URI;
-import static org.dspace.xoai.model.oaipmh.OAIPMH.SCHEMA_LOCATION;
 import static org.dspace.xoai.model.oaipmh.Verb.Type.GetRecord;
 import static org.dspace.xoai.model.oaipmh.Verb.Type.ListRecords;
-import static org.dspace.xoai.xml.XmlWriter.defaultContext;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
@@ -37,9 +33,10 @@ import org.dspace.xoai.dataprovider.repository.SetRepository;
 import org.dspace.xoai.model.oaipmh.DeletedRecord;
 import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.OAIPMH;
+import org.dspace.xoai.model.oaipmh.Request;
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.services.impl.SimpleResumptionTokenFormat;
-import org.dspace.xoai.xml.XSISchema;
+import org.dspace.xoai.services.impl.UTCDateProvider;
 import org.dspace.xoai.xml.XmlWriter;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
@@ -69,11 +66,22 @@ public class OAIServlet extends HttpServlet {
     private static final Logger logger = Logger.getLogger("edu.harvard.iq.dataverse.harvest.server.web.servlet.OAIServlet");
 
     private static final String OAI_PMH = "OAI-PMH";
-    private static final String RESPONSEDATE_FIELD = "responseDate";
-    private static final String REQUEST_FIELD = "request";
+    private static final byte[] RESPONSEDATE_FIELD = "responseDate".getBytes();
+    private static final byte[] REQUEST = "request".getBytes();
+    private static final byte[] VERB = "verb".getBytes();
+    private static final byte[] METADATA_PREFIX = "metadataPrefix".getBytes();
     private static final String DATAVERSE_EXTENDED_METADATA_FORMAT = "dataverse_json";
     private static final String DATAVERSE_EXTENDED_METADATA_INFO = "Custom Dataverse metadata in JSON format (Dataverse4 to Dataverse4 harvesting only)";
     private static final String DATAVERSE_EXTENDED_METADATA_SCHEMA = "JSON schema pending";
+    
+    private static final byte LT = '<';
+    private static final byte GT = '>';
+    private static final byte SLASH = '/';
+    private static final byte SPACE = ' ';
+    private static final byte DOUBLE_QUOTE = '"';
+    private static final byte EQUALS = '=';
+    private static final byte[] OAI_PMH_BYTES = OAI_PMH.getBytes();
+    private static final byte[] OAIPMH_HEADER = "<OAI-PMH xmlns=\"http://www.openarchives.org/OAI/2.0/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd\">".getBytes();
 
     private OAISetServiceBean setService;
     private OAIRecordServiceBean recordService;
@@ -89,6 +97,8 @@ public class OAIServlet extends HttpServlet {
     private RepositoryConfiguration repositoryConfiguration;
     private Repository xoaiRepository;
     private XdataProvider dataProvider;
+    
+    private final static UTCDateProvider dateProvider = new UTCDateProvider();
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -110,7 +120,7 @@ public class OAIServlet extends HttpServlet {
 
     // -------------------- GETTERS --------------------
 
-    protected Context getXoaiContext() {
+	protected Context getXoaiContext() {
         return xoaiContext;
     }
 
@@ -319,9 +329,10 @@ public class OAIServlet extends HttpServlet {
     // Custom methods for the potentially expensive GetRecord and ListRecords requests:
     private void writeListRecords(HttpServletResponse response, OAIPMH handle)
             throws IOException {
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write(oaiPmhResponseToString(handle).getBytes());
-        Verb verb = handle.getVerb();
+        final OutputStream out = response.getOutputStream();
+        final Verb verb = handle.getVerb();
+        
+        writeHeader(out, handle);
 
         if (verb == null) {
             throw new IOException("An error or a valid response must be set");
@@ -331,24 +342,22 @@ public class OAIServlet extends HttpServlet {
             throw new IOException("writeListRecords() called on a non-ListRecords verb");
         }
 
-        outputStream.write(("<" + verb.getType().displayName() + ">").getBytes());
-        outputStream.flush();
+        out.write(LT);
+        out.write(verb.getType().displayName().getBytes());
+        out.write(GT);
 
-        ((XlistRecords) verb).writeToStream(outputStream, exportService, 
+        ((XlistRecords) verb).writeToStream(out, exportService, 
                 systemConfig.getDataverseSiteUrl());
 
-        outputStream.write(("</" + verb.getType().displayName() + ">").getBytes());
-        outputStream.write(("</" + OAI_PMH + ">\n").getBytes());
-
-        outputStream.flush();
-        outputStream.close();
+        writeFooter(out, verb);
     }
 
     private void writeGetRecord(HttpServletResponse response, OAIPMH handle)
             throws IOException, XmlWriteException, XMLStreamException {
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write(oaiPmhResponseToString(handle).getBytes());
-        Verb verb = handle.getVerb();
+        final OutputStream out = response.getOutputStream();
+        final Verb verb = handle.getVerb();
+        
+        writeHeader(out, handle);
 
         if (verb == null) {
             throw new IOException("An error or a valid response must be set");
@@ -358,56 +367,74 @@ public class OAIServlet extends HttpServlet {
             throw new IOException("writeListRecords() called on a non-GetRecord verb");
         }
 
-        outputStream.write(("<" + verb.getType().displayName() + ">").getBytes());
-        outputStream.flush();
+        out.write(LT);
+        out.write(verb.getType().displayName().getBytes());
+        out.write(GT);
 
-        ((XgetRecord) verb).writeToStream(outputStream, exportService, 
+        ((XgetRecord) verb).writeToStream(out, exportService, 
                 systemConfig.getDataverseSiteUrl());
-
-        outputStream.write(("</" + verb.getType().displayName() + ">").getBytes());
-        outputStream.write(("</" + OAI_PMH + ">\n").getBytes());
-
-        outputStream.flush();
-        outputStream.close();
-
+        
+        writeFooter(out, verb);
+    }
+   
+    private static void writeHeader(final OutputStream out, final OAIPMH handle) 
+    		throws IOException {
+    	
+    	out.write(OAIPMH_HEADER);
+    	
+    	out.write(LT);
+    	out.write(RESPONSEDATE_FIELD);
+    	out.write(GT);
+    	out.write(dateProvider.format(handle.getResponseDate(), Granularity.Second).getBytes());
+    	out.write(LT);
+    	out.write(SLASH);
+    	out.write(RESPONSEDATE_FIELD);
+    	out.write(GT);
+    	
+    	out.write(LT);
+    	out.write(REQUEST);
+    	out.write(SPACE);
+    	final Request request = handle.getRequest();
+    	{
+	    	out.write(VERB);
+	    	out.write(EQUALS);
+	    	out.write(DOUBLE_QUOTE);
+	    	out.write(request.getVerb().getBytes());
+	    	out.write(DOUBLE_QUOTE);
+    	}
+    	out.write(SPACE);
+    	{
+	    	out.write(METADATA_PREFIX);
+	    	out.write(EQUALS);
+	    	out.write(DOUBLE_QUOTE);
+	    	out.write(request.getMetadataPrefix().getBytes());
+	    	out.write(DOUBLE_QUOTE);
+    	}
+    	out.write(GT);
+    	out.write(request.getBaseUrl().getBytes());
+    	out.write(LT);
+    	out.write(SLASH);
+    	out.write(REQUEST);
+    	out.write(GT);
     }
 
-    /**
-     * This function produces the string representation of the top level,
-     * "service" record of an OAIPMH response (i.e., the header that precedes
-     * the actual "payload" record, such as <GetRecord>, <ListIdentifiers>,
-     * <ListRecords>, etc.
-     */
-   private String oaiPmhResponseToString(OAIPMH handle) {
-        try {
-            ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-            XmlWriter writer = new XmlWriter(byteOutputStream, defaultContext());
-
-            writer.writeStartElement(OAI_PMH);
-            writer.writeDefaultNamespace(NAMESPACE_URI);
-            writer.writeNamespace(XSISchema.PREFIX, XSISchema.NAMESPACE_URI);
-            writer.writeAttribute(XSISchema.PREFIX, XSISchema.NAMESPACE_URI, "schemaLocation",
-                                  NAMESPACE_URI + " " + SCHEMA_LOCATION);
-
-            writer.writeElement(RESPONSEDATE_FIELD, handle.getResponseDate(), Granularity.Second);
-            writer.writeElement(REQUEST_FIELD, handle.getRequest());
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
-
-            return byteOutputStream.toString().replaceFirst("</" + OAI_PMH + ">", "");
-        } catch (Exception ex) {
-            logger.warning("caught exception trying to convert an OAIPMH response header to string: " + ex.getMessage());
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-    private boolean isGetRecord(HttpServletRequest request) {
+    private static boolean isGetRecord(final HttpServletRequest request) {
         return "GetRecord".equals(request.getParameter("verb"));
     }
 
-    private boolean isListRecords(HttpServletRequest request) {
+    private static boolean isListRecords(final HttpServletRequest request) {
         return "ListRecords".equals(request.getParameter("verb"));
+    }
+    
+    private static void writeFooter(final OutputStream out, final Verb verb) 
+    		throws IOException {
+        out.write(LT);
+        out.write(SLASH);
+        out.write(verb.getType().displayName().getBytes());
+        out.write(GT);
+        out.write(LT);
+        out.write(SLASH);
+        out.write(OAI_PMH_BYTES);
+        out.write(GT);
     }
 }

@@ -1,19 +1,21 @@
 package edu.harvard.iq.dataverse.harvest.server.xoai;
 
-import com.lyncode.xml.exceptions.XmlWriteException;
+import static org.dspace.xoai.model.oaipmh.Granularity.Second;
+import static org.dspace.xoai.xml.XmlWriter.defaultContext;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+import javax.xml.stream.XMLStreamException;
+
 import org.dspace.xoai.model.oaipmh.ListRecords;
 import org.dspace.xoai.model.oaipmh.Record;
 import org.dspace.xoai.model.oaipmh.ResumptionToken;
 import org.dspace.xoai.xml.XmlWriter;
+
+import com.lyncode.xml.exceptions.XmlWriteException;
+
 import edu.harvard.iq.dataverse.export.ExportService;
-
-import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
-import static org.dspace.xoai.model.oaipmh.Granularity.Second;
-import static org.dspace.xoai.xml.XmlWriter.defaultContext;
 
 /**
  * @author Leonid Andreev
@@ -24,68 +26,56 @@ import static org.dspace.xoai.xml.XmlWriter.defaultContext;
  * XML parsing and writing).
  */
 public class XlistRecords extends ListRecords {
-    private static final String RECORD_FIELD = "record";
-    private static final String RECORD_START_ELEMENT = "<" + RECORD_FIELD + ">";
-    private static final String RECORD_CLOSE_ELEMENT = "</" + RECORD_FIELD + ">";
+    private static final byte[] RECORD_START_ELEMENT = "<record>".getBytes();
+    private static final byte[] RECORD_CLOSE_ELEMENT = "</record>".getBytes();
     private static final String RESUMPTION_TOKEN_FIELD = "resumptionToken";
     private static final String EXPIRATION_DATE_ATTRIBUTE = "expirationDate";
     private static final String COMPLETE_LIST_SIZE_ATTRIBUTE = "completeListSize";
     private static final String CURSOR_ATTRIBUTE = "cursor";
 
-    public void writeToStream(OutputStream outputStream, ExportService exportService, String dataverseUrl) throws IOException {
-        if (!this.records.isEmpty()) {
-            for (Record record : this.records) {
-                outputStream.write(RECORD_START_ELEMENT.getBytes());
-                outputStream.flush();
+    public void writeToStream(final OutputStream out, final ExportService exportService,
+    		final String dataverseUrl) throws IOException {
+        for (final Record record : this.records) {
+            out.write(RECORD_START_ELEMENT);
 
-                ((Xrecord) record).writeToStream(outputStream, exportService, dataverseUrl);
+            ((Xrecord) record).writeToStream(out, exportService, dataverseUrl);
 
-                outputStream.write(RECORD_CLOSE_ELEMENT.getBytes());
-                outputStream.flush();
-            }
+            out.write(RECORD_CLOSE_ELEMENT);
         }
-
-        if (resumptionToken != null) {
-
-            String resumptionTokenString = resumptionTokenToString(resumptionToken);
-            if (resumptionTokenString == null) {
-                throw new IOException("XlistRecords: failed to output resumption token");
-            }
-            outputStream.write(resumptionTokenString.getBytes());
-            outputStream.flush();
-        }
+        writeResumptionToken(out);
     }
 
-    private String resumptionTokenToString(ResumptionToken token) {
+    private void writeResumptionToken(final OutputStream out) 
+    		throws IOException {
         try {
-            ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-            XmlWriter writer = new XmlWriter(byteOutputStream, defaultContext());
-
-            writer.writeStartElement(RESUMPTION_TOKEN_FIELD);
-
-            if (token.getExpirationDate() != null) {
-                writer.writeAttribute(EXPIRATION_DATE_ATTRIBUTE, token.getExpirationDate(), Second);
-            }
-            if (token.getCompleteListSize() != null) {
-                writer.writeAttribute(COMPLETE_LIST_SIZE_ATTRIBUTE, "" + token.getCompleteListSize());
-            }
-            if (token.getCursor() != null) {
-                writer.writeAttribute(CURSOR_ATTRIBUTE, "" + token.getCursor());
-            }
-            if (token.getValue() != null) {
-                writer.write(token.getValue());
-            }
-
-            writer.writeEndElement(); // resumptionToken;
-            writer.flush();
-            writer.close();
-
-            String ret = byteOutputStream.toString();
-
-            return ret;
-        } catch (XMLStreamException | XmlWriteException e) {
-            return null;
+        	
+        	final ResumptionToken token = this.resumptionToken;
+        	if(token != null) {
+	            final XmlWriter writer = new XmlWriter(out, defaultContext());
+	            writer.writeStartElement(RESUMPTION_TOKEN_FIELD);
+	
+	            if (token.getExpirationDate() != null) {
+	                writer.writeAttribute(EXPIRATION_DATE_ATTRIBUTE, 
+	                		token.getExpirationDate(), Second);
+	            }
+	            if (token.getCompleteListSize() != null) {
+	                writer.writeAttribute(COMPLETE_LIST_SIZE_ATTRIBUTE, 
+	                		token.getCompleteListSize().toString());
+	            }
+	            if (token.getCursor() != null) {
+	                writer.writeAttribute(CURSOR_ATTRIBUTE, 
+	                		token.getCursor().toString());
+	            }
+	            if (token.getValue() != null) {
+	                writer.write(token.getValue());
+	            }
+	
+	            writer.writeEndElement(); // resumptionToken;
+	            writer.flush();
+	            writer.close();
+        	}
+        } catch (final XMLStreamException | XmlWriteException e) {
+        	throw new IOException("XlistRecords: failed to output resumption token", e);
         }
     }
-
 }
