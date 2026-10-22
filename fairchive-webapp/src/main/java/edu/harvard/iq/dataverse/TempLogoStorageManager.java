@@ -57,22 +57,14 @@ public class TempLogoStorageManager {
 		
 		public void saveFrom(final String name, final InputStream in) 
 				throws IOException {
-			try {
 			copy(in, this.dir.resolve(name), REPLACE_EXISTING);
-			} catch(IOException e) {
-				throw e;
-			}
 		}
 		
 		public void copyIfExists(final String name, final Path target) 
 				throws IOException {
-			try {
 			final Path source = this.dir.resolve(name);
 			if(exists(source)) {
 				copy(source, target, REPLACE_EXISTING);
-			}
-			} catch(IOException e) {
-				throw e;
 			}
 		}
 

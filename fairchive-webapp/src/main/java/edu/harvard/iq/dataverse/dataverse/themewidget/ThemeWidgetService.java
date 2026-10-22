@@ -1,7 +1,5 @@
 package edu.harvard.iq.dataverse.dataverse.themewidget;
 
-import java.nio.file.Path;
-
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
