@@ -4,8 +4,10 @@ import static org.dspace.xoai.xml.XmlWriter.defaultContext;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.dspace.xoai.model.oaipmh.Record;
+import org.dspace.xoai.services.impl.UTCDateProvider;
 import org.dspace.xoai.xml.XmlWriter;
 
 import edu.harvard.iq.dataverse.export.ExportService;
@@ -25,11 +27,11 @@ public class Xrecord extends Record {
     private static final byte[] METADATA_FIELD = "metadata".getBytes();
     private static final byte[] METADATA_START_ELEMENT = "<metadata>".getBytes();
     private static final byte[] METADATA_END_ELEMENT = "</metadata>".getBytes();
-    private static final String HEADER_FIELD = "header";
-    private static final String STATUS_ATTRIBUTE = "status";
-    private static final String IDENTIFIER_FIELD = "identifier";
-    private static final String DATESTAMP_FIELD = "datestamp";
-    private static final String SETSPEC_FIELD = "setSpec";
+    private static final byte[] HEADER_FIELD = "header".getBytes();
+    private static final byte[] STATUS_ATTRIBUTE = "status".getBytes();
+    private static final byte[] IDENTIFIER_FIELD = "identifier".getBytes();
+    private static final byte[] DATESTAMP_FIELD = "datestamp".getBytes();
+    private static final byte[] SETSPEC_FIELD = "setSpec".getBytes();
     private static final String DATAVERSE_EXTENDED_METADATA_FORMAT = "dataverse_json";
     private static final byte[] DATAVERSE_EXTENDED_METADATA_FORMAT_BYTES = "dataverse_json".getBytes();
     private static final byte[] DATAVERSE_EXTENDED_METADATA_API = "/api/datasets/export".getBytes();
@@ -40,6 +42,11 @@ public class Xrecord extends Record {
     private static final byte LT = '<';
     private static final byte GT = '>';
     private static final byte SLASH = '/';
+	private static final byte DOUBLE_QUOTE = '"';
+    private static final byte SPACE = ' ';
+    private static final byte EQUALS = '=';
+    
+    private final static UTCDateProvider dateProvider = new UTCDateProvider();
 
     protected Dataset dataset;
     protected String formatName;
@@ -77,7 +84,7 @@ public class Xrecord extends Record {
                         final String exportedDataset = exportService.exportToString(
                                 dataset.getReleasedVersion(),
                                 ExporterType.fromPrefix(formatName).get());
-                        out.write(exportedDataset.getBytes());
+                        out.write(exportedDataset.getBytes(StandardCharsets.UTF_8));
                     } catch (final Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -90,34 +97,60 @@ public class Xrecord extends Record {
         }
         out.flush();
     }
-
+    
     private void writeItemHeader(final OutputStream out) throws IOException {
-        try {
-            final XmlWriter writer = new XmlWriter(out, defaultContext());
-
-            writer.writeStartElement(HEADER_FIELD);
-
-            if (this.header.getStatus() != null) {
-                writer.writeAttribute(STATUS_ATTRIBUTE, this.header.getStatus().value());
-            }
-            writer.writeElement(IDENTIFIER_FIELD, this.header.getIdentifier());
-            writer.writeElement(DATESTAMP_FIELD, this.header.getDatestamp());
-            for (final String setSpec : this.header.getSetSpecs()) {
-                writer.writeElement(SETSPEC_FIELD, setSpec);
-            }
-            writer.writeEndElement(); // header
-            writer.flush();
-            writer.close();
-
-        } catch (final Exception e) {
-        	throw new IOException("Xrecord: failed to stream item header.", e);
+    	
+    	out.write(LT);
+    	out.write(HEADER_FIELD);
+        if (this.header.getStatus() != null) {
+        	out.write(SPACE);
+        	out.write(STATUS_ATTRIBUTE);
+        	out.write(EQUALS);
+        	out.write(DOUBLE_QUOTE);
+        	out.write(this.header.getStatus().value().getBytes());
+        	out.write(DOUBLE_QUOTE);
         }
+    	out.write(GT);
+    	{
+	    	out.write(LT);
+	    	out.write(IDENTIFIER_FIELD);
+	    	out.write(GT);
+	    	out.write(this.header.getIdentifier().getBytes());
+	    	out.write(LT);
+	    	out.write(SLASH);
+	    	out.write(IDENTIFIER_FIELD);
+	    	out.write(GT);
+    	}
+    	{
+	    	out.write(LT);
+	    	out.write(DATESTAMP_FIELD);
+	    	out.write(GT);
+	    	out.write(dateProvider.format(this.header.getDatestamp()).getBytes());
+	    	out.write(LT);
+	    	out.write(SLASH);
+	    	out.write(DATESTAMP_FIELD);
+	    	out.write(GT);
+    	}
+    	{
+    		for (final String setSpec : this.header.getSetSpecs()) {
+    	    	out.write(LT);
+    	    	out.write(SETSPEC_FIELD);
+    	    	out.write(GT);
+    	    	out.write(setSpec.getBytes());
+    	    	out.write(LT);
+    	    	out.write(SLASH);
+    	    	out.write(SETSPEC_FIELD);
+    	    	out.write(GT);
+    		}
+    	}
+    	out.write(LT);
+    	out.write(SLASH);
+    	out.write(HEADER_FIELD);
+    	out.write(GT);
     }
     
     private void writeCustomMetadataExtensionRef(final OutputStream out, 
     		final String identifier, final String dataverseUrl) throws IOException {
-    	
-    	final byte DOUBLE_QUOTE = '"';
     	
     	 out.write(LT);
     	 out.write(METADATA_FIELD);
