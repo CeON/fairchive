@@ -457,8 +457,7 @@ public class CreateEditDataversePage implements Serializable {
 
     public void removeLogo() throws IOException {
         setLogo(null);
-        closeQuietly(this.storage);
-        this.storage = null;
+        closeStorage();
     }
 
     public boolean getInheritCustomization() {
@@ -544,8 +543,7 @@ public class CreateEditDataversePage implements Serializable {
                         				  getStringFromBundle("dataverse.theme.failure"));
                 return EMPTY;
             } finally {
-                closeQuietly(this.storage);
-                this.storage = null;
+            	closeStorage();
             }
         }
     }
@@ -577,13 +575,13 @@ public class CreateEditDataversePage implements Serializable {
                         				  getStringFromBundle("dataverse.theme.failure"));
                 return EMPTY;
             } finally {
-                closeQuietly(this.storage);
-                this.storage = null;
+            	closeStorage();
             }
         }
     }
 
     public String cancel() {
+    	closeStorage();
         return returnRedirect();
     }
 
@@ -615,6 +613,13 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     // -------------------- PRIVATE --------------------
+    
+    private void closeStorage() {
+    	if(this.storage != null) {
+            closeQuietly(this.storage);
+            this.storage = null;
+    	}
+    }
 
     private boolean isPrefillEnabled() {
         return this.config.isTrueForKey(CollectionFormPrefillEnabled);
