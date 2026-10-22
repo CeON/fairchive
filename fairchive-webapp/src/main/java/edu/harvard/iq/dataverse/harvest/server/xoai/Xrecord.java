@@ -1,14 +1,14 @@
 package edu.harvard.iq.dataverse.harvest.server.xoai;
 
-import static org.dspace.xoai.xml.XmlWriter.defaultContext;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import org.dspace.xoai.model.oaipmh.Record;
 import org.dspace.xoai.services.impl.UTCDateProvider;
-import org.dspace.xoai.xml.XmlWriter;
 
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.ExporterType;
@@ -81,10 +81,10 @@ public class Xrecord extends Record {
 
                 if (dataset != null && formatName != null) {
                     try {
-                        final String exportedDataset = exportService.exportToString(
-                                dataset.getReleasedVersion(),
-                                ExporterType.fromPrefix(formatName).get());
-                        out.write(exportedDataset.getBytes(StandardCharsets.UTF_8));
+                    	final Writer writer = new OutputStreamWriter(out, UTF_8);
+                        exportService.export(writer,dataset.getReleasedVersion(),
+                                ExporterType.fromPrefix(formatName).get());                       
+                        writer.flush();
                     } catch (final Exception e) {
                         throw new RuntimeException(e);
                     }

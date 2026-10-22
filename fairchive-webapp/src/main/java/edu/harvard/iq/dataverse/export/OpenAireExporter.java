@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
 @ApplicationScoped
@@ -43,6 +44,12 @@ public class OpenAireExporter extends ExporterBase {
         } catch (XMLStreamException | IOException xse) {
             throw new ExportException("Caught XMLStreamException performing DataCite OpenAIRE export", xse);
         }
+    }
+    
+    @Override
+    public void exportDataset(final Writer writer, final DatasetVersion version)
+    		throws Exception {
+    	OpenAireExportUtil.datasetJson2openaire(createDTO(version), writer);
     }
 
     @Override
