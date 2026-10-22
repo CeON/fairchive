@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -62,7 +63,7 @@ class JsonLdBuilderTest {
     @BeforeEach
     void beforeEach() {
         Dataverse dv = new Dataverse();
-        dv.setName("RepOD");
+        dv.addVersion(RELEASED).setName("RepOD");
 
         when(dataFileService.isSameTermsOfUse(any(), any())).thenReturn(true);
         when(systemConfig.getDataverseSiteUrl()).thenReturn("localhost");
@@ -97,7 +98,7 @@ class JsonLdBuilderTest {
     void testGetJsonLd() throws ParseException {
         // given
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("LibraScholar");
+        dataverse.addVersion(RELEASED).setName("LibraScholar");
 
         Dataset dataset = new Dataset();
         dataset.setProtocol("doi");

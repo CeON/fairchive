@@ -6,14 +6,14 @@
 
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.dataverse.template.TemplateDao;
-import edu.harvard.iq.dataverse.persistence.dataset.Template;
-
 import javax.ejb.EJB;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.convert.FacesConverter;
+
+import edu.harvard.iq.dataverse.dataverse.template.TemplateService;
+import edu.harvard.iq.dataverse.persistence.dataset.Template;
 
 /**
  * @author skraffmiller
@@ -22,11 +22,11 @@ import javax.faces.convert.FacesConverter;
 public class TemplateConverter implements Converter {
 
     @EJB
-    TemplateDao templateDao;
+    TemplateService templateService;
 
     @Override
     public Object getAsObject(FacesContext facesContext, UIComponent component, String submittedValue) {
-        return templateDao.find(new Long(submittedValue));
+        return templateService.getById(new Long(submittedValue));
     }
 
     public String getAsString(FacesContext facesContext, UIComponent component, Object value) {

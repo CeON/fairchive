@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.api.imports;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -30,6 +31,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.validation.DatasetFieldValidationService;
 import edu.harvard.iq.dataverse.validation.field.FieldValidationResult;
@@ -70,7 +72,8 @@ class ImportServiceBeanTest {
         dataverseRequest = mock(DataverseRequest.class);
         dataverse = new Dataverse();
         dataverse.setId(1L);
-        dataverse.setAlias("testDataverse");
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.setAlias("testDataverse");
 
         harvestingClient = new HarvestingClient();
         harvestingClient.setDataverse(dataverse);

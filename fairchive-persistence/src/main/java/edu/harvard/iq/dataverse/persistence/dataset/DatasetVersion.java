@@ -83,18 +83,75 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
         uniqueConstraints = @UniqueConstraint(columnNames = {"dataset_id","versionnumber","minorversionnumber"}))
 @ValidateVersionNote(versionNote = "versionNote", versionState = "versionState")
 @NamedNativeQueries({
-        @NamedNativeQuery(name = "Dataset.findDataForSolrResults2", query =
-                "SELECT t0.ID, t0.VERSIONSTATE, t1.ALIAS, t2.THUMBNAILFILE_ID, t2.USEGENERICTHUMBNAIL, t3.STORAGEIDENTIFIER " +
-                "FROM DATASETVERSION t0 JOIN DATASET t2 ON t0.DATASET_ID = t2.ID JOIN DVOBJECT t3 ON t2.ID = t3.ID " +
-                "JOIN DATAVERSE t1 ON t3.OWNER_ID = t1.ID WHERE t0.ID IN (?, ?)"),
-        @NamedNativeQuery(name = "Dataset.findDataForSolrResults6", query =
-                "SELECT t0.ID, t0.VERSIONSTATE, t1.ALIAS, t2.THUMBNAILFILE_ID, t2.USEGENERICTHUMBNAIL, t3.STORAGEIDENTIFIER " +
-                "FROM DATASETVERSION t0 JOIN DATASET t2 ON t0.DATASET_ID = t2.ID JOIN DVOBJECT t3 ON t2.ID = t3.ID " +
-                "JOIN DATAVERSE t1 ON t3.OWNER_ID = t1.ID WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"),
-        @NamedNativeQuery(name = "Dataset.findDataForSolrResults10", query =
-                "SELECT t0.ID, t0.VERSIONSTATE, t1.ALIAS, t2.THUMBNAILFILE_ID, t2.USEGENERICTHUMBNAIL, t3.STORAGEIDENTIFIER " +
-                "FROM DATASETVERSION t0 JOIN DATASET t2 ON t0.DATASET_ID = t2.ID JOIN DVOBJECT t3 ON t2.ID = t3.ID " +
-                "JOIN DATAVERSE t1 ON t3.OWNER_ID = t1.ID WHERE t0.ID IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	@NamedNativeQuery(
+		    name = "Dataset.findDataForSolrResults2",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       t0.VERSIONSTATE, " +
+		        "       t1.ALIAS, " +
+		        "       t2.THUMBNAILFILE_ID, " +
+		        "       t2.USEGENERICTHUMBNAIL, " +
+		        "       t3.STORAGEIDENTIFIER " +
+		        "FROM DATASETVERSION t0 " +
+		        "JOIN DATASET t2 ON t0.DATASET_ID = t2.ID " +
+		        "JOIN DVOBJECT t3 ON t2.ID = t3.ID " +
+		        "JOIN DATAVERSE t4 ON t3.OWNER_ID = t4.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT dv.ALIAS " +
+		        "    FROM DATAVERSEVERSION dv " +
+		        "    WHERE dv.DATAVERSE_ID = t4.ID " +
+		        "      AND dv.STATE = 'RELEASED' " +
+		        "    ORDER BY dv.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") t1 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?)"
+		),
+	@NamedNativeQuery(
+		    name = "Dataset.findDataForSolrResults6",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       t0.VERSIONSTATE, " +
+		        "       t1.ALIAS, " +
+		        "       t2.THUMBNAILFILE_ID, " +
+		        "       t2.USEGENERICTHUMBNAIL, " +
+		        "       t3.STORAGEIDENTIFIER " +
+		        "FROM DATASETVERSION t0 " +
+		        "JOIN DATASET t2 ON t0.DATASET_ID = t2.ID " +
+		        "JOIN DVOBJECT t3 ON t2.ID = t3.ID " +
+		        "JOIN DATAVERSE t4 ON t3.OWNER_ID = t4.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT dv.ALIAS " +
+		        "    FROM DATAVERSEVERSION dv " +
+		        "    WHERE dv.DATAVERSE_ID = t4.ID " +
+		        "      AND dv.STATE = 'RELEASED' " +
+		        "    ORDER BY dv.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") t1 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"
+		),
+	@NamedNativeQuery(
+		    name = "Dataset.findDataForSolrResults10",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       t0.VERSIONSTATE, " +
+		        "       t1.ALIAS, " +
+		        "       t2.THUMBNAILFILE_ID, " +
+		        "       t2.USEGENERICTHUMBNAIL, " +
+		        "       t3.STORAGEIDENTIFIER " +
+		        "FROM DATASETVERSION t0 " +
+		        "JOIN DATASET t2 ON t0.DATASET_ID = t2.ID " +
+		        "JOIN DVOBJECT t3 ON t2.ID = t3.ID " +
+		        "JOIN DATAVERSE t4 ON t3.OWNER_ID = t4.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT dv.ALIAS " +
+		        "    FROM DATAVERSEVERSION dv " +
+		        "    WHERE dv.DATAVERSE_ID = t4.ID " +
+		        "      AND dv.STATE = 'RELEASED' " +
+		        "    ORDER BY dv.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") t1 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		)
 })
 @Customizer(EntityCustomizer.class)
 public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVersionIdentifier {

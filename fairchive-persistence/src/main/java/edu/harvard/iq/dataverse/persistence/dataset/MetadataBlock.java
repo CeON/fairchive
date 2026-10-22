@@ -26,9 +26,6 @@ import javax.persistence.Transient;
 import edu.harvard.iq.dataverse.persistence.JpaEntity;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
-/**
- * @author skraffmiller
- */
 @Table(indexes = {@Index(columnList = "name") , @Index(columnList = "owner_id")})
 @Entity
 public class MetadataBlock implements JpaEntity<Long>, Serializable {
@@ -38,61 +35,69 @@ public class MetadataBlock implements JpaEntity<Long>, Serializable {
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
-
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String displayName;
-
     @Column(name = "namespaceuri", columnDefinition = "TEXT")
     private String namespaceUri;
-
     @Column(nullable = false)
     private int displayOrder;
+    @OneToMany(mappedBy = "metadataBlock", cascade = {REMOVE, MERGE, PERSIST})
+    @OrderBy("displayOrder")
+    private List<DatasetFieldType> datasetFieldTypes = new ArrayList<>();
+    @OneToOne
+    @JoinColumn(name = "owner_id", unique = false, nullable = true, 
+                insertable = true, updatable = true)
+    private Dataverse owner;
+    @Transient
+    private boolean showDatasetFieldTypes;
+    @Transient
+    private boolean empty;
+    @Transient
+    private boolean selected;
+    @Transient
+    private boolean hasRequired;
 
     @Override
     public Long getId() {
-        return id;
+        return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
     public String getNamespaceUri() {
-        return namespaceUri;
+        return this.namespaceUri;
     }
 
-    public void setNamespaceUri(String namespaceUri) {
-        this.namespaceUri = namespaceUri;
+    public void setNamespaceUri(final String uri) {
+        this.namespaceUri = uri;
     }
 
     public int getDisplayOrder() {
-        return displayOrder;
+        return this.displayOrder;
     }
 
-    public void setDisplayOrder(int displayOrder) {
+    public void setDisplayOrder(final int displayOrder) {
         this.displayOrder = displayOrder;
     }
 
-    @OneToMany(mappedBy = "metadataBlock", cascade = {REMOVE, MERGE, PERSIST})
-    @OrderBy("displayOrder")
-    private List<DatasetFieldType> datasetFieldTypes = new ArrayList<>();;
-
     public List<DatasetFieldType> getDatasetFieldTypes() {
-        return datasetFieldTypes;
+        return this.datasetFieldTypes;
     }
 
-    public void setDatasetFieldTypes(List<DatasetFieldType> datasetFieldTypes) {
-        this.datasetFieldTypes = datasetFieldTypes;
+    public void setDatasetFieldTypes(final List<DatasetFieldType> types) {
+        this.datasetFieldTypes = types;
     }
 
     public boolean isDisplayOnCreate() {
@@ -101,66 +106,52 @@ public class MetadataBlock implements JpaEntity<Long>, Serializable {
     }
 
     public String getDisplayName() {
-        return displayName;
+        return this.displayName;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setDisplayName(final String name) {
+        this.displayName = name;
     }
 
     public boolean isCitationMetaBlock() {
         // eventually this will be dynamic, for now only citation is required
-        return "citation".equals(name);
+        return "citation".equals(this.name);
     }
-
-    @OneToOne
-    @JoinColumn(name = "owner_id", unique = false, nullable = true, 
-                insertable = true, updatable = true)
-    private Dataverse owner;
 
     public Dataverse getOwner() {
-        return owner;
+        return this.owner;
     }
 
-    public void setOwner(Dataverse owner) {
+    public void setOwner(final Dataverse owner) {
         this.owner = owner;
     }
 
-    @Transient
-    private boolean empty;
-
     public boolean isEmpty() {
-        return empty;
+        return this.empty;
     }
 
-    public void setEmpty(boolean empty) {
+    public void setEmpty(final boolean empty) {
         this.empty = empty;
     }
 
-    @Transient
-    private boolean selected;
-
-    public void setSelected(boolean selected) {
+    public void setSelected(final boolean selected) {
         this.selected = selected;
     }
 
     public boolean isSelected() {
-        return selected;
+        return this.selected;
     }
 
-    @Transient
-    private boolean hasRequired;
-
-    public void setHasRequired(boolean hasRequired) {
+    public void setHasRequired(final boolean hasRequired) {
         this.hasRequired = hasRequired;
     }
 
     public boolean isHasRequired() {
-        return hasRequired;
+        return this.hasRequired;
     }
 
     public String getIdString() {
-        return id.toString();
+        return this.id.toString();
     }
     
     public boolean isVisibleThroughAnonymizedUrl() {
@@ -168,31 +159,27 @@ public class MetadataBlock implements JpaEntity<Long>, Serializable {
                 .anyMatch(DatasetFieldType::isVisibleThroughAnonymizedUrl);
     }
 
-    @Transient
-    private boolean showDatasetFieldTypes;
-
-    public void setShowDatasetFieldTypes(boolean showDatasetFieldTypes) {
+    public void setShowDatasetFieldTypes(final boolean showDatasetFieldTypes) {
         this.showDatasetFieldTypes = showDatasetFieldTypes;
     }
 
     public boolean isShowDatasetFieldTypes() {
-        return showDatasetFieldTypes;
+        return this.showDatasetFieldTypes;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof MetadataBlock)) {
-            return false;
-        }
-        MetadataBlock other = (MetadataBlock) object;
-        return !(!Objects.equals(this.id, other.id) && (this.id == null || !this.id.equals(other.id)));
+    	if(object != null && getClass().equals(object.getClass())) {
+    		final MetadataBlock other = (MetadataBlock) object;
+    		return Objects.equals(this.id, other.id);
+    	} else {
+    		return false;
+    	}
     }
 
     @Override
@@ -201,7 +188,8 @@ public class MetadataBlock implements JpaEntity<Long>, Serializable {
     }
 
     public String getLocaleDisplayName() {
-        String localeDisplayName =  getStringFromNonDefaultBundle("metadatablock.displayName", getName());
-        return localeDisplayName.isEmpty() ? displayName : localeDisplayName;
+        final String localeDisplayName =  getStringFromNonDefaultBundle(
+        		"metadatablock.displayName", getName());
+        return localeDisplayName.isEmpty() ? this.displayName : localeDisplayName;
     }
 }

@@ -3,8 +3,6 @@ package edu.harvard.iq.dataverse.api.dto;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-import java.util.EnumSet;
-
 /**
  * @author michael
  */

@@ -232,7 +232,7 @@ public class JsonParserTest {
 			assertEquals("testDv", actual.getName());
 			assertEquals("testAlias", actual.getAlias());
 			assertEquals("UNCATEGORIZED", actual.getDataverseType().toString());
-			assertTrue(actual.getDataverseContacts().isEmpty());
+			assertTrue(actual.getDataverseContacts().size() == 1);
 			assertFalse(actual.isPermissionRoot());
 			assertFalse(actual.isFacetRoot());
 		} catch (IOException ioe) {

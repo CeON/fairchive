@@ -5,6 +5,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 import java.io.Serializable;
 import java.util.Objects;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -24,6 +25,11 @@ import edu.harvard.iq.dataverse.persistence.JpaEntity;
 @Entity
 @Table(indexes = {@Index(columnList = "dataverse_id")})
 public class DataverseTheme implements Serializable, JpaEntity<Long> {
+	
+    public static final String DEFAULT_LOGO_BACKGROUND_COLOR = "FFFFFF";
+    public static final String DEFAULT_BACKGROUND_COLOR = "FFFFFF";
+    public static final String DEFAULT_LINK_COLOR = "428BCA";
+    public static final String DEFAULT_TEXT_COLOR = "888888";
 
     public enum ImageFormat {
         SQUARE, RECTANGLE
@@ -38,19 +44,41 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
     @Enumerated(EnumType.STRING)
-    private ImageFormat logoFormat;
+    private ImageFormat logoFormat = ImageFormat.SQUARE;
     @Enumerated(EnumType.STRING)
-    private Alignment logoAlignment;
-    private String logoBackgroundColor;
+    private Alignment logoAlignment = Alignment.LEFT;
+    @Column
+    private String logoBackgroundColor = DEFAULT_BACKGROUND_COLOR;
+    @Column
     private String logo;
+    @Column
     private String tagline;
+    @Column
     private String linkUrl;
-    private String linkColor;
-    private String textColor;
-    private String backgroundColor;
+    @Column
+    private String linkColor = DEFAULT_LINK_COLOR;
+    @Column
+    private String textColor = DEFAULT_TEXT_COLOR;
+    @Column
+    private String backgroundColor = DEFAULT_BACKGROUND_COLOR;
     @OneToOne
-    @JoinColumn(name = "dataverse_id")
-    private Dataverse dataverse;
+    @JoinColumn(name = "version_id")
+    private DataverseVersion version;
+    
+    public DataverseTheme createNewFor(final DataverseVersion version) {
+    	final DataverseTheme result = new DataverseTheme();
+    	result.backgroundColor = this.backgroundColor;
+    	result.linkColor = this.linkColor;
+    	result.linkUrl = this.linkUrl;
+    	result.logo = this.logo;
+    	result.logoAlignment = this.logoAlignment;
+    	result.logoBackgroundColor = this.logoBackgroundColor;
+    	result.logoFormat = this.logoFormat;
+    	result.tagline = this.tagline;
+    	result.textColor = this.textColor;
+    	result.version = version;
+    	return result;
+    }
     
     @Override
     public Long getId() {
@@ -133,33 +161,31 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
         this.backgroundColor = color;
     }
 
-    public Dataverse getDataverse() {
-        return this.dataverse;
-    }
+    public DataverseVersion getVersion() {
+		return this.version;
+	}
 
-    public void setDataverse(final Dataverse dataverse) {
-        this.dataverse = dataverse;
-    }
+	public void setVersion(final DataverseVersion version) {
+		this.version = version;
+	}
 
-    @Override
+	@Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.id != null ? this.id.hashCode() : 0);
-        return hash;
+    	return Objects.hashCode(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof DataverseTheme)) {
-            return false;
-        }
-        DataverseTheme other = (DataverseTheme) object;
-        return !(!Objects.equals(this.id, other.id) && (this.id == null || !this.id.equals(other.id)));
+    public boolean equals(final Object object) {
+    	if(object != null && getClass().equals(object.getClass())) {
+    		final DataverseTheme other = (DataverseTheme) object;
+    		return Objects.equals(this.id, other.id);
+    	} else {
+    		return false;
+    	}
     }
 
     @Override
     public String toString() {
         return "DataverseTheme[ id=" + id + " ]";
     }
-
 }

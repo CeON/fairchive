@@ -547,6 +547,9 @@
                     <h:outputText value="#{bundle.unpublished}" 
                                   styleClass="label label-warning label-unpublished" 
                                   rendered="#{!dataverse.released}"/>
+                    <h:outputText rendered="#{dataverse.draft}"
+                                  styleClass="label label-warning label-unpublished" 
+                                  value="#{bundle['dataverse.draft']}" />
                 </div>
                 <div class="dataverseHeaderCell dataverseHeaderName" 
                      jsf:rendered="#{empty dataverse.id}">

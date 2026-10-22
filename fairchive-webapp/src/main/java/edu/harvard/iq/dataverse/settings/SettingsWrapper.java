@@ -182,6 +182,10 @@ public class SettingsWrapper implements java.io.Serializable {
         String protocol = getEnumSettingValue(DoiProvider);
         return "DataCite".equals(protocol);
     }
+    
+    public String getDataverseSiteUrl() {
+        return this.systemConfig.getDataverseSiteUrl();
+    }
 
     // -------------------- PRIVATE --------------------
 

@@ -35,6 +35,7 @@ import org.mockito.quality.Strictness;
 import java.io.IOException;
 import java.util.Locale;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -76,7 +77,7 @@ public class FileIntegrityCheckerTest {
     @BeforeEach
     public void beforeEach() {
         Dataverse dv = new Dataverse();
-        dv.setName("RepOD");
+        dv.addVersion(RELEASED).setName("RepOD");
 
         when(dataverseDao.findRootDataverse()).thenReturn(dv);
         when(systemConfig.getSiteFullName(Locale.ENGLISH)).thenReturn("Repository for Open Data");

@@ -1,17 +1,9 @@
 package edu.harvard.iq.dataverse.sitemap;
 
-import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
-import edu.harvard.iq.dataverse.util.xml.XmlPrinter;
-import edu.harvard.iq.dataverse.util.xml.XmlValidator;
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.xml.sax.SAXException;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,9 +17,19 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXException;
+
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
+import edu.harvard.iq.dataverse.util.xml.XmlPrinter;
+import edu.harvard.iq.dataverse.util.xml.XmlValidator;
 
 public class SiteMapUtilTest {
 
@@ -51,7 +53,7 @@ public class SiteMapUtilTest {
         List<Dataverse> dataverses = new ArrayList<>();
         String publishedDvString = "publishedDv1";
         Dataverse publishedDataverse = new Dataverse();
-        publishedDataverse.setAlias(publishedDvString);
+        publishedDataverse.addVersion(RELEASED).setAlias(publishedDvString);
         SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date dvModifiedDate = dateFmt.parse("1955-11-12 22:04:00");
         publishedDataverse.setModificationTime(new Timestamp(dvModifiedDate.getTime()));

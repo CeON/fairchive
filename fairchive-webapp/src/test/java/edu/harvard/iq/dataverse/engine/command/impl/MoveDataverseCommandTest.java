@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.makeAuthenticatedUser;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -63,7 +64,7 @@ public class MoveDataverseCommandTest {
 
         // Dataverses
         root = new Dataverse();
-        root.setName("root");
+        root.addVersion(RELEASED).setName("root");
         root.setId(1l);
         root.setPublicationDate(new Timestamp(new Date().getTime()));
 

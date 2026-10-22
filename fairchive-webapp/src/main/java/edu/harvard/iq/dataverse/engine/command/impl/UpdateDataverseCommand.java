@@ -74,7 +74,7 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
             }
         }
         if (inputLevelList != null) {
-            ctxt.fieldTypeInputLevels().deleteFacetsFor(result);
+            ctxt.fieldTypeInputLevels().deleteFor(result);
             for (DataverseFieldTypeInputLevel obj : inputLevelList) {
                 ctxt.fieldTypeInputLevels().create(obj);
             }

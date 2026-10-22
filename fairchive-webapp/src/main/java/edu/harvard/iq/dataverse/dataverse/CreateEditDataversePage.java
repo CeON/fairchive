@@ -1,385 +1,631 @@
 package edu.harvard.iq.dataverse.dataverse;
 
-import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseFacetServiceBean;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.PermissionsWrapper;
-import edu.harvard.iq.dataverse.bannersandmessages.DataverseUtil;
-import edu.harvard.iq.dataverse.common.BundleUtil;
-import edu.harvard.iq.dataverse.error.DataverseError;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.util.JsfHelper;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import io.vavr.control.Either;
-import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.event.TransferEvent;
-import org.primefaces.model.DualListModel;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DisableRootDataverseTheme;
+import static java.util.Collections.emptyList;
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-import javax.ejb.EJB;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.Optional;
+
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
+import javax.faces.component.html.HtmlInputText;
 import javax.faces.context.FacesContext;
+import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.PrimeFaces;
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.DualListModel;
+import org.primefaces.model.file.UploadedFile;
+
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.TempLogoStorageManager;
+import edu.harvard.iq.dataverse.dataverse.themewidget.ThemeWidgetService;
+import edu.harvard.iq.dataverse.error.DataverseError;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
+import edu.harvard.iq.dataverse.persistence.user.User;
+import edu.harvard.iq.dataverse.util.SystemConfig;
+import edu.harvard.iq.dataverse.util.UIMessages;
+import io.vavr.control.Either;
 
 @SuppressWarnings("serial")
 @ViewScoped
 @Named("CreateEditDataversePage")
 public class CreateEditDataversePage implements Serializable {
 
-    @EJB
-    private DataverseDao dataverseDao;
-
-    @EJB
-    private DatasetFieldServiceBean datasetFieldService;
-
-    @EJB
-    private MetadataBlockService metadataBlockService;
-
-    @EJB
-    private DataverseService metadataBlockSaveManager;
-
-    @Inject
+    private DataverseService dataverseService;
+    private ThemeWidgetService themeWidgetService;
     private PermissionsWrapper permissionsWrapper;
-
-    @Inject
-    private DataverseFacetServiceBean dataverseFacetService;
-
-    @Inject
     private DataverseSession session;
-
-    @Inject
-    private SettingsServiceBean settingsServiceBean;
-
-    @Inject
-    private SystemConfig systemConfig;
+    private SystemConfig config;
+    private TempLogoStorageManager tempLogoStorageManager;
+    private UIMessages ui;
 
     private Long dataverseId;
     private Long ownerId;
     private String dataverseOwnerAlias;
 
     private Dataverse dataverse;
-    private Long facetMetadataBlockId;
-    private Set<MetadataBlock> allMetadataBlocks;
-    private DualListModel<DatasetFieldType> facets = new DualListModel<>(new ArrayList<>(), new ArrayList<>());
-
-    private DataverseMetaBlockOptions mdbOptions = new DataverseMetaBlockOptions();
-    private DataverseMetaBlockOptions parentRootMdbOptions = new DataverseMetaBlockOptions();
-
+    private DataverseVersion version;
+    
+    private HtmlInputText linkUrlInput;
+    private HtmlInputText taglineInput;
+    private TempLogoStorageManager.Storage storage;
+    
+    public CreateEditDataversePage() {}
+    @Inject
+    public CreateEditDataversePage(final DataverseService dataverseService,
+    	    					   final ThemeWidgetService themeWidgetService,
+    							   final PermissionsWrapper permissionsWrapper,
+    							   final DataverseSession session,
+    							   final SystemConfig config,
+    							   final TempLogoStorageManager tempLogoStorageManager,
+    							   final UIMessages ui) {
+    	this.dataverseService = dataverseService;
+    	this.themeWidgetService = themeWidgetService;
+    	this.permissionsWrapper = permissionsWrapper;
+    	this.session = session;
+    	this.config = config;
+    	this.tempLogoStorageManager = tempLogoStorageManager;
+    	this.ui = ui;
+    }
+    
     // -------------------- GETTERS --------------------
+    
+    public String getTitle() {
+    	return this.dataverse != null && this.dataverse.isNotNew()
+    			? getStringFromBundle("dataverse.edit.header") + " - " + this.dataverse.getName()
+    			: getStringFromBundle("newDataverse");
+    }
+    
+    public boolean isDataverseNotNew() {
+    	return this.dataverse.isNotNew();
+    }
+    
+    public String getName() {
+    	return this.version.getName();
+    }
+    
+    public void setName(final String name) {
+    	this.version.setName(name);
+    }
+    
+    public String getAffiliation() {
+    	return this.version.getAffiliation();
+    }
+    
+    public void setAffiliation(final String affiliation) {
+    	this.version.setAffiliation(affiliation);
+    }
+    
+    public String getAlias() {
+    	return this.version.getAlias();
+    }
+    
+    public void setAlias(final String alias) {
+    	this.version.setAlias(alias);
+    }
+    
+    public DataverseType getType() {
+        return this.version.getDataverseType();
+    }
+    
+    public void setType(final DataverseType type) {
+    	this.version.setDataverseType(type);
+    }
+    
+    public String getDescription() {
+    	return this.version.getDescription();
+    }
+    
+    public void setDescription(final String description) {
+    	this.version.setDescription(description);
+    }
+    
+    public List<DataverseContact> getContacts() {
+    	return this.version.getContacts();
+    }
+    
+    public void addContact(final int index) {
+    	this.version.addContact(index);
+    }
+
+    public void removeContact(final int index) {
+    	this.version.removeContact(index);
+    }
+    
+    public String getAdditionalDescription() {
+    	return this.version.getAdditionalDescription();
+    }
+    
+    public void setAdditionalDescription(final String description) {
+    	this.version.setAdditionalDescription(description);
+    }
+    
+    public String getMetadataParentRootDataverseName() {
+        return this.dataverse.getMetadataParentRootDataverseName();
+    }
+    
+    public String getFacetRootDataverseName() {
+        return this.dataverse.getFacetRootDataverseName();
+    }
 
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
     }
 
     public Long getDataverseId() {
-        return dataverseId;
+        return this.dataverseId;
     }
 
     public Long getOwnerId() {
-        return ownerId;
-    }
-
-    public Long getFacetMetadataBlockId() {
-        return facetMetadataBlockId;
-    }
-
-    public DualListModel<DatasetFieldType> getFacets() {
-        return facets;
-    }
-
-    public Set<MetadataBlock> getAllMetadataBlocks() {
-        return allMetadataBlocks;
-    }
-
-    public DataverseMetaBlockOptions getMdbOptions() {
-        return mdbOptions;
+        return this.ownerId;
     }
 
     public String getDataverseOwnerAlias() {
-        return dataverseOwnerAlias;
+        return this.dataverseOwnerAlias;
+    }
+    
+    public boolean isFacetPickListDisabled() {
+    	return !this.dataverse.isFacetRoot() && this.dataverse.isNotRoot();
+    }
+    
+    public boolean isMessagesBannersAllowed() {
+        return this.version.isMessagesBannersAllowed();
+    }
+
+    public void setMessagesBannersAllowed(final boolean allowed) {
+        this.version.setMessagesBannersAllowed(allowed);
+    }
+    
+    public String getDataverseName() {
+    	return this.dataverse.getName();
+    }
+    
+    public HtmlInputText getLinkUrlInput() {
+        return this.linkUrlInput;
+    }
+
+    public void setLinkUrlInput(final HtmlInputText linkUrlInput) {
+        this.linkUrlInput = linkUrlInput;
+    }
+
+    public HtmlInputText getTaglineInput() {
+        return this.taglineInput;
+    }
+
+    public void setTaglineInput(final HtmlInputText taglineInput) {
+        this.taglineInput = taglineInput;
+    }
+    
+    public String getTagline() {
+        return this.version.getTheme().getTagline();
+    }
+
+    public void setTagline(final String line) {
+        this.version.getTheme().setTagline(line);
+    }
+    
+    public String getLinkUrl() {
+        return this.version.getTheme().getLinkUrl();
+    }
+
+    public void setLinkUrl(final String url) {
+    	this.version.getTheme().setLinkUrl(url);
+    }
+    
+    public String getLogo() {
+        return this.version.getTheme().getLogo();
+    }
+    
+    public boolean isLogoPresent() {
+    	return isNotEmpty(this.version.getTheme().getLogo());
+    }
+    
+    public String getLogoPath() {
+    	if(isLogoPresent()) {
+	    	return this.storage != null
+	    		? "/logos/temp/" + this.storage.getName() + '/' + getLogo()
+	    		: "/logos/" + this.dataverse.getId() + '/' + getLogo();
+    	} else {
+    		return EMPTY;
+    	}
+    }
+
+    public void setLogo(final String logo) {
+        this.version.getTheme().setLogo(logo);
+    }
+    
+    public ImageFormat getLogoFormat() {
+        return this.version.getTheme().getLogoFormat();
+    }
+
+    public void setLogoFormat(final ImageFormat format) {
+        this.version.getTheme().setLogoFormat(format);
+    }
+    
+    public Alignment getLogoAlignment() {
+        return this.version.getTheme().getLogoAlignment();
+    }
+
+    public void setLogoAlignment(final Alignment alignment) {
+        this.version.getTheme().setLogoAlignment(alignment);
+    }
+    
+    public String getLogoBackgroundColor() {
+        return this.version.getTheme().getLogoBackgroundColor();
+    }
+
+    public void setLogoBackgroundColor(final String color) {
+        this.version.getTheme().setLogoBackgroundColor(color);
+    }
+    
+    public String getBackgroundColor() {
+        return this.version.getTheme().getBackgroundColor();
+    }
+
+    public void setBackgroundColor(final String color) {
+        this.version.getTheme().setBackgroundColor(color);
+    }
+    
+    public String getLinkColor() {
+        return this.version.getTheme().getLinkColor();
+    }
+
+    public void setLinkColor(final String color) {
+        this.version.getTheme().setLinkColor(color);
+    }
+    
+    public String getTextColor() {
+        return this.version.getTheme().getTextColor();
+    }
+
+    public void setTextColor(final String color) {
+        this.version.getTheme().setTextColor(color);
+    }
+    
+    public boolean isDataverseNotRoot() {
+    	return this.dataverse.isNotRoot();
+    }
+    
+    public String getThemeRootDataverseName() {
+    	return this.dataverse.getThemeRootDataverseName();
+    }
+    
+    public boolean isThemeRoot() {
+        return this.dataverse.getThemeRoot();
+    }
+    
+    public long getUploadLogoSizeLimit() {
+        return this.config.getUploadLogoSizeLimit();
+    }
+    
+    public boolean isDataverseReleased() {
+    	return this.dataverse.isReleased();
     }
 
     // -------------------- LOGIC --------------------
 
     public String init() {
-
-        if (dataverseId == null) {
-            return setupViewForDataverseCreation();
-        }
-
-        return setupViewForDataverseEdit();
-    }
-
-    public void validateAlias(FacesContext context, UIComponent toValidate, Object value) {
-        if (!StringUtils.isEmpty((String) value)) {
-            String alias = (String) value;
-
-            boolean aliasFound = false;
-            Dataverse dv = dataverseDao.findByAlias(alias);
-
-            if (dv != null && !dv.getId().equals(dataverse.getId())) {
-                aliasFound = true;
-            }
-            if (aliasFound) {
-                ((UIInput) toValidate).setValid(false);
-                FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR, BundleUtil.getStringFromBundle("dataverse.alias"), BundleUtil.getStringFromBundle("dataverse.alias.taken"));
-                context.addMessage(toValidate.getClientId(context), message);
-            }
+        if (this.dataverseId == null) {
+            return initForCreation();
+        } else {
+        	return initForEdition();
         }
     }
+    
+    private String initForCreation() {
+    	final Optional<Dataverse> owner = this.dataverseService.findById(this.ownerId);
 
-    public void refreshDatasetFieldTypes(Long mdbId, boolean editable, boolean fieldsVisible) {
-        metadataBlockService.refreshDatasetFieldTypes(mdbOptions, mdbId, editable, fieldsVisible);
+    	if (!owner.isPresent()) {
+    	    return this.permissionsWrapper.notFound();
+    	}
+    	
+        if (!this.permissionsWrapper.canIssueCreateDataverseCommand(owner.get())) {
+            return this.permissionsWrapper.notAuthorized();
+        }
+        
+        this.dataverse = new Dataverse();
+        this.dataverse.setOwner(owner.get());
+        this.version = this.dataverse.getEditableVersion();
+
+        if (isPrefillEnabled()) {
+        	final User user = this.session.getUser();
+            this.version.addContact(user.getDisplayInfo().getEmailAddress());
+            this.version.setAffiliation(user.getDisplayInfo().getAffiliation());
+            this.version.setName(Dataverse.getSuggestedNameOnCreate(user));
+        } 
+
+        initTheme();
+        
+        return EMPTY;
+    }
+    
+    private String initForEdition() {
+    	final Optional<Dataverse> dataverse = this.dataverseService.findById(this.dataverseId);
+    	
+        if (! dataverse.isPresent()) {
+            return this.permissionsWrapper.notFound();
+        }
+      
+        if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(dataverse.get())) {
+            return permissionsWrapper.notAuthorized();
+        } 
+        
+        this.dataverse = dataverse.get();
+        this.version = this.dataverse.getEditableVersion();
+    	this.ownerId = this.dataverse.getOwnerId();
+    	
+    	initTheme();
+    	
+    	return EMPTY;
+    }
+    
+    private void initTheme() {
+        if (this.dataverse.isRoot()) {
+            this.dataverse.setThemeRoot(true);
+        }
+        
+        if (this.dataverse.getDataverseTheme() == null && this.dataverse.isThemeRoot()) {
+            this.version.setTheme( new DataverseTheme());
+
+        }
     }
 
+    public void validateAlias(final FacesContext context, final 
+    		UIComponent toValidate, final Object value) {
+    	final String alias = (String) value;
+        if (isNotEmpty(alias)) {
+            this.dataverseService.findByAlias(alias)
+            	.filter(this::isNotCurrentDataverse)
+            	.ifPresent(d -> {
+            		 ((UIInput) toValidate).setValid(false);
+                     final FacesMessage message = new FacesMessage(SEVERITY_ERROR, 
+                     		getStringFromBundle("dataverse.alias"), 
+                     		getStringFromBundle("dataverse.alias.taken"));
+                     context.addMessage(toValidate.getClientId(context), message);
+            	});
+        }
+    }
+    
+    public void validateTagline(final FacesContext context, 
+    		final UIComponent component, final Object value) throws ValidatorException {
+        if (!isEmpty((String) value) && ((String) value).length() > 140) {
+            final FacesMessage msg = new FacesMessage(getStringFromBundle("theme.validateTagline"));
+            msg.setSeverity(SEVERITY_ERROR);
+
+            throw new ValidatorException(msg);
+        }
+
+    }
+
+    public void validateUrl(final FacesContext context, 
+    		final UIComponent component, final Object value) throws ValidatorException {
+        try {
+            if (!isEmpty((String) value)) {
+                new URL((String) value);
+            }
+        } catch (final MalformedURLException e) {
+            final FacesMessage msg
+                    = new FacesMessage(getStringFromBundle("theme.urlValidate"),
+                                       getStringFromBundle("theme.urlValidate.msg"));
+            msg.setSeverity(SEVERITY_ERROR);
+
+            throw new ValidatorException(msg);
+        }
+    }
     
     /**
-     * Changes metadata block view options in order to show editable dataset fields for given metadata block.
+     * Copy uploaded file to temp area, until we are ready to save
+     * Copy filename into Dataverse logo
+     *
+     * @param event
      */
-    public void showEditableDatasetFieldTypes(Long mdbId) {
-        metadataBlockService.prepareDatasetFieldsToBeEditable(mdbOptions, mdbId);
+
+	public void handleImageFileUpload(final FileUploadEvent event) throws IOException {
+		System.out.println("!================================== handleImageFileUpload");
+		if (this.storage == null) {
+			this.storage = this.tempLogoStorageManager.createStorageFor(this.dataverse);
+		}
+		final UploadedFile file = event.getFile();
+		storage.saveFrom(file.getFileName(), file.getInputStream());
+		setLogo(file.getFileName());
+	}
+
+    public void removeLogo() throws IOException {
+        setLogo(null);
+        closeStorage();
     }
 
-    /**
-     * Changes metadata block view options in order to show uneditable dataset fields for given metadata block.
-     */
-    public void showUnEditableDatasetFieldTypes(Long mdbId) {
-        metadataBlockService.prepareDatasetFieldsToBeUnEditable(mdbOptions, mdbId);
+    public boolean getInheritCustomization() {
+        return !this.dataverse.getThemeRoot();
     }
 
-    /**
-     * Changes metadata block view options in order to hide all dataset fields for given metadata block.
-     */
-    public void hideDatasetFieldTypes(Long mdbId) {
-        metadataBlockService.prepareDatasetFieldsToBeHidden(mdbOptions, mdbId);
+    public void setInheritCustomization(final boolean inherit) {
+        this.dataverse.setThemeRoot(!inherit);
+        if (!inherit) {
+            if (this.dataverse.getDataverseTheme(true) == null) {
+                this.dataverse.getLatestVersion().setTheme(new DataverseTheme());
+            }
+        }
     }
 
-    /**
-     * Resets all view options for metadata blocks, dataset fields and sets metadata blocks to be inherited from parent.
-     */
-    public String resetToInherit() {
-        mdbOptions = parentRootMdbOptions.deepCopy();
-        mdbOptions.setInheritMetaBlocksFromParent(true);
-        dataverse.setMetadataBlockRoot(false);
+    public void resetForm() {
+        PrimeFaces.current().resetInputs(":dataverseForm:themeWidgetsTabView");
+    }
 
-        return StringUtils.EMPTY;
+    public boolean displayThemeTab() {
+        return this.dataverse.isRoot()
+            ? !this.config.isTrueForKey(DisableRootDataverseTheme)
+            : true;
+    }
+    
+    private boolean isNotCurrentDataverse(final Dataverse found) {
+    	return this.dataverse.isNew()
+    		? true
+    		: !this.dataverse.getId().equals(found.getId());
     }
 
     public boolean isInheritFacetFromParent() {
-        return !dataverse.isFacetRoot();
-    }
-
-    public void toggleFacetRoot() {
-        if (!dataverse.isFacetRoot()) {
-            initFacets();
-        }
+        return !this.dataverse.isFacetRoot();
     }
 
     public boolean isUserCanChangeAllowMessageAndBanners() {
-        return session.getUser().isSuperuser();
+        return this.session.isSuperUserLoggedIn();
+    }
+    
+    
+    public String saveAndRelease() {
+    	if(canUserPublishCollection()) {
+    		this.version.setState(RELEASED);
+    		return save();
+    	} else {
+    		return this.permissionsWrapper.notAuthorized();
+    	}
     }
 
     public String save() {
-        List<DataverseFieldTypeInputLevel> dftilForSave =
-                metadataBlockService.getDataverseFieldTypeInputLevelsToBeSaved(allMetadataBlocks, mdbOptions, dataverse);
-
-        if (dataverse.getId() == null) {
-            return saveNewDataverse(dftilForSave);
-        }
-
-        return saveEditedDataverse(dftilForSave);
-    }
-
-    public void refresh() {
-
-    }
-
-    public void changeFacetsMetadataBlock() {
-        if (facetMetadataBlockId == null) {
-            facets.setSource(datasetFieldService.findAllFacetableFieldTypes());
+    	if(session.isUserLoggedIn()) {
+	        if (this.dataverse.isNew()) {
+	            return saveNewDataverse();
+	        } else {
+	        	return saveEditedDataverse();
+	        }
+    	} else {
+    		this.ui.addErrorMessage(getStringFromBundle("dataverse.create.authenticatedUsersOnly"));
+    		return EMPTY;
+    	}
+    }   
+    
+    private String saveEditedDataverse() {
+    	this.dataverse.addVersion(this.version);
+        final Either<DataverseError, Dataverse> editResult = 
+        		this.dataverseService.saveEditedDataverse(emptyList(), 
+        				this.dataverse, new DualListModel<DatasetFieldType>());
+        if (editResult.isLeft()) {
+            this.ui.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
+            return EMPTY;
         } else {
-            facets.setSource(datasetFieldService.findFacetableFieldTypesByMetadataBlock(facetMetadataBlockId));
-        }
-
-        facets.getSource().removeAll(facets.getTarget());
-    }
-
-    /**
-     * Refreshes dataset fields view options for given dataset field.
-     */
-    public void refreshDatasetFieldsViewOptions(Long mdbId, long dsftId) {
-        metadataBlockService.refreshDatasetFieldsViewOptions(mdbId, dsftId, allMetadataBlocks, mdbOptions);
-    }
-
-    /**
-     * Makes metadata block selectable/editable since it is no longer inherited from parent dataverse.
-     */
-    public void makeMetadataBlocksSelectable() {
-        mdbOptions.setInheritMetaBlocksFromParent(false);
-        dataverse.setMetadataBlockRoot(true);
-        allMetadataBlocks = metadataBlockService.prepareMetaBlocksAndDatasetfields(dataverse, mdbOptions);
-
-    }
-
-    /**
-     * Returns to dataverse view.
-     */
-    public String cancel() {
-        return returnRedirect();
-    }
-
-    public void onFacetTransfer(TransferEvent event) {
-        for (Object item : event.getItems()) {
-            DatasetFieldType facet = (DatasetFieldType) item;
-            if (facetMetadataBlockId != null && !facetMetadataBlockId.equals(facet.getMetadataBlock().getId())) {
-                facets.getSource().remove(facet);
+        	try {
+    	        if (this.dataverse.isThemeRoot()) {
+    	            this.themeWidgetService.
+    	            		saveOrUpdateUploadedTheme(this.dataverse, this.storage);
+    	        } else {
+    	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
+    	        }
+	        	this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
+	        	return returnRedirect();
+        	} catch(final Exception e) {
+                this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
+                        				  getStringFromBundle("dataverse.theme.failure"));
+                return EMPTY;
+            } finally {
+            	closeStorage();
             }
         }
     }
 
-    public String returnRedirect() {
-        return dataverse.getId() == null ? "/dataverse.xhtml?alias=" + dataverseOwnerAlias + "&faces-redirect=true" :
-                "/dataverse.xhtml?alias=" + dataverse.getAlias() + "&faces-redirect=true";
+    private String saveNewDataverse() {
+    	
+    	this.dataverse.addVersion(this.version);
+        final Either<DataverseError, Dataverse> saveResult = 
+        		this.dataverseService.saveNewDataverse(emptyList(), 
+        				this.dataverse, new DualListModel<DatasetFieldType>());
+
+        if (saveResult.isLeft()) {
+            this.ui.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
+            return EMPTY;
+        } else {
+            try {
+    	        if (this.dataverse.isThemeRoot()) {
+    	            this.themeWidgetService.
+    	            		saveOrUpdateUploadedTheme(this.dataverse, this.storage);
+    	        } else {
+    	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
+    	        }
+                this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
+                        this.config.getGuidesBaseUrl(this.session.getLocale()),
+                        this.config.getGuidesVersion()));
+            	return returnRedirect();
+            } catch(final Exception e) {
+                this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
+                        				  getStringFromBundle("dataverse.theme.failure"));
+                return EMPTY;
+            } finally {
+            	closeStorage();
+            }
+        }
+    }
+
+    public String cancel() {
+    	closeStorage();
+        return returnRedirect();
+    }
+
+    private String returnRedirect() {
+    	return "/dataverse.xhtml?faces-redirect=true&alias=".concat(
+    			this.dataverse.isNew() ? this.dataverseOwnerAlias : this.dataverse.getAlias());
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setDataverse(Dataverse dataverse) {
+    public void setDataverse(final Dataverse dataverse) {
         this.dataverse = dataverse;
     }
 
-    public void setDataverseId(Long dataverseId) {
-        this.dataverseId = dataverseId;
+    public void setDataverseId(final Long id) {
+        this.dataverseId = id;
     }
 
-    public void setFacetMetadataBlockId(Long facetMetadataBlockId) {
-        this.facetMetadataBlockId = facetMetadataBlockId;
+    public void setOwnerId(final Long id) {
+        this.ownerId = id;
     }
 
-    public void setAllMetadataBlocks(Set<MetadataBlock> allMetadataBlocks) {
-        this.allMetadataBlocks = allMetadataBlocks;
+    public void setInheritFacetFromParent(final boolean inherit) {
+        this.dataverse.setFacetRoot(!inherit);
     }
 
-    public void setFacets(DualListModel<DatasetFieldType> facets) {
-        this.facets = facets;
-    }
-
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public void setInheritFacetFromParent(boolean inheritFacetFromParent) {
-        dataverse.setFacetRoot(!inheritFacetFromParent);
-    }
-
-    public void setDataverseOwnerAlias(String dataverseOwnerAlias) {
-        this.dataverseOwnerAlias = dataverseOwnerAlias;
+    public void setDataverseOwnerAlias(final String alias) {
+        this.dataverseOwnerAlias = alias;
     }
 
     // -------------------- PRIVATE --------------------
-
-    private String saveEditedDataverse(List<DataverseFieldTypeInputLevel> dftilForSave) {
-        Either<DataverseError, Dataverse> editResult = metadataBlockSaveManager.saveEditedDataverse(dftilForSave, dataverse, facets);
-
-        if (editResult.isLeft()) {
-            JsfHelper.addErrorMessage(editResult.getLeft().getErrorMsg(), "");
-            return StringUtils.EMPTY;
-        }
-
-        JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.update.success"));
-        return returnRedirect();
-    }
-
-    private String saveNewDataverse(List<DataverseFieldTypeInputLevel> dftilForSave) {
-        Either<DataverseError, Dataverse> saveResult = metadataBlockSaveManager.saveNewDataverse(dftilForSave, dataverse, facets);
-
-        if (saveResult.isLeft()) {
-            JsfHelper.addErrorMessage(saveResult.getLeft().getErrorMsg(), "");
-            return StringUtils.EMPTY;
-        }
-
-        showSuccessMessage();
-        return "/dataverse.xhtml?alias=" + saveResult.get().getAlias() + "&faces-redirect=true";
-    }
-
-    private void showSuccessMessage() {
-        JsfHelper.addFlashSuccessMessage(BundleUtil.getStringFromBundle("dataverse.create.success",
-                                                                        systemConfig.getGuidesBaseUrl(this.session.getLocale()),
-                                                                        systemConfig.getGuidesVersion()));
-    }
-
-    private String setupViewForDataverseEdit() {
-        dataverse = dataverseDao.find(dataverseId);
-        if (!permissionsWrapper.canIssueUpdateDataverseCommand(dataverse)) {
-            return permissionsWrapper.notAuthorized();
-        }
-
-        ownerId = dataverse.isNotRoot() ? dataverse.getOwner().getId() : null;
-        setupForGeneralInfoEdit();
-
-        return StringUtils.EMPTY;
-    }
-
-    private String setupViewForDataverseCreation() {
-        dataverse = new Dataverse();
-        dataverse.setOwner(dataverseDao.find(ownerId));
-
-        if (dataverse.isRoot()) {
-            return permissionsWrapper.notFound();
-        } else if (!permissionsWrapper.canIssueCreateDataverseCommand(dataverse.getOwner())) {
-            return permissionsWrapper.notAuthorized();
-        }
-
-        if (isPrefillEnabled()) {
-            dataverse.getDataverseContacts().add(new DataverseContact(dataverse, session.getUser().getDisplayInfo().getEmailAddress()));
-            dataverse.setAffiliation(session.getUser().getDisplayInfo().getAffiliation());
-            dataverse.setName(DataverseUtil.getSuggestedDataverseNameOnCreate(session.getUser()));
-        } else {
-            dataverse.getDataverseContacts().add(new DataverseContact(dataverse, ""));
-        }
-
-        setupForGeneralInfoEdit();
-
-        return StringUtils.EMPTY;
+    
+    private void closeStorage() {
+    	if(this.storage != null) {
+            closeQuietly(this.storage);
+            this.storage = null;
+    	}
     }
 
     private boolean isPrefillEnabled() {
-        return settingsServiceBean.isTrueForKey(SettingsServiceBean.Key.CollectionFormPrefillEnabled);
+        return this.config.isTrueForKey(CollectionFormPrefillEnabled);
     }
-
-    private void setupForGeneralInfoEdit() {
-        initFacets();
-        allMetadataBlocks = metadataBlockService.prepareMetaBlocksAndDatasetfields(dataverse, mdbOptions);
-
-        metadataBlockService.prepareMetaBlocksAndDatasetfields(Option.of(dataverse.getOwner()).getOrElse(dataverse),
-                                                                        parentRootMdbOptions);
-    }
-
-    private void initFacets() {
-        List<DatasetFieldType> facetsTarget = new ArrayList<>();
-        List<DatasetFieldType> facetsSource = new ArrayList<>(datasetFieldService.findAllFacetableFieldTypes());
-        List<DataverseFacet> facetsList = dataverseFacetService.findByDataverseId(dataverse.getFacetRootId());
-        for (DataverseFacet dvFacet : facetsList) {
-            DatasetFieldType dsfType = dvFacet.getDatasetFieldType();
-            facetsTarget.add(dsfType);
-            facetsSource.remove(dsfType);
-        }
-        facets = new DualListModel<>(facetsSource, facetsTarget);
-        facetMetadataBlockId = null;
+    
+    public boolean canUserPublishCollection() {
+    	return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse.getOwner());
     }
 }

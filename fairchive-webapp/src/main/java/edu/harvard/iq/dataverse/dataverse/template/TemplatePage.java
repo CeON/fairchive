@@ -58,9 +58,6 @@ public class TemplatePage implements java.io.Serializable {
     private Map<DatasetFieldType, InputFieldRenderer> inputRenderersByFieldType = new HashMap<>();
 
     @EJB
-    TemplateDao templateDao;
-
-    @EJB
     DataverseDao dataverseDao;
 
     @Inject
@@ -136,7 +133,7 @@ public class TemplatePage implements java.io.Serializable {
     // -------------------- PRIVATE --------------------
 
     private String initForClone() {
-        Template source = templateDao.find(templateId);
+        Template source = this.templateService.getById(templateId);
         dataverse = source.getDataverse();
 
         if (dataverse == null) {
@@ -152,7 +149,7 @@ public class TemplatePage implements java.io.Serializable {
     }
 
     private String initForEdit() {
-        template = templateDao.find(templateId);
+        template = this.templateService.getById(templateId);
         dataverse = template.getDataverse();
 
         if (dataverse == null) {

@@ -1,12 +1,15 @@
 package edu.harvard.iq.dataverse.guestbook;
 
-import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.DataverseSession;
-import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
-import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
-import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
+import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.LABORATORY;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
@@ -14,12 +17,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import edu.harvard.iq.dataverse.DataverseDao;
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
+import edu.harvard.iq.dataverse.persistence.guestbook.Guestbook;
+import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 
 @Transactional(TransactionMode.ROLLBACK)
 public class ManageGuestbooksServiceIT extends WebappArquillianDeployment {
@@ -137,10 +143,15 @@ public class ManageGuestbooksServiceIT extends WebappArquillianDeployment {
     // -------------------- PRIVATE ---------------------
     private Dataverse createTestDataverse() {
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("testDv");
-        dataverse.setAlias("testDvAlias");
-        dataverse.setDataverseType(Dataverse.DataverseType.LABORATORY);
-        dataverse.setDataverseContacts(dataverseDao.findByAlias("ownmetadatablocks").getDataverseContacts());
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.setName("testDv");
+        version.setAlias("testDvAlias");
+        version.setDataverseType(LABORATORY);
+        for(final DataverseContact contact : 
+        	dataverseDao.findByAlias("ownmetadatablocks").getDataverseContacts()) {
+        	version.addContact(contact.getEmail()).setDisplayOrder(contact.getDisplayOrder());
+        }
+        
         dataverse.setOwner(dataverseDao.findByAlias("ownmetadatablocks"));
         dataverse.setCreateDate(Timestamp.valueOf(LocalDateTime.now()));
         dataverse.setModificationTime(Timestamp.valueOf(LocalDateTime.now()));

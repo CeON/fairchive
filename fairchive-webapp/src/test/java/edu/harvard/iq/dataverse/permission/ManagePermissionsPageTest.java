@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.permission;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.ADMIN;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.COLLECTION_CUSTODIAN;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.CURATOR;
@@ -565,7 +566,7 @@ public class ManagePermissionsPageTest {
 		final Dataverse dataverse = new Dataverse();
 		
 		dataverse.setId(23L);
-		dataverse.setName("dataverse1");
+		dataverse.addVersion(RELEASED).setName("dataverse1");
 		
 		return dataverse;
 	}

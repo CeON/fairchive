@@ -1,13 +1,13 @@
 package edu.harvard.iq.dataverse.dataverse.themewidget;
 
-import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
-import edu.harvard.iq.dataverse.EjbDataverseEngine;
-import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import java.io.File;
+
+import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
+import edu.harvard.iq.dataverse.EjbDataverseEngine;
+import edu.harvard.iq.dataverse.TempLogoStorageManager;
+import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 
 @Stateless
 public class ThemeWidgetService {
@@ -29,12 +29,13 @@ public class ThemeWidgetService {
 
     // -------------------- LOGIC --------------------
 
-    public Dataverse saveOrUpdateUploadedTheme(Dataverse dataverse, File themeFile) {
-        return commandEngine.submit(new UpdateDataverseThemeCommand(dataverse, themeFile, dvRequestService.getDataverseRequest()));
+    public Dataverse saveOrUpdateUploadedTheme(Dataverse dataverse, TempLogoStorageManager.Storage storage) {
+        return commandEngine.submit(new UpdateDataverseThemeCommand(dataverse, storage, dvRequestService.getDataverseRequest()));
     }
 
     public Dataverse inheritThemeFromRoot(Dataverse dataverse) {
-        dataverse.setDataverseTheme(null);
+    	//TODO: verify whether this is correct behavior
+        dataverse.getLatestVersion().setTheme(null);
 
         return commandEngine.submit(new UpdateDataverseThemeCommand(dataverse, null, dvRequestService.getDataverseRequest()));
     }

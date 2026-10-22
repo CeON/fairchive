@@ -9,6 +9,9 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
+
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+
 import java.io.StringReader;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -51,7 +54,8 @@ public class MetricsUtil {
             JsonObjectBuilder job = Json.createObjectBuilder();
             String categoryNameUppercase = (String) arrayOfObjects[0];
             Dataverse dataverse = new Dataverse();
-            dataverse.setDataverseType(Dataverse.DataverseType.valueOf(categoryNameUppercase));
+            dataverse.addVersion(RELEASED).setDataverseType(
+            		Dataverse.DataverseType.valueOf(categoryNameUppercase));
             String categoryNameFriendly = dataverse.getFriendlyCategoryName();
             long categoryCount = (long) arrayOfObjects[1];
             job.add(CATEGORY, categoryNameFriendly);

@@ -1,5 +1,36 @@
 package edu.harvard.iq.dataverse.feedback;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.persistence.DvObject;
@@ -14,39 +45,11 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.qualifiers.TestBean;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import edu.harvard.iq.dataverse.util.json.JsonParser;
-import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class FeedbackServiceTest {
@@ -175,11 +178,11 @@ public class FeedbackServiceTest {
     public void testGatherFeedbackOnDataverse() {
         // given
         Dataverse dataverse = new Dataverse();
-        dataverse.setAlias("dvAlias1");
-        List<DataverseContact> dataverseContacts = new ArrayList<>();
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact1@librascholar.edu"));
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact2@librascholar.edu"));
-        dataverse.setDataverseContacts(dataverseContacts);
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.setAlias("dvAlias1");
+        version.addContact("dvContact1@librascholar.edu");
+        version.addContact("dvContact2@librascholar.edu");
+        
         String messageSubject = "nice dataverse";
         String userMessage = "Let's talk!";
 
@@ -249,11 +252,10 @@ public class FeedbackServiceTest {
     public void testGatherFeedbackOnDataverseToSupportTeam() {
         // given
         Dataverse dataverse = new Dataverse();
-        dataverse.setAlias("dvAlias1");
-        List<DataverseContact> dataverseContacts = new ArrayList<>();
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact1@librascholar.edu"));
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact2@librascholar.edu"));
-        dataverse.setDataverseContacts(dataverseContacts);
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.setAlias("dvAlias1");
+        version.addContact("dvContact1@librascholar.edu");
+        version.addContact("dvContact2@librascholar.edu");
         String messageSubject = "nice dataverse";
         String userMessage = "Let's talk!";
 
@@ -419,9 +421,8 @@ public class FeedbackServiceTest {
         dataset.setAuthority("10.7910/DVN");
         dataset.setIdentifier("TJCLKP");
         Dataverse dataverse = new Dataverse();
-        List<DataverseContact> dataverseContacts = new ArrayList<>();
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact1@librascholar.edu"));
-        dataverse.setDataverseContacts(dataverseContacts);
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.addContact("dvContact1@librascholar.edu");
         dataset.setOwner(dataverse);
 
         String messageSubject = "nice dataset";
@@ -701,9 +702,8 @@ public class FeedbackServiceTest {
         dataset.setAuthority("10.7910/DVN");
         dataset.setIdentifier("TJCLKP");
         Dataverse dataverse = new Dataverse();
-        List<DataverseContact> dataverseContacts = new ArrayList<>();
-        dataverseContacts.add(new DataverseContact(dataverse, "dvContact1@librascholar.edu"));
-        dataverse.setDataverseContacts(dataverseContacts);
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.addContact("dvContact1@librascholar.edu");
         dataset.setOwner(dataverse);
 
         String messageSubject = "nice file";

@@ -313,6 +313,10 @@ public class DatasetFieldType implements Serializable, Comparable<DatasetFieldTy
     public boolean isRequired() {
         return this.required;
     }
+    
+    public boolean isRequiredOrHasRequiredChild() {
+    	return isHasChildren() ? isHasRequiredChildren() : this.required;
+    }
 
     public boolean isAdvancedSearchFieldType() {
         return this.advancedSearchFieldType;

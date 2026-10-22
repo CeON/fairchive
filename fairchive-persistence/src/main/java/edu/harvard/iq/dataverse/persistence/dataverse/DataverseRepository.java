@@ -18,17 +18,17 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
 
     // -------------------- LOGIC --------------------
 
-    public List<Dataverse> findPublishedByOwnerId(final Long ownerId) {
+    public List<Dataverse> findPublishedByOwnerId(final Long id) {
         return createQuery(
-                "select d from Dataverse d where d.owner.id =:ownerId and d.publicationDate is not null order by d.name")
-                .setParameter("ownerId", ownerId)
+                "select d from Dataverse d where d.owner.id =:id and d.publicationDate is not null")
+                .setParameter("id", id)
                 .getResultList();
     }
 
-    public List<Dataverse> findByOwnerId(final Long ownerId) {
+    public List<Dataverse> findByOwnerId(final Long id) {
         return createQuery(
-                "select object(o) from Dataverse as o where o.owner.id =:ownerId order by o.name")
-                .setParameter("ownerId", ownerId)
+                "select d from Dataverse d where d.owner.id =:id")
+                .setParameter("id", id)
                 .getResultList();
     }
 
@@ -67,32 +67,46 @@ public class DataverseRepository extends JpaRepository<Long, Dataverse> {
                 .getResultList();
     }
 
-    public Optional<Dataverse> findByAlias(String alias) {
-        return getSingleResult(createQuery(
-                        "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias)=:alias")
-                        .setParameter("alias", alias.toLowerCase()));
+    public Optional<Dataverse> findByAlias(final String alias) {
+//        return getSingleResult(createQuery(
+//                        "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias)=:alias")
+//                        .setParameter("alias", alias.toLowerCase()));
+        
+    	 return getSingleResult(createQuery(
+    	            "SELECT dv FROM Dataverse dv " +
+    	            "JOIN dv.versions v " +
+    	            "WHERE v.createTime = (" +
+    	            "    SELECT MAX(v2.createTime) " +
+    	            "    FROM DataverseVersion v2 " +
+    	            "    WHERE v2.dataverse = dv) " +
+    	            "AND LOWER(v.alias) = :alias")
+    	            .setParameter("alias", alias.toLowerCase()));
     }
 
     public List<Dataverse> findByAliasOrName(final String alias, final String name) {
-        return createQuery(
-                "SELECT dv FROM Dataverse dv " +
-                "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) "+
-                "order by dv.alias")
-                .setParameter("alias", "%" + alias.toLowerCase() + "%")
-                .setParameter("name", "%" + name.toLowerCase() + "%")
-                .getResultList();
+    	
+    	throw new UnsupportedOperationException();
+//        return createQuery(
+//                "SELECT dv FROM Dataverse dv " +
+//                "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) "+
+//                "order by dv.alias")
+//                .setParameter("alias", "%" + alias.toLowerCase() + "%")
+//                .setParameter("name", "%" + name.toLowerCase() + "%")
+//                .getResultList();
     }
 
     public List<Dataverse> findByAliasOrNameOrAffiliation(final String alias,
             final String name, final String affiliation) {
-        return createQuery(
-                "SELECT dv FROM Dataverse dv "+
-                "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) " +
-                 "order by dv.alias")
-                .setParameter("alias", alias.toLowerCase() + "%")
-                .setParameter("name", "%" + name.toLowerCase() + "%")
-                .setParameter("affiliation", "%" + affiliation.toLowerCase() + "%")
-                .getResultList();
+    	
+    	throw new UnsupportedOperationException();
+//        return createQuery(
+//                "SELECT dv FROM Dataverse dv "+
+//                "WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) " +
+//                 "order by dv.alias")
+//                .setParameter("alias", alias.toLowerCase() + "%")
+//                .setParameter("name", "%" + name.toLowerCase() + "%")
+//                .setParameter("affiliation", "%" + affiliation.toLowerCase() + "%")
+//                .getResultList();
     }
 
     public Long countDataversesWithParent(final Long parentId) {

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 
 class CitationTestUtils {
 
@@ -28,7 +29,7 @@ class CitationTestUtils {
 
     public DatasetVersion createATestDatasetVersion(String withTitle, boolean withAuthor) throws ParseException {
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("LibraScholar");
+        dataverse.addVersion(RELEASED).setName("LibraScholar");
 
         Dataset dataset = new Dataset();
         dataset.setProtocol("doi");

@@ -1,13 +1,25 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.JpaRepository;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toList;
+
+import java.util.Comparator;
+import java.util.List;
 
 import javax.ejb.Stateless;
-import java.util.List;
+
+import edu.harvard.iq.dataverse.persistence.JpaRepository;
 
 @Stateless
 public class DataverseFeaturedDataverseRepository extends JpaRepository<Long, DataverseFeaturedDataverse> {
 
+	private final static Comparator<DataverseFeaturedDataverse> byDisplayOrder  =
+			comparingInt(DataverseFeaturedDataverse::getDisplayOrder);
+	private final static Comparator<DataverseFeaturedDataverse> byName = 
+			comparing(dfd -> dfd.getFeaturedDataverse().getName(), 
+					  String.CASE_INSENSITIVE_ORDER);
+	
     // -------------------- CONSTRUCTORS --------------------
 
     public DataverseFeaturedDataverseRepository() {
@@ -16,20 +28,33 @@ public class DataverseFeaturedDataverseRepository extends JpaRepository<Long, Da
 
     // -------------------- LOGIC --------------------
 
-    public List<Dataverse> findByDataverseIdOrderByDisplayOrder(Long dataverseId) {
-        return findByDataverseId(dataverseId, "order by d.displayOrder");
+    public List<Dataverse> findByDataverseIdOrderByDisplayOrder(final Long dataverseId) {
+    	 return findByDataverseId(dataverseId)
+    			 .stream()
+    			 .sorted(byDisplayOrder)
+    			 .map(DataverseFeaturedDataverse::getFeaturedDataverse)
+    			 .collect(toList());
     }
 
-    public List<Dataverse> findByDataverseIdOrderByNameAsc(Long dataverseId) {
-        return findByDataverseId(dataverseId, "order by d.featuredDataverse.name asc");
+    public List<Dataverse> findByDataverseIdOrderByNameAsc(final Long dataverseId) {	
+    	return findByDataverseId(dataverseId)
+			 .stream()
+			 .sorted(byName)
+			 .map(DataverseFeaturedDataverse::getFeaturedDataverse)
+			 .collect(toList());
     }
 
-    public List<Dataverse> findByDataverseIdOrderByNameDesc(Long dataverseId) {
-        return findByDataverseId(dataverseId, "order by d.featuredDataverse.name desc");
+    public List<Dataverse> findByDataverseIdOrderByNameDesc(final Long dataverseId) {
+    	return findByDataverseId(dataverseId)
+			 .stream()
+			 .sorted(byName.reversed())
+			 .map(DataverseFeaturedDataverse::getFeaturedDataverse)
+			 .collect(toList());
     }
 
-    public List<Dataverse> findByDataversesBySorting(List<Dataverse.FeaturedDataversesSorting> sorting) {
-        return em.createQuery("select distinct d.dataverse from DataverseFeaturedDataverse d " +
+    public List<Dataverse> findByDataversesBySorting(
+    		final List<Dataverse.FeaturedDataversesSorting> sorting) {
+        return this.em.createQuery("select distinct d.dataverse from DataverseFeaturedDataverse d " +
                         "where d.dataverse.featuredDataversesSorting in :sorting", Dataverse.class)
                 .setParameter("sorting", sorting)
                 .getResultList();
@@ -37,10 +62,11 @@ public class DataverseFeaturedDataverseRepository extends JpaRepository<Long, Da
 
     // -------------------- PRIVATE --------------------
 
-    private List<Dataverse> findByDataverseId(Long dataverseId, String orderByClause) {
-        String query = "select d.featuredDataverse from DataverseFeaturedDataverse d where d.dataverse.id = :dataverseId " + orderByClause;
-        return em.createQuery(query, Dataverse.class)
-                .setParameter("dataverseId", dataverseId)
+    private List<DataverseFeaturedDataverse> findByDataverseId(final Long id) {
+        return createQuery(
+        		"select d from DataverseFeaturedDataverse d" + 
+        		" where d.dataverse.id = :id")
+                .setParameter("id", id)
                 .getResultList();
     }
 }

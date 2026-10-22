@@ -1,6 +1,19 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.DataverseHeaderFragment.Breadcrumb;
 import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -10,16 +23,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 
 @ExtendWith(MockitoExtension.class)
 public class DataverseHeaderFragmentTest {
@@ -75,8 +79,9 @@ public class DataverseHeaderFragmentTest {
 
     private Dataverse buildDataverse(String alias, String name, Dataverse owner) {
         Dataverse dataverse = new Dataverse();
-        dataverse.setAlias(alias);
-        dataverse.setName(name);
+        DataverseVersion version = dataverse.addVersion(RELEASED);
+        version.setAlias(alias);
+        version.setName(name);
         dataverse.setOwner(owner);
         return dataverse;
     }

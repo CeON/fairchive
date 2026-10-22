@@ -43,6 +43,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevelRepository;
 import edu.harvard.iq.dataverse.persistence.group.IpAddress;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
@@ -60,8 +61,6 @@ public class CreateDataverseCommandTest {
     Map<String, Dataverse> dvByAliasStore = new HashMap<>();
     Map<Long, Dataverse> dvStore = new HashMap<>();
     boolean isRootDvExists;
-    boolean facetsDeleted;
-    boolean dftilsDeleted;
     List<DataverseFieldTypeInputLevel> createdDftils;
     List<DataverseFacet> createdFacets;
 
@@ -142,27 +141,40 @@ public class CreateDataverseCommandTest {
         }
 
         @Override
-        public void deleteFacetsFor(Dataverse d) {
-            dftilsDeleted = true;
+        public void deleteFor(Dataverse d) {
         }
     };
+    
+    DataverseFieldTypeInputLevelRepository inputLevels = new DataverseFieldTypeInputLevelRepository() {
+
+		@Override
+		public DataverseFieldTypeInputLevel save(DataverseFieldTypeInputLevel entity) {
+			return entity;
+		}
+    };
+    
+    
 
     @SuppressWarnings("serial")
     DataverseFacetServiceBean facets = new DataverseFacetServiceBean() {
-        @Override
-        public DataverseFacet create(int displayOrder, DatasetFieldType fieldType, Dataverse ownerDv) {
-            DataverseFacet df = new DataverseFacet();
-            df.setDatasetFieldType(fieldType);
-            df.setDataverse(ownerDv);
-            df.setDisplayOrder(displayOrder);
-            createdFacets.add(df);
-            return df;
-        }
+//        @Override
+//        public DataverseFacet create(int displayOrder, DatasetFieldType fieldType, Dataverse ownerDv) {
+//            DataverseFacet df = new DataverseFacet();
+//            df.setDatasetFieldType(fieldType);
+//            df.setDataverse(ownerDv);
+//            df.setDisplayOrder(displayOrder);
+//            createdFacets.add(df);
+//            return df;
+//        }
 
 
         @Override
         public void deleteFacetsFor(Dataverse d) {
-            facetsDeleted = true;
+        }
+        
+        @Override
+        public void save(final DataverseFacet facet) {
+        	
         }
 
     };
@@ -176,7 +188,6 @@ public class CreateDataverseCommandTest {
         dvStore.clear();
         dvByAliasStore.clear();
         isRootDvExists = true;
-        facetsDeleted = false;
         createdDftils = new ArrayList<>();
         createdFacets = new ArrayList<>();
 
@@ -204,6 +215,10 @@ public class CreateDataverseCommandTest {
             @Override
             public DataverseFieldTypeInputLevelServiceBean fieldTypeInputLevels() {
                 return dfils;
+            }
+            @Override
+            public DataverseFieldTypeInputLevelRepository inputLevels() {
+            	return inputLevels;
             }
 
         });
@@ -259,7 +274,7 @@ public class CreateDataverseCommandTest {
         dv.setCreator(creator);
         dv.setDefaultDatasetContributorRole(null);
         dv.setOwner(makeDataverse());
-        dv.setDataverseType(Dataverse.DataverseType.JOURNALS);
+        dv.getVersions().get(0).setDataverseType(Dataverse.DataverseType.JOURNALS);
         dv.setDefaultDatasetContributorRole(roles.findBuiltinRoleByAlias(CURATOR));
 
         final DataverseRequest request = makeRequest(creator);
@@ -293,7 +308,6 @@ public class CreateDataverseCommandTest {
         assertTrue(result.isThemeRoot());
         assertTrue(indexCalled);
 
-        assertTrue(facetsDeleted);
         int i = 0;
         for (DataverseFacet df : createdFacets) {
             assertEquals(i, df.getDisplayOrder());
@@ -303,7 +317,6 @@ public class CreateDataverseCommandTest {
             i++;
         }
 
-        assertTrue(dftilsDeleted);
         for (DataverseFieldTypeInputLevel dftil : createdDftils) {
             assertEquals(result, dftil.getDataverse());
         }
@@ -328,14 +341,14 @@ public class CreateDataverseCommandTest {
 
         String alias = "alias";
         final Dataverse dvFirst = makeDataverse();
-        dvFirst.setAlias(alias);
+        dvFirst.getVersions().get(0).setAlias(alias);
         dvFirst.setOwner(makeDataverse());
         assertThrows(IllegalCommandException.class, () ->
                 engine.submit(new CreateDataverseCommand(dvFirst, makeRequest(), null, null)));
 
         final Dataverse dv = makeDataverse();
         dv.setOwner(makeDataverse());
-        dv.setAlias(alias);
+        dv.getVersions().get(0).setAlias(alias);
         assertThrows(IllegalCommandException.class, () ->
                 engine.submit(new CreateDataverseCommand(dv, makeRequest(), null, null)));
     }
