@@ -70,6 +70,7 @@ import org.primefaces.model.file.UploadedFile;
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.MultipartPartsCleanupFilter;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.api.AbstractApiBean;
@@ -1084,6 +1085,7 @@ public class EditDatafilesPage implements java.io.Serializable {
      * Handle native file replace
      */
     public void handleFileUpload(final FileUploadEvent event) throws IOException {
+        MultipartPartsCleanupFilter.deletePartsAfterRequest();
         final UploadedFile uploadedFile = event.getFile();
         final long fileSize = uploadedFile.getSize();
 
