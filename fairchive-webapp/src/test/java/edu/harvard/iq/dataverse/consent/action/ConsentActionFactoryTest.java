@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,7 +38,7 @@ class ConsentActionFactoryTest {
 
         //when
         Dataverse dv = new Dataverse();
-        dv.setName("ROOT");
+        dv.addVersion(RELEASED).setName("ROOT");
         Mockito.when(dataverseDao.findRootDataverse()).thenReturn(dv);
 
         Action action = consentActionFactory.retrieveAction(actionToBeTaken, new AuthenticatedUser());

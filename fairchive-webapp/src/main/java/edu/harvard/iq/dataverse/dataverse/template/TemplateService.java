@@ -9,6 +9,7 @@ import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseTemplateCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseTemplateRootCommand;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
+import edu.harvard.iq.dataverse.persistence.dataset.TemplateRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import io.vavr.control.Try;
 
@@ -28,7 +29,7 @@ public class TemplateService {
 
     private EjbDataverseEngine engineService;
     private DataverseRequestServiceBean dvRequestService;
-    private TemplateDao templateDao;
+    private TemplateRepository repository;
 
     private Clock clock = Clock.systemDefaultZone();
 
@@ -39,14 +40,23 @@ public class TemplateService {
     }
 
     @Inject
-    public TemplateService(EjbDataverseEngine engineService, DataverseRequestServiceBean dvRequestService,
-                           TemplateDao templateDao) {
+    public TemplateService(EjbDataverseEngine engineService,
+    		DataverseRequestServiceBean dvRequestService,
+    	    TemplateRepository repository) {
         this.engineService = engineService;
         this.dvRequestService = dvRequestService;
-        this.templateDao = templateDao;
+        this.repository = repository;
     }
 
     // -------------------- LOGIC --------------------
+    
+    public Template getById(final Long id) {
+    	return this.repository.getById(id);
+    }
+    
+    public Template save(final Template template) {
+    	return this.repository.save(template);
+    }
 
     public Try<Template> createTemplate(Dataverse dataverse, Template template) {
         template.setCreateTime(Timestamp.valueOf(LocalDateTime.now(clock)));
@@ -82,7 +92,7 @@ public class TemplateService {
         dataverse.getTemplates().remove(templateToDelete);
 
         return Try.of(() -> engineService.submit(new DeleteTemplateCommand(dvRequestService.getDataverseRequest(),
-                dataverse, templateToDelete, templateDao.findDataversesByDefaultTemplateId(templateToDelete.getId()))))
+                dataverse, templateToDelete, this.repository.findDataversesByDefaultTemplateId(templateToDelete.getId()))))
                 .onFailure(throwable -> logger.log(Level.SEVERE, throwable.getMessage(), throwable));
     }
 
@@ -130,7 +140,13 @@ public class TemplateService {
     }
 
     public List<String> retrieveDataverseNamesWithDefaultTemplate(long templateId) {
-        return templateDao.findDataverseNamesByDefaultTemplateId(templateId);
+        return this.repository.findDataverseNamesByDefaultTemplateId(templateId);
+    }
+    
+    public void incrementUsageCount(final Long templateId) {
+        final Template template = this.repository.getById(templateId);
+        template.setUsageCount(template.getUsageCount() +1);
+        this.repository.save(template);
     }
 
     // -------------------- PRIVATE --------------------

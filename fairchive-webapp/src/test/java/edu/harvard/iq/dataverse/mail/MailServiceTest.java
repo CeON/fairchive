@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.mail;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -58,7 +59,7 @@ public class MailServiceTest {
                 .thenReturn("Nice Footer");
 
         Dataverse testDataverse = new Dataverse();
-        testDataverse.setName("ROOT");
+        testDataverse.addVersion(RELEASED).setName("ROOT");
         Mockito.when(dataverseDao.findRootDataverse()).thenReturn(testDataverse);
 
         Mockito.doNothing().when(mailer).sendMail(any());

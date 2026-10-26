@@ -8,6 +8,7 @@ import static edu.harvard.iq.dataverse.export.ExporterType.JSON;
 import static edu.harvard.iq.dataverse.export.ExporterType.OAIORE;
 import static edu.harvard.iq.dataverse.export.ExporterType.OPENAIRE;
 import static edu.harvard.iq.dataverse.export.ExporterType.SCHEMADOTORG;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ExcludeEmailFromExport;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -208,10 +209,10 @@ public class ExportServiceTest {
         dataset.setAuthority("10.5072");
 
         Dataverse root = new Dataverse();
-        root.setName("Root");
+        root.addVersion(RELEASED).setName("Root");
 
         Dataverse owner = new Dataverse();
-        owner.setName("Banner test");
+        owner.addVersion(RELEASED).setName("Banner test");
         owner.setOwner(root);
 
         dataset.setOwner(owner);

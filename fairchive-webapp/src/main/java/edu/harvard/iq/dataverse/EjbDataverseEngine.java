@@ -35,7 +35,7 @@ import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.DownloadDatasetLogDao;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
-import edu.harvard.iq.dataverse.dataverse.template.TemplateDao;
+import edu.harvard.iq.dataverse.dataverse.template.TemplateService;
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
@@ -52,6 +52,8 @@ import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.permission.ManagePermissionsService;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevelRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersionRepository;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.search.SearchServiceBean;
@@ -121,7 +123,7 @@ public class EjbDataverseEngine {
     DataFileServiceBean dataFileService;
 
     @EJB
-    TemplateDao templateDao;
+    TemplateService templateService;
 
     @EJB
     SavedSearchServiceBean savedSearchService;
@@ -218,6 +220,12 @@ public class EjbDataverseEngine {
     
     @Inject
     ManagePermissionsService managePermissionsService;
+    
+    @Inject
+    DataverseFieldTypeInputLevelRepository dataverseFieldTypeInputLevelRepository;
+    
+    @Inject
+    DataverseVersionRepository dataverseVersionRepository;
 
     @Resource
     EJBContext ejbCtxt;
@@ -382,8 +390,8 @@ public class EjbDataverseEngine {
                 }
 
                 @Override
-                public TemplateDao templates() {
-                    return templateDao;
+                public TemplateService templates() {
+                    return templateService;
                 }
 
                 @Override
@@ -545,6 +553,16 @@ public class EjbDataverseEngine {
                 public ManagePermissionsService getManagePermissionsService() {
                 	return managePermissionsService;
                 }
+
+				@Override
+				public DataverseFieldTypeInputLevelRepository inputLevels() {
+					return dataverseFieldTypeInputLevelRepository;
+				}
+                
+				@Override
+				public DataverseVersionRepository dataverseVersions() {
+					return dataverseVersionRepository;
+				}
             };
         }
 

@@ -1,17 +1,16 @@
 package edu.harvard.iq.dataverse.validation.field;
 
-import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.*;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.Template;
-import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.validation.field.validators.FieldValidatorBase;
-import edu.harvard.iq.dataverse.validation.field.validators.StandardInputValidator;
-import edu.harvard.iq.dataverse.validation.field.validators.StandardIntegerValidator;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,15 +23,22 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.CheckboxInputFieldRenderer;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.ConditionalRendering;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRenderer;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.InputFieldRendererManager;
+import edu.harvard.iq.dataverse.dataset.metadata.inputRenderer.TextInputFieldRenderer;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.Template;
+import edu.harvard.iq.dataverse.persistence.dataset.ValidatableField;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.validation.field.validators.FieldValidatorBase;
+import edu.harvard.iq.dataverse.validation.field.validators.StandardInputValidator;
+import edu.harvard.iq.dataverse.validation.field.validators.StandardIntegerValidator;
 
 @ExtendWith(MockitoExtension.class)
 class DatasetFieldValidationDispatcherTest {
@@ -72,6 +78,7 @@ class DatasetFieldValidationDispatcherTest {
         DatasetVersion datasetVersion = new DatasetVersion();
         Dataset dataset = new Dataset();
         Dataverse dataverse = new Dataverse();
+        dataverse.addVersion(RELEASED);
         dataset.setOwner(dataverse);
         datasetVersion.setDataset(dataset);
         datasetFieldType = new DatasetFieldType() {
@@ -93,7 +100,7 @@ class DatasetFieldValidationDispatcherTest {
         datasetField.setValue("44.5");
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results).extracting(FieldValidationResult::isOk).containsExactly(false);
@@ -107,7 +114,7 @@ class DatasetFieldValidationDispatcherTest {
         datasetField.setValue("1024");
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results).isEmpty();
@@ -121,7 +128,7 @@ class DatasetFieldValidationDispatcherTest {
                 "{\"name\":\"standard_input\",\"parameters\":{\"format\":\"[0-9]\"}}]");
         datasetField.setValue("44");
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results)
@@ -139,7 +146,7 @@ class DatasetFieldValidationDispatcherTest {
         datasetField.setValue("abc");
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results)
@@ -154,7 +161,7 @@ class DatasetFieldValidationDispatcherTest {
         when(inputFieldRendererManager.obtainRenderer(any())).thenReturn(new CheckboxInputFieldRenderer());
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results)
@@ -170,7 +177,7 @@ class DatasetFieldValidationDispatcherTest {
         datasetFieldType.setValidation("[]");
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results).isEmpty();
@@ -205,7 +212,7 @@ class DatasetFieldValidationDispatcherTest {
         when(inputFieldRendererManager.obtainRenderer(any())).thenReturn(renderer);
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(requiredField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(requiredField)).executeValidations();
 
         // then
         assertThat(results).isEmpty();
@@ -240,7 +247,7 @@ class DatasetFieldValidationDispatcherTest {
         when(inputFieldRendererManager.obtainRenderer(any())).thenReturn(renderer);
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(requiredField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(requiredField)).executeValidations();
 
         // then
         assertThat(results)
@@ -260,7 +267,7 @@ class DatasetFieldValidationDispatcherTest {
         datasetFieldType.setValidation("[{\"name\":\"failing_validator\"}]");
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results).isEmpty();
@@ -278,7 +285,7 @@ class DatasetFieldValidationDispatcherTest {
         datasetFieldType.setValidation("[{\"name\":\"failing_validator\", \"parameters\":{\"runOnEmpty\":\"true\"}}]");
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results)
@@ -295,7 +302,7 @@ class DatasetFieldValidationDispatcherTest {
         datasetField.setTemplate(new Template());
 
         // when
-        List<FieldValidationResult> results = dispatcher.init(Collections.singletonList(datasetField)).executeValidations();
+        List<FieldValidationResult> results = dispatcher.init(singletonList(datasetField)).executeValidations();
 
         // then
         assertThat(results).isEmpty();

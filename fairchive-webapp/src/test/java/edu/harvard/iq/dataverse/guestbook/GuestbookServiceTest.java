@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.times;
@@ -81,7 +82,7 @@ public class GuestbookServiceTest {
 
     // -------------------- PRIVATE ---------------------
     private void prepareTestDataverse() {
-        dataverse.setName("testDv");
+        dataverse.addVersion(RELEASED).setName("testDv");
 
         Guestbook guestbook = new Guestbook();
         guestbook.setName("testGuestbook");

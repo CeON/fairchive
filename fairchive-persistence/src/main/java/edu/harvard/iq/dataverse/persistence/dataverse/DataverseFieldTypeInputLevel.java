@@ -1,19 +1,21 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import java.io.Serializable;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 
 /**
  * When dataverse is created/edited, the user can customize which fields are optional/required
@@ -21,17 +23,6 @@ import java.io.Serializable;
  *
  * @author skraffmiller
  */
-@NamedQueries({
-        @NamedQuery(name = "DataverseFieldTypeInputLevel.removeByOwnerId",
-                query = "DELETE FROM DataverseFieldTypeInputLevel f WHERE f.dataverse.id=:ownerId"),
-        @NamedQuery(name = "DataverseFieldTypeInputLevel.findByDataverseId",
-                query = "select f from DataverseFieldTypeInputLevel f where f.dataverse.id = :dataverseId"),
-        @NamedQuery(name = "DataverseFieldTypeInputLevel.findByDataverseIdDatasetFieldTypeId",
-                query = "select f from DataverseFieldTypeInputLevel f where f.dataverse.id = :dataverseId and f.datasetFieldType.id = :datasetFieldTypeId"),
-        @NamedQuery(name = "DataverseFieldTypeInputLevel.findByDataverseIdAndDatasetFieldTypeIdList",
-                query = "select f from DataverseFieldTypeInputLevel f where f.dataverse.id = :dataverseId and f.datasetFieldType.id in :datasetFieldIdList")
-
-})
 @Table(name = "DataverseFieldTypeInputLevel"
         , uniqueConstraints = {
         @UniqueConstraint(columnNames = {"dataverse_id", "datasetfieldtype_id"})}
@@ -40,83 +31,96 @@ import java.io.Serializable;
         , @Index(columnList = "required")}
 )
 @Entity
-public class DataverseFieldTypeInputLevel implements Serializable {
+public class DataverseFieldTypeInputLevel implements JpaEntity<Long>, Serializable {
 
     private static final long serialVersionUID = 1L;
+    
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
-
     @ManyToOne
-    @JoinColumn(name = "dataverse_id")
+    @JoinColumn(name = "dataverse_id", nullable = false)
     private Dataverse dataverse;
-
     @ManyToOne
-    @JoinColumn(name = "datasetfieldtype_id")
+    @JoinColumn(name = "datasetfieldtype_id", nullable = false)
     private DatasetFieldType datasetFieldType;
     private boolean include;
     private boolean required;
-
-    public Long getId() {
-        return id;
+    
+    public DataverseFieldTypeInputLevel createNewFor(final Dataverse dataverse) {
+    	final DataverseFieldTypeInputLevel result = new DataverseFieldTypeInputLevel();
+    	result.dataverse = dataverse;
+    	result.datasetFieldType = this.datasetFieldType;
+    	result.include = this.include;
+    	result.required = this.required;
+    	return result;
     }
 
-    public void setId(Long id) {
+    @Override
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(final Long id) {
         this.id = id;
     }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+    	return Objects.hash(this.id);
     }
-
+    
     public Dataverse getDataverse() {
-        return dataverse;
+        return this.dataverse;
+    }
+    
+    public void setDataverse(final Dataverse dataverse) {
+		this.dataverse = dataverse;
+	}
+
+	public DatasetFieldType getDatasetFieldType() {
+        return this.datasetFieldType;
     }
 
-    public void setDataverse(Dataverse dataverse) {
-        this.dataverse = dataverse;
-    }
-
-    public DatasetFieldType getDatasetFieldType() {
-        return datasetFieldType;
-    }
-
-    public void setDatasetFieldType(DatasetFieldType datasetFieldType) {
-        this.datasetFieldType = datasetFieldType;
+    public void setDatasetFieldType(final DatasetFieldType type) {
+        this.datasetFieldType = type;
     }
 
     public boolean isInclude() {
-        return include;
+        return this.include;
     }
 
-    public void setInclude(boolean include) {
+    public void setInclude(final boolean include) {
         this.include = include;
     }
 
     public boolean isRequired() {
-        return required;
+        return this.required;
     }
 
-    public void setRequired(boolean required) {
+    public void setRequired(final boolean required) {
         this.required = required;
+    }
+    
+    public boolean hasTheSameFieldTypeAs(final DataverseFieldTypeInputLevel other) {
+    	return this.datasetFieldType.equals(other.datasetFieldType);
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof DataverseFieldTypeInputLevel)) {
-            return false;
-        }
-        DataverseFieldTypeInputLevel other = (DataverseFieldTypeInputLevel) object;
-        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
+    public boolean equals(final Object object) {
+    	if(object != null && getClass().equals(object.getClass())) {
+    		 final DataverseFieldTypeInputLevel other = (DataverseFieldTypeInputLevel) object;
+    		 return Objects.equals(this.id, other.id);
+    	} else {
+    		return false;
+    	}
     }
 
     @Override
     public String toString() {
-        return "DataverseFieldTypeInputLevel[ id=" + id + " ]";
+        return "DataverseFieldTypeInputLevel[ id=" + id + 
+        		" fieldType=" + this.datasetFieldType + 
+        		" required=" + this.required +
+        		" ]";
     }
-
 }

@@ -1,6 +1,5 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
-import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.UNCATEGORIZED;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.ADMIN;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.COLLECTION_CUSTODIAN;
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.DEPOSITOR;
@@ -8,9 +7,9 @@ import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRol
 import static edu.harvard.iq.dataverse.persistence.user.DataverseRole.BuiltInRole.EDITOR;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.InheritParentRoleAssignments;
 import static java.time.Instant.now;
+import static java.util.Collections.emptyList;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -21,6 +20,7 @@ import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFacet;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.persistence.group.AuthenticatedUsers;
 import edu.harvard.iq.dataverse.persistence.group.Group;
@@ -30,36 +30,22 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
 import edu.harvard.iq.dataverse.persistence.user.User;
 
-/**
- * TODO make override the date and user more active, so prevent code errors.
- * e.g. another command, with explicit parameters.
- *
- * @author michael
- */
 @SuppressWarnings("serial")
 @RequiredPermissions(Permission.AddDataverse)
 public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
 
     private final Dataverse created;
-    private final List<DataverseFieldTypeInputLevel> inputLevelList;
-    private final List<DatasetFieldType> facetList;
+    private final List<DataverseFieldTypeInputLevel> inputLevels;
+    private final List<DatasetFieldType> facets;
 
     public CreateDataverseCommand(final Dataverse created, 
-    		final DataverseRequest request, final List<DatasetFieldType> facetList,
-            final List<DataverseFieldTypeInputLevel> inputLevelList) {
+    		final DataverseRequest request, final List<DatasetFieldType> facets,
+            final List<DataverseFieldTypeInputLevel> inputLevels) {
     	
         super(request, created.getOwner());
         this.created = created;
-        if (facetList != null) {
-            this.facetList = new ArrayList<>(facetList);
-        } else {
-            this.facetList = null;
-        }
-        if (inputLevelList != null) {
-            this.inputLevelList = new ArrayList<>(inputLevelList);
-        } else {
-            this.inputLevelList = null;
-        }
+        this.facets = facets != null ? facets : emptyList();
+        this.inputLevels = inputLevels != null ? inputLevels : emptyList();
     }
 
     @Override
@@ -83,10 +69,6 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
             } else {
                 throw new IllegalCommandException("Guest users cannot create a Dataverse.", this);
             }
-        }
-
-        if (this.created.getDataverseType() == null) {
-            this.created.setDataverseType(UNCATEGORIZED);
         }
         
         setDefaultContributorRoles(context);
@@ -164,21 +146,8 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
         final Dataverse result = context.dataverses().save(managedDv);
 
         context.index().indexDataverse(result);
-        if (this.facetList != null) {
-            context.facets().deleteFacetsFor(result);
-            int i = 0;
-            for (final DatasetFieldType fieldType : this.facetList) {
-                context.facets().create(i++, fieldType, result);
-            }
-        }
-
-        if (this.inputLevelList != null) {
-            context.fieldTypeInputLevels().deleteFacetsFor(result);
-            for (final DataverseFieldTypeInputLevel inputLevel : this.inputLevelList) {
-            	inputLevel.setDataverse(result);
-                context.fieldTypeInputLevels().create(inputLevel);
-            }
-        }
+        addFacets(context);
+        addDataverseFieldTypeInputLevel(context);
         return result;
     }
 
@@ -222,5 +191,19 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
 		return parent.getDefaultDataverseContributorRole().is(COLLECTION_CUSTODIAN);
 		
 	}
-
+	
+	private void addFacets(final CommandContext context) {
+        for(int index = 0; index < this.facets.size(); ++index) {
+        	final DataverseFacet facet = this.created.addFacet(this.facets.get(index));
+        	facet.setDisplayOrder(index);
+        	//context.facets().save(facet);
+        }
+	}
+	
+	private void addDataverseFieldTypeInputLevel(final CommandContext context) {
+		for(final DataverseFieldTypeInputLevel level : this.inputLevels) {
+			this.created.addDataverseFieldTypeInputLevel(level);
+			context.inputLevels().save(level);
+		}
+	}
 }

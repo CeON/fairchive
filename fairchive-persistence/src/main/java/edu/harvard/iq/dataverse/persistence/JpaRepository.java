@@ -114,6 +114,14 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
         entity = this.em.merge(entity);
         delete(entity);
     }
+    
+    public void clear() {
+    	this.em.clear();
+    }
+    
+    public void flush() {
+    	this.em.flush();
+    }
 
     protected static <T> Optional<T> getSingleResult(final TypedQuery<T> query) {
         try {
@@ -126,5 +134,4 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
     protected TypedQuery<T> createQuery(final String s) {
     	return this.em.createQuery(s, this.entityClass);
     }
-    
 }

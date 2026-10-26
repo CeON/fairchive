@@ -1,6 +1,20 @@
 package edu.harvard.iq.dataverse.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
+import org.primefaces.model.DualListModel;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
@@ -17,17 +31,10 @@ import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import io.vavr.control.Either;
-import org.primefaces.model.DualListModel;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Stateless
 public class DataverseService {
@@ -45,9 +52,20 @@ public class DataverseService {
 
     @Inject
     private UserNotificationService userNotificationService;
+    
+    @Inject
+    private DataverseRepository repository;
 
     // -------------------- LOGIC --------------------
-
+    
+    public Optional<Dataverse> findById(final Long id) {
+    	return this.repository.findById(id);
+    }
+    
+    public Optional<Dataverse> findByAlias(final String alias) {
+    	return this.repository.findByAlias(alias);
+    }
+    
     public Either<DataverseError, Dataverse> saveNewDataverse(Collection<DataverseFieldTypeInputLevel> dftilToBeSaved,
                                                               Dataverse dataverse,
                                                               DualListModel<DatasetFieldType> facets) {
@@ -66,14 +84,14 @@ public class DataverseService {
                 dataverse = commandEngine.submit(cmd);
             } catch (CommandException ex) {
                 logger.log(Level.SEVERE, "Unexpected Exception calling dataverse command", ex);
-                return Either.left(new DataverseError(ex, BundleUtil.getStringFromBundle("dataverse.create.failure")));
+                return Either.left(new DataverseError(ex, getStringFromBundle("dataverse.create.failure")));
             }
 
             userNotificationService.sendNotificationWithEmail((AuthenticatedUser) session.getUser(), dataverse.getCreateDate(),
                                                               NotificationType.CREATEDV,
                                                               dataverse.getId(), NotificationObjectType.DATAVERSE);
         } else {
-            return Either.left(new DataverseError(BundleUtil.getStringFromBundle("dataverse.create.authenticatedUsersOnly")));
+            return Either.left(new DataverseError(getStringFromBundle("dataverse.create.authenticatedUsersOnly")));
         }
 
         return Either.right(dataverse);
@@ -99,6 +117,13 @@ public class DataverseService {
 
         return Either.right(dataverse);
     }
+    
+	public Dataverse saveEditedDataverse(Dataverse dataverse) {
+
+		UpdateDataverseCommand cmd = new UpdateDataverseCommand(dataverse, null, null,
+				dvRequestService.getDataverseRequest(), null);
+		return commandEngine.submit(cmd);
+	}
 
     public Dataverse saveFeaturedDataverse(Dataverse dataverse, List<Dataverse> featuredDataverses) {
         return commandEngine.submit(new UpdateDataverseCommand(dataverse, null,

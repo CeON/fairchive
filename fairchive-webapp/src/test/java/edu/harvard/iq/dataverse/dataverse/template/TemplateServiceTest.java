@@ -1,14 +1,17 @@
 package edu.harvard.iq.dataverse.dataverse.template;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
-import edu.harvard.iq.dataverse.EjbDataverseEngine;
-import edu.harvard.iq.dataverse.engine.command.Command;
-import edu.harvard.iq.dataverse.engine.command.impl.CreateTemplateCommand;
-import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseTemplateCommand;
-import edu.harvard.iq.dataverse.persistence.dataset.Template;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import io.vavr.control.Try;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
+
+import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,17 +24,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.sql.Timestamp;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Optional;
+import com.google.common.collect.Lists;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
+import edu.harvard.iq.dataverse.EjbDataverseEngine;
+import edu.harvard.iq.dataverse.engine.command.Command;
+import edu.harvard.iq.dataverse.engine.command.impl.CreateTemplateCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseTemplateCommand;
+import edu.harvard.iq.dataverse.persistence.dataset.Template;
+import edu.harvard.iq.dataverse.persistence.dataset.TemplateRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import io.vavr.control.Try;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -39,7 +42,7 @@ public class TemplateServiceTest {
 
     @Mock private EjbDataverseEngine ejbDataverseEngine;
     @Mock private DataverseRequestServiceBean dvRequest;
-    @Mock private TemplateDao templateDao;
+    @Mock private TemplateRepository templateRepository;
 
     @InjectMocks
     private TemplateService templateService;

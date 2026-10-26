@@ -1,28 +1,5 @@
 package edu.harvard.iq.dataverse.dataset;
 
-import com.google.common.collect.Lists;
-import edu.harvard.iq.dataverse.DataverseFieldTypeInputLevelServiceBean;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import static edu.harvard.iq.dataverse.persistence.MockMetadataFactory.extractFieldTypeByName;
 import static edu.harvard.iq.dataverse.persistence.MockMetadataFactory.fillAuthorField;
 import static edu.harvard.iq.dataverse.persistence.MockMetadataFactory.fillDepositorField;
@@ -38,6 +15,7 @@ import static edu.harvard.iq.dataverse.persistence.MockMetadataFactory.makeKeywo
 import static edu.harvard.iq.dataverse.persistence.MockMetadataFactory.makeSocialScienceMetadataBlock;
 import static edu.harvard.iq.dataverse.persistence.MockMetadataFactory.makeTitleFieldType;
 import static edu.harvard.iq.dataverse.persistence.MockMetadataFactory.makeUnitOfAnalysisFieldType;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -46,6 +24,31 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.google.common.collect.Lists;
+
+import edu.harvard.iq.dataverse.DataverseFieldTypeInputLevelServiceBean;
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetField;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 
 /**
  * @author madryk
@@ -175,6 +178,7 @@ public class DatasetFieldsInitializerTest {
     public void groupAndUpdateFlagsForEdit() {
         // given
         Dataverse dataverse = new Dataverse();
+        dataverse.addVersion(RELEASED);
         Dataset dataset = new Dataset();
         dataset.setOwner(dataverse);
         DatasetVersion datasetVersion = new DatasetVersion();
@@ -222,6 +226,7 @@ public class DatasetFieldsInitializerTest {
     public void groupAndUpdateFlagsForEdit__check_include_flag() {
         //given
         Dataverse dataverse = new Dataverse();
+        dataverse.addVersion(RELEASED);
         Dataset dataset = new Dataset();
         dataset.setOwner(dataverse);
         DatasetVersion datasetVersion = new DatasetVersion();

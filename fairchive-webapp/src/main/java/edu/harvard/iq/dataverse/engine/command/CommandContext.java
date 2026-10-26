@@ -26,7 +26,7 @@ import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.dataset.DatasetThumbnailService;
 import edu.harvard.iq.dataverse.dataset.DownloadDatasetLogDao;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
-import edu.harvard.iq.dataverse.dataverse.template.TemplateDao;
+import edu.harvard.iq.dataverse.dataverse.template.TemplateService;
 import edu.harvard.iq.dataverse.engine.DataverseEngine;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.globalid.DOIDataCiteServiceBean;
@@ -38,6 +38,8 @@ import edu.harvard.iq.dataverse.guestbook.GuestbookResponseServiceBean;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.permission.ManagePermissionsService;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevelRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersionRepository;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
 import edu.harvard.iq.dataverse.search.SearchServiceBean;
@@ -104,7 +106,7 @@ public interface CommandContext {
 
     DataFileServiceBean files();
 
-    TemplateDao templates();
+    TemplateService templates();
 
     SavedSearchServiceBean savedSearches();
 
@@ -163,4 +165,8 @@ public interface CommandContext {
     GlobalIdServiceBeanResolver globalIdServiceBeanResolver();
     
     ManagePermissionsService getManagePermissionsService();
+    
+    DataverseFieldTypeInputLevelRepository inputLevels();
+    
+    DataverseVersionRepository dataverseVersions();
 }

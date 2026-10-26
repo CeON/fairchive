@@ -1,14 +1,12 @@
 package edu.harvard.iq.dataverse.persistence.datafile.license;
 
-import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.inject.Inject;
 
-import java.util.List;
-import java.util.Optional;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import edu.harvard.iq.dataverse.persistence.PersistenceArquillianDeployment;
 
 /**
  * @author madryk
@@ -16,34 +14,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LicenseRepositoryIT extends PersistenceArquillianDeployment {
 
     @Inject
-    private LicenseRepository licenseRepository;
-
+    private LicenseRepository repository;
 
     //-------------------- TESTS --------------------
 
-    @Test
+	@Test
     public void findFirstActive() {
-        // when
-        License license = licenseRepository.findFirstActive();
-
-        // then
-        assertThat(license)
+        assertThat(this.repository.findFirstActive())
             .extracting(License::getId, License::getName)
             .containsExactly(1L, "CC0 Creative Commons Zero 1.0 Waiver");
     }
 
     @Test
     public void findAllOrderedByPosition() {
-        // given
-        License licenseToMove = licenseRepository.getById(2L);
+        License licenseToMove = this.repository.getById(2L);
         licenseToMove.setPosition(40L);
-        licenseRepository.save(licenseToMove);
-        
-        // when
-        List<License> licenses = licenseRepository.findAllOrderedByPosition();
+        this.repository.save(licenseToMove);
 
-        // then
-        assertThat(licenses).hasSize(14)
+        assertThat(this.repository.findAllOrderedByPosition()).hasSize(14)
             .extracting(License::getName)
             .containsExactly(
                 "CC0 Creative Commons Zero 1.0 Waiver",
@@ -64,24 +52,13 @@ public class LicenseRepositoryIT extends PersistenceArquillianDeployment {
 
     @Test
     public void findLicenseByName() {
-        //given
-        String licenseName = "CC0 Creative Commons Zero 1.0 Waiver";
+        String name = "CC0 Creative Commons Zero 1.0 Waiver";
 
-        //when
-        final Optional<License> licenseFound = licenseRepository.findLicenseByName(licenseName);
-
-        //then
-        assertThat(licenseFound).isPresent()
-            .get()
-            .extracting(License::getName).isEqualTo(licenseName);
+        assertThat(this.repository.findLicenseByName(name).get().getName()).isEqualTo(name);
     }
 
     @Test
     public void findLicenseByName_not_existing() {
-        //when
-        final Optional<License> licenseFound = licenseRepository.findLicenseByName("not exists");
-
-        //then
-        assertThat(licenseFound).isNotPresent();
+        assertThat(this.repository.findLicenseByName("not exists")).isNotPresent();
     }
 }

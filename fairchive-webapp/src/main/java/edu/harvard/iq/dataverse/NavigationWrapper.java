@@ -5,16 +5,6 @@
  */
 package edu.harvard.iq.dataverse;
 
-import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.faces.context.FacesContext;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.io.IOException;
@@ -25,6 +15,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.omnifaces.cdi.ViewScoped;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author gdurand

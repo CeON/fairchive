@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DatasetDTOConverterTest {
@@ -16,7 +17,7 @@ class DatasetDTOConverterTest {
         // given
         Dataset dataset = new Dataset();
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("dataverse-name");
+        dataverse.addVersion(RELEASED).setName("dataverse-name");
         dataset.setOwner(dataverse);
         dataset.setGlobalId(new GlobalId("doi", "123", "4567"));
         dataset.setId(1L);

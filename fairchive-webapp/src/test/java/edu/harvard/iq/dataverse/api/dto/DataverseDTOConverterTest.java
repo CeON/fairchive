@@ -1,17 +1,17 @@
 package edu.harvard.iq.dataverse.api.dto;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.UNCATEGORIZED;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
+import org.junit.jupiter.api.Test;
+
 import edu.harvard.iq.dataverse.api.dto.DataverseDTO.DataverseContactDTO;
 import edu.harvard.iq.dataverse.api.dto.DataverseDTO.DataverseThemeDTO;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
-import org.junit.jupiter.api.Test;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 
 class DataverseDTOConverterTest {
 
@@ -19,16 +19,18 @@ class DataverseDTOConverterTest {
     void convert() {
         // given
         Dataverse dataverse = new Dataverse();
+        DataverseVersion version = dataverse.addVersion(RELEASED);
         dataverse.setId(1L);
-        dataverse.setAlias("dataverse-alias");
-        dataverse.setDataverseContacts(Stream.of("1", "2", "3")
-                .map(n -> new DataverseContact(dataverse, "mail" + n + "@mail.com"))
-                .collect(Collectors.toList()));
-        dataverse.setDataverseType(Dataverse.DataverseType.UNCATEGORIZED);
+        version.setAlias("dataverse-alias");
+        version.addContact("mail1@mail.com");
+        version.addContact("mail2@mail.com");
+        version.addContact("mail3@mail.com");
+        
+        version.setDataverseType(UNCATEGORIZED);
         DataverseTheme theme = new DataverseTheme();
         theme.setId(11L);
         theme.setLogo("logo");
-        dataverse.setDataverseTheme(theme);
+        version.setTheme(theme);
 
         // when
         DataverseDTO converted = new DataverseDTO.Converter().convert(dataverse);

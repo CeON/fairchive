@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +33,7 @@ public class InstallationConfigServiceTest {
     @BeforeEach
     public void setup() {
         Dataverse dataverse = new Dataverse();
-        dataverse.setName("rootName");
+        dataverse.addVersion(RELEASED).setName("rootName");
         when(dataverseDao.findRootDataverse()).thenReturn(dataverse);
 
     }

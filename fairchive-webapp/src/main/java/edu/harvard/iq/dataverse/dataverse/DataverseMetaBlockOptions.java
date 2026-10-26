@@ -9,8 +9,8 @@ import java.util.Map;
 @SuppressWarnings("serial")
 public class DataverseMetaBlockOptions implements Serializable {
 
-    private Map<Long, MetadataBlockViewOptions> mdbViewOptions = new HashMap<>();
-    private Map<Long, DatasetFieldViewOptions> datasetFieldViewOptions = new HashMap<>();
+    private final Map<Long, MetadataBlockViewOptions> mdbViewOptions = new HashMap<>();
+    private final Map<Long, DatasetFieldViewOptions> datasetFieldViewOptions = new HashMap<>();
     private boolean inheritMetaBlocksFromParent = true;
 
     // -------------------- GETTERS --------------------
@@ -19,21 +19,21 @@ public class DataverseMetaBlockOptions implements Serializable {
      * Retrives metadata block view options.
      */
     public Map<Long, MetadataBlockViewOptions> getMdbViewOptions() {
-        return mdbViewOptions;
+        return this.mdbViewOptions;
     }
 
     /**
      * Retrives dataset fields view options.
      */
     public Map<Long, DatasetFieldViewOptions> getDatasetFieldViewOptions() {
-        return datasetFieldViewOptions;
+        return this.datasetFieldViewOptions;
     }
 
     /**
      * Indicates if metadata blocks are inherited from parent dataverse or if they are being edited by user.
      */
     public boolean isInheritMetaBlocksFromParent() {
-        return inheritMetaBlocksFromParent;
+        return this.inheritMetaBlocksFromParent;
     }
     // -------------------- LOGIC --------------------
 
@@ -42,9 +42,10 @@ public class DataverseMetaBlockOptions implements Serializable {
      *
      * @return true/false or false if null.
      */
-    public boolean isShowDatasetFieldTypes(Long mdbId) {
+    public boolean isShowDatasetFieldTypes(final Long mdbId) {
 
-        return mdbViewOptions.containsKey(mdbId) && mdbViewOptions.get(mdbId).isShowDatasetFieldTypes();
+        return this.mdbViewOptions.containsKey(mdbId) 
+        		&& this.mdbViewOptions.get(mdbId).isShowDatasetFieldTypes();
     }
 
     /**
@@ -52,8 +53,9 @@ public class DataverseMetaBlockOptions implements Serializable {
      *
      * @return true/false or false if null.
      */
-    public boolean isEditableDatasetFieldTypes(Long mdbId) {
-        return mdbViewOptions.containsKey(mdbId) && mdbViewOptions.get(mdbId).isEditableDatasetFieldTypes();
+    public boolean isEditableDatasetFieldTypes(final Long mdbId) {
+        return this.mdbViewOptions.containsKey(mdbId) 
+        		&& this.mdbViewOptions.get(mdbId).isEditableDatasetFieldTypes();
     }
 
     /**
@@ -61,8 +63,9 @@ public class DataverseMetaBlockOptions implements Serializable {
      *
      * @return true/false or false if null.
      */
-    public boolean isDsftIncludedField(Long dsftId) {
-        return datasetFieldViewOptions.containsKey(dsftId) && datasetFieldViewOptions.get(dsftId).isIncluded();
+    public boolean isDsftIncludedField(final Long dsftId) {
+        return this.datasetFieldViewOptions.containsKey(dsftId) 
+        		&& this.datasetFieldViewOptions.get(dsftId).isIncluded();
     }
 
     /**
@@ -70,8 +73,9 @@ public class DataverseMetaBlockOptions implements Serializable {
      *
      * @return true/false or false if null.
      */
-    public boolean isMetaBlockSelected(Long mdbId) {
-        return mdbViewOptions.containsKey(mdbId) && mdbViewOptions.get(mdbId).isSelected();
+    public boolean isMetaBlockSelected(final Long blockId) {
+        return this.mdbViewOptions.containsKey(blockId) 
+        		&& this.mdbViewOptions.get(blockId).isSelected();
     }
 
     /**
@@ -84,7 +88,7 @@ public class DataverseMetaBlockOptions implements Serializable {
 
     // -------------------- SETTERS --------------------
 
-    public void setInheritMetaBlocksFromParent(boolean inheritMetaBlocksFromParent) {
-        this.inheritMetaBlocksFromParent = inheritMetaBlocksFromParent;
+    public void setInheritMetaBlocksFromParent(final boolean value) {
+        this.inheritMetaBlocksFromParent = value;
     }
 }

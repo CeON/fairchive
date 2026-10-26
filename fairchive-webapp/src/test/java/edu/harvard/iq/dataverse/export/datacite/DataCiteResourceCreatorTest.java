@@ -1,21 +1,23 @@
 package edu.harvard.iq.dataverse.export.datacite;
 
+import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
+import static edu.harvard.iq.dataverse.persistence.MocksFactory.createCVV;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
+import java.util.Arrays;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
 import edu.harvard.iq.dataverse.export.datacite.DataCiteResource.Creator;
 import edu.harvard.iq.dataverse.export.datacite.DataCiteResource.RelatedIdentifier;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.Collections;
-
-import static edu.harvard.iq.dataverse.persistence.MocksFactory.create;
-import static edu.harvard.iq.dataverse.persistence.MocksFactory.createCVV;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 /**
  * This is only minimal test for the class, as the more comprehensive tests
@@ -30,9 +32,10 @@ class DataCiteResourceCreatorTest {
         dataset = new Dataset();
         DatasetVersion version = new DatasetVersion();
         Dataverse dataverse = new Dataverse();
+        dataverse.addVersion(RELEASED);
         version.setDataset(dataset);
         dataset.setOwner(dataverse);
-        dataset.setVersions(Collections.singletonList(version));
+        dataset.setVersions(singletonList(version));
     }
 
 

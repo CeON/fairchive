@@ -6,19 +6,7 @@
 
 package edu.harvard.iq.dataverse.featured;
 
-import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFeaturedDataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFeaturedDataverseRepository;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
+import static java.lang.String.CASE_INSENSITIVE_ORDER;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
@@ -30,6 +18,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import edu.harvard.iq.dataverse.dataverse.DataverseLinkingService;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.FeaturedDataversesSorting;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFeaturedDataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFeaturedDataverseRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 
 /**
  * @author skraffmiller
@@ -63,9 +63,9 @@ public class FeaturedDataverseServiceBean {
 
     public List<Dataverse> sortFeaturedDataverses(List<Dataverse> featuredDataverses, FeaturedDataversesSorting sorting) {
         if (sorting == FeaturedDataversesSorting.BY_NAME_ASC) {
-            return featuredDataverses.stream().sorted(comparing(Dataverse::getName)).collect(toList());
+            return featuredDataverses.stream().sorted(comparing(Dataverse::getName, CASE_INSENSITIVE_ORDER)).collect(toList());
         } else if (sorting == FeaturedDataversesSorting.BY_NAME_DESC) {
-            return featuredDataverses.stream().sorted(comparing(Dataverse::getName).reversed()).collect(toList());
+            return featuredDataverses.stream().sorted(comparing(Dataverse::getName, CASE_INSENSITIVE_ORDER).reversed()).collect(toList());
         } else if (sorting == FeaturedDataversesSorting.BY_DATASET_COUNT) {
             return orderByDatasetCount(featuredDataverses);
         } else {
@@ -73,38 +73,43 @@ public class FeaturedDataverseServiceBean {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public List<Dataverse> findByDataverseIdQuick(Long dataverseId) {
-        List<Object[]> searchResults = em.createNativeQuery("SELECT d.id, d.alias, d.name, dt.logo FROM DataverseFeaturedDataverse f "
-                + " JOIN dataverse d ON d.id = f.featureddataverse_id"
-                + " LEFT JOIN dataversetheme dt ON dt.dataverse_id = d.id"
-                + " WHERE f.dataverse_id = ?1 order by f.displayOrder")
-                .setParameter(1, dataverseId)
-                .getResultList();
-
-        List<Dataverse> ret = new ArrayList<>();
-
-        for (Object[] result : searchResults) {
-            Long id = (Long) result[0];
-            String alias = (String) result[1];
-            String name = (String) result[2];
-            String logo = (String) result[3];
-
-            Dataverse dataverse = new Dataverse();
-            dataverse.setId(id);
-            dataverse.setAlias(alias);
-            dataverse.setName(name);
-
-            if (logo != null) {
-                DataverseTheme theme = new DataverseTheme();
-                theme.setLogo(logo);
-                dataverse.setDataverseTheme(theme);
-            }
-
-            ret.add(dataverse);
-        }
-
-        return ret;
+    	
+        return this.dataverseFeaturedDataverseRepository.
+        		findByDataverseIdOrderByDisplayOrder(dataverseId);
+    	
+//        List<Object[]> searchResults = em.createNativeQuery(
+//        		"SELECT d.id, d.alias, d.name, dt.logo FROM DataverseFeaturedDataverse f "
+//                + " JOIN dataverse d ON d.id = f.featureddataverse_id"
+//                + " LEFT JOIN dataversetheme dt ON dt.dataverse_id = d.id"
+//                + " WHERE f.dataverse_id = ?1 order by f.displayOrder")
+//                .setParameter(1, dataverseId)
+//                .getResultList();
+//
+//        List<Dataverse> ret = new ArrayList<>();
+//
+//        for (Object[] result : searchResults) {
+//            Long id = (Long) result[0];
+//            String alias = (String) result[1];
+//            String name = (String) result[2];
+//            String logo = (String) result[3];
+//
+//            Dataverse dataverse = new Dataverse();
+//            DataverseVersion version = dataverse.addVersion(RELEASED);
+//            dataverse.setId(id);
+//            version.setAlias(alias);
+//            version.setName(name);
+//
+//            if (logo != null) {
+//                DataverseTheme theme = new DataverseTheme();
+//                theme.setLogo(logo);
+//                version.setTheme(theme);
+//            }
+//
+//            ret.add(dataverse);
+//        }
+//
+//        return ret;
     }
 
     public List<Dataverse> findFeaturableDataverses(Long dataverseId) {

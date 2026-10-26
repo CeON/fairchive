@@ -40,7 +40,7 @@ public class SqlScriptRunner {
     public void runScriptFromClasspath(String classpath) {
         try (Reader reader = new StringReader(IOUtils.resourceToString(classpath, StandardCharsets.UTF_8))) {
             LOG.info("Run script from classpath: " + classpath);
-            runScript(reader);
+            runScript(reader, classpath);
         } catch (IOException e) {
             throw new RuntimeException("Encountered error while reading sql file", e);
         }
@@ -52,36 +52,42 @@ public class SqlScriptRunner {
      * Runs an SQL script (read in using the Reader parameter)
      * @throws IOException 
      */
-    private void runScript(Reader reader) throws IOException {
+    private void runScript(Reader reader, String classpath) throws IOException {
         final StringBuilder command = new StringBuilder();
         final LineNumberReader lineReader = new LineNumberReader(reader);
-
+        
         try {
             String line = null;
             while ((line = lineReader.readLine()) != null) {
                 
                 String trimmedLine = line.trim();
-                if (trimmedLine.length() == 0 || trimmedLine.startsWith("//") || trimmedLine.startsWith("--")) {
-                    continue;
+                if (!isEmptyOrComment(trimmedLine)) {
+	                if (!trimmedLine.endsWith(DELIMITER)) {
+	                    command.append(line);
+	                    command.append(' ');
+	                    continue;
+	                }
+	
+	                command.append(line.substring(0, line.lastIndexOf(DELIMITER)));
+	                command.append(' ');
+	
+	                executeCommand(command.toString());
+	
+	                command.delete(0, command.length());
                 }
-                if (!trimmedLine.endsWith(DELIMITER)) {
-                    command.append(line);
-                    command.append(' ');
-                    continue;
-                }
-
-
-                command.append(line.substring(0, line.lastIndexOf(DELIMITER)));
-                command.append(' ');
-
-                executeCommand(command.toString());
-
-                command.delete(0, command.length());
             }
 
+        } catch(final Exception e) {
+        	System.out.println("Exception in " + classpath + " line: " + 
+        			lineReader.getLineNumber() + " - " + e.getMessage());
+        	throw e;
         } finally {
             entityManager.flush();
         }
+    }
+    
+    private static boolean isEmptyOrComment(final String line) {
+    	return line.length() == 0 || line.startsWith("//") || line.startsWith("--");
     }
 
     private void executeCommand(String commandString) {

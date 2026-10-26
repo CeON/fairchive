@@ -7,13 +7,10 @@ import edu.harvard.iq.dataverse.engine.command.RequiredPermissions;
 import edu.harvard.iq.dataverse.engine.command.RequiredPermissionsMap;
 import edu.harvard.iq.dataverse.engine.command.exception.IllegalCommandException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.persistence.group.ExplicitGroup;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.RoleAssignment;
-
-import java.util.ArrayList;
 
 /**
  * Deletes a {@link Dataverse} - but only if it is empty.
@@ -66,14 +63,6 @@ public class DeleteDataverseCommand extends AbstractVoidCommand {
         for (ExplicitGroup eg : ctxt.explicitGroups().findByOwnerId(doomed.getId())) {
             ctxt.explicitGroups().removeGroup(eg);
         }
-        // FACETS handled with cascade on dataverse
-
-        // Input Level
-        for (DataverseFieldTypeInputLevel inputLevel : doomed.getDataverseFieldTypeInputLevels()) {
-            DataverseFieldTypeInputLevel merged = ctxt.em().merge(inputLevel);
-            ctxt.em().remove(merged);
-        }
-        doomed.setDataverseFieldTypeInputLevels(new ArrayList<>());
         // DATAVERSE
         Dataverse doomedAndMerged = ctxt.em().merge(doomed);
         ctxt.em().remove(doomedAndMerged);

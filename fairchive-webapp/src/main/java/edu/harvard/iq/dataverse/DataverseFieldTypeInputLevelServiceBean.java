@@ -1,104 +1,57 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.harvard.iq.dataverse;
+
+import java.util.List;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
 
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevelRepository;
 import edu.harvard.iq.dataverse.util.LruCache;
 
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-
-import com.google.common.base.Preconditions;
-
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * @author skraffmiller
- */
 @Stateless
 public class DataverseFieldTypeInputLevelServiceBean {
 
     public static final LruCache<Long, List<DataverseFieldTypeInputLevel>> cache = new LruCache<>();
+    
+    private DataverseFieldTypeInputLevelRepository repository;
+    
+    public DataverseFieldTypeInputLevelServiceBean() {}
 
-    @PersistenceContext(unitName = "VDCNet-ejbPU")
-    private EntityManager em;
+    @Inject
+    public DataverseFieldTypeInputLevelServiceBean(
+    		final DataverseFieldTypeInputLevelRepository repository) {
+		this.repository = repository;
+	}
 
-    public List<DataverseFieldTypeInputLevel> findByDataverseId(Long dataverseId) {
-        List<DataverseFieldTypeInputLevel> res = cache.get(dataverseId);
-
+	public List<DataverseFieldTypeInputLevel> findByDataverseId(final Long id) {
+        List<DataverseFieldTypeInputLevel> res = cache.get(id);
         if (res == null) {
-            res = em.createNamedQuery("DataverseFieldTypeInputLevel.findByDataverseId", DataverseFieldTypeInputLevel.class)
-                    .setParameter("dataverseId", dataverseId)
-                    .getResultList();
-            cache.put(dataverseId, res);
+        	res = this.repository.findByDataverseId(id);
+            cache.put(id, res);
         }
-
         return res;
     }
 
-    /**
-     * Find a list of DataverseFieldTypeInputLevel objects
-     * Search criteria:
-     * - Dataverse Id,
-     * - list of DatasetField Ids
-     *
-     * @param dataverseId
-     * @param datasetFieldIdList
-     * @return List of DataverseFieldTypeInputLevel
-     */
-    public List<DataverseFieldTypeInputLevel> findByDataverseIdAndDatasetFieldTypeIdList(Long dataverseId, List<Long> datasetFieldIdList) {
-        Preconditions.checkNotNull(dataverseId);
-        Preconditions.checkNotNull(datasetFieldIdList);
-        
-        if (datasetFieldIdList.isEmpty()) {
-            new ArrayList<>();
-        }
-
-        try {
-            return em.createNamedQuery("DataverseFieldTypeInputLevel.findByDataverseIdAndDatasetFieldTypeIdList", DataverseFieldTypeInputLevel.class)
-                    .setParameter("datasetFieldIdList", datasetFieldIdList)
-                    .setParameter("dataverseId", dataverseId)
-                    .getResultList();
-
-        } catch (NoResultException nre) {
-            return new ArrayList<>();
-        }
+    public List<DataverseFieldTypeInputLevel> findByDataverseIdAndDatasetFieldTypeIdList(
+    		final Long id, final List<Long> fieldIdList) {
+    	return this.repository.findByDataverseIdAndDatasetFieldTypeIdList(
+    			id, fieldIdList);
     }
 
-    public DataverseFieldTypeInputLevel findByDataverseIdDatasetFieldTypeId(Long dataverseId, Long datasetFieldTypeId) {
-        Query query = em.createNamedQuery("DataverseFieldTypeInputLevel.findByDataverseIdDatasetFieldTypeId", DataverseFieldTypeInputLevel.class);
-        query.setParameter("dataverseId", dataverseId);
-        query.setParameter("datasetFieldTypeId", datasetFieldTypeId);
-        try {
-            return (DataverseFieldTypeInputLevel) query.getSingleResult();
-        } catch (NoResultException nre) {
-            return null;
-        }
+    public DataverseFieldTypeInputLevel findByDataverseIdDatasetFieldTypeId(
+    		final Long dataverseId, final Long fieldTypeId) {
+    	return this.repository.findByDataverseIdDatasetFieldTypeId(
+    			dataverseId, fieldTypeId).orElse(null);
     }
 
-    public void delete(DataverseFieldTypeInputLevel dataverseFieldTypeInputLevel) {
-        em.remove(em.merge(dataverseFieldTypeInputLevel));
-        cache.invalidate();
+    public void deleteFor(final Dataverse dataverse) {
+    	this.repository.deleteFor(dataverse.getId());
+        cache.invalidate(dataverse.getId());
     }
 
-    public void deleteFacetsFor(Dataverse d) {
-        em.createNamedQuery("DataverseFieldTypeInputLevel.removeByOwnerId")
-                .setParameter("ownerId", d.getId())
-                .executeUpdate();
-        cache.invalidate(d.getId());
-
+    public void create(final DataverseFieldTypeInputLevel fieldTypeInputLevel) {
+        this.repository.save(fieldTypeInputLevel);
     }
-
-    public void create(DataverseFieldTypeInputLevel dataverseFieldTypeInputLevel) {
-        em.persist(dataverseFieldTypeInputLevel);
-    }
-
 }

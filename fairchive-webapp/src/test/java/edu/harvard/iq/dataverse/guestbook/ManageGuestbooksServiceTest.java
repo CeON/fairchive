@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -134,7 +135,7 @@ public class ManageGuestbooksServiceTest {
 
     private Dataverse createTestDataverse(boolean isGuestbookRoot) {
         Dataverse dv = new Dataverse();
-        dv.setName("testDv");
+        dv.addVersion(RELEASED).setName("testDv");
         dv.setId(1L);
         dv.setGuestbookRoot(isGuestbookRoot);
         return dv;

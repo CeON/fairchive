@@ -249,12 +249,12 @@ public class DataverseDTO {
             converted.setName(dataverse.getName());
             converted.setAffiliation(dataverse.getAffiliation());
             converted.setDataverseContacts(dataverse.getDataverseContacts().stream()
-                    .map(c -> new DataverseContactDTO(c.getDisplayOrder(), c.getContactEmail()))
+                    .map(c -> new DataverseContactDTO(c.getDisplayOrder(), c.getEmail()))
                     .collect(Collectors.toList()));
             converted.setPermissionRoot(dataverse.isPermissionRoot());
             converted.setDescription(dataverse.getDescription());
             converted.setDataverseType(dataverse.getDataverseType().name());
-            converted.setOwnerId(dataverse.isNotRoot() ? dataverse.getOwner().getId() : null);
+            converted.setOwnerId(dataverse.getOwnerId());
             converted.setCreationDate(dataverse.getCreateDate() != null
                     ? Util.getDateTimeFormat().format(dataverse.getCreateDate()) : null);
             converted.setCreator(dataverse.getCreator() != null

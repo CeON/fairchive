@@ -1,5 +1,21 @@
 package edu.harvard.iq.dataverse.persistence;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static java.util.Arrays.asList;
+
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.assertj.core.util.Lists;
+
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -14,24 +30,11 @@ import edu.harvard.iq.dataverse.persistence.dataset.FieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.group.ExplicitGroup;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
-import org.assertj.core.util.Lists;
-
-import static java.util.Arrays.asList;
-
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A utility class for creating mock objects for unit tests. Mostly, the non-parameter
@@ -106,18 +109,20 @@ public class MocksFactory {
     }
 
     public static Dataverse makeDataverse() {
-        Dataverse retVal = new Dataverse();
-        retVal.setId(nextId());
+        final Dataverse dataverse = new Dataverse();
+        dataverse.setId(nextId());
+        final DataverseVersion version = dataverse.addVersion(RELEASED);
+        
+        
 
-        retVal.setAffiliation("Unit Test U");
-        retVal.setAlias("unitTest" + retVal.getId());
-        retVal.setCreateDate(timestamp(2012, 4, 5));
-        retVal.setMetadataBlockRoot(true);
-        retVal.setName("UnitTest Dataverse #" + retVal.getId());
+        version.setAffiliation("Unit Test U");
+        version.setAlias("unitTest" + dataverse.getId());
+        dataverse.setMetadataBlockRoot(true);
+        version.setName("UnitTest Dataverse #" + dataverse.getId());
 
 
         MetadataBlock mtb = new MetadataBlock();
-        mtb.setDisplayName("Test Block #1-" + retVal.getId());
+        mtb.setDisplayName("Test Block #1-" + dataverse.getId());
         mtb.setId(nextId());
         mtb.setDatasetFieldTypes(Arrays.asList(
                 new DatasetFieldType("JustAString", FieldType.TEXT, false),
@@ -125,9 +130,9 @@ public class MocksFactory {
                 new DatasetFieldType("AnEmail", FieldType.EMAIL, false)
         ));
 
-        retVal.setMetadataBlocks(Arrays.asList(mtb));
+        dataverse.setMetadataBlocks(Arrays.asList(mtb));
 
-        return retVal;
+        return dataverse;
     }
 
     public static Dataset makeDataset() {

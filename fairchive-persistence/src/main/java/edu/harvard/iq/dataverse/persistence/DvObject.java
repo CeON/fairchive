@@ -236,6 +236,10 @@ public abstract class DvObject extends DataverseEntity implements Serializable, 
         return (DvObjectContainer) owner;
     }
     
+    public Long getOwnerId() {
+    	return isRoot() ? null : this.getOwner().getId();
+    }
+    
     public DvObject getPermissionRoot() {
     	return this;
     }

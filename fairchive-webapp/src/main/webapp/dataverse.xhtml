@@ -110,7 +110,6 @@
                         <!-- Edit/Publish Button Group -->
                         <div class="btn-group" 
                              jsf:rendered="#{DataversePage.displayEditPublishButtons()}">
-                            <!-- Publish Button -->
                            <!-- Publish Button -->
                             <button jsf:rendered="#{DataversePage.displayPublishButton()}"
                                     type="button" 
@@ -203,12 +202,21 @@
                                         </h:link>
                                     </li>
                                     <li role="none">
-                                        <h:link outcome="ThemeAndWidgets" 
-                                               id="themeWidgetsOpts" 
+                                        <h:link outcome="metadata" 
+                                               id="metadataOpts" 
+                                               pt:role="menuitem">
+                                            <f:param name="dataverseId" 
+                                                     value="#{DataversePage.dataverse.id}"/>
+                                            <h:outputText value="#{bundle['file.metadata']}"/>
+                                        </h:link>
+                                    </li>
+                                    <li role="none">
+                                        <h:link outcome="widgets" 
+                                               id="widgetsOpts" 
                                                pt:role="menuitem">
                                             <f:param name="id" 
                                                      value="#{DataversePage.dataverse.id}"/>
-                                            <h:outputText value="#{bundle['dataverse.option.themeAndWidgets']}"/>
+                                            <h:outputText value="#{bundle['dataverse.widgets.title']}"/>
                                         </h:link>
                                     </li>
                                     <ui:fragment
