@@ -71,7 +71,7 @@
                  jsf:rendered="#{!widgetWrapper.widgetView}">
                 <div class="button-block pull-right">
                     <!-- ADD DATA -->
-                    <ui:fragment rendered="#{!dataverseSession.user.authenticated and SearchIncludeFragment.couldCreateDatasetOrDataverseIfWasAuthenticated()}">
+                    <ui:fragment rendered="#{SearchIncludeFragment.displayAddDataButtonForGuest()}">
                         <button type="button" 
                                 class="btn btn-default btn-access" 
                                 onclick="primeFacesShowModal('addData_popup', this)">

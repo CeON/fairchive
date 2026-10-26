@@ -24,6 +24,7 @@ import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = LENIENT)
@@ -31,6 +32,8 @@ public class FilePageTest {
 	
 	@Mock
 	private ExternalToolRepository externalToolsRepository;
+	@Mock
+	private SystemConfig systemConfig;
 	
     private ExternalToolServiceBean externalTools;
     private ExternalToolHandler externalToolHandler;
@@ -53,7 +56,7 @@ public class FilePageTest {
 		
 		this.page = new FilePage(null,
 				null, null,
-				null, this.externalTools, null,
+				this.systemConfig, this.externalTools, null,
 				null, this.fileDownloadHelper,
 				null, null, null,
 				null, null, this.externalToolHandler, 
@@ -134,5 +137,26 @@ public class FilePageTest {
 		
 		this.viewer.setFileSizeLimit(1000L);
 		assertThat(this.page.isFileSizeUnderLimit()).isFalse();
+	}
+
+	@Test
+	void displayMetrics() {
+		// when
+		boolean display = this.page.displayMetrics();
+
+		// then
+		assertThat(display).isTrue();
+	}
+
+	@Test
+	void displayMetrics__aggregatorMode() {
+		// given
+		when(this.systemConfig.isAggregatorMode()).thenReturn(true);
+
+		// when
+		boolean display = this.page.displayMetrics();
+
+		// then
+		assertThat(display).isFalse();
 	}
 }

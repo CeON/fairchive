@@ -3,6 +3,7 @@ package edu.harvard.iq.dataverse.util;
 import static edu.harvard.iq.dataverse.authorization.providers.oauth2.DevOAuthAccountType.PRODUCTION;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AccessibilityStatement;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AggregatorMode;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowSignUp;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.AllowedExternalRedirectionUrlAfterLogin;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ApiTermsOfUse;
@@ -159,12 +160,16 @@ public class SystemConfig {
         return isTrueForKey(ReadonlyMode);
     }
 
+    public boolean isAggregatorMode() {
+        return isTrueForKey(AggregatorMode);
+    }
+
     public boolean isUnconfirmedMailRestrictionModeEnabled() {
         return isTrueForKey(Key.UnconfirmedMailRestrictionModeEnabled);
     }
 
     public boolean isSignupAllowed() {
-        return isReadonlyMode() ? false: isTrueForKey(AllowSignUp);
+        return !isReadonlyMode() && !isAggregatorMode() && isTrueForKey(AllowSignUp);
     }
 
     public String getFilesDirectory() {

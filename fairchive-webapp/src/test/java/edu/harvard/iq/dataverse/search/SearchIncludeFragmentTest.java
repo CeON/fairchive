@@ -35,6 +35,9 @@ import org.primefaces.event.TabChangeEvent;
 import org.primefaces.model.StreamedContent;
 
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
+import edu.harvard.iq.dataverse.DataverseSession;
+import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.PermissionServiceBean.StaticPermissionQuery;
 import edu.harvard.iq.dataverse.SolrSearchResultsService;
 import edu.harvard.iq.dataverse.ThumbnailServiceWrapper;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -46,9 +49,11 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = LENIENT)
@@ -69,6 +74,14 @@ public class SearchIncludeFragmentTest {
     private MetadataBlockRepository metadataBlockRepo;
     @Mock 
     private SettingsServiceBean settings;
+    @Mock
+    private SystemConfig systemConfig;
+    @Mock
+    private DataverseSession dataverseSession;
+    @Mock
+    private PermissionServiceBean permissionService;
+    @Mock
+    private StaticPermissionQuery permissionQuery;
 
     private Dataverse dataverse = new Dataverse();
 
@@ -95,6 +108,9 @@ public class SearchIncludeFragmentTest {
         this.fragment.datasetRepo = this.datasetRepo;
         this.fragment.metadataBlockRepo = this.metadataBlockRepo;
         this.fragment.settings = this.settings;
+        this.fragment.systemConfig = this.systemConfig;
+        this.fragment.dataverseSession = this.dataverseSession;
+        this.fragment.permissionService = this.permissionService;
         this.fragment.postConstruct();
         
         when(this.settings.getValueForKeyAsLong(any(SettingsServiceBean.Key.class), any()))
@@ -284,5 +300,58 @@ public class SearchIncludeFragmentTest {
         //
         assertThat(fragment.isSolrIsDown()).isTrue();
         assertThat(fragment.wasSolrErrorEncountered()).isTrue();
+    }
+
+    @Test
+    public void displayAddDataButtonForGuest__guestCouldAddCollection() {
+        // given
+        when(this.permissionService.userOn(any(), eq(this.dataverse))).thenReturn(this.permissionQuery);
+        when(this.permissionQuery.has(Permission.AddDataverse)).thenReturn(true);
+
+        // when
+        boolean display = this.fragment.displayAddDataButtonForGuest();
+
+        // then
+        assertThat(display).isTrue();
+    }
+
+    @Test
+    public void displayAddDataButtonForGuest__userLoggedIn() {
+        // given
+        when(this.dataverseSession.isUserLoggedIn()).thenReturn(true);
+        when(this.permissionService.userOn(any(), eq(this.dataverse))).thenReturn(this.permissionQuery);
+        when(this.permissionQuery.has(Permission.AddDataverse)).thenReturn(true);
+
+        // when
+        boolean display = this.fragment.displayAddDataButtonForGuest();
+
+        // then
+        assertThat(display).isFalse();
+    }
+
+    @Test
+    public void displayAddDataButtonForGuest__aggregatorMode() {
+        // given
+        when(this.systemConfig.isAggregatorMode()).thenReturn(true);
+        when(this.permissionService.userOn(any(), eq(this.dataverse))).thenReturn(this.permissionQuery);
+        when(this.permissionQuery.has(Permission.AddDataverse)).thenReturn(true);
+
+        // when
+        boolean display = this.fragment.displayAddDataButtonForGuest();
+
+        // then
+        assertThat(display).isFalse();
+    }
+
+    @Test
+    public void displayAddDataButtonForGuest__guestCouldNotAddAnything() {
+        // given
+        when(this.permissionService.userOn(any(), eq(this.dataverse))).thenReturn(this.permissionQuery);
+
+        // when
+        boolean display = this.fragment.displayAddDataButtonForGuest();
+
+        // then
+        assertThat(display).isFalse();
     }
 }

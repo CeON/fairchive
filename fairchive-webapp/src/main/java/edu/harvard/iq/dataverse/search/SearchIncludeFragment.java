@@ -35,8 +35,10 @@ import org.primefaces.model.StreamedContent;
 
 import edu.harvard.iq.dataverse.DataverseDao;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
+import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
+import edu.harvard.iq.dataverse.PermissionServiceBean.StaticPermissionQuery;
 import edu.harvard.iq.dataverse.SolrSearchResultsService;
 import edu.harvard.iq.dataverse.ThumbnailServiceWrapper;
 import edu.harvard.iq.dataverse.WidgetWrapper;
@@ -60,6 +62,7 @@ import edu.harvard.iq.dataverse.search.response.SolrQueryResponse;
 import edu.harvard.iq.dataverse.search.response.SolrSearchLocationResult;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @RequestScoped
 @Named("SearchIncludeFragment")
@@ -94,7 +97,9 @@ public class SearchIncludeFragment {
     @Inject
     DataverseRequestServiceBean dataverseRequestService;
     @Inject
-    private PermissionServiceBean permissionService;
+    PermissionServiceBean permissionService;
+    @Inject
+    DataverseSession dataverseSession;
     @Inject
     SolrSearchResultsService solrSearchResultsService;
     @Inject
@@ -111,6 +116,8 @@ public class SearchIncludeFragment {
     MetadataBlockRepository metadataBlockRepo;
     @Inject
     SettingsServiceBean settings;
+    @Inject
+    SystemConfig systemConfig;
 
     @Inject @Param(name = "q")
     private String query;
@@ -639,9 +646,10 @@ public class SearchIncludeFragment {
                     : "";
     }
 
-    public boolean couldCreateDatasetOrDataverseIfWasAuthenticated() throws ClassNotFoundException {
-        return permissionService.userOn(AuthenticatedUsers.get(), dataverse).has(Permission.AddDataverse)
-                || (settings.isTrueForKey(ShowAddDatasetButtonOnDataversePage) && permissionService.userOn(AuthenticatedUsers.get(), dataverse).has(Permission.AddDataset));
+    public boolean displayAddDataButtonForGuest() {
+        return !dataverseSession.isUserLoggedIn()
+                && !systemConfig.isAggregatorMode()
+                && couldCreateDatasetOrDataverseIfWasAuthenticated();
     }
 
     public boolean isRootDv() {
@@ -659,6 +667,13 @@ public class SearchIncludeFragment {
     }
 
     // -------------------- PRIVATE --------------------
+
+    private boolean couldCreateDatasetOrDataverseIfWasAuthenticated() {
+        StaticPermissionQuery authenticatedUsersPermissions = permissionService.userOn(AuthenticatedUsers.get(), dataverse);
+        return authenticatedUsersPermissions.has(Permission.AddDataverse)
+                || (settings.isTrueForKey(ShowAddDatasetButtonOnDataversePage)
+                        && authenticatedUsersPermissions.has(Permission.AddDataset));
+    }
 
     private Optional<String> getFilterDownToSubtree(Dataverse dataverse) {
         if (!dataverse.isRoot()) {
