@@ -22,11 +22,7 @@
             <!-- Uncomment next lines to show all SQL queries in the log -->
             <!--<property name="eclipselink.logging.level" value="FINE"/>
             <property name="eclipselink.logging.level.sql" value="FINE"/>
-            <property name="eclipselink.logging.parameters" value="true"/>-->
-            
-            <property name="eclipselink.profiler" value="QueryMonitor"/>
-            <property name="eclipselink.logging.file" value="C:\prj\dariah\glassfish4\glassfish\domains\domain1\logs\eclipselink-metrics.log"/>
-                        
+            <property name="eclipselink.logging.parameters" value="true"/>-->        
         </properties>
     </persistence-unit>
 </persistence>
