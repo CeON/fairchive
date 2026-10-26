@@ -626,6 +626,7 @@ public class CreateEditDataversePage implements Serializable {
     }
     
     public boolean canUserPublishCollection() {
-    	return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse.getOwner());
+    	return this.permissionsWrapper.canIssuePublishDataverseCommand(
+    			this.dataverse.isNew() ? this.dataverse.getOwner() : this.dataverse);
     }
 }
