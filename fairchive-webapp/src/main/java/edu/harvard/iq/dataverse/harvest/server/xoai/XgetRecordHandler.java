@@ -16,7 +16,6 @@ import org.dspace.xoai.dataprovider.parameters.OAICompiledRequest;
 import org.dspace.xoai.dataprovider.repository.Repository;
 import org.dspace.xoai.model.oaipmh.GetRecord;
 import org.dspace.xoai.model.oaipmh.Header;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 
 /*
  * @author Leonid Andreev
@@ -55,8 +54,8 @@ public class XgetRecordHandler extends VerbHandler<GetRecord> {
             OAIException, NoMetadataFormatsException, CannotDisseminateFormatException {
         Header header = new Header();
 
-        Dataset dataset = ((Xitem) item).getDataset();
-        Xrecord xrecord = new Xrecord().withFormatName(parameters.getMetadataPrefix()).withDataset(dataset);
+        String globalId = ((Xitem) item).getGlobalId();
+        Xrecord xrecord = new Xrecord().withFormatName(parameters.getMetadataPrefix()).withGlobalId(globalId);
         header.withIdentifier(item.getIdentifier());
 
         ItemHelper itemHelperWrap = new ItemHelper(item);

@@ -5,17 +5,17 @@
  */
 package edu.harvard.iq.dataverse.harvest.server.xoai;
 
-import org.dspace.xoai.dataprovider.model.Item;
-import org.dspace.xoai.dataprovider.model.Set;
-import org.dspace.xoai.model.oaipmh.About;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.util.StringUtil;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
+import org.dspace.xoai.dataprovider.model.Item;
+import org.dspace.xoai.dataprovider.model.Set;
+import org.dspace.xoai.model.oaipmh.About;
+
+import edu.harvard.iq.dataverse.util.StringUtil;
 
 
 /**
@@ -35,7 +35,7 @@ public class Xitem implements Item {
 
     private java.util.Set<String> oaisets = new HashSet<>();
 
-    private Dataset dataset;
+    private String globalId;
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -47,12 +47,12 @@ public class Xitem implements Item {
 
     // -------------------- GETTERS --------------------
 
-    public Dataset getDataset() {
-        return dataset;
+    public String getGlobalId() {
+        return this.globalId;
     }
 
-    public Xitem withDataset(Dataset dataset) {
-        this.dataset = dataset;
+    public Xitem withGlobalId(final String id) {
+        this.globalId = id;
         return this;
     }
 

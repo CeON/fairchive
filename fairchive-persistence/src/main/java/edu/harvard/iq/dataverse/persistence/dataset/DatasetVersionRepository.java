@@ -51,4 +51,20 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
                 .setParameter("id", userId)
                 .getResultList();
     }
+    
+    public Optional<DatasetVersion> findLatestReleasedByGlobalId(final String protocol, 
+    		final String authority, final String identifier) {
+    	
+    	  return getSingleResult(createQuery(
+                  "select v from DatasetVersion v join v.dataset d" +
+    			  " where d.protocol=:protocol" +
+                  "  and d.authority=:authority" +
+    			  "  and d.identifier=:identifier" +
+                  "  and v.versionState = edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED" +
+    			  " order by v.lastUpdateTime")
+                  .setParameter("protocol", protocol)
+                  .setParameter("authority", authority)
+                  .setParameter("identifier", identifier)
+                  .setMaxResults(1));
+    }
 }

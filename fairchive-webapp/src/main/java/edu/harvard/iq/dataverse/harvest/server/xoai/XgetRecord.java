@@ -7,6 +7,8 @@ package edu.harvard.iq.dataverse.harvest.server.xoai;
 
 import org.dspace.xoai.model.oaipmh.GetRecord;
 import edu.harvard.iq.dataverse.export.ExportService;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
+
 import org.dspace.xoai.model.oaipmh.Record;
 
 import java.io.IOException;
@@ -35,7 +37,10 @@ public class XgetRecord extends GetRecord {
         this.recordCopy = record;
     }
 
-    public void writeToStream(OutputStream outputStream, ExportService exportService, String dataverseUrl) throws IOException {
+    public void writeToStream(final OutputStream outputStream, 
+    		final ExportService exportService, 
+    		final DatasetVersionRepository repository, final String dataverseUrl) 
+    				throws IOException {
 
         if (this.getRecord() == null) {
             throw new IOException("XgetRecord: null Record");
@@ -45,11 +50,9 @@ public class XgetRecord extends GetRecord {
         outputStream.write(RECORD_START_ELEMENT.getBytes());
         outputStream.flush();
 
-        xrecord.writeToStream(outputStream, exportService, dataverseUrl);
+        xrecord.writeToStream(outputStream, exportService, repository, dataverseUrl);
 
         outputStream.write(RECORD_CLOSE_ELEMENT.getBytes());
         outputStream.flush();
-
     }
-
 }

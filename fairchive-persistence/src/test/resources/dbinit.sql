@@ -157,6 +157,46 @@ INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetf
 INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (581, 580, NULL, 201, 0, E'50.17739 21.82144\n22.21139 21.82144\n22.21139 49.85973\n50.17739 49.85973\n50.17739 21.82144');
 
 
+--- DV:ROOT -> Draft and released only dataset ---
+INSERT INTO dvobject (id, dtype, owner_id, previewimageavailable, protocol, authority, identifier, globalidcreatetime, identifierregistered, storageidentifier, releaseuser_id, publicationdate,
+                      creator_id, createdate, modificationtime, permissionmodificationtime, indextime, permissionindextime)
+    VALUES (69, 'Dataset', 1, false, 'doi', '10.18150', 'FK2/QTVQXY', NULL, false, 'file://10.18150/FK2/QTVQXY', NULL, NULL,
+            1, '2019-09-26 11:43:58.194', '2019-09-26 11:43:58.194', '2019-09-26 11:43:58.194', NULL, NULL);
+
+INSERT INTO dataset (id, fileaccessrequest, harvestidentifier, usegenericthumbnail, citationdatedatasetfieldtype_id, harvestingclient_id, guestbook_id, thumbnailfile_id)
+    VALUES (69, NULL, NULL, false, NULL, NULL, NULL, NULL);
+INSERT INTO datasetversion (id, version, dataset_id, versionstate, versionnumber, minorversionnumber, unf, archivenote, versionnote, deaccessionlink, createtime, lastupdatetime, releasetime, archivetime, archivalcopylocation)
+    VALUES (141, 1, 69, 'DRAFT', 1, 0, NULL, NULL, NULL, NULL, '2019-09-26 11:43:58.204', '2019-09-26 11:43:58.204', NULL, NULL, NULL);
+INSERT INTO datasetversionuser (id, lastupdatedate, authenticateduser_id, datasetversion_id) VALUES (144, '2019-09-26 11:43:58.194', 1, 141);
+INSERT INTO datasetversion (id, version, dataset_id, versionstate, versionnumber, minorversionnumber, unf, archivenote, versionnote, deaccessionlink, createtime, lastupdatetime, releasetime, archivetime, archivalcopylocation)
+    VALUES (142, 1, 69, 'RELEASED', 1, 1, NULL, NULL, NULL, NULL, '2019-09-27 12:43:58.204', '2019-09-27 12:43:58.204', '2019-09-27 12:43:58.204', NULL, NULL);
+INSERT INTO datasetversionuser (id, lastupdatedate, authenticateduser_id, datasetversion_id) VALUES (145, '2019-09-26 11:43:58.194', 1, 142);
+
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1668, NULL, 142, 1, 0, 'Draft only dataset');
+
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1656, NULL, 142, 8, 0, NULL);
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1663, 1656, NULL, 9, 0, 'Some author name');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1665, 1656, NULL, 10, 0, 'author affiliation');
+
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1657, NULL, 142, 17, 0, NULL);
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1664, 1657, NULL, 18, 0, 'draft only description');
+
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1658, NULL, 142, 13, 0, NULL);
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1666, 1658, NULL, 14, 0, 'Some contact name');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1661, 1658, NULL, 15, 0, 'contact affiliation');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1667, 1658, NULL, 16, 0, 'fk2.qtvqkl.contact@mailinator.com');
+
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1659, NULL, 142, 20, 0, NULL);
+INSERT INTO datasetfield_controlledvocabularyvalue (datasetfield_id, controlledvocabularyvalues_id) VALUES (1659, 4);
+
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1662, NULL, 142, 58, 0, '2019-09-26');
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1669, NULL, 142, 57, 0, 'Some depositor name');
+
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1580, NULL, 142, 79, 0, NULL);
+INSERT INTO datasetfield (id, datasetfieldparent_id, datasetversion_id, datasetfieldtype_id, displayorder, fieldvalue) VALUES (1581, 580, NULL, 201, 0, E'50.17739 21.82144\n22.21139 21.82144\n22.21139 49.85973\n50.17739 49.85973\n50.17739 21.82144');
+
+
+
 INSERT INTO dvobject (id, dtype, owner_id, previewimageavailable, protocol, authority, identifier, globalidcreatetime, identifierregistered, storageidentifier, releaseuser_id, publicationdate,
                       creator_id, createdate, modificationtime, permissionmodificationtime, indextime, permissionindextime)
 VALUES (71, 'Dataset', 1, false, 'doi', '10.18150', 'FK2/QTVQKZ', NULL, false, 'file://10.18150/FK2/QTVQKZ', NULL, NULL,

@@ -68,14 +68,14 @@ public class DatasetDaoIT extends WebappArquillianDeployment {
         List<DatasetVersionUser> versions = this.datasetService
                 .getDatasetVersionUsersByAuthenticatedUser(user);
         
-        assertThat(versions.size()).isEqualTo(2);
+        assertThat(versions.size()).isEqualTo(4);
         assertThat(versions.get(0).getAuthenticatedUser()).isEqualTo(user);
         assertThat(versions.get(0).getDatasetVersion().getId()).isEqualTo(41L);
         assertThat(versions.get(0).getId()).isEqualTo(44L);
         
         assertThat(versions.get(1).getAuthenticatedUser()).isEqualTo(user);
-        assertThat(versions.get(1).getDatasetVersion().getId()).isEqualTo(36L);
-        assertThat(versions.get(1).getId()).isEqualTo(39L);
+        assertThat(versions.get(1).getDatasetVersion().getId()).isEqualTo(141L);
+        assertThat(versions.get(1).getId()).isEqualTo(144L);
 
     }
     

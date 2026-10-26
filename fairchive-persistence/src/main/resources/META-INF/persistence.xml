@@ -23,18 +23,10 @@
             <!--<property name="eclipselink.logging.level" value="FINE"/>
             <property name="eclipselink.logging.level.sql" value="FINE"/>
             <property name="eclipselink.logging.parameters" value="true"/>-->
+            
+            <property name="eclipselink.profiler" value="QueryMonitor"/>
+            <property name="eclipselink.logging.file" value="C:\prj\dariah\glassfish4\glassfish\domains\domain1\logs\eclipselink-metrics.log"/>
                         
         </properties>
     </persistence-unit>
-    <!-- the persistence unit below is no longer necessary; needs to be removed
-     from gnrs/TestNRS and from here: - L.A.
-    <persistence-unit name="VDCNet-test" transaction-type="RESOURCE_LOCAL">
-        <provider>oracle.toplink.essentials.ejb.cmp3.EntityManagerFactoryProvider</provider>
-        <properties>
-            <property name="toplink.jdbc.url" value="jdbc:postgresql://localhost:5432/VDCNet-dev"/>
-            <property name="toplink.jdbc.user" value="vdcApp"/>
-            <property name="toplink.jdbc.driver" value="org.postgresql.jdbc3.Jdbc3PoolingDataSource"/>
-            <property name="toplink.jdbc.password" value="secret"/>
-        </properties>
-    </persistence-unit -->
 </persistence>

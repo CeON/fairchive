@@ -19,17 +19,19 @@
  */
 package edu.harvard.iq.dataverse.persistence.harvest;
 
-import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import static javax.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
 
 /**
  * @author Leonid Andreev
@@ -42,7 +44,7 @@ public class OAIRecord implements Serializable, JpaEntity<Long> {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     private String setName;
@@ -115,19 +117,18 @@ public class OAIRecord implements Serializable, JpaEntity<Long> {
 
     @Override
     public boolean equals(final Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof OAIRecord)) {
-            return false;
-        }
-        final OAIRecord other = (OAIRecord) object;
-        return (this.id != null || other.id == null) && 
-        		(this.id == null || this.id.equals(other.id));
+    	if(object != null && getClass().equals(object.getClass())) {
+    		final OAIRecord other = (OAIRecord) object;
+    		return Objects.equals(this.id, other.id);
+    	} else {
+    		return false;
+    	}
     }
 
     // -------------------- toString --------------------
 
     @Override
     public String toString() {
-        return "OAIRecord[ id=" + this.id + " ]";
+        return "OAIRecord[ id=" + this.id + " globalId=" + this.globalId + " ]";
     }
 }

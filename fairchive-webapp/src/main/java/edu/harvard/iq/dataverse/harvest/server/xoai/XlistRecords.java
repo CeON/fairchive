@@ -16,6 +16,7 @@ import org.dspace.xoai.xml.XmlWriter;
 import com.lyncode.xml.exceptions.XmlWriteException;
 
 import edu.harvard.iq.dataverse.export.ExportService;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 
 /**
  * @author Leonid Andreev
@@ -34,11 +35,12 @@ public class XlistRecords extends ListRecords {
     private static final String CURSOR_ATTRIBUTE = "cursor";
 
     public void writeToStream(final OutputStream out, final ExportService exportService,
-    		final String dataverseUrl) throws IOException {
+    		final DatasetVersionRepository repository, final String dataverseUrl) 
+    				throws IOException {
         for (final Record record : this.records) {
             out.write(RECORD_START_ELEMENT);
 
-            ((Xrecord) record).writeToStream(out, exportService, dataverseUrl);
+            ((Xrecord) record).writeToStream(out, exportService, repository, dataverseUrl);
 
             out.write(RECORD_CLOSE_ELEMENT);
         }

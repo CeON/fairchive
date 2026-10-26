@@ -1,18 +1,23 @@
 package edu.harvard.iq.dataverse.harvest.server.xoai;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Optional;
 
 import org.dspace.xoai.model.oaipmh.Record;
 import org.dspace.xoai.services.impl.UTCDateProvider;
+import org.slf4j.Logger;
 
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.ExporterType;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 
 /**
  * @author Leonid Andreev
@@ -24,6 +29,9 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
  */
 
 public class Xrecord extends Record {
+	
+	public static final Logger log = getLogger(Xrecord.class);
+	
     private static final byte[] METADATA_FIELD = "metadata".getBytes();
     private static final byte[] METADATA_START_ELEMENT = "<metadata>".getBytes();
     private static final byte[] METADATA_END_ELEMENT = "</metadata>".getBytes();
@@ -48,16 +56,16 @@ public class Xrecord extends Record {
     
     private final static UTCDateProvider dateProvider = new UTCDateProvider();
 
-    protected Dataset dataset;
+    protected String globalId;
     protected String formatName;
 
 
-    public Dataset getDataset() {
-        return dataset;
+    public String getGlobalId() {
+        return this.globalId;
     }
 
-    public Xrecord withDataset(Dataset dataset) {
-        this.dataset = dataset;
+    public Xrecord withGlobalId(final String id) {
+        this.globalId = id;
         return this;
     }
 
@@ -71,7 +79,8 @@ public class Xrecord extends Record {
     }
 
     public void writeToStream(final OutputStream out, final ExportService exportService, 
-    		final String dataverseUrl) throws IOException {
+    		final DatasetVersionRepository repository, final String dataverseUrl)
+    				throws IOException {
         writeItemHeader(out);
 
         // header.getStatus() is only non-null when it's indicating "deleted".
@@ -79,20 +88,25 @@ public class Xrecord extends Record {
             if (!isExtendedDataverseMetadataMode(formatName)) {
                 out.write(METADATA_START_ELEMENT);
 
-                if (dataset != null && formatName != null) {
+                if (this.globalId != null && formatName != null) {
                     try {
-                    	final Writer writer = new OutputStreamWriter(out, UTF_8);
-                        exportService.export(writer,dataset.getReleasedVersion(),
-                                ExporterType.fromPrefix(formatName).get());                       
-                        writer.flush();
+                    	final GlobalId id = new GlobalId(this.globalId);
+                    	final Optional<DatasetVersion> version = repository.
+                    			findLatestReleasedByGlobalId(id.getProtocol(), 
+                    					id.getAuthority(), id.getIdentifier());
+                    	if(version.isPresent()) {
+	                    	final Writer writer = new OutputStreamWriter(out, UTF_8);
+	                        exportService.export(writer, version.get(),
+	                                ExporterType.fromPrefix(formatName).get());                       
+	                        writer.flush();
+                    	}
                     } catch (final Exception e) {
                         throw new RuntimeException(e);
                     }
                 }
                 out.write(METADATA_END_ELEMENT);
             } else {
-            	writeCustomMetadataExtensionRef(out, this.dataset.getGlobalId().toString(), 
-            			dataverseUrl);
+            	writeCustomMetadataExtensionRef(out, this.globalId, dataverseUrl);
             }
         }
         out.flush();
@@ -107,7 +121,7 @@ public class Xrecord extends Record {
         	out.write(STATUS_ATTRIBUTE);
         	out.write(EQUALS);
         	out.write(DOUBLE_QUOTE);
-        	out.write(this.header.getStatus().value().getBytes());
+        	out.write(this.header.getStatus().value().getBytes(UTF_8));
         	out.write(DOUBLE_QUOTE);
         }
     	out.write(GT);
@@ -115,7 +129,7 @@ public class Xrecord extends Record {
 	    	out.write(LT);
 	    	out.write(IDENTIFIER_FIELD);
 	    	out.write(GT);
-	    	out.write(this.header.getIdentifier().getBytes());
+	    	out.write(this.header.getIdentifier().getBytes(UTF_8));
 	    	out.write(LT);
 	    	out.write(SLASH);
 	    	out.write(IDENTIFIER_FIELD);
@@ -125,7 +139,7 @@ public class Xrecord extends Record {
 	    	out.write(LT);
 	    	out.write(DATESTAMP_FIELD);
 	    	out.write(GT);
-	    	out.write(dateProvider.format(this.header.getDatestamp()).getBytes());
+	    	out.write(dateProvider.format(this.header.getDatestamp()).getBytes(UTF_8));
 	    	out.write(LT);
 	    	out.write(SLASH);
 	    	out.write(DATESTAMP_FIELD);
@@ -136,7 +150,7 @@ public class Xrecord extends Record {
     	    	out.write(LT);
     	    	out.write(SETSPEC_FIELD);
     	    	out.write(GT);
-    	    	out.write(setSpec.getBytes());
+    	    	out.write(setSpec.getBytes(UTF_8));
     	    	out.write(LT);
     	    	out.write(SLASH);
     	    	out.write(SETSPEC_FIELD);
@@ -155,12 +169,12 @@ public class Xrecord extends Record {
     	 out.write(LT);
     	 out.write(METADATA_FIELD);
     	 out.write(DIRECT_API_CALL);
-    	 out.write(dataverseUrl.getBytes());
+    	 out.write(dataverseUrl.getBytes(UTF_8));
     	 out.write(DATAVERSE_EXTENDED_METADATA_API);
     	 out.write(EXPORTER);
     	 out.write(DATAVERSE_EXTENDED_METADATA_FORMAT_BYTES);
     	 out.write(PERSISTENT_ID);
-    	 out.write(identifier.getBytes());
+    	 out.write(identifier.getBytes(UTF_8));
     	 out.write(DOUBLE_QUOTE);
     	 out.write(SLASH);
     	 out.write(GT);

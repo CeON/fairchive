@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.persistence.dataset;
 
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -87,9 +88,9 @@ public class DatasetRepositoryIT extends PersistenceArquillianDeployment {
         List<Dataset> datasetsFound = datasetRepository.findByNonRegisteredIdentifier();
 
         // then
-        org.assertj.core.api.Assertions.assertThat(datasetsFound).size().isEqualTo(7);
-        org.assertj.core.api.Assertions.assertThat(datasetsFound).extracting(DvObject::getId)
-                .containsOnly(52L, 56L, 57L, 66L, 72L, 73L, 74L);
+        assertThat(datasetsFound).size().isEqualTo(8);
+        assertThat(datasetsFound).extracting(DvObject::getId)
+                .containsOnly(52L, 56L, 57L, 66L, 72L, 73L, 74L, 69L);
     }
     
     @Test

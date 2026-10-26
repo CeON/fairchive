@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.harvest.server.web.servlet;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OAIServerEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SystemEmail;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.dspace.xoai.dataprovider.model.MetadataFormat.metadataFormat;
@@ -42,7 +43,6 @@ import org.dspace.xoai.xml.XmlWriter;
 import com.lyncode.xml.exceptions.XmlWriteException;
 
 import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
@@ -52,6 +52,7 @@ import edu.harvard.iq.dataverse.harvest.server.xoai.XgetRecord;
 import edu.harvard.iq.dataverse.harvest.server.xoai.XitemRepository;
 import edu.harvard.iq.dataverse.harvest.server.xoai.XlistRecords;
 import edu.harvard.iq.dataverse.harvest.server.xoai.XsetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 
@@ -87,9 +88,9 @@ public class OAIServlet extends HttpServlet {
     private OAIRecordServiceBean recordService;
     private SettingsServiceBean settingsService;
     private DataverseDao dataverseDao;
-    private DatasetService datasetService;
     private SystemConfig systemConfig;
     private ExportService exportService;
+    private DatasetVersionRepository datasetVersionRepository;
 
     private Context xoaiContext;
     private SetRepository setRepository;
@@ -107,15 +108,15 @@ public class OAIServlet extends HttpServlet {
     @Inject
     public OAIServlet(OAISetServiceBean setService, OAIRecordServiceBean recordService,
                       SettingsServiceBean settingsService, DataverseDao dataverseDao,
-                      DatasetService datasetService, SystemConfig systemConfig,
-                      ExportService exportService) {
+                      SystemConfig systemConfig, ExportService exportService, 
+                      final DatasetVersionRepository datasetVersionRepository) {
         this.setService = setService;
         this.recordService = recordService;
         this.settingsService = settingsService;
         this.dataverseDao = dataverseDao;
-        this.datasetService = datasetService;
         this.systemConfig = systemConfig;
         this.exportService = exportService;
+        this.datasetVersionRepository = datasetVersionRepository;
     }
 
     // -------------------- GETTERS --------------------
@@ -148,7 +149,7 @@ public class OAIServlet extends HttpServlet {
         }
 
         setRepository = new XsetRepository(setService);
-        itemRepository = new XitemRepository(recordService, datasetService, systemConfig);
+        itemRepository = new XitemRepository(recordService, systemConfig);
 
         repositoryConfiguration = createRepositoryConfiguration();
 
@@ -343,10 +344,10 @@ public class OAIServlet extends HttpServlet {
         }
 
         out.write(LT);
-        out.write(verb.getType().displayName().getBytes());
+        out.write(verb.getType().displayName().getBytes(UTF_8));
         out.write(GT);
 
-        ((XlistRecords) verb).writeToStream(out, exportService, 
+        ((XlistRecords) verb).writeToStream(out, exportService, datasetVersionRepository,
                 systemConfig.getDataverseSiteUrl());
 
         writeFooter(out, verb);
@@ -368,10 +369,10 @@ public class OAIServlet extends HttpServlet {
         }
 
         out.write(LT);
-        out.write(verb.getType().displayName().getBytes());
+        out.write(verb.getType().displayName().getBytes(UTF_8));
         out.write(GT);
 
-        ((XgetRecord) verb).writeToStream(out, exportService, 
+        ((XgetRecord) verb).writeToStream(out, exportService, this.datasetVersionRepository,
                 systemConfig.getDataverseSiteUrl());
         
         writeFooter(out, verb);
@@ -385,7 +386,7 @@ public class OAIServlet extends HttpServlet {
     	out.write(LT);
     	out.write(RESPONSEDATE_FIELD);
     	out.write(GT);
-    	out.write(dateProvider.format(handle.getResponseDate(), Granularity.Second).getBytes());
+    	out.write(dateProvider.format(handle.getResponseDate(), Granularity.Second).getBytes(UTF_8));
     	out.write(LT);
     	out.write(SLASH);
     	out.write(RESPONSEDATE_FIELD);
@@ -399,7 +400,7 @@ public class OAIServlet extends HttpServlet {
 	    	out.write(VERB);
 	    	out.write(EQUALS);
 	    	out.write(DOUBLE_QUOTE);
-	    	out.write(request.getVerb().getBytes());
+	    	out.write(request.getVerb().getBytes(UTF_8));
 	    	out.write(DOUBLE_QUOTE);
     	}
     	out.write(SPACE);
@@ -407,11 +408,11 @@ public class OAIServlet extends HttpServlet {
 	    	out.write(METADATA_PREFIX);
 	    	out.write(EQUALS);
 	    	out.write(DOUBLE_QUOTE);
-	    	out.write(request.getMetadataPrefix().getBytes());
+	    	out.write(request.getMetadataPrefix().getBytes(UTF_8));
 	    	out.write(DOUBLE_QUOTE);
     	}
     	out.write(GT);
-    	out.write(request.getBaseUrl().getBytes());
+    	out.write(request.getBaseUrl().getBytes(UTF_8));
     	out.write(LT);
     	out.write(SLASH);
     	out.write(REQUEST);
@@ -430,7 +431,7 @@ public class OAIServlet extends HttpServlet {
     		throws IOException {
         out.write(LT);
         out.write(SLASH);
-        out.write(verb.getType().displayName().getBytes());
+        out.write(verb.getType().displayName().getBytes(UTF_8));
         out.write(GT);
         out.write(LT);
         out.write(SLASH);

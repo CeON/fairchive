@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.quality.Strictness.LENIENT;
 
 import java.time.Instant;
 import java.util.Date;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
 
 import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
@@ -28,6 +30,7 @@ import edu.harvard.iq.dataverse.persistence.harvest.OAIRecord;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = LENIENT)
 public class XitemRepositoryTest {
 
     @InjectMocks
@@ -59,7 +62,6 @@ public class XitemRepositoryTest {
         // then
         assertThat(item).isInstanceOf(Xitem.class);
         assertThat(item.getIdentifier()).isEqualTo("id");
-        assertThat(((Xitem)item).getDataset()).isEqualTo(dataset);
         assertThat(item.getDatestamp()).hasSameTimeAs("1990-01-01T10:00:00Z");
         assertThat(item.getSets()).extracting(Set::getSpec)
             .containsExactlyInAnyOrder("set2", "set3");
@@ -69,17 +71,6 @@ public class XitemRepositoryTest {
     void getRecord_no_oai_record_present() throws IdDoesNotExistException, OAIException {
         // given
         when(recordService.findOaiRecordsByGlobalId("id")).thenReturn(emptyList());
-
-        // when & then
-        assertThatThrownBy(() -> xitemRepository.getItem("id"))
-            .isInstanceOf(IdDoesNotExistException.class);
-    }
-
-    @Test
-    void getRecord_no_dataset() throws IdDoesNotExistException, OAIException {
-        // given
-        OAIRecord oaiRecord1 = new OAIRecord("", "id", dateFrom("1990-01-01T10:00:00.00Z"));
-        when(recordService.findOaiRecordsByGlobalId("id")).thenReturn(asList(oaiRecord1));
 
         // when & then
         assertThatThrownBy(() -> xitemRepository.getItem("id"))
