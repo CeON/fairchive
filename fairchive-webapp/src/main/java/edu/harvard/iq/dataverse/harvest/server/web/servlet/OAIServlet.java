@@ -455,7 +455,7 @@ public class OAIServlet extends HttpServlet {
 	    	out.write(RESUMPTION_TOKEN);
 	    	out.write(EQUALS);
 	    	out.write(DOUBLE_QUOTE);
-	    	out.write(formatter.format(request.getResumptionToken()).getBytes(UTF_8));
+	    	out.write(request.getResumptionToken().getBytes(UTF_8));
 	    	out.write(DOUBLE_QUOTE);
     	}
     	
