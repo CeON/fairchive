@@ -39,6 +39,11 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
     private final List<DatasetFieldType> facets;
 
     public CreateDataverseCommand(final Dataverse created, 
+    		final DataverseRequest request) {
+    	this(created, request, null, null);
+    }
+    
+    public CreateDataverseCommand(final Dataverse created, 
     		final DataverseRequest request, final List<DatasetFieldType> facets,
             final List<DataverseFieldTypeInputLevel> inputLevels) {
     	

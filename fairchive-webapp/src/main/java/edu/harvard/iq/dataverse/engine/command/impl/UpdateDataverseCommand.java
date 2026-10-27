@@ -28,6 +28,10 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
     private final List<Dataverse> featuredDataverseList;
     private final List<DataverseFieldTypeInputLevel> inputLevelList;
 
+    public UpdateDataverseCommand(Dataverse dataverse, DataverseRequest request) {
+    	this(dataverse, null, null, request, null);
+    }
+    
     public UpdateDataverseCommand(Dataverse editedDv, List<DatasetFieldType> facetList, 
             List<Dataverse> featuredDataverseList, DataverseRequest aRequest, 
             List<DataverseFieldTypeInputLevel> inputLevelList) {

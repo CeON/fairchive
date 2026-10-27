@@ -4,7 +4,6 @@ import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DisableRootDataverseTheme;
-import static java.util.Collections.emptyList;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -30,15 +29,12 @@ import javax.inject.Named;
 import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;
-import org.primefaces.model.DualListModel;
 import org.primefaces.model.file.UploadedFile;
 
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.TempLogoStorageManager;
-import edu.harvard.iq.dataverse.dataverse.themewidget.ThemeWidgetService;
-import edu.harvard.iq.dataverse.error.DataverseError;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
+import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
@@ -49,7 +45,6 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
-import io.vavr.control.Either;
 
 @SuppressWarnings("serial")
 @ViewScoped
@@ -57,7 +52,6 @@ import io.vavr.control.Either;
 public class CreateEditDataversePage implements Serializable {
 
     private DataverseService dataverseService;
-    private ThemeWidgetService themeWidgetService;
     private PermissionsWrapper permissionsWrapper;
     private DataverseSession session;
     private SystemConfig config;
@@ -78,14 +72,12 @@ public class CreateEditDataversePage implements Serializable {
     public CreateEditDataversePage() {}
     @Inject
     public CreateEditDataversePage(final DataverseService dataverseService,
-    	    					   final ThemeWidgetService themeWidgetService,
     							   final PermissionsWrapper permissionsWrapper,
     							   final DataverseSession session,
     							   final SystemConfig config,
     							   final TempLogoStorageManager tempLogoStorageManager,
     							   final UIMessages ui) {
     	this.dataverseService = dataverseService;
-    	this.themeWidgetService = themeWidgetService;
     	this.permissionsWrapper = permissionsWrapper;
     	this.session = session;
     	this.config = config;
@@ -508,75 +500,26 @@ public class CreateEditDataversePage implements Serializable {
     }
 
     public String save() {
-    	if(session.isUserLoggedIn()) {
-	        if (this.dataverse.isNew()) {
-	            return saveNewDataverse();
-	        } else {
-	        	return saveEditedDataverse();
-	        }
-    	} else {
-    		this.ui.addErrorMessage(getStringFromBundle("dataverse.create.authenticatedUsersOnly"));
-    		return EMPTY;
-    	}
-    }   
-    
-    private String saveEditedDataverse() {
-    	this.dataverse.addVersion(this.version);
-        final Either<DataverseError, Dataverse> editResult = 
-        		this.dataverseService.saveEditedDataverse(emptyList(), 
-        				this.dataverse, new DualListModel<DatasetFieldType>());
-        if (editResult.isLeft()) {
-            this.ui.addErrorMessage(editResult.getLeft().getErrorMsg(), EMPTY);
+    	try {
+	    	this.dataverse.addVersion(this.version);
+	    	if (this.dataverse.isNew()) {
+	    		this.dataverseService.saveNewDataverse(this.dataverse, this.storage);
+	    	} else {
+	    		this.dataverseService.saveEditedDataverse(this.dataverse, this.storage);
+	    	}
+            this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
+                    this.config.getGuidesBaseUrl(this.session.getLocale()),
+                    this.config.getGuidesVersion()));
+        	return returnRedirect();
+    	} catch(final CommandException e) {
+            this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
+                    				  getStringFromBundle("dataverse.theme.failure"));
             return EMPTY;
-        } else {
-        	try {
-    	        if (this.dataverse.isThemeRoot()) {
-    	            this.themeWidgetService.
-    	            		saveOrUpdateUploadedTheme(this.dataverse, this.storage);
-    	        } else {
-    	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
-    	        }
-	        	this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.update.success"));
-	        	return returnRedirect();
-        	} catch(final Exception e) {
-                this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
-                        				  getStringFromBundle("dataverse.theme.failure"));
-                return EMPTY;
-            } finally {
-            	closeStorage();
-            }
-        }
-    }
-
-    private String saveNewDataverse() {
-    	
-    	this.dataverse.addVersion(this.version);
-        final Either<DataverseError, Dataverse> saveResult = 
-        		this.dataverseService.saveNewDataverse(emptyList(), 
-        				this.dataverse, new DualListModel<DatasetFieldType>());
-
-        if (saveResult.isLeft()) {
-            this.ui.addErrorMessage(saveResult.getLeft().getErrorMsg(), EMPTY);
-            return EMPTY;
-        } else {
-            try {
-    	        if (this.dataverse.isThemeRoot()) {
-    	            this.themeWidgetService.
-    	            		saveOrUpdateUploadedTheme(this.dataverse, this.storage);
-    	        } else {
-    	        	this.dataverse = this.themeWidgetService.inheritThemeFromRoot(this.dataverse);
-    	        }
-                this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
-                        this.config.getGuidesBaseUrl(this.session.getLocale()),
-                        this.config.getGuidesVersion()));
-            	return returnRedirect();
-            } catch(final Exception e) {
-                this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
-                        				  getStringFromBundle("dataverse.theme.failure"));
-                return EMPTY;
-            } finally {
-            	closeStorage();
-            }
+        }  catch(final Exception e) {
+        	this.ui.addErrorMessage(e.getMessage(), EMPTY);
+        	return EMPTY;
+        } finally {
+        	closeStorage();
         }
     }
 
