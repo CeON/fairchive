@@ -11,6 +11,7 @@ import static org.dspace.xoai.model.oaipmh.Verb.Type.ListRecords;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -70,7 +71,12 @@ public class OAIServlet extends HttpServlet {
     private static final byte[] RESPONSEDATE_FIELD = "responseDate".getBytes();
     private static final byte[] REQUEST = "request".getBytes();
     private static final byte[] VERB = "verb".getBytes();
+    private static final byte[] IDENTIFIER = "identifier".getBytes();
     private static final byte[] METADATA_PREFIX = "metadataPrefix".getBytes();
+    private static final byte[] FROM = "from".getBytes();
+    private static final byte[] UNTIL = "from".getBytes();
+    private static final byte[] SET = "set".getBytes();
+    private static final byte[] RESUMPTION_TOKEN = "resumptionToken".getBytes();
     private static final String DATAVERSE_EXTENDED_METADATA_FORMAT = "dataverse_json";
     private static final String DATAVERSE_EXTENDED_METADATA_INFO = "Custom Dataverse metadata in JSON format (Dataverse4 to Dataverse4 harvesting only)";
     private static final String DATAVERSE_EXTENDED_METADATA_SCHEMA = "JSON schema pending";
@@ -394,23 +400,65 @@ public class OAIServlet extends HttpServlet {
     	
     	out.write(LT);
     	out.write(REQUEST);
-    	out.write(SPACE);
     	final Request request = handle.getRequest();
     	{
+        	out.write(SPACE);
 	    	out.write(VERB);
 	    	out.write(EQUALS);
 	    	out.write(DOUBLE_QUOTE);
 	    	out.write(request.getVerb().getBytes(UTF_8));
 	    	out.write(DOUBLE_QUOTE);
     	}
-    	out.write(SPACE);
-    	{
+    	if(request.getIdentifier() != null) {
+        	out.write(SPACE);
+	    	out.write(IDENTIFIER);
+	    	out.write(EQUALS);
+	    	out.write(DOUBLE_QUOTE);
+	    	out.write(request.getIdentifier().getBytes(UTF_8));
+	    	out.write(DOUBLE_QUOTE);
+    	}
+    	if(request.getMetadataPrefix() != null) {
+        	out.write(SPACE);
 	    	out.write(METADATA_PREFIX);
 	    	out.write(EQUALS);
 	    	out.write(DOUBLE_QUOTE);
 	    	out.write(request.getMetadataPrefix().getBytes(UTF_8));
 	    	out.write(DOUBLE_QUOTE);
     	}
+    	final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss");
+    	if(request.getFrom() != null) {
+        	out.write(SPACE);
+	    	out.write(FROM);
+	    	out.write(EQUALS);
+	    	out.write(DOUBLE_QUOTE);
+	    	out.write(formatter.format(request.getFrom()).getBytes(UTF_8));
+	    	out.write(DOUBLE_QUOTE);
+    	}
+    	if(request.getUntil() != null) {
+        	out.write(SPACE);
+	    	out.write(UNTIL);
+	    	out.write(EQUALS);
+	    	out.write(DOUBLE_QUOTE);
+	    	out.write(formatter.format(request.getUntil()).getBytes(UTF_8));
+	    	out.write(DOUBLE_QUOTE);
+    	}
+    	if(request.getSet() != null) {
+        	out.write(SPACE);
+	    	out.write(SET);
+	    	out.write(EQUALS);
+	    	out.write(DOUBLE_QUOTE);
+	    	out.write(request.getSet().getBytes(UTF_8));
+	    	out.write(DOUBLE_QUOTE);
+    	}
+    	if(request.getResumptionToken() != null) {
+        	out.write(SPACE);
+	    	out.write(RESUMPTION_TOKEN);
+	    	out.write(EQUALS);
+	    	out.write(DOUBLE_QUOTE);
+	    	out.write(formatter.format(request.getResumptionToken()).getBytes(UTF_8));
+	    	out.write(DOUBLE_QUOTE);
+    	}
+    	
     	out.write(GT);
     	out.write(request.getBaseUrl().getBytes(UTF_8));
     	out.write(LT);
