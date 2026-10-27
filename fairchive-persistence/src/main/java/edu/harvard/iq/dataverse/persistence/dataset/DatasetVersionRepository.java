@@ -61,7 +61,7 @@ public class DatasetVersionRepository extends JpaRepository<Long, DatasetVersion
                   "  and d.authority=:authority" +
     			  "  and d.identifier=:identifier" +
                   "  and v.versionState = edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState.RELEASED" +
-    			  " order by v.lastUpdateTime")
+    			  " order by v.lastUpdateTime desc")
                   .setParameter("protocol", protocol)
                   .setParameter("authority", authority)
                   .setParameter("identifier", identifier)
