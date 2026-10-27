@@ -47,7 +47,6 @@ public class XitemRepository implements ItemRepository {
     @Override
     public Item getItem(String identifier) throws IdDoesNotExistException, OAIException {
         logger.fine("getItem; calling findOaiRecordsByGlobalId, identifier " + identifier);
-        final String globalId = identifier;
         identifier = parseIdetifier(identifier);
         List<OAIRecord> oaiRecords = recordService.findOaiRecordsByGlobalId(identifier);
         if (oaiRecords.isEmpty()) {
@@ -62,7 +61,7 @@ public class XitemRepository implements ItemRepository {
                 .orElse(oaiRecords.get(0).getLastUpdateTime());
 
         Xitem xoaiItem = new Xitem(prepareId(identifier), lastUpdateTimestamp, removed)
-                .withGlobalId(globalId);
+                .withGlobalId(identifier);
 
         oaiRecords.forEach(record -> xoaiItem.addSet(record.getSetName()));
         return xoaiItem;
