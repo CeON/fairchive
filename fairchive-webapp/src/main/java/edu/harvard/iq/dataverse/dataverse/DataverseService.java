@@ -114,15 +114,20 @@ public class DataverseService {
 			dataverse.getLatestVersion().setTheme(null);
 			storage = null;
 		}
-		dataverse = this.commandEngine.submit(dataverse.isNew()
-				? new CreateDataverseCommand(dataverse, request)
-				: new UpdateDataverseCommand(dataverse, request));
-        dataverse = this.commandEngine.submit(
-        		new UpdateDataverseThemeCommand(dataverse, storage, request));
-		this.userNotificationService.sendNotificationWithEmail((
-				AuthenticatedUser) this.session.getUser(), 
-				dataverse.getCreateDate(), CREATEDV, dataverse.getId(), 
-				DATAVERSE);
+		if (dataverse.isNew()) {
+			dataverse = this.commandEngine.submit(
+					new CreateDataverseCommand(dataverse, request));
+			dataverse = this.commandEngine.submit(
+					new UpdateDataverseThemeCommand(dataverse, storage, request));
+			this.userNotificationService.sendNotificationWithEmail(
+					this.session.getAuthenticatedUser(), dataverse.getCreateDate(), 
+					CREATEDV, dataverse.getId(), DATAVERSE);
+		} else {
+			dataverse = this.commandEngine.submit(
+					new UpdateDataverseCommand(dataverse, request));
+			dataverse = this.commandEngine.submit(
+					new UpdateDataverseThemeCommand(dataverse, storage, request));
+		}
 		return dataverse;
 	}
 
