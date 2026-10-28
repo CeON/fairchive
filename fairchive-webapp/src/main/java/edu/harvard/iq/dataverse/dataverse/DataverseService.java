@@ -7,7 +7,6 @@ import static edu.harvard.iq.dataverse.persistence.user.NotificationType.CREATED
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
@@ -103,20 +102,8 @@ public class DataverseService {
 
         return Either.right(dataverse);
     }
-    
-	public Dataverse saveNewDataverse(Dataverse dataverse,
-			TempLogoStorageManager.Storage storage) {
-		return saveDataverse(dataverse, storage, CreateDataverseCommand::new);
-	}
 	
-	public Dataverse saveEditedDataverse(Dataverse dataverse,
-			TempLogoStorageManager.Storage storage) {
-		return saveDataverse(dataverse, storage, UpdateDataverseCommand::new);
-	}
-	
-	private Dataverse saveDataverse(Dataverse dataverse,
-			TempLogoStorageManager.Storage storage,
-			BiFunction<Dataverse, DataverseRequest, Command<Dataverse>> commandFactory) {
+	public Dataverse save(Dataverse dataverse, TempLogoStorageManager.Storage storage) {
 
 		if (!this.session.isUserLoggedIn()) {
 			throw new EJBException(
@@ -127,7 +114,9 @@ public class DataverseService {
 			dataverse.getLatestVersion().setTheme(null);
 			storage = null;
 		}
-		dataverse = commandEngine.submit(commandFactory.apply(dataverse, request));
+		dataverse = this.commandEngine.submit(dataverse.isNew()
+				? new CreateDataverseCommand(dataverse, request)
+				: new UpdateDataverseCommand(dataverse, request));
         dataverse = this.commandEngine.submit(
         		new UpdateDataverseThemeCommand(dataverse, storage, request));
 		this.userNotificationService.sendNotificationWithEmail((
@@ -136,8 +125,6 @@ public class DataverseService {
 				DATAVERSE);
 		return dataverse;
 	}
-	
-	
 
     public Either<DataverseError, Dataverse> saveEditedDataverse(Collection<DataverseFieldTypeInputLevel> dftilToBeSaved,
                                                                  Dataverse dataverse,

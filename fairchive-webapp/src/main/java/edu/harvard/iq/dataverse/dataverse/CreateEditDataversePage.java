@@ -17,6 +17,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.PreDestroy;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
@@ -173,12 +174,28 @@ public class CreateEditDataversePage implements Serializable {
         return this.dataverseId;
     }
 
+    public void setDataverseId(final Long id) {
+        this.dataverseId = id;
+    }
+
     public Long getOwnerId() {
         return this.ownerId;
+    }
+    
+    public void setOwnerId(final Long id) {
+        this.ownerId = id;
     }
 
     public String getDataverseOwnerAlias() {
         return this.dataverseOwnerAlias;
+    }
+
+    public void setInheritFacetFromParent(final boolean inherit) {
+        this.dataverse.setFacetRoot(!inherit);
+    }
+
+    public void setDataverseOwnerAlias(final String alias) {
+        this.dataverseOwnerAlias = alias;
     }
     
     public boolean isFacetPickListDisabled() {
@@ -502,11 +519,7 @@ public class CreateEditDataversePage implements Serializable {
     public String save() {
     	try {
 	    	this.dataverse.addVersion(this.version);
-	    	if (this.dataverse.isNew()) {
-	    		this.dataverseService.saveNewDataverse(this.dataverse, this.storage);
-	    	} else {
-	    		this.dataverseService.saveEditedDataverse(this.dataverse, this.storage);
-	    	}
+	    	this.dataverseService.save(this.dataverse, this.storage);
             this.ui.addFlashSuccessMessage(getStringFromBundle("dataverse.create.success",
                     this.config.getGuidesBaseUrl(this.session.getLocale()),
                     this.config.getGuidesVersion()));
@@ -527,41 +540,16 @@ public class CreateEditDataversePage implements Serializable {
     	closeStorage();
         return returnRedirect();
     }
+    
+    @PreDestroy
+    public void closeStorage() {
+        closeQuietly(this.storage);
+        this.storage = null;
+    }
 
     private String returnRedirect() {
     	return "/dataverse.xhtml?faces-redirect=true&alias=".concat(
     			this.dataverse.isNew() ? this.dataverseOwnerAlias : this.dataverse.getAlias());
-    }
-
-    // -------------------- SETTERS --------------------
-
-    public void setDataverse(final Dataverse dataverse) {
-        this.dataverse = dataverse;
-    }
-
-    public void setDataverseId(final Long id) {
-        this.dataverseId = id;
-    }
-
-    public void setOwnerId(final Long id) {
-        this.ownerId = id;
-    }
-
-    public void setInheritFacetFromParent(final boolean inherit) {
-        this.dataverse.setFacetRoot(!inherit);
-    }
-
-    public void setDataverseOwnerAlias(final String alias) {
-        this.dataverseOwnerAlias = alias;
-    }
-
-    // -------------------- PRIVATE --------------------
-    
-    private void closeStorage() {
-    	if(this.storage != null) {
-            closeQuietly(this.storage);
-            this.storage = null;
-    	}
     }
 
     private boolean isPrefillEnabled() {
