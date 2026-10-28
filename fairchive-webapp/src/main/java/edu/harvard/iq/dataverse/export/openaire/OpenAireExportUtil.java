@@ -1,32 +1,5 @@
 package edu.harvard.iq.dataverse.export.openaire;
 
-import com.rometools.utils.Lists;
-import edu.harvard.iq.dataverse.api.dto.DatasetDTO;
-import edu.harvard.iq.dataverse.api.dto.DatasetVersionDTO;
-import edu.harvard.iq.dataverse.api.dto.FileMetadataDTO;
-import edu.harvard.iq.dataverse.api.dto.MetadataBlockWithFieldsDTO;
-import edu.harvard.iq.dataverse.api.dto.DatasetFieldDTO;
-import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
-import edu.harvard.iq.dataverse.common.MarkupChecker;
-import edu.harvard.iq.dataverse.export.RelatedIdentifierTypeConstants;
-import edu.harvard.iq.dataverse.persistence.GlobalId;
-import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
-import edu.harvard.iq.dataverse.search.response.GeoPoint;
-import org.apache.commons.text.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.OutputStream;
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.ALL_RIGHTS_RESERVED;
 import static edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse.TermsOfUseType.RESTRICTED;
 import static java.lang.Integer.max;
@@ -38,6 +11,37 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.substring;
+
+import java.io.OutputStream;
+import java.io.Writer;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+
+import com.rometools.utils.Lists;
+
+import edu.harvard.iq.dataverse.api.dto.DatasetDTO;
+import edu.harvard.iq.dataverse.api.dto.DatasetFieldDTO;
+import edu.harvard.iq.dataverse.api.dto.DatasetVersionDTO;
+import edu.harvard.iq.dataverse.api.dto.FileMetadataDTO;
+import edu.harvard.iq.dataverse.api.dto.MetadataBlockWithFieldsDTO;
+import edu.harvard.iq.dataverse.common.DatasetFieldConstant;
+import edu.harvard.iq.dataverse.common.MarkupChecker;
+import edu.harvard.iq.dataverse.export.RelatedIdentifierTypeConstants;
+import edu.harvard.iq.dataverse.persistence.GlobalId;
+import edu.harvard.iq.dataverse.persistence.datafile.license.FileTermsOfUse;
+import edu.harvard.iq.dataverse.search.response.GeoPoint;
 
 public class OpenAireExportUtil {
 
@@ -55,6 +59,23 @@ public class OpenAireExportUtil {
     public static void datasetJson2openaire(DatasetDTO datasetDto, OutputStream outputStream) 
             throws XMLStreamException {
         XMLStreamWriter xmlw = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream);
+
+        xmlw.writeStartElement("resource"); // <resource>
+
+        xmlw.writeAttribute("xmlns:xsi", XSI_NAMESPACE);
+        xmlw.writeAttribute("xmlns", RESOURCE_NAMESPACE);
+        xmlw.writeAttribute("xsi:schemaLocation", RESOURCE_NAMESPACE + ' ' + RESOURCE_SCHEMA_LOCATION);
+
+        createOpenAire(xmlw, datasetDto);
+
+        xmlw.writeEndElement(); // </resource>
+
+        xmlw.flush();
+    }
+    
+    public static void datasetJson2openaire(DatasetDTO datasetDto, Writer writer) 
+            throws XMLStreamException {
+        XMLStreamWriter xmlw = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
 
         xmlw.writeStartElement("resource"); // <resource>
 

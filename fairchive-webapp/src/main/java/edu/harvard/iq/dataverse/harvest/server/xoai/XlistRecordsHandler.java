@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.harvest.server.xoai;
 
+import java.util.List;
+
 import org.dspace.xoai.dataprovider.exceptions.BadArgumentException;
 import org.dspace.xoai.dataprovider.exceptions.CannotDisseminateFormatException;
 import org.dspace.xoai.dataprovider.exceptions.DoesNotSupportSetsException;
@@ -21,9 +23,6 @@ import org.dspace.xoai.model.oaipmh.Header;
 import org.dspace.xoai.model.oaipmh.ListRecords;
 import org.dspace.xoai.model.oaipmh.Record;
 import org.dspace.xoai.model.oaipmh.ResumptionToken;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-
-import java.util.List;
 
 /**
  * @author Leonid Andreev
@@ -135,8 +134,8 @@ public class XlistRecordsHandler extends VerbHandler<ListRecords> {
             OAIException, NoMetadataFormatsException, CannotDisseminateFormatException {
         Header header = new Header();
 
-        Dataset dataset = ((Xitem) item).getDataset();
-        Xrecord xrecord = new Xrecord().withFormatName(parameters.getMetadataPrefix()).withDataset(dataset);
+        String globalId = ((Xitem) item).getGlobalId();
+        Xrecord xrecord = new Xrecord().withFormatName(parameters.getMetadataPrefix()).withGlobalId(globalId);
         header.withIdentifier(item.getIdentifier());
 
         ItemHelper itemHelperWrap = new ItemHelper(item);

@@ -1,5 +1,7 @@
 package edu.harvard.iq.dataverse.export;
 
+import java.io.Writer;
+
 import javax.ejb.Stateless;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -36,6 +38,12 @@ public class ExportService {
             final ExporterType type)
             throws ExportException {
         return getExporterOf(type).exportDataset(datasetVersion);
+    }
+    
+    public void export(final Writer writer, final DatasetVersion datasetVersion,
+            final ExporterType type)
+            throws Exception {
+        getExporterOf(type).exportDataset(writer, datasetVersion);
     }
     
     public boolean isExporterAvailableFor(final ExporterType type) {

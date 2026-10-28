@@ -14,6 +14,7 @@ import static java.util.stream.Collectors.toMap;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 import static javax.persistence.TemporalType.TIMESTAMP;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -135,7 +136,7 @@ public class DatasetVersion implements Serializable, JpaEntity<Long>, DatasetVer
     @Enumerated(EnumType.STRING)
     private VersionState versionState;
 
-    @ManyToOne
+    @ManyToOne(fetch = LAZY)
     private Dataset dataset;
 
     @OneToMany(mappedBy = "datasetVersion", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)

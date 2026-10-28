@@ -77,11 +77,11 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
 
         // when & then
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "title:only", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 0, 20, false),
-                "dataset_66_draft");
+                "dataset_66_draft", "dataset_69");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "only", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 0, 20, false),
-                "dataset_66_draft");
+                "dataset_66_draft", "dataset_69");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "dateOfDeposit:2019", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 0, 20, false),
-                "dataset_66_draft", "dataset_52_draft");
+                "dataset_66_draft", "dataset_69", "dataset_52_draft");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "doi:10.18150/FK2/MLXK1N", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 0, 20, false),
                 "dataset_52_draft");
 
@@ -101,9 +101,9 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
         // when & then
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), filters1, "dateSort", SortOrder.desc, 0, 20, false),
                 "dataset_74", "dataset_73", "dataset_72", "dataset_57", "dataset_101", "dataset_102",
-                "dataset_56", "dataverse_23", "dataverse_22", "dataverse_21", "dataverse_20", "dataverse_19");
+                "dataset_56", "dataset_69", "dataverse_23", "dataverse_22", "dataverse_21", "dataverse_20", "dataverse_19");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), filters2, "dateSort", SortOrder.desc, 0, 20, false),
-                "dataset_66_draft", "dataset_52_draft");
+                "dataset_66_draft", "dataset_69", "dataset_52_draft");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), filters3, "dateSort", SortOrder.desc, 0, 20, false),
                 "datafile_55_draft", "datafile_53_draft", "datafile_58_draft");
     }
@@ -123,7 +123,7 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 "datafile_55_draft", "datafile_53_draft", "datafile_58_draft");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", datasetsAndFilesFilters, Collections.emptyList(), "dateSort", SortOrder.desc, 0, 20, false),
                 "dataset_74", "dataset_73", "dataset_72", "dataset_57", "dataset_101", "dataset_102", "dataset_56_draft", "dataset_56",
-                "dataset_66_draft", "dataset_71_draft", "datafile_55_draft",
+                "dataset_66_draft", "dataset_69", "dataset_71_draft", "datafile_55_draft",
                 "datafile_53_draft", "datafile_58_draft", "dataset_52_draft");
     }
 
@@ -134,23 +134,24 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
 
         // when & then
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 0, 20, false),
-                "dataset_74", "dataset_73", "dataset_72", "dataset_57", "dataset_101", "dataset_102", "dataset_56_draft", "dataset_56", "dataset_66_draft",
+                "dataset_74", "dataset_73", "dataset_72", "dataset_57", "dataset_101", "dataset_102", "dataset_56_draft", "dataset_56", "dataset_66_draft", "dataset_69",
                 "dataset_71_draft",
                 "datafile_55_draft", "datafile_53_draft", // both have the same create date
                 "datafile_58_draft",
-                "dataset_52_draft", "dataverse_51", "dataverse_68", "dataverse_23", "dataverse_22", "dataverse_21", "dataverse_20");
+                "dataset_52_draft", "dataverse_51", "dataverse_68", "dataverse_23", "dataverse_22", "dataverse_21");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.asc, 0, 20, false),
                 "dataverse_67", "dataverse_19", "dataverse_20", "dataverse_21", "dataverse_22", "dataverse_23",
                 "dataverse_68", "dataverse_51", "dataset_52_draft",
                 "datafile_58_draft",
                 "datafile_55_draft", "datafile_53_draft", // both have the same create date
-                "dataset_66_draft", "dataset_71_draft", "dataset_56_draft", "dataset_56", "dataset_57", "dataset_101", "dataset_102", "dataset_72");
+                "dataset_66_draft", "dataset_69", "dataset_71_draft", "dataset_56_draft", "dataset_56", "dataset_57", "dataset_101", "dataset_102");
         searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "nameSort", SortOrder.asc, 0, 20, false)
             .getSolrSearchResults().forEach(r -> System.out.println(r.getId() + " - " + r.getTitle() + " - " + r.getName()));
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "nameSort", SortOrder.asc, 0, 20, false),
                 "dataverse_21",         // Andromeda
                 "dataset_57",           // Dataset with versions (ver2)
                 "dataset_66_draft",     // Draft only dataset
+                "dataset_69",           // draft + release versions
                 "dataset_52_draft",     // Draft with files
                 "dataverse_19",         // Own Metadatablock Dataverse
                 "dataverse_23",         // Papo
@@ -164,10 +165,9 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 "dataverse_22",         // Zebra
                 "dataset_56_draft",     // null
                 "dataset_56",           // null
-                "dataset_72",           // null
-                "dataset_71_draft",     // null
-                "dataset_73",           // null
-                "dataset_74");          // null
+                "dataset_71_draft",
+                "dataset_101",
+                "dataset_102");         
     }
 
     @Test
@@ -182,7 +182,7 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 2, 1, false),
                 "dataset_72");
         assertSearchResultIds(searchService.search(adminDataverseRequest, dataverses, "*", SearchForTypes.all(), Collections.emptyList(), "dateSort", SortOrder.desc, 9, 100, false),
-                "dataset_71_draft", "datafile_55_draft", "datafile_53_draft", "datafile_58_draft", "dataset_52_draft",
+                "dataset_69", "dataset_71_draft", "datafile_55_draft", "datafile_53_draft", "datafile_58_draft", "dataset_52_draft",
                 "dataverse_51", "dataverse_68", "dataverse_23", "dataverse_22", "dataverse_21", "dataverse_20",
                 "dataverse_19", "dataverse_67");
     }
@@ -195,7 +195,7 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
 
         // then
         assertSearchResultIds(searchResponse, "dataset_74", "dataset_73", "dataset_72", "dataset_57", "dataset_101",
-                "dataset_102", "dataset_56", "dataverse_23", "dataverse_22", "dataverse_21", "dataverse_20", "dataverse_19");
+                "dataset_102", "dataset_56", "dataset_69", "dataverse_23", "dataverse_22", "dataverse_21", "dataverse_20", "dataverse_19");
     }
 
     @Test
@@ -208,18 +208,18 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
         // then
         assertSearchResultIds(searchResponse, "dataset_74", "dataset_73", "dataset_72",
                 "dataset_57", "dataset_101", "dataset_102",
-                "dataset_56_draft", "dataset_56", "dataset_66_draft", "dataset_71_draft",
+                "dataset_56_draft", "dataset_56", "dataset_66_draft", "dataset_69", "dataset_71_draft",
                 "datafile_55_draft", "datafile_53_draft", "datafile_58_draft",
                 "dataset_52_draft", "dataverse_51", "dataverse_68", "dataverse_23", "dataverse_22", "dataverse_21",
                 "dataverse_20", "dataverse_19", "dataverse_67");
 
-        assertThat(searchResponse.getNumResultsFound()).isEqualTo(22);
+        assertThat(searchResponse.getNumResultsFound()).isEqualTo(23);
         assertThat(searchResponse.getResultsStart()).isEqualTo(0);
 
         assertThat(searchResponse.getSpellingSuggestionsByToken()).isEmpty();
 
-        assertThat(searchResponse.getDvObjectCounts()).isEqualTo(new DvObjectCounts(8, 11, 3));
-        assertThat(searchResponse.getPublicationStatusCounts()).isEqualTo(new PublicationStatusCounts(0, 9, 12, 7, 0));
+        assertThat(searchResponse.getDvObjectCounts()).isEqualTo(new DvObjectCounts(8, 12, 3));
+        assertThat(searchResponse.getPublicationStatusCounts()).isEqualTo(new PublicationStatusCounts(0, 9, 13, 7, 0));
 
 
         assertThat(searchResponse.getFilterQueriesActual())
@@ -239,23 +239,23 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
         FacetCategory publicationStatusFacet = extractFacetWithName(facets, "publicationStatus");
         assertContainsFacetCount(publicationStatusFacet, "Draft", 7);
         assertContainsFacetCount(publicationStatusFacet, "Unpublished", 9);
-        assertContainsFacetCount(publicationStatusFacet, "Published", 12);
+        assertContainsFacetCount(publicationStatusFacet, "Published", 13);
 
         FacetCategory publicationDateFacet = extractFacetWithName(facets, "publicationDate");
         assertContainsFacetCount(publicationDateFacet, "2019", 9);
 
         FacetCategory authorAffilliationFacet = extractFacetWithName(facets, "authorAffiliation_ss");
-        assertContainsFacetCount(authorAffilliationFacet, "author affiliation", 1);
+        assertContainsFacetCount(authorAffilliationFacet, "author affiliation", 2);
 
         FacetCategory dateOfDepositFacet = extractFacetWithName(facets, "dateOfDeposit_ss");
-        assertContainsFacetCount(dateOfDepositFacet, "2019", 2);
+        assertContainsFacetCount(dateOfDepositFacet, "2019", 3);
 
         FacetCategory subjectFacet = extractFacetWithName(facets, "subject_ss");
         assertContainsFacetCount(subjectFacet, "Arts and Humanities", 1);
-        assertContainsFacetCount(subjectFacet, "Astronomy and Astrophysics", 1);
+        assertContainsFacetCount(subjectFacet, "Astronomy and Astrophysics", 2);
 
         FacetCategory authorNameFacet = extractFacetWithName(facets, "authorName_ss");
-        assertContainsFacetCount(authorNameFacet, "Some author name", 2);
+        assertContainsFacetCount(authorNameFacet, "Some author name", 3);
 
         FacetCategory fileAccessFacet = extractFacetWithName(facets, "fileAccess");
         assertContainsFacetCount(fileAccessFacet, "Public", 2);
@@ -306,7 +306,8 @@ public class SearchServiceBeanIT extends WebappArquillianDeployment {
                 filters);
 
         // then
-        assertThat(solrSearchMapResults).hasSize(1);
+        assertThat(solrSearchMapResults).hasSize(2);
+        
         assertThat(solrSearchMapResults.get(0).getMarker())
                 .isEqualTo(new GeoPoint(35.840585, 36.19439));
         assertThat(solrSearchMapResults.get(0).getDoi())

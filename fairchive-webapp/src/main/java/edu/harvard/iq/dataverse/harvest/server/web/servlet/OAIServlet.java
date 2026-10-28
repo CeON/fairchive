@@ -2,16 +2,13 @@ package edu.harvard.iq.dataverse.harvest.server.web.servlet;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.OAIServerEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SystemEmail;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.dspace.xoai.dataprovider.model.MetadataFormat.metadataFormat;
-import static org.dspace.xoai.model.oaipmh.OAIPMH.NAMESPACE_URI;
-import static org.dspace.xoai.model.oaipmh.OAIPMH.SCHEMA_LOCATION;
 import static org.dspace.xoai.model.oaipmh.Verb.Type.GetRecord;
 import static org.dspace.xoai.model.oaipmh.Verb.Type.ListRecords;
-import static org.dspace.xoai.xml.XmlWriter.defaultContext;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
@@ -39,13 +36,12 @@ import org.dspace.xoai.model.oaipmh.Granularity;
 import org.dspace.xoai.model.oaipmh.OAIPMH;
 import org.dspace.xoai.model.oaipmh.Verb;
 import org.dspace.xoai.services.impl.SimpleResumptionTokenFormat;
-import org.dspace.xoai.xml.XSISchema;
+import org.dspace.xoai.services.impl.UTCDateProvider;
 import org.dspace.xoai.xml.XmlWriter;
 
 import com.lyncode.xml.exceptions.XmlWriteException;
 
 import edu.harvard.iq.dataverse.DataverseDao;
-import edu.harvard.iq.dataverse.dataset.DatasetService;
 import edu.harvard.iq.dataverse.export.ExportService;
 import edu.harvard.iq.dataverse.export.spi.Exporter;
 import edu.harvard.iq.dataverse.harvest.server.OAIRecordServiceBean;
@@ -55,359 +51,349 @@ import edu.harvard.iq.dataverse.harvest.server.xoai.XgetRecord;
 import edu.harvard.iq.dataverse.harvest.server.xoai.XitemRepository;
 import edu.harvard.iq.dataverse.harvest.server.xoai.XlistRecords;
 import edu.harvard.iq.dataverse.harvest.server.xoai.XsetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersionRepository;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.SystemConfig;
+import static org.dspace.xoai.xml.XmlWriter.defaultContext;
 
 /**
- * @author Leonid Andreev
- * Dedicated servlet for handling OAI-PMH requests.
- * Uses lyncode XOAI data provider implementation for serving content.
- * The servlet itself is somewhat influenced by the older OCLC OAIcat implementation.
+ * @author Leonid Andreev Dedicated servlet for handling OAI-PMH requests. Uses
+ *         lyncode XOAI data provider implementation for serving content. The
+ *         servlet itself is somewhat influenced by the older OCLC OAIcat
+ *         implementation.
  */
 @SuppressWarnings("serial")
 public class OAIServlet extends HttpServlet {
-    private static final Logger logger = Logger.getLogger("edu.harvard.iq.dataverse.harvest.server.web.servlet.OAIServlet");
+	private static final Logger logger = Logger
+			.getLogger("edu.harvard.iq.dataverse.harvest.server.web.servlet.OAIServlet");
 
-    private static final String OAI_PMH = "OAI-PMH";
-    private static final String RESPONSEDATE_FIELD = "responseDate";
-    private static final String REQUEST_FIELD = "request";
-    private static final String DATAVERSE_EXTENDED_METADATA_FORMAT = "dataverse_json";
-    private static final String DATAVERSE_EXTENDED_METADATA_INFO = "Custom Dataverse metadata in JSON format (Dataverse4 to Dataverse4 harvesting only)";
-    private static final String DATAVERSE_EXTENDED_METADATA_SCHEMA = "JSON schema pending";
+	private static final String OAI_PMH = "OAI-PMH";
+	private static final byte[] RESPONSEDATE_FIELD = "responseDate".getBytes();
+	private static final String DATAVERSE_EXTENDED_METADATA_FORMAT = "dataverse_json";
+	private static final String DATAVERSE_EXTENDED_METADATA_INFO = "Custom Dataverse metadata in JSON format (Dataverse4 to Dataverse4 harvesting only)";
+	private static final String DATAVERSE_EXTENDED_METADATA_SCHEMA = "JSON schema pending";
 
-    private OAISetServiceBean setService;
-    private OAIRecordServiceBean recordService;
-    private SettingsServiceBean settingsService;
-    private DataverseDao dataverseDao;
-    private DatasetService datasetService;
-    private SystemConfig systemConfig;
-    private ExportService exportService;
+	private static final byte LT = '<';
+	private static final byte GT = '>';
+	private static final byte SLASH = '/';
+	private static final byte[] OAI_PMH_BYTES = OAI_PMH.getBytes();
+	private static final byte[] OAIPMH_HEADER = "<OAI-PMH xmlns=\"http://www.openarchives.org/OAI/2.0/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd\">"
+			.getBytes();
 
-    private Context xoaiContext;
-    private SetRepository setRepository;
-    private ItemRepository itemRepository;
-    private RepositoryConfiguration repositoryConfiguration;
-    private Repository xoaiRepository;
-    private XdataProvider dataProvider;
+	private OAISetServiceBean setService;
+	private OAIRecordServiceBean recordService;
+	private SettingsServiceBean settingsService;
+	private DataverseDao dataverseDao;
+	private SystemConfig systemConfig;
+	private ExportService exportService;
+	private DatasetVersionRepository datasetVersionRepository;
 
-    // -------------------- CONSTRUCTORS --------------------
+	private Context xoaiContext;
+	private SetRepository setRepository;
+	private ItemRepository itemRepository;
+	private RepositoryConfiguration repositoryConfiguration;
+	private Repository xoaiRepository;
+	private XdataProvider dataProvider;
 
-    public OAIServlet() { }
+	private final static UTCDateProvider dateProvider = new UTCDateProvider();
 
-    @Inject
-    public OAIServlet(OAISetServiceBean setService, OAIRecordServiceBean recordService,
-                      SettingsServiceBean settingsService, DataverseDao dataverseDao,
-                      DatasetService datasetService, SystemConfig systemConfig,
-                      ExportService exportService) {
-        this.setService = setService;
-        this.recordService = recordService;
-        this.settingsService = settingsService;
-        this.dataverseDao = dataverseDao;
-        this.datasetService = datasetService;
-        this.systemConfig = systemConfig;
-        this.exportService = exportService;
-    }
+	// -------------------- CONSTRUCTORS --------------------
 
-    // -------------------- GETTERS --------------------
+	public OAIServlet() {
+	}
 
-    protected Context getXoaiContext() {
-        return xoaiContext;
-    }
+	@Inject
+	public OAIServlet(OAISetServiceBean setService, OAIRecordServiceBean recordService,
+			SettingsServiceBean settingsService, DataverseDao dataverseDao, SystemConfig systemConfig,
+			ExportService exportService, final DatasetVersionRepository datasetVersionRepository) {
+		this.setService = setService;
+		this.recordService = recordService;
+		this.settingsService = settingsService;
+		this.dataverseDao = dataverseDao;
+		this.systemConfig = systemConfig;
+		this.exportService = exportService;
+		this.datasetVersionRepository = datasetVersionRepository;
+	}
 
-    protected Repository getXoaiRepository() {
-        return xoaiRepository;
-    }
+	// -------------------- GETTERS --------------------
 
-    /**
-     * Returns a short description of the servlet.
-     */
-    @Override
-    public String getServletInfo() {
-        return "Dataverse OAI Servlet";
-    }
+	protected Context getXoaiContext() {
+		return xoaiContext;
+	}
 
-    // -------------------- LOGIC --------------------
+	protected Repository getXoaiRepository() {
+		return xoaiRepository;
+	}
 
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
+	/**
+	 * Returns a short description of the servlet.
+	 */
+	@Override
+	public String getServletInfo() {
+		return "Dataverse OAI Servlet";
+	}
 
-        xoaiContext = createContext();
+	// -------------------- LOGIC --------------------
 
-        if (isDataverseOaiExtensionsSupported()) {
-            xoaiContext = addDataverseJsonMetadataFormat(xoaiContext);
-        }
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
 
-        setRepository = new XsetRepository(setService);
-        itemRepository = new XitemRepository(recordService, datasetService, systemConfig);
+		xoaiContext = createContext();
 
-        repositoryConfiguration = createRepositoryConfiguration();
+		if (isDataverseOaiExtensionsSupported()) {
+			xoaiContext = addDataverseJsonMetadataFormat(xoaiContext);
+		}
 
-        xoaiRepository = new Repository()
-                .withSetRepository(setRepository)
-                .withItemRepository(itemRepository)
-                .withResumptionTokenFormatter(new SimpleResumptionTokenFormat())
-                .withConfiguration(repositoryConfiguration);
+		setRepository = new XsetRepository(setService);
+		itemRepository = new XitemRepository(recordService, systemConfig);
 
-        dataProvider = new XdataProvider(getXoaiContext(), getXoaiRepository());
-    }
+		repositoryConfiguration = createRepositoryConfiguration();
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request  servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
+		xoaiRepository = new Repository().withSetRepository(setRepository).withItemRepository(itemRepository)
+				.withResumptionTokenFormatter(new SimpleResumptionTokenFormat())
+				.withConfiguration(repositoryConfiguration);
 
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request  servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
+		dataProvider = new XdataProvider(getXoaiContext(), getXoaiRepository());
+	}
 
-    protected OAIRequestParametersBuilder newXoaiRequest() {
-        return new OAIRequestParametersBuilder();
-    }
+	/**
+	 * Handles the HTTP <code>POST</code> method.
+	 *
+	 * @param request  servlet request
+	 * @param response servlet response
+	 * @throws ServletException if a servlet-specific error occurs
+	 * @throws IOException      if an I/O error occurs
+	 */
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		processRequest(request, response);
+	}
 
-    public boolean isHarvestingServerEnabled() {
-        return settingsService.isTrueForKey(OAIServerEnabled);
-    }
+	/**
+	 * Handles the HTTP <code>GET</code> method.
+	 *
+	 * @param request  servlet request
+	 * @param response servlet response
+	 * @throws ServletException if a servlet-specific error occurs
+	 * @throws IOException      if an I/O error occurs
+	 */
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		processRequest(request, response);
+	}
 
-    // -------------------- PRIVATE --------------------
+	protected OAIRequestParametersBuilder newXoaiRequest() {
+		return new OAIRequestParametersBuilder();
+	}
 
-    private Context createContext() {
-        Context context = new Context();
-        addSupportedMetadataFormats(context);
-        return context;
-    }
+	public boolean isHarvestingServerEnabled() {
+		return settingsService.isTrueForKey(OAIServerEnabled);
+	}
 
-    private void addSupportedMetadataFormats(Context context) {
-        for (final Exporter exporter : exportService.exporters()) {
-            if (!exporter.isXMLFormat() || !exporter.isHarvestable()) {
-                continue;
-            }
-            MetadataFormat metadataFormat = metadataFormat(exporter.getProviderName());
-            if (exporter.getXMLNameSpace().isEmpty() 
-                    && exporter.getXMLSchemaLocation().isEmpty()) {
-                continue;
-            }
-            metadataFormat.withNamespace(exporter.getXMLNameSpace());
-            metadataFormat.withSchemaLocation(exporter.getXMLSchemaLocation());
-            context.withMetadataFormat(metadataFormat);
-        }
-    }
+	// -------------------- PRIVATE --------------------
 
-    private Context addDataverseJsonMetadataFormat(Context context) {
-        MetadataFormat metadataFormat = MetadataFormat.metadataFormat(DATAVERSE_EXTENDED_METADATA_FORMAT);
-        metadataFormat.withNamespace(DATAVERSE_EXTENDED_METADATA_INFO);
-        metadataFormat.withSchemaLocation(DATAVERSE_EXTENDED_METADATA_SCHEMA);
-        context.withMetadataFormat(metadataFormat);
-        return context;
-    }
+	private Context createContext() {
+		Context context = new Context();
+		addSupportedMetadataFormats(context);
+		return context;
+	}
 
-    private boolean isDataverseOaiExtensionsSupported() {
-        return true;
-    }
+	private void addSupportedMetadataFormats(Context context) {
+		for (final Exporter exporter : exportService.exporters()) {
+			if (!exporter.isXMLFormat() || !exporter.isHarvestable()) {
+				continue;
+			}
+			MetadataFormat metadataFormat = metadataFormat(exporter.getProviderName());
+			if (exporter.getXMLNameSpace().isEmpty() && exporter.getXMLSchemaLocation().isEmpty()) {
+				continue;
+			}
+			metadataFormat.withNamespace(exporter.getXMLNameSpace());
+			metadataFormat.withSchemaLocation(exporter.getXMLSchemaLocation());
+			context.withMetadataFormat(metadataFormat);
+		}
+	}
 
-    private RepositoryConfiguration createRepositoryConfiguration() {
-        // TODO:
-        // some of the settings below - such as the max list numbers -
-        // need to be configurable!
+	private Context addDataverseJsonMetadataFormat(Context context) {
+		MetadataFormat metadataFormat = MetadataFormat.metadataFormat(DATAVERSE_EXTENDED_METADATA_FORMAT);
+		metadataFormat.withNamespace(DATAVERSE_EXTENDED_METADATA_INFO);
+		metadataFormat.withSchemaLocation(DATAVERSE_EXTENDED_METADATA_SCHEMA);
+		context.withMetadataFormat(metadataFormat);
+		return context;
+	}
 
-        String dataverseName = dataverseDao.findRootDataverse().getName();
-        String repositoryName = isEmpty(dataverseName) || "Root".equals(dataverseName) 
-                ? "Test Dataverse OAI Archive" 
-                : dataverseName + " Dataverse OAI Archive";
-        Optional<Date> earliestDate = recordService.findEarliestDate();
+	private boolean isDataverseOaiExtensionsSupported() {
+		return true;
+	}
 
-        RepositoryConfiguration repositoryConfiguration = new RepositoryConfiguration()
-                .withRepositoryName(repositoryName)
-                .withBaseUrl(systemConfig.getDataverseSiteUrl() + "/oai")
-                .withCompression("gzip")        // ?
-                .withCompression("deflate")     // ?
-                .withAdminEmail(settingsService.getValueForKey(SystemEmail))
-                .withDeleteMethod(DeletedRecord.TRANSIENT)
-                .withGranularity(Granularity.Second)
-                .withMaxListIdentifiers(100)
-                .withMaxListRecords(100)
-                .withMaxListSets(100)
-                .withEarliestDate(earliestDate.orElse(new Date()))
-                .withDescription(createDescription());
+	private RepositoryConfiguration createRepositoryConfiguration() {
+		// TODO:
+		// some of the settings below - such as the max list numbers -
+		// need to be configurable!
 
-        return repositoryConfiguration;
-    }
-    
-    private String createDescription() {
-        return "<description>" 
-                + "<oai-identifier xmlns=\"http://www.openarchives.org/OAI/2.0/oai-identifier\">"
-                + "<scheme>oai</scheme>"
-                + "<repositoryIdentifier>"
-                + this.systemConfig.getDataverseServer()
-                + "</repositoryIdentifier>" 
-                + "<delimiter>:</delimiter>" 
-                + "<sampleIdentifier>oai:"
-                + this.systemConfig.getDataverseServer() 
-                +":doi%3A10.18150%2FAB1CD2</sampleIdentifier>"
-                + "</oai-identifier>"
-                + "</description>";
-    }
+		String dataverseName = dataverseDao.findRootDataverse().getName();
+		String repositoryName = isEmpty(dataverseName) || "Root".equals(dataverseName) ? "Test Dataverse OAI Archive"
+				: dataverseName + " Dataverse OAI Archive";
+		Optional<Date> earliestDate = recordService.findEarliestDate();
 
-    private void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+		RepositoryConfiguration repositoryConfiguration = new RepositoryConfiguration()
+				.withRepositoryName(repositoryName).withBaseUrl(systemConfig.getDataverseSiteUrl() + "/oai")
+				.withCompression("gzip") // ?
+				.withCompression("deflate") // ?
+				.withAdminEmail(settingsService.getValueForKey(SystemEmail)).withDeleteMethod(DeletedRecord.TRANSIENT)
+				.withGranularity(Granularity.Second).withMaxListIdentifiers(100).withMaxListRecords(100)
+				.withMaxListSets(100).withEarliestDate(earliestDate.orElse(new Date()))
+				.withDescription(createDescription());
 
-        try {
-            if (!isHarvestingServerEnabled()) {
-                response.sendError(SC_SERVICE_UNAVAILABLE,
-                        "Sorry. OAI Service is disabled on this Dataverse node.");
-                return;
-            }
+		return repositoryConfiguration;
+	}
 
-            OAIRequestParametersBuilder parametersBuilder = newXoaiRequest();
+	private String createDescription() {
+		return "<description>" + "<oai-identifier xmlns=\"http://www.openarchives.org/OAI/2.0/oai-identifier\">"
+				+ "<scheme>oai</scheme>" + "<repositoryIdentifier>" + this.systemConfig.getDataverseServer()
+				+ "</repositoryIdentifier>" + "<delimiter>:</delimiter>" + "<sampleIdentifier>oai:"
+				+ this.systemConfig.getDataverseServer() + ":doi%3A10.18150%2FAB1CD2</sampleIdentifier>"
+				+ "</oai-identifier>" + "</description>";
+	}
 
-            for (Object p : request.getParameterMap().keySet()) {
-                String parameterName = (String) p;
-                String parameterValue = request.getParameter(parameterName);
-                parametersBuilder = parametersBuilder.with(parameterName, parameterValue);
-            }
+	private void processRequest(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-            OAIPMH handle = dataProvider.handle(parametersBuilder);
-            response.setContentType("text/xml;charset=UTF-8");
+		try {
+			if (!isHarvestingServerEnabled()) {
+				response.sendError(SC_SERVICE_UNAVAILABLE, "Sorry. OAI Service is disabled on this Dataverse node.");
+				return;
+			}
 
-            if (isGetRecord(request) && !handle.hasErrors()) {
-                writeGetRecord(response, handle);
-            } else if (isListRecords(request) && !handle.hasErrors()) {
-                writeListRecords(response, handle);
-            } else {
-                XmlWriter xmlWriter = new XmlWriter(response.getOutputStream());
-                xmlWriter.write(handle);
-                xmlWriter.flush();
-                xmlWriter.close();
-            }
+			OAIRequestParametersBuilder parametersBuilder = newXoaiRequest();
 
-        } catch (IOException ex) {
-            logger.warning("IO exception in Get; " + ex.getMessage());
-            throw new ServletException("IO Exception in Get", ex);
-        } catch (OAIException oex) {
-            logger.warning("OAI exception in Get; " + oex.getMessage());
-            throw new ServletException("OAI Exception in Get", oex);
-        } catch (XMLStreamException xse) {
-            logger.warning("XML Stream exception in Get; " + xse.getMessage());
-            throw new ServletException("XML Stream Exception in Get", xse);
-        } catch (XmlWriteException xwe) {
-            logger.warning("XML Write exception in Get; " + xwe.getMessage());
-            throw new ServletException("XML Write Exception in Get", xwe);
-        } catch (Exception e) {
-            logger.warning("Unknown exception in Get; " + e.getMessage());
-            throw new ServletException("Unknown servlet exception in Get.", e);
-        }
-    }
+			for (Object p : request.getParameterMap().keySet()) {
+				String parameterName = (String) p;
+				String parameterValue = request.getParameter(parameterName);
+				parametersBuilder = parametersBuilder.with(parameterName, parameterValue);
+			}
 
-    // Custom methods for the potentially expensive GetRecord and ListRecords requests:
-    private void writeListRecords(HttpServletResponse response, OAIPMH handle)
-            throws IOException {
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write(oaiPmhResponseToString(handle).getBytes());
-        Verb verb = handle.getVerb();
+			OAIPMH handle = dataProvider.handle(parametersBuilder);
+			response.setContentType("text/xml;charset=UTF-8");
 
-        if (verb == null) {
-            throw new IOException("An error or a valid response must be set");
-        }
+			if (isGetRecord(request) && !handle.hasErrors()) {
+				writeGetRecord(response, handle);
+			} else if (isListRecords(request) && !handle.hasErrors()) {
+				writeListRecords(response, handle);
+			} else {
+				XmlWriter xmlWriter = new XmlWriter(response.getOutputStream());
+				xmlWriter.write(handle);
+				xmlWriter.flush();
+				xmlWriter.close();
+			}
 
-        if (!verb.getType().equals(ListRecords)) {
-            throw new IOException("writeListRecords() called on a non-ListRecords verb");
-        }
+		} catch (IOException ex) {
+			logger.warning("IO exception in Get; " + ex.getMessage());
+			throw new ServletException("IO Exception in Get", ex);
+		} catch (OAIException oex) {
+			logger.warning("OAI exception in Get; " + oex.getMessage());
+			throw new ServletException("OAI Exception in Get", oex);
+		} catch (XMLStreamException xse) {
+			logger.warning("XML Stream exception in Get; " + xse.getMessage());
+			throw new ServletException("XML Stream Exception in Get", xse);
+		} catch (XmlWriteException xwe) {
+			logger.warning("XML Write exception in Get; " + xwe.getMessage());
+			throw new ServletException("XML Write Exception in Get", xwe);
+		} catch (Exception e) {
+			logger.warning("Unknown exception in Get; " + e.getMessage());
+			throw new ServletException("Unknown servlet exception in Get.", e);
+		}
+	}
 
-        outputStream.write(("<" + verb.getType().displayName() + ">").getBytes());
-        outputStream.flush();
+	// Custom methods for the potentially expensive GetRecord and ListRecords
+	// requests:
+	private void writeListRecords(HttpServletResponse response, OAIPMH handle) 
+			throws IOException, XmlWriteException, XMLStreamException {
+		final OutputStream out = response.getOutputStream();
+		final Verb verb = handle.getVerb();
 
-        ((XlistRecords) verb).writeToStream(outputStream, exportService, 
-                systemConfig.getDataverseSiteUrl());
+		writeHeader(out, handle);
 
-        outputStream.write(("</" + verb.getType().displayName() + ">").getBytes());
-        outputStream.write(("</" + OAI_PMH + ">\n").getBytes());
+		if (verb == null) {
+			throw new IOException("An error or a valid response must be set");
+		}
 
-        outputStream.flush();
-        outputStream.close();
-    }
+		if (!verb.getType().equals(ListRecords)) {
+			throw new IOException("writeListRecords() called on a non-ListRecords verb");
+		}
 
-    private void writeGetRecord(HttpServletResponse response, OAIPMH handle)
-            throws IOException, XmlWriteException, XMLStreamException {
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write(oaiPmhResponseToString(handle).getBytes());
-        Verb verb = handle.getVerb();
+		out.write(LT);
+		out.write(verb.getType().displayName().getBytes(UTF_8));
+		out.write(GT);
 
-        if (verb == null) {
-            throw new IOException("An error or a valid response must be set");
-        }
+		((XlistRecords) verb).writeToStream(out, exportService, datasetVersionRepository,
+				systemConfig.getDataverseSiteUrl());
 
-        if (!verb.getType().equals(GetRecord)) {
-            throw new IOException("writeListRecords() called on a non-GetRecord verb");
-        }
+		writeFooter(out, verb);
+	}
 
-        outputStream.write(("<" + verb.getType().displayName() + ">").getBytes());
-        outputStream.flush();
+	private void writeGetRecord(HttpServletResponse response, OAIPMH handle)
+			throws IOException, XmlWriteException, XMLStreamException {
+		final OutputStream out = response.getOutputStream();
+		final Verb verb = handle.getVerb();
 
-        ((XgetRecord) verb).writeToStream(outputStream, exportService, 
-                systemConfig.getDataverseSiteUrl());
+		writeHeader(out, handle);
 
-        outputStream.write(("</" + verb.getType().displayName() + ">").getBytes());
-        outputStream.write(("</" + OAI_PMH + ">\n").getBytes());
+		if (verb == null) {
+			throw new IOException("An error or a valid response must be set");
+		}
 
-        outputStream.flush();
-        outputStream.close();
+		if (!verb.getType().equals(GetRecord)) {
+			throw new IOException("writeListRecords() called on a non-GetRecord verb");
+		}
 
-    }
+		out.write(LT);
+		out.write(verb.getType().displayName().getBytes(UTF_8));
+		out.write(GT);
 
-    /**
-     * This function produces the string representation of the top level,
-     * "service" record of an OAIPMH response (i.e., the header that precedes
-     * the actual "payload" record, such as <GetRecord>, <ListIdentifiers>,
-     * <ListRecords>, etc.
-     */
-   private String oaiPmhResponseToString(OAIPMH handle) {
-        try {
-            ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-            XmlWriter writer = new XmlWriter(byteOutputStream, defaultContext());
+		((XgetRecord) verb).writeToStream(out, exportService, this.datasetVersionRepository,
+				systemConfig.getDataverseSiteUrl());
 
-            writer.writeStartElement(OAI_PMH);
-            writer.writeDefaultNamespace(NAMESPACE_URI);
-            writer.writeNamespace(XSISchema.PREFIX, XSISchema.NAMESPACE_URI);
-            writer.writeAttribute(XSISchema.PREFIX, XSISchema.NAMESPACE_URI, "schemaLocation",
-                                  NAMESPACE_URI + " " + SCHEMA_LOCATION);
+		writeFooter(out, verb);
+	}
 
-            writer.writeElement(RESPONSEDATE_FIELD, handle.getResponseDate(), Granularity.Second);
-            writer.writeElement(REQUEST_FIELD, handle.getRequest());
-            writer.writeEndElement();
-            writer.flush();
-            writer.close();
+	private static void writeHeader(final OutputStream out, final OAIPMH handle) 
+			throws IOException, XMLStreamException, XmlWriteException {
 
-            return byteOutputStream.toString().replaceFirst("</" + OAI_PMH + ">", "");
-        } catch (Exception ex) {
-            logger.warning("caught exception trying to convert an OAIPMH response header to string: " + ex.getMessage());
-            ex.printStackTrace();
-            return null;
-        }
-    }
+		out.write(OAIPMH_HEADER);
 
-    private boolean isGetRecord(HttpServletRequest request) {
-        return "GetRecord".equals(request.getParameter("verb"));
-    }
+		out.write(LT);
+		out.write(RESPONSEDATE_FIELD);
+		out.write(GT);
+		out.write(dateProvider.format(handle.getResponseDate(), Granularity.Second).getBytes(UTF_8));
+		out.write(LT);
+		out.write(SLASH);
+		out.write(RESPONSEDATE_FIELD);
+		out.write(GT);
 
-    private boolean isListRecords(HttpServletRequest request) {
-        return "ListRecords".equals(request.getParameter("verb"));
-    }
+		final XmlWriter writer = new XmlWriter(out, defaultContext());
+		writer.writeElement("request", handle.getRequest());
+		writer.flush();
+		// no close
+	}
+
+	private static boolean isGetRecord(final HttpServletRequest request) {
+		return "GetRecord".equals(request.getParameter("verb"));
+	}
+
+	private static boolean isListRecords(final HttpServletRequest request) {
+		return "ListRecords".equals(request.getParameter("verb"));
+	}
+
+	private static void writeFooter(final OutputStream out, final Verb verb) throws IOException {
+		out.write(LT);
+		out.write(SLASH);
+		out.write(verb.getType().displayName().getBytes(UTF_8));
+		out.write(GT);
+		out.write(LT);
+		out.write(SLASH);
+		out.write(OAI_PMH_BYTES);
+		out.write(GT);
+	}
 }
