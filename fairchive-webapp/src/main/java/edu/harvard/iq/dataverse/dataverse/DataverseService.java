@@ -1,13 +1,14 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.notification.NotificationObjectType.DATAVERSE;
+import static edu.harvard.iq.dataverse.persistence.user.NotificationType.CREATEDV;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
@@ -18,13 +19,16 @@ import com.google.common.collect.Lists;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.EjbDataverseEngine;
+import edu.harvard.iq.dataverse.TempLogoStorageManager;
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.Command;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.DeleteDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.PublishDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
 import edu.harvard.iq.dataverse.error.DataverseError;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
@@ -39,26 +43,29 @@ import io.vavr.control.Either;
 @Stateless
 public class DataverseService {
 
-    private static final Logger logger = Logger.getLogger(DataverseService.class.getCanonicalName());
-
-    @Inject
     private DataverseSession session;
-
-    @Inject
-    private DataverseRequestServiceBean dvRequestService;
-
-    @Inject
+    private DataverseRequestServiceBean requestService;
     private EjbDataverseEngine commandEngine;
-
-    @Inject
     private UserNotificationService userNotificationService;
+    private DataverseRepository repository;
+    
+    public DataverseService() {}
     
     @Inject
-    private DataverseRepository repository;
+    public DataverseService(final DataverseSession session, 
+    		final DataverseRequestServiceBean requestService,
+			final EjbDataverseEngine commandEngine, 
+			final UserNotificationService userNotificationService,
+			final DataverseRepository repository) {
 
-    // -------------------- LOGIC --------------------
-    
-    public Optional<Dataverse> findById(final Long id) {
+		this.session = session;
+		this.requestService = requestService;
+		this.commandEngine = commandEngine;
+		this.userNotificationService = userNotificationService;
+		this.repository = repository;
+	}
+
+	public Optional<Dataverse> findById(final Long id) {
     	return this.repository.findById(id);
     }
     
@@ -76,14 +83,13 @@ public class DataverseService {
 
         if (session.isUserLoggedIn()) {
             Command<Dataverse> cmd = new CreateDataverseCommand(dataverse,
-                                                                dvRequestService.getDataverseRequest(),
+                                                                requestService.getDataverseRequest(),
                                                                 facets.getTarget(),
                                                                 Lists.newArrayList(dftilToBeSaved));
 
             try {
                 dataverse = commandEngine.submit(cmd);
             } catch (CommandException ex) {
-                logger.log(Level.SEVERE, "Unexpected Exception calling dataverse command", ex);
                 return Either.left(new DataverseError(ex, getStringFromBundle("dataverse.create.failure")));
             }
 
@@ -96,6 +102,34 @@ public class DataverseService {
 
         return Either.right(dataverse);
     }
+	
+	public Dataverse save(Dataverse dataverse, TempLogoStorageManager.Storage storage) {
+
+		if (!this.session.isUserLoggedIn()) {
+			throw new EJBException(
+					getStringFromBundle("dataverse.create.authenticatedUsersOnly"));
+		}
+		final DataverseRequest request = this.requestService.getDataverseRequest();
+		if (!dataverse.isThemeRoot()) {
+			dataverse.getLatestVersion().setTheme(null);
+			storage = null;
+		}
+		if (dataverse.isNew()) {
+			dataverse = this.commandEngine.submit(
+					new CreateDataverseCommand(dataverse, request));
+			dataverse = this.commandEngine.submit(
+					new UpdateDataverseThemeCommand(dataverse, storage, request));
+			this.userNotificationService.sendNotificationWithEmail(
+					this.session.getAuthenticatedUser(), dataverse.getCreateDate(), 
+					CREATEDV, dataverse.getId(), DATAVERSE);
+		} else {
+			dataverse = this.commandEngine.submit(
+					new UpdateDataverseCommand(dataverse, request));
+			dataverse = this.commandEngine.submit(
+					new UpdateDataverseThemeCommand(dataverse, storage, request));
+		}
+		return dataverse;
+	}
 
     public Either<DataverseError, Dataverse> saveEditedDataverse(Collection<DataverseFieldTypeInputLevel> dftilToBeSaved,
                                                                  Dataverse dataverse,
@@ -106,12 +140,11 @@ public class DataverseService {
         }
 
         UpdateDataverseCommand cmd = new UpdateDataverseCommand(dataverse, facets.getTarget(), null,
-                                                                dvRequestService.getDataverseRequest(), Lists.newArrayList(dftilToBeSaved));
+                                                                requestService.getDataverseRequest(), Lists.newArrayList(dftilToBeSaved));
 
         try {
             dataverse = commandEngine.submit(cmd);
         } catch (CommandException ex) {
-            logger.log(Level.SEVERE, "Unexpected Exception calling dataverse command", ex);
             return Either.left(new DataverseError(ex, BundleUtil.getStringFromBundle("dataverse.create.failure")));
         }
 
@@ -121,14 +154,14 @@ public class DataverseService {
 	public Dataverse saveEditedDataverse(Dataverse dataverse) {
 
 		UpdateDataverseCommand cmd = new UpdateDataverseCommand(dataverse, null, null,
-				dvRequestService.getDataverseRequest(), null);
+				requestService.getDataverseRequest(), null);
 		return commandEngine.submit(cmd);
 	}
 
     public Dataverse saveFeaturedDataverse(Dataverse dataverse, List<Dataverse> featuredDataverses) {
         return commandEngine.submit(new UpdateDataverseCommand(dataverse, null,
                                                                featuredDataverses,
-                                                               dvRequestService.getDataverseRequest(),
+                                                               requestService.getDataverseRequest(),
                                                                null));
     }
 
@@ -137,11 +170,11 @@ public class DataverseService {
      */
     public Dataverse publishDataverse(Dataverse dataverseToBePublished) {
 
-        return commandEngine.submit(new PublishDataverseCommand(dvRequestService.getDataverseRequest(), dataverseToBePublished));
+        return commandEngine.submit(new PublishDataverseCommand(requestService.getDataverseRequest(), dataverseToBePublished));
     }
 
     public void deleteDataverse(Dataverse dataverseToDelete){
-        commandEngine.submit(new DeleteDataverseCommand(dvRequestService.getDataverseRequest(), dataverseToDelete));
+        commandEngine.submit(new DeleteDataverseCommand(requestService.getDataverseRequest(), dataverseToDelete));
     }
 
 }

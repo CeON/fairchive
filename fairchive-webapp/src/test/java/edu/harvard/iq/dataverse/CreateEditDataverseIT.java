@@ -9,6 +9,9 @@ import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFA
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment.LEFT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat.SQUARE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -30,7 +33,6 @@ import com.ocpsoft.pretty.faces.util.NullComponent;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.dataverse.CreateEditDataversePage;
 import edu.harvard.iq.dataverse.dataverse.DataverseService;
-import edu.harvard.iq.dataverse.dataverse.themewidget.ThemeWidgetService;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
@@ -44,8 +46,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	
 	@Inject
     private DataverseService dataverseService;
-	@Inject
-	private ThemeWidgetService themeWidgetService;
 	@Inject
 	private PermissionServiceBean permissionService;
 	@Inject
@@ -169,6 +169,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		assertThat(this.createEditPage.save()).
 			isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
+		
+		verify(this.ui, times(1)).addFlashSuccessMessage(anyString());
+		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
@@ -434,13 +437,40 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
 	
+	@Test
+	void rootCollection_cannotBeCreated() {
+				
+		this.createEditPage.setOwnerId(1L);
+		this.createEditPage.init();
+		
+		this.createEditPage.setName("name1");
+		this.createEditPage.setAlias("alias1");
+		this.createEditPage.setAffiliation("affiliation1");
+		this.createEditPage.setType(LABORATORY);
+		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.setMessagesBannersAllowed(true);
+		this.createEditPage.setBackgroundColor("BBBBBB");
+		this.createEditPage.setLinkColor("CCCCCC");
+		this.createEditPage.setTextColor("DDDDDD");
+		this.createEditPage.setLinkUrl("http://google.com");
+		this.createEditPage.setTagline("tagline");
+		
+		this.createEditPage.getDataverse().setOwner(null);
+		
+		assertThat(this.createEditPage.save()).isEqualTo("");
+		
+		verify(this.ui, times(0)).addFlashSuccessMessage(anyString());
+		verify(this.ui, times(1)).addErrorMessage(anyString(), anyString());
+	}
+	
 	private void loginUserById(final Long id) {
 		this.session.logOut();
 		this.session.logIn(this.userRepository.getById(id));
 	}
 	
 	private CreateEditDataversePage newPage() {
-		return new CreateEditDataversePage(this.dataverseService, this.themeWidgetService,
+		return new CreateEditDataversePage(this.dataverseService,
 				this.permissionsWrapper, this.session, this.config,
 				this.storageManager, this.ui);
 	}
