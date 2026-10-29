@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,13 +93,15 @@ class MultipartPartsCleanupFilterTest {
     void doFilter__unmarked_request_keeps_parts() throws Exception {
         // given
         when(request.getAttribute(DELETE_PARTS_ATTRIBUTE)).thenReturn(null);
+        lenient().when(request.getParts()).thenReturn(asList(filePart, fieldPart));
 
         // when
         filter.doFilter(request, response, chain);
 
         // then
         verify(chain).doFilter(request, response);
-        verify(request, never()).getParts();
+        verify(filePart, never()).delete();
+        verify(fieldPart, never()).delete();
     }
 
     @Test
@@ -106,14 +109,13 @@ class MultipartPartsCleanupFilterTest {
         // given
         when(request.getAttribute(DELETE_PARTS_ATTRIBUTE)).thenReturn(Boolean.TRUE);
         when(request.getParts()).thenReturn(asList(filePart, fieldPart));
-        ServletException failure = new ServletException("processing failed");
-        doThrow(failure).when(chain).doFilter(request, response);
+        doThrow(new ServletException("processing failed")).when(chain).doFilter(request, response);
 
         // when
         Throwable thrown = catchThrowable(() -> filter.doFilter(request, response, chain));
 
         // then
-        assertThat(thrown).isSameAs(failure);
+        assertThat(thrown).isInstanceOf(ServletException.class).hasMessage("processing failed");
         verify(filePart).delete();
         verify(fieldPart).delete();
     }

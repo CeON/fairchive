@@ -35,7 +35,7 @@ public class MultipartPartsCleanupFilter implements Filter {
 
     private static final Logger log = getLogger(MultipartPartsCleanupFilter.class);
 
-    public static final String DELETE_PARTS_ATTRIBUTE = MultipartPartsCleanupFilter.class.getName() + ".deleteParts";
+    static final String DELETE_PARTS_ATTRIBUTE = MultipartPartsCleanupFilter.class.getName() + ".deleteParts";
 
     // -------------------- LOGIC --------------------
 
