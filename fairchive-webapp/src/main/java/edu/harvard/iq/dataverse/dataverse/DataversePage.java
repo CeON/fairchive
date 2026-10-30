@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -69,6 +70,7 @@ public class DataversePage {
 
     private boolean showDescriptionAndCarousel;
     private List<Dataverse> carouselFeaturedDataverses = new ArrayList<>();
+    private final SubmitForReviewDialog submitForReviewDialog = new SubmitForReviewDialog();
 
     // -------------------- GETTERS --------------------
 
@@ -116,8 +118,44 @@ public class DataversePage {
 				&& this.permissionsWrapper.canIssueDeleteDataverseCommand(this.dataverse);
 	}
 	
+    public boolean displayReturnToAuthorButton() {
+//        return this.dataverse.isDraft() 
+//                && this.dataset.getLatestVersion().isInReview()
+//                && canPublishDataset();
+    	return true;
+    }
+    
+    public boolean enableReturnToAuthorButton() {
+    	//DataversePage.locked and !DataversePage.dataset.latestVersion.inReview
+    	return true;
+    }
+    
+    public boolean displaySubmitForReviewButton() {
+//        return this.workingVersion == this.dataset.getLatestVersion()
+//                && !isDatasetLockedInWorkflow()
+//                && this.dataset.getLatestVersion().isDraft()
+//                && canUpdateDataset()
+//                && !canPublishDataset();
+    	
+    	return true;
+    }
+    
+    public boolean enableSubmitForReviewButton() {
+    	//DataversePage.dataset.latestVersion.inReview or DataversePage.dataset.locked
+    	return true;
+    }
+
+    public boolean isDataverseInReview() {
+    	//DatversePage.dataset.latestVersion.inReview 
+    	return false;
+    }
+	
 	public String getReleaseDialogName() {
 		return this.dataverse.canBeReleased() ? "confirmation" : "mayNotRelease";
+	}
+	
+	public SubmitForReviewDialog getSubmitForReviewDialog() {
+		return this.submitForReviewDialog;
 	}
 
     // -------------------- LOGIC --------------------
@@ -213,4 +251,29 @@ public class DataversePage {
     	this.uiMessages.addFlashErrorMessage(getStringFromBundle(key));
     }
 
+    
+    //--------------------------------------------------------------------------
+    public class SubmitForReviewDialog {
+    	
+    	private String message = EMPTY;
+
+		public String getMessage() {
+			return this.message;
+		}
+
+		public void setMessage(final String message) {
+			this.message = message;
+		}
+    	
+		public void send() {
+//	        Try.of(() -> commandEngine.submit(new SubmitDatasetForReviewCommand(dvRequestService.getDataverseRequest(), dataset, contributorMessageToCurator)))
+//            .onSuccess(ds -> JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.submit.success")))
+//            .onSuccess(ds -> stateChanged = true)
+//            .onFailure(throwable -> logger.log(Level.SEVERE, "Submitting for review failed:", throwable))
+//            .onFailure(throwable -> JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.submit.failure", throwable.getMessage())));
+//
+//    return returnToLatestVersion();
+		}
+    	
+    }
 }

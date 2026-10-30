@@ -1,0 +1,61 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui" xmlns:o="http://omnifaces.org/ui"
+	xmlns:jsf="http://xmlns.jcp.org/jsf">
+
+	<p:dialog id="submitForReviewDialog"
+		      header="#{bundle['dataset.submitForReview.submitBtn']}"
+		      widgetVar="submitForReviewDialog"
+		      modal="true" 
+		      styleClass="largePopUp">
+
+		<h:form id="submitForReviewForm">
+			<p class="text-warning">
+				<span class="glyphicon glyphicon-warning-sign" />
+				#{bundle['dataverse.submitForReview.submitMessage']}
+			</p>
+
+			<div class="form-group">
+				<label for="returnReasonTextArea"
+				       class="col-sm-3 control-label">
+				       #{bundle['dataset.submitForReview.messageBox.label']}
+				</label>
+				<div class="col-sm-9">
+					<p:fragment id="submitForReviewMessageFragment">
+						<p:inputTextarea id="submitForReviewCustomMessage" 
+						                 rows="20"
+							             value="#{dialog.message}"
+							             maxlength="7000"
+							             cols="60"
+							             counter="submitForReviewCounter"
+							             counterTemplate="#{bundle['dataset.submitForReview.messageBox.counter']}"
+							             autoResize="false"
+							             styleClass="form-control">
+						</p:inputTextarea>
+						<h:message for="submitForReviewCustomMessage"
+							       styleClass="bg-danger text-danger" />
+						<p>
+							<h:outputText id="submitForReviewCounter" />
+						</p>
+					</p:fragment>
+				</div>
+				<p:watermark for="submitForReviewCustomMessage"
+					         value="#{bundle['dataverse.submitForReview.customMessage.watermark']}"
+					         id="submitForReviewWatermark" />
+			</div>
+			<div class="button-block">
+				<p:commandLink value="#{bundle.submit}"
+					           oncomplete="PF('submitForReviewDialog').hide();"
+					           actionListener="#{dialog.send()}"
+					           update=":messagePanel"
+					           styleClass="btn btn-default btn-access" />
+				<p:commandButton value="#{bundle.cancel}"
+					             onclick="PF('submitForReviewDialog').hide();" 
+					             type="button"
+					             immediate="true" />
+			</div>
+		</h:form>
+	</p:dialog>
+</ui:composition>

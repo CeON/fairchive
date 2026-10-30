@@ -157,6 +157,26 @@
                                     </li>
                                 </ul>
                             </div>
+                            
+                            <!-- Return to Author Button -->
+                            <p:commandLink rendered="#{DataversePage.displayReturnToAuthorButton()}"
+                                           id="returnForModificationButton" 
+                                           type="button" 
+                                           styleClass="btn btn-default btn-access #{DataversePage.enableReturnToAuthorButton() ? 'disabled' : ''}"
+                                           onclick="primeFacesShowModal('sendBackToContributor', this)">
+                                <span class="glyphicon glyphicon-repeat"/>#{bundle['dataset.rejectBtn']}
+                            </p:commandLink>
+                            <!-- END: Return to Author Button -->
+
+                            <!-- Submit for Review Button -->
+                            <p:commandLink rendered="#{DatversePage.displaySubmitForReviewButton()}"
+                                           styleClass="btn btn-primary btn-access"
+                                           disabled="#{DataversePage.dataset.latestVersion.inReview or DataversePage.dataset.locked}"
+                                           onclick="primeFacesShowModal('submitForReviewDialog', this);"
+                                           update="submitForReviewDialog" >
+                                <span class="glyphicon glyphicon-globe"/>#{DatversePage.dataverseInReview ? bundle['dataset.disabledSubmittedBtn'] : bundle['dataset.submitForReview.submitBtn']}
+                            </p:commandLink>
+                            
                             <!-- Edit Button -->
                             <div class="btn-group"
                                     jsf:rendered="#{DataversePage.displayEditButton()}">
@@ -596,6 +616,11 @@
                     </div>
                 </ui:fragment>
             </p:dialog>
+            
+            <ui:include src="metadata-importers-fragment.xhtml">
+                <ui:param name="dialog" 
+                          value="#{CreateDatasetPage.submitForReviewDialog}"/>
+            </ui:include>
             
             <script type="text/javascript">
                 //<![CDATA[
