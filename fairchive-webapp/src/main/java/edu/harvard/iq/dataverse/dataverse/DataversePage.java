@@ -119,35 +119,26 @@ public class DataversePage {
 	}
 	
     public boolean displayReturnToAuthorButton() {
-//        return this.dataverse.isDraft() 
-//                && this.dataset.getLatestVersion().isInReview()
-//                && canPublishDataset();
-    	return true;
-    }
-    
-    public boolean enableReturnToAuthorButton() {
-    	//DataversePage.locked and !DataversePage.dataset.latestVersion.inReview
-    	return true;
+    	return this.dataverse.hasDraft()
+    			&& this.dataverse.isInReview()
+    			&& canUserPublishCollection();
     }
     
     public boolean displaySubmitForReviewButton() {
-//        return this.workingVersion == this.dataset.getLatestVersion()
-//                && !isDatasetLockedInWorkflow()
-//                && this.dataset.getLatestVersion().isDraft()
-//                && canUpdateDataset()
-//                && !canPublishDataset();
     	
-    	return true;
+    	boolean isdraft = this.dataverse.isDraft();
+    	boolean cantPublish = !canUserPublishCollection();
+    	
+    	boolean result = this.dataverse.isDraft() && !canUserPublishCollection();
+    	return result;
     }
     
     public boolean enableSubmitForReviewButton() {
-    	//DataversePage.dataset.latestVersion.inReview or DataversePage.dataset.locked
-    	return true;
+    	return ! this.dataverse.isInReview();
     }
 
     public boolean isDataverseInReview() {
-    	//DatversePage.dataset.latestVersion.inReview 
-    	return false;
+    	return this.dataverse.isInReview();
     }
 	
 	public String getReleaseDialogName() {
@@ -250,7 +241,10 @@ public class DataversePage {
     private void addErrorMessage(final String key) {
     	this.uiMessages.addFlashErrorMessage(getStringFromBundle(key));
     }
-
+    
+    public boolean canUserPublishCollection() {
+    	return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse);
+    }
     
     //--------------------------------------------------------------------------
     public class SubmitForReviewDialog {
@@ -263,6 +257,10 @@ public class DataversePage {
 
 		public void setMessage(final String message) {
 			this.message = message;
+		}
+		
+		public void clear() {
+			this.message = EMPTY;
 		}
     	
 		public void send() {

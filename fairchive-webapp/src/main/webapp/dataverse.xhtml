@@ -169,12 +169,15 @@
                             <!-- END: Return to Author Button -->
 
                             <!-- Submit for Review Button -->
-                            <p:commandLink rendered="#{DatversePage.displaySubmitForReviewButton()}"
-                                           styleClass="btn btn-primary btn-access"
-                                           disabled="#{DataversePage.dataset.latestVersion.inReview or DataversePage.dataset.locked}"
-                                           onclick="primeFacesShowModal('submitForReviewDialog', this);"
-                                           update="submitForReviewDialog" >
-                                <span class="glyphicon glyphicon-globe"/>#{DatversePage.dataverseInReview ? bundle['dataset.disabledSubmittedBtn'] : bundle['dataset.submitForReview.submitBtn']}
+                            <p:commandLink rendered="#{DataversePage.displaySubmitForReviewButton()}"
+                                           action="#{DataversePage.submitForReviewDialog.clear()}"
+                                           update=":submitForReviewDialog"
+                                           oncomplete="primeFacesShowModal('submitForReviewDialog', this);"
+                                           styleClass="btn btn-primary btn-access">
+                                <span class="glyphicon glyphicon-globe"/>
+                                #{DataversePage.dataverseInReview 
+                                    ? bundle['dataset.disabledSubmittedBtn'] 
+                                    : bundle['dataset.submitForReview.submitBtn']}
                             </p:commandLink>
                             
                             <!-- Edit Button -->
@@ -617,9 +620,9 @@
                 </ui:fragment>
             </p:dialog>
             
-            <ui:include src="metadata-importers-fragment.xhtml">
+            <ui:include src="submitDataverseForReviewDialog.xhtml">
                 <ui:param name="dialog" 
-                          value="#{CreateDatasetPage.submitForReviewDialog}"/>
+                          value="#{DataversePage.submitForReviewDialog}"/>
             </ui:include>
             
             <script type="text/javascript">
