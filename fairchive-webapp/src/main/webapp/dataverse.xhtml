@@ -173,6 +173,7 @@
                                            action="#{DataversePage.submitForReviewDialog.clear()}"
                                            update=":submitForReviewDialog"
                                            oncomplete="primeFacesShowModal('submitForReviewDialog', this);"
+                                           disabled="#{DataversePage.disabledSubmitForReviewButton()}"
                                            styleClass="btn btn-primary btn-access">
                                 <span class="glyphicon glyphicon-globe"/>
                                 #{DataversePage.dataverseInReview 
@@ -623,6 +624,8 @@
             <ui:include src="submitDataverseForReviewDialog.xhtml">
                 <ui:param name="dialog" 
                           value="#{DataversePage.submitForReviewDialog}"/>
+                <ui:param name="updatableComponents" 
+                          value=":messagePanel :actionButtonBlock"/>
             </ui:include>
             
             <script type="text/javascript">

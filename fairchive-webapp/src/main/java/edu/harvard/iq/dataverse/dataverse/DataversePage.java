@@ -38,27 +38,16 @@ public class DataversePage {
 
     private static final Logger logger = getLogger(DataversePage.class);
 
-    @Inject
     private DataverseRepository dataverses;
-    @Inject
     private DataverseService dataverseService;
-    @Inject
     private FeaturedDataverseServiceBean featuredDataverseService;
-    @Inject
     private PermissionServiceBean permissionService;
-    @Inject
     private PermissionsWrapper permissionsWrapper;
-    @Inject
     private DataverseSession session;
-    @Inject
     private SearchIncludeFragment searchIncludeFragment;
-    @Inject
     private LinkToDataverseDialog linkToDataverseDialog;
-    @Inject
     private FeaturedDataversesDialog featuredDataversesDialog;
-    @Inject 
     private SystemConfig sysConfig;
-    @Inject
     private UIMessages uiMessages;
 
     @Inject @Param(name = "alias")
@@ -71,6 +60,36 @@ public class DataversePage {
     private boolean showDescriptionAndCarousel;
     private List<Dataverse> carouselFeaturedDataverses = new ArrayList<>();
     private final SubmitForReviewDialog submitForReviewDialog = new SubmitForReviewDialog();
+    
+    
+    public DataversePage() {}
+    
+    @Inject
+    public DataversePage(final DataverseRepository dataverses,
+    		final DataverseService dataverseService,
+    		final FeaturedDataverseServiceBean featuredDataverseService,
+    		final PermissionServiceBean permissionService,
+    		final PermissionsWrapper permissionsWrapper,
+    		final DataverseSession session,
+    		final SearchIncludeFragment searchIncludeFragment,
+    		final LinkToDataverseDialog linkToDataverseDialog,
+    		final FeaturedDataversesDialog featuredDataversesDialog,
+    		final SystemConfig sysConfig,
+    		final UIMessages uiMessages) {
+    	
+    	this.dataverses = dataverses;
+    	this.dataverseService = dataverseService;
+    	this.featuredDataverseService = featuredDataverseService;
+    	this.permissionService = permissionService;
+    	this.permissionsWrapper = permissionsWrapper;
+    	this.session = session;
+    	this.searchIncludeFragment = searchIncludeFragment;
+    	this.linkToDataverseDialog = linkToDataverseDialog;
+    	this.featuredDataversesDialog = featuredDataversesDialog;
+    	this.sysConfig = sysConfig;
+    	this.uiMessages = uiMessages;
+    }
+    
 
     // -------------------- GETTERS --------------------
 
@@ -86,7 +105,15 @@ public class DataversePage {
         return this.dataverseId;
     }
 
-    public boolean isShowDescriptionAndCarousel() {
+    public void setDataverseAlias(String dataverseAlias) {
+		this.dataverseAlias = dataverseAlias;
+	}
+
+	public void setDataverseId(Long dataverseId) {
+		this.dataverseId = dataverseId;
+	}
+
+	public boolean isShowDescriptionAndCarousel() {
         return this.showDescriptionAndCarousel;
     }
 
@@ -128,8 +155,8 @@ public class DataversePage {
     	return this.dataverse.isDraft() && !canUserPublishCollection();
     }
     
-    public boolean enableSubmitForReviewButton() {
-    	return ! this.dataverse.isInReview();
+    public boolean disabledSubmitForReviewButton() {
+    	return this.dataverse.isInReview();
     }
 
     public boolean isDataverseInReview() {
@@ -145,9 +172,8 @@ public class DataversePage {
 	}
 
     // -------------------- LOGIC --------------------
-    @PostConstruct
-    public void postConstruct() {
-
+    public String init() {
+    	
         if (isNotEmpty(this.dataverseAlias)) {
         	this.dataverse = this.dataverses.findByAlias(this.dataverseAlias).orElse(null);
         } else if(this.dataverseId != null) {
@@ -160,9 +186,6 @@ public class DataversePage {
         }
 
         this.searchIncludeFragment.setDataverse(this.dataverse);
-    }
-
-    public String init() {
 
         if (!this.dataverse.isReleased() 
         		&& !this.permissionsWrapper.canViewUnpublishedDataverse(this.dataverse)) {

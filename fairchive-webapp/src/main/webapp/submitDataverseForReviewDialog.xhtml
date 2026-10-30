@@ -42,7 +42,7 @@
 				<p:commandButton value="#{bundle.submit}"
 				                 action="#{dialog.send()}"
 					             oncomplete="PF('submitForReviewDialog').hide();"
-					             update=":messagePanel"
+					             update="#{updatableComponents}"
 					             process="@form"
 					             styleClass="btn btn-default btn-access" />
 				<p:commandButton value="#{bundle.cancel}"
