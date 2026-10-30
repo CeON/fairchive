@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 
 import edu.harvard.iq.dataverse.DataFileServiceBean;
 import edu.harvard.iq.dataverse.DataverseRequestServiceBean;
+import edu.harvard.iq.dataverse.MultipartPartsCleanupFilter;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.common.BundleUtil;
@@ -156,6 +157,7 @@ public class ReplaceDatafilesPage implements Serializable {
     }
 
     public String handleFileUpload(FileUploadEvent event) {
+        MultipartPartsCleanupFilter.deletePartsAfterRequest();
 
         UploadedFile uFile = event.getFile();
 
