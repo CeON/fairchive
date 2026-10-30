@@ -125,12 +125,7 @@ public class DataversePage {
     }
     
     public boolean displaySubmitForReviewButton() {
-    	
-    	boolean isdraft = this.dataverse.isDraft();
-    	boolean cantPublish = !canUserPublishCollection();
-    	
-    	boolean result = this.dataverse.isDraft() && !canUserPublishCollection();
-    	return result;
+    	return this.dataverse.isDraft() && !canUserPublishCollection();
     }
     
     public boolean enableSubmitForReviewButton() {
@@ -264,14 +259,14 @@ public class DataversePage {
 		}
     	
 		public void send() {
-//	        Try.of(() -> commandEngine.submit(new SubmitDatasetForReviewCommand(dvRequestService.getDataverseRequest(), dataset, contributorMessageToCurator)))
-//            .onSuccess(ds -> JsfHelper.addFlashSuccessMessage(getStringFromBundle("dataset.submit.success")))
-//            .onSuccess(ds -> stateChanged = true)
-//            .onFailure(throwable -> logger.log(Level.SEVERE, "Submitting for review failed:", throwable))
-//            .onFailure(throwable -> JsfHelper.addFlashErrorMessage(getStringFromBundle("dataset.submit.failure", throwable.getMessage())));
-//
-//    return returnToLatestVersion();
+			try {
+				dataverseService.submitForReview(dataverse, this.message);
+				uiMessages.addFlashSuccessMessage(
+						getStringFromBundle("dataset.submit.success"));
+			} catch (final Exception e) {
+				uiMessages.addFlashErrorMessage(
+						getStringFromBundle("dataset.submit.failure", e.getMessage()));
+			}
 		}
-    	
     }
 }

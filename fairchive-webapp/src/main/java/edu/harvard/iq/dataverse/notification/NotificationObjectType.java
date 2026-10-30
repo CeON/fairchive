@@ -7,15 +7,16 @@ public enum NotificationObjectType {
     DATASET_VERSION("DatasetVersion"),
     DATAFILE("DataFile"),
     AUTHENTICATED_USER("AuthenticatedUser"),
-    FILEMETADATA("FileMetadata");
+    FILEMETADATA("FileMetadata"),
+    DATAVERSE_VERSION("DataVerseVersion");
 
     private String objectTypeDescription;
 
-    NotificationObjectType(String objectType) {
+    NotificationObjectType(final String objectType) {
         this.objectTypeDescription = objectType;
     }
 
     public String getObjectTypeDescription() {
-        return objectTypeDescription;
+        return this.objectTypeDescription;
     }
 }

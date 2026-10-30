@@ -46,7 +46,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.Template;
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DatasetLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.DataverseLinkingDataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.link.SavedSearch;
