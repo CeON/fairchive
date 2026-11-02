@@ -455,7 +455,6 @@ public class CreateEditDataversePage implements Serializable {
      */
 
 	public void handleImageFileUpload(final FileUploadEvent event) throws IOException {
-		System.out.println("!================================== handleImageFileUpload");
 		if (this.storage == null) {
 			this.storage = this.tempLogoStorageManager.createStorageFor(this.dataverse);
 		}
