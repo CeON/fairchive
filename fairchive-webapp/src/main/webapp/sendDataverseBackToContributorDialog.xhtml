@@ -2,7 +2,8 @@
     xmlns:h="http://java.sun.com/jsf/html"
     xmlns:f="http://java.sun.com/jsf/core"
     xmlns:ui="http://java.sun.com/jsf/facelets"
-    xmlns:p="http://primefaces.org/ui" xmlns:o="http://omnifaces.org/ui"
+    xmlns:p="http://primefaces.org/ui" 
+    xmlns:o="http://omnifaces.org/ui"
     xmlns:jsf="http://xmlns.jcp.org/jsf">
 
     <p:dialog id="sendBackToContributorDialog"
@@ -29,7 +30,7 @@
                                      counter="counter"
                                      counterTemplate="#{bundle['dataset.reject.messageBox.counter']}"
                                      autoResize="false"
-                                     required="#{param['DO_RETURN_VALIDATION']}"
+                                     required="ture"
                                      requiredMessage="#{bundle['dataset.reject.enterReason']}"
                                      styleClass="form-control">
                     </p:inputTextarea>
@@ -56,7 +57,7 @@
                         <p:inputText id="replyTo"
                                      styleClass="form-control"
                                      value="#{dialog.replyTo}"
-                                     required="#{param['DO_RETURN_VALIDATION']}"
+                                     required="true"
                                      requiredMessage="#{bundle['requiredField']}"
                                      validator="#{dialog.validateReplyToEmail}"
                                      validatorMessage="#{bundle['dataset.reject.reply.to.invalid.mail']}">
@@ -79,9 +80,7 @@
                                  oncomplete="if (args &amp;&amp; !args.validationFailed) PF('sendBackToContributorDialog').hide();"
                                  update="#{updatableComponents}"
                                  process="@form"
-                                 styleClass="btn btn-default btn-access" >
-                                  <f:param name="DO_RETURN_VALIDATION" value="#{true}" />
-                                 </p:commandButton>
+                                 styleClass="btn btn-default btn-access" />
                 <p:commandButton value="#{bundle.cancel}"
                                  onclick="PF('sendBackToContributorDialog').hide();" 
                                  type="button"/>

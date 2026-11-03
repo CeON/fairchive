@@ -108,7 +108,8 @@
                             <!-- END: Email/Link/Share Button Group -->
 
                         <!-- Edit/Publish Button Group -->
-                        <div class="btn-group" 
+                        <div id="editPublishBlock"
+                             class="btn-group" 
                              jsf:rendered="#{DataversePage.displayEditPublishButtons()}">
                            <!-- Publish Button -->
                             <button jsf:rendered="#{DataversePage.displayPublishButton()}"
@@ -625,15 +626,16 @@
                 <ui:param name="dialog" 
                           value="#{DataversePage.submitForReviewDialog}"/>
                 <ui:param name="updatableComponents" 
-                          value=":messagePanel :actionButtonBlock"/>
+                          value=":messagePanel :dataverseForm:editPublishBlock"/>
             </ui:include>
             
             <ui:include src="sendDataverseBackToContributorDialog.xhtml">
                 <ui:param name="dialog" 
                           value="#{DataversePage.sendBackToContributorDialog}"/>
                 <ui:param name="updatableComponents" 
-                          value=":messagePanel :actionButtonBlock"/>
+                          value=":messagePanel :dataverseForm:editPublishBlock"/>
             </ui:include>
+            
             
             <script type="text/javascript">
                 //<![CDATA[
