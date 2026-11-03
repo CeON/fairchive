@@ -160,10 +160,10 @@
                             
                             <!-- Return to Author Button -->
                             <p:commandLink rendered="#{DataversePage.displayReturnToAuthorButton()}"
-                                           id="returnForModificationButton" 
-                                           type="button" 
-                                           styleClass="btn btn-default btn-access #{DataversePage.enableReturnToAuthorButton() ? 'disabled' : ''}"
-                                           onclick="primeFacesShowModal('sendBackToContributor', this)">
+                                           action="#{DataversePage.submitForReviewDialog.clear()}"
+                                           update=":sendBackToContributorDialog"
+                                           styleClass="btn btn-default btn-access}"
+                                           onclick="primeFacesShowModal('sendBackToContributorDialog', this)">
                                 <span class="glyphicon glyphicon-repeat"/>#{bundle['dataset.rejectBtn']}
                             </p:commandLink>
                             <!-- END: Return to Author Button -->
@@ -624,6 +624,13 @@
             <ui:include src="submitDataverseForReviewDialog.xhtml">
                 <ui:param name="dialog" 
                           value="#{DataversePage.submitForReviewDialog}"/>
+                <ui:param name="updatableComponents" 
+                          value=":messagePanel :actionButtonBlock"/>
+            </ui:include>
+            
+            <ui:include src="sendDataverseBackToContributorDialog.xhtml">
+                <ui:param name="dialog" 
+                          value="#{DataversePage.sendBackToContributorDialog}"/>
                 <ui:param name="updatableComponents" 
                           value=":messagePanel :actionButtonBlock"/>
             </ui:include>

@@ -27,6 +27,7 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.DeleteDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.PublishDataverseCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.ReturnDataverseToAuthorCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.SubmitDataverseForReviewCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
@@ -181,6 +182,14 @@ public class DataverseService {
     public Dataverse submitForReview(final Dataverse dataverse, final String comment) {
     	
     	return commandEngine.submit(new SubmitDataverseForReviewCommand(
-    			requestService.getDataverseRequest(), dataverse, comment));
+    			this.requestService.getDataverseRequest(), dataverse, comment));
+    }
+    
+    public Dataverse sendBackToContributor(final Dataverse dataverse, 
+    		final String comment, final String replyTo, final boolean sendCopy) {
+    	
+    	return commandEngine.submit(new ReturnDataverseToAuthorCommand(
+    			this.requestService.getDataverseRequest(), dataverse, comment, 
+    				replyTo, sendCopy));
     }
 }

@@ -9,3 +9,7 @@ CREATE TABLE dataverselock (
     CONSTRAINT fk_dataverselock_datverse_id FOREIGN KEY (dataverse_id) REFERENCES dataverse(id),
     CONSTRAINT fk_dataverselock_user_id FOREIGN KEY (user_id) REFERENCES authenticateduser(id)
 );
+
+
+alter TABLE workflowcomment add column dataverseversion_id int8 references dataverseversion(id);
+alter table workflowcomment alter column datasetversion_id drop not null;

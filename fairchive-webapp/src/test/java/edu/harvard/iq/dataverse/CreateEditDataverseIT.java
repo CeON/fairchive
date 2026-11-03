@@ -8,6 +8,7 @@ import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFA
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFAULT_TEXT_COLOR;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment.LEFT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat.SQUARE;
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
 
 import javax.inject.Inject;
 
@@ -70,9 +72,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
     @Inject
     private DataverseRoleRepository roleRepository;
 	
-	private DataverseRequestServiceBean requestService;
-	private NavigationWrapper navigationWrapper;
-    private PermissionsWrapper permissionsWrapper;
     private UIMessages ui = Mockito.mock(UIMessages.class);
 	private CreateEditDataversePage createEditPage;
 	private DataversePage dataversePage;
@@ -89,15 +88,10 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		when(this.uploadedFile.getInputStream()).then(invocation -> 
 				this.fileContent = this.getClass().getResourceAsStream("/images/".concat(logoFileName)));
 		
-		this.requestService = new DataverseRequestServiceBean(this.session, null);
-		this.navigationWrapper = Mockito.mock(NavigationWrapper.class);
-		this.permissionsWrapper = new PermissionsWrapper(this.permissionService, 
-				this.requestService, this.navigationWrapper);
-		
 		this.createEditPage = newEditPage();
 		
 		this.session.setLocaleCode("EN");
-		loginUserById(1L); // admin
+		logInAdmin();
 	}
 	
 	@AfterEach
@@ -523,18 +517,19 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		verify(this.ui, times(1)).addErrorMessage(anyString(), anyString());
 	}
 	
-	
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
 	void createNewDataverseDraft_asRegularUser_andSendForReview() throws IOException {
 		
-		loginUserById(1L);
+		logInAdmin();
 		
 		Dataverse root = this.dataverseRepository.getById(1L);
+		root.setPublicationDate(Timestamp.from(now()));
 		root.setDefaultDataverseContributorRole(this.roleRepository.findByAlias("collectionCustodian").get());
 		
-		loginUserById(3L);
+		logInRegularUser();
 		
+		// create new child collection
 		this.createEditPage.setOwnerId(1L);
 		this.createEditPage.init();
 		
@@ -554,7 +549,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				new FileUploadEvent(new NullComponent(), this.uploadedFile));
 		this.createEditPage.save();
 		
-		
+		// send it for review
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(this.createEditPage.getDataverse().getId());
 		this.dataversePage.init();
@@ -579,6 +574,72 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.isInReview()).isTrue();
 		assertThat(dataverse.isReleased()).isFalse();
 		
+		// decline review - return collection to author
+		logInAdmin();
+		
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(dataverse.getId());
+		this.dataversePage.init();
+		
+		dataverse = this.dataversePage.getDataverse();
+		
+		assertThat(this.dataversePage.displaySubmitForReviewButton()).isFalse();
+		assertThat(this.dataversePage.displayPublishButton()).isTrue();
+		assertThat(this.dataversePage.displayReturnToAuthorButton()).isTrue();
+		
+		this.dataversePage.getSendBackToContributorDialog().clear();
+		this.dataversePage.getSendBackToContributorDialog().setMessage("message1");
+		this.dataversePage.getSendBackToContributorDialog().send();
+		
+		assertThat(dataverse.isInReview()).isFalse();
+		assertThat(dataverse.isReleased()).isFalse();
+		
+		//send for review again
+		logInRegularUser();
+		
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(this.createEditPage.getDataverse().getId());
+		this.dataversePage.init();
+
+		dataverse = this.dataversePage.getDataverse();
+
+		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
+		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
+		assertThat(this.dataversePage.displayPublishButton()).isFalse();
+
+		this.dataversePage.getSubmitForReviewDialog().clear();
+		this.dataversePage.getSubmitForReviewDialog().setMessage("message1");
+		this.dataversePage.getSubmitForReviewDialog().send();
+
+		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
+		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isTrue();
+		assertThat(this.dataversePage.displayPublishButton()).isFalse();
+
+		assertThat(dataverse.isInReview()).isTrue();
+		assertThat(dataverse.isReleased()).isFalse();
+		
+		// publish
+		logInAdmin();
+		
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(dataverse.getId());
+		this.dataversePage.init();
+		
+		assertThat(this.dataversePage.displayPublishButton()).isTrue();
+		
+		this.dataversePage.releaseDataverse();
+		
+		assertThat(this.dataversePage.displayPublishButton()).isFalse();
+		assertThat(this.dataversePage.displayReturnToAuthorButton()).isFalse();
+		assertThat(this.dataversePage.displaySubmitForReviewButton()).isFalse();
+		
+		dataverse = this.dataversePage.getDataverse();
+		
+		assertThat(dataverse.isInReview()).isFalse();
+		assertThat(dataverse.isReleased()).isTrue();
+		assertThat(dataverse.hasDraft()).isFalse();
+		assertThat(dataverse.getLatestVersion().isReleased()).isTrue();
+		assertThat(dataverse.getLatestVersion().isDraft()).isFalse();
 	}
 	
 	private void loginUserById(final Long id) {
@@ -586,19 +647,38 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.session.logIn(this.userRepository.getById(id));
 	}
 	
+	private void logInAdmin() {
+		loginUserById(1L);
+	}
+	
+	private void logInRegularUser() {
+		loginUserById(3L);
+	}
+	
 	private CreateEditDataversePage newEditPage() {
+		final PermissionsWrapper permissionsWrapper = newPermissionsWrapper();	
 		return new CreateEditDataversePage(this.dataverseService,
-				this.permissionsWrapper, this.session, this.config,
+				permissionsWrapper, this.session, this.config,
 				this.storageManager, this.ui);
 	}
 	
 	private DataversePage newDataversePage() {
+	    final PermissionsWrapper permissionsWrapper = newPermissionsWrapper();	
 		return new DataversePage(this.dataverseRepository, this.dataverseService,
 				this.featuredDataverseService, this.permissionService , 
-				this.permissionsWrapper, this.session, 
+				permissionsWrapper, this.session, 
 				Mockito.mock(SearchIncludeFragment.class),
 				Mockito.mock(LinkToDataverseDialog.class),
 				Mockito.mock(FeaturedDataversesDialog.class),
 				this.config, this.ui);
+	}
+	
+	private PermissionsWrapper newPermissionsWrapper() {
+		final DataverseRequestServiceBean requestService = 
+				new DataverseRequestServiceBean(this.session, null);
+		final NavigationWrapper navigationWrapper = 
+				Mockito.mock(NavigationWrapper.class);
+	    return new PermissionsWrapper(this.permissionService, 
+	    				requestService, navigationWrapper);
 	}
 }

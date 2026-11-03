@@ -5,7 +5,7 @@ import static edu.harvard.iq.dataverse.notification.NotificationObjectType.DATAV
 import static edu.harvard.iq.dataverse.notification.NotificationParameter.MESSAGE;
 import static edu.harvard.iq.dataverse.notification.NotificationParameter.REQUESTOR_ID;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseLock.Reason.InReview;
-import static edu.harvard.iq.dataverse.persistence.user.NotificationType.SUBMITTEDDS;
+import static edu.harvard.iq.dataverse.persistence.user.NotificationType.SUBMITTEDDV;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.PublishDataverse;
 import static java.time.Instant.now;
 
@@ -69,7 +69,7 @@ public class SubmitDataverseForReviewCommand extends AbstractCommand<Dataverse> 
         parameters.put(MESSAGE.key(), this.comment);
 
         curators.forEach(c -> context.notifications()
-                .sendNotificationWithEmail(c, timestamp, SUBMITTEDDS,
+                .sendNotificationWithEmail(c, timestamp, SUBMITTEDDV,
                         this.dataverse.getLatestVersion().getId(), DATAVERSE_VERSION, parameters));
     }
 }

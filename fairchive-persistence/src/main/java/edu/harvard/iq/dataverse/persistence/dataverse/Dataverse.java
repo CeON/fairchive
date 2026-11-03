@@ -928,6 +928,10 @@ public class Dataverse extends DvObjectContainer {
         this.locks.add(lock);
     }
     
+    public void removeLocks(final DataverseLock.Reason reason) {
+    	this.locks.removeIf(lock -> lock.getReason().equals(reason));
+    }
+    
     public boolean isLocked() {
         return !this.locks.isEmpty();
     }

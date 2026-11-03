@@ -2,8 +2,10 @@ package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.util.JsfRedirectHelper.redirectToDataverse;
+import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -11,9 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.enterprise.context.RequestScoped;
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.validator.routines.EmailValidator;
 import org.omnifaces.cdi.Param;
 import org.slf4j.Logger;
 
@@ -59,7 +66,8 @@ public class DataversePage {
     private boolean showDescriptionAndCarousel;
     private List<Dataverse> carouselFeaturedDataverses = new ArrayList<>();
     private final SubmitForReviewDialog submitForReviewDialog = new SubmitForReviewDialog();
-    
+    private final SendBackToContributorDialog sendBackToContributorDialog =
+    		new SendBackToContributorDialog();
     
     public DataversePage() {}
     
@@ -169,6 +177,10 @@ public class DataversePage {
 	public SubmitForReviewDialog getSubmitForReviewDialog() {
 		return this.submitForReviewDialog;
 	}
+	
+	public SendBackToContributorDialog getSendBackToContributorDialog() {
+		return this.sendBackToContributorDialog;
+	}
 
     // -------------------- LOGIC --------------------
     public String init() {
@@ -210,7 +222,7 @@ public class DataversePage {
     public String releaseDataverse() {
         if (this.session.isUserLoggedIn()) {
             try {
-            	this.dataverseService.publishDataverse(this.dataverse);
+            	this.dataverse = this.dataverseService.publishDataverse(this.dataverse);
             	addSuccessMessage("dataverse.publish.success");
             } catch (final Exception e) {
                 logger.error("Unexpected Exception calling  publish dataverse command", e);
@@ -288,6 +300,68 @@ public class DataversePage {
 			} catch (final Exception e) {
 				uiMessages.addFlashErrorMessage(
 						getStringFromBundle("dataset.submit.failure", e.getMessage()));
+			}
+		}
+    }
+    
+    //--------------------------------------------------------------------------
+    public class SendBackToContributorDialog {
+    	
+    	private String message = EMPTY;
+    	private String replyTo = EMPTY;
+    	private boolean sendCopy = false;
+
+		public String getMessage() {
+			return this.message;
+		}
+
+		public void setMessage(final String message) {
+			this.message = message;
+		}
+		
+	    public String getReplyTo() {
+	        return this.replyTo;
+	    }
+
+	    public void setReplyTo(final String replyTo) {
+	        this.replyTo = replyTo;
+	    }
+		
+	    public boolean isSendCopy() {
+	        return this.sendCopy;
+	    }
+
+	    public void setSendCopy(final boolean sendCopy) {
+	        this.sendCopy = sendCopy;
+	    }
+		
+		public void clear() {
+			this.message = EMPTY;
+			this.replyTo = EMPTY;
+			this.sendCopy = false;
+		}
+		
+	    public void validateReplyToEmail(final FacesContext context, 
+	    		final UIComponent component, final Object value) 
+	    				throws ValidatorException {
+	        final String email = (String) value;
+	        if(isNoneBlank(email)) {
+		        if (!EmailValidator.getInstance().isValid(email)) {
+		            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR,
+		                    getStringFromBundle("email.invalid", email), EMPTY));
+		        }
+	        }
+	    }
+    	
+		public void send() {
+			try {
+		        dataverseService.sendBackToContributor(dataverse, this.message, 
+		        		this.replyTo, this.sendCopy);
+				uiMessages.addFlashSuccessMessage(
+						getStringFromBundle("dataverse.reject.success"));
+			} catch (final Exception e) {
+				uiMessages.addFlashErrorMessage(
+						getStringFromBundle("dataverse.reject.failure", e.getMessage()));
 			}
 		}
     }

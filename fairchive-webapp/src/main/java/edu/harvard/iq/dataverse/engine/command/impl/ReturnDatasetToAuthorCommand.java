@@ -1,5 +1,9 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import edu.harvard.iq.dataverse.common.BundleUtil;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -14,10 +18,6 @@ import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.persistence.user.User;
 import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataset)
