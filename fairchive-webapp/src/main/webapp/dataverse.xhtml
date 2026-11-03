@@ -108,9 +108,9 @@
                             <!-- END: Email/Link/Share Button Group -->
 
                         <!-- Edit/Publish Button Group -->
-                        <div id="editPublishBlock"
-                             class="btn-group" 
+                        <div class="btn-group" 
                              jsf:rendered="#{DataversePage.displayEditPublishButtons()}">
+                             <p:fragment id="editPublishBlock">
                            <!-- Publish Button -->
                             <button jsf:rendered="#{DataversePage.displayPublishButton()}"
                                     type="button" 
@@ -162,7 +162,6 @@
                             <!-- Return to Author Button -->
                             <p:commandLink rendered="#{DataversePage.displayReturnToAuthorButton()}"
                                            action="#{DataversePage.submitForReviewDialog.clear()}"
-                                           update=":sendBackToContributorDialog"
                                            styleClass="btn btn-default btn-access}"
                                            onclick="primeFacesShowModal('sendBackToContributorDialog', this)">
                                 <span class="glyphicon glyphicon-repeat"/>#{bundle['dataset.rejectBtn']}
@@ -327,6 +326,7 @@
                                 </ul>
                             </div>
                             <!--  END: Edit Button -->
+                            </p:fragment>
                             </div>
 
                             <!--  END: Edit/Publish Button Group -->
