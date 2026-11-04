@@ -504,16 +504,6 @@ public class CreateEditDataversePage implements Serializable {
     public boolean isUserCanChangeAllowMessageAndBanners() {
         return this.session.isSuperUserLoggedIn();
     }
-    
-    
-    public String saveAndRelease() {
-    	if(canUserPublishCollection()) {
-    		this.version.setState(RELEASED);
-    		return save();
-    	} else {
-    		return this.permissionsWrapper.notAuthorized();
-    	}
-    }
 
     public String save() {
     	try {

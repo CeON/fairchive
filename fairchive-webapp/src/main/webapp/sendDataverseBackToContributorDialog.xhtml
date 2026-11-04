@@ -15,13 +15,13 @@
               styleClass="largePopUp">
 
         <h:form id="sandBackToContributorForm">
-            <div class="form-group">
+            <div class="row">
                 <label for="message" 
                        class="col-sm-4 control-label">#{bundle['dataset.reject.messageBox.label']}
                     <span class="glyphicon glyphicon-asterisk text-danger" 
                           title="#{bundle.requiredField}"/>
                 </label>
-                <div class="col-sm-9">
+                <div class="col-sm-8">
                     <p:inputTextarea id="message" 
                                      rows="20"
                                      value="#{dialog.message}"
@@ -35,36 +35,34 @@
                                      styleClass="form-control">
                     </p:inputTextarea>
                     <p:watermark for="message"
-                                 value="#{bundle['dataset.rejectWatermark']}"/>
+                                 value="#{bundle['dataverse.rejectWatermark']}"/>
                     <h:outputText id="counter" />
                 </div>
             </div>
             <div class="row">
-                <div class="form-group">
-                    <label for="replyTo" 
-                           class="col-sm-4 control-label">
-                        #{bundle['dataset.reject.reply.to.label']}
-                        <span class="glyphicon glyphicon-asterisk text-danger" 
-                              title="#{bundle.requiredField}"/>
-                        <span class="glyphicon glyphicon-question-sign tooltip-icon"
-                              tabindex="0" 
-                              role="button"
-                              data-toggle="tooltip" 
-                              data-placement="auto right"
-                              data-original-title="#{bundle['dataset.reject.reply.to.tooltip']}"></span>
-                    </label>
-                    <div class="col-sm-8">
-                        <p:inputText id="replyTo"
-                                     styleClass="form-control"
-                                     value="#{dialog.replyTo}"
-                                     required="true"
-                                     requiredMessage="#{bundle['requiredField']}"
-                                     validator="#{dialog.validateReplyToEmail}"
-                                     validatorMessage="#{bundle['dataset.reject.reply.to.invalid.mail']}">
-                        </p:inputText>
-                        <br/>
-                        <h:message for="replyTo" styleClass="bg-danger text-danger"/>
-                    </div>
+                <label for="replyTo" 
+                       class="col-sm-4 control-label">
+                    #{bundle['dataset.reject.reply.to.label']}
+                    <span class="glyphicon glyphicon-asterisk text-danger" 
+                          title="#{bundle.requiredField}"/>
+                    <span class="glyphicon glyphicon-question-sign tooltip-icon"
+                          tabindex="0" 
+                          role="button"
+                          data-toggle="tooltip" 
+                          data-placement="auto right"
+                          data-original-title="#{bundle['dataverse.reject.reply.to.tooltip']}"></span>
+                </label>
+                <div class="col-sm-8">
+                    <p:inputText id="replyTo"
+                                 styleClass="form-control"
+                                 value="#{dialog.replyTo}"
+                                 required="true"
+                                 requiredMessage="#{bundle['requiredField']}"
+                                 validator="#{dialog.validateReplyToEmail}"
+                                 validatorMessage="#{bundle['dataset.reject.reply.to.invalid.mail']}">
+                    </p:inputText>
+                    <br/>
+                    <h:message for="replyTo" styleClass="bg-danger text-danger"/>
                 </div>
             </div>  
             <div class="row">

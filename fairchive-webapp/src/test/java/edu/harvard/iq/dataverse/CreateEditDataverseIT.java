@@ -92,6 +92,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		this.session.setLocaleCode("EN");
 		logInAdmin();
+		publishRootDataverse();
 	}
 	
 	@AfterEach
@@ -103,11 +104,13 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
-	void createNewDataverseDraft() throws IOException {
+	void createNewDataverseDraft_andPublish_asAdminUser() throws IOException {
 		
+		// open edition page
 		this.createEditPage.setOwnerId(1L);
 		this.createEditPage.init();
 		
+		//verify default values
 		assertThat(this.createEditPage.getTitle()).isEqualTo("New Collection");
 		assertThat(this.createEditPage.getName()).isEmpty();
 		assertThat(this.createEditPage.getAlias()).isEmpty();
@@ -154,7 +157,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.getTheme().getTagline()).isNull();
 		assertThat(version.getTheme().getVersion()).isSameAs(version);
 		
-		
+		// fill in values
 		this.createEditPage.setName("name1");
 		this.createEditPage.setAlias("alias1");
 		this.createEditPage.setAffiliation("affiliation1");
@@ -174,13 +177,16 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.isLogoPresent()).isTrue();
 		assertThat(this.createEditPage.getLogo()).isEqualTo(logoFileName);
 		
-		
+		// save version
 		assertThat(this.createEditPage.save()).
 			isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
 		
 		verify(this.ui, times(1)).addFlashSuccessMessage(anyString());
 		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
+		//TODO: verify what gets indexed by solr - see DataverseServiceIT
+		
+		// verify saved version
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
 		assertThat(stored.isNew()).isFalse();
@@ -188,7 +194,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getVersions()).hasSize(1);
 		assertThat(stored.isDraft()).isTrue();
 		
-		DataverseVersion storedVersion = dataverse.getLatestVersion();
+		DataverseVersion storedVersion = stored.getLatestVersion();
 		
 		assertThat(storedVersion.isDraft()).isTrue();
 		assertThat(storedVersion.getName()).isEqualTo("name1");
@@ -205,6 +211,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.getTheme().getTagline()).isEqualTo("tagline");
 		assertThat(storedVersion.getTheme().getLogo()).isEqualTo(logoFileName);
 		
+		// open dataverse page
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(stored.getId());
 		this.dataversePage.init();
@@ -218,45 +225,23 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isTrue();
 		
-		//TODO: verify what gets indexed by solr - see DataverseServiceIT
-	}
-	
-	@Test
-	@Transactional(TransactionMode.ROLLBACK)
-	void createNewDataverseReleased() throws Exception {
+		// publish dataverse
+		this.dataversePage.releaseDataverse();
 		
-		this.createEditPage.setOwnerId(1L);
-		this.createEditPage.init();
-
-		Dataverse dataverse = this.createEditPage.getDataverse();
+		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
-		this.createEditPage.setName("name1");
-		this.createEditPage.setAlias("alias1");
-		this.createEditPage.setAffiliation("affiliation1");
-		this.createEditPage.setType(LABORATORY);
-		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
-		this.createEditPage.setInheritFacetFromParent(false);
-		this.createEditPage.setMessagesBannersAllowed(true);
-		this.createEditPage.setBackgroundColor("BBBBBB");
-		this.createEditPage.setLinkColor("CCCCCC");
-		this.createEditPage.setTextColor("DDDDDD");
-		this.createEditPage.setLinkUrl("http://google.com");
-		this.createEditPage.setTagline("tagline");
-		
-		this.createEditPage.handleImageFileUpload(
-				new FileUploadEvent(new NullComponent(), this.uploadedFile));
-		
-		assertThat(this.createEditPage.saveAndRelease()).
-			isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias1");
-		
-		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
+		// verify published dataverse
+		stored = this.dataverseService.
+				findById(this.dataversePage.getDataverse().getId()).get();
 		
 		assertThat(stored.isNew()).isFalse();
 		assertThat(stored.getOwner().getId()).isEqualTo(1L);
 		assertThat(stored.getVersions()).hasSize(1);
 		assertThat(stored.isDraft()).isFalse();
+		assertThat(stored.isReleased()).isTrue();
+		assertThat(stored.isInReview()).isFalse();
 		
-		DataverseVersion storedVersion = dataverse.getLatestVersion();
+		storedVersion = stored.getLatestVersion();
 		
 		assertThat(storedVersion.isDraft()).isFalse();
 		assertThat(storedVersion.getName()).isEqualTo("name1");
@@ -280,9 +265,11 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	@Transactional(TransactionMode.ROLLBACK)
 	void editDataverseDraft() throws Exception {
 		
+		// opne edition page
 		this.createEditPage.setOwnerId(1L);
 		this.createEditPage.init();
 		
+		// fill in values & save
 		this.createEditPage.setName("name1");
 		this.createEditPage.setAlias("alias1");
 		this.createEditPage.setAffiliation("affiliation1");
@@ -298,12 +285,17 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.handleImageFileUpload(
 				new FileUploadEvent(new NullComponent(), this.uploadedFile));
 		this.createEditPage.save();
+		
+		verify(this.ui, times(0)).addErrorMessage(anyString());
+		
 		Dataverse dataverse = this.createEditPage.getDataverse();
 		
+		// open new edition page
 		this.createEditPage = newEditPage();
 		this.createEditPage.setDataverseId(dataverse.getId());
 		this.createEditPage.init();
 		
+		// verify initial values as the ones previously saved
 		assertThat(this.createEditPage.getTitle()).isEqualTo("Edit Collection - name1");
 		assertThat(this.createEditPage.getName()).isEqualTo("name1");
 		assertThat(this.createEditPage.getAlias()).isEqualTo("alias1");
@@ -339,6 +331,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.getContacts()).hasSize(1);
 		assertThat(version.getContacts().get(0).getEmail()).isNotEmpty();
 		
+		
+		// change values and save again
 		this.createEditPage.setName("name2");
 		this.createEditPage.setAlias("alias2");
 		this.createEditPage.setAffiliation("affiliation2");
@@ -354,9 +348,12 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.setTagline("tagline2");
 		this.createEditPage.removeLogo();
 		
+		assertThat(this.createEditPage.save()).
+			isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias2");
 		
-		assertThat(this.createEditPage.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias2");
+		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
+		// verify that saved dataverse contains only one version with changed values
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
 		assertThat(stored.isNew()).isFalse();
@@ -390,8 +387,11 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	@Transactional(TransactionMode.ROLLBACK)
 	void editDataverseRelease() {
 		
+		// open edition page
 		this.createEditPage.setOwnerId(1L);
 		this.createEditPage.init();
+		
+		// fill in values & save
 		this.createEditPage.setName("name1");
 		this.createEditPage.setAlias("alias1");
 		this.createEditPage.setAffiliation("affiliation1");
@@ -399,13 +399,26 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
 		this.createEditPage.setInheritFacetFromParent(false);
 		this.createEditPage.setMessagesBannersAllowed(true);
-		this.createEditPage.saveAndRelease();
+		this.createEditPage.save();
+		
+		verify(this.ui, times(0)).addErrorMessage(anyString());
+		
 		Dataverse dataverse = this.createEditPage.getDataverse();
 		
+		// open dataverse page & publish
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(dataverse.getId());
+		this.dataversePage.init();
+		this.dataversePage.releaseDataverse();
+		
+		verify(this.ui, times(0)).addErrorMessage(anyString());
+		
+		// open new edition page
 		this.createEditPage = newEditPage();
 		this.createEditPage.setDataverseId(dataverse.getId());
 		this.createEditPage.init();
 		
+		// verify initial values are the ones previously saved
 		assertThat(this.createEditPage.getTitle()).isEqualTo("Edit Collection - name1");
 		assertThat(this.createEditPage.getName()).isEqualTo("name1");
 		assertThat(this.createEditPage.getAlias()).isEqualTo("alias1");
@@ -441,6 +454,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.getContacts()).hasSize(1);
 		assertThat(version.getContacts().get(0).getEmail()).isNotEmpty();
 		
+		// modify values & save
 		this.createEditPage.setName("name2");
 		this.createEditPage.setAlias("alias2");
 		this.createEditPage.setAffiliation("affiliation2");
@@ -450,9 +464,10 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.createEditPage.setInheritFacetFromParent(false);
 		this.createEditPage.setMessagesBannersAllowed(true);
 		
+		assertThat(this.createEditPage.save()).
+			isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias2");
 		
-		assertThat(this.createEditPage.save()).isEqualTo("/dataverse.xhtml?faces-redirect=true&alias=alias2");
-		
+		// verify that there are two versions: draft and released
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
 		
 		assertThat(stored.isNew()).isFalse();
@@ -486,6 +501,50 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(latestVersion.getContacts()).hasSize(2);
 		assertThat(latestVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
 		assertThat(latestVersion.getContacts().get(1).getEmail()).isEqualTo("admin@email.com");
+		
+		// open dataverse page & publish
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(dataverse.getId());
+		this.dataversePage.init();
+		this.dataversePage.releaseDataverse();
+		
+		verify(this.ui, times(0)).addErrorMessage(anyString());
+		
+		// verify that there are two released versions
+		stored = this.dataverseService.findById(dataverse.getId()).get();
+		
+		assertThat(stored.isNew()).isFalse();
+		assertThat(stored.getOwner().getId()).isEqualTo(1L);
+		assertThat(stored.isDraft()).isFalse();
+		assertThat(stored.isFacetRoot()).isTrue();
+		
+		assertThat(stored.getVersions()).hasSize(2);
+		assertThat(stored.getVersions().get(0).isReleased()).isTrue();
+		assertThat(stored.getVersions().get(1).isReleased()).isTrue();
+		
+		releasedVersion = dataverse.getVersions().get(0);
+		
+		assertThat(releasedVersion.isDraft()).isFalse();
+		assertThat(releasedVersion.getName()).isEqualTo("name1");
+		assertThat(releasedVersion.getAlias()).isEqualTo("alias1");
+		assertThat(releasedVersion.getAffiliation()).isEqualTo("affiliation1");
+		assertThat(releasedVersion.getDataverseType()).isEqualTo(LABORATORY);
+		assertThat(releasedVersion.isMessagesBannersAllowed()).isTrue();
+		assertThat(releasedVersion.getContacts()).hasSize(1);
+		assertThat(releasedVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
+		
+		latestVersion = dataverse.getLatestVersion();
+		
+		assertThat(latestVersion.isDraft()).isFalse();
+		assertThat(latestVersion.getName()).isEqualTo("name2");
+		assertThat(latestVersion.getAlias()).isEqualTo("alias2");
+		assertThat(latestVersion.getAffiliation()).isEqualTo("affiliation2");	
+		assertThat(latestVersion.getDataverseType()).isEqualTo(DEPARTMENT);
+		assertThat(latestVersion.isMessagesBannersAllowed()).isTrue();
+		assertThat(latestVersion.getContacts()).hasSize(2);
+		assertThat(latestVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
+		assertThat(latestVersion.getContacts().get(1).getEmail()).isEqualTo("admin@email.com");
+		
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
@@ -524,8 +583,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		logInAdmin();
 		
 		Dataverse root = this.dataverseRepository.getById(1L);
-		root.setPublicationDate(Timestamp.from(now()));
-		root.setDefaultDataverseContributorRole(this.roleRepository.findByAlias("collectionCustodian").get());
+		root.setDefaultDataverseContributorRole(this.roleRepository.
+				findByAlias("collectionCustodian").get());
 		
 		logInRegularUser();
 		
@@ -549,11 +608,12 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				new FileUploadEvent(new NullComponent(), this.uploadedFile));
 		this.createEditPage.save();
 		
-		// send it for review
+		// open dataverse page
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(this.createEditPage.getDataverse().getId());
 		this.dataversePage.init();
 		
+		// verify initial values
 		Dataverse dataverse = this.dataversePage.getDataverse();
 		
 		assertThat(dataverse.isInReview()).isFalse();
@@ -563,10 +623,14 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
 		
+		// send for review
 		this.dataversePage.getSubmitForReviewDialog().clear();
 		this.dataversePage.getSubmitForReviewDialog().setMessage("message1");
 		this.dataversePage.getSubmitForReviewDialog().send();
 		
+		verify(this.ui, times(0)).addErrorMessage(anyString());
+		
+		// verify updated button visibility
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isTrue();
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
@@ -577,19 +641,24 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		// decline review - return collection to author
 		logInAdmin();
 		
+		// open new dataverse page
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(dataverse.getId());
 		this.dataversePage.init();
 		
+		// verify initial values
 		dataverse = this.dataversePage.getDataverse();
 		
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isTrue();
 		assertThat(this.dataversePage.displayReturnToAuthorButton()).isTrue();
 		
+		// send back to contributor
 		this.dataversePage.getSendBackToContributorDialog().clear();
 		this.dataversePage.getSendBackToContributorDialog().setMessage("message1");
 		this.dataversePage.getSendBackToContributorDialog().send();
+		
+		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
 		assertThat(dataverse.isInReview()).isFalse();
 		assertThat(dataverse.isReleased()).isFalse();
@@ -597,6 +666,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		//send for review again
 		logInRegularUser();
 		
+		// open new dataverse page
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(this.createEditPage.getDataverse().getId());
 		this.dataversePage.init();
@@ -607,9 +677,12 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
 
+		// submit for review again
 		this.dataversePage.getSubmitForReviewDialog().clear();
 		this.dataversePage.getSubmitForReviewDialog().setMessage("message1");
 		this.dataversePage.getSubmitForReviewDialog().send();
+		
+		verify(this.ui, times(0)).addErrorMessage(anyString());
 
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isTrue();
@@ -628,6 +701,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.dataversePage.displayPublishButton()).isTrue();
 		
 		this.dataversePage.releaseDataverse();
+		
+		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
 		assertThat(this.dataversePage.displayReturnToAuthorButton()).isFalse();
@@ -680,5 +755,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				Mockito.mock(NavigationWrapper.class);
 	    return new PermissionsWrapper(this.permissionService, 
 	    				requestService, navigationWrapper);
+	}
+	
+	private void publishRootDataverse() {
+		this.dataverseService.publishDataverse(this.dataverseService.findById(1L).get());
 	}
 }
