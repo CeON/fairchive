@@ -194,25 +194,22 @@ public class DataversePage implements Serializable  {
         if (this.dataverse == null) {
         	this.permissionsWrapper.notFound();
         }
-
-        this.searchIncludeFragment.setDataverse(this.dataverse);
-
-        if (!this.dataverse.isReleased() 
-        		&& !this.permissionsWrapper.canViewUnpublishedDataverse(this.dataverse)) {
+        if (!isUserAuthorizedToView()) {
             return this.permissionsWrapper.notAuthorized();
         }
-
-        this.searchIncludeFragment.search();
+        
         this.linkToDataverseDialog.init(this.dataverse, 
         		this.searchIncludeFragment.getQuery(),
         		this.searchIncludeFragment.getFilterQueriesDebug());
-
         this.featuredDataversesDialog.init(this.dataverse);
-
+        
+        this.searchIncludeFragment.setDataverse(this.dataverse);
+        this.searchIncludeFragment.search();
         this.showDescriptionAndCarousel = this.searchIncludeFragment.getFilterQueries().isEmpty() 
         		&& isEmpty(this.searchIncludeFragment.getQuery());
         if (this.showDescriptionAndCarousel) {
-        	this.carouselFeaturedDataverses = this.featuredDataverseService.findByDataverseIdQuick(this.dataverse.getId());
+        	this.carouselFeaturedDataverses = this.featuredDataverseService.
+        			findByDataverseIdQuick(this.dataverse.getId());
         }
 
         return null;
@@ -272,6 +269,12 @@ public class DataversePage implements Serializable  {
     
     public boolean canUserPublishCollection() {
     	return this.permissionsWrapper.canIssuePublishDataverseCommand(this.dataverse);
+    }
+    
+    private boolean isUserAuthorizedToView() {
+		return this.dataverse.isReleased()
+				? true
+				: this.permissionsWrapper.canViewUnpublishedDataverse(this.dataverse);
     }
     
     //--------------------------------------------------------------------------
@@ -344,11 +347,9 @@ public class DataversePage implements Serializable  {
 	    		final UIComponent component, final Object value) 
 	    				throws ValidatorException {
 	        final String email = (String) value;
-	        if(isNoneBlank(email)) {
-		        if (!EmailValidator.getInstance().isValid(email)) {
-		            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR,
-		                    getStringFromBundle("email.invalid", email), EMPTY));
-		        }
+	        if(isNoneBlank(email) && !EmailValidator.getInstance().isValid(email)) {
+	            throw new ValidatorException(new FacesMessage(SEVERITY_ERROR,
+	                    getStringFromBundle("email.invalid", email), EMPTY));
 	        }
 	    }
     	
