@@ -422,10 +422,9 @@ public class CreateEditDataversePage implements Serializable {
     public void validateTagline(final FacesContext context, 
     		final UIComponent component, final Object value) throws ValidatorException {
         if (!isEmpty((String) value) && ((String) value).length() > 140) {
-            final FacesMessage msg = new FacesMessage(getStringFromBundle("theme.validateTagline"));
-            msg.setSeverity(SEVERITY_ERROR);
-
-            throw new ValidatorException(msg);
+            throw new ValidatorException(
+            		new FacesMessage(SEVERITY_ERROR, 
+            				getStringFromBundle("theme.validateTagline"), EMPTY));
         }
 
     }
@@ -437,12 +436,10 @@ public class CreateEditDataversePage implements Serializable {
                 new URL((String) value);
             }
         } catch (final MalformedURLException e) {
-            final FacesMessage msg
-                    = new FacesMessage(getStringFromBundle("theme.urlValidate"),
-                                       getStringFromBundle("theme.urlValidate.msg"));
-            msg.setSeverity(SEVERITY_ERROR);
-
-            throw new ValidatorException(msg);
+            throw new ValidatorException(
+            		new FacesMessage(SEVERITY_ERROR, 
+            				getStringFromBundle("theme.urlValidate"),
+            				getStringFromBundle("theme.urlValidate.msg")));
         }
     }
     
@@ -500,7 +497,7 @@ public class CreateEditDataversePage implements Serializable {
         return !this.dataverse.isFacetRoot();
     }
 
-    public boolean isUserCanChangeAllowMessageAndBanners() {
+    public boolean displayMessageAndBannersOption() {
         return this.session.isSuperUserLoggedIn();
     }
 
