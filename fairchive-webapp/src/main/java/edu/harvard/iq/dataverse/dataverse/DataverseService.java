@@ -170,9 +170,10 @@ public class DataverseService {
     /**
      * Operation to publish dataverse also known as release dataverse.
      */
-    public Dataverse publishDataverse(Dataverse dataverseToBePublished) {
+    public Dataverse publish(final Dataverse dataverse) {
 
-        return commandEngine.submit(new PublishDataverseCommand(requestService.getDataverseRequest(), dataverseToBePublished));
+        return commandEngine.submit(new PublishDataverseCommand(
+        		requestService.getDataverseRequest(), dataverse));
     }
 
     public void deleteDataverse(Dataverse dataverseToDelete){

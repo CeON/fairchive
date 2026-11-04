@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DisableRootDataverseTheme;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;

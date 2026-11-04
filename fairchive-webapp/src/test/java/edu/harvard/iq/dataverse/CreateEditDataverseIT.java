@@ -8,7 +8,6 @@ import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFA
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFAULT_TEXT_COLOR;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment.LEFT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat.SQUARE;
-import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -79,8 +78,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	private UploadedFile uploadedFile = Mockito.mock(UploadedFile.class);
 	private InputStream fileContent;
 	
-	private 
-	
+	//--------------------------------------------------------------------------
 	@BeforeEach
 	void setUp() throws IOException {
 		
@@ -94,17 +92,17 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		logInAdmin();
 		publishRootDataverse();
 	}
-	
+	//--------------------------------------------------------------------------
 	@AfterEach
 	void clean() throws IOException {
 		if(this.fileContent != null) {
 			this.fileContent.close();
 		}
 	}
-	
+	//--------------------------------------------------------------------------
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
-	void createNewDataverseDraft_andPublish_asAdminUser() throws IOException {
+	void createNewDraftVersion_andPublish_asAdminUser() throws IOException {
 		
 		// open edition page
 		this.createEditPage.setOwnerId(1L);
@@ -132,7 +130,6 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.createEditPage.getLogoFormat()).isEqualTo(SQUARE);
 		assertThat(this.createEditPage.getLinkUrl()).isNull();
 		assertThat(this.createEditPage.getTagline()).isNull();
-		
 		
 		Dataverse dataverse = this.createEditPage.getDataverse();
 		
@@ -260,10 +257,10 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
-	
+	//--------------------------------------------------------------------------
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
-	void editDataverseDraft() throws Exception {
+	void editDraftVersion() throws Exception {
 		
 		// opne edition page
 		this.createEditPage.setOwnerId(1L);
@@ -382,10 +379,10 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
-	
+	//--------------------------------------------------------------------------
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
-	void editDataverseRelease() {
+	void editReleasedVersion() {
 		
 		// open edition page
 		this.createEditPage.setOwnerId(1L);
@@ -410,6 +407,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.dataversePage.setDataverseId(dataverse.getId());
 		this.dataversePage.init();
 		this.dataversePage.releaseDataverse();
+		Timestamp publicationDate = this.dataversePage.getDataverse().getPublicationDate();
 		
 		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
@@ -517,6 +515,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(stored.getOwner().getId()).isEqualTo(1L);
 		assertThat(stored.isDraft()).isFalse();
 		assertThat(stored.isFacetRoot()).isTrue();
+		assertThat(stored.getPublicationDate()).isEqualTo(publicationDate);
 		
 		assertThat(stored.getVersions()).hasSize(2);
 		assertThat(stored.getVersions().get(0).isReleased()).isTrue();
@@ -548,7 +547,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		//TODO: verify what gets indexed by solr - see DataverseServiceIT
 	}
-	
+	//--------------------------------------------------------------------------
 	@Test
 	void rootCollection_cannotBeCreated() {
 				
@@ -575,10 +574,10 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		verify(this.ui, times(0)).addFlashSuccessMessage(anyString());
 		verify(this.ui, times(1)).addErrorMessage(anyString(), anyString());
 	}
-	
+	//--------------------------------------------------------------------------
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
-	void createNewDataverseDraft_asRegularUser_andSendForReview() throws IOException {
+	void createNewDraftVersion_asRegularUser_andSendForReview() throws IOException {
 		
 		logInAdmin();
 		
@@ -716,27 +715,27 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.getLatestVersion().isReleased()).isTrue();
 		assertThat(dataverse.getLatestVersion().isDraft()).isFalse();
 	}
-	
+	//--------------------------------------------------------------------------
 	private void loginUserById(final Long id) {
 		this.session.logOut();
 		this.session.logIn(this.userRepository.getById(id));
 	}
-	
+	//--------------------------------------------------------------------------
 	private void logInAdmin() {
 		loginUserById(1L);
 	}
-	
+	//--------------------------------------------------------------------------
 	private void logInRegularUser() {
 		loginUserById(3L);
 	}
-	
+	//--------------------------------------------------------------------------
 	private CreateEditDataversePage newEditPage() {
 		final PermissionsWrapper permissionsWrapper = newPermissionsWrapper();	
 		return new CreateEditDataversePage(this.dataverseService,
 				permissionsWrapper, this.session, this.config,
 				this.storageManager, this.ui);
 	}
-	
+	//--------------------------------------------------------------------------
 	private DataversePage newDataversePage() {
 	    final PermissionsWrapper permissionsWrapper = newPermissionsWrapper();	
 		return new DataversePage(this.dataverseRepository, this.dataverseService,
@@ -747,7 +746,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				Mockito.mock(FeaturedDataversesDialog.class),
 				this.config, this.ui);
 	}
-	
+	//--------------------------------------------------------------------------
 	private PermissionsWrapper newPermissionsWrapper() {
 		final DataverseRequestServiceBean requestService = 
 				new DataverseRequestServiceBean(this.session, null);
@@ -756,8 +755,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	    return new PermissionsWrapper(this.permissionService, 
 	    				requestService, navigationWrapper);
 	}
-	
+	//--------------------------------------------------------------------------
 	private void publishRootDataverse() {
-		this.dataverseService.publishDataverse(this.dataverseService.findById(1L).get());
+		this.dataverseService.publish(this.dataverseService.findById(1L).get());
 	}
 }

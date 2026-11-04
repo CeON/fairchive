@@ -322,8 +322,8 @@ public class DatasetFilesTabIT extends WebappArquillianDeployment {
         final Dataverse owner = this.dataset.getOwner();
         final Dataverse root = owner.getOwner();
 
-        this.dataverseService.publishDataverse(root);
-        this.dataverseService.publishDataverse(owner);
+        this.dataverseService.publish(root);
+        this.dataverseService.publish(owner);
 
         dataset.setGlobalIdCreateTime(new Date());
 

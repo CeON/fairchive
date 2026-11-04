@@ -221,7 +221,7 @@ public class DataversePage implements Serializable  {
     public String releaseDataverse() {
         if (this.session.isUserLoggedIn()) {
             try {
-            	this.dataverse = this.dataverseService.publishDataverse(this.dataverse);
+            	this.dataverse = this.dataverseService.publish(this.dataverse);
             	addSuccessMessage("dataverse.publish.success");
             } catch (final Exception e) {
                 logger.error("Unexpected Exception calling  publish dataverse command", e);

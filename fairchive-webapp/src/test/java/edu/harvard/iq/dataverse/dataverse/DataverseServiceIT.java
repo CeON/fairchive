@@ -152,7 +152,7 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
         Dataverse unpublishedDataverse = dataverseDao.findRootDataverse();
 
         //when
-        dataverseService.publishDataverse(unpublishedDataverse);
+        dataverseService.publish(unpublishedDataverse);
         Dataverse publishedDataverse = dataverseDao.find(unpublishedDataverse.getId());
 
         //then
@@ -168,7 +168,8 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
         unpublishedDataverse.setPublicationDate(Timestamp.from(Instant.ofEpochMilli(1573738827897L)));
 
         //when & then
-        Assertions.assertThrows(IllegalCommandException.class, () -> dataverseService.publishDataverse(unpublishedDataverse));
+        assertThrows(IllegalCommandException.class, 
+        		() -> dataverseService.publish(unpublishedDataverse));
     }
 
     @Test
@@ -193,7 +194,8 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
         Dataverse dataverseWithData = dataverseDao.find(19L);
 
         //when & then
-        Exception thrown = assertThrows(IllegalCommandException.class, () -> dataverseService.deleteDataverse(dataverseWithData));
+        Exception thrown = assertThrows(IllegalCommandException.class, 
+        		() -> dataverseService.deleteDataverse(dataverseWithData));
         Assertions.assertEquals("Cannot delete non-empty dataverses", thrown.getMessage());
     }
 
@@ -206,7 +208,8 @@ public class DataverseServiceIT extends WebappArquillianDeployment {
         unpublishedDataverse.setOwner(null);
 
         //when
-        Assertions.assertThrows(IllegalCommandException.class, () -> dataverseService.deleteDataverse(unpublishedDataverse));
+        Assertions.assertThrows(IllegalCommandException.class, 
+        		() -> dataverseService.deleteDataverse(unpublishedDataverse));
     }
 
     // -------------------- PRIVATE --------------------
