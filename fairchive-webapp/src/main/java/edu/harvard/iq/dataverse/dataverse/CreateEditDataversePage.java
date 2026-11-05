@@ -20,7 +20,6 @@ import javax.annotation.PreDestroy;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
-import javax.faces.component.html.HtmlInputText;
 import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
@@ -65,8 +64,6 @@ public class CreateEditDataversePage implements Serializable {
     private Dataverse dataverse;
     private DataverseVersion version;
     
-    private HtmlInputText linkUrlInput;
-    private HtmlInputText taglineInput;
     private TempLogoStorageManager.Storage storage;
     
     public CreateEditDataversePage() {}
@@ -211,22 +208,6 @@ public class CreateEditDataversePage implements Serializable {
     
     public String getDataverseName() {
     	return this.dataverse.getName();
-    }
-    
-    public HtmlInputText getLinkUrlInput() {
-        return this.linkUrlInput;
-    }
-
-    public void setLinkUrlInput(final HtmlInputText linkUrlInput) {
-        this.linkUrlInput = linkUrlInput;
-    }
-
-    public HtmlInputText getTaglineInput() {
-        return this.taglineInput;
-    }
-
-    public void setTaglineInput(final HtmlInputText taglineInput) {
-        this.taglineInput = taglineInput;
     }
     
     public String getTagline() {
