@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse.persistence.dataverse;
 
 import static javax.persistence.GenerationType.IDENTITY;
+import static org.apache.commons.lang3.StringUtils.isNoneBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -94,7 +96,7 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     }
 
     public void setLogoFormat(final ImageFormat format) {
-        this.logoFormat = format;
+        this.logoFormat = format != null ? format : ImageFormat.SQUARE;
     }
 
     public Alignment getLogoAlignment() {
@@ -102,7 +104,7 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     }
 
     public void setLogoAlignment(final Alignment alignment) {
-        this.logoAlignment = alignment;
+        this.logoAlignment = alignment != null ? alignment : Alignment.LEFT;
     }
 
     public String getLogoBackgroundColor() {
@@ -110,11 +112,23 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     }
 
     public void setLogoBackgroundColor(final String color) {
-        this.logoBackgroundColor = color;
+        this.logoBackgroundColor = isNoneBlank(color) ? color : DEFAULT_LOGO_BACKGROUND_COLOR;
     }
 
     public String getLogo() {
         return this.logo;
+    }
+    
+    public boolean isLogoPresent() {
+    	return isNotEmpty(this.logo);
+    }
+    
+    public boolean isRectangularLogoPresent() {
+    	return isLogoPresent() && this.logoFormat == ImageFormat.RECTANGLE;
+    }
+    
+    public boolean isSquaredLogoPresent() {
+    	return isLogoPresent() && this.logoFormat == ImageFormat.SQUARE;
     }
 
     public void setLogo(final String logo) {
@@ -142,7 +156,7 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     }
 
     public void setLinkColor(final String color) {
-        this.linkColor = color;
+        this.linkColor = isNoneBlank(color) ? color : DEFAULT_LINK_COLOR;
     }
 
     public String getTextColor() {
@@ -150,7 +164,7 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     }
 
     public void setTextColor(final String color) {
-        this.textColor = color;
+        this.textColor = isNoneBlank(color) ? color : DEFAULT_TEXT_COLOR;
     }
 
     public String getBackgroundColor() {
@@ -158,7 +172,7 @@ public class DataverseTheme implements Serializable, JpaEntity<Long> {
     }
 
     public void setBackgroundColor(final String color) {
-        this.backgroundColor = color;
+        this.backgroundColor = isNoneBlank(color) ? color : DEFAULT_BACKGROUND_COLOR;
     }
 
     public DataverseVersion getVersion() {

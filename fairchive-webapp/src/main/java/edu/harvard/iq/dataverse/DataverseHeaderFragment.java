@@ -1,5 +1,23 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
+
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -13,20 +31,6 @@ import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
 import edu.harvard.iq.dataverse.users.SamlSessionRegistry;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author gdurand
@@ -250,6 +254,91 @@ public class DataverseHeaderFragment implements Serializable {
     public void addBreadcrumb(String text) {
         breadcrumbs.add(new Breadcrumb(text));
     }
+    
+    public String getBackgroundColor() {
+    	return getDataverse().getLatestVersion().getBackgroundColor();
+    }
+    
+    public String getLogoAlignment() {
+    	return getDataverse().getLatestVersion().getLogoAlignment();
+    }
+    
+    public String getLogoBackgroundColor() {
+    	return getDataverse().getLatestVersion().getLogoBackgroundColor();
+    }
+    
+    public boolean displayDataverseHeader() {
+    	return ! this.widgetWrapper.isWidgetView() && 
+    			getDataverse().isNotNew() &&
+    			! isRootDataverseThemeDisabled(getDataverse());
+    }
+    
+    public boolean displayRectangularLogo() {
+    	return getDataverse().getLatestVersion().isRectangularLogoPresent();
+    }
+    
+    public boolean displaySquaredLogo() {
+    	return getDataverse().getLatestVersion().isSquaredLogoPresent();
+    }
+    
+    public boolean displayTagLine() {
+    	return ! getDataverse().getLatestVersion().getTagline().isEmpty();
+    }
+    
+    public boolean displayLinkUrl() {
+    	return ! getDataverse().getLatestVersion().getLinkUrl().isEmpty();
+    }
+    
+    public boolean displayAffiliation() {
+    	return isNotEmpty(getDataverse().getLatestVersion().getAffiliation());
+    }
+    
+    public boolean displayUnpublished() {
+    	return ! getDataverse().isReleased();
+    }
+    
+    public boolean displayDraft() {
+    	return getDataverse().isDraft();
+    }
+    
+    public boolean isNewDataverse() {
+    	final Dataverse dataverse = getDataverse();
+    	return dataverse == null || dataverse.isNew();
+    }
+    
+    public String getLinkColorStyle() {
+    	final String color = getDataverse().getLatestVersion().getLinkColor();
+    	return color.isEmpty() ? EMPTY: "color: #".concat(color);
+    }
+    
+    public String getTextColorStyle() {
+    	final String color = getDataverse().getLatestVersion().getTextColor();
+    	return color.isEmpty() ? EMPTY: "color: #".concat(color);
+    }
+    
+    public String getLogo() {
+    	return getDataverse().getLatestVersion().getLogo();
+    }
+    
+    public String getName() {
+    	return getDataverse().getLatestVersion().getName();
+    }
+    
+    public String getAlias() {
+    	return getDataverse().getLatestVersion().getAlias();
+    }
+    
+    public String getAffiliation() {
+    	return getDataverse().getLatestVersion().getAffiliation();
+    }
+    
+    public String getTagLine() {
+    	return unescapeHtml4(getDataverse().getLatestVersion().getTagline());
+    }
+    
+    public String getLinkUrl() {
+    	return getDataverse().getLatestVersion().getLinkUrl();
+    }
 
     // -------------------- PRIVATE --------------------
 
@@ -293,6 +382,20 @@ public class DataverseHeaderFragment implements Serializable {
     private String redirectToRoot() {
         return "dataverse.xhtml?alias=".
                 concat(this.dataverseDao.findRootDataverse().getAlias());
+    }
+    
+    private Dataverse getDataverse() {
+    	if(this.currentDvObject  instanceof Dataverse) {
+    		return (Dataverse) this.currentDvObject;
+    	} 
+    	if(this.currentDvObject instanceof Dataset) {
+    		return ((Dataset)this.currentDvObject).getOwner();
+    	} 
+    	if(this.currentDvObject instanceof DataFile) {
+    		return ((DataFile)this.currentDvObject).getOwner().getOwner();
+    	} 
+    	throw new RuntimeException(
+    			"Unknown type: ".concat(this.currentDvObject.getClass().getName()));
     }
 
 

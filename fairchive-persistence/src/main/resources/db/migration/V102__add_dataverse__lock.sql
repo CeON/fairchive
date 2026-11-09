@@ -13,3 +13,10 @@ CREATE TABLE dataverselock (
 
 alter TABLE workflowcomment add column dataverseversion_id int8 references dataverseversion(id);
 alter table workflowcomment alter column datasetversion_id drop not null;
+
+ALTER TABLE dataversetheme ALTER COLUMN backgroundcolor SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN linkcolor SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN textcolor SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN logobackgroundcolor SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN logoformat SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN logoalignment SET NOT NULL;
