@@ -66,6 +66,10 @@ public class DataverseService {
 		this.userNotificationService = userNotificationService;
 		this.repository = repository;
 	}
+    
+    public Dataverse findRoot() {
+        return this.repository.findRoot();
+    }
 
 	public Optional<Dataverse> findById(final Long id) {
     	return this.repository.findById(id);

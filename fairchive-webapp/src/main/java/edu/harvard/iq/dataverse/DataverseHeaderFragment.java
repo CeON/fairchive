@@ -22,6 +22,7 @@ import javax.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 
+import edu.harvard.iq.dataverse.dataverse.DataverseService;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -44,7 +45,7 @@ import edu.harvard.iq.dataverse.util.SystemConfig;
 @Named
 public class DataverseHeaderFragment implements Serializable {
 
-    private DataverseDao dataverseDao;
+    private DataverseService dataverseService;
     private SystemConfig config;
     private DataFileServiceBean datafileService;
     private DataverseSession session;
@@ -62,11 +63,10 @@ public class DataverseHeaderFragment implements Serializable {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    @Deprecated
     public DataverseHeaderFragment() { }
 
     @Inject
-    public DataverseHeaderFragment(DataverseDao dataverseDao, 
+    public DataverseHeaderFragment(DataverseService dataverseService, 
     							   PermissionsWrapper permissionsWrapper,
                                    SystemConfig systemConfig, 
                                    DataFileServiceBean datafileService,
@@ -76,7 +76,7 @@ public class DataverseHeaderFragment implements Serializable {
                                    ConfirmEmailServiceBean confirmEmailService,
                                    WidgetWrapper widgetWrapper, 
                                    SamlSessionRegistry samlSessionRegistry) {
-        this.dataverseDao = dataverseDao;
+        this.dataverseService = dataverseService;
         this.permissionsWrapper = permissionsWrapper;
         this.config = systemConfig;
         this.datafileService = datafileService;
@@ -396,7 +396,7 @@ public class DataverseHeaderFragment implements Serializable {
 
     private String redirectToRoot() {
         return "dataverse.xhtml?alias=".
-                concat(this.dataverseDao.findRootDataverse().getAlias());
+                concat(this.dataverseService.findRoot().getAlias());
     }
     
     private Dataverse getDataverse() {

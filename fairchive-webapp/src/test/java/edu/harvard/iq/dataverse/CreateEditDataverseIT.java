@@ -38,12 +38,15 @@ import edu.harvard.iq.dataverse.dataverse.DataverseService;
 import edu.harvard.iq.dataverse.dataverse.FeaturedDataversesDialog;
 import edu.harvard.iq.dataverse.dataverse.LinkToDataverseDialog;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
+import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRoleRepository;
+import edu.harvard.iq.dataverse.persistence.user.UserNotificationRepository;
 import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
+import edu.harvard.iq.dataverse.users.SamlSessionRegistry;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
 
@@ -70,10 +73,17 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
     private FeaturedDataverseServiceBean featuredDataverseService;
     @Inject
     private DataverseRoleRepository roleRepository;
+    @Inject
+    private UserNotificationRepository userNotificationRepository;
+    @Inject
+    private ConfirmEmailServiceBean confirmEmailService;
+    @Inject
+    private SamlSessionRegistry samlSessionRegistry;
 	
     private UIMessages ui = Mockito.mock(UIMessages.class);
 	private CreateEditDataversePage createEditPage;
 	private DataversePage dataversePage;
+	private DataverseHeaderFragment headerFragment;
 	
 	private UploadedFile uploadedFile = Mockito.mock(UploadedFile.class);
 	private InputStream fileContent;
@@ -208,7 +218,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.getTheme().getTagline()).isEqualTo("tagline");
 		assertThat(storedVersion.getTheme().getLogo()).isEqualTo(logoFileName);
 		
-		// open dataverse page
+		// open dataverse page	
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(stored.getId());
 		this.dataversePage.init();
@@ -221,6 +231,16 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isTrue();
+		
+		// verify header
+		this.headerFragment = newHeaderFragment();
+		this.headerFragment.initBreadcrumbs(dataverse);
+		assertThat(this.headerFragment.getBackgroundColor()).isEqualTo("BBBBBB");
+		assertThat(this.headerFragment.getLinkColorStyle()).contains("CCCCCC");
+		assertThat(this.headerFragment.getTextColorStyle()).contains("DDDDDD");
+		assertThat(this.headerFragment.getLinkUrl()).isEqualTo("http://google.com");
+		assertThat(this.headerFragment.getTagLine()).isEqualTo("tagline");
+		assertThat(this.headerFragment.getLogo()).contains(logoFileName);
 		
 		// publish dataverse
 		this.dataversePage.releaseDataverse();
@@ -451,6 +471,16 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(version.isReleased()).isTrue();
 		assertThat(version.getContacts()).hasSize(1);
 		assertThat(version.getContacts().get(0).getEmail()).isNotEmpty();
+		
+		// verify header
+		this.headerFragment = newHeaderFragment();
+		this.headerFragment.initBreadcrumbs(dataverse);
+		assertThat(this.headerFragment.getBackgroundColor()).isEqualTo(DEFAULT_BACKGROUND_COLOR);
+		assertThat(this.headerFragment.getLinkColorStyle()).contains(DEFAULT_LINK_COLOR);
+		assertThat(this.headerFragment.getTextColorStyle()).contains(DEFAULT_TEXT_COLOR);
+		assertThat(this.headerFragment.getLinkUrl()).isNull();
+		assertThat(this.headerFragment.getTagLine()).isNull();
+		assertThat(this.headerFragment.getLogo()).isNull();
 		
 		// modify values & save
 		this.createEditPage.setName("name2");
@@ -716,6 +746,125 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.getLatestVersion().isDraft()).isFalse();
 	}
 	//--------------------------------------------------------------------------
+	@Test
+	@Transactional(TransactionMode.ROLLBACK)
+	void releasedCollectionWithaDraft_displaysProperValuesOnPageHeader() throws IOException {
+
+		// open edition page
+		this.createEditPage.setOwnerId(1L);
+		this.createEditPage.init();
+
+		// fill in values & save
+		this.createEditPage.setName("name1");
+		this.createEditPage.setAlias("alias1");
+		this.createEditPage.setAffiliation("affiliation1");
+		this.createEditPage.setType(LABORATORY);
+		this.createEditPage.getContacts().get(0).setEmail("user@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.setMessagesBannersAllowed(true);
+		this.createEditPage.save();
+
+		Dataverse dataverse = this.createEditPage.getDataverse();
+
+		// open dataverse page & publish
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(dataverse.getId());
+		this.dataversePage.init();
+		this.dataversePage.releaseDataverse();
+		
+		// verify header
+		this.headerFragment = newHeaderFragment();
+		this.headerFragment.initBreadcrumbs(dataverse);
+		
+		assertThat(this.headerFragment.getName()).isEqualTo("name1");
+		assertThat(this.headerFragment.getAlias()).isEqualTo("alias1");
+		assertThat(this.headerFragment.getAffiliation()).isEqualTo("affiliation1");
+		assertThat(this.headerFragment.getBackgroundColor()).isEqualTo(DEFAULT_BACKGROUND_COLOR);
+		assertThat(this.headerFragment.getLinkColorStyle()).contains(DEFAULT_LINK_COLOR);
+		assertThat(this.headerFragment.getTextColorStyle()).contains(DEFAULT_TEXT_COLOR);
+		assertThat(this.headerFragment.getLinkUrl()).isNull();
+		assertThat(this.headerFragment.getTagLine()).isNull();
+		assertThat(this.headerFragment.getLogo()).isNull();
+
+		// open new edition page
+		this.createEditPage = newEditPage();
+		this.createEditPage.setDataverseId(dataverse.getId());
+		this.createEditPage.init();
+
+		// modify values & save
+		this.createEditPage.setName("name2");
+		this.createEditPage.setAlias("alias2");
+		this.createEditPage.setAffiliation("affiliation2");
+		this.createEditPage.setType(DEPARTMENT);
+		this.createEditPage.addContact(1);
+		this.createEditPage.getContacts().get(1).setEmail("admin@email.com");
+		this.createEditPage.setInheritFacetFromParent(false);
+		this.createEditPage.setMessagesBannersAllowed(true);
+		this.createEditPage.setBackgroundColor("BBBBBB");
+		this.createEditPage.setLinkColor("CCCCCC");
+		this.createEditPage.setTextColor("DDDDDD");
+		this.createEditPage.setLinkUrl("http://google.com");
+		this.createEditPage.setTagline("tagline");
+		this.createEditPage.handleImageFileUpload(
+				new FileUploadEvent(new NullComponent(), this.uploadedFile));
+		this.createEditPage.save();
+		
+		// verify header
+		this.headerFragment = newHeaderFragment();
+		this.headerFragment.initBreadcrumbs(dataverse);
+		
+		assertThat(this.headerFragment.getName()).isEqualTo("name2");
+		assertThat(this.headerFragment.getAlias()).isEqualTo("alias2");
+		assertThat(this.headerFragment.getAffiliation()).isEqualTo("affiliation2");
+		assertThat(this.headerFragment.getBackgroundColor()).isEqualTo("BBBBBB");
+		assertThat(this.headerFragment.getLinkColorStyle()).contains("CCCCCC");
+		assertThat(this.headerFragment.getTextColorStyle()).contains("DDDDDD");
+		assertThat(this.headerFragment.getLinkUrl()).isEqualTo("http://google.com");
+		assertThat(this.headerFragment.getTagLine()).isEqualTo("tagline");
+		assertThat(this.headerFragment.getLogo()).contains(logoFileName);
+		
+		logInRegularUser();
+		
+		// verify header
+		this.headerFragment = newHeaderFragment();
+		this.headerFragment.initBreadcrumbs(dataverse);
+		
+		assertThat(this.headerFragment.getName()).isEqualTo("name1");
+		assertThat(this.headerFragment.getAlias()).isEqualTo("alias1");
+		assertThat(this.headerFragment.getAffiliation()).isEqualTo("affiliation1");
+		assertThat(this.headerFragment.getBackgroundColor()).isEqualTo(DEFAULT_BACKGROUND_COLOR);
+		assertThat(this.headerFragment.getLinkColorStyle()).contains(DEFAULT_LINK_COLOR);
+		assertThat(this.headerFragment.getTextColorStyle()).contains(DEFAULT_TEXT_COLOR);
+		assertThat(this.headerFragment.getLinkUrl()).isNull();
+		assertThat(this.headerFragment.getTagLine()).isNull();
+		assertThat(this.headerFragment.getLogo()).isNull();
+		
+		logInAdmin();
+		
+		// open dataverse page & publish
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(dataverse.getId());
+		this.dataversePage.init();
+		this.dataversePage.releaseDataverse();
+		
+		logInRegularUser();
+		
+		// verify header
+		this.headerFragment = newHeaderFragment();
+		this.headerFragment.initBreadcrumbs(dataverse);
+		
+		assertThat(this.headerFragment.getName()).isEqualTo("name2");
+		assertThat(this.headerFragment.getAlias()).isEqualTo("alias2");
+		assertThat(this.headerFragment.getAffiliation()).isEqualTo("affiliation2");
+		assertThat(this.headerFragment.getBackgroundColor()).isEqualTo("BBBBBB");
+		assertThat(this.headerFragment.getLinkColorStyle()).contains("CCCCCC");
+		assertThat(this.headerFragment.getTextColorStyle()).contains("DDDDDD");
+		assertThat(this.headerFragment.getLinkUrl()).isEqualTo("http://google.com");
+		assertThat(this.headerFragment.getTagLine()).isEqualTo("tagline");
+		assertThat(this.headerFragment.getLogo()).contains(logoFileName);
+	}
+	
+	//--------------------------------------------------------------------------
 	private void loginUserById(final Long id) {
 		this.session.logOut();
 		this.session.logIn(this.userRepository.getById(id));
@@ -754,6 +903,16 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				Mockito.mock(NavigationWrapper.class);
 	    return new PermissionsWrapper(this.permissionService, 
 	    				requestService, navigationWrapper);
+	}
+	//--------------------------------------------------------------------------
+	private DataverseHeaderFragment newHeaderFragment() {
+		final PermissionsWrapper permissionsWrapper = newPermissionsWrapper();	
+		return new DataverseHeaderFragment(this.dataverseService, permissionsWrapper, 
+				this.config, Mockito.mock(DataFileServiceBean.class),
+				this.session, Mockito.mock(NavigationWrapper.class),
+				this.userNotificationRepository, this.confirmEmailService, 
+				Mockito.mock(WidgetWrapper.class), this.samlSessionRegistry);
+		
 	}
 	//--------------------------------------------------------------------------
 	private void publishRootDataverse() {
