@@ -1,6 +1,8 @@
 package edu.harvard.iq.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
+import static edu.harvard.iq.dataverse.common.MarkupChecker.sanitizeBasicHTML;
+import static edu.harvard.iq.dataverse.common.MarkupChecker.stripAllTags;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.DRAFT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -18,7 +20,6 @@ import java.util.function.Function;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.commons.lang3.StringUtils;
 import org.omnifaces.cdi.ViewScoped;
 
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
@@ -370,7 +371,15 @@ public class DataverseHeaderFragment implements Serializable {
             url = widgetWrapper.wrapURL(url);
         }
         boolean openInNewTab = widgetWrapper.isWidgetView() && !widgetWrapper.isWidgetTarget(dvObject);
-        return new Breadcrumb(url, dvObject.getDisplayName(), openInNewTab);
+        return new Breadcrumb(url, getDisplayName(dvObject), openInNewTab);
+    }
+    
+    private <T extends DvObject> String getDisplayName(final T object) {
+    	if(object instanceof Dataverse) {
+    		return stripAllTags(sanitizeBasicHTML(getProperDataverseVersion().getName()));
+    	} else {
+    		return object.getDisplayName();
+    	}
     }
 
     private Breadcrumb buildBreadcrumbForDataverse(Dataverse dataverse) {
@@ -411,7 +420,10 @@ public class DataverseHeaderFragment implements Serializable {
     }
     
     public DataverseVersion getProperDataverseVersion() {
-    	final Dataverse dataverse = getDataverse();
+    	return getProperDataverseVersion(getDataverse());
+    }
+    
+    public DataverseVersion getProperDataverseVersion(final Dataverse dataverse) {
     	if(dataverse.isDraft() &&
     			this.permissionsWrapper.canViewUnpublishedDataverse(
     	    			dataverse.isNew() ? dataverse.getOwner() : dataverse)) {
