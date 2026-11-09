@@ -376,14 +376,16 @@ public class DataverseHeaderFragment implements Serializable {
     
     private <T extends DvObject> String getDisplayName(final T object) {
     	if(object instanceof Dataverse) {
-    		return stripAllTags(sanitizeBasicHTML(getProperDataverseVersion().getName()));
+    		return stripAllTags(sanitizeBasicHTML(
+    				getProperDataverseVersion((Dataverse)object).getName()));
     	} else {
     		return object.getDisplayName();
     	}
     }
 
     private Breadcrumb buildBreadcrumbForDataverse(Dataverse dataverse) {
-        return buildBreadcrumb(dataverse, null, d -> "/dataverse/" + getAlias());
+        return buildBreadcrumb(dataverse, null, 
+        		d -> "/dataverse/".concat(getProperDataverseVersion(d).getAlias()));
     }
 
     private Breadcrumb buildBreadcrumbForDataset(Dataset dataset, String optionalUrlExtension) {
