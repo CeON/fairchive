@@ -359,13 +359,13 @@ public class DashboardDatamovePage implements Serializable {
     public class DatasetConverter implements Converter {
 
         @Override
-        public Object getAsObject(final FacesContext facesContext, 
-        		final UIComponent component, final String submittedValue) {
+        public Object getAsObject(final FacesContext context, 
+        		final UIComponent component, final String value) {
         	try {
-	        	return isNotEmpty(submittedValue)
-	        			? datasetService.findByGlobalId(submittedValue)
+	        	return GlobalId.parse(value).isPresent()
+	        			? datasetService.findByGlobalId(value)
 	        			: null;
-        	} catch(final IllegalArgumentException e) {
+        	} catch(final Exception e) {
         		return null;
         	}
         }
@@ -388,7 +388,7 @@ public class DashboardDatamovePage implements Serializable {
 	        	return isNotEmpty(submittedValue)
 	        			? dataverseRepo.getById(new Long(submittedValue))
 	            		: null;
-        	} catch(final IllegalArgumentException e) {
+        	} catch(final Exception e) {
         		return null;
         	}
         }
