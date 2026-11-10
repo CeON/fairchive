@@ -27,10 +27,13 @@
         <ui:define name="body">
             <!-- static Messages -->
             <p:outputPanel>
-                <div class="alert alert-info" role="alert" aria-atomic="true">
+                <div class="alert alert-info"
+                     role="alert"
+                     aria-atomic="true">
                     <p class="text-block">
                         <span class="glyphicon glyphicon-info-sign"></span>&#160;<strong>#{bundle['dashboard.datamove.message.title']}</strong> –
-                        <h:outputText escape="false" value="#{DashboardDatamovePage.getMessageDetails()} "/>
+                        <h:outputText escape="false"
+                                      value="#{DashboardDatamovePage.getMessageDetails()} "/>
                     </p>
                 </div>
             </p:outputPanel>
@@ -39,7 +42,8 @@
             <p:tabView styleClass="no-bottom-border">
                 <p:focus for="sourceDatasetMenu"/>
                 <p:tab title="#{bundle['dashboard.datamove.tab.dataset.move']}">
-                    <h:form id="dataset-move-form" styleClass="dataset-move-form">
+                    <h:form id="dataset-move-form"
+                            styleClass="dataset-move-form">
                         <div class="col-md-6">
                             <div class="panel panel-default">
                                 <div class="panel-heading text-info">
@@ -72,7 +76,7 @@
                                                             panelStyleClass="DropdownPopupPanel"
                                                             itemLabel="#{srcDS.globalId}" 
                                                             itemValue="#{srcDS}"
-                                                            converter="datasetConverter">
+                                                            converter="#{DashboardDatamovePage.datasetConverter}">
                                                 <p:column>
                                                     <f:facet name="header">
                                                         #{bundle['dashboard.datamove.dataset.autocomplete.doi']}
@@ -118,16 +122,21 @@
                                                             required="true"
                                                             requiredMessage="#{bundle['requiredField']}"
                                                             placeholder="#{bundle['dashboard.datamove.dataverse.placeholder']}"
-                                                            multiple="false" scrollHeight="180"
+                                                            multiple="false"
+                                                            scrollHeight="180"
                                                             forceSelection="true"
-                                                            minQueryLength="2" queryDelay="1000" size="36"
+                                                            minQueryLength="2"
+                                                            queryDelay="1000"
+                                                            size="36"
                                                             emptyMessage="#{bundle['dashboard.datamove.dataverse.menu.invalidMsg']}"
                                                             value="#{DashboardDatamovePage.targetDataverse}"
                                                             completeMethod="#{DashboardDatamovePage.completeDataverse}"
-                                                            var="destDV" styleClass="DropdownPopup"
+                                                            var="destDV"
+                                                            styleClass="DropdownPopup"
                                                             panelStyleClass="DropdownPopupPanel"
-                                                            itemLabel="#{destDV.alias}" itemValue="#{destDV}"
-                                                            converter="dataverseConverter">
+                                                            itemLabel="#{destDV.alias}"
+                                                            itemValue="#{destDV}"
+                                                            converter="#{DashboardDatamovePage.dataverseConverter}">
                                                 <p:column>
                                                     <f:facet name="header">
                                                         #{bundle['dashboard.datamove.dataverse.autocomplete.name']}
@@ -154,15 +163,20 @@
                         </div>
 
                         <div class="col-sm-12 button-block">
-                            <p:commandButton id="move" styleClass="btn btn-default"
+                            <p:commandButton id="move"
+                                             styleClass="btn btn-default"
                                              value="#{bundle['dashboard.datamove.button.move']}"
                                              update="dataset-move-form"
                                              validateClient="true"
                                              oncomplete="if (args &amp;&amp; !args.validationFailed) primeFacesShowModal('datamoveConfirmation', this);"/>
-                            <p:button styleClass="btn btn-default button-cancel" outcome="dashboard" value="#{bundle['cancel']}"/>
+                            <p:button styleClass="btn btn-default button-cancel"
+                                      outcome="dashboard"
+                                      value="#{bundle['cancel']}"/>
                         </div>
-                        <p:dialog id="datamoveConfirmation" header="#{bundle['dashboard.card.datamove.manage']}"
-                                  widgetVar="datamoveConfirmation" modal="true">
+                        <p:dialog id="datamoveConfirmation"
+                                  header="#{bundle['dashboard.card.datamove.manage']}"
+                                  widgetVar="datamoveConfirmation"
+                                  modal="true">
                             <p class="text-warning">
                                 <span class="glyphicon glyphicon-warning-sign"/>
                                 #{bundle['dashboard.datamove.confirm.dialog']}
@@ -175,8 +189,10 @@
                                                  value="#{bundle['dashboard.datamove.confirm.yes']}"
                                                  onclick="PF('datamoveConfirmation').hide();"
                                                  action="#{DashboardDatamovePage.moveDataset()}"
-                                                 update="dataset-move-form, :messagePanel" partialSubmit="true"/>
-                                <button class="btn btn-default button-cancel" onclick="PF('datamoveConfirmation').hide();"
+                                                 update="dataset-move-form, :messagePanel"
+                                                 partialSubmit="true"/>
+                                <button class="btn btn-default button-cancel"
+                                        onclick="PF('datamoveConfirmation').hide();"
                                         type="button">
                                     #{bundle['dashboard.datamove.confirm.no']}
                                 </button>
@@ -185,7 +201,8 @@
                     </h:form>
                 </p:tab>
                 <p:tab title="#{bundle['dashboard.datamove.tab.dataverse.move']}">
-                    <h:form id="dataverse-move-form" styleClass="dataset-move-form">
+                    <h:form id="dataverse-move-form"
+                            styleClass="dataset-move-form">
                         <div class="col-md-6">
                             <div class="panel panel-default">
                                 <div class="panel-heading text-info">
@@ -195,22 +212,28 @@
                                     <!-- dataverse to move: -->
                                     <div class="form-group">
                                         <p:outputLabel value="#{bundle['dashboard.datamove.dataverse.label']}"
-                                                       for="sourceMenu" styleClass="col-xs-12 col-sm-2 col-md-3 control-label"/>
+                                                       for="sourceMenu"
+                                                       styleClass="col-xs-12 col-sm-2 col-md-3 control-label"/>
                                         <div class="col-xs-12 col-sm-10 col-md-9">
                                             <p:autoComplete id="sourceMenu"
                                                             required="true"
                                                             requiredMessage="#{bundle['requiredField']}"
                                                             placeholder="#{bundle['dashboard.datamove.dataverse.placeholder']}"
-                                                            multiple="false" scrollHeight="180"
+                                                            multiple="false"
+                                                            scrollHeight="180"
                                                             forceSelection="true"
-                                                            minQueryLength="2" queryDelay="1000" size="36"
+                                                            minQueryLength="2"
+                                                            queryDelay="1000"
+                                                            size="36"
                                                             emptyMessage="#{bundle['dashboard.datamove.dataverse.menu.invalidMsg']}"
                                                             value="#{DashboardDatamovePage.sourceDataverse}"
                                                             completeMethod="#{DashboardDatamovePage.completeDataverse}"
-                                                            var="srcDV" styleClass="DropdownPopup"
+                                                            var="srcDV"
+                                                            styleClass="DropdownPopup"
                                                             panelStyleClass="DropdownPopupPanel"
-                                                            itemLabel="#{srcDV.alias}" itemValue="#{srcDV}"
-                                                            converter="dataverseConverter">
+                                                            itemLabel="#{srcDV.alias}"
+                                                            itemValue="#{srcDV}"
+                                                            converter="#{DashboardDatamovePage.dataverseConverter}">
                                                 <p:column>
                                                     <f:facet name="header">
                                                         #{bundle['dashboard.datamove.dataverse.autocomplete.name']}
@@ -251,17 +274,21 @@
                                                             required="true"
                                                             requiredMessage="#{bundle['requiredField']}"
                                                             placeholder="#{bundle['dashboard.datamove.dataverse.placeholder']}"
-                                                            multiple="false" scrollHeight="180"
+                                                            multiple="false"
+                                                            scrollHeight="180"
                                                             forceSelection="true"
-                                                            minQueryLength="2" queryDelay="1000" size="36"
+                                                            minQueryLength="2"
+                                                            queryDelay="1000"
+                                                            size="36"
                                                             emptyMessage="#{bundle['dashboard.datamove.dataverse.menu.invalidMsg']}"
                                                             value="#{DashboardDatamovePage.targetDataverse}"
                                                             completeMethod="#{DashboardDatamovePage.completeDataverse}"
-                                                            var="targetDV" styleClass="DropdownPopup"
+                                                            var="targetDV"
+                                                            styleClass="DropdownPopup"
                                                             panelStyleClass="DropdownPopupPanel"
                                                             itemLabel="#{targetDV.alias}"
                                                             itemValue="#{targetDV}"
-                                                            converter="dataverseConverter">
+                                                            converter="#{DashboardDatamovePage.dataverseConverter}">
                                                 <p:column>
                                                     <f:facet name="header">
                                                         #{bundle['dashboard.datamove.dataverse.autocomplete.name']}
@@ -286,15 +313,20 @@
                             </div>
                         </div>
                         <div class="col-sm-12 button-block">
-                            <p:commandButton id="move" styleClass="btn btn-default"
+                            <p:commandButton id="move"
+                                             styleClass="btn btn-default"
                                              value="#{bundle['dashboard.datamove.dataverse.button.move']}"
                                              update="dataverse-move-form"
                                              validateClient="true"
                                              oncomplete="if (args &amp;&amp; !args.validationFailed) primeFacesShowModal('dataverseMoveConfirmation', this);"/>
-                            <p:button styleClass="btn btn-default button-cancel" outcome="dashboard" value="#{bundle['cancel']}"/>
+                            <p:button styleClass="btn btn-default button-cancel"
+                                      outcome="dashboard"
+                                      value="#{bundle['cancel']}"/>
                         </div>
-                        <p:dialog id="dataverseMoveConfirmation" header="#{bundle['dashboard.card.datamove.manage']}"
-                                  widgetVar="dataverseMoveConfirmation" modal="true">
+                        <p:dialog id="dataverseMoveConfirmation"
+                                  header="#{bundle['dashboard.card.datamove.manage']}"
+                                  widgetVar="dataverseMoveConfirmation"
+                                  modal="true">
                             <p class="text-warning">
                                 <span class="glyphicon glyphicon-warning-sign"/>
                                 #{bundle['dashboard.datamove.dataverse.confirm.dialog']}
@@ -307,9 +339,11 @@
                                                  value="#{bundle['dashboard.datamove.dataverse.confirm.yes']}"
                                                  onclick="PF('dataverseMoveConfirmation').hide();"
                                                  action="#{DashboardDatamovePage.moveDataverse()}"
-                                                 update="@form,:messagePanel" partialSubmit="true"/>
+                                                 update="@form,:messagePanel"
+                                                 partialSubmit="true"/>
                                 <button class="btn btn-default button-cancel"
-                                        onclick="PF('dataverseMoveConfirmation').hide();" type="button">
+                                        onclick="PF('dataverseMoveConfirmation').hide();"
+                                        type="button">
                                     #{bundle['dashboard.datamove.confirm.no']}
                                 </button>
                             </div>

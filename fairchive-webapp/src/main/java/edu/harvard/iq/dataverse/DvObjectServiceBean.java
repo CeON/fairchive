@@ -78,17 +78,25 @@ public class DvObjectServiceBean implements java.io.Serializable {
     public Optional<DvObject> findByGlobalId(final String globalIdString, 
     		final String type) {
     	
-    	final GlobalId gid = new GlobalId(globalIdString);
-    	return this.repository.findByGlobalId(gid.getProtocol(),
-    			gid.getAuthority(), gid.getIdentifier(), type);
+    	final Optional<GlobalId> gid = GlobalId.parse(globalIdString);
+    	if(gid.isPresent()) {
+	    	return this.repository.findByGlobalId(gid.get().getProtocol(),
+	    			gid.get().getAuthority(), gid.get().getIdentifier(), type);
+    	} else {
+    		return Optional.empty();
+    	}
     }
     
     public Optional<DvObject> findByAlternativeGlobalId(final String globalIdString, 
     		final String type) {
     	
-    	final GlobalId gid = new GlobalId(globalIdString);
-    	return this.repository.findByAlternativeGlobalId(gid.getProtocol(),
-    			gid.getAuthority(), gid.getIdentifier(), type);
+    	final Optional<GlobalId> gid = GlobalId.parse(globalIdString);
+    	if(gid.isPresent()) {
+	    	return this.repository.findByAlternativeGlobalId(gid.get().getProtocol(),
+	    			gid.get().getAuthority(), gid.get().getIdentifier(), type);
+    	} else {
+    		return Optional.empty();
+    	}
     }
 
     public List<DvObject> findByAuthenticatedUserId(final AuthenticatedUser user) {

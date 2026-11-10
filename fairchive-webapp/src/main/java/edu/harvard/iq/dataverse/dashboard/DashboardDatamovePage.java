@@ -6,6 +6,7 @@ import static java.util.Collections.singletonList;
 import static java.util.logging.Level.WARNING;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,6 +14,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.convert.Converter;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -60,6 +64,8 @@ public class DashboardDatamovePage implements Serializable {
     private Dataverse targetDataverse;
 
     private Dataverse sourceDataverse;
+    private final DatasetConverter datasetConverter = new DatasetConverter();
+    private final DataverseConverter dataverseConverter = new DataverseConverter();
 
     @Inject
     public DashboardDatamovePage(final DataverseRequestServiceBean requestService,
@@ -96,7 +102,15 @@ public class DashboardDatamovePage implements Serializable {
         return sourceDataverse;
     }
 
-    // -------------------- LOGIC --------------------
+    public DatasetConverter getDatasetConverter() {
+		return this.datasetConverter;
+	}
+    
+    public DataverseConverter getDataverseConverter() {
+		return this.dataverseConverter;
+	}
+
+	// -------------------- LOGIC --------------------
     public String verifyAccess() {
         return this.session.canEditDashboard() 
                 ? EMPTY
@@ -338,6 +352,53 @@ public class DashboardDatamovePage implements Serializable {
             this.uiMessages.addErrorMessage(
                     getStringFromBundle(this.key.concat(".message.failure.summary")),
                     getFailureMessageDetail());
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    public class DatasetConverter implements Converter {
+
+        @Override
+        public Object getAsObject(final FacesContext context, 
+        		final UIComponent component, final String value) {
+        	try {
+	        	return GlobalId.parse(value).isPresent()
+	        			? datasetService.findByGlobalId(value)
+	        			: null;
+        	} catch(final Exception e) {
+        		return null;
+        	}
+        }
+
+        @Override
+        public String getAsString(final FacesContext facesContext,
+        		final UIComponent component, final Object value) {
+            return value != null && !EMPTY.equals(value)
+                    ? ((Dataset) value).getId().toString()
+                    : EMPTY;
+        }
+    }
+    //--------------------------------------------------------------------------
+    public class DataverseConverter implements Converter {
+
+        @Override
+        public Object getAsObject(final FacesContext facesContext, 
+        		final UIComponent component, final String submittedValue) {
+        	try {
+	        	return isNotEmpty(submittedValue)
+	        			? dataverseRepo.getById(new Long(submittedValue))
+	            		: null;
+        	} catch(final Exception e) {
+        		return null;
+        	}
+        }
+
+        @Override
+        public String getAsString(final FacesContext facesContext, 
+        		final UIComponent component, final Object value) {
+        	return value != null && !EMPTY.equals(value) 
+        			? ((Dataverse) value).getId().toString()
+        			: EMPTY;
         }
     }
 }
