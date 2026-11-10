@@ -19,6 +19,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.util.UIMessages;
 
 @SuppressWarnings("serial")
@@ -71,6 +72,10 @@ public class DashboardExportSearchResultsPage implements Serializable {
     public String verifyAccess() {
         return this.session.canEditDashboard() ? EMPTY : this.navigation.notAuthorized();
     }
+    
+	public void selectAll(final MetadataBlock block, final boolean select) {
+		block.getDatasetFieldTypes().forEach(type -> type.setExportToFile(select));
+	}
 
     public String save() {      
         this.blocks.stream()
@@ -78,10 +83,14 @@ public class DashboardExportSearchResultsPage implements Serializable {
         this.uiMessages.addSuccessMessage(getStringFromBundle("dashboard.card.exportsearchresults.success"));
         return EMPTY;
     }
+    
+    public Dataverse getRootDataverse() {
+    	return this.dataverseDao.findRootDataverse();
+    }
 
     public String cancel() {
         return "/dashboard.xhtml?faces-redirect=true&dataverseId="
-                + this.dataverseDao.findRootDataverse().getId();
+                + getRootDataverse().getId();
     }
 }
 
