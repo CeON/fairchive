@@ -1,6 +1,7 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DisableRootDataverseTheme;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
@@ -37,6 +38,7 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseLock;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat;
@@ -359,7 +361,11 @@ public class CreateEditDataversePage implements Serializable {
         if (! dataverse.isPresent()) {
             return this.permissionsWrapper.notFound();
         }
-      
+        
+        if(dataverse.get().isLockedFor(InReview)) {
+        	return permissionsWrapper.notAuthorized();
+        }	
+        		
         if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(dataverse.get())) {
             return permissionsWrapper.notAuthorized();
         } 

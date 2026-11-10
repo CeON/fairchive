@@ -8,7 +8,7 @@ import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.St
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.text.StringEscapeUtils.unescapeHtml4;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -340,7 +340,7 @@ public class DataverseHeaderFragment implements Serializable {
     }
     
     public String getTagLine() {
-    	return unescapeHtml4(getProperDataverseVersion().getTagline());
+    	return escapeHtml4(getProperDataverseVersion().getTagline());
     }
     
     public String getLinkUrl() {
