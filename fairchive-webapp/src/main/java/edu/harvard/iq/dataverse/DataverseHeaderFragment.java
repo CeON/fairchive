@@ -129,6 +129,7 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     public void initBreadcrumbsForDataFile(DataFile datafile, String subPage) {
+    	this.currentDvObject = datafile;
         Dataset dataset = datafile.getOwner();
         Long getDatasetVersionID = dataset.getLatestVersion().getId();
         FileMetadata fmd = datafileService.
@@ -200,6 +201,7 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     public void initBreadcrumbs(DvObject dvObject, String subPage) {
+    	this.currentDvObject = dvObject;
         breadcrumbs.clear();
         while (dvObject != null) {
             breadcrumbs.add(0, buildBreadcrumbForDvObject(dvObject));
@@ -402,7 +404,8 @@ public class DataverseHeaderFragment implements Serializable {
     }
     
     private Dataverse getDataverse() {
-    	if(this.currentDvObject  instanceof Dataverse) {
+    	if(this.currentDvObject == null) {
+    	} else if(this.currentDvObject  instanceof Dataverse) {
     		return (Dataverse) this.currentDvObject;
     	} 
     	if(this.currentDvObject instanceof Dataset) {
