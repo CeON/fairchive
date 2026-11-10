@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -248,6 +249,10 @@ public class DataverseVersion implements JpaEntity<Long> {
 	public DataverseTheme getTheme() {
 		return this.theme;
 	}
+	
+	public boolean isThemePresent() {
+		return this.theme != null;
+	}
 
 	public void setTheme(final DataverseTheme theme) {
 		this.theme = theme;
@@ -285,5 +290,54 @@ public class DataverseVersion implements JpaEntity<Long> {
 
     public String getDisplayName() {
         return stripAllTags(sanitizeBasicHTML(getName()));
+    }
+    
+    public String getBackgroundColor() {
+    	return getThemeElement(DataverseTheme::getBackgroundColor, "inherit");
+    }
+    
+    public String getLogoBackgroundColor() {
+    	return getThemeElement(DataverseTheme::getLogoBackgroundColor, "inherit");
+    }
+    
+    public String getLogoAlignment() {
+    	return getThemeElement(theme -> theme.getLogoAlignment().toString(), "inherit");
+    }
+    
+    public String getLinkColor() {
+    	return getThemeElement(DataverseTheme::getLinkColor, EMPTY);
+    }
+    
+    public String getTextColor() {
+    	return getThemeElement(DataverseTheme::getTextColor, EMPTY);
+    }
+    
+    public String getLogo() {
+    	return getThemeElement(DataverseTheme::getLogo, EMPTY);
+    }
+    
+    public String getTagline() {
+    	return getThemeElement(DataverseTheme::getTagline, EMPTY);
+    }
+    
+    public String getLinkUrl() {
+    	return getThemeElement(DataverseTheme::getLinkUrl, EMPTY);
+    }
+    
+    private String getThemeElement(final Function<DataverseTheme, String> extractor, 
+    		final String defaultValue) {
+    	return this.theme != null ? extractor.apply(this.theme) : defaultValue;
+    }
+    
+    public boolean isLogoPresent() {
+    	return isThemePresent() && this.theme.isLogoPresent();
+    }
+    
+    public boolean isRectangularLogoPresent() {
+    	return isThemePresent() && this.theme.isRectangularLogoPresent();
+    }
+    
+    public boolean isSquaredLogoPresent() {
+    	return isThemePresent() && this.theme.isSquaredLogoPresent();
     }
 }

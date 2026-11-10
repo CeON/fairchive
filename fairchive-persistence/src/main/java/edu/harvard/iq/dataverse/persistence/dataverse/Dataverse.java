@@ -2,10 +2,12 @@ package edu.harvard.iq.dataverse.persistence.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.DRAFT;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Locale.ENGLISH;
+import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
@@ -272,6 +274,9 @@ public class Dataverse extends DvObjectContainer {
   
     @OneToMany(mappedBy = "dataverse", cascade = {REMOVE, MERGE, PERSIST}, orphanRemoval = true)
     private List<DataverseFieldTypeInputLevel> dataverseFieldTypeInputLevels = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "dataverse", cascade = ALL, orphanRemoval = true)
+    private Set<DataverseLock> locks = new HashSet<>();
 
     private boolean guestbookRoot;
 
@@ -917,4 +922,25 @@ public class Dataverse extends DvObjectContainer {
 	public boolean hasDraft() {
 		return getLatestVersion().isDraft();
 	}
+	
+    public void addLock(final DataverseLock lock) {
+    	lock.setDataverse(this);
+        this.locks.add(lock);
+    }
+    
+    public void removeLocks(final DataverseLock.Reason reason) {
+    	this.locks.removeIf(lock -> lock.getReason().equals(reason));
+    }
+    
+    public boolean isLocked() {
+        return !this.locks.isEmpty();
+    }
+    
+    public boolean isLockedFor(final DataverseLock.Reason reason) {
+        return this.locks.stream().anyMatch(lock -> lock.getReason() == reason);
+    }
+    
+    public boolean isInReview() {
+        return isLockedFor(InReview);
+    }
 }

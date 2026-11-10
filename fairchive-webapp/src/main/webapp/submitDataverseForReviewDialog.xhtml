@@ -1,0 +1,54 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui" xmlns:o="http://omnifaces.org/ui"
+	xmlns:jsf="http://xmlns.jcp.org/jsf">
+
+	<p:dialog id="submitForReviewDialog"
+		      header="#{bundle['dataset.submitForReview.submitBtn']}"
+		      widgetVar="submitForReviewDialog"
+		      modal="true" 
+		      dynamic="true"
+		      cache="false"
+		      styleClass="largePopUp">
+
+		<h:form id="submitForReviewForm">
+			<p class="text-warning">
+				<span class="glyphicon glyphicon-warning-sign" />
+				#{bundle['dataverse.submitForReview.submitMessage']}
+			</p>
+			<div class="form-group">
+				<h:outputLabel for="message"
+                               value="#{bundle['dataset.submitForReview.messageBox.label']}"
+                               styleClass="col-sm-3 control-label" />
+				<div class="col-sm-9">
+					<p:inputTextarea id="message" 
+					                 rows="20"
+						             value="#{dialog.message}"
+						             maxlength="7000"
+						             cols="60"
+						             counter="counter"
+						             counterTemplate="#{bundle['dataset.submitForReview.messageBox.counter']}"
+						             autoResize="false"
+						             styleClass="form-control">
+					</p:inputTextarea>
+					<p:watermark for="message"
+                                 value="#{bundle['dataverse.submitForReview.customMessage.watermark']}"/>
+					<h:outputText id="counter" />
+				</div>
+			</div>
+			<div class="button-block">
+				<p:commandButton value="#{bundle.submit}"
+				                 action="#{dialog.send()}"
+					             oncomplete="PF('submitForReviewDialog').hide();"
+					             update="#{updatableComponents}"
+					             process="@form"
+					             styleClass="btn btn-default btn-access" />
+				<p:commandButton value="#{bundle.cancel}"
+					             onclick="PF('submitForReviewDialog').hide();" 
+					             type="button"/>
+			</div>
+		</h:form>
+	</p:dialog>
+</ui:composition>

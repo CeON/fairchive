@@ -1,25 +1,14 @@
 package edu.harvard.iq.dataverse;
 
-import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
-import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
-import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
-import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
-import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
-import edu.harvard.iq.dataverse.persistence.user.User;
-import edu.harvard.iq.dataverse.persistence.user.UserNotificationRepository;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
-import edu.harvard.iq.dataverse.users.SamlSessionRegistry;
-import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundleWithLocale;
+import static edu.harvard.iq.dataverse.common.MarkupChecker.sanitizeBasicHTML;
+import static edu.harvard.iq.dataverse.common.MarkupChecker.stripAllTags;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.DRAFT;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -27,6 +16,26 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.omnifaces.cdi.ViewScoped;
+
+import edu.harvard.iq.dataverse.dataverse.DataverseService;
+import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
+import edu.harvard.iq.dataverse.persistence.DvObject;
+import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
+import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
+import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
+import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.persistence.user.User;
+import edu.harvard.iq.dataverse.persistence.user.UserNotificationRepository;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key;
+import edu.harvard.iq.dataverse.users.SamlSessionRegistry;
+import edu.harvard.iq.dataverse.util.SystemConfig;
 
 /**
  * @author gdurand
@@ -36,15 +45,15 @@ import java.util.function.Function;
 @Named
 public class DataverseHeaderFragment implements Serializable {
 
-    private DataverseDao dataverseDao;
-    private SettingsServiceBean settingsService;
-    private SystemConfig systemConfig;
+    private DataverseService dataverseService;
+    private SystemConfig config;
     private DataFileServiceBean datafileService;
-    private DataverseSession dataverseSession;
+    private DataverseSession session;
     private NavigationWrapper navigationWrapper;
     private UserNotificationRepository userNotificationRepository;
     private ConfirmEmailServiceBean confirmEmailService;
     private WidgetWrapper widgetWrapper;
+    private PermissionsWrapper permissionsWrapper;
     private SamlSessionRegistry samlSessionRegistry;
 
     private List<Breadcrumb> breadcrumbs = new ArrayList<>();
@@ -54,12 +63,11 @@ public class DataverseHeaderFragment implements Serializable {
 
     // -------------------- CONSTRUCTORS --------------------
 
-    @Deprecated
     public DataverseHeaderFragment() { }
 
     @Inject
-    public DataverseHeaderFragment(DataverseDao dataverseDao, 
-                                   SettingsServiceBean settingsService,
+    public DataverseHeaderFragment(DataverseService dataverseService, 
+    							   PermissionsWrapper permissionsWrapper,
                                    SystemConfig systemConfig, 
                                    DataFileServiceBean datafileService,
                                    DataverseSession dataverseSession, 
@@ -68,11 +76,11 @@ public class DataverseHeaderFragment implements Serializable {
                                    ConfirmEmailServiceBean confirmEmailService,
                                    WidgetWrapper widgetWrapper, 
                                    SamlSessionRegistry samlSessionRegistry) {
-        this.dataverseDao = dataverseDao;
-        this.settingsService = settingsService;
-        this.systemConfig = systemConfig;
+        this.dataverseService = dataverseService;
+        this.permissionsWrapper = permissionsWrapper;
+        this.config = systemConfig;
         this.datafileService = datafileService;
-        this.dataverseSession = dataverseSession;
+        this.session = dataverseSession;
         this.navigationWrapper = navigationWrapper;
         this.userNotificationRepository = userNotificationRepository;
         this.confirmEmailService = confirmEmailService;
@@ -102,9 +110,9 @@ public class DataverseHeaderFragment implements Serializable {
     
     private String getSubPage() {
         if(this.currentDvObject instanceof Dataverse) {
-            return getStringFromBundleWithLocale("newDataverse", dataverseSession.getLocale());
+            return getStringFromBundleWithLocale("newDataverse", session.getLocale());
         } else if (this.currentDvObject instanceof Dataset) {
-            return getStringFromBundleWithLocale("newDataset", dataverseSession.getLocale());
+            return getStringFromBundleWithLocale("newDataset", session.getLocale());
         } else {
             return null;
         }
@@ -117,10 +125,11 @@ public class DataverseHeaderFragment implements Serializable {
     
     public boolean displayBreadcrumbs() {
         return getBreadcrumbs().size() > 1 
-                && ! this.dataverseSession.isViewedFromAnonymizedPrivateUrl(this.currentDvObject);
+                && ! this.session.isViewedFromAnonymizedPrivateUrl(this.currentDvObject);
     }
 
     public void initBreadcrumbsForDataFile(DataFile datafile, String subPage) {
+    	this.currentDvObject = datafile;
         Dataset dataset = datafile.getOwner();
         Long getDatasetVersionID = dataset.getLatestVersion().getId();
         FileMetadata fmd = datafileService.
@@ -130,17 +139,17 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     public boolean shouldShowUnconfirmedMailInfoBanner() {
-        return confirmEmailService.hasEffectivelyUnconfirmedMail(dataverseSession.getUser());
+        return confirmEmailService.hasEffectivelyUnconfirmedMail(session.getUser());
     }
 
     public boolean shouldShowAddDatasetButton() {
-        return !systemConfig.isReadonlyMode() &&
-                (!dataverseSession.isUserLoggedIn() 
-                        || !confirmEmailService.hasEffectivelyUnconfirmedMail(dataverseSession.getUser()));
+        return !config.isReadonlyMode() &&
+                (!session.isUserLoggedIn() 
+                        || !confirmEmailService.hasEffectivelyUnconfirmedMail(session.getUser()));
     }
 
     public boolean shouldShowLoginRedirect() {
-        return !dataverseSession.isUserLoggedIn();
+        return !session.isUserLoggedIn();
     }
 
     public void initBreadcrumbsForFileMetadata(FileMetadata fmd, String subPage) {
@@ -180,7 +189,7 @@ public class DataverseHeaderFragment implements Serializable {
             return unreadNotificationCount;
         }
 
-        User user = dataverseSession.getUser();
+        User user = session.getUser();
         if (user.isAuthenticated()) {
             AuthenticatedUser aUser = (AuthenticatedUser) user;
             unreadNotificationCount = userNotificationRepository.
@@ -192,6 +201,7 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     public void initBreadcrumbs(DvObject dvObject, String subPage) {
+    	this.currentDvObject = dvObject;
         breadcrumbs.clear();
         while (dvObject != null) {
             breadcrumbs.add(0, buildBreadcrumbForDvObject(dvObject));
@@ -204,9 +214,9 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     public String logout() {
-        samlSessionRegistry.unregister(dataverseSession);
-        dataverseSession.logOut();
-        dataverseSession.setStatusDismissed(false);
+        samlSessionRegistry.unregister(session);
+        session.logOut();
+        session.setStatusDismissed(false);
 
         String redirectPage = navigationWrapper.getPageFromContext();
         try {
@@ -223,7 +233,7 @@ public class DataverseHeaderFragment implements Serializable {
     }
 
     public boolean isSignupAllowed() {
-        return systemConfig.isSignupAllowed();
+        return config.isSignupAllowed();
     }
 
     public boolean isRootDataverseThemeDisabled(Dataverse dataverse) {
@@ -232,14 +242,14 @@ public class DataverseHeaderFragment implements Serializable {
         }
         if (dataverse.isRoot()) {
             // We're operating on the root dataverse.
-            return settingsService.isTrueForKey(Key.DisableRootDataverseTheme);
+            return this.config.isTrueForKey(Key.DisableRootDataverseTheme);
         } else {
             return false;
         }
     }
 
     public String getSignupUrl(String loginRedirect) {
-        String signUpUrl = settingsService.getValueForKey(Key.SignUpUrl);
+        String signUpUrl = this.config.getValueForKey(Key.SignUpUrl);
         return signUpUrl + (!signUpUrl.contains("?") ? loginRedirect : loginRedirect.replace("?", "&"));
     }
 
@@ -249,6 +259,94 @@ public class DataverseHeaderFragment implements Serializable {
 
     public void addBreadcrumb(String text) {
         breadcrumbs.add(new Breadcrumb(text));
+    }
+    
+    public String getBackgroundColor() {
+    	return getProperDataverseVersion().getBackgroundColor();
+    }
+    
+    public String getLogoAlignment() {
+    	return getProperDataverseVersion().getLogoAlignment();
+    }
+    
+    public String getLogoBackgroundColor() {
+    	return getProperDataverseVersion().getLogoBackgroundColor();
+    }
+    
+    public boolean displayDataverseHeader() {
+    	return ! this.widgetWrapper.isWidgetView() && 
+    			getDataverse().isNotNew() &&
+    			! isRootDataverseThemeDisabled(getDataverse());
+    }
+    
+    public boolean displayRectangularLogo() {
+    	return getProperDataverseVersion().isRectangularLogoPresent();
+    }
+    
+    public boolean displaySquaredLogo() {
+    	return getProperDataverseVersion().isSquaredLogoPresent();
+    }
+    
+    public boolean displayTagLine() {
+    	return isNotEmpty(getProperDataverseVersion().getTagline());
+    }
+    
+    public boolean displayLinkUrl() {
+    	return isNotEmpty(getProperDataverseVersion().getLinkUrl());
+    }
+    
+    public boolean displayAffiliation() {
+    	return isNotEmpty(getProperDataverseVersion().getAffiliation());
+    }
+    
+    public boolean displayUnpublished() {
+    	return ! getDataverse().isReleased();
+    }
+    
+    public boolean displayDraft() {
+    	final Dataverse dataverse = getDataverse();
+    	return dataverse.isDraft() &&
+    			this.permissionsWrapper.canViewUnpublishedDataverse(
+    	    			dataverse.isNew() ? dataverse.getOwner() : dataverse);
+    }
+    
+    public boolean isNewDataverse() {
+    	final Dataverse dataverse = getDataverse();
+    	return dataverse == null || dataverse.isNew();
+    }
+    
+    public String getLinkColorStyle() {
+    	final String color = getProperDataverseVersion().getLinkColor();
+    	return color.isEmpty() ? EMPTY: "color: #".concat(color);
+    }
+    
+    public String getTextColorStyle() {
+    	final String color = getProperDataverseVersion().getTextColor();
+    	return color.isEmpty() ? EMPTY: "color: #".concat(color);
+    }
+    
+    public String getLogo() {
+    	return getProperDataverseVersion().getLogo();
+    }
+    
+    public String getName() {
+    	return getProperDataverseVersion().getName();
+    }
+    
+    public String getAlias() {
+    	return getProperDataverseVersion().getAlias();
+    }
+    
+    public String getAffiliation() {
+    	return getProperDataverseVersion().getAffiliation();
+    }
+    
+    public String getTagLine() {
+    	return escapeHtml4(getProperDataverseVersion().getTagline());
+    }
+    
+    public String getLinkUrl() {
+    	return getProperDataverseVersion().getLinkUrl();
     }
 
     // -------------------- PRIVATE --------------------
@@ -275,11 +373,21 @@ public class DataverseHeaderFragment implements Serializable {
             url = widgetWrapper.wrapURL(url);
         }
         boolean openInNewTab = widgetWrapper.isWidgetView() && !widgetWrapper.isWidgetTarget(dvObject);
-        return new Breadcrumb(url, dvObject.getDisplayName(), openInNewTab);
+        return new Breadcrumb(url, getDisplayName(dvObject), openInNewTab);
+    }
+    
+    private <T extends DvObject> String getDisplayName(final T object) {
+    	if(object instanceof Dataverse) {
+    		return stripAllTags(sanitizeBasicHTML(
+    				getProperDataverseVersion((Dataverse)object).getName()));
+    	} else {
+    		return object.getDisplayName();
+    	}
     }
 
     private Breadcrumb buildBreadcrumbForDataverse(Dataverse dataverse) {
-        return buildBreadcrumb(dataverse, null, d -> "/dataverse/" + d.getAlias());
+        return buildBreadcrumb(dataverse, null, 
+        		d -> "/dataverse/".concat(getProperDataverseVersion(d).getAlias()));
     }
 
     private Breadcrumb buildBreadcrumbForDataset(Dataset dataset, String optionalUrlExtension) {
@@ -292,9 +400,43 @@ public class DataverseHeaderFragment implements Serializable {
 
     private String redirectToRoot() {
         return "dataverse.xhtml?alias=".
-                concat(this.dataverseDao.findRootDataverse().getAlias());
+                concat(this.dataverseService.findRoot().getAlias());
     }
-
+    
+    private Dataverse getDataverse() {
+    	if(this.currentDvObject == null) {
+    	} else if(this.currentDvObject  instanceof Dataverse) {
+    		return (Dataverse) this.currentDvObject;
+    	} 
+    	if(this.currentDvObject instanceof Dataset) {
+    		return ((Dataset)this.currentDvObject).getOwner();
+    	} 
+    	if(this.currentDvObject instanceof DataFile) {
+    		return ((DataFile)this.currentDvObject).getOwner().getOwner();
+    	} 
+    	throw new RuntimeException(
+    			"Unknown type: ".concat(this.currentDvObject.getClass().getName()));
+    }
+    
+    public boolean canUserViewUnpublishedDataverse() {
+    	final Dataverse dataverse = getDataverse();
+    	return this.permissionsWrapper.canViewUnpublishedDataverse(
+    			dataverse.isNew() ? dataverse.getOwner() : dataverse);
+    }
+    
+    public DataverseVersion getProperDataverseVersion() {
+    	return getProperDataverseVersion(getDataverse());
+    }
+    
+    public DataverseVersion getProperDataverseVersion(final Dataverse dataverse) {
+    	if(dataverse.isDraft() &&
+    			this.permissionsWrapper.canViewUnpublishedDataverse(
+    	    			dataverse.isNew() ? dataverse.getOwner() : dataverse)) {
+    		return dataverse.getLatestVersion(DRAFT).get();
+    	} else {
+    		return dataverse.getLatestVersion(RELEASED).get();
+    	}
+    }
 
     // -------------------- INNER CLASSES --------------------
 

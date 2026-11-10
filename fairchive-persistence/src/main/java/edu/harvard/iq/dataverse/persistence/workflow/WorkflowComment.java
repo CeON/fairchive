@@ -1,50 +1,49 @@
 package edu.harvard.iq.dataverse.persistence.workflow;
 
-import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
-import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import static java.time.Instant.now;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Date;
+
+import edu.harvard.iq.dataverse.persistence.JpaEntity;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
+import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 
 @SuppressWarnings("serial")
 @Entity
-public class WorkflowComment implements Serializable {
+public class WorkflowComment implements Serializable, JpaEntity<Long> {
 
     /*
     This release only supports Return to Author as a comment type
     More may be added in future releases,
     */
     public enum Type {
-        RETURN_TO_AUTHOR //, SUBMIT_FOR_REVIEW not available in this release but may be added in the future
+        RETURN_TO_AUTHOR
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    /**
-     * Right now only datasetVersions are the only supported entity that can be
-     * discussed via workflow comments. In the future, we plan to also use this
-     * table for discussion of other entities such as files in the "Request
-     * Access" workflow. We may even allow for discussion of datasets to allow
-     * users to explain why they'd like to have a contributor role on a dataset.
-     * <p>
-     * TODO: In the future, make this nullable=true for when entities other than
-     * DatasetVersion are being discussed, such as DataFile or Dataset.
-     */
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = true)
     private DatasetVersion datasetVersion;
+    
+    @ManyToOne
+    @JoinColumn(nullable = true)
+    private DataverseVersion dataverseVersion;
 
     /**
      * The WorkflowAction string has a namespace for the workflow followed by
@@ -64,67 +63,86 @@ public class WorkflowComment implements Serializable {
 
     @Column(nullable = false)
     private Timestamp created;
+    
+    public WorkflowComment() { }
 
-    // TODO: Consider support editing in the GUI some day, like GitHub issue comments (show "Edited" in the UI). We won't send a second email, however. You only get one shot to prevent spam.
-//    @Transient
-//    private Timestamp modified;
-    // TODO: How should we best associate these entries to notifications, which can go to multiple authors and curators?
-//    @Transient
-//    private List<UserNotification> notifications;
-    public WorkflowComment(DatasetVersion version, WorkflowComment.Type type, String message, AuthenticatedUser authenticatedUser) {
-        this.type = type;
-        if (this.type.equals(WorkflowComment.Type.RETURN_TO_AUTHOR)) {
+    public WorkflowComment(final DatasetVersion version, final WorkflowComment.Type type, 
+    		final String message, final AuthenticatedUser user) {
+    	this(type, message, user);	
+        if (this.type.equals(Type.RETURN_TO_AUTHOR)) {
             this.datasetVersion = version;
         }
+    }
+    
+    public WorkflowComment(final DataverseVersion version, final WorkflowComment.Type type, 
+    		final String message, final AuthenticatedUser user) {
+    	this(type, message, user);
+        if (this.type.equals(Type.RETURN_TO_AUTHOR)) {
+            this.dataverseVersion = version;
+        }
+    }
+    
+    private WorkflowComment(final WorkflowComment.Type type, final String message,
+    		final AuthenticatedUser user) {
+        this.type = type;
         this.message = message;
-        this.authenticatedUser = authenticatedUser;
-        this.created = new Timestamp(new Date().getTime());
+        this.authenticatedUser = user;
+        this.created = Timestamp.from(now());
     }
 
-    /**
-     * This default constructor is only here to prevent this error at
-     * deployment:
-     * <p>
-     * Exception Description: The instance creation method [...[class
-     * name].<Default Constructor>], with no parameters, does not exist, or is
-     * not accessible
-     * <p>
-     * Don't use this constructor.
-     */
-    @Deprecated
-    public WorkflowComment() {
-    }
-
+    @Override
     public Long getId() {
-        return id;
+        return this.id;
     }
 
     public DatasetVersion getDatasetVersion() {
-        return datasetVersion;
+        return this.datasetVersion;
+    }
+    
+    public void setDatasetVersion(final DatasetVersion version) {
+        this.datasetVersion = version;
     }
 
-    public Type getType() {
-        return type;
+    public DataverseVersion getDataverseVersion() {
+		return this.dataverseVersion;
+	}
+
+	public void setDataverseVersion(final DataverseVersion version) {
+		this.dataverseVersion = version;
+	}
+
+	public Type getType() {
+        return this.type;
     }
 
     public String getMessage() {
-        return message;
-    }
-
-    public AuthenticatedUser getAuthenticatedUser() {
-        return authenticatedUser;
+        return this.message;
     }
 
     public Timestamp getCreated() {
-        return created;
+        return this.created;
     }
 
-    public void setDatasetVersion(DatasetVersion dv) {
-        datasetVersion = dv;
+    public AuthenticatedUser getAuthenticatedUser() {
+        return this.authenticatedUser;
+    }
+    
+    public void setAuthenticatedUser(final AuthenticatedUser user){
+        this.authenticatedUser = user;
     }
 
-    public void setAuthenticatedUser(AuthenticatedUser authenticatedUser){
-        this.authenticatedUser = authenticatedUser;
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
 
+	@Override
+	public boolean equals(final Object obj) {
+		if (obj != null && getClass() == obj.getClass()) {
+			final WorkflowComment other = (WorkflowComment) obj;
+			return Objects.equals(id, other.id);
+		} else {
+			return false;
+		}
+	}
 }

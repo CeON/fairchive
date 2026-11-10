@@ -53,6 +53,7 @@ import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.permission.ManagePermissionsService;
 import edu.harvard.iq.dataverse.persistence.ActionLogRecord;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevelRepository;
+import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersionRepository;
 import edu.harvard.iq.dataverse.persistence.guestbook.GuestbookRepository;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
@@ -226,7 +227,10 @@ public class EjbDataverseEngine {
     
     @Inject
     DataverseVersionRepository dataverseVersionRepository;
-
+    
+    @Inject
+    DataverseRepository dataverseRepository;
+    
     @Resource
     EJBContext ejbCtxt;
 
@@ -562,6 +566,11 @@ public class EjbDataverseEngine {
 				@Override
 				public DataverseVersionRepository dataverseVersions() {
 					return dataverseVersionRepository;
+				}
+				
+				@Override
+				public DataverseRepository dataverseRepository() {
+					return dataverseRepository;
 				}
             };
         }

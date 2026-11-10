@@ -1,5 +1,11 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseLock.Reason.InReview;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+
+import java.sql.Timestamp;
+import java.util.Date;
+
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -11,16 +17,11 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
-
-import java.sql.Timestamp;
-import java.util.Date;
-
 @SuppressWarnings("serial")
 @RequiredPermissions(Permission.PublishDataverse)
 public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
 
-    private final Dataverse dataverse;
+    private Dataverse dataverse;
 
     public PublishDataverseCommand(final DataverseRequest aRequest, 
     		final Dataverse dataverse) {
@@ -36,7 +37,7 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
                         " has already been published.", this);
         }
 
-        Dataverse parent = this.dataverse.getOwner();
+        final Dataverse parent = this.dataverse.getOwner();
         // root dataverse doesn't have a parent
         if (parent != null && !parent.isReleased()) {
             throw new IllegalCommandException("Dataverse " + dataverse.getAlias() 
@@ -47,17 +48,20 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
         //Before setting dataverse to released send notifications to users with download file
         sendAssignRoleNotifications(context);
 
-        this.dataverse.setPublicationDate(new Timestamp(new Date().getTime()));
-        this.dataverse.setReleaseUser((AuthenticatedUser) getUser());
+        if(! this.dataverse.isReleased()) {
+	        this.dataverse.setPublicationDate(new Timestamp(new Date().getTime()));
+	        this.dataverse.setReleaseUser((AuthenticatedUser) getUser());
+        }
         this.dataverse.getLatestVersion().setState(RELEASED);
         context.dataverseVersions().save(this.dataverse.getLatestVersion());
-        Dataverse savedDataverse = context.dataverses().save(this.dataverse);
+        this.dataverse.removeLocks(InReview);
+        this.dataverse = context.dataverses().save(this.dataverse);
         /**
          * @todo consider also
          * ctxt.solrIndex().indexPermissionsOnSelfAndChildren(savedDataverse.getId());
          */
-        context.solrIndex().indexPermissionsForOneDvObject(savedDataverse);
-        return savedDataverse;
+        context.solrIndex().indexPermissionsForOneDvObject(this.dataverse);
+        return this.dataverse;
     }
 
     /**

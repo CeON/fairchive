@@ -12,7 +12,9 @@ public class NotificationType {
     public static final String MAPLAYERUPDATED = "MAPLAYERUPDATED";
     public static final String MAPLAYERDELETEFAILED = "MAPLAYERDELETEFAILED";
     public static final String SUBMITTEDDS = "SUBMITTEDDS";
+    public static final String SUBMITTEDDV = "SUBMITTEDDV";
     public static final String RETURNEDDS = "RETURNEDDS";
+    public static final String RETURNEDDV = "RETURNEDDV";
     public static final String PUBLISHEDDS = "PUBLISHEDDS";
     public static final String REQUESTFILEACCESS = "REQUESTFILEACCESS";
     public static final String GRANTFILEACCESS = "GRANTFILEACCESS";
@@ -37,7 +39,9 @@ public class NotificationType {
         notifications.add(MAPLAYERUPDATED);
         notifications.add(MAPLAYERDELETEFAILED);
         notifications.add(SUBMITTEDDS);
+        notifications.add(SUBMITTEDDV);
         notifications.add(RETURNEDDS);
+        notifications.add(RETURNEDDV);
         notifications.add(PUBLISHEDDS);
         notifications.add(REQUESTFILEACCESS);
         notifications.add(GRANTFILEACCESS);

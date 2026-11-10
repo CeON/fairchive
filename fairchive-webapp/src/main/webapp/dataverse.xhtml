@@ -110,6 +110,7 @@
                         <!-- Edit/Publish Button Group -->
                         <div class="btn-group" 
                              jsf:rendered="#{DataversePage.displayEditPublishButtons()}">
+                             <p:fragment id="editPublishBlock">
                            <!-- Publish Button -->
                             <button jsf:rendered="#{DataversePage.displayPublishButton()}"
                                     type="button" 
@@ -157,6 +158,29 @@
                                     </li>
                                 </ul>
                             </div>
+                            
+                            <!-- Return to Author Button -->
+                            <p:commandLink rendered="#{DataversePage.displayReturnToAuthorButton()}"
+                                           action="#{DataversePage.submitForReviewDialog.clear()}"
+                                           styleClass="btn btn-default btn-access}"
+                                           onclick="primeFacesShowModal('sendBackToContributorDialog', this)">
+                                <span class="glyphicon glyphicon-repeat"/>#{bundle['dataset.rejectBtn']}
+                            </p:commandLink>
+                            <!-- END: Return to Author Button -->
+
+                            <!-- Submit for Review Button -->
+                            <p:commandLink rendered="#{DataversePage.displaySubmitForReviewButton()}"
+                                           action="#{DataversePage.submitForReviewDialog.clear()}"
+                                           update=":submitForReviewDialog"
+                                           oncomplete="primeFacesShowModal('submitForReviewDialog', this);"
+                                           disabled="#{DataversePage.disabledSubmitForReviewButton()}"
+                                           styleClass="btn btn-primary btn-access">
+                                <span class="glyphicon glyphicon-globe"/>
+                                #{DataversePage.dataverseInReview 
+                                    ? bundle['dataset.disabledSubmittedBtn'] 
+                                    : bundle['dataset.submitForReview.submitBtn']}
+                            </p:commandLink>
+                            
                             <!-- Edit Button -->
                             <div class="btn-group"
                                     jsf:rendered="#{DataversePage.displayEditButton()}">
@@ -302,6 +326,7 @@
                                 </ul>
                             </div>
                             <!--  END: Edit Button -->
+                            </p:fragment>
                             </div>
 
                             <!--  END: Edit/Publish Button Group -->
@@ -596,6 +621,21 @@
                     </div>
                 </ui:fragment>
             </p:dialog>
+            
+            <ui:include src="submitDataverseForReviewDialog.xhtml">
+                <ui:param name="dialog" 
+                          value="#{DataversePage.submitForReviewDialog}"/>
+                <ui:param name="updatableComponents" 
+                          value=":messagePanel :dataverseForm:editPublishBlock"/>
+            </ui:include>
+            
+            <ui:include src="sendDataverseBackToContributorDialog.xhtml">
+                <ui:param name="dialog" 
+                          value="#{DataversePage.sendBackToContributorDialog}"/>
+                <ui:param name="updatableComponents" 
+                          value=":messagePanel :dataverseForm:editPublishBlock"/>
+            </ui:include>
+            
             
             <script type="text/javascript">
                 //<![CDATA[

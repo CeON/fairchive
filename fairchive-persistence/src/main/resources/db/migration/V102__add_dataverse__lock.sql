@@ -1,0 +1,22 @@
+CREATE TABLE dataverselock (
+    id serial4 NOT NULL,
+    info varchar(255) NULL,
+    reason varchar(255) NOT NULL,
+    starttime timestamp NULL,
+    dataverse_id int8 NOT NULL,
+    user_id int8 NOT NULL,
+    CONSTRAINT dataverselock_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_dataverselock_datverse_id FOREIGN KEY (dataverse_id) REFERENCES dataverse(id),
+    CONSTRAINT fk_dataverselock_user_id FOREIGN KEY (user_id) REFERENCES authenticateduser(id)
+);
+
+
+alter TABLE workflowcomment add column dataverseversion_id int8 references dataverseversion(id);
+alter table workflowcomment alter column datasetversion_id drop not null;
+
+ALTER TABLE dataversetheme ALTER COLUMN backgroundcolor SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN linkcolor SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN textcolor SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN logobackgroundcolor SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN logoformat SET NOT NULL;
+ALTER TABLE dataversetheme ALTER COLUMN logoalignment SET NOT NULL;

@@ -27,6 +27,8 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.DeleteDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.PublishDataverseCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.ReturnDataverseToAuthorCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.SubmitDataverseForReviewCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDataverseThemeCommand;
 import edu.harvard.iq.dataverse.error.DataverseError;
@@ -64,6 +66,10 @@ public class DataverseService {
 		this.userNotificationService = userNotificationService;
 		this.repository = repository;
 	}
+    
+    public Dataverse findRoot() {
+        return this.repository.findRoot();
+    }
 
 	public Optional<Dataverse> findById(final Long id) {
     	return this.repository.findById(id);
@@ -168,13 +174,27 @@ public class DataverseService {
     /**
      * Operation to publish dataverse also known as release dataverse.
      */
-    public Dataverse publishDataverse(Dataverse dataverseToBePublished) {
+    public Dataverse publish(final Dataverse dataverse) {
 
-        return commandEngine.submit(new PublishDataverseCommand(requestService.getDataverseRequest(), dataverseToBePublished));
+        return commandEngine.submit(new PublishDataverseCommand(
+        		requestService.getDataverseRequest(), dataverse));
     }
 
     public void deleteDataverse(Dataverse dataverseToDelete){
         commandEngine.submit(new DeleteDataverseCommand(requestService.getDataverseRequest(), dataverseToDelete));
     }
-
+    
+    public Dataverse submitForReview(final Dataverse dataverse, final String comment) {
+    	
+    	return commandEngine.submit(new SubmitDataverseForReviewCommand(
+    			this.requestService.getDataverseRequest(), dataverse, comment));
+    }
+    
+    public Dataverse sendBackToContributor(final Dataverse dataverse, 
+    		final String comment, final String replyTo, final boolean sendCopy) {
+    	
+    	return commandEngine.submit(new ReturnDataverseToAuthorCommand(
+    			this.requestService.getDataverseRequest(), dataverse, comment, 
+    				replyTo, sendCopy));
+    }
 }

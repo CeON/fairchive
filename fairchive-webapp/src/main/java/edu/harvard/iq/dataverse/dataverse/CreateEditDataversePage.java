@@ -1,7 +1,7 @@
 package edu.harvard.iq.dataverse.dataverse;
 
 import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion.State.RELEASED;
+import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.CollectionFormPrefillEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.DisableRootDataverseTheme;
 import static javax.faces.application.FacesMessage.SEVERITY_ERROR;
@@ -21,7 +21,6 @@ import javax.annotation.PreDestroy;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIInput;
-import javax.faces.component.html.HtmlInputText;
 import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
@@ -66,8 +65,6 @@ public class CreateEditDataversePage implements Serializable {
     private Dataverse dataverse;
     private DataverseVersion version;
     
-    private HtmlInputText linkUrlInput;
-    private HtmlInputText taglineInput;
     private TempLogoStorageManager.Storage storage;
     
     public CreateEditDataversePage() {}
@@ -212,22 +209,6 @@ public class CreateEditDataversePage implements Serializable {
     
     public String getDataverseName() {
     	return this.dataverse.getName();
-    }
-    
-    public HtmlInputText getLinkUrlInput() {
-        return this.linkUrlInput;
-    }
-
-    public void setLinkUrlInput(final HtmlInputText linkUrlInput) {
-        this.linkUrlInput = linkUrlInput;
-    }
-
-    public HtmlInputText getTaglineInput() {
-        return this.taglineInput;
-    }
-
-    public void setTaglineInput(final HtmlInputText taglineInput) {
-        this.taglineInput = taglineInput;
     }
     
     public String getTagline() {
@@ -379,7 +360,11 @@ public class CreateEditDataversePage implements Serializable {
         if (! dataverse.isPresent()) {
             return this.permissionsWrapper.notFound();
         }
-      
+        
+        if(dataverse.get().isLockedFor(InReview)) {
+        	return permissionsWrapper.notAuthorized();
+        }	
+        		
         if (!this.permissionsWrapper.canIssueUpdateDataverseCommand(dataverse.get())) {
             return permissionsWrapper.notAuthorized();
         } 
@@ -423,10 +408,9 @@ public class CreateEditDataversePage implements Serializable {
     public void validateTagline(final FacesContext context, 
     		final UIComponent component, final Object value) throws ValidatorException {
         if (!isEmpty((String) value) && ((String) value).length() > 140) {
-            final FacesMessage msg = new FacesMessage(getStringFromBundle("theme.validateTagline"));
-            msg.setSeverity(SEVERITY_ERROR);
-
-            throw new ValidatorException(msg);
+            throw new ValidatorException(
+            		new FacesMessage(SEVERITY_ERROR, 
+            				getStringFromBundle("theme.validateTagline"), EMPTY));
         }
 
     }
@@ -438,12 +422,10 @@ public class CreateEditDataversePage implements Serializable {
                 new URL((String) value);
             }
         } catch (final MalformedURLException e) {
-            final FacesMessage msg
-                    = new FacesMessage(getStringFromBundle("theme.urlValidate"),
-                                       getStringFromBundle("theme.urlValidate.msg"));
-            msg.setSeverity(SEVERITY_ERROR);
-
-            throw new ValidatorException(msg);
+            throw new ValidatorException(
+            		new FacesMessage(SEVERITY_ERROR, 
+            				getStringFromBundle("theme.urlValidate"),
+            				getStringFromBundle("theme.urlValidate.msg")));
         }
     }
     
@@ -455,7 +437,6 @@ public class CreateEditDataversePage implements Serializable {
      */
 
 	public void handleImageFileUpload(final FileUploadEvent event) throws IOException {
-		System.out.println("!================================== handleImageFileUpload");
 		if (this.storage == null) {
 			this.storage = this.tempLogoStorageManager.createStorageFor(this.dataverse);
 		}
@@ -502,18 +483,8 @@ public class CreateEditDataversePage implements Serializable {
         return !this.dataverse.isFacetRoot();
     }
 
-    public boolean isUserCanChangeAllowMessageAndBanners() {
+    public boolean displayMessageAndBannersOption() {
         return this.session.isSuperUserLoggedIn();
-    }
-    
-    
-    public String saveAndRelease() {
-    	if(canUserPublishCollection()) {
-    		this.version.setState(RELEASED);
-    		return save();
-    	} else {
-    		return this.permissionsWrapper.notAuthorized();
-    	}
     }
 
     public String save() {
