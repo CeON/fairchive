@@ -38,7 +38,6 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseContact;
-import edu.harvard.iq.dataverse.persistence.dataverse.DataverseLock;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat;
