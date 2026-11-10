@@ -10,63 +10,72 @@
 <h:body>
 	<f:metadata>
 		<f:viewParam name="dataverseId"
-			value="#{dataverseDao.findRootDataverse().id}" />
+			value="#{ExportSearchResultsPage.rootDataverse.id}" />
 		<f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}" />
 		<f:viewAction action="#{ExportSearchResultsPage.verifyAccess()}" />
 		<f:viewAction
-			action="#{dataverseHeaderFragment.initBreadcrumbs(dataverseDao.findRootDataverse())}" />
+			action="#{dataverseHeaderFragment.initBreadcrumbs(ExportSearchResultsPage.rootDataverse)}" />
 		<f:viewAction
-			action="#{dataverseHeaderFragment.addBreadcrumb('/dashboard.xhtml?dataverseId='.concat(dataverseDao.findRootDataverse().getId()), bundle['dashboard.title'])}" />
+			action="#{dataverseHeaderFragment.addBreadcrumb('/dashboard.xhtml?dataverseId='.concat(ExportSearchResultsPage.getRootDataverse().getId()), bundle['dashboard.title'])}" />
 		<f:viewAction
 			action="#{dataverseHeaderFragment.addBreadcrumb(bundle['dashboard.card.exportsearchresults.manage'])}" />
 	</f:metadata>
 
 	<ui:composition template="/dataverse_template.xhtml">
 		<ui:param name="pageTitle"
-			value="#{bundle['dashboard.card.exportsearchresults.header']} - #{dataverseDao.findRootDataverse().name} #{bundle.dataverse}" />
+			value="#{bundle['dashboard.card.exportsearchresults.header']}" />
 		<ui:param name="showDataverseHeader" value="false" />
 		<ui:define name="body">
-			<h:form id="dashboardExportSearchResultsForm"
+			<h:form id="form"
 				onkeypress="return event.keyCode != 13">
 				<!-- Metadata selections -->
 				<ui:repeat value="#{ExportSearchResultsPage.blocks}" 
 				           var="block">
-					<h:outputText value="#{block.localeDisplayName}"
-						styleClass="text-muted" />
-						<div style="border: 1px solid #e8e8e8;"
-						     role="group" 
-							 aria-label="#{block.localeDisplayName}">
-								<ul style="list-style-type: none;">
-									<ui:repeat value="#{block.datasetFieldTypes}" 
-									           var="fieldType">
-										<li jsf:rendered="#{fieldType.hasChildren}">
-										  <h:outputText value="#{fieldType.displayName}"
-                                                        escape="false" />
-                                        </li>
-                                        <li jsf:rendered="#{!fieldType.hasChildren}"
-                                            style="#{fieldType.hasParent ? 'padding-left: 2em;' : ''}">
-										  <p:selectBooleanCheckbox 
-												value="#{fieldType.exportToFile}"
-												itemLabel="#{fieldType.displayName}" 
-												escape="false"
-												disabled="#{not fieldType.isExportableToFile()}"/>
-										</li>
-									</ui:repeat>
-								</ul>
-						</div>
+				    <ui:fragment rendered="#{not empty block.datasetFieldTypes}">
+						<h2 style="text-muted">#{block.localeDisplayName}</h2>
+				        <h:commandLink value="#{bundle.selectAll}" 
+	                                   action="#{ExportSearchResultsPage.selectAll(block, true)}">
+	                        <f:ajax render="@form" />
+	                    </h:commandLink>
+	                    |
+	                    <h:commandLink value="#{bundle.deselectAll}" 
+	                                   action="#{ExportSearchResultsPage.selectAll(block, false)}">
+	                        <f:ajax render="@form" />
+	                    </h:commandLink>
+						<ul style="border: 1px solid #e8e8e8; padding: 5px; list-style-type: none;"
+						    role="group" 
+	                              aria-label="#{block.localeDisplayName}">
+							<ui:repeat value="#{block.datasetFieldTypes}" 
+							           var="fieldType">
+								<li jsf:rendered="#{fieldType.hasChildren}">
+								  <h:outputText value="#{fieldType.displayName}"
+	                                                     escape="false" />
+	                                     </li>
+	                                     <li jsf:rendered="#{!fieldType.hasChildren}"
+	                                         style="#{fieldType.hasParent ? 'padding-left: 2em;' : ''}">
+								  <p:selectBooleanCheckbox 
+										value="#{fieldType.exportToFile}"
+										itemLabel="#{fieldType.displayName}" 
+										escape="false"
+										disabled="#{not fieldType.isExportableToFile()}"/>
+								</li>
+							</ui:repeat>
+						</ul>
+					</ui:fragment>
 				</ui:repeat>
 				<!-- Bottom action buttons -->
-				<div class="button-block">
-					<p:commandButton id="save" styleClass="btn btn-default"
-						value="#{bundle.saveChanges}"
-						action="#{ExportSearchResultsPage.save}"
-						update="@form,:messagePanel," />
-					<p:commandButton id="cancel" styleClass="btn btn-default"
-						value="#{bundle.cancel}"
-						action="#{ExportSearchResultsPage.cancel}" process="@this">
-						<p:resetInput target="@form" />
-					</p:commandButton>
-				</div>
+				<p:commandButton id="save"
+				                 styleClass="btn btn-default"
+					             value="#{bundle.saveChanges}"
+					             action="#{ExportSearchResultsPage.save}"
+					             update="@form,:messagePanel," />
+				<p:commandButton id="cancel"
+				                 styleClass="btn btn-default"
+					             value="#{bundle.cancel}"
+					             action="#{ExportSearchResultsPage.cancel}"
+					             process="@this">
+					<p:resetInput target="@form" />
+				</p:commandButton>
 			</h:form>
 		</ui:define>
 	</ui:composition>
