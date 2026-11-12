@@ -11,7 +11,9 @@ import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_LABEL;
 import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_LOCATIONS;
 import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_START;
 import static edu.harvard.iq.dataverse.search.SearchFields.PERIODO_STOP;
+import static java.util.Collections.reverse;
 import static javax.ejb.TransactionAttributeType.REQUIRES_NEW;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -20,7 +22,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -162,93 +163,91 @@ public class IndexServiceBean {
         return indexDataverse(dataverse);
     }
 
-    public Future<String> indexDataverse(Dataverse dataverse) {
-        logger.fine("indexDataverse called on dataverse id " + dataverse.getId() + '(' + dataverse.getAlias() + ')');
+    public Future<String> indexDataverse(final Dataverse dataverse) {
         if (dataverse.getId() == null) {
-            String msg = "unable to index dataverse. id was null (alias: " + dataverse.getAlias() + ')';
+           final String msg = "unable to index dataverse. id was null (alias: " +
+            		dataverse.getAlias() + ')';
             logger.info(msg);
             return new AsyncResult<>(msg);
         }
 
-        Dataverse rootDataverse = dataverseDao.findRootDataverse();
-
-        Collection<SolrInputDocument> docs = new ArrayList<>();
-        SolrInputDocument solrInputDocument = new SolrInputDocument();
-        solrInputDocument.addField(SearchFields.ID, solrDocIdentifierDataverse + dataverse.getId());
-        solrInputDocument.addField(SearchFields.ENTITY_ID, dataverse.getId());
-        solrInputDocument.addField(SearchFields.DATAVERSE_VERSION_INDEXED_BY, systemConfig.getVersionWithBuild());
-        solrInputDocument.addField(SearchFields.IDENTIFIER, dataverse.getAlias());
-        solrInputDocument.addField(SearchFields.TYPE, SearchObjectType.DATAVERSES.getSolrValue());
-        solrInputDocument.addField(SearchFields.NAME, dataverse.getName());
-        solrInputDocument.addField(SearchFields.NAME_SORT, dataverse.getName());
-        solrInputDocument.addField(SearchFields.DATAVERSE_NAME, dataverse.getName());
-        solrInputDocument.addField(SearchFields.DATAVERSE_ALIAS, dataverse.getAlias());
-        solrInputDocument.addField(SearchFields.DATAVERSE_CATEGORY, dataverse.getIndexableCategoryName());
+        final SolrInputDocument document = new SolrInputDocument();
+        final String id = solrDocIdentifierDataverse + dataverse.getId() + 
+        		(dataverse.isDraft() ? IndexServiceBean.draftSuffix : "");
+        document.addField(SearchFields.ID, id);
+        document.addField(SearchFields.ENTITY_ID, dataverse.getId());
+        document.addField(SearchFields.DATAVERSE_VERSION_INDEXED_BY, systemConfig.getVersionWithBuild());
+        document.addField(SearchFields.IDENTIFIER, dataverse.getAlias());
+        document.addField(SearchFields.TYPE, SearchObjectType.DATAVERSES.getSolrValue());
+        document.addField(SearchFields.NAME, dataverse.getName());
+        document.addField(SearchFields.NAME_SORT, dataverse.getName());
+        document.addField(SearchFields.DATAVERSE_NAME, dataverse.getName());
+        document.addField(SearchFields.DATAVERSE_ALIAS, dataverse.getAlias());
+        document.addField(SearchFields.DATAVERSE_CATEGORY, dataverse.getIndexableCategoryName());
         if (dataverse.isReleased()) {
-            solrInputDocument.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.PUBLISHED.getSolrValue());
-            solrInputDocument.addField(SearchFields.RELEASE_OR_CREATE_DATE, dataverse.getPublicationDate());
-            solrInputDocument.addField(SearchFields.RELEASE_OR_CREATE_DATE_SEARCHABLE_TEXT, convertToFriendlyDate(dataverse.getPublicationDate()));
+            document.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.PUBLISHED.getSolrValue());
+            document.addField(SearchFields.RELEASE_OR_CREATE_DATE, dataverse.getPublicationDate());
+            document.addField(SearchFields.RELEASE_OR_CREATE_DATE_SEARCHABLE_TEXT, convertToFriendlyDate(dataverse.getPublicationDate()));
         } else {
-            solrInputDocument.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.UNPUBLISHED.getSolrValue());
-            solrInputDocument.addField(SearchFields.RELEASE_OR_CREATE_DATE, dataverse.getCreateDate());
-            solrInputDocument.addField(SearchFields.RELEASE_OR_CREATE_DATE_SEARCHABLE_TEXT, convertToFriendlyDate(dataverse.getCreateDate()));
+            document.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.UNPUBLISHED.getSolrValue());
+            document.addField(SearchFields.RELEASE_OR_CREATE_DATE, dataverse.getCreateDate());
+            document.addField(SearchFields.RELEASE_OR_CREATE_DATE_SEARCHABLE_TEXT, convertToFriendlyDate(dataverse.getCreateDate()));
+        }
+        if(dataverse.isDraft()) {
+        	document.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.DRAFT.getSolrValue());
         }
         // We don't really have harvested dataverses yet;
-        solrInputDocument.addField(SearchFields.IS_HARVESTED, false);
-        solrInputDocument.addField(SearchFields.METADATA_SOURCE, rootDataverse.getName());
+        document.addField(SearchFields.IS_HARVESTED, false);
+        document.addField(SearchFields.METADATA_SOURCE, this.dataverseDao.getRootDataverseName());
 
-        addDataverseReleaseDateToSolrDoc(solrInputDocument, dataverse);
+        addDataverseReleaseDateToSolrDoc(document, dataverse);
 
-        solrInputDocument.addField(SearchFields.DESCRIPTION, StringUtil.html2text(dataverse.getDescription()));
-        solrInputDocument.addField(SearchFields.DATAVERSE_DESCRIPTION, StringUtil.html2text(dataverse.getDescription()));
-        solrInputDocument.addField(SearchFields.DATAVERSE_EXTRA_DESCRIPTION, dataverse.getAdditionalDescription());
+        document.addField(SearchFields.DESCRIPTION, StringUtil.html2text(dataverse.getDescription()));
+        document.addField(SearchFields.DATAVERSE_DESCRIPTION, StringUtil.html2text(dataverse.getDescription()));
+        document.addField(SearchFields.DATAVERSE_EXTRA_DESCRIPTION, dataverse.getAdditionalDescription());
 
-        if (StringUtils.isNotEmpty(dataverse.getAffiliation())) {
-            solrInputDocument.addField(SearchFields.AFFILIATION, dataverse.getAffiliation());
-            solrInputDocument.addField(SearchFields.DATAVERSE_AFFILIATION, dataverse.getAffiliation());
+        if (isNotEmpty(dataverse.getAffiliation())) {
+            document.addField(SearchFields.AFFILIATION, dataverse.getAffiliation());
+            document.addField(SearchFields.DATAVERSE_AFFILIATION, dataverse.getAffiliation());
         }
-        for (ControlledVocabularyValue dataverseSubject : dataverse.getDataverseSubjects()) {
-            String subject = dataverseSubject.getStrValue();
-            if (!subject.equals(DatasetField.NA_VALUE)) {
-                solrInputDocument.addField(SearchFields.DATAVERSE_SUBJECT, subject);
+        for (final ControlledVocabularyValue subject : dataverse.getDataverseSubjects()) {
+            if (!subject.getStrValue().equals(DatasetField.NA_VALUE)) {
+                document.addField(SearchFields.DATAVERSE_SUBJECT, subject.getStrValue());
                 // collapse into shared "subject" field used as a facet
-                solrInputDocument.addField(SearchFields.SUBJECT, subject);
+                document.addField(SearchFields.SUBJECT, subject.getStrValue());
             }
         }
 
         if (dataverse.isNotRoot()) {
-            solrInputDocument.addField(SearchFields.PARENT_ID, dataverse.getOwner().getId());
-            solrInputDocument.addField(SearchFields.PARENT_NAME, dataverse.getOwner().getName());
+            document.addField(SearchFields.PARENT_ID, dataverse.getOwner().getId());
+            document.addField(SearchFields.PARENT_NAME, dataverse.getOwner().getName());
         }
-        List<String> dataverseSegments = findPathSegments(dataverse);
-        List<String> dataversePaths = getDataversePathsFromSegments(dataverseSegments);
+        final List<String> dataversePaths = 
+        		getDataversePathsFromSegments(findPathSegments(dataverse));
         if (dataversePaths.size() > 0) {
             // don't show yourself while indexing or in search results:
             // https://redmine.hmdc.harvard.edu/issues/3613
             dataversePaths.remove(dataversePaths.size() - 1);
         }
         // Add paths for linking dataverses
-        for (Dataverse linkingDataverse : dvLinkingService.findLinkingDataverses(dataverse.getId())) {
-            List<String> linkingdataverseSegments = findPathSegments(linkingDataverse);
-            List<String> linkingDataversePaths = getDataversePathsFromSegments(linkingdataverseSegments);
-            dataversePaths.addAll(linkingDataversePaths);
+        for (final Dataverse linkingDataverse : this.dvLinkingService.findLinkingDataverses(dataverse.getId())) {
+            dataversePaths.addAll(getDataversePathsFromSegments(findPathSegments(linkingDataverse)));
         }
-        solrInputDocument.addField(SearchFields.SUBTREE, dataversePaths);
-        docs.add(solrInputDocument);
+        document.addField(SearchFields.SUBTREE, dataversePaths);
 
         try {
-            solrServer.add(docs);
-            solrServer.commit();
-            if (!systemConfig.isReadonlyMode()) {
-                dvObjectService.updateContentIndexTime(dataverse);
+            this.solrServer.add(document);
+            this.solrServer.commit();
+            if (!this.systemConfig.isReadonlyMode()) {
+                this.dvObjectService.updateContentIndexTime(dataverse);
             }
-            IndexResponse indexResponse = solrIndexService.indexPermissionsForOneDvObject(dataverse);
-            String msg = "indexed dataverse " + dataverse.getId() + ':' + 
+            final IndexResponse response = this.solrIndexService.indexPermissionsForOneDvObject(dataverse);
+            final String msg = "indexed dataverse " + dataverse.getId() + ':' + 
                     dataverse.getAlias() + ". Response from permission indexing: " + 
-                    indexResponse.getMessage();
+                    response.getMessage();
             return new AsyncResult<>(msg);
-        } catch (SolrServerException | IOException ex) {
-            String status = ex.toString();
+        } catch (final SolrServerException | IOException ex) {
+            final String status = ex.toString();
             logger.info(status);
             return new AsyncResult<>(status);
         }
@@ -572,24 +571,24 @@ public class IndexServiceBean {
     }
 
     public List<String> findPathSegments(Dataverse dataverse) {
-        List<String> dataversePathIds = new ArrayList<>();
-        dataversePathIds.add(dataverse.getId().toString());
+        final List<String> result = new ArrayList<>();
+        result.add(dataverse.getId().toString());
 
         while (dataverse.isNotRoot()) {
             dataverse = dataverse.getOwner();
-            dataversePathIds.add(dataverse.getId().toString());
+            result.add(dataverse.getId().toString());
         }
-        Collections.reverse(dataversePathIds);
+        reverse(result);
 
-        return dataversePathIds;
+        return result;
     }
 
-    List<String> getDataversePathsFromSegments(List<String> dataversePathSegments) {
-        List<String> subtrees = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        for (String segment : dataversePathSegments) {
-            sb.append('/').append(segment);
-            subtrees.add(sb.toString());
+    List<String> getDataversePathsFromSegments(final List<String> segments) {
+        final List<String> subtrees = new ArrayList<>(segments.size());
+        final StringBuilder builder = new StringBuilder();
+        for (final String segment : segments) {
+            builder.append('/').append(segment);
+            subtrees.add(builder.toString());
         }
         return subtrees;
     }
@@ -613,19 +612,28 @@ public class IndexServiceBean {
         return groupPerUserPrefix;
     }
 
-    public String delete(final Dataverse doomed) {
-        logger.fine(() -> "deleting Solr document for dataverse " + doomed.getId());
+    public void delete(final Dataverse dataverse) {
+    	deleteReleased(dataverse);
+    	deleteDraft(dataverse);
+    }
+    
+	public void deleteDraft(final Dataverse dataverse) {
+		try {
+			this.solrServer.deleteById(solrDocIdentifierDataverse + dataverse.getId()
+				+ draftSuffix);
+			this.solrServer.commit();
+
+		} catch (final SolrServerException | IOException e) {
+			logger.warning(e.toString());
+		}
+	}
+	
+    public void deleteReleased(final Dataverse dataverse) {
         try {
-            final UpdateResponse updateResponse = solrServer
-                    .deleteById(solrDocIdentifierDataverse + doomed.getId());
-            solrServer.commit();
-            final String response = "Successfully deleted dataverse " + doomed.getId()
-                    + " from Solr index. updateReponse was: "
-                    + updateResponse.toString();
-            logger.fine(response);
-            return response;
-        } catch (SolrServerException | IOException ex) {
-            return ex.toString();
+        	this.solrServer.deleteById(solrDocIdentifierDataverse + dataverse.getId());
+	        this.solrServer.commit();
+        } catch (final SolrServerException | IOException e) {
+            logger.warning(e.toString());
         }
     }
 

@@ -84,6 +84,7 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
             }
         }
 
+        ctxt.index().deleteDraft(result);
         ctxt.index().indexDataverse(result);
 
         List<Dataverse> dvChildrenToUpdate = ctxt.dataverses().findByOwnerId(result.getId());
