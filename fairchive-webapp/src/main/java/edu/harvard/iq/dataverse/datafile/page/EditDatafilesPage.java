@@ -588,6 +588,10 @@ public class EditDatafilesPage implements java.io.Serializable {
     public boolean isInUploadMode() {
         return this.mode == FileEditMode.UPLOAD;
     }
+    
+    public boolean displayEditFilesRestrictDeletePanel() {
+    	return !this.fileMetadatas.isEmpty() && !this.workingVersion.hasPackageFile();
+    }
 
     public String getMultiUploadDetailsMessage() {
         return getStringFromBundle("dataset.message.uploadFilesSingle.message",
@@ -895,6 +899,21 @@ public class EditDatafilesPage implements java.io.Serializable {
 	
 	public boolean displayFilesCount() {
 		return !this.fileMetadatas.isEmpty();
+	}
+	
+	public boolean displayThumbnailPreviewFor(final FileMetadata metadata) {
+		return metadata.getDataFile().isNotNew() && 
+				this.datafileDao.isThumbnailAvailable(metadata.getDataFile());
+				
+	}
+	
+	public boolean displayDefaultIconFor(final FileMetadata metadata) {
+		return (metadata.getDataFile().isNotNew() && !this.datafileDao.isThumbnailAvailable(metadata.getDataFile()))
+				|| (metadata.getDataFile().isNew() && !metadata.getDataFile().isPreviewImageAvailable());
+	}
+	
+	public boolean displayReplacementLabelFor(final FileMetadata metadata) {
+		return isFileReplacementEnabled() && hasReplacementSelected(metadata);
 	}
 
     /**
