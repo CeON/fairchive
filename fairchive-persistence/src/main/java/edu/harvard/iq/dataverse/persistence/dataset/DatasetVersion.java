@@ -100,7 +100,6 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 		        "    SELECT dv.ALIAS " +
 		        "    FROM DATAVERSEVERSION dv " +
 		        "    WHERE dv.DATAVERSE_ID = t4.ID " +
-		        "      AND dv.STATE = 'RELEASED' " +
 		        "    ORDER BY dv.CREATETIME DESC " +
 		        "    LIMIT 1 " +
 		        ") t1 ON TRUE " +
@@ -123,7 +122,6 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 		        "    SELECT dv.ALIAS " +
 		        "    FROM DATAVERSEVERSION dv " +
 		        "    WHERE dv.DATAVERSE_ID = t4.ID " +
-		        "      AND dv.STATE = 'RELEASED' " +
 		        "    ORDER BY dv.CREATETIME DESC " +
 		        "    LIMIT 1 " +
 		        ") t1 ON TRUE " +
@@ -146,7 +144,6 @@ import edu.harvard.iq.dataverse.persistence.workflow.WorkflowComment;
 		        "    SELECT dv.ALIAS " +
 		        "    FROM DATAVERSEVERSION dv " +
 		        "    WHERE dv.DATAVERSE_ID = t4.ID " +
-		        "      AND dv.STATE = 'RELEASED' " +
 		        "    ORDER BY dv.CREATETIME DESC " +
 		        "    LIMIT 1 " +
 		        ") t1 ON TRUE " +

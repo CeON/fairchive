@@ -54,14 +54,6 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRole;
 import edu.harvard.iq.dataverse.persistence.user.User;
 
-/**
- * @author gdurand
- * @author mbarsinai
- */
-//@NamedQueries({
-//        @NamedQuery(name = "Dataverse.filterByAlias", query = "SELECT dv FROM Dataverse dv WHERE LOWER(dv.alias) LIKE :alias order by dv.alias"),
-//        @NamedQuery(name = "Dataverse.filterByAliasNameAffiliation", query = "SELECT dv FROM Dataverse dv WHERE (LOWER(dv.alias) LIKE :alias) OR (LOWER(dv.name) LIKE :name) OR (LOWER(dv.affiliation) LIKE :affiliation) order by dv.alias")    
-//})
 @NamedNativeQueries({
 	@NamedNativeQuery(
 		    name = "Dataverse.findDataForSolrResults2",
@@ -85,6 +77,33 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 		        "    FROM DATAVERSEVERSION v2 " +
 		        "    WHERE v2.DATAVERSE_ID = t1.OWNER_ID " +
 		        "      AND v2.STATE = 'RELEASED' " +
+		        "    ORDER BY v2.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv2 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?)"
+		),
+	@NamedNativeQuery(
+		    name = "Dataverse.findDataForSolrResultsDraft2",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       dv1.AFFILIATION, " +
+		        "       dv1.ALIAS, " +
+		        "       dv2.ALIAS " +
+		        "FROM DATAVERSE t0 " +
+		        "JOIN DVOBJECT t1 ON t0.ID = t1.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT v1.AFFILIATION, v1.ALIAS " +
+		        "    FROM DATAVERSEVERSION v1 " +
+		        "    WHERE v1.DATAVERSE_ID = t0.ID " +
+		        "      AND v1.STATE = 'DRAFT' " +
+		        "    ORDER BY v1.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv1 ON TRUE " +
+		        "LEFT JOIN LATERAL ( " +
+		        "    SELECT v2.ALIAS " +
+		        "    FROM DATAVERSEVERSION v2 " +
+		        "    WHERE v2.DATAVERSE_ID = t1.OWNER_ID " +
+		        "      AND v2.STATE = 'DRAFT' " +
 		        "    ORDER BY v2.CREATETIME DESC " +
 		        "    LIMIT 1 " +
 		        ") dv2 ON TRUE " +
@@ -117,6 +136,33 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 		        ") dv2 ON TRUE " +
 		        "WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"
 		),
+	@NamedNativeQuery(
+		    name = "Dataverse.findDataForSolrResultsDraft6",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       dv1.AFFILIATION, " +
+		        "       dv1.ALIAS, " +
+		        "       dv2.ALIAS " +
+		        "FROM DATAVERSE t0 " +
+		        "JOIN DVOBJECT t1 ON t0.ID = t1.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT v1.AFFILIATION, v1.ALIAS " +
+		        "    FROM DATAVERSEVERSION v1 " +
+		        "    WHERE v1.DATAVERSE_ID = t0.ID " +
+		        "      AND v1.STATE = 'DRAFT' " +
+		        "    ORDER BY v1.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv1 ON TRUE " +
+		        "LEFT JOIN LATERAL ( " +
+		        "    SELECT v2.ALIAS " +
+		        "    FROM DATAVERSEVERSION v2 " +
+		        "    WHERE v2.DATAVERSE_ID = t1.OWNER_ID " +
+		        "      AND v2.STATE = 'DRAFT' " +
+		        "    ORDER BY v2.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv2 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?, ?, ?, ?, ?)"
+		),
 
 	@NamedNativeQuery(
 		    name = "Dataverse.findDataForSolrResults10",
@@ -140,6 +186,33 @@ import edu.harvard.iq.dataverse.persistence.user.User;
 		        "    FROM DATAVERSEVERSION v2 " +
 		        "    WHERE v2.DATAVERSE_ID = t1.OWNER_ID " +
 		        "      AND v2.STATE = 'RELEASED' " +
+		        "    ORDER BY v2.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv2 ON TRUE " +
+		        "WHERE t0.ID IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		),
+	@NamedNativeQuery(
+		    name = "Dataverse.findDataForSolrResultsDraft10",
+		    query =
+		        "SELECT t0.ID, " +
+		        "       dv1.AFFILIATION, " +
+		        "       dv1.ALIAS, " +
+		        "       dv2.ALIAS " +
+		        "FROM DATAVERSE t0 " +
+		        "JOIN DVOBJECT t1 ON t0.ID = t1.ID " +
+		        "JOIN LATERAL ( " +
+		        "    SELECT v1.AFFILIATION, v1.ALIAS " +
+		        "    FROM DATAVERSEVERSION v1 " +
+		        "    WHERE v1.DATAVERSE_ID = t0.ID " +
+		        "      AND v1.STATE = 'DRAFT' " +
+		        "    ORDER BY v1.CREATETIME DESC " +
+		        "    LIMIT 1 " +
+		        ") dv1 ON TRUE " +
+		        "LEFT JOIN LATERAL ( " +
+		        "    SELECT v2.ALIAS " +
+		        "    FROM DATAVERSEVERSION v2 " +
+		        "    WHERE v2.DATAVERSE_ID = t1.OWNER_ID " +
+		        "      AND v2.STATE = 'DRAFT' " +
 		        "    ORDER BY v2.CREATETIME DESC " +
 		        "    LIMIT 1 " +
 		        ") dv2 ON TRUE " +

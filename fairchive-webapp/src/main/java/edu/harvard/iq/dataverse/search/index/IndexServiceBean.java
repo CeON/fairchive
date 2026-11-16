@@ -194,7 +194,10 @@ public class IndexServiceBean {
             document.addField(SearchFields.RELEASE_OR_CREATE_DATE_SEARCHABLE_TEXT, convertToFriendlyDate(dataverse.getCreateDate()));
         }
         if(dataverse.isDraft()) {
-        	document.addField(SearchFields.PUBLICATION_STATUS, SearchPublicationStatus.DRAFT.getSolrValue());
+        	final String status = dataverse.isInReview()
+        			? SearchPublicationStatus.IN_REVIEW.getSolrValue()
+        			:SearchPublicationStatus.DRAFT.getSolrValue();
+        	document.addField(SearchFields.PUBLICATION_STATUS, status);
         }
         // We don't really have harvested dataverses yet;
         document.addField(SearchFields.IS_HARVESTED, false);

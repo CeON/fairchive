@@ -1,5 +1,23 @@
 package edu.harvard.iq.dataverse;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.inject.Inject;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.omnifaces.cdi.ViewScoped;
+
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.dataaccess.StorageIO;
@@ -13,24 +31,6 @@ import edu.harvard.iq.dataverse.search.SearchConstants;
 import edu.harvard.iq.dataverse.search.response.SolrSearchResult;
 import edu.harvard.iq.dataverse.util.FileUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.omnifaces.cdi.ViewScoped;
-
-import javax.ejb.EJB;
-import javax.inject.Inject;
-
-import static org.apache.commons.io.IOUtils.closeQuietly;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Leonid Andreev
@@ -38,23 +38,36 @@ import java.util.Optional;
 @SuppressWarnings("serial")
 @ViewScoped
 public class ThumbnailServiceWrapper implements java.io.Serializable {
-    @Inject
+
     private PermissionsWrapper permissionsWrapper;
-    @EJB
     private DataverseDao dataverseDao;
-    @EJB
     private DatasetVersionServiceBean datasetVersionService;
-    @EJB
     private DataFileServiceBean dataFileService;
-    @Inject
     private ImageThumbConverter imageThumbConverter;
-    @Inject
     private SystemConfig systemConfig;
 
     private Map<Long, String> dvobjectThumbnailsMap = new HashMap<>();
     private Map<Long, DvObject> dvobjectViewMap = new HashMap<>();
+    
+    public ThumbnailServiceWrapper() {}
 
-    private String getAssignedDatasetImage(final Dataset dataset) {
+    @Inject
+    public ThumbnailServiceWrapper(
+    		final PermissionsWrapper permissionsWrapper, 
+    		final DataverseDao dataverseDao,
+			final DatasetVersionServiceBean datasetVersionService, 
+			final DataFileServiceBean dataFileService,
+			final ImageThumbConverter imageThumbConverter, 
+			final SystemConfig systemConfig) {
+		this.permissionsWrapper = permissionsWrapper;
+		this.dataverseDao = dataverseDao;
+		this.datasetVersionService = datasetVersionService;
+		this.dataFileService = dataFileService;
+		this.imageThumbConverter = imageThumbConverter;
+		this.systemConfig = systemConfig;
+	}
+
+	private String getAssignedDatasetImage(final Dataset dataset) {
         if (dataset == null) {
             return null;
         }

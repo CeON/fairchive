@@ -151,6 +151,7 @@ public class CreateDataverseCommand extends AbstractCommand<Dataverse> {
         final Dataverse result = context.dataverses().save(managedDv);
 
         context.index().indexDataverse(result);
+        context.solrIndex().indexPermissionsForOneDvObject(result);
         addFacets(context);
         addDataverseFieldTypeInputLevel(context);
         return result;

@@ -8,6 +8,7 @@ import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFA
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFAULT_TEXT_COLOR;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment.LEFT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat.SQUARE;
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -19,6 +20,7 @@ import java.io.InputStream;
 import java.sql.Timestamp;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
@@ -32,6 +34,8 @@ import org.primefaces.model.file.UploadedFile;
 import com.ocpsoft.pretty.faces.util.NullComponent;
 
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
+import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataverse.CreateEditDataversePage;
 import edu.harvard.iq.dataverse.dataverse.DataversePage;
 import edu.harvard.iq.dataverse.dataverse.DataverseService;
@@ -39,13 +43,22 @@ import edu.harvard.iq.dataverse.dataverse.FeaturedDataversesDialog;
 import edu.harvard.iq.dataverse.dataverse.LinkToDataverseDialog;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
+import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRoleRepository;
 import edu.harvard.iq.dataverse.persistence.user.UserNotificationRepository;
+import edu.harvard.iq.dataverse.search.LastSearchValue;
 import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
+import edu.harvard.iq.dataverse.search.SearchServiceBean;
+import edu.harvard.iq.dataverse.search.index.SolrIndexServiceBean;
+import edu.harvard.iq.dataverse.search.query.SearchObjectType;
+import edu.harvard.iq.dataverse.search.query.filter.SpecialFilterService;
+import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.users.SamlSessionRegistry;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
@@ -79,22 +92,52 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
     private ConfirmEmailServiceBean confirmEmailService;
     @Inject
     private SamlSessionRegistry samlSessionRegistry;
+    @Inject
+    private SearchServiceBean searchService;
+    @Inject
+    private DataverseDao dataverseDao;
+    @Inject
+    private DvObjectServiceBean dvObjectService;
+    @Inject
+    private DatasetVersionServiceBean datasetVersionService;
+    @Inject
+    private DataFileServiceBean dataFileService;
+    @Inject
+    private ImageThumbConverter imageThumbConverter;
+    @Inject
+    private SolrSearchResultsService solrSearchResultsService;
+    @Inject
+    private SpecialFilterService specialFilterService;
+    @Inject
+    private DatasetRepository datasetRepo;
+    @Inject
+    private DatasetFieldTypeRepository datasetFieldTypeRepo;
+    @Inject
+    private MetadataBlockRepository metadataBlockRepo;
+    @Inject
+    private SettingsServiceBean settings;
+    @Inject 
+    private SolrIndexServiceBean solrIndexService;;
+    
 	
     private UIMessages ui = Mockito.mock(UIMessages.class);
 	private CreateEditDataversePage createEditPage;
 	private DataversePage dataversePage;
 	private DataverseHeaderFragment headerFragment;
+	private SearchIncludeFragment searchFragment;
 	
 	private UploadedFile uploadedFile = Mockito.mock(UploadedFile.class);
 	private InputStream fileContent;
 	
 	//--------------------------------------------------------------------------
 	@BeforeEach
-	void setUp() throws IOException {
+	void setUp() throws Exception {
 		
 		when(this.uploadedFile.getFileName()).thenReturn(logoFileName);
 		when(this.uploadedFile.getInputStream()).then(invocation -> 
 				this.fileContent = this.getClass().getResourceAsStream("/images/".concat(logoFileName)));
+		
+		this.solrIndexService.deleteAllFromSolrAndResetIndexTimes();
 		
 		this.createEditPage = newEditPage();
 		
@@ -191,7 +234,25 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		verify(this.ui, times(1)).addFlashSuccessMessage(anyString());
 		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
-		//TODO: verify what gets indexed by solr - see DataverseServiceIT
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		final Long id = dataverse.getId();
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id + "_draft");
+				assertThat(result.isDraftState()).isTrue();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isFalse();
+				assertThat(result.isUnpublishedState()).isTrue();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
 		
 		// verify saved version
 		Dataverse stored = this.dataverseService.findById(dataverse.getId()).get();
@@ -275,7 +336,24 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.getTheme().getTagline()).isEqualTo("tagline");
 		assertThat(storedVersion.getTheme().getLogo()).isEqualTo(logoFileName);
 		
-		//TODO: verify what gets indexed by solr - see DataverseServiceIT
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id);
+				assertThat(result.isDraftState()).isFalse();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isTrue();
+				assertThat(result.isUnpublishedState()).isFalse();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
 	}
 	//--------------------------------------------------------------------------
 	@Test
@@ -397,7 +475,36 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(storedVersion.getTheme().getTagline()).isEqualTo("tagline2");
 		assertThat(storedVersion.getTheme().getLogo()).isNull();
 		
-		//TODO: verify what gets indexed by solr - see DataverseServiceIT
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		final Long id = dataverse.getId();
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name2");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias2");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id + "_draft");
+				assertThat(result.isDraftState()).isTrue();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isFalse();
+				assertThat(result.isUnpublishedState()).isTrue();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
+		
+		// verify that it is not visible publicly
+		this.session.logOut();
+		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList()).isEmpty();
 	}
 	//--------------------------------------------------------------------------
 	@Test
@@ -422,6 +529,40 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		Dataverse dataverse = this.createEditPage.getDataverse();
 		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		final Long id = dataverse.getId();
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id + "_draft");
+				assertThat(result.isDraftState()).isTrue();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isFalse();
+				assertThat(result.isUnpublishedState()).isTrue();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
+		
+		// verify that is is not visible publicly
+		
+		// verify that it is not visible publicly
+		this.session.logOut();
+		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList()).isEmpty();
+		
+		logInAdmin();
+		
 		// open dataverse page & publish
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(dataverse.getId());
@@ -430,6 +571,26 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		Timestamp publicationDate = this.dataversePage.getDataverse().getPublicationDate();
 		
 		verify(this.ui, times(0)).addErrorMessage(anyString());
+		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id);
+				assertThat(result.isDraftState()).isFalse();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isTrue();
+				assertThat(result.isUnpublishedState()).isFalse();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
 		
 		// open new edition page
 		this.createEditPage = newEditPage();
@@ -530,6 +691,59 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(latestVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
 		assertThat(latestVersion.getContacts().get(1).getEmail()).isEqualTo("admin@email.com");
 		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(2)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id);
+				assertThat(result.isDraftState()).isFalse();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isTrue();
+				assertThat(result.isUnpublishedState()).isFalse();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			})
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name2");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias2");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id  + "_draft");
+				assertThat(result.isDraftState()).isTrue();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isTrue();
+				assertThat(result.isUnpublishedState()).isFalse();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
+		
+		// verify dfaft  it is not visible publicly
+		this.session.logOut();
+		
+		//verify solr index
+		assertThat(this.searchFragment.getSearchResultsList())
+		.hasSize(2)
+		.anySatisfy(result -> {
+			assertThat(result.getEntityId()).isEqualTo(id);
+			assertThat(result.getName()).isEqualTo("name1");
+			assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+			assertThat(result.getId()).isEqualTo("dataverse_" + id);
+			assertThat(result.isDraftState()).isFalse();
+			assertThat(result.isInReviewState()).isFalse();
+			assertThat(result.isPublishedState()).isTrue();
+			assertThat(result.isUnpublishedState()).isFalse();
+			assertThat(result.isDataset()).isFalse();
+			assertThat(result.isUnderEmbargo()).isFalse();
+		});
+		
+		logInAdmin();
+		
 		// open dataverse page & publish
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(dataverse.getId());
@@ -574,8 +788,25 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(latestVersion.getContacts().get(0).getEmail()).isEqualTo("user@email.com");
 		assertThat(latestVersion.getContacts().get(1).getEmail()).isEqualTo("admin@email.com");
 		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
 		
-		//TODO: verify what gets indexed by solr - see DataverseServiceIT
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name2");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias2");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id);
+				assertThat(result.isDraftState()).isFalse();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isTrue();
+				assertThat(result.isUnpublishedState()).isFalse();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
 	}
 	//--------------------------------------------------------------------------
 	@Test
@@ -607,7 +838,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 	//--------------------------------------------------------------------------
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
-	void createNewDraftVersion_asRegularUser_andSendForReview() throws IOException {
+	void createNewDraftVersion_asRegularUser_andSendForReview() 
+			throws IOException {
 		
 		logInAdmin();
 		
@@ -637,13 +869,36 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				new FileUploadEvent(new NullComponent(), this.uploadedFile));
 		this.createEditPage.save();
 		
+		Dataverse dataverse = this.createEditPage.getDataverse();
+		final Long id = dataverse.getId();
+		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id  + "_draft");
+				assertThat(result.isDraftState()).isTrue();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isFalse();
+				assertThat(result.isUnpublishedState()).isTrue();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
+		
 		// open dataverse page
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(this.createEditPage.getDataverse().getId());
 		this.dataversePage.init();
 		
 		// verify initial values
-		Dataverse dataverse = this.dataversePage.getDataverse();
+		dataverse = this.dataversePage.getDataverse();
 		
 		assertThat(dataverse.isInReview()).isFalse();
 		assertThat(dataverse.isReleased()).isFalse();
@@ -666,6 +921,26 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		assertThat(dataverse.isInReview()).isTrue();
 		assertThat(dataverse.isReleased()).isFalse();
+		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id  + "_draft");
+				assertThat(result.isDraftState()).isFalse();
+				assertThat(result.isInReviewState()).isTrue();
+				assertThat(result.isPublishedState()).isFalse();
+				assertThat(result.isUnpublishedState()).isTrue();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
 		
 		// decline review - return collection to author
 		logInAdmin();
@@ -691,6 +966,26 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		assertThat(dataverse.isInReview()).isFalse();
 		assertThat(dataverse.isReleased()).isFalse();
+		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id  + "_draft");
+				assertThat(result.isDraftState()).isTrue();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isFalse();
+				assertThat(result.isUnpublishedState()).isTrue();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
 		
 		//send for review again
 		logInRegularUser();
@@ -744,11 +1039,56 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.hasDraft()).isFalse();
 		assertThat(dataverse.getLatestVersion().isReleased()).isTrue();
 		assertThat(dataverse.getLatestVersion().isDraft()).isFalse();
+		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id);
+				assertThat(result.isDraftState()).isFalse();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isTrue();
+				assertThat(result.isUnpublishedState()).isFalse();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
+		
+		// it should be vissible for everybody
+		
+		this.session.logOut();
+		
+		//verify solr index
+		this.searchFragment = newSearchIncludeFragment();
+		this.searchFragment.setDataverse(dataverse.getOwner());
+		this.searchFragment.search();
+		
+		assertThat(this.searchFragment.getSearchResultsList())
+			.hasSize(1)
+			.anySatisfy(result -> {
+				assertThat(result.getEntityId()).isEqualTo(id);
+				assertThat(result.getName()).isEqualTo("name1");
+				assertThat(result.getDataverseAlias()).isEqualTo("alias1");
+				assertThat(result.getId()).isEqualTo("dataverse_" + id);
+				assertThat(result.isDraftState()).isFalse();
+				assertThat(result.isInReviewState()).isFalse();
+				assertThat(result.isPublishedState()).isTrue();
+				assertThat(result.isUnpublishedState()).isFalse();
+				assertThat(result.isDataset()).isFalse();
+				assertThat(result.isUnderEmbargo()).isFalse();
+			});
 	}
 	//--------------------------------------------------------------------------
 	@Test
 	@Transactional(TransactionMode.ROLLBACK)
-	void releasedCollectionWithaDraft_displaysProperValuesOnPageHeader() throws IOException {
+	void releasedCollectionWithaDraft_displaysProperValuesOnPageHeader()
+			throws IOException {
 
 		// open edition page
 		this.createEditPage.setOwnerId(1L);
@@ -914,6 +1254,31 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				Mockito.mock(WidgetWrapper.class), this.samlSessionRegistry);
 		
 	}
+	
+	//--------------------------------------------------------------------------
+	private ThumbnailServiceWrapper newThumbnailServiceWrapper() {
+		final PermissionsWrapper permissionsWrapper = newPermissionsWrapper();	
+		return new ThumbnailServiceWrapper(permissionsWrapper, this.dataverseDao, 
+				this.datasetVersionService, this.dataFileService, 
+				this.imageThumbConverter, this.config);
+	}
+	
+	//--------------------------------------------------------------------------
+	private SearchIncludeFragment newSearchIncludeFragment() {
+		final ThumbnailServiceWrapper thumbnailService = newThumbnailServiceWrapper();
+		final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+		final SearchIncludeFragment fragment = new SearchIncludeFragment(
+				this.searchService, this.dataverseDao, this.dvObjectService,
+				thumbnailService, Mockito.mock(WidgetWrapper.class), 
+				new DataverseRequestServiceBean(this.session, request),
+				this.permissionService, this.solrSearchResultsService, request,
+				this.specialFilterService, Mockito.mock(LastSearchValue.class),
+				this.datasetRepo, this.datasetFieldTypeRepo, this.metadataBlockRepo,
+				this.settings);
+		fragment.setSelectedTypesMap(singletonMap(SearchObjectType.DATAVERSES, true));
+		return fragment;
+	}
+	
 	//--------------------------------------------------------------------------
 	private void publishRootDataverse() {
 		this.dataverseService.publish(this.dataverseService.findById(1L).get());

@@ -117,11 +117,11 @@ public class SearchIncludeFragment {
     @Inject @Param(name = "types")
     private String selectedTypesString;
     @Inject @Param(name = "sort")
-    private String sortField;
+    private String sortField = "entityId";
     @Inject @Param(name = "order")
-    private SortOrder sortOrder;
+    private SortOrder sortOrder = SortOrder.asc;
     @Inject @Param
-    private Integer page;
+    private Integer page = 1;
 
     private List<String> filterQueries = new ArrayList<>();
     private List<FacetCategory> facetCategoryList = new ArrayList<>();
@@ -146,6 +146,42 @@ public class SearchIncludeFragment {
     private String errorFromSolr;
     private SearchException searchException;
     private boolean solrErrorEncountered = false;
+    
+    public SearchIncludeFragment() {}
+    
+    public SearchIncludeFragment(
+    	    final SearchServiceBean searchService,
+    	    final DataverseDao dataverseDao,
+    	    final DvObjectServiceBean dvObjectService,
+    	    final ThumbnailServiceWrapper thumbnailServiceWrapper,
+    	    final WidgetWrapper widgetWrapper,
+    	    final DataverseRequestServiceBean dataverseRequestService,
+    	    final PermissionServiceBean permissionService,
+    	    final SolrSearchResultsService solrSearchResultsService,
+    	    final HttpServletRequest request,
+    	    final SpecialFilterService specialFilterService,
+    	    final LastSearchValue lastSearchValue,
+    	    final DatasetRepository datasetRepo,
+    	    final DatasetFieldTypeRepository datasetFieldTypeRepo,
+    	    final MetadataBlockRepository metadataBlockRepo,
+    	    final SettingsServiceBean settings) {
+    	
+        this.searchService = searchService;
+        this.dataverseDao = dataverseDao;
+        this.dvObjectService = dvObjectService;
+        this.thumbnailServiceWrapper = thumbnailServiceWrapper;
+        this.widgetWrapper = widgetWrapper;
+        this.dataverseRequestService = dataverseRequestService;
+        this.permissionService = permissionService;
+        this.solrSearchResultsService = solrSearchResultsService;
+        this.request = request;
+        this.specialFilterService = specialFilterService;
+        this.lastSearchValue = lastSearchValue;
+        this.datasetRepo = datasetRepo;
+        this.datasetFieldTypeRepo = datasetFieldTypeRepo;
+        this.metadataBlockRepo = metadataBlockRepo;
+        this.settings = settings;
+    }
 
     // -------------------- GETTERS --------------------
 

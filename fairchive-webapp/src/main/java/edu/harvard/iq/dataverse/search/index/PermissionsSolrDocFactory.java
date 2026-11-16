@@ -1,6 +1,16 @@
 package edu.harvard.iq.dataverse.search.index;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
 import com.google.common.collect.Lists;
+
 import edu.harvard.iq.dataverse.DvObjectServiceBean;
 import edu.harvard.iq.dataverse.persistence.DvObject;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
@@ -9,13 +19,6 @@ import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion.VersionState;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
 
 @Stateless
 public class PermissionsSolrDocFactory {
@@ -101,7 +104,9 @@ public class PermissionsSolrDocFactory {
         SolrPermissions permissions = solrPermissionsFinder.findDataversePerms(dataverse);
 
         Long noDatasetVersionForDataverses = null;
-        PermissionsSolrDoc dvDoc = new PermissionsSolrDoc(dataverse.getId(), IndexServiceBean.solrDocIdentifierDataverse + dataverse.getId(),
+        final String id = IndexServiceBean.solrDocIdentifierDataverse + dataverse.getId()
+        	+ (dataverse.isDraft() ? IndexServiceBean.draftSuffix : EMPTY);
+        PermissionsSolrDoc dvDoc = new PermissionsSolrDoc(dataverse.getId(), id,
                 noDatasetVersionForDataverses, dataverse.getName(), permissions);
         return dvDoc;
     }

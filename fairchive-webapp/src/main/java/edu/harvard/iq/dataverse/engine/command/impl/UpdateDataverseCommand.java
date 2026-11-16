@@ -86,6 +86,7 @@ public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
 
         ctxt.index().deleteDraft(result);
         ctxt.index().indexDataverse(result);
+        ctxt.solrIndex().indexPermissionsForOneDvObject(result);
 
         List<Dataverse> dvChildrenToUpdate = ctxt.dataverses().findByOwnerId(result.getId());
         dvChildrenToUpdate.forEach(dvForUpdate -> ctxt.index().indexDataverse(dvForUpdate));

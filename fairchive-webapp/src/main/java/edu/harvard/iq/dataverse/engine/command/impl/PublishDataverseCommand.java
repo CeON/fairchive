@@ -60,7 +60,7 @@ public class PublishDataverseCommand extends AbstractCommand<Dataverse> {
          * @todo consider also
          * ctxt.solrIndex().indexPermissionsOnSelfAndChildren(savedDataverse.getId());
          */
-        context.index().delete(this.dataverse);
+        context.index().deleteDraft(this.dataverse);
         context.index().indexDataverse(this.dataverse);
         context.solrIndex().indexPermissionsForOneDvObject(this.dataverse);
         return this.dataverse;
