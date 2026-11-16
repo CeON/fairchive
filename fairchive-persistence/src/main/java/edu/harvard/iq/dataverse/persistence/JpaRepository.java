@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.persistence;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
@@ -93,6 +94,10 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
     public void saveAll(final Iterable<T> entities) {
         entities.forEach(this::save);
     }
+    
+    public void saveAll(final Stream<T> entities) {
+    	entities.forEach(this::save);
+    }
 
     @Override
     public void deleteById(final ID id) {
@@ -126,5 +131,4 @@ public abstract class JpaRepository<ID, T extends JpaEntity<ID>> implements JpaO
     protected TypedQuery<T> createQuery(final String s) {
     	return this.em.createQuery(s, this.entityClass);
     }
-    
 }

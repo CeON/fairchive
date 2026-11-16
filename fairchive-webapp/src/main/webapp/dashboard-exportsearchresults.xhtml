@@ -9,14 +9,12 @@
 
 <h:body>
 	<f:metadata>
-		<f:viewParam name="dataverseId"
-			value="#{ExportSearchResultsPage.rootDataverse.id}" />
 		<f:viewAction action="#{dataverseSession.updateLocaleInViewRoot}" />
 		<f:viewAction action="#{ExportSearchResultsPage.verifyAccess()}" />
 		<f:viewAction
 			action="#{dataverseHeaderFragment.initBreadcrumbs(ExportSearchResultsPage.rootDataverse)}" />
 		<f:viewAction
-			action="#{dataverseHeaderFragment.addBreadcrumb('/dashboard.xhtml?dataverseId='.concat(ExportSearchResultsPage.getRootDataverse().getId()), bundle['dashboard.title'])}" />
+			action="#{dataverseHeaderFragment.addBreadcrumb('/dashboard.xhtml?dataverseId='.concat(ExportSearchResultsPage.rootDataverse.id), bundle['dashboard.title'])}" />
 		<f:viewAction
 			action="#{dataverseHeaderFragment.addBreadcrumb(bundle['dashboard.card.exportsearchresults.manage'])}" />
 	</f:metadata>
@@ -32,15 +30,15 @@
 				<ui:repeat value="#{ExportSearchResultsPage.blocks}" 
 				           var="block">
 				    <ui:fragment rendered="#{not empty block.datasetFieldTypes}">
-						<h2 style="text-muted">#{block.localeDisplayName}</h2>
+						<h2 class="text-muted">#{block.localeDisplayName}</h2>
 				        <h:commandLink value="#{bundle.selectAll}" 
 	                                   action="#{ExportSearchResultsPage.selectAll(block, true)}">
-	                        <f:ajax render="@form" />
+	                        <f:ajax render="@form" execute="@form"/>
 	                    </h:commandLink>
 	                    |
 	                    <h:commandLink value="#{bundle.deselectAll}" 
 	                                   action="#{ExportSearchResultsPage.selectAll(block, false)}">
-	                        <f:ajax render="@form" />
+	                        <f:ajax render="@form" execute="@form"/>
 	                    </h:commandLink>
 						<ul style="border: 1px solid #e8e8e8; padding: 5px; list-style-type: none;"
 						    role="group" 
@@ -57,7 +55,7 @@
 										value="#{fieldType.exportToFile}"
 										itemLabel="#{fieldType.displayName}" 
 										escape="false"
-										disabled="#{not fieldType.isExportableToFile()}"/>
+										disabled="#{not fieldType.exportableToFile}"/>
 								</li>
 							</ui:repeat>
 						</ul>
@@ -68,13 +66,12 @@
 				                 styleClass="btn btn-default"
 					             value="#{bundle.saveChanges}"
 					             action="#{ExportSearchResultsPage.save}"
-					             update="@form,:messagePanel," />
+					             update="@form :messagePanel," />
 				<p:commandButton id="cancel"
 				                 styleClass="btn btn-default"
 					             value="#{bundle.cancel}"
 					             action="#{ExportSearchResultsPage.cancel}"
 					             process="@this">
-					<p:resetInput target="@form" />
 				</p:commandButton>
 			</h:form>
 		</ui:define>
