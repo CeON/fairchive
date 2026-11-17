@@ -117,21 +117,53 @@ public class SolrSearchResultsService {
     // -------------------- LOGIC --------------------
 
     public void populateDataverseSearchCard(final Collection<SolrSearchResult> solrResults) {
-       final  Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getEntityId);
-
-        Map<Long, Object[]> dataverses = callNamedNativeQueryWithIds(DATAVERSES_QUERY_BASE_NAME, ids).stream()
-                .collect(toMap(r -> (Long) r[DATAVERSES_QUERY_ID], identity(), (prev, next) -> next));
-
-        for (final SolrSearchResult result : solrResults) {
-            Object[] dataverseData;
-            if (result.getEntityId() == null || (dataverseData = dataverses.get(result.getEntityId())) == null) {
-                continue;
-            }
-            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_AFFILIATION], result::setDataverseAffiliation);
-            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_ALIAS], result::setDataverseAlias);
-            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_PARENT_ALIAS], result::setDataverseParentAlias);
-        }
+       populateDataverseSearchCardReleased(solrResults);
+       populateDataverseSearchCardDraft(solrResults);
     }
+    
+    public void populateDataverseSearchCardReleased(final Collection<SolrSearchResult> solrResults) {
+        final  Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getEntityId);
+        final Collection<Object[]> queryResult = callNamedNativeQueryWithIds(DATAVERSES_QUERY_BASE_NAME, ids);
+        final Map<Long, Object[]> dataversers = new HashMap<>();
+         		
+         for(final Object[] row : queryResult) {
+         	dataversers.put((Long) row[DATAVERSES_QUERY_ID], row);
+         }
+
+         for (final SolrSearchResult result : solrResults) {
+             Object[] dataverseData;
+             if(! result.isInReviewState() && !result.isDraftState()) {
+ 	            if (result.getEntityId() == null || (dataverseData = dataversers.get(result.getEntityId())) == null) {
+ 	                continue;
+ 	            }
+ 	            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_AFFILIATION], result::setDataverseAffiliation);
+ 	            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_ALIAS], result::setDataverseAlias);
+ 	            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_PARENT_ALIAS], result::setDataverseParentAlias);
+             }
+         }
+     }
+    
+    public void populateDataverseSearchCardDraft(final Collection<SolrSearchResult> solrResults) {
+        final  Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getEntityId);
+        final Collection<Object[]> queryResult = callNamedNativeQueryWithIds(DATAVERSES_QUERY_BASE_NAME.concat("Draft"), ids);
+        final Map<Long, Object[]> dataversers = new HashMap<>();
+         		
+         for(final Object[] row : queryResult) {
+         	dataversers.put((Long) row[DATAVERSES_QUERY_ID], row);
+         }
+
+         for (final SolrSearchResult result : solrResults) {
+             Object[] dataverseData;
+             if(result.isInReviewState() || result.isDraftState()) {
+ 	            if (result.getEntityId() == null || (dataverseData = dataversers.get(result.getEntityId())) == null) {
+ 	                continue;
+ 	            }
+ 	            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_AFFILIATION], result::setDataverseAffiliation);
+ 	            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_ALIAS], result::setDataverseAlias);
+ 	            setIfNotNull((String) dataverseData[DATAVERSES_QUERY_PARENT_ALIAS], result::setDataverseParentAlias);
+             }
+         }
+     }
 
     public void populateDatasetSearchCard(final Collection<SolrSearchResult> solrResults) {
         final Set<Long> ids = extractNonNullValuesSet(solrResults, SolrSearchResult::getDatasetVersionId);
