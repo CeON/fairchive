@@ -173,6 +173,8 @@ public class DatasetPage implements Serializable {
     private Long datasetDownloadCount;
 
     private List<DatasetFileTermDifferenceItem> fileTermDiffsWithLatestReleased;
+    
+    private final MoveDatasetDialog moveDatasetDialog = new MoveDatasetDialog();
 
     // -------------------- CONSTRUCTORS --------------------
 
@@ -214,6 +216,10 @@ public class DatasetPage implements Serializable {
         this.privateUrlService = privateUrlService;
         this.settingsWrapper = settingsWrapper;
         this.fileDownloadService = fileDownloadService;
+    }
+    
+    public MoveDatasetDialog getMoveDatasetDialog() {
+    	return this.moveDatasetDialog;
     }
 
 
@@ -407,6 +413,10 @@ public class DatasetPage implements Serializable {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+    
+    public boolean displayMoveButton() {
+    	return this.session.isSuperUserLoggedIn();
     }
 
     public String getDisplayCitation() {
