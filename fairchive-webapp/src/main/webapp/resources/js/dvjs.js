@@ -9,6 +9,9 @@ function initDvJS() {
     const TEXT_AREA_COORDINATES = 'textAreaCoordinates'
 
     const MAX_ZOOM = 19;
+    // Fitting the map to a single point or a small area would zoom in so far that nothing around the
+    // shape is shown; the initial view stops here so that it gives the place a geographical context.
+    const MAX_FIT_ZOOM = 11;
     var bounds = [
       [-90, -180], // Southwest corner (near Antarctica)
       [80, 180]    // Northeast corner (near the Arctic)
@@ -154,7 +157,7 @@ function initDvJS() {
     
     function centerMap(data, bounds) {
       let extendedBounds = bounds.pad(0.1);
-      data.leafMap.fitBounds(extendedBounds);
+      data.leafMap.fitBounds(extendedBounds, { maxZoom: MAX_FIT_ZOOM });
     }
 
     function initializeMapInView(key, data) {
