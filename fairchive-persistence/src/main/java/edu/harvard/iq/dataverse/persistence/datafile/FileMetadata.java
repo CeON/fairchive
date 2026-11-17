@@ -127,6 +127,18 @@ public class FileMetadata implements JpaEntity<Long>, Serializable {
     public void setLabel(String label) {
         this.label = label;
     }
+    
+    public boolean isChecksumPresent() {
+    	return this.dataFile.getChecksumValue() != null;
+    }
+    
+    public String getChecksumString() {
+    	final String chcksumName = this.dataFile.isTabularData()
+    			? this.dataFile.getOriginalChecksumType()
+    			: this.dataFile.getChecksumType().toString();
+    	
+    	return chcksumName + ": " + this.dataFile.getChecksumValue();
+    }
 
     public String getDirectoryLabel() {
         return directoryLabel;
