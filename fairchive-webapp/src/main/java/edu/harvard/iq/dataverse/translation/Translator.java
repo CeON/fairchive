@@ -6,6 +6,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -31,7 +33,8 @@ import com.google.gson.JsonPrimitive;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 
 /**
- * Uses libretranslate running as external service to translate provided texts
+ * Uses libretranslate running as external service to translate provided texts.
+ * A failure to translate is signalled by an {@link UncheckedIOException}.
  */
 @ApplicationScoped
 public class Translator implements AutoCloseable {
@@ -41,19 +44,20 @@ public class Translator implements AutoCloseable {
 	
 	private SettingsServiceBean settings;
 	
-	private final CloseableHttpClient client = HttpClients.custom()
-            .setDefaultRequestConfig(RequestConfig.custom()
-                    .setConnectTimeout(timeout)
-                    .setSocketTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout)
-                    .build())
-            .build();
+	private final CloseableHttpClient client;
 	
-	public Translator() {}
+	public Translator() {
+		this(null, createClient());
+	}
 	
 	@Inject
 	public Translator(final SettingsServiceBean settings) {
-		this.settings =  settings;
+		this(settings, createClient());
+	}
+	
+	Translator(final SettingsServiceBean settings, final CloseableHttpClient client) {
+		this.settings = settings;
+		this.client = client;
 	}
 	
 	@PreDestroy
@@ -70,37 +74,35 @@ public class Translator implements AutoCloseable {
 		return ! getUrl().isEmpty();
 	}
 
-	public List<String> translate(final List<String> texts, final String targetLang) {
-		if (! texts.isEmpty()) {
-			try {
-				final HttpPost post = createRequest(texts, targetLang);
-				try (final CloseableHttpResponse response = client.execute(post)) {
-					final int status = response.getStatusLine().getStatusCode();
-					if (status == 200) {
-						final HttpEntity entity = response.getEntity();
-						if (entity != null) {
-							return translatedTextFrom(entity);
-						} else {
-							log.warn("Received empty response from libretranslate service");
-							return texts;
-						}
-					} else {
-						log.warn("Received status code " + status + " from " + getUrl());
-						log.warn(IOUtils.toString(response.getEntity().getContent(), UTF_8));
-						return texts;
-					}
-				}
-			} catch (final IOException e) {
-				log.warn("Error while contacting libretranslate service.", e);
-				return texts;
-			}
-		} else {
+	/**
+	 * Translates the texts, returning the translations in the same order.
+	 *
+	 * @param format how the service should read the texts: as plain text or as HTML
+	 * @throws UncheckedIOException if the service could not be reached or did not
+	 *                              answer with translations
+	 */
+	public List<String> translate(final List<String> texts, final String targetLang, final Format format) {
+		if (texts.isEmpty()) {
 			return texts;
+		}
+		try (final CloseableHttpResponse response = this.client.execute(createRequest(texts, targetLang, format))) {
+			final int status = response.getStatusLine().getStatusCode();
+			final HttpEntity entity = response.getEntity();
+			if (status != 200) {
+				throw new HttpResponseException(status, "Received status code " + status + " from " + getUrl()
+						+ (entity != null ? ": " + IOUtils.toString(entity.getContent(), UTF_8) : ""));
+			}
+			if (entity == null) {
+				throw new IOException("Received empty response from " + getUrl());
+			}
+			return translatedTextFrom(entity);
+		} catch (final IOException e) {
+			throw new UncheckedIOException("Error while translating with libretranslate service", e);
 		}
 	}
 	
 	private HttpPost createRequest(final List<String> texts, 
-			final String targetLang) {
+			final String targetLang, final Format format) {
 		
 		final HttpPost request = new HttpPost(getUrl());
 		
@@ -114,7 +116,7 @@ public class Translator implements AutoCloseable {
 		json.add("q", sourceTexts);
 		json.addProperty("source", "auto");
 		json.addProperty("target", targetLang);
-		json.addProperty("format", "text");
+		json.addProperty("format", format.code);
         
         request.setHeader("Accept", "application/json");
         request.setHeader("Content-type", "application/json");
@@ -136,5 +138,29 @@ public class Translator implements AutoCloseable {
 	
 	private String getUrl() {
 		return this.settings.getValueForKey(MachineTranslationURL);
+	}
+	
+	private static CloseableHttpClient createClient() {
+		return HttpClients.custom()
+				.setDefaultRequestConfig(RequestConfig.custom()
+						.setConnectTimeout(timeout)
+						.setSocketTimeout(timeout)
+						.setConnectionRequestTimeout(timeout)
+						.build())
+				.build();
+	}
+	
+	/**
+	 * How the translation service reads a text: plain text is translated as it
+	 * is, HTML has its markup kept and only its text translated.
+	 */
+	public enum Format {
+		TEXT("text"), HTML("html");
+		
+		private final String code;
+		
+		Format(final String code) {
+			this.code = code;
+		}
 	}
 }

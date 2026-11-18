@@ -1,7 +1,17 @@
 package edu.harvard.iq.dataverse.dataset.tab;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +34,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.PrivateUrlUser;
+import edu.harvard.iq.dataverse.translation.MetadataTranslator;
 
 @ExtendWith(MockitoExtension.class)
 public class DatasetMetadataTabTest {
@@ -34,6 +45,8 @@ public class DatasetMetadataTabTest {
 	private DataverseSession session;
 	@Mock
 	private ActionLogServiceBean logService;
+	@Mock
+	private MetadataTranslator metadataTranslator;
 	
 	private DatasetVersion version = new DatasetVersion();
 	private DatasetField invisibleField = new DatasetField();
@@ -85,7 +98,7 @@ public class DatasetMetadataTabTest {
 		
 		this.tab = new DatasetMetadataTab(null,
 				this.session, null, null, initializer, 
-				null, null, cloneDialog, null);
+				null, this.metadataTranslator, cloneDialog, null);
 	}
 	
 	@Test
@@ -184,6 +197,118 @@ public class DatasetMetadataTabTest {
 	}
 	
 	
+	@Test
+	public void translationDialog_getMetadataBlocks__noLanguageSelected_returnsOriginal() {
+		// given
+		this.visibleField.setValue("value");
+		this.session.logIn(new AuthenticatedUser());
+		this.tab.init(this.version, false);
+
+		// when
+		List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> blocks =
+				this.tab.getTranslationDialog().getMetadataBlocks();
+
+		// then
+		assertThat(blocks).isEqualTo(this.tab.getMetadataBlocks());
+		verifyNoInteractions(this.metadataTranslator);
+	}
+
+	@Test
+	public void translationDialog_getMetadataBlocks__sameLanguage_translatedOnce() {
+		// given
+		this.visibleField.setValue("value");
+		this.session.logIn(new AuthenticatedUser());
+		this.tab.init(this.version, false);
+		when(this.metadataTranslator.translate(anyMap(), any())).thenReturn(new HashMap<>());
+		this.tab.getTranslationDialog().setSelectedLanguageCode("pl");
+		this.tab.getTranslationDialog().getMetadataBlocks();
+
+		// when
+		this.tab.getTranslationDialog().getMetadataBlocks();
+
+		// then
+		verify(this.metadataTranslator).translate(anyMap(), eq("pl"));
+	}
+
+	@Test
+	public void translationDialog_getMetadataBlocks__otherLanguageInBetween_translatedAgain() {
+		// given
+		this.visibleField.setValue("value");
+		this.session.logIn(new AuthenticatedUser());
+		this.tab.init(this.version, false);
+		when(this.metadataTranslator.translate(anyMap(), any())).thenReturn(new HashMap<>());
+		this.tab.getTranslationDialog().setSelectedLanguageCode("pl");
+		this.tab.getTranslationDialog().getMetadataBlocks();
+		this.tab.getTranslationDialog().setSelectedLanguageCode("de");
+		this.tab.getTranslationDialog().getMetadataBlocks();
+		this.tab.getTranslationDialog().setSelectedLanguageCode("pl");
+
+		// when
+		this.tab.getTranslationDialog().getMetadataBlocks();
+
+		// then
+		verify(this.metadataTranslator, times(2)).translate(anyMap(), eq("pl"));
+	}
+
+	@Test
+	public void translationDialog_getMetadataBlocks__afterInit_translatedAgain() {
+		// given
+		this.visibleField.setValue("value");
+		this.session.logIn(new AuthenticatedUser());
+		this.tab.init(this.version, false);
+		when(this.metadataTranslator.translate(anyMap(), any())).thenReturn(new HashMap<>());
+		this.tab.getTranslationDialog().setSelectedLanguageCode("pl");
+		this.tab.getTranslationDialog().getMetadataBlocks();
+		this.tab.init(this.version, false);
+
+		// when
+		this.tab.getTranslationDialog().getMetadataBlocks();
+
+		// then
+		verify(this.metadataTranslator, times(2)).translate(anyMap(), eq("pl"));
+	}
+
+	@Test
+	public void translationDialog_getMetadataBlocks__translationFailed_returnsOriginal() {
+		// given
+		this.visibleField.setValue("value");
+		this.session.logIn(new AuthenticatedUser());
+		this.tab.init(this.version, false);
+		when(this.metadataTranslator.translate(anyMap(), any()))
+				.thenThrow(new UncheckedIOException(new IOException("service down")));
+		this.tab.getTranslationDialog().setSelectedLanguageCode("pl");
+
+		// when
+		List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> blocks =
+				this.tab.getTranslationDialog().getMetadataBlocks();
+
+		// then
+		assertThat(blocks).isEqualTo(this.tab.getMetadataBlocks());
+	}
+
+	@Test
+	public void translationDialog_getMetadataBlocks__translationFailed_notRetriedUntilReselected() {
+		// given
+		this.visibleField.setValue("value");
+		this.session.logIn(new AuthenticatedUser());
+		this.tab.init(this.version, false);
+		when(this.metadataTranslator.translate(anyMap(), any()))
+				.thenThrow(new UncheckedIOException(new IOException("service down")))
+				.thenReturn(new HashMap<>());
+		this.tab.getTranslationDialog().setSelectedLanguageCode("pl");
+		this.tab.getTranslationDialog().getMetadataBlocks();
+		this.tab.getTranslationDialog().getMetadataBlocks();
+		this.tab.getTranslationDialog().setSelectedLanguageCode("pl");
+
+		// when
+		List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> blocks =
+				this.tab.getTranslationDialog().getMetadataBlocks();
+
+		// then
+		assertThat(blocks).isEmpty();
+		verify(this.metadataTranslator, times(2)).translate(anyMap(), eq("pl"));
+	}
+
 	private void VerifyBlockStructure() {
 		
 		List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> blocks = 

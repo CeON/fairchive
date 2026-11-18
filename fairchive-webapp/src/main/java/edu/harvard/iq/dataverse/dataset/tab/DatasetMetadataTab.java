@@ -2,10 +2,11 @@ package edu.harvard.iq.dataverse.dataset.tab;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.EnableDatasetCloning;
 import static java.util.Arrays.asList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,15 +29,18 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldsOfType;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlock;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
-import edu.harvard.iq.dataverse.translation.Translator;
+import edu.harvard.iq.dataverse.translation.MetadataTranslator;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import org.slf4j.Logger;
 
 @SuppressWarnings("serial")
 @ViewScoped
 @Named("DatasetMetadataTab")
 public class DatasetMetadataTab implements Serializable {
+
+	private static final Logger log = getLogger(DatasetMetadataTab.class);
 
 	private PermissionsWrapper permissionsWrapper;
 	private ExportService exportService;
@@ -52,7 +56,7 @@ public class DatasetMetadataTab implements Serializable {
 	private Map<MetadataBlock, List<DatasetFieldsOfType>> metadataBlocks;
 	private List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> blockList;
 	private final TranslationDialog translationDialog = new TranslationDialog();
-	private Translator translator;
+	private MetadataTranslator translator;
 
 	// -------------------- CONSTRUCTORS --------------------
 
@@ -67,7 +71,7 @@ public class DatasetMetadataTab implements Serializable {
 			                  final SystemConfig systemConfig,
 			                  final DatasetFieldsInitializer datasetVersionUI,
 			                  final DatasetService datasetService, 
-			                  final Translator translator,
+			                  final MetadataTranslator translator,
 			                  final CloneDatasetDialog cloneDatasetDialog,
 			                  final SettingsServiceBean settings) {
 		this.permissionsWrapper = permissionsWrapper;
@@ -144,6 +148,7 @@ public class DatasetMetadataTab implements Serializable {
 				.prepareDatasetFieldsForView(datasetVersion.getDatasetFields(), false);
 		this.metadataBlocks = DatasetFieldUtil.groupByBlockAndType(datasetFields);
 		this.blockList = new ArrayList<>(this.metadataBlocks.entrySet());
+		this.translationDialog.clearTranslation();
 		this.cloneDatasetDialog.setDataset(this.dataset);
 	}
 
@@ -191,7 +196,10 @@ public class DatasetMetadataTab implements Serializable {
 	public final class TranslationDialog implements Serializable {
 
 		private String selectedLanguageCode = null;
-		
+		private String translatedLanguageCode = null;
+		/** Null if translating into {@link #translatedLanguageCode} failed. */
+		private Map<MetadataBlock, List<DatasetFieldsOfType>> translatedMetadata = null;
+
 		public void reset() {
 			this.selectedLanguageCode = null;
 		}
@@ -204,8 +212,14 @@ public class DatasetMetadataTab implements Serializable {
 			return this.selectedLanguageCode;
 		}
 
+		/**
+		 * Selecting a language whose translation failed tries it again.
+		 */
 		public void setSelectedLanguageCode(final String code) {
 			this.selectedLanguageCode = code;
+			if (this.translatedMetadata == null) {
+				clearTranslation();
+			}
 		}
 		
 		public List<Map.Entry<MetadataBlock, List<DatasetFieldsOfType>>> getMetadataBlocks() {
@@ -232,79 +246,25 @@ public class DatasetMetadataTab implements Serializable {
 		private Map<MetadataBlock, List<DatasetFieldsOfType>> getMetadataMap() {
 			if (this.selectedLanguageCode == null) {
 				return DatasetMetadataTab.this.metadataBlocks;
-			} else {
-				return getTranslatedMetadataMap();
 			}
-		}
-
-		private Map<MetadataBlock, List<DatasetFieldsOfType>> getTranslatedMetadataMap() {
-			final HashMap<MetadataBlock, List<DatasetFieldsOfType>> result = new HashMap<>();
-			final Map<MetadataBlock, List<DatasetFieldsOfType>> blocks = DatasetMetadataTab.this.metadataBlocks;
-
-			for (final MetadataBlock block : blocks.keySet()) {
-				final List<DatasetFieldsOfType> translated =  translateByType(blocks.get(block));
-				result.put(block,  translated);
-			}
-
-			return result;
-		}
-
-		private List<DatasetFieldsOfType> translateByType(List<DatasetFieldsOfType> fieldsOfType) {
-			final ArrayList<DatasetFieldsOfType> result = new ArrayList<>(fieldsOfType.size());
-
-			for (final DatasetFieldsOfType fieldByType : fieldsOfType) {
-				final List<DatasetField> translated = translate(fieldByType.getFields());
-				result.add(new DatasetFieldsOfType(fieldByType.getType(), translated));
-			}
-
-			return result;
-		}
-
-		private List<DatasetField> translate(List<DatasetField> fields) {
-			final ArrayList<DatasetField> result = new ArrayList<>(fields.size());
-			final List<String> flatValues = flatten(fields);
-			
-			final List<String> translated = DatasetMetadataTab.this.translator.
-					translate(flatValues, this.selectedLanguageCode);
-			
-			int index = 0;
-			for (final DatasetField field : fields) {
-				final DatasetField newField = field.copy();
-				newField.setValue(translated.get(index++));
-				for(final DatasetField child : field.getChildren()) {
-					final DatasetField newChild = child.copy();
-					newChild.setValue(translated.get(index++));
-					newField.getChildren().add(newChild);
-				}
-				
-				result.add(newField);
-			}
-
-			return result;
-		}
-		
-		private List<String> flatten(final List<DatasetField> fields) {
-			final ArrayList<String> flattened = new ArrayList<>(fields.size());
-
-			for (final DatasetField field : fields) {
-				flattened.add(sanitize(getValue(field)));
-				for (final DatasetField child : field.getChildren()) {
-					flattened.add(sanitize(getValue(child)));
+			if (!this.selectedLanguageCode.equals(this.translatedLanguageCode)) {
+				this.translatedLanguageCode = this.selectedLanguageCode;
+				try {
+					this.translatedMetadata = DatasetMetadataTab.this.translator.translate(
+							DatasetMetadataTab.this.metadataBlocks, this.selectedLanguageCode);
+				} catch (final UncheckedIOException e) {
+					log.warn("Machine translation of metadata into " + this.selectedLanguageCode + " failed", e);
+					this.translatedMetadata = null;
 				}
 			}
-			return flattened;
+			return this.translatedMetadata != null
+					? this.translatedMetadata
+					: DatasetMetadataTab.this.metadataBlocks;
 		}
-		
-		private String getValue(final DatasetField field) {
-			final List<String> values = field.getValues();
-			return values.isEmpty() ? "" : values.get(0);
-		}
-		
-		private String sanitize(final String text) {
-			return text != null
-					? text.replace("<p>", " ").replace("</p>", " ").
-							replace("<br>", " ").replace("<br/>", " ")
-					: text;
+
+		private void clearTranslation() {
+			this.translatedLanguageCode = null;
+			this.translatedMetadata = null;
 		}
 	}
 
