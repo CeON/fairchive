@@ -306,6 +306,17 @@
                                     <!-- Edit/Publish Button Group -->
                                     <!-- Publish/Submit for Review/Return to Author Button Group -->
                                     <ui:fragment rendered="#{DatasetPage.displayPublishSubmitButtonGroup()}">
+                                        <!--  move button -->
+                                        <p:commandLink type="button"
+                                                       styleClass="btn btn-default btn-access #{conditionallyDisable}"
+                                                       actionListener="#{MoveDatasetDialog.setDataset(DatasetPage.dataset)}"
+                                                       onclick="primeFacesShowModal('moveDatasetDialog', this)"
+                                                       rendered="#{DatasetPage.displayMoveButton()}"
+                                                       ajax="true"
+                                                       process="@this"
+                                                       update="@none">
+                                            <span class="glyphicon glyphicon glyphicon-transfer"/>#{bundle['move']}
+                                        </p:commandLink>
                                         <!-- Publish Buttons -->
                                         <p:commandLink type="button"
                                                        styleClass="btn btn-default btn-access #{conditionallyDisable}"
@@ -1373,6 +1384,10 @@
 
             <ui:include src="dataset-deaccession-dialog.xhtml"/>
             <ui:include src="dataset-embargo-dialog.xhtml"/>
+            <ui:include src="moveDatasetDialog.xhtml">
+                <ui:param name="dialog" value="#{MoveDatasetDialog}" />
+                <ui:param name="widgetVar" value="moveDatasetDialog" />
+            </ui:include>
 
         </ui:define>
     </ui:composition>

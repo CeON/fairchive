@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+    xmlns:jsf="http://xmlns.jcp.org/jsf" 
+    xmlns:o="http://omnifaces.org/ui"
+    xmlns:dv="http://dataverse.org/facelets"
+    xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <p:dialog id="#{widgetVar}" 
+              header="#{bundle['add.dataset.dialog.header']}" 
+              widgetVar="#{widgetVar}" 
+              modal="true"
+              dynamic="true"
+              cached="false">
+        <o:form id="#{widgetVar}Form">
+            <p:outputLabel for="selectDvTree"
+                           value="#{bundle['move.dataset.dialog.info']}"/>
+            <div class="form-group">
+                <div class="col-md-10">
+                    <p:inputText id="treeFilter"
+                                 value="#{dialog.treeFilter}"
+                                 placeholder="#{bundle['add.dataset.dialog.tree.filter']}"
+                                 styleClass="full-width"
+                                 maxlength="50">
+                        <p:ajax process="@this"
+                                update="selectDvTree"
+                                event="keyup"
+                                delay="1000"
+                                listener="#{dialog.executeTreeFilter}" />
+                    </p:inputText>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12">
+                    <p:tree id="selectDvTree" 
+                            value="#{dialog.rootNode}" 
+                            var="node"
+                            styleClass="no-border full-width"
+                            dynamic="true" 
+                            animate="true"
+                            selectionMode="single" 
+                            selection="#{dialog.selectedNode}"
+                            required="true"
+                            requiredMessage="#{bundle['add.dataset.dialog.tree.required']}">
+                        <p:ajax event="expand" 
+                                listener="#{dialog.onNodeExpand}" />
+                        <p:treeNode>
+                            <h:outputText value="#{node.name}"/>
+                        </p:treeNode>
+                    </p:tree>
+                    <p:message id="treeMsg" 
+                               for="selectDvTree" 
+                               styleClass="bg-danger text-danger" 
+                               display="text"/>
+                </div>
+            </div>
+            <div class="row button-block">
+                <p:commandButton value="#{bundle['move']}" 
+                                 action="#{dialog.moveDataset()}" 
+                                 update="treeMsg"
+                                 process="@form"
+                                 styleClass="btn btn-default btn-access"
+                                 oncomplete="if (args &amp;&amp; !args.validationFailed) PF('#{widgetVar}').hide(); window.location.reload();"/>
+                <p:commandButton type="button" 
+                                 onclick="PF('#{widgetVar}').hide()" 
+                                 styleClass="btn btn-default" 
+                                 value="#{bundle.cancel}"/>
+            </div>
+        </o:form>
+    </p:dialog>
+</html>

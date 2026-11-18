@@ -29,6 +29,7 @@ import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.annotations.PermissionNeeded;
 import edu.harvard.iq.dataverse.engine.command.exception.NotAuthenticatedException;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateNewDatasetCommand;
+import edu.harvard.iq.dataverse.engine.command.impl.MoveDatasetCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetGuestbookCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetThumbnailCommand;
 import edu.harvard.iq.dataverse.globalid.GlobalIdServiceBean;
@@ -39,7 +40,6 @@ import edu.harvard.iq.dataverse.interceptors.SuperuserRequired;
 import edu.harvard.iq.dataverse.notification.NotificationObjectType;
 import edu.harvard.iq.dataverse.notification.UserNotificationService;
 import edu.harvard.iq.dataverse.persistence.DvObject;
-import edu.harvard.iq.dataverse.persistence.GlobalId;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetLock;
@@ -387,5 +387,9 @@ public class DatasetService {
 
         return dataset;
     }
-
+    
+    public void moveDataset(final Dataset dataset, final Dataverse target) {
+        commandEngine.submit(new MoveDatasetCommand(
+        		this.dvRequestService.getDataverseRequest(), dataset,target, true));
+    }
 }
