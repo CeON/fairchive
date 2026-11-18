@@ -311,7 +311,7 @@ public class DataversePage implements Serializable  {
     	
     	private String message = EMPTY;
     	private String replyTo = EMPTY;
-    	private boolean sendCopy = false;
+    	private boolean sendCopy = true;
 
 		public String getMessage() {
 			return this.message;
@@ -322,7 +322,9 @@ public class DataversePage implements Serializable  {
 		}
 		
 	    public String getReplyTo() {
-	        return this.replyTo;
+	    	return this.replyTo.isEmpty()
+	    		? session.getUserEmailAddress()
+	    		: this.replyTo;
 	    }
 
 	    public void setReplyTo(final String replyTo) {
@@ -336,12 +338,6 @@ public class DataversePage implements Serializable  {
 	    public void setSendCopy(final boolean sendCopy) {
 	        this.sendCopy = sendCopy;
 	    }
-		
-		public void clear() {
-			this.message = EMPTY;
-			this.replyTo = EMPTY;
-			this.sendCopy = false;
-		}
 		
 	    public void validateReplyToEmail(final FacesContext context, 
 	    		final UIComponent component, final Object value) 

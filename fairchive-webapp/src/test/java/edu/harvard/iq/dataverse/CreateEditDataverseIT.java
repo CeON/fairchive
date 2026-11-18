@@ -958,7 +958,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.dataversePage.displayReturnToAuthorButton()).isTrue();
 		
 		// send back to contributor
-		this.dataversePage.getSendBackToContributorDialog().clear();
+		this.dataversePage.getSendBackToContributorDialog().reset();
 		this.dataversePage.getSendBackToContributorDialog().setMessage("message1");
 		this.dataversePage.getSendBackToContributorDialog().send();
 		
