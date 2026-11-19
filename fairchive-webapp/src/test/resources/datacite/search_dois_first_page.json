@@ -1,0 +1,35 @@
+{
+  "data": [
+    {
+      "id": "10.5061/dryad.bf20k4q4",
+      "type": "dois",
+      "attributes": {
+        "doi": "10.5061/dryad.bf20k4q4",
+        "publisher": "Dryad",
+        "publicationYear": 2026,
+        "titles": [ { "title": "First example dataset" } ],
+        "creators": [ { "name": "Kowalska, Anna", "affiliation": [ "AGH University of Krakow" ] } ],
+        "contributors": [],
+        "types": { "resourceTypeGeneral": "Dataset" }
+      }
+    },
+    {
+      "id": "10.5072/fk2/abc",
+      "type": "dois",
+      "attributes": {
+        "doi": "10.5072/fk2/abc",
+        "publisher": "Example repository",
+        "publicationYear": 2025,
+        "titles": [ { "title": "Second example dataset" } ],
+        "creators": [ { "name": "Nowak, Jan", "affiliation": [] } ],
+        "contributors": [],
+        "types": { "resourceTypeGeneral": "Dataset" }
+      }
+    }
+  ],
+  "meta": { "total": 3, "totalPages": 2, "page": 1 },
+  "links": {
+    "self": "https://api.datacite.org/dois?affiliation-country=PL&page%5Bcursor%5D=1&page%5Bsize%5D=2",
+    "next": "https://api.datacite.org/dois?affiliation-country=PL&disable-facets=true&page%5Bcursor%5D=MTMxNjE4ODM0NDAwMCwxMC41MDYxL2RyeWFkLmJmMjBrNHE0&page%5Bsize%5D=2"
+  }
+}
