@@ -15,11 +15,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
@@ -45,8 +50,6 @@ public class DataCiteRestApiClientTest {
     public void beforeEach() throws IOException {
         wireMockServer.resetAll();
         dataCiteRestApiClient.postConstruct();
-
-        when(settingsService.getValueForKey(Key.DoiDataCiteRestApiUrl)).thenReturn("http://localhost:" + wireMockServer.port());
     }
     
     @AfterAll
@@ -59,6 +62,7 @@ public class DataCiteRestApiClientTest {
     @Test
     void findDoi() throws IOException {
         // given
+        mockRestApiUrlSetting();
         wireMockServer.stubFor(get(urlEqualTo("/dois/10.5438/0012"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -98,6 +102,7 @@ public class DataCiteRestApiClientTest {
     @Test
     void findDoi__complete() throws IOException {
         // given
+        mockRestApiUrlSetting();
         wireMockServer.stubFor(get(urlEqualTo("/dois/10.5438/0012"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -172,6 +177,7 @@ public class DataCiteRestApiClientTest {
     @Test
     void findDoi_doi_identifier_with_shoulder() throws IOException {
         // given
+        mockRestApiUrlSetting();
         wireMockServer.stubFor(get(urlEqualTo("/dois/10.5438/FK2/0012"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -187,6 +193,7 @@ public class DataCiteRestApiClientTest {
     @Test
     void findDoi_not_found() throws IOException {
         // given
+        mockRestApiUrlSetting();
         wireMockServer.stubFor(get(urlEqualTo("/dois/10.5438/0012"))
                 .willReturn(aResponse().withStatus(404)));
 
@@ -194,5 +201,104 @@ public class DataCiteRestApiClientTest {
         assertThatThrownBy(() -> dataCiteRestApiClient.findDoi("10.5438", "0012"))
             .isInstanceOf(HttpResponseException.class)
             .hasMessageContaining("status code: 404");
+    }
+
+    @Test
+    void searchDois() throws IOException {
+        // given
+        mockRestApiUrlSetting();
+        wireMockServer.stubFor(get(urlPathEqualTo("/dois"))
+                .withQueryParam("affiliation-country", equalTo("PL"))
+                .withQueryParam("query", equalTo("creators.affiliation.affiliationIdentifier:\"https://ror.org/00bas1c41\""))
+                .withQueryParam("page%5Bsize%5D", equalTo("2"))
+                .withQueryParam("page%5Bcursor%5D", equalTo("1"))
+                .withQueryParam("disable-facets", equalTo("true"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(UnitTestUtils.readFileToString("datacite/search_dois_first_page.json"))));
+        Map<String, String> queryParams = new LinkedHashMap<>();
+        queryParams.put("affiliation-country", "PL");
+        queryParams.put("query", "creators.affiliation.affiliationIdentifier:\"https://ror.org/00bas1c41\"");
+
+        // when
+        DataCiteDoisPage page = dataCiteRestApiClient.searchDois(queryParams, DataCiteRestApiClient.FIRST_CURSOR, 2);
+
+        // then
+        assertThat(page.getMeta().getTotal()).isEqualTo(3);
+        assertThat(page.getData())
+                .extracting(record -> record.getAttributes().getDoi())
+                .containsExactly("10.5061/dryad.bf20k4q4", "10.5072/fk2/abc");
+        assertThat(page.getData().get(0).getAttributes().getCreators().get(0).getAffiliation())
+                .containsExactly("AGH University of Krakow");
+    }
+
+    @Test
+    void searchDois__lastPage() throws IOException {
+        // given
+        mockRestApiUrlSetting();
+        String cursor = "MTMxNjE4ODM0NDAwMCwxMC41MDYxL2RyeWFkLmJmMjBrNHE0";
+        wireMockServer.stubFor(get(urlPathEqualTo("/dois"))
+                .withQueryParam("affiliation-country", equalTo("PL"))
+                .withQueryParam("page%5Bcursor%5D", equalTo(cursor))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(UnitTestUtils.readFileToString("datacite/search_dois_last_page.json"))));
+
+        // when
+        DataCiteDoisPage page = dataCiteRestApiClient.searchDois(singletonMap("affiliation-country", "PL"), cursor, 2);
+
+        // then
+        assertThat(page.getData())
+                .extracting(record -> record.getAttributes().getDoi())
+                .containsExactly("10.18150/0013");
+        assertThat(DataCiteRestApiClient.nextCursor(page)).isEmpty();
+    }
+
+    @Test
+    void searchDois__badRequest() {
+        // given
+        mockRestApiUrlSetting();
+        wireMockServer.stubFor(get(urlPathEqualTo("/dois"))
+                .willReturn(aResponse()
+                        .withStatus(400)
+                        .withStatusMessage("Bad Request")
+                        .withBody("{\"errors\":[{\"status\":\"400\",\"title\":\"token_mgr_error: Lexical error\"}]}")));
+        Map<String, String> queryParams = new LinkedHashMap<>();
+        queryParams.put("query", "creators.affiliation.name:(\"AGH");
+
+        // when & then
+        assertThatThrownBy(() -> dataCiteRestApiClient.searchDois(queryParams, DataCiteRestApiClient.FIRST_CURSOR, 2))
+                .isInstanceOf(HttpResponseException.class)
+                .hasMessageContaining("status code: 400")
+                .hasMessageContaining("Lexical error");
+    }
+
+    @Test
+    void nextCursor() {
+        // given
+        DataCiteDoisPage page = new DataCiteDoisPage();
+        page.getLinks().setNext("https://api.datacite.org/dois?affiliation-country=PL"
+                + "&page%5Bcursor%5D=MTMxNjE4ODM0NDAwMCwxMC41MDYx&page%5Bsize%5D=2");
+
+        // when
+        String cursor = DataCiteRestApiClient.nextCursor(page).get();
+
+        // then
+        assertThat(cursor).isEqualTo("MTMxNjE4ODM0NDAwMCwxMC41MDYx");
+    }
+
+    @Test
+    void nextCursor__lastPage() {
+        // given
+        DataCiteDoisPage page = new DataCiteDoisPage();
+
+        // when & then
+        assertThat(DataCiteRestApiClient.nextCursor(page)).isEmpty();
+    }
+
+    // -------------------- PRIVATE --------------------
+
+    private void mockRestApiUrlSetting() {
+        when(settingsService.getValueForKey(Key.DoiDataCiteRestApiUrl)).thenReturn("http://localhost:" + wireMockServer.port());
     }
 }

@@ -1,0 +1,21 @@
+{
+  "data": [
+    {
+      "id": "10.18150/0013",
+      "type": "dois",
+      "attributes": {
+        "doi": "10.18150/0013",
+        "publisher": "RepOD",
+        "publicationYear": 2023,
+        "titles": [ { "title": "Third example dataset" } ],
+        "creators": [ { "name": "Tobka, Marcell", "affiliation": [] } ],
+        "contributors": [],
+        "types": { "resourceTypeGeneral": "Dataset" }
+      }
+    }
+  ],
+  "meta": { "total": 3, "totalPages": 2, "page": 2 },
+  "links": {
+    "self": "https://api.datacite.org/dois?affiliation-country=PL&page%5Bcursor%5D=MTMxNjE4ODM0NDAwMCwxMC41MDYxL2RyeWFkLmJmMjBrNHE0&page%5Bsize%5D=2"
+  }
+}

@@ -13,7 +13,7 @@ import edu.harvard.iq.dataverse.persistence.dataset.DatasetVersion;
 import io.vavr.control.Option;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.ejb.Stateless;
+import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,8 +25,14 @@ import java.util.stream.Collectors;
 
 /**
  * Maps Datacite api response to internal dataset representation.
+ * <p>
+ * A plain CDI bean and deliberately not an EJB: the harvester calls it once
+ * per record while running in the caller's transaction, which times out
+ * during a long harvest. An EJB method with the default transaction
+ * attribute would join that timed-out transaction and fail every record
+ * from then on; the imports themselves commit in transactions of their own.
  */
-@Stateless
+@ApplicationScoped
 public class DataciteDatasetMapper {
 
     private static final Set<String> SUPPORTED_IDENTIFIER_TYPES = Sets.newHashSet("ORCID", "ISNI", "LCNA");
@@ -37,8 +43,9 @@ public class DataciteDatasetMapper {
         DataCiteFindDoiResponse.Attributes attributes = response.getAttributes();
         DatasetDTO dto = new DatasetDTO();
         dto.setProtocol(GlobalId.DOI_PROTOCOL);
-        dto.setAuthority(attributes.getPrefix());
-        dto.setIdentifier(attributes.getSuffix());
+        DataciteHarvesterParams.DOIValue doi = new DataciteHarvesterParams.DOIValue(attributes.getDoi());
+        dto.setAuthority(doi.getAuthority());
+        dto.setIdentifier(doi.getId());
         dto.setPublisher(attributes.getPublisher());
         dto.setPublicationDate(Option.of(attributes.getPublicationYear()).map(year -> year + "-01-01").getOrNull());
         DatasetVersionDTO datasetVersion = new DatasetVersionDTO();
