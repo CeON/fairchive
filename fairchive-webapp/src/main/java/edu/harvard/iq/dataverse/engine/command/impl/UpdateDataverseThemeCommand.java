@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.deleteIfExists;
 
@@ -21,7 +22,8 @@ import edu.harvard.iq.dataverse.persistence.user.Permission;
  * @author michael
  */
 @SuppressWarnings("serial")
-@RequiredPermissions(Permission.EditDataverse)
+@RequiredPermissions(value = {Permission.EditDataverse, Permission.PartialEditDataverse},
+strategy = atLeastOneRequired)
 public class UpdateDataverseThemeCommand extends AbstractCommand<Dataverse> {
     private final Dataverse editedDv;
     private final TempLogoStorageManager.Storage storage;

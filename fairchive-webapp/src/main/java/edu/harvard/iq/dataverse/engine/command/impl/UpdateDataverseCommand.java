@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.engine.command.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.harvard.iq.dataverse.engine.command.AbstractCommand;
 import edu.harvard.iq.dataverse.engine.command.CommandContext;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
@@ -11,8 +14,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseFieldTypeInputLevel;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
-import java.util.ArrayList;
-import java.util.List;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
 
 /**
  * Update an existing dataverse.
@@ -20,7 +22,8 @@ import java.util.List;
  * @author michael
  */
 @SuppressWarnings("serial")
-@RequiredPermissions(Permission.EditDataverse)
+@RequiredPermissions(value = {Permission.EditDataverse, Permission.PartialEditDataverse},
+					 strategy = atLeastOneRequired)
 public class UpdateDataverseCommand extends AbstractCommand<Dataverse> {
 
     private final Dataverse editedDv;

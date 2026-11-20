@@ -39,19 +39,16 @@ import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
  */
 public enum Permission implements java.io.Serializable {
 
-    // Create
     //1
     AddDataverse(true, true, Dataverse.class),
     //2
     AddDataset(true, true, Dataverse.class),
-    // Read
     //4
     ViewUnpublishedDataverse(false, false, Dataverse.class),
     //8
     ViewUnpublishedDataset(false, false, Dataset.class),
     //16
     DownloadFile(false, false, DataFile.class),
-    // Update
     //32
     EditDataverse(true, true, Dataverse.class),
     //64
@@ -64,13 +61,14 @@ public enum Permission implements java.io.Serializable {
     PublishDataverse(true, true, Dataverse.class),
     //1024
     PublishDataset(true, true, Dataset.class, Dataverse.class),
-    // Delete
     //2048
     DeleteDataverse(true, true, Dataverse.class),
     //4096
     DeleteDatasetDraft(true, true, Dataset.class),
     //8192
-    ManageMinorDataset(true, true, Dataset.class);
+    ManageMinorDataset(true, true, Dataset.class),
+    //16384
+	PartialEditDataverse(true, true, Dataverse.class);
 	
     // lets's cache this for performance reasons
     private final static Permission[] values = values();

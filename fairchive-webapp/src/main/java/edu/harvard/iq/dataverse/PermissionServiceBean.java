@@ -6,6 +6,7 @@ import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Dc
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Ingest;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.Workflow;
 import static edu.harvard.iq.dataverse.persistence.dataset.DatasetLock.Reason.pidRegister;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.allRequired;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
@@ -375,9 +376,16 @@ public class PermissionServiceBean {
                 ? permissionsApplicableToObject.stream().noneMatch(Permission::requiresWrite)
                 : true;
     }
-
+    
     private boolean hasPermissionsFor(final DataverseRequest request, 
             final DvObject object, final Set<Permission> required) {
+    	return hasPermissionsFor(request, object,  required, 
+    			Permission.MatchStrategy.allRequired);
+    }
+
+    private boolean hasPermissionsFor(final DataverseRequest request, 
+            final DvObject object, final Set<Permission> required, 
+            final Permission.MatchStrategy strategy) {
     	
     	final User user = request.getUser();
         if ((this.systemConfig.isReadonlyMode() 
@@ -393,7 +401,7 @@ public class PermissionServiceBean {
         }
         final Set<RoleAssignee> ras = new HashSet<>(groupService.groupsFor(request, object));
         ras.add(user);
-        return hasGroupPermissionsFor(ras, object, required);
+        return hasGroupPermissionsFor(ras, object, required, strategy);
     }
 
     private boolean hasPermissionsFor(RoleAssignee roleAssignee, 
@@ -420,15 +428,24 @@ public class PermissionServiceBean {
 
         final Set<RoleAssignee> ras = new HashSet<>(groupService.groupsFor(roleAssignee, dvObject));
         ras.add(roleAssignee);
-        return hasGroupPermissionsFor(ras, dvObject, required);
+        return hasGroupPermissionsFor(ras, dvObject, required, allRequired);
     }
 
     private boolean hasGroupPermissionsFor(Set<RoleAssignee> roleAssignees, 
-            DvObject dvObject, Set<Permission> required) {
-        for (RoleAssignment asmnt : assignmentsFor(roleAssignees, dvObject)) {
-            required.removeAll(asmnt.getRole().permissions());
-        }
-        return required.isEmpty();
+            DvObject dvObject, Set<Permission> required, 
+            final Permission.MatchStrategy strategy) {
+    	if(strategy.equals(allRequired)) {
+	        for (RoleAssignment asmnt : assignmentsFor(roleAssignees, dvObject)) {
+	            required.removeAll(asmnt.getRole().permissions());
+	        }
+	        return required.isEmpty();
+    	} else {
+    		final HashSet<Permission> provided = new HashSet<>();
+	        for (RoleAssignment asmnt : assignmentsFor(roleAssignees, dvObject)) {
+	            provided.addAll(asmnt.getRole().permissions());
+	        }
+	        return strategy.match(required, provided);
+    	}
     }
 
     /**
@@ -543,11 +560,12 @@ public class PermissionServiceBean {
          * pages failing with "cannot convert "String" to "Set" error messages...
          * so it had to be renamed to hasPermissions(...)
          */
-        public boolean hasPermissions(Set<Permission> permissions) {
+        private boolean hasPermissions(Set<Permission> permissions, 
+        		Permission.MatchStrategy strategy) {
             if (permissions.isEmpty()) {
                 return true;
             }
-            return hasPermissionsFor(request, subject, permissions);
+            return hasPermissionsFor(request, subject, permissions, strategy);
         }
 
         /**
@@ -560,14 +578,18 @@ public class PermissionServiceBean {
          * @return {@code true} iff instances of the command class can be issued
          * in the context of the current request.
          */
-        public boolean canIssue(Class<? extends Command<?>> commandClass) {
-            Map<String, Set<Permission>> required = Command.requiredPermissions(commandClass);
+        @SuppressWarnings("rawtypes")
+		public boolean canIssue(Class<? extends Command> commandClass) {
+            final Map<String, Set<Permission>> required = 
+            		Command.requiredPermissions(commandClass);
             if (required.isEmpty() || required.get("") == null) {
                 logger.debug("IsUserAllowedOn: empty-true");
                 return true;
             } else {
-                Set<Permission> requiredPermissionSet = required.get("");
-                return hasPermissions(requiredPermissionSet);
+                final Set<Permission> requiredPermissionSet = required.get("");
+                final Permission.MatchStrategy strategy = 
+                		Command.permissionsStrategy(commandClass);
+                return hasPermissions(requiredPermissionSet, strategy);
             }
         }
 
@@ -579,14 +601,7 @@ public class PermissionServiceBean {
          * the current request.
          */
         public boolean canIssue(Command<?> command) {
-            Map<String, Set<Permission>> required = command.getRequiredPermissions();
-            if (required.isEmpty() || required.get("") == null) {
-                logger.debug("IsUserAllowedOn: empty-true");
-                return true;
-            } else {
-                Set<Permission> requiredPermissionSet = required.get("");
-                return hasPermissions(requiredPermissionSet);
-            }
+        	return canIssue(command.getClass());
         }
     }
 

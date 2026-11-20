@@ -289,6 +289,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.isInReview()).isFalse();
 		
 		// since dataverse was created by admin, it can be published
+		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
+		assertThat(this.dataversePage.dsplayEditMetadataMenuOption()).isTrue();
+		assertThat(this.dataversePage.dsplayEditGuestBooksMenuOption()).isTrue();
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isTrue();
@@ -726,6 +729,12 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		// verify dfaft  it is not visible publicly
 		this.session.logOut();
 		
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(dataverse.getId());
+		this.dataversePage.init();
+		assertThat(this.dataversePage.displayEditPublishButtons()).isFalse();
+		
+		
 		//verify solr index
 		assertThat(this.searchFragment.getSearchResultsList())
 		.hasSize(2)
@@ -749,6 +758,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		this.dataversePage.setDataverseId(dataverse.getId());
 		this.dataversePage.init();
 		this.dataversePage.releaseDataverse();
+		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
 		
 		verify(this.ui, times(0)).addErrorMessage(anyString());
 		
@@ -903,6 +913,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.isInReview()).isFalse();
 		assertThat(dataverse.isReleased()).isFalse();
 		
+		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
+		assertThat(this.dataversePage.dsplayEditMetadataMenuOption()).isFalse();
+		assertThat(this.dataversePage.dsplayEditGuestBooksMenuOption()).isFalse();
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
@@ -953,6 +966,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		// verify initial values
 		dataverse = this.dataversePage.getDataverse();
 		
+		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
+		assertThat(this.dataversePage.dsplayEditMetadataMenuOption()).isTrue();
+		assertThat(this.dataversePage.dsplayEditGuestBooksMenuOption()).isTrue();
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isTrue();
 		assertThat(this.dataversePage.displayReturnToAuthorButton()).isTrue();
@@ -996,6 +1012,9 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 
 		dataverse = this.dataversePage.getDataverse();
 
+		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
+		assertThat(this.dataversePage.dsplayEditMetadataMenuOption()).isFalse();
+		assertThat(this.dataversePage.dsplayEditGuestBooksMenuOption()).isFalse();
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
@@ -1082,6 +1101,13 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				assertThat(result.isDataset()).isFalse();
 				assertThat(result.isUnderEmbargo()).isFalse();
 			});
+		
+		// open new dataverse page
+		this.dataversePage = newDataversePage();
+		this.dataversePage.setDataverseId(dataverse.getId());
+		this.dataversePage.init();
+
+		assertThat(this.dataversePage.displayEditPublishButtons()).isFalse();
 	}
 	//--------------------------------------------------------------------------
 	@Test

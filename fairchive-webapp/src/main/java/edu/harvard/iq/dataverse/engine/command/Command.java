@@ -95,6 +95,16 @@ public interface Command<R> {
         }
     }
     
+    public static Permission.MatchStrategy permissionsStrategy(
+    		@SuppressWarnings("rawtypes") final Class<? extends Command> cmdClass) {
+    	
+        final RequiredPermissions requiredPerms = 
+        		cmdClass.getAnnotation(RequiredPermissions.class);
+        return requiredPerms != null
+        		? requiredPerms.strategy() 
+        		: Permission.MatchStrategy.allRequired;
+    }
+    
 	default void verifyPermissions(final PermissionsProvider permissionProvider) {
 
 		final Map<String, Set<Permission>> requiredPermissionsMap = getRequiredPermissions();
