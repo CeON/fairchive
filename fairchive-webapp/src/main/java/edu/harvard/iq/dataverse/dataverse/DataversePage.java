@@ -19,6 +19,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.validator.routines.EmailValidator;
 import org.omnifaces.cdi.Param;
@@ -28,9 +29,11 @@ import org.slf4j.Logger;
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionServiceBean;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
+import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
+import edu.harvard.iq.dataverse.persistence.user.Permission;
 import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
@@ -163,6 +166,17 @@ public class DataversePage implements Serializable  {
     
     public boolean disabledSubmitForReviewButton() {
     	return this.dataverse.isInReview();
+    }
+    
+    public boolean dsplayEditMetadataMenuOption() {
+    	final DataverseRequest request = new DataverseRequest(
+    			this.session.getUser(), (HttpServletRequest)null);
+    	return this.permissionService.requestOn(request, this.dataverse).
+    				has(Permission.EditDataverse);
+    }
+    
+    public boolean dsplayEditGuestBooksMenuOption() {
+    	return dsplayEditMetadataMenuOption();
     }
 
     public boolean isDataverseInReview() {
@@ -300,6 +314,7 @@ public class DataversePage implements Serializable  {
 				uiMessages.addFlashSuccessMessage(
 						getStringFromBundle("dataset.submit.success"));
 			} catch (final Exception e) {
+				logger.warn(e.getMessage(), e);
 				uiMessages.addFlashErrorMessage(
 						getStringFromBundle("dataset.submit.failure", e.getMessage()));
 			}
@@ -356,6 +371,7 @@ public class DataversePage implements Serializable  {
 				uiMessages.addFlashSuccessMessage(
 						getStringFromBundle("dataverse.reject.success"));
 			} catch (final Exception e) {
+				logger.warn(e.getMessage(), e);
 				uiMessages.addFlashErrorMessage(
 						getStringFromBundle("dataverse.reject.failure", e.getMessage()));
 			}

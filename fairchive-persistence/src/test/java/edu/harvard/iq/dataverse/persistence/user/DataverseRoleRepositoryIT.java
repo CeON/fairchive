@@ -85,9 +85,10 @@ public class DataverseRoleRepositoryIT extends PersistenceArquillianDeployment {
 		DataverseRole role = this.repository.findByAlias("collectionCustodian").get();
 
 		assertTrue(role.has(Permission.DeleteDataverse));
-		assertTrue(role.has(Permission.EditDataverse));
+		assertTrue(role.has(Permission.PartialEditDataverse));
 		assertTrue(role.has(Permission.ViewUnpublishedDataverse));
 		
+		assertFalse(role.has(Permission.EditDataverse));
 		assertFalse(role.has(Permission.AddDataset));
 		assertFalse(role.has(Permission.AddDataverse));
 		assertFalse(role.has(Permission.DeleteDatasetDraft));
