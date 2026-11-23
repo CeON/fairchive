@@ -99,6 +99,9 @@ public class HarvestingClient implements Serializable, JpaEntity<Long> {
     private boolean harvestingNow;
     private boolean deleted;
 
+    @Column(columnDefinition = "TEXT")
+    private String harvesterConfig;
+
     @Override
     public Long getId() {
         return this.id;
@@ -178,6 +181,20 @@ public class HarvestingClient implements Serializable, JpaEntity<Long> {
 
     public void setMetadataPrefix(final String prefix) {
         this.metadataPrefix = prefix;
+    }
+
+    /**
+     * Configuration of a harvester other than OAI, as JSON in the format the
+     * harvester of this {@link #getHarvestType() type} reads; {@code null}
+     * for an OAI client, which is configured by the URL, set and metadata
+     * prefix.
+     */
+    public String getHarvesterConfig() {
+        return harvesterConfig;
+    }
+
+    public void setHarvesterConfig(final String harvesterConfig) {
+        this.harvesterConfig = harvesterConfig;
     }
 
     public List<ClientHarvestRun> getRunHistory() {

@@ -27,7 +27,7 @@ import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
  */
 @Stateless
 @LocalBean
-public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterParams> {
+public class OAIHarvester implements Harvester {
 
     private ImportServiceBean importService;
     
@@ -43,19 +43,13 @@ public class OAIHarvester implements Harvester<HarvesterParams.EmptyHarvesterPar
         return HarvestType.OAI;
     }
 
-    @Override
-    public Class<HarvesterParams.EmptyHarvesterParams> getParamsClass() {
-        return HarvesterParams.EmptyHarvesterParams.class;
-    }
-
     /**
      * @param client     the harvesting client object
      * @param hdLogger             custom logger (specific to this harvesting run)
      */
     @Override
     public HarvesterResult harvest(final DataverseRequest request, 
-    		final HarvestingClient client, final Logger logger, 
-    		final HarvesterParams.EmptyHarvesterParams params) throws ImportException {
+    		final HarvestingClient client, final Logger logger) throws ImportException {
  
         try {
             logBeginOaiHarvest(logger, client);

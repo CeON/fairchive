@@ -43,7 +43,7 @@ public class DataciteDatasetMapper {
         DataCiteFindDoiResponse.Attributes attributes = response.getAttributes();
         DatasetDTO dto = new DatasetDTO();
         dto.setProtocol(GlobalId.DOI_PROTOCOL);
-        DataciteHarvesterParams.DOIValue doi = new DataciteHarvesterParams.DOIValue(attributes.getDoi());
+        DataciteHarvesterConfig.DOIValue doi = new DataciteHarvesterConfig.DOIValue(attributes.getDoi());
         dto.setAuthority(doi.getAuthority());
         dto.setIdentifier(doi.getId());
         dto.setPublisher(attributes.getPublisher());

@@ -1,5 +1,8 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import io.vavr.control.Option;
 
 import java.util.LinkedHashMap;
@@ -8,14 +11,18 @@ import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
- * Parameters used by the datacite DOI harvester.
+ * Configuration of a DataCite harvesting client: the DOIs it imports and the
+ * DataCite search whose matches it imports. Stored with the client as JSON
+ * ({@link HarvestingClient#getHarvesterConfig()}), read by the DataCite
+ * harvester on every run.
  */
-public class DataciteHarvesterParams extends HarvesterParams {
+public class DataciteHarvesterConfig {
 
-    private final static String DOI_PART_SEPARATOR = "/";
+    private static final String DOI_PART_SEPARATOR = "/";
 
     /**
      * Prefix of the DataCite paging parameters ({@code page[size]},
@@ -30,9 +37,7 @@ public class DataciteHarvesterParams extends HarvesterParams {
 
     static final String DEFAULT_RESOURCE_TYPE = "dataset";
 
-    private List<DOIValue> doiImport;
-
-    private List<DOIValue> doiRemove;
+    private List<String> dois;
 
     private Map<String, String> queryParams;
 
@@ -40,23 +45,68 @@ public class DataciteHarvesterParams extends HarvesterParams {
 
     // -------------------- GETTERS --------------------
 
-    public List<DOIValue> getDoiImport() {
-        return Option.of(doiImport).getOrElse(emptyList());
-    }
-
-    public List<DOIValue> getDoiRemove() {
-        return Option.of(doiRemove).getOrElse(emptyList());
+    /**
+     * Full DOIs imported on every run, each as {@code <authority>/<id>}.
+     */
+    public List<String> getDois() {
+        return Option.of(dois).getOrElse(emptyList());
     }
 
     /**
      * Parameters of the DataCite search whose matches are imported, sent to
      * {@code GET /dois} as they are; all of them must match (DataCite joins
-     * them with AND). Empty when the harvest imports no search.
+     * them with AND). Empty when the client imports no search.
      *
      * @see #getSearchParams()
      */
     public Map<String, String> getQueryParams() {
         return Option.of(queryParams).getOrElse(emptyMap());
+    }
+
+    /**
+     * Upper limit of the records processed from the search &ndash; imported
+     * or failed, both count; {@value #DEFAULT_MAX_RECORDS} when the
+     * configuration sets none, so that a mistaken query cannot import a large
+     * part of DataCite unnoticed.
+     */
+    public int getMaxRecords() {
+        return Option.of(maxRecords).getOrElse(DEFAULT_MAX_RECORDS);
+    }
+
+    // -------------------- LOGIC --------------------
+
+    /**
+     * Reads the configuration stored with a client.
+     *
+     * @throws IllegalArgumentException when the JSON is blank or malformed
+     */
+    public static DataciteHarvesterConfig fromJson(String json) {
+        if (isBlank(json)) {
+            throw new IllegalArgumentException("Missing DataCite harvester configuration");
+        }
+        try {
+            return new Gson().fromJson(json, DataciteHarvesterConfig.class);
+        } catch (JsonParseException e) {
+            throw new IllegalArgumentException("Malformed DataCite harvester configuration: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * The configuration as JSON, in the form {@link #fromJson(String)} reads.
+     */
+    public String toJson() {
+        return new Gson().toJson(this);
+    }
+
+    /**
+     * {@link #getDois() The DOIs} split into authority and identifier.
+     *
+     * @throws IllegalArgumentException when a DOI has no slash
+     */
+    public List<DOIValue> getDoiValues() {
+        return getDois().stream()
+                .map(DOIValue::new)
+                .collect(toList());
     }
 
     /**
@@ -72,31 +122,20 @@ public class DataciteHarvesterParams extends HarvesterParams {
     }
 
     /**
-     * Upper limit of the records processed from the search &ndash; imported
-     * or failed, both count; {@value #DEFAULT_MAX_RECORDS} when the
-     * parameters set none, so that a mistaken query cannot import a large
-     * part of DataCite unnoticed.
-     */
-    public int getMaxRecords() {
-        return Option.of(maxRecords).getOrElse(DEFAULT_MAX_RECORDS);
-    }
-
-    // -------------------- LOGIC --------------------
-
-    /**
-     * Rejects parameters that list neither DOIs nor a search, a paging
-     * parameter (the harvester pages itself), a blank search value, and a
-     * {@code maxRecords} below 1 or given without a search (it limits only the
-     * search, never the listed DOIs). Parameter names are not checked
-     * otherwise: note that DataCite silently ignores a name it does not know.
+     * Rejects a configuration that lists neither DOIs nor a search, a DOI
+     * without a slash, a paging parameter (the harvester pages itself), a
+     * blank search value, and a {@code maxRecords} below 1 or given without a
+     * search (it limits only the search, never the listed DOIs). Parameter
+     * names are not checked otherwise: note that DataCite silently ignores a
+     * name it does not know.
      *
      * @throws IllegalArgumentException naming the first problem found
      */
-    @Override
     public void validate() {
         if (hasNothingToHarvest()) {
             throw new IllegalArgumentException("Missing DOI's or query parameters");
         }
+        getDoiValues();
         for (Map.Entry<String, String> param : getQueryParams().entrySet()) {
             if (param.getKey().startsWith(PAGING_PARAM_PREFIX)) {
                 throw new IllegalArgumentException("DataCite paging parameter not allowed, the harvester pages itself: "
@@ -119,17 +158,13 @@ public class DataciteHarvesterParams extends HarvesterParams {
     // -------------------- PRIVATE --------------------
 
     private boolean hasNothingToHarvest() {
-        return getDoiImport().isEmpty() && getDoiRemove().isEmpty() && getQueryParams().isEmpty();
+        return getDois().isEmpty() && getQueryParams().isEmpty();
     }
 
     // -------------------- SETTERS --------------------
 
-    public void setDoiImport(List<DOIValue> doiImport) {
-        this.doiImport = doiImport;
-    }
-
-    public void setDoiRemove(List<DOIValue> doiRemove) {
-        this.doiRemove = doiRemove;
+    public void setDois(List<String> dois) {
+        this.dois = dois;
     }
 
     public void setQueryParams(Map<String, String> queryParams) {
@@ -142,7 +177,7 @@ public class DataciteHarvesterParams extends HarvesterParams {
 
     // -------------------- INNER CLASSES --------------------
 
-    static public class DOIValue {
+    public static class DOIValue {
         private final String authority;
         private final String id;
 

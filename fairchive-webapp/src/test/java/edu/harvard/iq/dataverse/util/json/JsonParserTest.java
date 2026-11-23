@@ -4,6 +4,9 @@
 
 package edu.harvard.iq.dataverse.util.json;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,6 +54,7 @@ import edu.harvard.iq.dataverse.api.dto.IpGroupDTO;
 import edu.harvard.iq.dataverse.authorization.groups.impl.ipaddress.IpGroupProvider;
 import edu.harvard.iq.dataverse.common.Util;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
+import edu.harvard.iq.dataverse.harvest.client.DataciteHarvesterConfig;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
 import edu.harvard.iq.dataverse.persistence.dataset.ControlledVocabularyValue;
 import edu.harvard.iq.dataverse.persistence.dataset.Dataset;
@@ -63,6 +67,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment;
 import edu.harvard.iq.dataverse.persistence.group.IpAddress;
 import edu.harvard.iq.dataverse.persistence.group.IpAddressRange;
 import edu.harvard.iq.dataverse.persistence.group.IpGroup;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.persistence.user.GuestUser;
 import edu.harvard.iq.dataverse.qualifiers.TestBean;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
@@ -537,6 +542,185 @@ public class JsonParserTest {
 		// then
 		verifyDisplayOrderAtIndex(datasetVersion, 0, 0);
 		verifyDisplayOrderAtIndex(datasetVersion, 1, 1);
+	}
+
+	@Test
+	public void parseHarvestingClient__dataciteConfig() throws JsonParseException {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"DATACITE_DOI\", \"dataciteConfig\": { \"dois\": [ \"10.5072/a\" ], "
+				+ "\"queryParams\": { \"affiliation-country\": \"PL\" }, \"maxRecords\": 5 } }");
+		HarvestingClient client = new HarvestingClient();
+
+		// when
+		sut.parseHarvestingClient(clientJson, client);
+
+		// then
+		DataciteHarvesterConfig config = DataciteHarvesterConfig.fromJson(client.getHarvesterConfig());
+		assertThat(config.getDois()).containsExactly("10.5072/a");
+		assertThat(config.getQueryParams()).containsExactly(entry("affiliation-country", "PL"));
+		assertThat(config.getMaxRecords()).isEqualTo(5);
+	}
+
+	@Test
+	public void parseHarvestingClient__dataciteConfigMissing() {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"DATACITE_DOI\" }");
+
+		// when & then
+		assertThatThrownBy(() -> sut.parseHarvestingClient(clientJson, new HarvestingClient()))
+				.isInstanceOf(JsonParseException.class)
+				.hasMessage("dataciteConfig is required for type DATACITE_DOI");
+	}
+
+	@Test
+	public void parseHarvestingClient__dataciteConfigInvalid() {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"DATACITE_DOI\", \"dataciteConfig\": { \"maxRecords\": 5 } }");
+
+		// when & then
+		assertThatThrownBy(() -> sut.parseHarvestingClient(clientJson, new HarvestingClient()))
+				.isInstanceOf(JsonParseException.class)
+				.hasMessage("Invalid dataciteConfig: Missing DOI's or query parameters");
+	}
+
+	@Test
+	public void parseHarvestingClient__dataciteConfigOfOaiClient() {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", \"dataciteConfig\": { \"dois\": [ \"10.5072/a\" ] } }");
+
+		// when & then
+		assertThatThrownBy(() -> sut.parseHarvestingClient(clientJson, new HarvestingClient()))
+				.isInstanceOf(JsonParseException.class)
+				.hasMessage("dataciteConfig applies only to type DATACITE_DOI");
+	}
+
+	@Test
+	public void parseHarvestingClient__oaiClientWithoutConfig() throws JsonParseException {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", \"harvestUrl\": \"https://example.org/oai\" }");
+		HarvestingClient client = new HarvestingClient();
+
+		// when
+		sut.parseHarvestingClient(clientJson, client);
+
+		// then
+		assertThat(client.getHarvesterConfig()).isNull();
+	}
+
+	@Test
+	public void parseHarvestingClient__weeklySchedule() throws JsonParseException {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", "
+				+ "\"schedule\": { \"period\": \"weekly\", \"hourOfDay\": 13, \"dayOfWeek\": 0 } }");
+		HarvestingClient client = new HarvestingClient();
+
+		// when
+		sut.parseHarvestingClient(clientJson, client);
+
+		// then
+		assertThat(client.isScheduled()).isTrue();
+		assertThat(client.getSchedulePeriod()).isEqualTo(HarvestingClient.SCHEDULE_PERIOD_WEEKLY);
+		assertThat(client.getScheduleHourOfDay()).isEqualTo(13);
+		assertThat(client.getScheduleDayOfWeek()).isEqualTo(0);
+	}
+
+	@Test
+	public void parseHarvestingClient__dailySchedule() throws JsonParseException {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", "
+				+ "\"schedule\": { \"period\": \"daily\", \"hourOfDay\": 0, \"dayOfWeek\": 2 } }");
+		HarvestingClient client = new HarvestingClient();
+
+		// when
+		sut.parseHarvestingClient(clientJson, client);
+
+		// then
+		assertThat(client.isScheduled()).isTrue();
+		assertThat(client.getSchedulePeriod()).isEqualTo(HarvestingClient.SCHEDULE_PERIOD_DAILY);
+		assertThat(client.getScheduleHourOfDay()).isEqualTo(0);
+		assertThat(client.getScheduleDayOfWeek()).isNull();
+	}
+
+	@Test
+	public void parseHarvestingClient__noneSchedule() throws JsonParseException {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", \"schedule\": { \"period\": \"none\" } }");
+		HarvestingClient client = givenScheduledClient();
+
+		// when
+		sut.parseHarvestingClient(clientJson, client);
+
+		// then
+		assertThat(client.isScheduled()).isFalse();
+		assertThat(client.getSchedulePeriod()).isNull();
+		assertThat(client.getScheduleHourOfDay()).isNull();
+	}
+
+	@Test
+	public void parseHarvestingClient__scheduleOmitted() throws JsonParseException {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\" }");
+		HarvestingClient client = givenScheduledClient();
+
+		// when
+		sut.parseHarvestingClient(clientJson, client);
+
+		// then
+		assertThat(client.isScheduled()).isTrue();
+		assertThat(client.getScheduleHourOfDay()).isEqualTo(3);
+	}
+
+	@Test
+	public void parseHarvestingClient__unknownSchedulePeriod() {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", \"schedule\": { \"period\": \"hourly\" } }");
+
+		// when & then
+		assertThatThrownBy(() -> sut.parseHarvestingClient(clientJson, new HarvestingClient()))
+				.isInstanceOf(JsonParseException.class)
+				.hasMessage("schedule.period must be one of none, daily, weekly, was: hourly");
+	}
+
+	@Test
+	public void parseHarvestingClient__scheduleHourOutOfRange() {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", \"schedule\": { \"period\": \"daily\", \"hourOfDay\": 24 } }");
+
+		// when & then
+		assertThatThrownBy(() -> sut.parseHarvestingClient(clientJson, new HarvestingClient()))
+				.isInstanceOf(JsonParseException.class)
+				.hasMessage("schedule.hourOfDay must be a number from 0 to 23, was: 24");
+	}
+
+	@Test
+	public void parseHarvestingClient__weeklyScheduleWithoutDay() {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", \"schedule\": { \"period\": \"weekly\", \"hourOfDay\": 1 } }");
+
+		// when & then
+		assertThatThrownBy(() -> sut.parseHarvestingClient(clientJson, new HarvestingClient()))
+				.isInstanceOf(JsonParseException.class)
+				.hasMessage("schedule.dayOfWeek must be a number from 0 to 6, was: null");
+	}
+
+	@Test
+	public void parseHarvestingClient__weeklyScheduleDayOutOfRange() {
+		// given
+		JsonObject clientJson = json("{ \"type\": \"OAI\", "
+				+ "\"schedule\": { \"period\": \"weekly\", \"hourOfDay\": 1, \"dayOfWeek\": 7 } }");
+
+		// when & then
+		assertThatThrownBy(() -> sut.parseHarvestingClient(clientJson, new HarvestingClient()))
+				.isInstanceOf(JsonParseException.class)
+				.hasMessage("schedule.dayOfWeek must be a number from 0 to 6, was: 7");
+	}
+
+	private HarvestingClient givenScheduledClient() {
+		HarvestingClient client = new HarvestingClient();
+		client.setScheduled(true);
+		client.setSchedulePeriod(HarvestingClient.SCHEDULE_PERIOD_DAILY);
+		client.setScheduleHourOfDay(3);
+		return client;
 	}
 
 	JsonObject json(String s) {

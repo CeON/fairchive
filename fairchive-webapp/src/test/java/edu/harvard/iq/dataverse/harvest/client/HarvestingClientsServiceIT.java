@@ -5,6 +5,7 @@ import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
 import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestType;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
@@ -17,6 +18,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,6 +66,24 @@ public class HarvestingClientsServiceIT extends WebappArquillianDeployment {
         assertEquals(HarvestingClient.SCHEDULE_PERIOD_WEEKLY, dbHarvestingClient.getSchedulePeriod());
         assertEquals(7, dbHarvestingClient.getScheduleDayOfWeek().intValue());
         assertEquals(12, dbHarvestingClient.getScheduleHourOfDay().intValue());
+    }
+
+    @Test
+    public void createHarvestingClient__dataciteConfig() {
+        // given
+        HarvestingClient newHarvestingClient = createHarvestingClient();
+        newHarvestingClient.setHarvestType(HarvestType.DATACITE_DOI);
+        newHarvestingClient.setHarvesterConfig("{\"dois\":[\"10.5072/a\"]}");
+
+        // when
+        harvestingClientsService.createHarvestingClient(newHarvestingClient);
+        em.flush();
+        em.clear();
+
+        // then
+        HarvestingClient dbHarvestingClient = harvestingClientService.findByNickname("newNickname");
+        assertThat(dbHarvestingClient.getHarvestType()).isEqualTo(HarvestType.DATACITE_DOI);
+        assertThat(dbHarvestingClient.getHarvesterConfig()).isEqualTo("{\"dois\":[\"10.5072/a\"]}");
     }
 
     @Test

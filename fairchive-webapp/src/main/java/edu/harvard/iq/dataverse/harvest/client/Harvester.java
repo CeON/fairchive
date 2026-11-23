@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 /**
  * Harvester implementations of a harvest type.
  */
-public interface Harvester<T extends HarvesterParams> {
+public interface Harvester {
 
     /**
      * What type of harvest the concrete harvester is handling.
@@ -18,16 +18,9 @@ public interface Harvester<T extends HarvesterParams> {
     HarvestType harvestType();
 
     /**
-     * The params class the harvester is expecting.
+     * Perform the harvest using the configuration stored with the client.
      */
-    Class<T> getParamsClass();
-
-    /**
-     * Perform the harvest using the provided client configuration and parameters.
-     *
-     * @param params: Parameters to use for the harvest. Implementations may require specific parameters.
-     */
-    HarvesterResult harvest(DataverseRequest dataverseRequest, 
-    		HarvestingClient harvestingClient, Logger hdLogger, T params)
+    HarvesterResult harvest(DataverseRequest dataverseRequest,
+            HarvestingClient harvestingClient, Logger hdLogger)
             throws ImportException;
 }

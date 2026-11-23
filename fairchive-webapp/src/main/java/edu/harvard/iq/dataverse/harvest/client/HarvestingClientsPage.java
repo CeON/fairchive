@@ -38,6 +38,7 @@ import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandlerException;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestStyle;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestType;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.timer.DataverseTimerServiceBean;
 import edu.harvard.iq.dataverse.util.JsfHelper;
@@ -215,7 +216,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
     public void runHarvest(HarvestingClient harvestingClient) {
         try {
             DataverseRequest dataverseRequest = new DataverseRequest(session.getUser(), (HttpServletRequest) null);
-            harvesterService.doAsyncHarvest(dataverseRequest, harvestingClient, HarvesterParams.empty());
+            harvesterService.doAsyncHarvest(dataverseRequest, harvestingClient);
         } catch (Exception ex) {
             String failMessage = getStringFromBundle("harvest.start.error");
             JsfHelper.addErrorMessage(failMessage);
@@ -748,6 +749,35 @@ public class HarvestingClientsPage implements java.io.Serializable {
      */
     public boolean displayOaiSetsHelpText() {
         return isCreateMode() && (skipOaiSets || hasOaiSets());
+    }
+
+    /**
+     * Label of the harvest type of a client, shown in the Type column of the
+     * clients table.
+     */
+    public String getHarvestTypeLabel(HarvestingClient harvestingClient) {
+        return getStringFromBundle("harvestclients.type." + harvestingClient.getHarvestType());
+    }
+
+    /**
+     * Returns true if the clients table shows the harvesting URL of a client,
+     * which only an OAI client has.
+     */
+    public boolean displayHarvestingUrl(HarvestingClient harvestingClient) {
+        return harvestingClient.getHarvestType() == HarvestType.OAI;
+    }
+
+    /**
+     * Returns true if the edit button of a client is shown disabled: while
+     * the client is being harvested or deleted, and for a DataCite client,
+     * since the edit form is the OAI one and a DataCite client is edited
+     * through the API only. The DataCite part is temporary, until the page
+     * gets a form for DataCite clients.
+     */
+    public boolean disableEditButton(HarvestingClient harvestingClient) {
+        return harvestingClient.isHarvestingNow()
+                || harvestingClient.isDeleteInProgress()
+                || harvestingClient.getHarvestType() != HarvestType.OAI;
     }
 
     /**

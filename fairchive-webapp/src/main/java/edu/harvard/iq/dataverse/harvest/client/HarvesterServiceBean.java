@@ -3,7 +3,6 @@ package edu.harvard.iq.dataverse.harvest.client;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Logger.getLogger;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +21,6 @@ import javax.ejb.Stateless;
 import javax.faces.bean.ManagedBean;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
-import com.google.gson.Gson;
 
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
@@ -46,7 +43,7 @@ public class HarvesterServiceBean {
     @EJB
     private DataciteDOIHarvester dataciteDOIHarvester;
 
-    private final Map<HarvestType, Harvester<?>> harvesterMap = new HashMap<>();
+    private final Map<HarvestType, Harvester> harvesterMap = new HashMap<>();
 
     private static final Logger logger = getLogger(HarvesterServiceBean.class.getName());
     private static final SimpleDateFormat logFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH-mm-ss");
@@ -67,11 +64,10 @@ public class HarvesterServiceBean {
      * Called to run an "On Demand" harvest.
      */
     @Asynchronous
-    public void doAsyncHarvest(final DataverseRequest request, 
-    		final HarvestingClient client, final HarvesterParams params) {
+    public void doAsyncHarvest(final DataverseRequest request, final HarvestingClient client) {
 
         try {
-            doHarvest(request, client.getId(), params);
+            doHarvest(request, client.getId());
         } catch (final Exception e) {
             logger.info("Caught exception running an asynchronous harvest (dataverse \"" + 
             			client.getName() + "\")");
@@ -85,8 +81,7 @@ public class HarvesterServiceBean {
      * @param harvestingClientId
      * @throws IOException
      */
-    public <T extends HarvesterParams> void doHarvest(final DataverseRequest request, 
-    		final Long harvestingClientId, final HarvesterParams params) 
+    public void doHarvest(final DataverseRequest request, final Long harvestingClientId)
     				throws IOException {
     	
         final HarvestingClient client = harvestingClientService.find(harvestingClientId);
@@ -115,9 +110,7 @@ public class HarvesterServiceBean {
                 this.harvestingClientService.resetHarvestInProgress(harvestingClientId);
                 this.harvestingClientService.setHarvestInProgress(harvestingClientId, new Date());
 
-                final Harvester<T> harvester = resolveHarvester(client);
-                final HarvesterResult result = harvester.harvest(request, 
-                		client, hdLogger, params.getParams(harvester.getParamsClass()));
+                final HarvesterResult result = resolveHarvester(client).harvest(request, client, hdLogger);
 
                 this.harvestingClientService.setHarvestSuccess(harvestingClientId,
                 		new Date(), result.getNumHarvested(), result.getNumFailed(), 
@@ -149,21 +142,14 @@ public class HarvesterServiceBean {
         }
     }
 
-    public HarvesterParams parseParams(final HarvestingClient client, final String paramsJson) {
-        return isBlank(paramsJson)
-            ? HarvesterParams.empty()
-            : new Gson().fromJson(paramsJson, resolveHarvester(client).getParamsClass());
-    }
-
     // -------------------- PRIVATE --------------------
 
-    @SuppressWarnings("unchecked")
-    private <T extends HarvesterParams> Harvester<T> resolveHarvester(final HarvestingClient client) {
-        final Harvester<?> harvester = this.harvesterMap.get(client.getHarvestType());
+    private Harvester resolveHarvester(final HarvestingClient client) {
+        final Harvester harvester = this.harvesterMap.get(client.getHarvestType());
         if (harvester == null) {
             throw new IllegalStateException("Unsupported harvest type");
         }
 
-        return (Harvester<T>) harvester;
+        return harvester;
     }
 }
