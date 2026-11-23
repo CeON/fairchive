@@ -290,8 +290,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		// since dataverse was created by admin, it can be published
 		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
-		assertThat(this.dataversePage.dsplayEditMetadataMenuOption()).isTrue();
-		assertThat(this.dataversePage.dsplayEditGuestBooksMenuOption()).isTrue();
+		assertThat(this.dataversePage.displayEditMetadataMenuOption()).isTrue();
+		assertThat(this.dataversePage.displayEditGuestBooksMenuOption()).isTrue();
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isTrue();
@@ -914,8 +914,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(dataverse.isReleased()).isFalse();
 		
 		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
-		assertThat(this.dataversePage.dsplayEditMetadataMenuOption()).isFalse();
-		assertThat(this.dataversePage.dsplayEditGuestBooksMenuOption()).isFalse();
+		assertThat(this.dataversePage.displayEditMetadataMenuOption()).isFalse();
+		assertThat(this.dataversePage.displayEditGuestBooksMenuOption()).isFalse();
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
@@ -967,8 +967,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		dataverse = this.dataversePage.getDataverse();
 		
 		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
-		assertThat(this.dataversePage.dsplayEditMetadataMenuOption()).isTrue();
-		assertThat(this.dataversePage.dsplayEditGuestBooksMenuOption()).isTrue();
+		assertThat(this.dataversePage.displayEditMetadataMenuOption()).isTrue();
+		assertThat(this.dataversePage.displayEditGuestBooksMenuOption()).isTrue();
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isTrue();
 		assertThat(this.dataversePage.displayReturnToAuthorButton()).isTrue();
@@ -1013,8 +1013,8 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		dataverse = this.dataversePage.getDataverse();
 
 		assertThat(this.dataversePage.displayEditPublishButtons()).isTrue();
-		assertThat(this.dataversePage.dsplayEditMetadataMenuOption()).isFalse();
-		assertThat(this.dataversePage.dsplayEditGuestBooksMenuOption()).isFalse();
+		assertThat(this.dataversePage.displayEditMetadataMenuOption()).isFalse();
+		assertThat(this.dataversePage.displayEditGuestBooksMenuOption()).isFalse();
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
