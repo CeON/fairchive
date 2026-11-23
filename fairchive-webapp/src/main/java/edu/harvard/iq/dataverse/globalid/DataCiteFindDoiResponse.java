@@ -51,6 +51,9 @@ public class DataCiteFindDoiResponse {
         private int citationCount;
 
         @JsonProperty
+        private String doi;
+
+        @JsonProperty
         private String prefix;
 
         @JsonProperty
@@ -90,6 +93,10 @@ public class DataCiteFindDoiResponse {
 
         public int getCitationCount() {
             return citationCount;
+        }
+
+        public String getDoi() {
+            return doi;
         }
 
         public String getPrefix() {
@@ -144,6 +151,10 @@ public class DataCiteFindDoiResponse {
 
         public void setCitationCount(int citationCount) {
             this.citationCount = citationCount;
+        }
+
+        public void setDoi(String doi) {
+            this.doi = doi;
         }
 
         public void setPrefix(String prefix) {

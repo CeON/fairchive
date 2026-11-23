@@ -246,6 +246,7 @@ public class HarvestingClients extends AbstractApiBean {
 
             DataverseRequest dataverseRequest = createDataverseRequest(superuser);
             HarvesterParams params = harvesterService.parseParams(harvestingClient, paramsJson);
+            params.validate();
             harvesterService.doAsyncHarvest(dataverseRequest, harvestingClient, params);
 
         } catch (Exception e) {

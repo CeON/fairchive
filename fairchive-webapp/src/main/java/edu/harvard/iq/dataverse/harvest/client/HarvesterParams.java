@@ -17,6 +17,15 @@ public abstract class HarvesterParams {
         return paramsClass.cast(this);
     }
 
+    /**
+     * Checks the parameters before a harvest starts. Accepts anything by
+     * default; a harvester with constraints on its parameters overrides it.
+     *
+     * @throws IllegalArgumentException naming what is wrong
+     */
+    public void validate() {
+    }
+
     public static class EmptyHarvesterParams extends HarvesterParams {
     }
 }
