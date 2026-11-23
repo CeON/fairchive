@@ -30,6 +30,8 @@ import org.omnifaces.cdi.ViewScoped;
 import org.primefaces.PrimeFaces;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
@@ -50,6 +52,8 @@ import edu.harvard.iq.dataverse.util.UIMessages;
 @ViewScoped
 @Named("CreateEditDataversePage")
 public class CreateEditDataversePage implements Serializable {
+	
+	private final static Logger log = LoggerFactory.getLogger(CreateEditDataversePage.class);
 
     private DataverseService dataverseService;
     private PermissionsWrapper permissionsWrapper;
@@ -496,10 +500,12 @@ public class CreateEditDataversePage implements Serializable {
                     this.config.getGuidesVersion()));
         	return returnRedirect();
     	} catch(final CommandException e) {
+    		log.warn(e.getMessage(), e);
             this.ui.addErrorMessage(getStringFromBundle("dataverse.save.failed"),
                     				  getStringFromBundle("dataverse.theme.failure"));
             return EMPTY;
         }  catch(final Exception e) {
+        	log.warn(e.getMessage(), e);
         	this.ui.addErrorMessage(e.getMessage(), EMPTY);
         	return EMPTY;
         } finally {

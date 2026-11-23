@@ -7,6 +7,7 @@ import static edu.harvard.iq.dataverse.notification.NotificationParameter.REQUES
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseLock.Reason.InReview;
 import static edu.harvard.iq.dataverse.persistence.user.NotificationType.SUBMITTEDDV;
 import static edu.harvard.iq.dataverse.persistence.user.Permission.PublishDataverse;
+import static edu.harvard.iq.dataverse.persistence.user.Permission.MatchStrategy.atLeastOneRequired;
 import static java.time.Instant.now;
 
 import java.sql.Timestamp;
@@ -25,7 +26,8 @@ import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
 import edu.harvard.iq.dataverse.persistence.user.Permission;
 
 @SuppressWarnings("serial")
-@RequiredPermissions(Permission.EditDataverse)
+@RequiredPermissions(value = {Permission.EditDataverse, Permission.PartialEditDataverse},
+					 strategy = atLeastOneRequired)
 public class SubmitDataverseForReviewCommand extends AbstractCommand<Dataverse> {
 
 	private Dataverse dataverse;
