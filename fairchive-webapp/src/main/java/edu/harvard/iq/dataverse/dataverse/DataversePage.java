@@ -168,15 +168,15 @@ public class DataversePage implements Serializable  {
     	return this.dataverse.isInReview();
     }
     
-    public boolean dsplayEditMetadataMenuOption() {
+    public boolean displayEditMetadataMenuOption() {
     	final DataverseRequest request = new DataverseRequest(
     			this.session.getUser(), (HttpServletRequest)null);
     	return this.permissionService.requestOn(request, this.dataverse).
     				has(Permission.EditDataverse);
     }
     
-    public boolean dsplayEditGuestBooksMenuOption() {
-    	return dsplayEditMetadataMenuOption();
+    public boolean displayEditGuestBooksMenuOption() {
+    	return displayEditMetadataMenuOption();
     }
 
     public boolean isDataverseInReview() {

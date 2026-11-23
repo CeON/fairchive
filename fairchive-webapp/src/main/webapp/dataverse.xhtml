@@ -224,7 +224,7 @@
                                             <h:outputText value="#{bundle['dataverse.option.generalInfo']}"/>
                                         </h:link>
                                     </li>
-                                    <li jsf:rendered="#{DataversePage.dsplayEditMetadataMenuOption()}" 
+                                    <li jsf:rendered="#{DataversePage.displayEditMetadataMenuOption()}" 
                                         role="none">
                                         <h:link outcome="metadata" 
                                                id="metadataOpts" 
@@ -293,7 +293,7 @@
                                         </h:link>
                                     </li>
                                     <li role="none" 
-                                        jsf:rendered="#{DataversePage.dsplayEditGuestBooksMenuOption() and !settingsWrapper.rsyncOnly}">
+                                        jsf:rendered="#{DataversePage.displayEditGuestBooksMenuOption() and !settingsWrapper.rsyncOnly}">
                                         <h:link id="manageGuestbooks" 
                                                 styleClass="ui-commandlink ui-widget"
                                                 outcome="manage-guestbooks"
