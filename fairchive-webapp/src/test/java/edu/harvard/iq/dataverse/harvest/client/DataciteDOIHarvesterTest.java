@@ -220,11 +220,7 @@ public class DataciteDOIHarvesterTest {
     public void harvest__query_defaultMaxRecords() throws ImportException, IOException {
         // given
         Map<String, String> query = singletonMap("affiliation-country", "PL");
-        DataciteHarvesterParams.DOIValue[] fullPage = new DataciteHarvesterParams.DOIValue[1000];
-        for (int i = 0; i < fullPage.length; i++) {
-            fullPage[i] = newDOI("10.5072/record-" + i);
-        }
-        when(dataCiteRestApiClient.searchDois(datasetsOnly(query), "1", 1000)).thenReturn(page(80000000, "c2", fullPage));
+        when(dataCiteRestApiClient.searchDois(datasetsOnly(query), "1", 1000)).thenReturn(page(80000000, "c2", givenDois(0, 1000)));
         DataciteHarvesterParams params = new DataciteHarvesterParams();
         params.setQueryParams(query);
 
@@ -234,6 +230,46 @@ public class DataciteDOIHarvesterTest {
         // then
         verify(dataCiteRestApiClient, never()).searchDois(any(), eq("c2"), anyInt());
         assertThat(result.getNumHarvested()).isEqualTo(1000);
+    }
+
+    @Test
+    public void harvest__query_maxRecordsWithinLaterPage() throws ImportException, IOException {
+        // given
+        Map<String, String> query = singletonMap("affiliation-country", "PL");
+        when(dataCiteRestApiClient.searchDois(datasetsOnly(query), "1", 1000))
+                .thenReturn(page(5000, "c2", givenDois(0, 1000)));
+        when(dataCiteRestApiClient.searchDois(datasetsOnly(query), "c2", 1000))
+                .thenReturn(page(5000, "c3", givenDois(1000, 1000)));
+        DataciteHarvesterParams params = new DataciteHarvesterParams();
+        params.setQueryParams(query);
+        params.setMaxRecords(1500);
+
+        // when
+        HarvesterResult result = dataciteDOIHarvester.harvest(dataverseRequest(), harvestingClient, Logger.getLogger("test"), params);
+
+        // then
+        verify(importService, never()).doImportHarvestedDataset(any(), any(), eq("10.5072/record-1500"), any(DatasetDTO.class));
+        verify(dataCiteRestApiClient, never()).searchDois(any(), eq("c3"), anyInt());
+        assertThat(result.getNumHarvested()).isEqualTo(1500);
+    }
+
+    @Test
+    public void harvest__query_emptyPageWithNextCursor() throws ImportException, IOException {
+        // given
+        Map<String, String> query = singletonMap("affiliation-country", "PL");
+        when(dataCiteRestApiClient.searchDois(datasetsOnly(query), "1", 1000))
+                .thenReturn(page(1, "c2", DOI_REPO.get(0)));
+        when(dataCiteRestApiClient.searchDois(datasetsOnly(query), "c2", 1000))
+                .thenReturn(page(1, "c3"));
+        DataciteHarvesterParams params = new DataciteHarvesterParams();
+        params.setQueryParams(query);
+
+        // when
+        HarvesterResult result = dataciteDOIHarvester.harvest(dataverseRequest(), harvestingClient, Logger.getLogger("test"), params);
+
+        // then
+        verify(dataCiteRestApiClient, never()).searchDois(any(), eq("c3"), anyInt());
+        assertThat(result.getNumHarvested()).isEqualTo(1);
     }
 
     @Test
@@ -316,6 +352,14 @@ public class DataciteDOIHarvesterTest {
             page.getLinks().setNext("https://api.datacite.org/dois?page%5Bcursor%5D=" + nextCursor + "&page%5Bsize%5D=2");
         }
         return page;
+    }
+
+    private DataciteHarvesterParams.DOIValue[] givenDois(int first, int count) {
+        DataciteHarvesterParams.DOIValue[] dois = new DataciteHarvesterParams.DOIValue[count];
+        for (int i = 0; i < count; i++) {
+            dois[i] = newDOI("10.5072/record-" + (first + i));
+        }
+        return dois;
     }
 
     private static Map<String, String> datasetsOnly(Map<String, String> query) {

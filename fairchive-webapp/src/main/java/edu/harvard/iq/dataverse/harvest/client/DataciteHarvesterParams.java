@@ -1,7 +1,6 @@
 package edu.harvard.iq.dataverse.harvest.client;
 
 import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Parameters used by the datacite DOI harvester.
@@ -102,7 +102,7 @@ public class DataciteHarvesterParams extends HarvesterParams {
                 throw new IllegalArgumentException("DataCite paging parameter not allowed, the harvester pages itself: "
                         + param.getKey());
             }
-            if (StringUtils.isBlank(param.getValue())) {
+            if (isBlank(param.getValue())) {
                 throw new IllegalArgumentException("Empty value of DataCite query parameter: " + param.getKey());
             }
         }

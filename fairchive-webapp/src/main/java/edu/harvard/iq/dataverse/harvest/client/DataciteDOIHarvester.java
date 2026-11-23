@@ -13,11 +13,13 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static edu.harvard.iq.dataverse.globalid.DataCiteRestApiClient.FIRST_CURSOR;
 import static edu.harvard.iq.dataverse.globalid.DataCiteRestApiClient.MAX_PAGE_SIZE;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Harvests records from the DataCite REST API: the DOIs listed in the
@@ -110,17 +112,12 @@ public class DataciteDOIHarvester implements Harvester<DataciteHarvesterParams> 
                 hdLogger.info("DataCite query " + params.getSearchParams() + " matches "
                         + page.getMeta().getTotal() + " records; importing at most " + params.getMaxRecords());
             }
-            if (page.getData().isEmpty()) {
-                break;
-            }
-            for (DataCiteFindDoiResponse record : page.getData()) {
-                if (processed >= params.getMaxRecords()) {
-                    break;
-                }
-                importQueryResult(rs, dataverseRequest, harvestingClient, hdLogger, record);
-                processed++;
-            }
-            cursor = DataCiteRestApiClient.nextCursor(page).orElse(null);
+            List<DataCiteFindDoiResponse> records = page.getData().stream()
+                    .limit(params.getMaxRecords() - processed)
+                    .collect(toList());
+            records.forEach(record -> importQueryResult(rs, dataverseRequest, harvestingClient, hdLogger, record));
+            processed += records.size();
+            cursor = records.isEmpty() ? null : DataCiteRestApiClient.nextCursor(page).orElse(null);
         }
     }
 
