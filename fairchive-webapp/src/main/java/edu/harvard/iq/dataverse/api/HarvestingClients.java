@@ -5,13 +5,13 @@ import edu.harvard.iq.dataverse.api.annotations.ApiWriteOperation;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.impl.CreateHarvestingClientCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateHarvestingClientCommand;
-import edu.harvard.iq.dataverse.harvest.client.HarvesterParams;
 import edu.harvard.iq.dataverse.harvest.client.HarvesterServiceBean;
 import edu.harvard.iq.dataverse.harvest.client.HarvestingClientDao;
 import edu.harvard.iq.dataverse.harvest.client.HarvestingClientsService;
 import edu.harvard.iq.dataverse.persistence.dataverse.Dataverse;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUser;
+import edu.harvard.iq.dataverse.timer.DataverseTimerServiceBean;
 import edu.harvard.iq.dataverse.util.json.JsonParseException;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -39,6 +39,7 @@ import static edu.harvard.iq.dataverse.common.NullSafeJsonBuilder.jsonObjectBuil
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Stateless
 @Path("harvest/clients")
@@ -53,6 +54,8 @@ public class HarvestingClients extends AbstractApiBean {
     HarvestingClientDao harvestingClientDao;
     @EJB
     HarvestingClientsService harvestingClientsService;
+    @EJB
+    DataverseTimerServiceBean dataverseTimerService;
 
     private static final Logger logger = Logger.getLogger(HarvestingClients.class.getName());
 
@@ -211,6 +214,9 @@ public class HarvestingClients extends AbstractApiBean {
                     nickName + " belongs to the dataverse " + ownerDataverseAlias);
             }
             HarvestingClient managedHarvestingClient = execCommand(new UpdateHarvestingClientCommand(req, harvestingClient));
+            if (!managedHarvestingClient.isScheduled()) {
+                dataverseTimerService.removeHarvestTimer(managedHarvestingClient);
+            }
             return created("/datasets/" + nickName, harvestingConfigAsJson(managedHarvestingClient));
 
         } catch (JsonParseException ex) {
@@ -225,17 +231,22 @@ public class HarvestingClients extends AbstractApiBean {
 
 
     /**
-     * This POST starts a new harvesting run:
+     * This POST starts a new harvesting run, configured by the client alone:
+     * a request body is rejected.
      */
     @POST
     @ApiWriteOperation
     @Path("{nickName}/run")
-    public Response startHarvestingJob(String paramsJson, 
+    public Response startHarvestingJob(String requestBody, 
             @PathParam("nickName") String clientNickname, 
             @QueryParam("key") String apiKey) 
                     throws WrappedResponse {
 
         AuthenticatedUser superuser = findSuperuserOrDie();
+
+        if (isNotBlank(requestBody)) {
+            return error(BAD_REQUEST, "Parameters are not accepted.");
+        }
 
         try {
             HarvestingClient harvestingClient = harvestingClientDao.findByNickname(clientNickname);
@@ -245,9 +256,7 @@ public class HarvestingClients extends AbstractApiBean {
             }
 
             DataverseRequest dataverseRequest = createDataverseRequest(superuser);
-            HarvesterParams params = harvesterService.parseParams(harvestingClient, paramsJson);
-            params.validate();
-            harvesterService.doAsyncHarvest(dataverseRequest, harvestingClient, params);
+            harvesterService.doAsyncHarvest(dataverseRequest, harvestingClient);
 
         } catch (Exception e) {
             return error(BAD_REQUEST, "Exception thrown when running harvesting client\"" + 
@@ -269,6 +278,7 @@ public class HarvestingClients extends AbstractApiBean {
                 add("archiveUrl", harvestingConfig.getArchiveUrl()).
                 add("metadataFormat", harvestingConfig.getMetadataPrefix()).
                 add("set", harvestingConfig.getHarvestingSet() == null ? "N/A" : harvestingConfig.getHarvestingSet()).
+                add("dataciteConfig", Option.of(harvestingConfig.getHarvesterConfig()).map(HarvestingClients::readJsonObject).getOrNull()).
                 add("schedule", harvestingConfig.isScheduled() ? harvestingConfig.getScheduleDescription() : "none").
                 add("status", harvestingConfig.isHarvestingNow() ? "inProgress" : "inActive").
                 add("lastHarvest", harvestingConfig.getLastHarvestTime() == null ? "N/A" : harvestingConfig.getLastHarvestTime().toString()).
@@ -278,5 +288,11 @@ public class HarvestingClients extends AbstractApiBean {
                 add("lastDatasetsHarvested", harvestingConfig.getLastHarvestedDatasetCount() == null ? "N/A" : harvestingConfig.getLastHarvestedDatasetCount().toString()).
                 add("lastDatasetsDeleted", harvestingConfig.getLastDeletedDatasetCount() == null ? "N/A" : harvestingConfig.getLastDeletedDatasetCount().toString()).
                 add("lastDatasetsFailed", harvestingConfig.getLastFailedDatasetCount() == null ? "N/A" : harvestingConfig.getLastFailedDatasetCount().toString());
+    }
+
+    private static JsonObject readJsonObject(String json) {
+        try (StringReader reader = new StringReader(json)) {
+            return Json.createReader(reader).readObject();
+        }
     }
 }

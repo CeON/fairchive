@@ -30,14 +30,10 @@
                                 rendered="#{empty harvestingClientsPage.configuredHarvestingClients}">
                         <div class="row">
                             <div class="col-sm-12 text-right">
-                                <p:commandLink type="button" 
-                                               id="addClientEmpty" 
-                                               styleClass="btn btn-default margin-bottom"
-                                               actionListener="#{harvestingClientsPage.initNewClient}"
-                                               update=":harvestingClientsForm:newHarvestingClientDialog"
-                                               oncomplete="primeFacesShowModal('newHarvestingClientForm', this);handleResizeDialog('newHarvestingClientDialog');">
-                                    <span class="glyphicon glyphicon-plus"/> #{bundle['harvestclients.btn.add']}
-                                </p:commandLink>
+                                <ui:include src="harvestclients-add-button-fragment.xhtml">
+                                    <ui:param name="idPrefix" value="addClientEmpty"/>
+                                    <ui:param name="styleClass" value="margin-bottom"/>
+                                </ui:include>
                             </div>
                         </div>
                         <div class="row">
@@ -77,8 +73,8 @@
                                  rendered="#{!empty harvestingClientsPage.configuredHarvestingClients}">
 
                         <f:facet name="header">
-                            <div class="row">
-                                <div class="col-sm-6 text-left">
+                            <div>
+                                <div class="text-left">
                                     <ui:remove>
                                     <!-- Filter feature removed -->
                                     <div id="datatable_filter" 
@@ -93,44 +89,45 @@
                                     </div>
                                     </ui:remove>
                                 </div>
-                                <div class="col-sm-6 text-right">
+                                <div class="text-right">
                                     <div id="datatable_length" 
                                          class="dataTables_length">
                                         <!-- FIXME -->
                                         <!-- removed render logic {harvestingClientsPage.dataverseId != null} -->
-                                        <p:commandLink style="margin-left:1em;" 
-                                                       type="button"
-                                                       id="addClient"
-                                                       styleClass="btn btn-default"
-                                                       actionListener="#{harvestingClientsPage.initNewClient}"
-                                                       update=":harvestingClientsForm:newHarvestingClientDialog"
-                                                       oncomplete="primeFacesShowModal('newHarvestingClientForm', this);handleResizeDialog('newHarvestingClientDialog');">
-                                             <span class="glyphicon glyphicon-plus"/> #{bundle['harvestclients.btn.add']}
-                                         </p:commandLink>
+                                        <ui:include src="harvestclients-add-button-fragment.xhtml">
+                                            <ui:param name="idPrefix" value="addClient"/>
+                                        </ui:include>
                                     </div>
                                 </div>
                             </div>
                         </f:facet>
 
-                        <p:column width="30%" 
+                        <p:column width="24%" 
                                   headerText="#{bundle['harvestclients.tab.header.name']}/#{bundle['harvestclients.tab.header.url']}">
                             <h:outputText value="#{harvestClient.name}" />
-                            <div class="text-muted small">
+                            <h:panelGroup layout="block"
+                                          styleClass="text-muted small"
+                                          rendered="#{harvestingClientsPage.displayHarvestingUrl(harvestClient)}">
                                 <h:outputText value="#{harvestClient.harvestingUrl}"/>
-                            </div>
+                            </h:panelGroup>
                         </p:column>
-                        <p:column width="17%" headerText="Dataverse">
+                        <p:column width="12%"
+                                  class="text-center"
+                                  headerText="#{bundle['harvestclients.tab.header.type']}">
+                            <h:outputText value="#{harvestingClientsPage.getHarvestTypeLabel(harvestClient)}" />
+                        </p:column>
+                        <p:column width="15%" headerText="Dataverse">
                             <h:outputLink value="/dataverse/#{harvestClient.dataverse.alias}" 
                                           title="#{harvestClient.dataverse.displayName}">
                                 <h:outputText value="#{harvestClient.dataverse.displayName}" />
                             </h:outputLink>
                         </p:column>
-                        <p:column width="19%" 
+                        <p:column width="17%" 
                                   class="text-center" 
                                   headerText="#{bundle['harvestclients.tab.header.lastrun']}">
                             <h:outputText value="#{harvestClient.lastRun.startTime}" />
                         </p:column>
-                        <p:column width="19%" 
+                        <p:column width="17%" 
                                   class="text-center" 
                                   headerText="#{bundle['harvestclients.tab.header.lastresults']}">
                             <h:outputText value="#{harvestClient.lastRun.detailedResultLabel}" />
@@ -152,7 +149,7 @@
                                     </p:commandLink>
                                     <p:commandLink type="button" 
                                                    styleClass="btn btn-default bootstrap-button-tooltip"
-                                                   disabled="#{harvestClient.harvestingNow or harvestClient.deleteInProgress}"
+                                                   disabled="#{harvestingClientsPage.disableEditButton(harvestClient)}"
                                                    action="#{harvestingClientsPage.editClient(harvestClient)}"
                                                    oncomplete="primeFacesShowModal('newHarvestingClientForm', this);handleResizeDialog('newHarvestingClientDialog');"
                                                    update=":harvestingClientsForm,:harvestingClientsForm:newHarvestingClientDialog"

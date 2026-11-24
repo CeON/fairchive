@@ -1,0 +1,48 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui">
+    <!--
+        The "Add Client" split button of the harvesting clients page: the
+        button itself creates an OAI client, its menu lets the type of the
+        new client be chosen. Used both above the clients table and on the
+        page without clients.
+        Parameters:
+        idPrefix   - prefix of the ids of the links, unique on the page
+        styleClass - extra classes of the button group
+    -->
+    <div class="btn-group #{styleClass}">
+        <p:commandLink type="button"
+                       id="#{idPrefix}"
+                       styleClass="btn btn-default"
+                       actionListener="#{harvestingClientsPage.initNewClient}"
+                       update=":harvestingClientsForm:newHarvestingClientDialog"
+                       oncomplete="primeFacesShowModal('newHarvestingClientForm', this);handleResizeDialog('newHarvestingClientDialog');">
+            <span class="glyphicon glyphicon-plus"/> #{bundle['harvestclients.btn.add']}
+        </p:commandLink>
+        <button type="button"
+                class="btn btn-default dropdown-toggle"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            <span class="caret"/>
+            <span class="sr-only">#{bundle['harvestclients.btn.add.toggle']}</span>
+        </button>
+        <ul class="dropdown-menu pull-right text-left" role="menu">
+            <li>
+                <p:commandLink id="#{idPrefix}Oai"
+                               actionListener="#{harvestingClientsPage.initNewClient}"
+                               update=":harvestingClientsForm:newHarvestingClientDialog"
+                               oncomplete="primeFacesShowModal('newHarvestingClientForm', this);handleResizeDialog('newHarvestingClientDialog');">
+                    #{bundle['harvestclients.type.OAI']}
+                </p:commandLink>
+            </li>
+            <!-- Disabled until the page gets a form for DataCite clients -->
+            <li class="disabled">
+                <a href="#" aria-disabled="true" tabindex="-1" onclick="return false;">
+                    #{bundle['harvestclients.type.DATACITE_DOI']}
+                </a>
+            </li>
+        </ul>
+    </div>
+</ui:composition>

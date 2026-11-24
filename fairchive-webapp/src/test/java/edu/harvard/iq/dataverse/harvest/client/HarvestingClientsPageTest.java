@@ -4,6 +4,7 @@ import edu.harvard.iq.dataverse.arquillian.facesmock.FacesContextMocker;
 import edu.harvard.iq.dataverse.harvest.client.HarvestingClientsPage.PageMode;
 import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandler;
 import edu.harvard.iq.dataverse.harvest.client.oai.OaiHandlerException;
+import edu.harvard.iq.dataverse.persistence.harvest.HarvestType;
 import edu.harvard.iq.dataverse.persistence.harvest.HarvestingClient;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.junit.jupiter.api.AfterEach;
@@ -46,8 +47,6 @@ public class HarvestingClientsPageTest {
             }
         };
         page.setNewHarvestingUrl(SERVER_URL);
-        when(oaiHandler.listMetadataFormats())
-                .thenReturn(singletonList(new MetadataFormat().withMetadataPrefix("oai_dc")));
     }
 
     @AfterEach
@@ -62,6 +61,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void validateServerUrlOAI__newClient() throws Exception {
         // given
+        mockMetadataFormats();
         page.setPageMode(PageMode.CREATE);
         when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
 
@@ -77,6 +77,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void validateServerUrlOAI__editedClientWithSet() throws Exception {
         // given
+        mockMetadataFormats();
         page.editClient(harvestingClient("setB"));
         when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
 
@@ -93,6 +94,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void validateServerUrlOAI__editedClientWithoutSet() throws Exception {
         // given
+        mockMetadataFormats();
         page.editClient(harvestingClient(null));
         when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
 
@@ -109,6 +111,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void validateServerUrlOAI__skipOaiSets() throws Exception {
         // given
+        mockMetadataFormats();
         page.setPageMode(PageMode.CREATE);
         page.setSkipOaiSets(true);
 
@@ -124,6 +127,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void validateServerUrlOAI__skipOaiSets_editedClientWithSet() throws Exception {
         // given
+        mockMetadataFormats();
         page.editClient(harvestingClient("storedSet"));
         page.setSkipOaiSets(true);
 
@@ -140,6 +144,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void validateServerUrlOAI__skipOaiSets_editedClientWithoutSet() throws Exception {
         // given
+        mockMetadataFormats();
         page.editClient(harvestingClient(null));
         page.setSkipOaiSets(true);
 
@@ -174,6 +179,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void displayOaiSetsHelpText__newClientOfServerWithSets() throws Exception {
         // given
+        mockMetadataFormats();
         page.setPageMode(PageMode.CREATE);
         when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
         page.validateServerUrlOAI();
@@ -188,6 +194,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void displayOaiSetsHelpText__newClient_skipOaiSets() throws Exception {
         // given
+        mockMetadataFormats();
         page.setPageMode(PageMode.CREATE);
         page.setSkipOaiSets(true);
         page.validateServerUrlOAI();
@@ -202,6 +209,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void displayOaiSetsHelpText__editedClient() throws Exception {
         // given
+        mockMetadataFormats();
         page.editClient(harvestingClient("setB"));
         when(oaiHandler.listSets()).thenReturn(asList("setA", "setB"));
         page.validateServerUrlOAI();
@@ -216,6 +224,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void displayNoOaiSetsHelpText__newClientOfServerFailingToListSets() throws Exception {
         // given
+        mockMetadataFormats();
         page.setPageMode(PageMode.CREATE);
         when(oaiHandler.listSets()).thenThrow(new OaiHandlerException("ListSets failed"));
         page.validateServerUrlOAI();
@@ -230,6 +239,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void displayNoOaiSetsHelpText__newClient_skipOaiSets() throws Exception {
         // given
+        mockMetadataFormats();
         page.setPageMode(PageMode.CREATE);
         page.setSkipOaiSets(true);
         page.validateServerUrlOAI();
@@ -244,6 +254,7 @@ public class HarvestingClientsPageTest {
     @Test
     public void displayNoOaiSetsHelpText__editedClient() throws Exception {
         // given
+        mockMetadataFormats();
         page.editClient(harvestingClient(null));
         when(oaiHandler.listSets()).thenReturn(emptyList());
         page.validateServerUrlOAI();
@@ -255,7 +266,106 @@ public class HarvestingClientsPageTest {
         assertThat(displayed).isFalse();
     }
 
+    @Test
+    public void getHarvestTypeLabel__datacite() {
+        // given
+        FacesContext facesContext = FacesContextMocker.mockContext();
+        when(facesContext.getExternalContext().getRequestLocale()).thenReturn(Locale.ENGLISH);
+
+        // when
+        String label = page.getHarvestTypeLabel(givenClientOfType(HarvestType.DATACITE_DOI));
+
+        // then
+        assertThat(label).isEqualTo("DataCite REST API");
+    }
+
+    @Test
+    public void getHarvestTypeLabel__oai() {
+        // given
+        FacesContext facesContext = FacesContextMocker.mockContext();
+        when(facesContext.getExternalContext().getRequestLocale()).thenReturn(Locale.ENGLISH);
+
+        // when
+        String label = page.getHarvestTypeLabel(givenClientOfType(HarvestType.OAI));
+
+        // then
+        assertThat(label).isEqualTo("OAI-PMH");
+    }
+
+    @Test
+    public void displayHarvestingUrl__oaiClient() {
+        // when
+        boolean displayed = page.displayHarvestingUrl(givenClientOfType(HarvestType.OAI));
+
+        // then
+        assertThat(displayed).isTrue();
+    }
+
+    @Test
+    public void displayHarvestingUrl__dataciteClient() {
+        // when
+        boolean displayed = page.displayHarvestingUrl(givenClientOfType(HarvestType.DATACITE_DOI));
+
+        // then
+        assertThat(displayed).isFalse();
+    }
+
+    @Test
+    public void disableEditButton__idleOaiClient() {
+        // when
+        boolean disabled = page.disableEditButton(givenClientOfType(HarvestType.OAI));
+
+        // then
+        assertThat(disabled).isFalse();
+    }
+
+    @Test
+    public void disableEditButton__oaiClientBeingHarvested() {
+        // given
+        HarvestingClient client = givenClientOfType(HarvestType.OAI);
+        client.setHarvestingNow(true);
+
+        // when
+        boolean disabled = page.disableEditButton(client);
+
+        // then
+        assertThat(disabled).isTrue();
+    }
+
+    @Test
+    public void disableEditButton__oaiClientBeingDeleted() {
+        // given
+        HarvestingClient client = givenClientOfType(HarvestType.OAI);
+        client.setDeleteInProgress(true);
+
+        // when
+        boolean disabled = page.disableEditButton(client);
+
+        // then
+        assertThat(disabled).isTrue();
+    }
+
+    @Test
+    public void disableEditButton__dataciteClient() {
+        // when
+        boolean disabled = page.disableEditButton(givenClientOfType(HarvestType.DATACITE_DOI));
+
+        // then
+        assertThat(disabled).isTrue();
+    }
+
     // -------------------- PRIVATE --------------------
+
+    private void mockMetadataFormats() throws Exception {
+        when(oaiHandler.listMetadataFormats())
+                .thenReturn(singletonList(new MetadataFormat().withMetadataPrefix("oai_dc")));
+    }
+
+    private HarvestingClient givenClientOfType(HarvestType harvestType) {
+        HarvestingClient harvestingClient = new HarvestingClient();
+        harvestingClient.setHarvestType(harvestType);
+        return harvestingClient;
+    }
 
     private HarvestingClient harvestingClient(String harvestingSet) {
         HarvestingClient harvestingClient = new HarvestingClient();

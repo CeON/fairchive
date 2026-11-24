@@ -4,6 +4,7 @@ import edu.harvard.iq.dataverse.DatasetFieldServiceBean;
 import edu.harvard.iq.dataverse.api.dto.UningestRequestDTO;
 import edu.harvard.iq.dataverse.common.Util;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParamsParser;
+import edu.harvard.iq.dataverse.harvest.client.DataciteHarvesterConfig;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFile;
 import edu.harvard.iq.dataverse.persistence.datafile.DataFileCategory;
 import edu.harvard.iq.dataverse.persistence.datafile.FileMetadata;
@@ -56,6 +57,8 @@ import java.util.logging.Logger;
 public class JsonParser {
 
     private static final Logger logger = Logger.getLogger(JsonParser.class.getCanonicalName());
+
+    private static final String SCHEDULE_PERIOD_NONE = "none";
 
     DatasetFieldServiceBean datasetFieldSvc;
     MetadataBlockRepository metadataBlockRepo;
@@ -717,8 +720,73 @@ public class JsonParser {
         harvestingClient.setArchiveUrl(obj.getString("archiveUrl", null));
         harvestingClient.setMetadataPrefix(obj.getString("metadataFormat", null));
         harvestingClient.setHarvestingSet(obj.getString("set", null));
+        harvestingClient.setHarvesterConfig(parseHarvesterConfig(obj, harvestingClient.getHarvestType()));
+        if (obj.containsKey("schedule")) {
+            parseHarvestingSchedule(obj.getJsonObject("schedule"), harvestingClient);
+        }
 
         return dataverseAlias;
+    }
+
+    /**
+     * The DataCite configuration of a client ({@code dataciteConfig}), checked
+     * and normalised to the JSON the harvester reads; {@code null} for an OAI
+     * client, which must not carry one.
+     */
+    private String parseHarvesterConfig(JsonObject obj, HarvestType harvestType) throws JsonParseException {
+        JsonObject configJson = obj.getJsonObject("dataciteConfig");
+        if (harvestType != HarvestType.DATACITE_DOI) {
+            if (configJson != null) {
+                throw new JsonParseException("dataciteConfig applies only to type " + HarvestType.DATACITE_DOI);
+            }
+            return null;
+        }
+        if (configJson == null) {
+            throw new JsonParseException("dataciteConfig is required for type " + HarvestType.DATACITE_DOI);
+        }
+        try {
+            DataciteHarvesterConfig config = DataciteHarvesterConfig.fromJson(configJson.toString());
+            config.validate();
+            return config.toJson();
+        } catch (IllegalArgumentException e) {
+            throw new JsonParseException("Invalid dataciteConfig: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sets the schedule of a client from {@code {"period": "none" | "daily" |
+     * "weekly", "hourOfDay": 0-23, "dayOfWeek": 0-6}}; the day of week is
+     * required for a weekly schedule only, numbered from 0 = Sunday, as the
+     * harvesting clients page stores it and the harvest timer reads it.
+     */
+    private void parseHarvestingSchedule(JsonObject schedule, HarvestingClient harvestingClient)
+            throws JsonParseException {
+        String period = schedule.getString("period", null);
+        if (SCHEDULE_PERIOD_NONE.equals(period)) {
+            harvestingClient.setScheduled(false);
+            harvestingClient.setSchedulePeriod(null);
+            harvestingClient.setScheduleHourOfDay(null);
+            harvestingClient.setScheduleDayOfWeek(null);
+            return;
+        }
+        if (!HarvestingClient.SCHEDULE_PERIOD_DAILY.equals(period) && !HarvestingClient.SCHEDULE_PERIOD_WEEKLY.equals(period)) {
+            throw new JsonParseException("schedule.period must be one of none, daily, weekly, was: " + period);
+        }
+        harvestingClient.setScheduled(true);
+        harvestingClient.setSchedulePeriod(period);
+        harvestingClient.setScheduleHourOfDay(getScheduleNumber(schedule, "hourOfDay", 0, 23));
+        harvestingClient.setScheduleDayOfWeek(HarvestingClient.SCHEDULE_PERIOD_WEEKLY.equals(period)
+                ? getScheduleNumber(schedule, "dayOfWeek", 0, 6)
+                : null);
+    }
+
+    private int getScheduleNumber(JsonObject schedule, String name, int min, int max) throws JsonParseException {
+        JsonNumber number = schedule.getJsonNumber(name);
+        if (number == null || !number.isIntegral() || number.intValue() < min || number.intValue() > max) {
+            throw new JsonParseException("schedule." + name + " must be a number from " + min + " to " + max
+                    + ", was: " + number);
+        }
+        return number.intValue();
     }
 
     private List<DataFileCategory> getCategories(JsonObject filemetadataJson, Dataset dataset) {

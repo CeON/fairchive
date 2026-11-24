@@ -22,13 +22,13 @@ import static edu.harvard.iq.dataverse.globalid.DataCiteRestApiClient.MAX_PAGE_S
 import static java.util.stream.Collectors.toList;
 
 /**
- * Harvests records from the DataCite REST API: the DOIs listed in the
- * parameters, and the records matching a DataCite search; removes the listed
- * harvested DOIs.
+ * Harvests records from the DataCite REST API: the DOIs and the records
+ * matching a DataCite search, both as configured with the harvesting client
+ * ({@link DataciteHarvesterConfig}).
  */
 @Stateless
 @LocalBean
-public class DataciteDOIHarvester implements Harvester<DataciteHarvesterParams> {
+public class DataciteDOIHarvester implements Harvester {
 
     @Inject
     private DataCiteRestApiClient dataCiteRestApiClient;
@@ -46,39 +46,30 @@ public class DataciteDOIHarvester implements Harvester<DataciteHarvesterParams> 
         return HarvestType.DATACITE_DOI;
     }
 
-    @Override
-    public Class<DataciteHarvesterParams> getParamsClass() {
-        return DataciteHarvesterParams.class;
-    }
-
     /**
-     * Imports the listed DOIs, then the records the DataCite search matches
-     * (at most {@code maxRecords} of them, failed ones included), then removes
-     * the listed harvested DOIs. A record that fails is counted as failed and
-     * the harvest goes on;
-     * a failed search request ends the harvest.
+     * Imports the configured DOIs, then the records the configured DataCite
+     * search matches (at most {@code maxRecords} of them, failed ones
+     * included). A record that fails is counted as failed and the harvest goes
+     * on; a failed search request ends the harvest.
      * <p>
-     * Expects parameters already checked with
-     * {@link DataciteHarvesterParams#validate()}: the REST API, the only
-     * caller that passes DataCite parameters, does that before the harvest
-     * starts, so that a mistake is answered with 400 and not only logged.
+     * The configuration is validated when it is saved with the client; it is
+     * validated again here, since a stored configuration may predate a rule.
      *
-     * @throws ImportException when a search request fails
+     * @throws ImportException when the client has no valid configuration, or
+     *                         a search request fails
      */
     @Override
-    public HarvesterResult harvest(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, Logger hdLogger, DataciteHarvesterParams params) throws ImportException {
+    public HarvesterResult harvest(DataverseRequest dataverseRequest, HarvestingClient harvestingClient, Logger hdLogger)
+            throws ImportException {
+        DataciteHarvesterConfig config = readConfig(harvestingClient);
         HarvesterResult rs = new HarvesterResult();
 
-        for (DataciteHarvesterParams.DOIValue doi: params.getDoiImport()) {
+        for (DataciteHarvesterConfig.DOIValue doi : config.getDoiValues()) {
             importDOI(rs, dataverseRequest, harvestingClient, hdLogger, doi);
         }
 
-        if (!params.getQueryParams().isEmpty()) {
-            importQueryResults(rs, dataverseRequest, harvestingClient, hdLogger, params);
-        }
-
-        for (DataciteHarvesterParams.DOIValue doi: params.getDoiRemove()) {
-            removeDOI(rs, dataverseRequest, harvestingClient, hdLogger, doi);
+        if (!config.getQueryParams().isEmpty()) {
+            importQueryResults(rs, dataverseRequest, harvestingClient, hdLogger, config);
         }
 
         return rs;
@@ -86,7 +77,18 @@ public class DataciteDOIHarvester implements Harvester<DataciteHarvesterParams> 
 
     // -------------------- PRIVATE --------------------
 
-    private void importDOI(HarvesterResult rs, DataverseRequest dataverseRequest, HarvestingClient harvestingClient, Logger hdLogger, DataciteHarvesterParams.DOIValue doi) {
+    private DataciteHarvesterConfig readConfig(HarvestingClient harvestingClient) throws ImportException {
+        try {
+            DataciteHarvesterConfig config = DataciteHarvesterConfig.fromJson(harvestingClient.getHarvesterConfig());
+            config.validate();
+            return config;
+        } catch (IllegalArgumentException e) {
+            throw new ImportException("Invalid DataCite configuration of client " + harvestingClient.getName()
+                    + ": " + e.getMessage(), e);
+        }
+    }
+
+    private void importDOI(HarvesterResult rs, DataverseRequest dataverseRequest, HarvestingClient harvestingClient, Logger hdLogger, DataciteHarvesterConfig.DOIValue doi) {
         try {
             importRecord(dataverseRequest, harvestingClient, doi.getFull(),
                     dataCiteRestApiClient.findDoi(doi.getAuthority(), doi.getId()));
@@ -101,19 +103,19 @@ public class DataciteDOIHarvester implements Harvester<DataciteHarvesterParams> 
     }
 
     private void importQueryResults(HarvesterResult rs, DataverseRequest dataverseRequest, HarvestingClient harvestingClient,
-                                    Logger hdLogger, DataciteHarvesterParams params) throws ImportException {
-        int pageSize = Math.min(MAX_PAGE_SIZE, params.getMaxRecords());
+                                    Logger hdLogger, DataciteHarvesterConfig config) throws ImportException {
+        int pageSize = Math.min(MAX_PAGE_SIZE, config.getMaxRecords());
         int processed = 0;
         String cursor = FIRST_CURSOR;
 
-        while (cursor != null && processed < params.getMaxRecords()) {
-            DataCiteDoisPage page = searchDois(params, cursor, pageSize);
+        while (cursor != null && processed < config.getMaxRecords()) {
+            DataCiteDoisPage page = searchDois(config, cursor, pageSize);
             if (FIRST_CURSOR.equals(cursor)) {
-                hdLogger.info("DataCite query " + params.getSearchParams() + " matches "
-                        + page.getMeta().getTotal() + " records; importing at most " + params.getMaxRecords());
+                hdLogger.info("DataCite query " + config.getSearchParams() + " matches "
+                        + page.getMeta().getTotal() + " records; importing at most " + config.getMaxRecords());
             }
             List<DataCiteFindDoiResponse> records = page.getData().stream()
-                    .limit(params.getMaxRecords() - processed)
+                    .limit(config.getMaxRecords() - processed)
                     .collect(toList());
             records.forEach(record -> importQueryResult(rs, dataverseRequest, harvestingClient, hdLogger, record));
             processed += records.size();
@@ -121,11 +123,11 @@ public class DataciteDOIHarvester implements Harvester<DataciteHarvesterParams> 
         }
     }
 
-    private DataCiteDoisPage searchDois(DataciteHarvesterParams params, String cursor, int pageSize) throws ImportException {
+    private DataCiteDoisPage searchDois(DataciteHarvesterConfig config, String cursor, int pageSize) throws ImportException {
         try {
-            return dataCiteRestApiClient.searchDois(params.getSearchParams(), cursor, pageSize);
+            return dataCiteRestApiClient.searchDois(config.getSearchParams(), cursor, pageSize);
         } catch (IOException e) {
-            throw new ImportException("DataCite query " + params.getSearchParams() + " failed: " + e.getMessage(), e);
+            throw new ImportException("DataCite query " + config.getSearchParams() + " failed: " + e.getMessage(), e);
         }
     }
 
@@ -148,17 +150,5 @@ public class DataciteDOIHarvester implements Harvester<DataciteHarvesterParams> 
                               DataCiteFindDoiResponse record) throws ImportException {
         importService.doImportHarvestedDataset(dataverseRequest, harvestingClient, doi,
                 dataciteDatasetMapper.toDataset(record));
-    }
-
-    private void removeDOI(HarvesterResult rs, DataverseRequest dataverseRequest, HarvestingClient harvestingClient, Logger hdLogger, DataciteHarvesterParams.DOIValue doi) {
-        try {
-            if (!importService.doDeleteHarvestedDataset(dataverseRequest, harvestingClient, doi.getFull())) {
-                throw new ImportException("No dataset found for " + doi.getFull() + ", skipping delete.");
-            }
-            rs.incrementDeleted();
-        } catch (Exception e) {
-            rs.incrementFailed();
-            hdLogger.log(Level.SEVERE, "Failed to delete DOI " + doi.getFull() + " (" + harvestingClient.getName() + "): " + e.getMessage(), e);
-        }
     }
 }
