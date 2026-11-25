@@ -470,6 +470,10 @@ public class CreateEditDataversePage implements Serializable {
     public void resetForm() {
         PrimeFaces.current().resetInputs(":dataverseForm:themeWidgetsTabView");
     }
+    
+    public boolean displayExtraDescription() {
+    	return this.session.isSuperUserLoggedIn();
+    }
 
     public boolean displayThemeTab() {
         return this.dataverse.isRoot()
