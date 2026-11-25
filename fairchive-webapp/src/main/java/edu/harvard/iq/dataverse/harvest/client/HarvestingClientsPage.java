@@ -262,7 +262,11 @@ public class HarvestingClientsPage implements java.io.Serializable {
         this.newMetadataFormat = harvestingClient.getMetadataPrefix();
         this.newHarvestingStyle = harvestingClient.getHarvestStyle();
 
-        this.harvestTypeRadio = harvestTypeRadioOAI;
+        this.newHarvestType = harvestingClient.getHarvestType();
+        this.dataciteConfigForm = isHarvestTypeDatacite()
+                ? new DataciteHarvesterConfigForm(
+                        DataciteHarvesterConfig.fromJson(harvestingClient.getHarvesterConfig()))
+                : new DataciteHarvesterConfigForm();
 
         if (harvestingClient.isScheduled()) {
             if (HarvestingClient.SCHEDULE_PERIOD_DAILY.equals(harvestingClient.getSchedulePeriod())) {
@@ -336,38 +340,25 @@ public class HarvestingClientsPage implements java.io.Serializable {
         }
         getSelectedDestinationDataverse().getHarvestingClientConfigs().add(newHarvestingClient);
 
-        newHarvestingClient.setHarvestingUrl(newHarvestingUrl);
-        if (!StringUtils.isEmpty(newOaiSet)) {
-            newHarvestingClient.setHarvestingSet(newOaiSet);
-        }
-        newHarvestingClient.setMetadataPrefix(newMetadataFormat);
-        newHarvestingClient.setHarvestStyle(newHarvestingStyle);
-
-        if (isNewHarvestingScheduled()) {
-            newHarvestingClient.setScheduled(true);
-
-            if (isNewHarvestingScheduledWeekly()) {
-                newHarvestingClient.setSchedulePeriod(HarvestingClient.SCHEDULE_PERIOD_WEEKLY);
-                if (getWeekDayNumber() == null) {
-                    // create a "week day is required..." error message, etc. 
-                    // but we may be better off not even giving them an opportunity 
-                    // to leave the field blank - ?
-                }
-                newHarvestingClient.setScheduleDayOfWeek(getWeekDayNumber());
-            } else {
-                newHarvestingClient.setSchedulePeriod(HarvestingClient.SCHEDULE_PERIOD_DAILY);
+        if (isHarvestTypeDatacite()) {
+            newHarvestingClient.setHarvestType(HarvestType.DATACITE_DOI);
+            newHarvestingClient.setArchiveUrl(DOI_ARCHIVE_URL);
+            newHarvestingClient.setHarvestStyle(HarvestStyle.DOI);
+            newHarvestingClient.setHarvesterConfig(dataciteConfigForm.toConfig().toJson());
+        } else {
+            newHarvestingClient.setHarvestingUrl(newHarvestingUrl);
+            if (!StringUtils.isEmpty(newOaiSet)) {
+                newHarvestingClient.setHarvestingSet(newOaiSet);
             }
-
-            if (getHourOfDay() == null) {
-                // see the comment above, about the day of week. same here.
-            }
-            newHarvestingClient.setScheduleHourOfDay(getHourOfDay());
+            newHarvestingClient.setMetadataPrefix(newMetadataFormat);
+            newHarvestingClient.setHarvestStyle(newHarvestingStyle);
+            // make default archive url (used to generate links pointing back to the
+            // archival sources, when harvested datasets are displayed in search results),
+            // from the harvesting url:
+            newHarvestingClient.setArchiveUrl(makeDefaultArchiveUrl());
         }
 
-        // make default archive url (used to generate links pointing back to the 
-        // archival sources, when harvested datasets are displayed in search results),
-        // from the harvesting url:
-        newHarvestingClient.setArchiveUrl(makeDefaultArchiveUrl());
+        applySchedule(newHarvestingClient);
 
         Try.of(() -> harvestingClientsService.createHarvestingClient(newHarvestingClient))
                 .onSuccess(harvestingClient -> {
@@ -395,33 +386,16 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
         // nickname is not editable for existing clients:
         //harvestingClient.setName(newNickname);
-        harvestingClient.setHarvestingUrl(newHarvestingUrl);
-        harvestingClient.setHarvestingSet(newOaiSet);
-        harvestingClient.setMetadataPrefix(newMetadataFormat);
-        harvestingClient.setHarvestStyle(newHarvestingStyle);
-
-        if (isNewHarvestingScheduled()) {
-            harvestingClient.setScheduled(true);
-
-            if (isNewHarvestingScheduledWeekly()) {
-                harvestingClient.setSchedulePeriod(HarvestingClient.SCHEDULE_PERIOD_WEEKLY);
-                if (getWeekDayNumber() == null) {
-                    // create a "week day is required..." error message, etc. 
-                    // but we may be better off not even giving them an opportunity 
-                    // to leave the field blank - ?
-                }
-                harvestingClient.setScheduleDayOfWeek(getWeekDayNumber());
-            } else {
-                harvestingClient.setSchedulePeriod(HarvestingClient.SCHEDULE_PERIOD_DAILY);
-            }
-
-            if (getHourOfDay() == null) {
-                // see the comment above, about the day of week. same here.
-            }
-            harvestingClient.setScheduleHourOfDay(getHourOfDay());
+        if (isHarvestTypeDatacite()) {
+            harvestingClient.setHarvesterConfig(dataciteConfigForm.toConfig().toJson());
         } else {
-            harvestingClient.setScheduled(false);
+            harvestingClient.setHarvestingUrl(newHarvestingUrl);
+            harvestingClient.setHarvestingSet(newOaiSet);
+            harvestingClient.setMetadataPrefix(newMetadataFormat);
+            harvestingClient.setHarvestStyle(newHarvestingStyle);
         }
+
+        applySchedule(harvestingClient);
 
         Try.of(() -> harvestingClientsService.updateHarvestingClient(harvestingClient))
                 .onSuccess(updatedClient -> {
@@ -579,25 +553,36 @@ public class HarvestingClientsPage implements java.io.Serializable {
         return new OaiHandler(harvestingUrl);
     }
 
+    /**
+     * Checks the first step of the client form and moves on to the second:
+     * in create mode the nickname and the collection, and for an OAI client
+     * the server, which is contacted for its sets and metadata formats. All
+     * checks run, so that every problem is reported at once.
+     */
     public void validateInitialSettings() throws Exception {
-        if (isHarvestTypeOAI()) {
-            boolean nicknameValidated = true;
-            boolean destinationDataverseValidated = true;
-            if (isCreateMode()) {
-                nicknameValidated = validateNickname();
-                destinationDataverseValidated = validateSelectedDataverse();
-            }
-            boolean urlValidated = validateServerUrlOAI();
+        boolean nicknameValidated = !isCreateMode() || validateNickname();
+        boolean destinationDataverseValidated = !isCreateMode() || validateSelectedDataverse();
+        boolean urlValidated = !isHarvestTypeOAI() || validateServerUrlOAI();
 
-            if (nicknameValidated && destinationDataverseValidated && urlValidated) {
-                // In Create mode we want to run all 3 validation tests; this is why 
-                // we are not doing "if ((validateNickname() && validateServerUrlOAI())"
-                // in the line above. -- L.A. 4.4 May 2016.
+        if (nicknameValidated && destinationDataverseValidated && urlValidated) {
+            setInitialSettingsValidated(true);
+            this.createStep = CreateStep.TWO;
+        }
+        // (and if not - it stays set to false)
+    }
 
-                setInitialSettingsValidated(true);
-                this.createStep = CreateStep.TWO;
-            }
-            // (and if not - it stays set to false)
+    /**
+     * Checks the DataCite configuration entered in the second step of the
+     * form, by the same rules as the API, and moves on to the schedule step;
+     * otherwise stays in the second step, with a message naming the problem.
+     */
+    public void validateDataciteConfig() {
+        try {
+            dataciteConfigForm.toConfig();
+            this.createStep = CreateStep.THREE;
+        } catch (IllegalArgumentException e) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                    getStringFromBundle("harvestclients.newClientDialog.datacite.invalid"), e.getMessage()));
         }
     }
 
@@ -626,9 +611,16 @@ public class HarvestingClientsPage implements java.io.Serializable {
      * Variables and methods for creating a new harvesting client:
      */
 
-    private int harvestTypeRadio; // 1 = OAI; 2 = Nesstar
-    private static int harvestTypeRadioOAI = 1;
-    private static int harvestTypeRadioNesstar = 2;
+    /**
+     * Archive URL of a DataCite client, which the form does not ask for: the
+     * harvested datasets link to their sources through their DOIs. A DataCite
+     * client has no harvesting URL or metadata format, as the harvester reads
+     * the DataCite REST API URL from the settings.
+     */
+    static final String DOI_ARCHIVE_URL = "https://doi.org";
+
+    private HarvestType newHarvestType = HarvestType.OAI;
+    private DataciteHarvesterConfigForm dataciteConfigForm = new DataciteHarvesterConfigForm();
 
     UIInput newClientNicknameInputField;
     UIInput newClientUrlInputField;
@@ -668,7 +660,8 @@ public class HarvestingClientsPage implements java.io.Serializable {
         this.newMetadataFormat = "";
         this.newHarvestingStyle = HarvestStyle.DATAVERSE;
 
-        this.harvestTypeRadio = harvestTypeRadioOAI;
+        this.newHarvestType = HarvestType.OAI;
+        this.dataciteConfigForm = new DataciteHarvesterConfigForm();
         this.harvestingScheduleRadio = harvestingScheduleRadioNone;
 
         this.newHarvestingScheduleDayOfWeek = "Sunday";
@@ -680,6 +673,14 @@ public class HarvestingClientsPage implements java.io.Serializable {
         this.createStep = CreateStep.ONE;
         this.selectedDestinationDataverse = null;
 
+    }
+
+    /**
+     * Opens the form for a new DataCite client, empty.
+     */
+    public void initNewDataciteClient(ActionEvent ae) {
+        initNewClient(ae);
+        this.newHarvestType = HarvestType.DATACITE_DOI;
     }
 
     public boolean isInitialSettingsValidated() {
@@ -707,20 +708,78 @@ public class HarvestingClientsPage implements java.io.Serializable {
         this.newHarvestingUrl = newHarvestingUrl;
     }
 
-    public int getHarvestTypeRadio() {
-        return this.harvestTypeRadio;
-    }
-
-    public void setHarvestTypeRadio(int harvestTypeRadio) {
-        this.harvestTypeRadio = harvestTypeRadio;
-    }
-
     public boolean isHarvestTypeOAI() {
-        return harvestTypeRadioOAI == harvestTypeRadio;
+        return newHarvestType == HarvestType.OAI;
     }
 
-    public boolean isHarvestTypeNesstar() {
-        return harvestTypeRadioNesstar == harvestTypeRadio;
+    public boolean isHarvestTypeDatacite() {
+        return newHarvestType == HarvestType.DATACITE_DOI;
+    }
+
+    /**
+     * The fields of the DataCite configuration in the client form.
+     */
+    public DataciteHarvesterConfigForm getDataciteConfigForm() {
+        return dataciteConfigForm;
+    }
+
+    /**
+     * Label of the harvest type of the client in the form.
+     */
+    public String getNewHarvestTypeLabel() {
+        return getStringFromBundle("harvestclients.type." + newHarvestType);
+    }
+
+    /**
+     * Title of the client form: creating or editing a client, the DataCite
+     * one named as such.
+     */
+    public String getClientDialogTitle() {
+        String key = isCreateMode()
+                ? "harvestclients.newClientDialog.title.new"
+                : "harvestclients.viewEditDialog.title";
+        return getStringFromBundle(isHarvestTypeDatacite() ? key + "." + HarvestType.DATACITE_DOI : key);
+    }
+
+    /**
+     * Heading of a step of the client form; an OAI client is set up in
+     * four steps, a DataCite one in three.
+     */
+    public String getStepLegend(int step) {
+        return getStringFromBundle(isHarvestTypeDatacite()
+                ? "harvestclients.newClientDialog.datacite.step" + step
+                : "harvestclients.newClientDialog.step" + step);
+    }
+
+    /**
+     * Returns true if the form shows the DataCite configuration step.
+     */
+    public boolean displayDataciteConfigStep() {
+        return isCreateStepTwo() && isHarvestTypeDatacite();
+    }
+
+    /**
+     * Returns true if the form shows the schedule step, which a client of
+     * any type reaches once its first step is validated.
+     */
+    public boolean displayScheduleStep() {
+        return isCreateStepThree() && initialSettingsValidated;
+    }
+
+    /**
+     * Returns true if the schedule step ends the creation of a client:
+     * a DataCite client has no display step after it.
+     */
+    public boolean displayCreateButtonOnScheduleStep() {
+        return isHarvestTypeDatacite() && isCreateMode();
+    }
+
+    /**
+     * Returns true if the schedule step ends the editing of a client:
+     * a DataCite client has no display step after it.
+     */
+    public boolean displaySaveButtonOnScheduleStep() {
+        return isHarvestTypeDatacite() && isEditMode();
     }
 
     public String getNewOaiSet() {
@@ -769,15 +828,10 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
     /**
      * Returns true if the edit button of a client is shown disabled: while
-     * the client is being harvested or deleted, and for a DataCite client,
-     * since the edit form is the OAI one and a DataCite client is edited
-     * through the API only. The DataCite part is temporary, until the page
-     * gets a form for DataCite clients.
+     * the client is being harvested or deleted.
      */
     public boolean disableEditButton(HarvestingClient harvestingClient) {
-        return harvestingClient.isHarvestingNow()
-                || harvestingClient.isDeleteInProgress()
-                || harvestingClient.getHarvestType() != HarvestType.OAI;
+        return harvestingClient.isHarvestingNow() || harvestingClient.isDeleteInProgress();
     }
 
     /**
@@ -1078,6 +1132,21 @@ public class HarvestingClientsPage implements java.io.Serializable {
     }
 
     // -------------------- PRIVATE ---------------------
+
+    private void applySchedule(HarvestingClient harvestingClient) {
+        if (!isNewHarvestingScheduled()) {
+            harvestingClient.setScheduled(false);
+            return;
+        }
+        harvestingClient.setScheduled(true);
+        if (isNewHarvestingScheduledWeekly()) {
+            harvestingClient.setSchedulePeriod(HarvestingClient.SCHEDULE_PERIOD_WEEKLY);
+            harvestingClient.setScheduleDayOfWeek(getWeekDayNumber());
+        } else {
+            harvestingClient.setSchedulePeriod(HarvestingClient.SCHEDULE_PERIOD_DAILY);
+        }
+        harvestingClient.setScheduleHourOfDay(getHourOfDay());
+    }
 
     private boolean hasOaiSets() {
         return oaiSetsSelectItems != null && !oaiSetsSelectItems.isEmpty();

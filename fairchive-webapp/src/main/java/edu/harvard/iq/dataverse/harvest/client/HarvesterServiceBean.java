@@ -115,17 +115,15 @@ public class HarvesterServiceBean {
                 this.harvestingClientService.setHarvestSuccess(harvestingClientId,
                 		new Date(), result.getNumHarvested(), result.getNumFailed(), 
                 		result.getNumDeleted());
-                hdLogger.log(INFO, "COMPLETED HARVEST, server=" + client.getArchiveUrl() + 
-                		", metadataPrefix=" + client.getMetadataPrefix());
+                hdLogger.log(INFO, "COMPLETED HARVEST, client=" + client.getName()
+                        + ", type=" + client.getHarvestType());
                 hdLogger.log(INFO, "Datasets created/updated: " + result.getNumHarvested() + 
                 		", datasets deleted: " + result.getNumDeleted() + 
                 		", datasets failed: " + result.getNumFailed());
             }
         } catch (Throwable e) {
-            final String message = "Exception processing harvest, server= " + 
-                    client.getHarvestingUrl() + ",format=" + 
-                    client.getMetadataPrefix() + ' ' + e.getClass().getName();
-            hdLogger.log(SEVERE, message, e);
+            hdLogger.log(SEVERE, "Exception processing harvest, client=" + client.getName()
+                    + ", type=" + client.getHarvestType() + ' ' + e.getClass().getName(), e);
             //logException(e, hdLogger);
             hdLogger.log(INFO, "HARVEST NOT COMPLETED DUE TO UNEXPECTED ERROR.");
             // TODO:

@@ -37,11 +37,13 @@
                     #{bundle['harvestclients.type.OAI']}
                 </p:commandLink>
             </li>
-            <!-- Disabled until the page gets a form for DataCite clients -->
-            <li class="disabled">
-                <a href="#" aria-disabled="true" tabindex="-1" onclick="return false;">
+            <li>
+                <p:commandLink id="#{idPrefix}Datacite"
+                               actionListener="#{harvestingClientsPage.initNewDataciteClient}"
+                               update=":harvestingClientsForm:newHarvestingClientDialog"
+                               oncomplete="primeFacesShowModal('newHarvestingClientForm', this);handleResizeDialog('newHarvestingClientDialog');">
                     #{bundle['harvestclients.type.DATACITE_DOI']}
-                </a>
+                </p:commandLink>
             </li>
         </ul>
     </div>
