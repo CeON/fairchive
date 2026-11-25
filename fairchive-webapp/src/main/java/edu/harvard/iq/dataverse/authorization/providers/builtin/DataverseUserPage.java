@@ -1,6 +1,51 @@
 package edu.harvard.iq.dataverse.authorization.providers.builtin;
 
-import edu.harvard.iq.dataverse.DataverseDao;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
+import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MinutesUntilConfirmEmailTokenExpires;
+import static java.lang.String.format;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Level.WARNING;
+import static java.util.logging.Logger.getLogger;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.contains;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
+import javax.faces.component.UIComponent;
+import javax.faces.component.UIInput;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.NotBlank;
+import org.omnifaces.cdi.ViewScoped;
+import org.primefaces.event.SelectEvent;
+import org.primefaces.event.TabChangeEvent;
+import org.primefaces.event.ToggleSelectEvent;
+import org.primefaces.event.UnselectEvent;
+import org.primefaces.model.LazyDataModel;
+
 import edu.harvard.iq.dataverse.DataverseSession;
 import edu.harvard.iq.dataverse.PermissionsWrapper;
 import edu.harvard.iq.dataverse.authorization.AuthUtil;
@@ -12,6 +57,7 @@ import edu.harvard.iq.dataverse.authorization.providers.common.BaseUserPage;
 import edu.harvard.iq.dataverse.authorization.providers.shib.ShibAuthenticationProvider;
 import edu.harvard.iq.dataverse.consent.ConsentDto;
 import edu.harvard.iq.dataverse.consent.ConsentService;
+import edu.harvard.iq.dataverse.dataverse.DataverseService;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailException;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailUtil;
@@ -27,57 +73,12 @@ import edu.harvard.iq.dataverse.persistence.user.ConfirmEmailData;
 import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.UserNameValidator;
 import edu.harvard.iq.dataverse.persistence.user.UserNotificationRepository;
-import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.users.LazyUserNotificationsDataModel;
 import edu.harvard.iq.dataverse.util.JsfHelper;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.validation.PasswordValidatorServiceBean;
 import io.vavr.control.Option;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraints.NotBlank;
-import org.omnifaces.cdi.ViewScoped;
-import org.primefaces.event.SelectEvent;
-import org.primefaces.event.TabChangeEvent;
-import org.primefaces.event.ToggleSelectEvent;
-import org.primefaces.event.UnselectEvent;
-import org.primefaces.model.LazyDataModel;
-
-import javax.ejb.EJB;
-import javax.faces.application.FacesMessage;
-import javax.faces.component.UIComponent;
-import javax.faces.component.UIInput;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Logger;
-
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromBundle;
-import static edu.harvard.iq.dataverse.common.BundleUtil.getStringFromNonDefaultBundle;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MinutesUntilConfirmEmailTokenExpires;
-import static java.lang.String.format;
-import static java.util.logging.Level.FINE;
-import static java.util.logging.Level.INFO;
-import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Level.WARNING;
-import static java.util.logging.Logger.getLogger;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.apache.commons.lang3.StringUtils.contains;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 
 @SuppressWarnings("serial")
 @ViewScoped
@@ -95,7 +96,7 @@ public class DataverseUserPage extends BaseUserPage {
     @Inject
     private DataverseSession session;
     @EJB
-    private DataverseDao dataverseDao;
+    private DataverseService dataverseService;
     @EJB
     private UserNotificationService userNotificationService;
     @EJB
@@ -109,13 +110,11 @@ public class DataverseUserPage extends BaseUserPage {
     @EJB
     private ConfirmEmailServiceBean confirmEmailService;
     @Inject
-    private SystemConfig systemConfig;
+    private SystemConfig config;
     @EJB
     private PasswordValidatorServiceBean passwordValidatorService;
     @Inject
     private SettingsWrapper settingsWrapper;
-    @Inject
-    private SettingsServiceBean settingsService;
     @Inject
     private PermissionsWrapper permissionsWrapper;
 
@@ -147,6 +146,38 @@ public class DataverseUserPage extends BaseUserPage {
     private List<ConsentDto> consents = new ArrayList<>();
 
     private Boolean notificationLanguageSelectionEnabled;
+    
+    public DataverseUserPage() {}
+    
+    public DataverseUserPage(
+    	    final DataverseSession session,
+    	    final DataverseService dataverseService,
+    	    final UserNotificationService userNotificationService,
+    	    final UserNotificationRepository userNotificationRepository,
+    	    final UserNotificationMapper userNotificationMapper,
+    	    final BuiltinUserServiceBean builtinUserService,
+    	    final AuthenticationServiceBean authenticationService,
+    	    final ConfirmEmailServiceBean confirmEmailService,
+    	    final SystemConfig config,
+    	    final PasswordValidatorServiceBean passwordValidatorService,
+    	    final SettingsWrapper settingsWrapper,
+    	    final PermissionsWrapper permissionsWrapper,
+    	    final ConsentService consentService) {
+    	
+    	this.session = session;
+	    this.dataverseService = dataverseService;
+	    this.userNotificationService = userNotificationService;
+	    this.userNotificationRepository = userNotificationRepository;
+	    this.userNotificationMapper = userNotificationMapper;
+	    this.builtinUserService = builtinUserService;
+	    this.authenticationService = authenticationService;
+	    this.confirmEmailService = confirmEmailService;
+	    this.config = config;
+	    this.passwordValidatorService = passwordValidatorService;
+	    this.settingsWrapper = settingsWrapper;
+	    this.permissionsWrapper = permissionsWrapper;
+	    this.consentService = consentService;
+    }
 
     // -------------------- GETTERS --------------------
 
@@ -216,7 +247,7 @@ public class DataverseUserPage extends BaseUserPage {
 
     public String init() {
         // prevent creating a user if signup not allowed.
-        boolean signupAllowed = systemConfig.isSignupAllowed();
+        boolean signupAllowed = config.isSignupAllowed();
         notificationLanguageSelectionEnabled = settingsWrapper.isLocalesConfigured();
 
         if (editMode == EditMode.CREATE && !signupAllowed) {
@@ -427,14 +458,14 @@ public class DataverseUserPage extends BaseUserPage {
             }
 
             if ("dataverse.xhtml".equals(redirectPage)) {
-                redirectPage = redirectPage + "?alias=" + dataverseDao.findRootDataverse().getAlias();
+                redirectPage = redirectPage + "?alias=" + dataverseService.findRoot().getAlias();
             }
 
             try {
                 redirectPage = URLDecoder.decode(redirectPage, "UTF-8");
             } catch (UnsupportedEncodingException ex) {
                 logger.log(SEVERE, "Server does not support 'UTF-8' encoding.", ex);
-                redirectPage = "dataverse.xhtml?alias=" + dataverseDao.findRootDataverse().getAlias();
+                redirectPage = "dataverse.xhtml?alias=" + dataverseService.findRoot().getAlias();
             }
 
             logger.log(FINE, "Sending user to = {0}", redirectPage);
@@ -455,7 +486,7 @@ public class DataverseUserPage extends BaseUserPage {
                     getStringFromBundle(
                             passwordChanged ? "userPage.passwordChanged" : "userPage.informationUpdated"));
             if (!emailBeforeUpdate.equals(emailAfterUpdate)) {
-                String expTime = ConfirmEmailUtil.friendlyExpirationTime(settingsService.getValueForKeyAsLong(
+                String expTime = ConfirmEmailUtil.friendlyExpirationTime(this.config.getValueForKeyAsLong(
                         MinutesUntilConfirmEmailTokenExpires));
 
                 // delete unexpired token, if it exists (clean slate)
@@ -477,14 +508,14 @@ public class DataverseUserPage extends BaseUserPage {
     public String cancel() {
         if (editMode == EditMode.CREATE) {
             return "/dataverse.xhtml?faces-redirect=true&alias=".
-            		concat(dataverseDao.findRootDataverse().getAlias());
+            		concat(dataverseService.findRoot().getAlias());
         }
         editMode = null;
         return null;
     }
 
     public boolean canRemoveNotifications() {
-        return !systemConfig.isReadonlyMode();
+        return !config.isReadonlyMode();
     }
 
     public void deleteSelectedNotifications() {
@@ -556,7 +587,7 @@ public class DataverseUserPage extends BaseUserPage {
         try {
             confirmEmailService.beginConfirm(currentUser);
             String expirationString =
-                    ConfirmEmailUtil.friendlyExpirationTime(settingsService.getValueForKeyAsLong(MinutesUntilConfirmEmailTokenExpires));
+                    ConfirmEmailUtil.friendlyExpirationTime(this.config.getValueForKeyAsLong(MinutesUntilConfirmEmailTokenExpires));
             JsfHelper.addFlashSuccessMessage(getStringFromBundle("confirmEmail.submitRequest.success",
                                                                             userEmail, expirationString));
         } catch (ConfirmEmailException ex) {
@@ -568,7 +599,7 @@ public class DataverseUserPage extends BaseUserPage {
      * Determines whether the button to send a verification email appears on user page
      */
     public boolean showVerifyEmailButton() {
-        if (systemConfig.isReadonlyMode()) {
+        if (config.isReadonlyMode()) {
             return false;
         }
         final Timestamp emailConfirmed = currentUser.getEmailConfirmed();
@@ -608,11 +639,11 @@ public class DataverseUserPage extends BaseUserPage {
     }
 
     public boolean isPasswordEditable() {
-        return !systemConfig.isReadonlyMode() && getUserAuthProvider().isPasswordUpdateAllowed();
+        return !config.isReadonlyMode() && getUserAuthProvider().isPasswordUpdateAllowed();
     }
 
     public boolean isAccountDetailsEditable() {
-        return !systemConfig.isReadonlyMode() && getUserAuthProvider().isUserInfoUpdateAllowed();
+        return !config.isReadonlyMode() && getUserAuthProvider().isUserInfoUpdateAllowed();
     }
 
     public boolean showShibAccountMigrateHelpMessage() {
@@ -689,7 +720,7 @@ public class DataverseUserPage extends BaseUserPage {
 
     private void displayNotification() {
         notificationsList = new LazyUserNotificationsDataModel(getCurrentUser(),
-                userNotificationRepository, userNotificationMapper, !systemConfig.isReadonlyMode());
+                userNotificationRepository, userNotificationMapper, !config.isReadonlyMode());
     }
 
     // -------------------- SETTERS --------------------

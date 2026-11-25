@@ -16,6 +16,7 @@ public class NotificationType {
     public static final String RETURNEDDS = "RETURNEDDS";
     public static final String RETURNEDDV = "RETURNEDDV";
     public static final String PUBLISHEDDS = "PUBLISHEDDS";
+    public static final String PUBLISHEDDV = "PUBLISHEDDV";
     public static final String REQUESTFILEACCESS = "REQUESTFILEACCESS";
     public static final String GRANTFILEACCESS = "GRANTFILEACCESS";
     public static final String REJECTFILEACCESS = "REJECTFILEACCESS";
@@ -43,6 +44,7 @@ public class NotificationType {
         notifications.add(RETURNEDDS);
         notifications.add(RETURNEDDV);
         notifications.add(PUBLISHEDDS);
+        notifications.add(PUBLISHEDDV);
         notifications.add(REQUESTFILEACCESS);
         notifications.add(GRANTFILEACCESS);
         notifications.add(REJECTFILEACCESS);

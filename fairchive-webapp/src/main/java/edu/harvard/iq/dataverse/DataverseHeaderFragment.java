@@ -274,8 +274,10 @@ public class DataverseHeaderFragment implements Serializable {
     }
     
     public boolean displayDataverseHeader() {
+    	final Dataverse dataverse = getDataverse();
     	return ! this.widgetWrapper.isWidgetView() && 
-    			getDataverse().isNotNew() &&
+    			dataverse != null &&
+    			dataverse.isNotNew() &&
     			! isRootDataverseThemeDisabled(getDataverse());
     }
     
@@ -405,6 +407,7 @@ public class DataverseHeaderFragment implements Serializable {
     
     private Dataverse getDataverse() {
     	if(this.currentDvObject == null) {
+    		return null;
     	} else if(this.currentDvObject  instanceof Dataverse) {
     		return (Dataverse) this.currentDvObject;
     	} 

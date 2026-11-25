@@ -55,6 +55,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -366,6 +367,10 @@ public class SystemConfig {
         return this.settings.isTrueForKey(key);
     }
     
+    public String get(final String name) {
+    	return this.settings.get(name);
+    }
+    
     public Integer getValueForKeyAsInt(final Key key) {
         return this.settings.getValueForKeyAsInt(key);
     }
@@ -376,6 +381,10 @@ public class SystemConfig {
     
     public Integer getValueForKeyAsInt(final Key key, final Integer defaultValue) {
         return this.settings.getValueForKeyAsInt(key, defaultValue);
+    }
+    
+    public List<Map<String, String>> getValueForKeyAsListOfMaps(final Key key) {
+    	return this.settings.getValueForKeyAsListOfMaps(key);
     }
 
     public boolean isRsyncUpload() {

@@ -35,22 +35,22 @@ import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-/**
- * @author gdurand
- */
 @SuppressWarnings("serial")
 @ViewScoped
 @Named
 public class SettingsWrapper implements java.io.Serializable {
 
+    private DataverseSession session;
+    private SystemConfig config;
+    
+    public SettingsWrapper() {}
+    
     @Inject
-    SettingsServiceBean settingService;
-
-    @Inject
-    DataverseSession session;
-
-    @Inject
-    SystemConfig systemConfig;
+    public SettingsWrapper(final DataverseSession session,
+    	                   final SystemConfig config) {
+    	this.session = session;
+    	this.config = config;
+    }
 
     private final LazyLoaded<Map<String, String>> configuredLocales = new LazyLoaded<>(this::languagesLoader);
     private final LazyLoaded<Map<String, String>> configureSearchBarUrls = new LazyLoaded<>(() -> urlsLoader(SearchBarUrls));
@@ -60,68 +60,68 @@ public class SettingsWrapper implements java.io.Serializable {
     // -------------------- GETTERS --------------------
 
     public boolean isPublicInstall() {
-        return settingService.isTrueForKey(PublicInstall);
+        return this.config.isTrueForKey(PublicInstall);
     }
 
     public String getMetricsUrl() {
-        return settingService.getValueForKey(MetricsUrl);
+        return this.config.getValueForKey(MetricsUrl);
     }
 
     public boolean isShibPassiveLoginEnabled() {
-        return settingService.isTrueForKey(ShibPassiveLoginEnabled);
+        return this.config.isTrueForKey(ShibPassiveLoginEnabled);
     }
 
     public boolean isProvCollectionEnabled() {
-        return settingService.isTrueForKey(ProvCollectionEnabled);
+        return this.config.isTrueForKey(ProvCollectionEnabled);
     }
 
     public boolean isSearchResultOnMap() {
-        return settingService.isTrueForKey(ShowSearchResultOnMap);
+        return this.config.isTrueForKey(ShowSearchResultOnMap);
     }
     
     public String getMapTileType() {
-    	final String type = this.settingService.getValueForKey(MapTileType);
+    	final String type = this.config.getValueForKey(MapTileType);
     	return isEmpty(type) ? "raster" : type;
     }
     
     public String getMapTileApiKey() {
-    	return this.settingService.getValueForKey(MapTileApiKey);
+    	return this.config.getValueForKey(MapTileApiKey);
     }
 
     public boolean isRsyncUpload() {
-        return systemConfig.isRsyncUpload();
+        return this.config.isRsyncUpload();
     }
 
     public boolean isRsyncDownload() {
-        return systemConfig.isRsyncDownload();
+        return this.config.isRsyncDownload();
     }
 
     public boolean isRsyncOnly() {
-        return systemConfig.isRsyncOnly();
+        return this.config.isRsyncOnly();
     }
 
     public boolean isHTTPUpload() {
-        return systemConfig.isHTTPUpload();
+        return this.config.isHTTPUpload();
     }
 
     public Integer getUploadMethodsCount() {
-        return systemConfig.getUploadMethodCount();
+        return this.config.getUploadMethodCount();
     }
 
     public String getGuidesBaseUrl() {
-        return systemConfig.getGuidesBaseUrl(session.getLocale());
+        return this.config.getGuidesBaseUrl(this.session.getLocale());
     }
 
     public String getGuidesVersion() {
-        return systemConfig.getGuidesVersion();
+        return this.config.getGuidesVersion();
     }
 
     public Boolean isShowAddDatasetButtonOnDataversePage() {
-        return settingService.isTrueForKey(ShowAddDatasetButtonOnDataversePage);
+        return this.config.isTrueForKey(ShowAddDatasetButtonOnDataversePage);
     }
 
     public String getDropBoxKey() {
-        String configuredDropBoxKey = getSettingValue(DropboxKey.toString());
+        final String configuredDropBoxKey = getSettingValue(DropboxKey.toString());
         if (configuredDropBoxKey != null) {
             return configuredDropBoxKey;
         }
@@ -129,15 +129,15 @@ public class SettingsWrapper implements java.io.Serializable {
     }
 
     public String getDataCiteCitationsPageUrl() {
-        return settingService.getValueForKey(DoiDataCiteCitationsPageUrl);
+        return this.config.getValueForKey(DoiDataCiteCitationsPageUrl);
     }
 
     public Boolean isAllowDatasetPublishWithoutFiles() {
-        return settingService.isTrueForKey(AllowDatasetPublishWithoutFiles);
+        return this.config.isTrueForKey(AllowDatasetPublishWithoutFiles);
     }
 
     public boolean isExpandAllAdvancedSearchBlocksEnabled() {
-        return settingService.isTrueForKey(ExpandAllAdvancedSearchBlocks);
+        return this.config.isTrueForKey(ExpandAllAdvancedSearchBlocks);
     }
 
     // -------------------- LOGIC --------------------
@@ -151,7 +151,7 @@ public class SettingsWrapper implements java.io.Serializable {
     }
 
     public String getSettingValue(String settingKey) {
-        return settingService.get(settingKey);
+        return this.config.get(settingKey);
     }
 
     public boolean isLocalesConfigured() {
@@ -184,19 +184,19 @@ public class SettingsWrapper implements java.io.Serializable {
     }
     
     public String getDataverseSiteUrl() {
-        return this.systemConfig.getDataverseSiteUrl();
+        return this.config.getDataverseSiteUrl();
     }
 
     // -------------------- PRIVATE --------------------
 
     private Map<String, String> languagesLoader() {
-        return settingService.getValueForKeyAsListOfMaps(Languages).stream()
+        return this.config.getValueForKeyAsListOfMaps(Languages).stream()
                 .collect(toMap(getKey("locale"), getKey("title"), throwingMerger(), LinkedHashMap::new));
     }
 
     private Map<String, String> urlsLoader(SettingsServiceBean.Key key) {
         String lang = FacesContext.getCurrentInstance().getViewRoot().getLocale().getLanguage();
-        return settingService.getValueForKeyAsListOfMaps(key).stream()
+        return this.config.getValueForKeyAsListOfMaps(key).stream()
                 .collect(toMap(getKeyWithLang("url", lang), getKeyWithLang("title", lang), throwingMerger(), LinkedHashMap::new));
     }
 
@@ -205,7 +205,7 @@ public class SettingsWrapper implements java.io.Serializable {
     }
 
     private static Function<Map<String, String>, String> getKeyWithLang(String key, String lang) {
-        String langKey = key + '.' + lang;
+        final String langKey = key + '.' + lang;
         return map -> {
             if (map.containsKey(langKey)) {
                 return map.get(langKey);

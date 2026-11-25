@@ -1,5 +1,6 @@
 package edu.harvard.iq.dataverse;
 
+import static edu.harvard.iq.dataverse.notification.NotificationObjectType.DATAVERSE;
 import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.DEPARTMENT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.LABORATORY;
 import static edu.harvard.iq.dataverse.persistence.dataverse.Dataverse.DataverseType.UNCATEGORIZED;
@@ -8,6 +9,9 @@ import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFA
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.DEFAULT_TEXT_COLOR;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.Alignment.LEFT;
 import static edu.harvard.iq.dataverse.persistence.dataverse.DataverseTheme.ImageFormat.SQUARE;
+import static edu.harvard.iq.dataverse.persistence.user.NotificationType.CREATEDV;
+import static edu.harvard.iq.dataverse.persistence.user.NotificationType.SUBMITTEDDV;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -18,6 +22,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -29,11 +34,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.SortOrder;
 import org.primefaces.model.file.UploadedFile;
 
 import com.ocpsoft.pretty.faces.util.NullComponent;
 
 import edu.harvard.iq.dataverse.arquillian.arquillianexamples.WebappArquillianDeployment;
+import edu.harvard.iq.dataverse.authorization.AuthenticationServiceBean;
+import edu.harvard.iq.dataverse.authorization.providers.builtin.BuiltinUserServiceBean;
+import edu.harvard.iq.dataverse.authorization.providers.builtin.DataverseUserPage;
 import edu.harvard.iq.dataverse.dataaccess.ImageThumbConverter;
 import edu.harvard.iq.dataverse.dataset.datasetversion.DatasetVersionServiceBean;
 import edu.harvard.iq.dataverse.dataverse.CreateEditDataversePage;
@@ -43,6 +52,9 @@ import edu.harvard.iq.dataverse.dataverse.FeaturedDataversesDialog;
 import edu.harvard.iq.dataverse.dataverse.LinkToDataverseDialog;
 import edu.harvard.iq.dataverse.featured.FeaturedDataverseServiceBean;
 import edu.harvard.iq.dataverse.mail.confirmemail.ConfirmEmailServiceBean;
+import edu.harvard.iq.dataverse.notification.UserNotificationService;
+import edu.harvard.iq.dataverse.notification.dto.UserNotificationDTO;
+import edu.harvard.iq.dataverse.notification.dto.UserNotificationMapper;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetFieldTypeRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.DatasetRepository;
 import edu.harvard.iq.dataverse.persistence.dataset.MetadataBlockRepository;
@@ -51,6 +63,7 @@ import edu.harvard.iq.dataverse.persistence.dataverse.DataverseRepository;
 import edu.harvard.iq.dataverse.persistence.dataverse.DataverseVersion;
 import edu.harvard.iq.dataverse.persistence.user.AuthenticatedUserRepository;
 import edu.harvard.iq.dataverse.persistence.user.DataverseRoleRepository;
+import edu.harvard.iq.dataverse.persistence.user.NotificationType;
 import edu.harvard.iq.dataverse.persistence.user.UserNotificationRepository;
 import edu.harvard.iq.dataverse.search.LastSearchValue;
 import edu.harvard.iq.dataverse.search.SearchIncludeFragment;
@@ -59,6 +72,7 @@ import edu.harvard.iq.dataverse.search.index.SolrIndexServiceBean;
 import edu.harvard.iq.dataverse.search.query.SearchObjectType;
 import edu.harvard.iq.dataverse.search.query.filter.SpecialFilterService;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
+import edu.harvard.iq.dataverse.settings.SettingsWrapper;
 import edu.harvard.iq.dataverse.users.SamlSessionRegistry;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.UIMessages;
@@ -87,7 +101,11 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
     @Inject
     private DataverseRoleRepository roleRepository;
     @Inject
+    private UserNotificationService userNotificationService;
+    @Inject
     private UserNotificationRepository userNotificationRepository;
+    @Inject
+    private UserNotificationMapper userNotificationMapper;
     @Inject
     private ConfirmEmailServiceBean confirmEmailService;
     @Inject
@@ -117,8 +135,11 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
     @Inject
     private SettingsServiceBean settings;
     @Inject 
-    private SolrIndexServiceBean solrIndexService;;
-    
+    private SolrIndexServiceBean solrIndexService;
+    @Inject
+    private BuiltinUserServiceBean builtinUserService;
+    @Inject
+    private AuthenticationServiceBean authenticationService;
 	
     private UIMessages ui = Mockito.mock(UIMessages.class);
 	private CreateEditDataversePage createEditPage;
@@ -902,6 +923,12 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				assertThat(result.isUnderEmbargo()).isFalse();
 			});
 		
+		//verifiy notifications
+		List<UserNotificationDTO> notifications = loadNotifications();
+		assertThat(notifications).hasSize(1);
+		assertThat(notifications.get(0).getTheObjectType()).isEqualTo(DATAVERSE);
+		assertThat(notifications.get(0).getType()).isEqualTo(CREATEDV);
+
 		// open dataverse page
 		this.dataversePage = newDataversePage();
 		this.dataversePage.setDataverseId(this.createEditPage.getDataverse().getId());
@@ -919,7 +946,7 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		assertThat(this.dataversePage.displaySubmitForReviewButton()).isTrue();
 		assertThat(this.dataversePage.disabledSubmitForReviewButton()).isFalse();
 		assertThat(this.dataversePage.displayPublishButton()).isFalse();
-		
+			
 		// send for review
 		this.dataversePage.getSubmitForReviewDialog().clear();
 		this.dataversePage.getSubmitForReviewDialog().setMessage("message1");
@@ -934,6 +961,12 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 		
 		assertThat(dataverse.isInReview()).isTrue();
 		assertThat(dataverse.isReleased()).isFalse();
+		
+		//verifiy notifications
+		notifications = loadNotifications();
+		assertThat(notifications).hasSize(2);
+		assertThat(notifications.get(1).getTheObjectType()).isEqualTo(DATAVERSE);
+		assertThat(notifications.get(1).getType()).isEqualTo(SUBMITTEDDV);
 		
 		//verify solr index
 		this.searchFragment = newSearchIncludeFragment();
@@ -1302,6 +1335,21 @@ public class CreateEditDataverseIT extends WebappArquillianDeployment {
 				this.settings);
 		fragment.setSelectedTypesMap(singletonMap(SearchObjectType.DATAVERSES, true));
 		return fragment;
+	}
+	
+	//--------------------------------------------------------------------------
+	private List<UserNotificationDTO> loadNotifications() {
+		final SettingsWrapper settingsWrapper = new SettingsWrapper(this.session, this.config);
+		final PermissionsWrapper permissionsWrapper = newPermissionsWrapper();	
+		final DataverseUserPage page = new DataverseUserPage(
+				this.session, this.dataverseService,
+				this.userNotificationService, this.userNotificationRepository,
+				this.userNotificationMapper, this.builtinUserService, 
+				this.authenticationService, this.confirmEmailService, this.config,
+				null, settingsWrapper, permissionsWrapper, null);
+		page.setSelectTab("notifications");
+		page.init();
+		return page.getNotificationsList().load(0, 100, null, SortOrder.ASCENDING, emptyMap());
 	}
 	
 	//--------------------------------------------------------------------------
