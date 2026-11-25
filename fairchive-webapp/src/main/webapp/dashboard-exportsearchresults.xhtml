@@ -31,15 +31,16 @@
 				           var="block">
 				    <ui:fragment rendered="#{not empty block.datasetFieldTypes}">
 						<h2 class="text-muted">#{block.localeDisplayName}</h2>
-				        <h:commandLink value="#{bundle.selectAll}" 
-	                                   action="#{ExportSearchResultsPage.selectAll(block, true)}">
-	                        <f:ajax render="@form" execute="@form"/>
-	                    </h:commandLink>
-	                    |
-	                    <h:commandLink value="#{bundle.deselectAll}" 
-	                                   action="#{ExportSearchResultsPage.selectAll(block, false)}">
-	                        <f:ajax render="@form" execute="@form"/>
-	                    </h:commandLink>
+	                    <h:commandButton value="#{bundle.selectAll}"
+                                         action="#{ExportSearchResultsPage.selectAll(block, true)}"
+                                         styleClass="btn btn-default btn-sm">
+                            <f:ajax execute="@form" render="@form"/>
+                        </h:commandButton>
+                        <h:commandButton value="#{bundle.deselectAll}"
+                                         action="#{ExportSearchResultsPage.selectAll(block, false)}"
+                                         styleClass="btn btn-default btn-sm">
+                            <f:ajax execute="@form" render="@form"/>
+                        </h:commandButton>
 						<ul style="border: 1px solid #e8e8e8; padding: 5px; list-style-type: none;"
 						    role="group" 
 	                              aria-label="#{block.localeDisplayName}">
