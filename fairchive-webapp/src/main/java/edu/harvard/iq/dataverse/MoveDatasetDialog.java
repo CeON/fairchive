@@ -42,7 +42,8 @@ public class MoveDatasetDialog implements Serializable {
     private DatasetService datasetService;
 
     private NodesInfo nodesInfo = new NodesInfo(emptyMap(), emptySet());
-    protected TreeNode selectedNode;
+    private TreeNode selectedNode;
+    private boolean force = false;
 
     private String treeFilter;
     private String prevTreeFilter;
@@ -93,6 +94,14 @@ public class MoveDatasetDialog implements Serializable {
     public void setTreeFilter(final String filter) {
         this.treeFilter = filter;
     }
+    
+    public boolean isForce() {
+        return this.force;
+    }
+    
+    public void setForce(final boolean value) {
+        this.force = value;
+    }
 
     @PostConstruct
     public void init() {
@@ -140,7 +149,7 @@ public class MoveDatasetDialog implements Serializable {
             try {
             	final Long id = ((NodeData) this.selectedNode.getData()).getId();
             	final Dataverse target = this.dataverseRepo.getById(id);
-            	this.datasetService.moveDataset(this.dataset, target);
+            	this.datasetService.moveDataset(this.dataset, target, this.force);
             	this.ui.addSuccessMessage(getStringFromBundle(
                         "dashboard.datamove.dataset.message.success", this.dataset.getOwner().getDisplayName()));
             } catch (Exception ce) {
