@@ -62,7 +62,12 @@
                                  update="treeMsg"
                                  process="@form"
                                  styleClass="btn btn-default btn-access"
-                                 oncomplete="if (args &amp;&amp; !args.validationFailed) PF('#{widgetVar}').hide(); window.location.reload();"/>
+                                 oncomplete="if (args &amp;&amp; !args.validationFailed) {
+                                                PF('#{widgetVar}').hide();
+                                                setTimeout(function() {
+                                                    window.location.reload();
+                                                }, 5000);
+                                            }"/>
                 <p:commandButton type="button" 
                                  onclick="PF('#{widgetVar}').hide()" 
                                  styleClass="btn btn-default" 
