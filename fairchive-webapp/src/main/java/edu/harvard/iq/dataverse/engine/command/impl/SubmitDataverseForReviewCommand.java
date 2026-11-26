@@ -66,12 +66,13 @@ public class SubmitDataverseForReviewCommand extends AbstractCommand<Dataverse> 
         		getUsersWithPermissionOn(PublishDataverse, dataverse);
         final AuthenticatedUser requestor = (AuthenticatedUser) getUser();
         final Timestamp timestamp = Timestamp.from(now());
+        final Long id = this.dataverse.getLatestVersion().getId();
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(REQUESTOR_ID.key(), requestor.getId().toString());
         parameters.put(MESSAGE.key(), this.comment);
-
-        curators.forEach(c -> context.notifications()
-                .sendNotificationWithEmail(c, timestamp, SUBMITTEDDV,
-                        this.dataverse.getLatestVersion().getId(), DATAVERSE_VERSION, parameters));
+        for(final AuthenticatedUser curator : curators) {
+        	context.notifications().sendNotificationWithEmail(curator, timestamp, 
+        			SUBMITTEDDV, id, DATAVERSE_VERSION, parameters);
+        }
     }
 }

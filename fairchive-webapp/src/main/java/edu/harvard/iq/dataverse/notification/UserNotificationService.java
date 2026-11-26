@@ -75,6 +75,9 @@ public class UserNotificationService {
 
     public void sendNotificationWithEmail(AuthenticatedUser dataverseUser, Timestamp sendDate, String type, Long dvObjectId,
                                           NotificationObjectType notificationObjectType, Map<String, String> parameters) {
+    	System.out.println("!============================UserNotificationService.sendNotificationWithEmail - type = " + type);
+    	new Exception().printStackTrace();
+    	
         UserNotification userNotification = createUserNotification(dataverseUser, sendDate, type, dvObjectId, parameters);
         userNotificationRepository.saveAndFlush(userNotification);
         executorService.submit(() -> sendEmail(userNotification.getId(), notificationObjectType));

@@ -76,13 +76,18 @@ public class ReturnDataverseToAuthorCommand extends AbstractCommand<Dataverse> {
         authors.removeAll(context.permissions().
         		getUsersWithPermissionOn(Permission.PublishDataverse, this.dataverse));
 
+        final Timestamp now = Timestamp.from(now());
+        final Long id = this.dataverse.getLatestVersion().getId();
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(NotificationParameter.MESSAGE.key(), this.comment);
         parameters.put(NotificationParameter.REPLY_TO.key(), this.replyTo);
         parameters.put(NotificationParameter.SEND_COPY.key(), String.valueOf(this.sendCopy));
         parameters.put(NotificationParameter.REQUESTOR_ID.key(), requestor.getId().toString());
-        authors.forEach(a -> context.notifications()
-                .sendNotificationWithEmail(a, Timestamp.from(now()), RETURNEDDV,
-                    this.dataverse.getLatestVersion().getId(), DATAVERSE_VERSION, parameters));
+        
+        System.out.println("!============================ReturnDataverseToAuthorCommand.sendNotification");
+        for(final AuthenticatedUser author : authors) {
+        	context.notifications().sendNotificationWithEmail(author, now, 
+        			RETURNEDDV, id, DATAVERSE_VERSION,  parameters);
+        }
     }
 }
