@@ -388,8 +388,9 @@ public class DatasetService {
         return dataset;
     }
     
-    public void moveDataset(final Dataset dataset, final Dataverse target) {
+    public void moveDataset(final Dataset dataset, final Dataverse target, 
+    		final boolean force) {
         commandEngine.submit(new MoveDatasetCommand(
-        		this.dvRequestService.getDataverseRequest(), dataset,target, true));
+        		this.dvRequestService.getDataverseRequest(), dataset,target, force));
     }
 }
