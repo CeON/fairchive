@@ -29,7 +29,6 @@ import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.PublicIn
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.SearchBarUrls;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShibPassiveLoginEnabled;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowAddDatasetButtonOnDataversePage;
-import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowSearchResultOnMap;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -75,10 +74,6 @@ public class SettingsWrapper implements java.io.Serializable {
         return settingService.isTrueForKey(ProvCollectionEnabled);
     }
 
-    public boolean isSearchResultOnMap() {
-        return settingService.isTrueForKey(ShowSearchResultOnMap);
-    }
-    
     public String getMapTileType() {
     	final String type = this.settingService.getValueForKey(MapTileType);
     	return isEmpty(type) ? "raster" : type;

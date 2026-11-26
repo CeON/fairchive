@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.search;
 
 import static edu.harvard.iq.dataverse.search.query.SearchObjectType.DATASETS;
 import static edu.harvard.iq.dataverse.search.query.SearchObjectType.DATAVERSES;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowSearchResultOnMap;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.io.IOUtils.readLines;
@@ -165,6 +166,17 @@ public class SearchIncludeFragmentTest {
         return response;
     }
 
+    private void mockSearchResultOnMapSetting() {
+        when(this.settings.isTrueForKey(ShowSearchResultOnMap)).thenReturn(true);
+    }
+
+    private void mockSearchResultsCount(long count) throws SearchException {
+        SolrQueryResponse response = responseOf();
+        response.setNumResultsFound(count);
+        when(this.searchService.search(any(), any(), anyString(), any(), any(), any(),
+                any(), anyInt(), anyInt(), anyBoolean())).thenReturn(response);
+    }
+
     @Test
     public void searchresultsSavedToCSV_containIntendedData() throws Exception {
 
@@ -300,6 +312,47 @@ public class SearchIncludeFragmentTest {
         //
         assertThat(fragment.isSolrIsDown()).isTrue();
         assertThat(fragment.wasSolrErrorEncountered()).isTrue();
+    }
+
+    @Test
+    public void displaySearchResultTabs__searchResultOnMapOff() throws SearchException {
+        // given
+        mockSearchResultsCount(3);
+        this.fragment.search();
+
+        // when
+        boolean display = this.fragment.displaySearchResultTabs();
+
+        // then
+        assertThat(display).isFalse();
+    }
+
+    @Test
+    public void displaySearchResultTabs__noResults() throws SearchException {
+        // given
+        mockSearchResultOnMapSetting();
+        mockSearchResultsCount(0);
+        this.fragment.search();
+
+        // when
+        boolean display = this.fragment.displaySearchResultTabs();
+
+        // then
+        assertThat(display).isFalse();
+    }
+
+    @Test
+    public void displaySearchResultTabs__resultsFound() throws SearchException {
+        // given
+        mockSearchResultOnMapSetting();
+        mockSearchResultsCount(3);
+        this.fragment.search();
+
+        // when
+        boolean display = this.fragment.displaySearchResultTabs();
+
+        // then
+        assertThat(display).isTrue();
     }
 
     @Test
