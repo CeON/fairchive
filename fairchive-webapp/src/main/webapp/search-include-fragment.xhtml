@@ -459,12 +459,12 @@
             </div>
 
             <!-- Search Results List -->
-            <ui:fragment rendered="#{!settingsWrapper.searchResultOnMap}">
+            <ui:fragment rendered="#{!SearchIncludeFragment.displaySearchResultTabs()}">
                 <ui:include src="search-results-list.xhtml"></ui:include>
             </ui:fragment>
 
             <!-- Search Results on tab view: list and map -->
-            <ui:fragment rendered="#{settingsWrapper.searchResultOnMap}">
+            <ui:fragment rendered="#{SearchIncludeFragment.displaySearchResultTabs()}">
                 <p:tabView id="tabView" 
                            dynamic="true" 
                            cache="true" 

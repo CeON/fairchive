@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.search;
 
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.MaxResultsCountSavedToFile;
 import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowAddDatasetButtonOnDataversePage;
+import static edu.harvard.iq.dataverse.settings.SettingsServiceBean.Key.ShowSearchResultOnMap;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.startsWith;
@@ -491,6 +492,10 @@ public class SearchIncludeFragment {
         }
     }
     
+    public boolean displaySearchResultTabs() {
+        return settings.isTrueForKey(ShowSearchResultOnMap) && getSearchResultsCount() > 0;
+    }
+
     public boolean displaySaveToFileButton() {
         return getSearchResultsCount() > 0 && saveFileLimitExceeded();
     }
