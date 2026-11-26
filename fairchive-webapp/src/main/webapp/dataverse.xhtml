@@ -272,7 +272,7 @@
                                         </h:link>
                                     </li>
                                     <li role="none" 
-                                        jsf:rendered="#{FeaturedDataversesDialog.canEditFeaturedDataverses}">
+                                        jsf:rendered="#{FeaturedDataversesDialog.displayMenuItem()}">
                                         <p:commandLink id="browseOpts"
                                                        action="#{FeaturedDataversesDialog.setupDialog()}"
                                                        oncomplete="primeFacesShowModal('browseOptsForm', this)"

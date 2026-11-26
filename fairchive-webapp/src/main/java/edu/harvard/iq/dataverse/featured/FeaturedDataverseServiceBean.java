@@ -114,6 +114,20 @@ public class FeaturedDataverseServiceBean {
         return featurableDataverses;
     }
 
+    /**
+     * Whether the featured collections dialog of the given collection has anything to show: a published
+     * subcollection or a linked collection that could be featured, or a collection featured already.
+     * Answers without loading any of them, so that it can be asked on every page view.
+     */
+    public boolean hasFeaturableOrFeaturedDataverses(Long dataverseId) {
+        return (Boolean) em.createNativeQuery("SELECT"
+                + " EXISTS (SELECT 1 FROM dvobject WHERE dtype = 'Dataverse' AND owner_id = ?1 AND publicationdate IS NOT NULL)"
+                + " OR EXISTS (SELECT 1 FROM dataverselinkingdataverse WHERE linkingdataverse_id = ?1)"
+                + " OR EXISTS (SELECT 1 FROM dataversefeatureddataverse WHERE dataverse_id = ?1)")
+                .setParameter(1, dataverseId)
+                .getSingleResult();
+    }
+
     public void delete(DataverseFeaturedDataverse dataverseFeaturedDataverse) {
         dataverseFeaturedDataverseRepository.mergeAndDelete(dataverseFeaturedDataverse);
     }
