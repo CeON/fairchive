@@ -131,6 +131,42 @@ class FeaturedDataversesDialogTest {
         assertThat(outcome).contains("alias=root");
     }
 
+    @Test
+    void displayMenuItem__showsItWhenSomethingCanBeFeatured() {
+        // given
+        mockFeaturableDataversesCheck(true);
+
+        // when
+        dialog.init(dataverse);
+
+        // then
+        assertThat(dialog.displayMenuItem()).isTrue();
+    }
+
+    @Test
+    void displayMenuItem__hidesItWhenNothingCanBeFeatured() {
+        // given
+        mockFeaturableDataversesCheck(false);
+
+        // when
+        dialog.init(dataverse);
+
+        // then
+        assertThat(dialog.displayMenuItem()).isFalse();
+    }
+
+    @Test
+    void displayMenuItem__hidesItWithoutEditPermission() {
+        // given
+        when(permissionWrapper.canIssueUpdateDataverseCommand(dataverse)).thenReturn(false);
+
+        // when
+        dialog.init(dataverse);
+
+        // then
+        assertThat(dialog.displayMenuItem()).isFalse();
+    }
+
     // -------------------- PRIVATE --------------------
 
     private Dataverse createFeaturable(String name) {
@@ -143,6 +179,10 @@ class FeaturedDataversesDialogTest {
         when(featuredDataverseService.findFeaturableDataverses(DATAVERSE_ID))
                 .thenReturn(new ArrayList<>(asList(alpha, beta)));
         when(featuredDataverseService.findByDataverseId(DATAVERSE_ID)).thenReturn(displayOrder);
+    }
+
+    private void mockFeaturableDataversesCheck(boolean result) {
+        when(featuredDataverseService.hasFeaturableOrFeaturedDataverses(DATAVERSE_ID)).thenReturn(result);
     }
 
     private void mockFacesContext() {

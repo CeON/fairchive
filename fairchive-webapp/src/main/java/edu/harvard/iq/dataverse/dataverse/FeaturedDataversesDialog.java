@@ -35,16 +35,13 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
     private PermissionsWrapper permissionWrapper;
     
     private boolean canEditFeaturedDataverses;
+    private boolean hasFeaturableOrFeaturedDataverses;
     private DualListModel<Dataverse> featuredDataverses = 
     		new DualListModel<>(new ArrayList<>(), new ArrayList<>());
     private Dataverse dataverse;
     private Dataverse.FeaturedDataversesSorting featuredDataversesSorting;
 
     // -------------------- GETTERS --------------------
-
-    public boolean isCanEditFeaturedDataverses() {
-        return this.canEditFeaturedDataverses;
-    }
 
     public DualListModel<Dataverse> getFeaturedDataverses() {
         return this.featuredDataverses;
@@ -54,6 +51,10 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
         return this.featuredDataversesSorting;
     }
     
+    public boolean displayMenuItem() {
+        return this.canEditFeaturedDataverses && this.hasFeaturableOrFeaturedDataverses;
+    }
+
     public boolean displaySelectors() {
     	return !this.featuredDataverses.getSource().isEmpty() 
     			|| !this.featuredDataverses.getTarget().isEmpty();
@@ -72,6 +73,8 @@ public class FeaturedDataversesDialog implements java.io.Serializable {
         
         if (this.canEditFeaturedDataverses) {
             this.dataverse = dataverse;
+            this.hasFeaturableOrFeaturedDataverses = this.featuredDataverseService.
+                    hasFeaturableOrFeaturedDataverses(dataverse.getId());
         }
     }
 
