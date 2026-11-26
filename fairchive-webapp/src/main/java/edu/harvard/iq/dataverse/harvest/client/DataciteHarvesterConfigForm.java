@@ -2,7 +2,6 @@ package edu.harvard.iq.dataverse.harvest.client;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -110,13 +109,11 @@ public class DataciteHarvesterConfigForm implements Serializable {
         if (isNotBlank(query)) {
             queryParams.put(QUERY_PARAM, query.trim());
         }
-        for (String line : nonBlankLines(additionalParams)) {
-            addAdditionalParam(queryParams, line);
-        }
+        nonBlankLines(additionalParams).forEach(line -> addAdditionalParam(queryParams, line));
 
         DataciteHarvesterConfig config = new DataciteHarvesterConfig();
         config.setQueryParams(queryParams);
-        config.setDois(nonBlankLines(dois).stream()
+        config.setDois(nonBlankLines(dois)
                 .map(doi -> DOI_PREFIX.matcher(doi).replaceFirst(""))
                 .collect(toList()));
         config.setMaxRecords(maxRecords);
@@ -141,11 +138,10 @@ public class DataciteHarvesterConfigForm implements Serializable {
         queryParams.put(name, nameAndValue[1].trim());
     }
 
-    private static List<String> nonBlankLines(String text) {
+    private static Stream<String> nonBlankLines(String text) {
         return Stream.of(LINE_BREAK.split(defaultString(text)))
                 .map(String::trim)
-                .filter(line -> !line.isEmpty())
-                .collect(toList());
+                .filter(line -> !line.isEmpty());
     }
 
     // -------------------- SETTERS --------------------

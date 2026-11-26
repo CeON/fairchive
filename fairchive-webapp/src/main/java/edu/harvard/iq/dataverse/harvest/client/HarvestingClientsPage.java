@@ -24,7 +24,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.xoai.model.oaipmh.MetadataFormat;
 import org.omnifaces.cdi.ViewScoped;
 
@@ -347,7 +346,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
             newHarvestingClient.setHarvesterConfig(dataciteConfigForm.toConfig().toJson());
         } else {
             newHarvestingClient.setHarvestingUrl(newHarvestingUrl);
-            if (!StringUtils.isEmpty(newOaiSet)) {
+            if (!isEmpty(newOaiSet)) {
                 newHarvestingClient.setHarvestingSet(newOaiSet);
             }
             newHarvestingClient.setMetadataPrefix(newMetadataFormat);
@@ -420,7 +419,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         // the only validation we want is to make sure the select one from the 
         // menu. 
         if (context.getExternalContext().getRequestParameterMap().get("DO_VALIDATION") != null
-                && StringUtils.isEmpty(value)) {
+                && isEmpty(value)) {
 
             input.setValid(false);
             context.addMessage(toValidate.getClientId(),
@@ -432,7 +431,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
 
     public boolean validateNickname() {
 
-        if (!StringUtils.isEmpty(getNewNickname())) {
+        if (!isEmpty(getNewNickname())) {
 
             if (getNewNickname().length() > 30 || (!Pattern.matches("^[a-zA-Z0-9\\_\\-]+$", getNewNickname()))) {
                 //input.setValid(false);
@@ -965,7 +964,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         setOaiSetsSelectItems(new ArrayList<>());
         if (setNames != null) {
             for (String set : setNames) {
-                if (!StringUtils.isEmpty(set)) {
+                if (!isEmpty(set)) {
                     getOaiSetsSelectItems().add(new SelectItem(set, set));
                 }
             }
@@ -987,7 +986,7 @@ public class HarvestingClientsPage implements java.io.Serializable {
         if (formats != null) {
             for (MetadataFormat f : formats) {
                 String prefix = f.getMetadataPrefix();
-                if (!StringUtils.isEmpty(prefix)) {
+                if (!isEmpty(prefix)) {
                     getOaiMetadataFormatSelectItems().add(new SelectItem(prefix, prefix));
                 }
             }

@@ -151,6 +151,9 @@ public class HarvestingClientDao implements java.io.Serializable {
      * in a collection a client harvests into is not counted.
      */
     public Long getNumberOfHarvestedDatasetByClients(List<HarvestingClient> clients) {
+        if (clients.isEmpty()) {
+            return 0L;
+        }
         try {
             return em.createQuery("SELECT COUNT(d) FROM Dataset d WHERE d.harvestedFrom IN :clients", Long.class)
                     .setParameter("clients", clients)

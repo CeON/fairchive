@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import javax.inject.Inject;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -70,6 +71,15 @@ public class HarvestingClientDaoIT extends WebappArquillianDeployment {
 
         // then
         assertThat(count).isEqualTo(1L);
+    }
+
+    @Test
+    public void getNumberOfHarvestedDatasetByClients__noClients() {
+        // when
+        Long count = harvestingClientDao.getNumberOfHarvestedDatasetByClients(emptyList());
+
+        // then
+        assertThat(count).isEqualTo(0L);
     }
 
     // -------------------- PRIVATE --------------------
