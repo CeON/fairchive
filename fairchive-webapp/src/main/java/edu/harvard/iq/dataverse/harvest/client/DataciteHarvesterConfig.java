@@ -73,6 +73,15 @@ public class DataciteHarvesterConfig {
         return Option.of(maxRecords).getOrElse(DEFAULT_MAX_RECORDS);
     }
 
+    /**
+     * Upper limit of the records processed from the search as configured:
+     * {@code null} when the configuration sets none, unlike
+     * {@link #getMaxRecords()}, which then gives the default.
+     */
+    public Integer getConfiguredMaxRecords() {
+        return maxRecords;
+    }
+
     // -------------------- LOGIC --------------------
 
     /**

@@ -200,7 +200,7 @@
                               widgetVar="newHarvestingClientForm"
                               modal="true" 
                               width="85%"
-                              header="#{harvestingClientsPage.createMode ? bundle['harvestclients.newClientDialog.title.new'] : bundle['harvestclients.viewEditDialog.title']}">
+                              header="#{harvestingClientsPage.clientDialogTitle}">
                         <p:fragment id="newHarvestingClientDialogContent">
                             <p:focus context="newHarvestingClientDialogContent"/>
                             <p class="help-block">
@@ -210,7 +210,7 @@
                                       class="form-horizontal" 
                                       jsf:rendered="#{harvestingClientsPage.createStepOne}">
                                 <!-- STEP 1 - Info -->
-                                <legend>#{bundle['harvestclients.newClientDialog.step1']}</legend>
+                                <legend>#{harvestingClientsPage.getStepLegend(1)}</legend>
                                 <!-- nickname: -->
                                 <div class="form-group">
                                     <label for="nickname" 
@@ -246,27 +246,13 @@
                                         </span>
                                     </label>
                                     <div class="col-sm-9">
-                                        <p class="form-control-static">#{bundle['harvestclients.newClientDialog.type.OAI']}</p>
-                                        <ui:remove>
-                                            <!-- Removed radios, only OAI option available -->
-                                        <p:panelGrid columns="2" 
-                                                     styleClass="noBorders">
-                                            <p:selectOneRadio id="typeOptions" 
-                                                              value="#{harvestingClientsPage.harvestTypeRadio}">
-                                                <f:selectItem itemLabel="#{bundle['harvestclients.newClientDialog.type.OAI']}" 
-                                                              itemValue="1" />
-                                                <f:selectItem itemLabel="#{bundle['harvestclients.newClientDialog.type.Nesstar']}" 
-                                                              itemDisabled="true" 
-                                                              itemValue="2" />
-                                            </p:selectOneRadio>
-                                        </p:panelGrid>
-                                        </ui:remove>
-                                        <p class="help-block">#{bundle['harvestclients.newClientDialog.type.helptext']}</p>
+                                        <p class="form-control-static">#{harvestingClientsPage.newHarvestTypeLabel}</p>
                                     </div>
                                 </div>
 
                                 <!-- harvest url/server address: -->
-                                <div class="form-group">
+                                <div class="form-group"
+                                     jsf:rendered="#{harvestingClientsPage.harvestTypeOAI}">
                                     <label for="serverUrl" 
                                            class="col-sm-2 control-label">
                                         #{bundle['harvestclients.newClientDialog.url']} 
@@ -294,7 +280,8 @@
                                 </div>
 
                                 <!-- lets the user skip fetching the sets of a server offering too many of them: -->
-                                <div class="form-group">
+                                <div class="form-group"
+                                     jsf:rendered="#{harvestingClientsPage.harvestTypeOAI}">
                                     <label for="skipOaiSets" 
                                            class="col-sm-2 control-label">
                                         #{bundle['harvestclients.newClientDialog.skipOaiSets']} 
@@ -386,7 +373,7 @@
                                       class="form-horizontal" 
                                       jsf:rendered="#{harvestingClientsPage.createStepTwo and harvestingClientsPage.harvestTypeOAI}">
                                 <!-- STEP 2 - Format -->
-                                <legend>#{bundle['harvestclients.newClientDialog.step2']}</legend>
+                                <legend>#{harvestingClientsPage.getStepLegend(2)}</legend>
                                 <!-- harvesting sets (if available): these are obtained from the oai server response: -->
                                 <div class="form-group">
                                     <label for="serverOaiSets" 
@@ -489,11 +476,135 @@
                                 </div>
                             </fieldset>
 
+                            <fieldset id="addClientStepTwoDatacite"
+                                      class="form-horizontal"
+                                      jsf:rendered="#{harvestingClientsPage.displayDataciteConfigStep()}">
+                                <!-- STEP 2 (DataCite) - Query Configuration -->
+                                <legend>#{harvestingClientsPage.getStepLegend(2)}</legend>
+                                <p:messages id="dataciteConfigMessages" globalOnly="true" showDetail="true" closable="false"/>
+
+                                <div class="form-group">
+                                    <label for="dataciteQuery"
+                                           class="col-sm-3 control-label">
+                                        #{bundle['harvestclients.newClientDialog.datacite.query']}
+                                        <span class="glyphicon glyphicon-question-sign tooltip-icon"
+                                              tabindex="0"
+                                              role="button"
+                                              data-toggle="tooltip"
+                                              data-placement="auto right"
+                                              data-original-title="#{bundle['harvestclients.newClientDialog.datacite.query.tip']}"/>
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <p:inputTextarea id="dataciteQuery"
+                                                         styleClass="form-control"
+                                                         rows="2"
+                                                         autoResize="false"
+                                                         value="#{harvestingClientsPage.dataciteConfigForm.query}"/>
+                                        <p class="help-block">#{bundle['harvestclients.newClientDialog.datacite.query.helptext']}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="dataciteAdditionalParams"
+                                           class="col-sm-3 control-label">
+                                        #{bundle['harvestclients.newClientDialog.datacite.additionalParams']}
+                                        <span class="glyphicon glyphicon-question-sign tooltip-icon"
+                                              tabindex="0"
+                                              role="button"
+                                              data-toggle="tooltip"
+                                              data-placement="auto right"
+                                              data-original-title="#{bundle['harvestclients.newClientDialog.datacite.additionalParams.tip']}"/>
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <p:inputTextarea id="dataciteAdditionalParams"
+                                                         styleClass="form-control"
+                                                         rows="2"
+                                                         autoResize="false"
+                                                         value="#{harvestingClientsPage.dataciteConfigForm.additionalParams}"/>
+                                        <p class="help-block">#{bundle['harvestclients.newClientDialog.datacite.additionalParams.helptext']}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="dataciteDois"
+                                           class="col-sm-3 control-label">
+                                        #{bundle['harvestclients.newClientDialog.datacite.dois']}
+                                        <span class="glyphicon glyphicon-question-sign tooltip-icon"
+                                              tabindex="0"
+                                              role="button"
+                                              data-toggle="tooltip"
+                                              data-placement="auto right"
+                                              data-original-title="#{bundle['harvestclients.newClientDialog.datacite.dois.tip']}"/>
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <p:inputTextarea id="dataciteDois"
+                                                         styleClass="form-control"
+                                                         rows="2"
+                                                         autoResize="false"
+                                                         value="#{harvestingClientsPage.dataciteConfigForm.dois}"/>
+                                        <p class="help-block">#{bundle['harvestclients.newClientDialog.datacite.dois.helptext']}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="dataciteMaxRecords"
+                                           class="col-sm-3 control-label">
+                                        #{bundle['harvestclients.newClientDialog.datacite.maxRecords']}
+                                        <span class="glyphicon glyphicon-question-sign tooltip-icon"
+                                              tabindex="0"
+                                              role="button"
+                                              data-toggle="tooltip"
+                                              data-placement="auto right"
+                                              data-original-title="#{bundle['harvestclients.newClientDialog.datacite.maxRecords.tip']}"/>
+                                    </label>
+                                    <div class="col-sm-3">
+                                        <p:inputText id="dataciteMaxRecords"
+                                                     styleClass="form-control"
+                                                     placeholder="#{bundle['harvestclients.newClientDialog.datacite.maxRecords.watermark']}"
+                                                     converterMessage="#{bundle['harvestclients.newClientDialog.datacite.maxRecords.invalid']}"
+                                                     value="#{harvestingClientsPage.dataciteConfigForm.maxRecords}">
+                                            <f:converter converterId="javax.faces.Integer"/>
+                                        </p:inputText>
+                                        <p:message for="dataciteMaxRecords"/>
+                                    </div>
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <p class="help-block">#{bundle['harvestclients.newClientDialog.datacite.maxRecords.helptext']}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="button-block">
+                                        <p:commandLink type="button"
+                                                        id="createStepTwoDatacitePrevious"
+                                                        styleClass="btn btn-default"
+                                                        update=":harvestingClientsForm:newHarvestingClientDialog"
+                                                        oncomplete="PF('newHarvestingClientForm').show();"
+                                                        action="#{harvestingClientsPage.backToStepOne()}">
+                                            <span class="glyphicon glyphicon-menu-left"/> #{bundle.previous}
+                                        </p:commandLink>
+                                        <p:commandLink type="button"
+                                                        id="createStepTwoDataciteNext"
+                                                        styleClass="btn btn-default"
+                                                        update=":harvestingClientsForm:newHarvestingClientDialog"
+                                                        oncomplete="primeFacesShowModal('newHarvestingClientForm', this);"
+                                                        action="#{harvestingClientsPage.validateDataciteConfig()}">
+                                            <span class="glyphicon glyphicon-menu-right"/> #{bundle.next}
+                                        </p:commandLink>
+                                        <button type="button"
+                                                onclick="PF('newHarvestingClientForm').hide()"
+                                                class="btn btn-default"
+                                                value="#{bundle.cancel}">
+                                            #{bundle.cancel}
+                                        </button>
+                                    </div>
+                                </div>
+                            </fieldset>
+
                             <fieldset id="addClientStepThree" 
                                       class="form-horizontal" 
-                                      jsf:rendered="#{harvestingClientsPage.createStepThree and harvestingClientsPage.initialSettingsValidated and harvestingClientsPage.harvestTypeOAI}">
+                                      jsf:rendered="#{harvestingClientsPage.displayScheduleStep()}">
                                 <!-- STEP 3 - Schedule -->
-                                <legend>#{bundle['harvestclients.newClientDialog.step3']}</legend>
+                                <legend>#{harvestingClientsPage.getStepLegend(3)}</legend>
                                 <!-- scheduling; can be enabled, can be left unscheduled; harvesting can be scheduled daily or weekly -->
                                 <div class="form-group">
                                     <label for="harvestingSchedule" 
@@ -603,11 +714,27 @@
                                         <p:commandLink type="button"
                                                         id="createStepThreeNext"
                                                         styleClass="btn btn-default"
+                                                        rendered="#{harvestingClientsPage.harvestTypeOAI}"
                                                         update=":harvestingClientsForm:newHarvestingClientDialog"
                                                         oncomplete="PF('newHarvestingClientForm').show();"
                                                         action="#{harvestingClientsPage.goToStepFour()}">
                                             <span class="glyphicon glyphicon-menu-right"/> #{bundle.next}
                                         </p:commandLink>
+                                        <!-- a DataCite client has no display step: it is created or saved here -->
+                                        <p:commandLink type="button"
+                                                       styleClass="btn btn-default"
+                                                       rendered="#{harvestingClientsPage.displayCreateButtonOnScheduleStep()}"
+                                                       value="#{bundle['harvestclients.newClientDialog.btn.create']}"
+                                                       update="newHarvestingClientDialogContent :messagePanel :harvestingClientsForm clientsTable emptyClientsTable"
+                                                       actionListener="#{harvestingClientsPage.createClient}"
+                                                       oncomplete="if (args &amp;&amp; !args.validationFailed) PF('newHarvestingClientForm').hide(); else PF('newHarvestingClientForm').show();"/>
+                                        <p:commandLink type="button"
+                                                       styleClass="btn btn-default"
+                                                       rendered="#{harvestingClientsPage.displaySaveButtonOnScheduleStep()}"
+                                                       value="#{bundle['harvestclients.viewEditDialog.btn.save']}"
+                                                       update="newHarvestingClientDialogContent :messagePanel :harvestingClientsForm clientsTable emptyClientsTable"
+                                                       actionListener="#{harvestingClientsPage.saveClient}"
+                                                       oncomplete="if (args &amp;&amp; !args.validationFailed) PF('newHarvestingClientForm').hide(); else PF('newHarvestingClientForm').show();"/>
                                         <button type="button" 
                                                 onclick="PF('newHarvestingClientForm').hide()" 
                                                 class="btn btn-default" 
@@ -622,7 +749,7 @@
                                       class="form-horizontal" 
                                       jsf:rendered="#{harvestingClientsPage.createStepFour and harvestingClientsPage.initialSettingsValidated and harvestingClientsPage.harvestTypeOAI}">
                                 <!-- STEP 4 - Display -->
-                                <legend>#{bundle['harvestclients.newClientDialog.step4']}</legend>
+                                <legend>#{harvestingClientsPage.getStepLegend(4)}</legend>
                                 <!-- harvesting "styles" - these define different rules used to format and display metadata harvested from different archives  -->
                                 <div class="form-group">
                                     <label for="harvestingStyle" 

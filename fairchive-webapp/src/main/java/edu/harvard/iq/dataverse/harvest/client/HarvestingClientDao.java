@@ -144,21 +144,20 @@ public class HarvestingClientDao implements java.io.Serializable {
         }
     }
 
+    /**
+     * Number of datasets harvested by any of the given clients. Counted
+     * through the client a dataset was harvested from, so a client with no
+     * destination collection is no obstacle, and a dataset created directly
+     * in a collection a client harvests into is not counted.
+     */
     public Long getNumberOfHarvestedDatasetByClients(List<HarvestingClient> clients) {
-        String dvs = null;
-        for (HarvestingClient client : clients) {
-            if (dvs == null) {
-                dvs = client.getDataverse().getId().toString();
-            } else {
-                dvs = dvs.concat("," + client.getDataverse().getId().toString());
-            }
+        if (clients.isEmpty()) {
+            return 0L;
         }
-
         try {
-            return (Long) em.createNativeQuery("SELECT count(d.id) FROM dataset d, "
-                                                       + " dvobject o WHERE d.id = o.id AND o.owner_id in ("
-                                                       + dvs + ")").getSingleResult();
-
+            return em.createQuery("SELECT COUNT(d) FROM Dataset d WHERE d.harvestedFrom IN :clients", Long.class)
+                    .setParameter("clients", clients)
+                    .getSingleResult();
         } catch (Exception ex) {
             logger.info("Warning: exception trying to count harvested datasets by clients: " + ex.getMessage());
             return 0L;
